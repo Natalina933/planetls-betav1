@@ -312,7 +312,7 @@ export async function GET(req: NextRequest) {
       const isActive7d = isRecent(authUser?.last_sign_in_at ?? null, 24 * 7);
       const healthFlags: string[] = [];
 
-      if (!onboardingComplete) healthFlags.push("Onboarding incomplet");
+      if (!onboardingComplete) healthFlags.push("Parcours d'inscription incomplet");
       if (!authUser?.email_confirmed_at) healthFlags.push("Email non confirmé");
       if (!authUser?.last_sign_in_at) healthFlags.push("Jamais connecté");
       if (!profile.company_name && roleBucket !== "owner") healthFlags.push("Société non renseignée");

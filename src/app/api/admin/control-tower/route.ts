@@ -277,7 +277,7 @@ export async function GET(req: NextRequest) {
           { id: "account", label: "Compte cree", ok: Boolean(createdAt) },
           { id: "email", label: "Email confirme", ok: Boolean(authUser?.email_confirmed_at) },
           { id: "signin", label: "Premiere connexion", ok: Boolean(authUser?.last_sign_in_at) },
-          { id: "events", label: "Evenements onboarding", ok: (onboardingEventCountByProfile.get(profile.id) ?? 0) > 0 },
+          { id: "events", label: "Evenements d'inscription", ok: (onboardingEventCountByProfile.get(profile.id) ?? 0) > 0 },
           { id: "complete", label: "Inscription terminee", ok: profile.onboarding_complete === true },
         ];
         const issueCount = buildIssueCount(steps);

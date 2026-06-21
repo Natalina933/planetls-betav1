@@ -84,13 +84,11 @@ type AdminControlPayload = {
   };
 };
 
-function getArrayPayload<T>(payload: unknown): T[] {
-  if (Array.isArray(payload)) return payload as T[];
-  if (payload && typeof payload === "object" && Array.isArray((payload as { items?: unknown }).items)) {
-    return (payload as { items: T[] }).items;
-  }
-  return [];
-}
+type AdminOperationsPayload = {
+  requests: AdminRequestRow[];
+  missions: AdminMissionRow[];
+  invoiceCount: number;
+};
 
 function getDateTime(value: string | null | undefined) {
   if (!value) return null;
@@ -134,24 +132,19 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function fetchAdminData() {
       try {
-        const [requestsRes, missionsRes, invoicesRes, overviewRes, controlRes] = await Promise.allSettled([
-          fetch("/api/service-requests?limit=200", { cache: "no-store" }),
-          fetch("/api/missions?limit=200", { cache: "no-store" }),
-          fetch("/api/invoices?limit=100", { cache: "no-store" }),
+        const [operationsRes, overviewRes, controlRes] = await Promise.allSettled([
+          fetch("/api/admin/operations?limit=200", { cache: "no-store" }),
           fetch("/api/admin/overview", { cache: "no-store" }),
           fetch("/api/admin/control-tower", { cache: "no-store" }),
         ]);
 
         let overviewPayload: AdminOverviewPayload | null = null;
 
-        if (requestsRes.status === "fulfilled" && requestsRes.value.ok) {
-          setRequests(getArrayPayload<AdminRequestRow>(await requestsRes.value.json().catch(() => ({}))));
-        }
-        if (missionsRes.status === "fulfilled" && missionsRes.value.ok) {
-          setMissions(getArrayPayload<AdminMissionRow>(await missionsRes.value.json().catch(() => [])));
-        }
-        if (invoicesRes.status === "fulfilled" && invoicesRes.value.ok) {
-          setInvoiceCount(getArrayPayload<unknown>(await invoicesRes.value.json().catch(() => [])).length);
+        if (operationsRes.status === "fulfilled" && operationsRes.value.ok) {
+          const operations = (await operationsRes.value.json().catch(() => null)) as AdminOperationsPayload | null;
+          setRequests(operations?.requests ?? []);
+          setMissions(operations?.missions ?? []);
+          setInvoiceCount(operations?.invoiceCount ?? 0);
         }
         if (overviewRes.status === "fulfilled" && overviewRes.value.ok) {
           overviewPayload = (await overviewRes.value.json().catch(() => null)) as AdminOverviewPayload | null;
@@ -581,7 +574,7 @@ export default function AdminDashboard() {
               <span className={styles.categoryBadge}>{adminControl?.summary.onboarding.total ?? 0}</span>
             </div>
             <p className={styles.categoryDescription}>
-              {adminControl?.summary.onboarding.danger ?? 0} rouge(s) · {adminControl?.summary.onboarding.warning ?? 0} orange(s) sur la création, la confirmation et l'onboarding.
+              {adminControl?.summary.onboarding.danger ?? 0} rouge(s) · {adminControl?.summary.onboarding.warning ?? 0} orange(s) sur la création, la confirmation et le parcours d'inscription.
             </p>
             <span className={styles.categoryLink}>Voir les étapes</span>
           </Link>
@@ -629,7 +622,7 @@ export default function AdminDashboard() {
               <span className={styles.categoryBadge}>{stats.users}</span>
             </div>
             <p className={styles.categoryDescription}>
-              Voir les connexions, l'onboarding, les e-mails confirmés et la complétude de chaque compte.
+              Voir les connexions, le parcours d'inscription, les e-mails confirmés et la complétude de chaque compte.
             </p>
             <span className={styles.categoryLink}>Ouvrir le pilotage</span>
           </Link>

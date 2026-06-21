@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
 import {
   AdminEmptyState,
   AdminFilterBar,
+  AdminIssueList,
   AdminKpiGrid,
   AdminProcessTimeline,
   AdminStatusBadge,
   formatAdminDate,
   getElapsedLabel,
+  getMissionAdminIssues,
   getMissionNextAction,
   getMissionStatus,
   getMissionTimeline,
@@ -22,13 +24,7 @@ import {
 } from "../AdminOperations";
 import styles from "../AdminListPages.module.scss";
 
-function getArrayPayload<T>(payload: unknown): T[] {
-  if (Array.isArray(payload)) return payload as T[];
-  if (payload && typeof payload === "object" && Array.isArray((payload as { items?: unknown }).items)) {
-    return (payload as { items: T[] }).items;
-  }
-  return [];
-}
+type AdminOperationsPayload = { missions?: AdminMissionRow[]; nextOffset?: number | null };
 
 function getMissionAssignee(mission: AdminMissionRow) {
   return mission.concierge_name || mission.provider_name || "Intervenant non renseigné";
@@ -43,22 +39,41 @@ function formatAmount(value: AdminMissionRow["amount"], fallback: AdminMissionRo
 export default function AdminMissionsPage() {
   const [missions, setMissions] = useState<AdminMissionRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("Tous");
 
-  useEffect(() => {
-    async function loadMissions() {
-      try {
-        const response = await fetch("/api/missions?limit=200", { cache: "no-store" });
-        if (!response.ok) return;
-        setMissions(getArrayPayload<AdminMissionRow>(await response.json().catch(() => [])));
-      } finally {
-        setLoading(false);
-      }
-    }
+  const loadMissions = useCallback(async (offset = 0) => {
+    if (offset > 0) setLoadingMore(true);
+    else setLoading(true);
 
-    void loadMissions();
+    try {
+      const response = await fetch(`/api/admin/operations?limit=200&offset=${offset}`, { cache: "no-store" });
+      if (!response.ok) {
+        setHasMore(false);
+        return;
+      }
+      const payload = (await response.json().catch(() => ({}))) as AdminOperationsPayload;
+      const nextMissions = Array.isArray(payload.missions) ? payload.missions : [];
+      setMissions((current) => {
+        if (offset === 0) return nextMissions;
+        return Array.from(new Map([...current, ...nextMissions].map((mission) => [mission.id, mission])).values());
+      });
+      setHasMore(typeof payload.nextOffset === "number");
+    } finally {
+      if (offset > 0) setLoadingMore(false);
+      else setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void loadMissions();
+  }, [loadMissions]);
+
+  const loadMore = () => {
+    void loadMissions(missions.length);
+  };
 
   const filteredMissions = useMemo(() => {
     const normalizedSearch = normalizeAdminText(search);
@@ -68,6 +83,8 @@ export default function AdminMissionsPage() {
       const searchable = normalizeAdminText(
         [
           mission.title,
+          mission.id,
+          mission.service_request_id,
           mission.owner_name,
           mission.property_name,
           mission.city,
@@ -185,8 +202,9 @@ export default function AdminMissionsPage() {
 
         <DashboardPanel title="Missions à contrôler">
           {filteredMissions.length ? (
-            <div className={styles.list}>
-              {filteredMissions.map((mission) => {
+            <>
+              <div className={styles.list}>
+                {filteredMissions.map((mission) => {
                 const currentStatus = getMissionStatus(mission);
                 return (
                   <article className={styles.card} key={mission.id}>
@@ -243,10 +261,19 @@ export default function AdminMissionsPage() {
                     </div>
 
                     <AdminProcessTimeline steps={getMissionTimeline(mission)} />
+                    <AdminIssueList issues={getMissionAdminIssues(mission)} />
                   </article>
                 );
-              })}
-            </div>
+                })}
+              </div>
+              {hasMore ? (
+                <div className={styles.listFooter}>
+                  <button type="button" className={styles.ghostButton} onClick={loadMore} disabled={loadingMore}>
+                    {loadingMore ? "Chargement..." : "Charger les missions suivantes"}
+                  </button>
+                </div>
+              ) : null}
+            </>
           ) : (
             <AdminEmptyState
               title="Aucune mission ne correspond aux filtres"

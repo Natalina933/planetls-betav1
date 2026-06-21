@@ -1229,6 +1229,8 @@ function OwnerTravelerMissionsContent() {
     { label: "Terminées", value: loading ? "..." : String(completedCount), icon: <CheckCircle2 size={18} /> },
     { label: "Partenaires", value: loading ? "..." : String(partners.length), icon: <ShieldCheck size={18} /> },
   ];
+  const isPostAcceptanceEntry = Boolean((targetRequestId || targetQuoteId) && selectedAssignment);
+  const isQuickArrivalComposer = isPostAcceptanceEntry && creationMode === "manual";
 
   function updateForm<K extends keyof TravelerMissionForm>(key: K, value: TravelerMissionForm[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -1262,9 +1264,8 @@ function OwnerTravelerMissionsContent() {
     autoOpenTargetRef.current = targetKey;
     selectAssignment(targetedAssignment);
     setSuccess(
-      `Partenaire ${targetedAssignment.conciergeName} sélectionné. Ajoutez les informations voyageur reçues de votre plateforme.`,
+      `La collaboration avec ${targetedAssignment.conciergeName} est prête : transmettez maintenant une arrivée ou votre planning.`,
     );
-    openComposer("manual");
   }, [assignmentOptions, loading, targetQuoteId, targetRequestId]);
 
   function selectAssignment(option: AssignmentOption) {
@@ -1468,40 +1469,45 @@ function OwnerTravelerMissionsContent() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={`${styles.hero} ${isPostAcceptanceEntry ? styles.heroFocused : ""}`}>
         <div className={styles.heroContent}>
           <p className={styles.eyebrow}>Missions voyageurs</p>
-          <h1>Séjours voyageurs</h1>
+          <h1>{isPostAcceptanceEntry ? "Transmettre les prochains séjours" : "Séjours voyageurs"}</h1>
           <p>
-            Transmettez à votre conciergerie les arrivées, départs, voyageurs, consignes et actions terrain dans
-            un espace clair, séparé des demandes commerciales.
+            {isPostAcceptanceEntry
+              ? `La conciergerie est reliée. Commencez simplement par la prochaine arrivée ou importez votre planning.`
+              : "Transmettez à votre conciergerie les arrivées, départs, voyageurs, consignes et actions terrain dans un espace clair."}
           </p>
-          <div className={styles.heroActions}>
-            <button type="button" className={styles.primaryLink} onClick={() => openComposer("manual")}>
-              <Bell size={16} aria-hidden="true" /> Prévenir la concierge
-            </button>
-            <ButtonLink href="/dashboard/owner/planning" variant="secondary">
-              <CalendarClock size={16} aria-hidden="true" /> Planning
-            </ButtonLink>
-            <ButtonLink href="/dashboard/owner/conciergerie/partenaires" variant="secondary">
-              <ShieldCheck size={16} aria-hidden="true" /> Partenaires acceptés
-            </ButtonLink>
-          </div>
+          {!isPostAcceptanceEntry ? (
+            <div className={styles.heroActions}>
+              <button type="button" className={styles.primaryLink} onClick={() => openComposer("manual")}>
+                <Bell size={16} aria-hidden="true" /> Prévenir la concierge
+              </button>
+              <ButtonLink href="/dashboard/owner/planning" variant="secondary">
+                <CalendarClock size={16} aria-hidden="true" /> Planning
+              </ButtonLink>
+              <ButtonLink href="/dashboard/owner/conciergerie/partenaires" variant="secondary">
+                <ShieldCheck size={16} aria-hidden="true" /> Partenaires acceptés
+              </ButtonLink>
+            </div>
+          ) : null}
         </div>
-        <div className={styles.heroSnapshot}>
-          <span><Send size={16} /> Séjours transmis</span>
-          <strong>{loading ? "..." : upcomingCount}</strong>
-          <p>missions à venir</p>
-          <div className={styles.heroProgress}>
-            <span style={{ width: `${Math.min(100, Math.max(12, missions.length * 18))}%` }} />
+        {!isPostAcceptanceEntry ? (
+          <div className={styles.heroSnapshot}>
+            <span><Send size={16} /> Séjours transmis</span>
+            <strong>{loading ? "..." : upcomingCount}</strong>
+            <p>missions à venir</p>
+            <div className={styles.heroProgress}>
+              <span style={{ width: `${Math.min(100, Math.max(12, missions.length * 18))}%` }} />
+            </div>
           </div>
-        </div>
+        ) : null}
       </header>
 
       {error ? <p className={`${styles.message} ${styles.messageError}`}>{error}</p> : null}
       {success ? <p className={`${styles.message} ${styles.messageSuccess}`}>{success}</p> : null}
 
-      {selectedAssignment ? (
+      {selectedAssignment && !isPostAcceptanceEntry ? (
         <section className={styles.syncPanel} aria-label="Lien avec la demande et le devis acceptés">
           <div className={styles.syncMain}>
             <span className={styles.syncBadgeReady}>
@@ -1525,19 +1531,49 @@ function OwnerTravelerMissionsContent() {
         </section>
       ) : null}
 
-      <section className={styles.statsGrid} aria-label="Statistiques missions voyageurs">
-        {stats.map((stat) => (
-          <article key={stat.label} className={styles.statCard}>
-            <span className={styles.statIcon}>{stat.icon}</span>
-            <div>
-              <strong>{stat.value}</strong>
-              <p>{stat.label}</p>
-            </div>
-          </article>
-        ))}
-      </section>
+      {isPostAcceptanceEntry && selectedAssignment ? (
+        <section className={styles.postAcceptancePanel} aria-labelledby="post-acceptance-title">
+          <div>
+            <p className={styles.eyebrow}>Prochaine étape</p>
+            <h2 id="post-acceptance-title">Comment souhaitez-vous démarrer avec {selectedAssignment.conciergeName} ?</h2>
+            <p className={styles.meta}>
+              Vous pouvez transmettre seulement la prochaine arrivée, ou importer plusieurs séjours depuis votre plateforme.
+            </p>
+          </div>
+          <div className={styles.postAcceptanceChoices}>
+            <button type="button" className={styles.postAcceptanceChoicePrimary} onClick={() => openComposer("manual")}>
+              <Bell size={18} aria-hidden="true" />
+              <span>
+                <strong>Prévenir d&apos;une prochaine arrivée</strong>
+                <small>Ajoutez un séjour voyageur en quelques informations.</small>
+              </span>
+            </button>
+            <button type="button" className={styles.postAcceptanceChoice} onClick={() => openComposer("platform")}>
+              <ClipboardList size={18} aria-hidden="true" />
+              <span>
+                <strong>Importer un planning</strong>
+                <small>Collez plusieurs réservations Airbnb, Booking ou autre.</small>
+              </span>
+            </button>
+          </div>
+        </section>
+      ) : null}
 
-      <section className={styles.syncPanel} aria-label="Synchronisation planning concierge">
+      {!isPostAcceptanceEntry ? (
+        <section className={styles.statsGrid} aria-label="Statistiques missions voyageurs">
+          {stats.map((stat) => (
+            <article key={stat.label} className={styles.statCard}>
+              <span className={styles.statIcon}>{stat.icon}</span>
+              <div>
+                <strong>{stat.value}</strong>
+                <p>{stat.label}</p>
+              </div>
+            </article>
+          ))}
+        </section>
+      ) : null}
+
+      {!isPostAcceptanceEntry ? <section className={styles.syncPanel} aria-label="Synchronisation planning concierge">
         <div className={styles.syncMain}>
           <span className={plannedCount > 0 ? styles.syncBadgeReady : styles.syncBadgeWaiting}>
             {plannedCount > 0 ? <CalendarCheck2 size={16} aria-hidden="true" /> : <AlertTriangle size={16} aria-hidden="true" />}
@@ -1555,9 +1591,9 @@ function OwnerTravelerMissionsContent() {
             </span>
           ))}
         </div>
-      </section>
+      </section> : null}
 
-      <section id="nouvelle-mission-voyageur" className={styles.creationLauncher}>
+      {!isPostAcceptanceEntry ? <section id="nouvelle-mission-voyageur" className={styles.creationLauncher}>
         <div>
           <p className={styles.eyebrow}>Information séjour</p>
           <h2>Prévenir rapidement la conciergerie concernée</h2>
@@ -1569,7 +1605,7 @@ function OwnerTravelerMissionsContent() {
           <Bell size={16} aria-hidden="true" />
           Prévenir la concierge
         </Button>
-      </section>
+      </section> : null}
 
       {isComposerOpen ? (
         <div
@@ -1593,13 +1629,25 @@ function OwnerTravelerMissionsContent() {
             <div className={styles.modalHeader}>
               <div>
                 <p className={styles.eyebrow}>Fiche séjour</p>
-                <h2 id="mission-modal-title">Prévenir la concierge</h2>
+                <h2 id="mission-modal-title">
+                  {isQuickArrivalComposer && selectedAssignment
+                    ? `Prévenir ${selectedAssignment.conciergeName} d’une arrivée`
+                    : "Prévenir la concierge"}
+                </h2>
               </div>
               <button type="button" className={styles.iconButton} onClick={closeComposer} aria-label="Fermer">
                 <X size={18} aria-hidden="true" />
               </button>
             </div>
-        <div className={styles.assignmentWorkbench}>
+        {isQuickArrivalComposer && selectedAssignment ? (
+          <section className={styles.quickArrivalContext} aria-label="Destinataire de l'arrivée">
+            <span><ShieldCheck size={16} aria-hidden="true" /> Conciergerie destinataire</span>
+            <strong>{selectedAssignment.conciergeName}</strong>
+            <small>{selectedAssignment.propertyName}</small>
+          </section>
+        ) : null}
+
+        {!isQuickArrivalComposer ? <div className={styles.assignmentWorkbench}>
           <section className={styles.assignmentPanel}>
             <div className={styles.sectionHeading}>
               <div>
@@ -1663,9 +1711,9 @@ function OwnerTravelerMissionsContent() {
               ))}
             </div>
           </section>
-        </div>
+        </div> : null}
 
-        <div className={styles.creationModeTabs} role="tablist" aria-label="Mode de création">
+        {!isQuickArrivalComposer ? <div className={styles.creationModeTabs} role="tablist" aria-label="Mode de création">
           <button
             type="button"
             className={creationMode === "manual" ? styles.modeTabActive : styles.modeTab}
@@ -1682,7 +1730,7 @@ function OwnerTravelerMissionsContent() {
             <ClipboardList size={16} aria-hidden="true" />
             Importer un planning
           </button>
-        </div>
+        </div> : null}
 
         <section className={creationMode === "platform" ? styles.planningImportPanel : styles.hiddenPanel}>
           <div className={styles.sectionHeading}>
@@ -1841,7 +1889,7 @@ function OwnerTravelerMissionsContent() {
           </div>
         </section>
 
-        <div className={creationMode === "manual" ? styles.travelerMissionLayout : styles.hiddenPanel}>
+        <div className={creationMode === "manual" ? `${styles.travelerMissionLayout} ${isQuickArrivalComposer ? styles.quickArrivalLayout : ""}` : styles.hiddenPanel}>
           <form
             id="mission-voyageur-formulaire"
             className={styles.travelerMissionForm}
@@ -1859,26 +1907,8 @@ function OwnerTravelerMissionsContent() {
                   <Input value={form.lastName} onChange={(event) => updateForm("lastName", event.target.value)} />
                 </label>
                 <label className={styles.label}>
-                  Nombre d’adultes
+                  Nombre de voyageurs
                   <Input type="number" min="0" value={form.adults} onChange={(event) => updateForm("adults", event.target.value)} />
-                </label>
-                <label className={styles.label}>
-                  Enfants
-                  <Input type="number" min="0" value={form.children} onChange={(event) => updateForm("children", event.target.value)} />
-                </label>
-                <label className={styles.label}>
-                  Téléphone
-                  <Input value={form.phone} onChange={(event) => updateForm("phone", event.target.value)} placeholder="Optionnel mais utile" />
-                </label>
-                <label className={styles.label}>
-                  Plateforme
-                  <Select value={form.bookingPlatform} onChange={(event) => updateForm("bookingPlatform", event.target.value)}>
-                    <option>Airbnb</option>
-                    <option>Booking</option>
-                    <option>Abritel</option>
-                    <option>Direct</option>
-                    <option>Autre</option>
-                  </Select>
                 </label>
               </div>
             </section>
@@ -1904,9 +1934,9 @@ function OwnerTravelerMissionsContent() {
                 </label>
               </div>
               <label className={styles.label}>
-                Message pour la concierge
+                Consigne pour la concierge <small>(facultatif)</small>
                 <Textarea
-                  rows={4}
+                  rows={3}
                   value={form.notes}
                   onChange={(event) => updateForm("notes", event.target.value)}
                   placeholder="Ex : arrivée autonome, attention au lit bébé, voyageurs déjà informés des codes..."
@@ -1925,8 +1955,26 @@ function OwnerTravelerMissionsContent() {
               <div className={styles.advancedNoticeContent}>
                 <div className={styles.travelerFieldGrid}>
                   <label className={styles.label}>
+                    Téléphone voyageur
+                    <Input value={form.phone} onChange={(event) => updateForm("phone", event.target.value)} />
+                  </label>
+                  <label className={styles.label}>
                     Email voyageur
                     <Input type="email" value={form.email} onChange={(event) => updateForm("email", event.target.value)} />
+                  </label>
+                  <label className={styles.label}>
+                    Enfants
+                    <Input type="number" min="0" value={form.children} onChange={(event) => updateForm("children", event.target.value)} />
+                  </label>
+                  <label className={styles.label}>
+                    Plateforme
+                    <Select value={form.bookingPlatform} onChange={(event) => updateForm("bookingPlatform", event.target.value)}>
+                      <option>Airbnb</option>
+                      <option>Booking</option>
+                      <option>Abritel</option>
+                      <option>Direct</option>
+                      <option>Autre</option>
+                    </Select>
                   </label>
                   <label className={styles.label}>
                     Bébé

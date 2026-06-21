@@ -802,7 +802,7 @@ export default function ProviderDashboardPage() {
         <summary className={styles.disclosureSummary}>
           <div>
             <span className={styles.sectionEyebrow}>Parcours & evolution</span>
-            <strong>Onboarding provider et extension premium</strong>
+            <strong>Parcours d'inscription prestataire et extension premium</strong>
             <p>Cette zone conserve les aides de progression sans polluer la lecture terrain du cockpit.</p>
           </div>
         </summary>

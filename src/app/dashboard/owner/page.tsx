@@ -8,11 +8,8 @@ import {
   ChevronRight,
   CircleDollarSign,
   ClipboardList,
-  Clock3,
   FileCheck2,
-  FileText,
   Home,
-  RefreshCcw,
   ShieldCheck,
   Users,
   Wallet,
@@ -23,10 +20,7 @@ import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import type { CurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
 import {
-  DashboardOnboardingSummary,
   FirstLoginOnboardingPopup,
-  OnboardingPromptCard,
-  shouldShowDashboardReminder,
   shouldShowFirstLoginPopup,
   type OnboardingActionStatus,
   type OnboardingPath,
@@ -34,25 +28,13 @@ import {
 import {
   UnifiedPropertyPortfolio,
   UnifiedRoleDashboard,
-  UnifiedStatStack,
   type UnifiedPropertyItem,
-  type UnifiedStatItem,
 } from "@/app/components/dashboard/unified";
 import { DashboardEmptyState, DashboardStatusBadge, getDashboardMissionPaceMeta } from "@/app/components/dashboard/saas";
 import { useOwnerDashboardData } from "./useOwnerDashboardData";
 import styles from "./OwnerUnifiedDashboard.module.scss";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-type DashboardActivityItem = {
-  id: string;
-  kind: "quote" | "mission" | "message" | "invoice";
-  title: string;
-  detail: string;
-  date: Date | null;
-  dateLabel: string;
-  href?: string;
-};
 
 type ActionQueueItem = {
   id: string;
@@ -118,19 +100,6 @@ function getQuoteStatusLabel(status: string | null | undefined) {
   }
 }
 
-function getInvoiceStatusLabel(status: string | null | undefined) {
-  switch (status) {
-    case "paid":
-      return "Réglée";
-    case "canceled":
-      return "Annulée";
-    case "overdue":
-      return "En retard";
-    default:
-      return "À vérifier";
-  }
-}
-
 function getMissionStatusLabel(status: string | null | undefined) {
   switch (status) {
     case "assigned":
@@ -188,7 +157,6 @@ export default function OwnerDashboardPage() {
     properties,
     missions,
     quotes,
-    conversations,
     requestsCount,
     activeCount,
     draftCount,
@@ -198,12 +166,11 @@ export default function OwnerDashboardPage() {
     latestInvoices,
     averageRating,
     unreadConversationCount,
-    ownerActivationProgress,
+    serviceRequests,
   } = useOwnerDashboardData(isAuthenticated, { missionLimit: 24 });
 
   const onboardingPath: OnboardingPath = "business+";
   const [firstLoginOpen, setFirstLoginOpen] = useState(false);
-  const [reminderDismissed, setReminderDismissed] = useState(false);
 
   const actionStatus = useMemo<Record<string, OnboardingActionStatus>>(
     () => ({
@@ -224,13 +191,6 @@ export default function OwnerDashboardPage() {
     });
     setFirstLoginOpen(shouldOpen);
   }, [actionStatus, user?.id]);
-
-  const showDashboardReminder =
-    shouldShowDashboardReminder(onboardingPath, {
-      firstLogin: false,
-      completionState: "in_progress",
-      actionStatus,
-    }) && !reminderDismissed;
 
   const ownerName = user?.firstName || user?.username || "Propriétaire";
   const greetingTitle = `${getGreetingLabel()} ${ownerName}`;
@@ -299,26 +259,18 @@ export default function OwnerDashboardPage() {
     [quotes],
   );
 
-  const pendingInvoiceTotal = useMemo(
-    () =>
-      pendingInvoices.reduce(
-        (sum, invoice) => sum + (typeof invoice.balance_amount === "number" ? invoice.balance_amount : 0),
-        0,
-      ),
-    [pendingInvoices],
-  );
+  const conciergeByHousingId = useMemo(() => {
+    const partners = new Map<string, string>();
 
-  const distinctPartners = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          sortedUpcomingMissions
-            .map((mission) => mission.concierge_name?.trim())
-            .filter((value): value is string => Boolean(value)),
-        ),
-      ),
-    [sortedUpcomingMissions],
-  );
+    serviceRequests.forEach((request) => {
+      const housingId = request.property_housing_id;
+      const conciergeName = request.selected_concierge_name?.trim();
+      if (housingId === null || housingId === undefined || !conciergeName) return;
+      if (!partners.has(String(housingId))) partners.set(String(housingId), conciergeName);
+    });
+
+    return partners;
+  }, [serviceRequests]);
 
   const propertyItems = useMemo<UnifiedPropertyItem[]>(
     () =>
@@ -371,7 +323,8 @@ export default function OwnerDashboardPage() {
                 minute: "2-digit",
               }) || "Planifiée"
             : "Aucune",
-          concierge: getPartnerName(nextMission?.concierge_name),
+          concierge:
+            conciergeByHousingId.get(String(property.id)) ?? getPartnerName(nextMission?.concierge_name),
           metrics: [
             {
               label: "Missions",
@@ -401,7 +354,7 @@ export default function OwnerDashboardPage() {
           ],
         };
       }),
-    [properties, sortedUpcomingMissions, travelerMissions],
+    [conciergeByHousingId, properties, sortedUpcomingMissions, travelerMissions],
   );
 
   const timelineMissions = useMemo(
@@ -532,171 +485,6 @@ export default function OwnerDashboardPage() {
     [draftCount, pendingInvoices.length, quoteAwaitingCount, requestsCount, unreadConversationCount],
   );
 
-  const financeStats = useMemo<UnifiedStatItem[]>(
-    () => [
-      {
-        label: "Devis",
-        value: `${quoteAwaitingCount}`,
-        icon: <CircleDollarSign size={16} />,
-        tone: "accent",
-        detail:
-          quoteAwaitingCount > 0
-            ? `${formatEuroAmountLabel(quoteAwaitingTotal)} à arbitrer`
-            : "Aucun en attente",
-      },
-      {
-        label: "Factures",
-        value: `${pendingInvoices.length}`,
-        icon: <Wallet size={16} />,
-        tone: "soft",
-        detail:
-          pendingInvoices.length > 0
-            ? `${formatEuroAmountLabel(pendingInvoiceTotal)} à surveiller`
-            : "Aucun point urgent",
-      },
-      {
-        label: "Demandes",
-        value: `${requestsCount}`,
-        icon: <ClipboardList size={16} />,
-        tone: "neutral",
-        detail: requestsCount > 0 ? "Demandes en cours" : "Aucune demande ouverte",
-      },
-    ],
-    [pendingInvoiceTotal, pendingInvoices.length, quoteAwaitingCount, quoteAwaitingTotal, requestsCount],
-  );
-
-  const operationsStats = useMemo<UnifiedStatItem[]>(
-    () => [
-      {
-        label: "Partenaires",
-        value: `${distinctPartners.length}`,
-        icon: <Users size={16} />,
-        tone: "soft",
-        detail: distinctPartners[0] ? distinctPartners[0] : "Aucun relié",
-      },
-      {
-        label: "Aujourd'hui",
-        value: `${todayMissionCount}`,
-        icon: <Clock3 size={16} />,
-        tone: "accent",
-        detail: nextWeekMissionCount > 0 ? `${nextWeekMissionCount} cette semaine` : "Semaine légère",
-      },
-      {
-        label: "Activation",
-        value: `${ownerActivationProgress.percentage}%`,
-        icon: <ShieldCheck size={16} />,
-        tone: "neutral",
-        detail:
-          ownerActivationProgress.missingItems.length > 0
-            ? `${ownerActivationProgress.missingItems.length} jalon(x) restant(s)`
-            : "Parcours complet",
-      },
-    ],
-    [distinctPartners, nextWeekMissionCount, ownerActivationProgress.missingItems.length, ownerActivationProgress.percentage, todayMissionCount],
-  );
-
-  const recentActivity = useMemo<DashboardActivityItem[]>(() => {
-    const items: DashboardActivityItem[] = [];
-
-    latestQuotes.forEach((quote) => {
-      const isRejected = quote.status === "rejected";
-      items.push({
-        id: `quote-${quote.id}`,
-        kind: "quote",
-        title: quote.quote_number || "Devis reçu",
-        detail: `${getQuoteStatusLabel(quote.status)} · ${formatEuroAmountLabel(quote.total_amount)}`,
-        date: getDateTime(quote.updated_at || quote.created_at),
-        dateLabel:
-          formatDateValue(quote.updated_at || quote.created_at, {
-            day: "2-digit",
-            month: "short",
-            hour: "2-digit",
-            minute: "2-digit",
-          }) || "Sans date",
-        href: isRejected ? undefined : "/dashboard/owner/devis",
-      });
-    });
-
-    sortedUpcomingMissions.slice(0, 3).forEach((mission) => {
-      items.push({
-        id: `mission-${mission.id}`,
-        kind: "mission",
-        title: mission.title || "Mission créée",
-        detail: `${getMissionStatusLabel(mission.status)} · ${getPartnerName(mission.concierge_name)}`,
-        date: getDateTime(mission.updated_at || mission.created_at || mission.scheduled_start),
-        dateLabel:
-          formatDateValue(mission.updated_at || mission.created_at || mission.scheduled_start, {
-            day: "2-digit",
-            month: "short",
-            hour: "2-digit",
-            minute: "2-digit",
-          }) || "Sans date",
-        href: "/dashboard/owner/planning",
-      });
-    });
-
-    conversations
-      .filter((conversation) => Boolean(conversation.last_message_at))
-      .slice(0, 3)
-      .forEach((conversation) => {
-        items.push({
-          id: `message-${conversation.id}`,
-          kind: "message",
-          title: conversation.subject || conversation.counterpart_name || "Message reçu",
-          detail: conversation.last_message_preview || "Nouvel échange dans votre messagerie",
-          date: getDateTime(conversation.last_message_at),
-          dateLabel:
-            formatDateValue(conversation.last_message_at, {
-              day: "2-digit",
-              month: "short",
-              hour: "2-digit",
-              minute: "2-digit",
-            }) || "Sans date",
-          href: "/dashboard/owner/messages",
-        });
-      });
-
-    latestInvoices.forEach((invoice) => {
-      items.push({
-        id: `invoice-${invoice.id}`,
-        kind: "invoice",
-        title: invoice.invoice_number || "Facture mise à jour",
-        detail: `${getInvoiceStatusLabel(invoice.status)} · ${formatEuroAmountLabel(invoice.balance_amount)}`,
-        date: getDateTime(invoice.updated_at || invoice.created_at),
-        dateLabel:
-          formatDateValue(invoice.updated_at || invoice.created_at, {
-            day: "2-digit",
-            month: "short",
-            hour: "2-digit",
-            minute: "2-digit",
-          }) || "Sans date",
-        href: "/dashboard/owner/factures",
-      });
-    });
-
-    return items
-      .sort((left, right) => (right.date?.getTime() ?? 0) - (left.date?.getTime() ?? 0))
-      .slice(0, 8);
-  }, [conversations, latestInvoices, latestQuotes, sortedUpcomingMissions]);
-
-  const onboardingDisclosure = (
-    <div className={styles.disclosureStack}>
-      {showDashboardReminder ? (
-        <OnboardingPromptCard
-          path={onboardingPath}
-          actionStatus={actionStatus}
-          onDismiss={() => setReminderDismissed(true)}
-        />
-      ) : null}
-      <DashboardOnboardingSummary
-        role="owner"
-        availabilityHours={user?.availability_hours}
-        serviceArea={user?.service_area}
-        serviceRadiusKm={user?.service_radius_km}
-      />
-    </div>
-  );
-
   if (userLoading || !isAuthenticated) {
     return <DashboardLoadingScreen label="Chargement de votre espace propriétaire..." />;
   }
@@ -788,134 +576,37 @@ export default function OwnerDashboardPage() {
           },
         ]}
         leftPrimary={
-          <div className={styles.primaryGrid}>
-            <section className={styles.contentBlock}>
-              <div className={styles.blockHeader}>
-                <h3>Missions à venir</h3>
-                <p>Une timeline compacte pour visualiser les prochaines interventions sans quitter l'accueil.</p>
-              </div>
-              {timelineMissions.length > 0 ? (
-                <div className={styles.timelineList}>
-                  {timelineMissions.map((mission) => (
-                    <Link key={mission.id} href="/dashboard/owner/planning" className={styles.timelineRow}>
-                      <span className={styles.timelineDot}>
-                        <CalendarDays size={16} />
-                      </span>
-                      <div className={styles.timelineCopy}>
-                        <div className={styles.timelineTopline}>
-                          <strong>{mission.title}</strong>
-                          <DashboardStatusBadge label={mission.status} tone="info" className={styles.timelineBadge} />
-                        </div>
-                        <span>{mission.property}</span>
-                        <small>{mission.partner}</small>
-                      </div>
-                      <time>{mission.date}</time>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <DashboardEmptyState
-                  title="Aucune mission planifiée"
-                  copy="Vos prochaines interventions apparaîtront ici dès qu'elles seront programmées."
-                />
-              )}
-            </section>
-
-            <div className={styles.sideStack}>
-              <section className={styles.contentBlock}>
-                <div className={styles.blockHeader}>
-                  <h3>Voyageurs</h3>
-                  <p>Arrivées et départs à surveiller en priorité cette semaine.</p>
-                </div>
-                <div className={styles.travelerSummaryGrid}>
-                  <article className={styles.summaryStatCard}>
-                    <span>Arrivées aujourd'hui</span>
-                    <strong>{arrivalsTodayCount}</strong>
-                  </article>
-                  <article className={styles.summaryStatCard}>
-                    <span>Arrivées semaine</span>
-                    <strong>{arrivalsWeekCount}</strong>
-                  </article>
-                  <article className={styles.summaryStatCard}>
-                    <span>Départs semaine</span>
-                    <strong>{departuresWeekCount}</strong>
-                  </article>
-                </div>
-                {travelerRows.length > 0 ? (
-                  <div className={styles.miniList}>
-                    {travelerRows.map((traveler) => (
-                      <Link key={traveler.id} href="/dashboard/owner/missions/voyageurs" className={styles.miniRow}>
-                        <div>
-                          <strong>{traveler.title}</strong>
-                          <span>{traveler.property}</span>
-                        </div>
-                        <small>{traveler.arrival}</small>
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <DashboardEmptyState
-                    title="Aucun séjour programmé"
-                    copy="Les séjours voyageurs créeront automatiquement vos prochains repères d'arrivée et de départ."
-                  />
-                )}
-              </section>
-
-              <section className={styles.contentBlock}>
-                <div className={styles.blockHeader}>
-                  <h3>Actions à effectuer</h3>
-                  <p>Les points qui demandent votre attention immédiate.</p>
-                </div>
-                {actionQueue.length > 0 ? (
-                  <div className={styles.actionQueueWrap}>
-                    <div className={styles.actionQueueIntro}>
-                      <div>
-                        <strong>{actionQueue.length} action(s) à traiter</strong>
-                        <span>Priorité de pilotage propriétaire</span>
-                      </div>
-                      <span className={styles.actionQueueCount}>{actionQueue.length}</span>
-                    </div>
-                    <div className={styles.actionQueue}>
-                    {actionQueue.map((item) => (
-                      <Link
-                        key={item.id}
-                        href={item.href}
-                        className={`${styles.actionQueueRow} ${styles[`actionQueueRow${item.tone.charAt(0).toUpperCase()}${item.tone.slice(1)}`]}`}
-                      >
-                        <span className={styles.actionQueueIcon}>
-                          {item.icon === "home" ? (
-                            <Home size={18} />
-                          ) : item.icon === "request" ? (
-                            <ClipboardList size={18} />
-                          ) : item.icon === "invoice" ? (
-                            <Wallet size={18} />
-                          ) : item.icon === "quote" ? (
-                            <CircleDollarSign size={18} />
-                          ) : (
-                            <BellRing size={18} />
-                          )}
-                        </span>
-                        <div className={styles.actionQueueBody}>
-                          <small>{item.kicker}</small>
-                          <strong>{item.label}</strong>
-                          <span>{item.detail}</span>
-                        </div>
-                        <span className={styles.actionQueueArrow}>
-                          <ChevronRight size={16} />
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                  </div>
-                ) : (
-                  <DashboardEmptyState
-                    title="Rien d'urgent"
-                    copy="Votre tableau est propre pour le moment. Les prochaines alertes utiles remonteront ici."
-                  />
-                )}
-              </section>
+          <section className={styles.contentBlock}>
+            <div className={styles.blockHeader}>
+              <h3>Prochaines missions</h3>
+              <p>Les interventions à surveiller, dans leur ordre d'arrivée.</p>
             </div>
-          </div>
+            {timelineMissions.length > 0 ? (
+              <div className={styles.timelineList}>
+                {timelineMissions.slice(0, 5).map((mission) => (
+                  <Link key={mission.id} href="/dashboard/owner/planning" className={styles.timelineRow}>
+                    <span className={styles.timelineDot}>
+                      <CalendarDays size={16} />
+                    </span>
+                    <div className={styles.timelineCopy}>
+                      <div className={styles.timelineTopline}>
+                        <strong>{mission.title}</strong>
+                        <DashboardStatusBadge label={mission.status} tone="info" className={styles.timelineBadge} />
+                      </div>
+                      <span>{mission.property}</span>
+                      <small>{mission.partner}</small>
+                    </div>
+                    <time>{mission.date}</time>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <DashboardEmptyState
+                title="Aucune mission planifiée"
+                copy="Vos prochaines interventions apparaîtront ici dès qu'elles seront programmées."
+              />
+            )}
+          </section>
         }
         leftSecondary={
           <section className={styles.contentBlock}>
@@ -933,13 +624,90 @@ export default function OwnerDashboardPage() {
         mainSections={[]}
         sidebarSections={[
           {
+            id: "priorities",
+            title: "À traiter maintenant",
+            subtitle: "Les actions utiles, sans liste interminable.",
+            content:
+              actionQueue.length > 0 ? (
+                <div className={styles.actionQueue}>
+                  {actionQueue.slice(0, 3).map((item) => (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      className={`${styles.actionQueueRow} ${styles[`actionQueueRow${item.tone.charAt(0).toUpperCase()}${item.tone.slice(1)}`]}`}
+                    >
+                      <span className={styles.actionQueueIcon}>
+                        {item.icon === "home" ? (
+                          <Home size={18} />
+                        ) : item.icon === "request" ? (
+                          <ClipboardList size={18} />
+                        ) : item.icon === "invoice" ? (
+                          <Wallet size={18} />
+                        ) : item.icon === "quote" ? (
+                          <CircleDollarSign size={18} />
+                        ) : (
+                          <BellRing size={18} />
+                        )}
+                      </span>
+                      <div className={styles.actionQueueBody}>
+                        <small>{item.kicker}</small>
+                        <strong>{item.label}</strong>
+                        <span>{item.detail}</span>
+                      </div>
+                      <span className={styles.actionQueueArrow}>
+                        <ChevronRight size={16} />
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <DashboardEmptyState title="Rien d'urgent" copy="Votre tableau est à jour pour le moment." />
+              ),
+          },
+          {
+            id: "travellers",
+            title: "Séjours à venir",
+            subtitle: "Les repères voyageurs de la semaine.",
+            content: (
+              <>
+                <div className={styles.travelerSummaryGrid}>
+                  <article className={styles.summaryStatCard}>
+                    <span>Arrivées aujourd'hui</span>
+                    <strong>{arrivalsTodayCount}</strong>
+                  </article>
+                  <article className={styles.summaryStatCard}>
+                    <span>Cette semaine</span>
+                    <strong>{arrivalsWeekCount}</strong>
+                  </article>
+                  <article className={styles.summaryStatCard}>
+                    <span>Départs</span>
+                    <strong>{departuresWeekCount}</strong>
+                  </article>
+                </div>
+                {travelerRows.length > 0 ? (
+                  <div className={styles.miniList}>
+                    {travelerRows.slice(0, 3).map((traveler) => (
+                      <Link key={traveler.id} href="/dashboard/owner/missions/voyageurs" className={styles.miniRow}>
+                        <div>
+                          <strong>{traveler.title}</strong>
+                          <span>{traveler.property}</span>
+                        </div>
+                        <small>{traveler.arrival}</small>
+                      </Link>
+                    ))}
+                  </div>
+                ) : null}
+              </>
+            ),
+          },
+          {
             id: "quotes-list",
-            title: "Derniers devis",
-            subtitle: "Lecture courte et accès direct au détail.",
+            title: "Dernier devis",
+            subtitle: "Le devis le plus récent, accessible en un clic.",
             content: (
               <div className={`${styles.sideCompactBlock} ${styles.quoteBoard}`}>
                 {quoteRows.length > 0 ? (
-                  quoteRows.map((quote) =>
+                  quoteRows.slice(0, 1).map((quote) =>
                     quote.isRejected ? (
                       <article key={quote.id} className={`${styles.quoteRow} ${styles.quoteRowCompact} ${styles.quoteRowDisabled}`}>
                         <div className={styles.quoteHeaderLine}>
@@ -1022,84 +790,8 @@ export default function OwnerDashboardPage() {
               </div>
             ),
           },
-          {
-            id: "recent-activity",
-            title: "Activité récente",
-            subtitle: "Flux compact avec accès direct au détail.",
-            content: (
-              <div className={styles.sideCompactBlock}>
-                {recentActivity.length > 0 ? (
-                  recentActivity.map((item) =>
-                    item.href ? (
-                      <Link key={item.id} href={item.href} className={`${styles.activityRow} ${styles.activityRowCompact}`}>
-                        <span className={styles.activityIcon} data-kind={item.kind}>
-                          {item.kind === "quote" ? (
-                            <FileText size={16} />
-                          ) : item.kind === "mission" ? (
-                            <CalendarDays size={16} />
-                          ) : item.kind === "invoice" ? (
-                            <RefreshCcw size={16} />
-                          ) : (
-                            <BellRing size={16} />
-                          )}
-                        </span>
-                        <div className={styles.activityCopy}>
-                          <strong>{item.title}</strong>
-                          <span>{item.detail}</span>
-                        </div>
-                        <small>{item.dateLabel}</small>
-                      </Link>
-                    ) : (
-                      <article key={item.id} className={`${styles.activityRow} ${styles.activityRowCompact} ${styles.activityRowDisabled}`}>
-                        <span className={styles.activityIcon} data-kind={item.kind}>
-                          {item.kind === "quote" ? (
-                            <FileText size={16} />
-                          ) : item.kind === "mission" ? (
-                            <CalendarDays size={16} />
-                          ) : item.kind === "invoice" ? (
-                            <RefreshCcw size={16} />
-                          ) : (
-                            <BellRing size={16} />
-                          )}
-                        </span>
-                        <div className={styles.activityCopy}>
-                          <strong>{item.title}</strong>
-                          <span>{item.detail}</span>
-                        </div>
-                        <small>{item.dateLabel}</small>
-                      </article>
-                    ),
-                  )
-                ) : (
-                  <DashboardEmptyState
-                    title="Aucune activité récente"
-                    copy="Les nouveaux mouvements de votre espace remonteront ici au fil de l'eau."
-                  />
-                )}
-              </div>
-            ),
-          },
-          {
-            id: "finance",
-            title: "Lecture financière",
-            subtitle: "Montants, devis et factures sans bruit visuel.",
-            content: <UnifiedStatStack items={financeStats} />,
-          },
-          {
-            id: "operations",
-            title: "Contrôle terrain",
-            subtitle: "Partenaires, cadence et niveau de préparation du parc.",
-            content: <UnifiedStatStack items={operationsStats} />,
-          },
         ]}
-        disclosures={[
-          {
-            id: "onboarding",
-            label: "Parcours & options",
-            summary: "Onboarding et rappels secondaires",
-            content: onboardingDisclosure,
-          },
-        ]}
+        disclosures={[]}
       />
 
       <FirstLoginOnboardingPopup

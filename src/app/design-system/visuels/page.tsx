@@ -241,7 +241,7 @@ const REAL_POPUP_REFERENCES = [
     name: "CategoryPopup",
     source: "src/app/components/popups/CategoryPopup",
     title: "Vos services",
-    description: "Sélection des services et besoins pendant l'onboarding.",
+    description: "Sélection des services et besoins pendant le parcours d'inscription.",
     tone: "warning",
   },
   {

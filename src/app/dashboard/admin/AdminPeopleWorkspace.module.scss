@@ -195,12 +195,22 @@
 .flag {
   display: inline-flex;
   align-items: center;
+  border: 0;
   border-radius: 999px;
   padding: 0.42rem 0.7rem;
   background: rgba(132, 79, 38, 0.1);
   color: #7a4b24;
+  cursor: pointer;
+  font: inherit;
   font-size: 0.8rem;
   font-weight: 600;
+}
+
+.flag:hover,
+.flag:focus-visible {
+  background: rgba(132, 79, 38, 0.18);
+  outline: 2px solid rgba(132, 79, 38, 0.28);
+  outline-offset: 2px;
 }
 
 .cardActions {
@@ -302,6 +312,62 @@
   font-size: 0.82rem;
 }
 
+.diagnosticPanel {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  border: 1px solid rgba(138, 109, 74, 0.18);
+  border-radius: 1.1rem;
+  background: rgba(255, 252, 246, 0.94);
+}
+
+.diagnosticHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.diagnosticHeader h4,
+.diagnosticHeader p {
+  margin: 0;
+}
+
+.diagnosticHeader p {
+  margin-top: 0.25rem;
+  color: rgba(47, 38, 29, 0.72);
+}
+
+.diagnosticGrid {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.diagnosticItem {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: 0.95rem;
+}
+
+.diagnosticItem strong {
+  color: #2f261d;
+}
+
+.diagnosticItem span,
+.diagnosticItem small {
+  color: rgba(47, 38, 29, 0.72);
+  line-height: 1.4;
+}
+
+.diagnosticOk {
+  background: rgba(77, 119, 90, 0.1);
+}
+
+.diagnosticProblem {
+  background: rgba(164, 91, 40, 0.12);
+}
+
 @media (min-width: 760px) {
   .filterBar {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -322,5 +388,9 @@
 
   .metricGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .diagnosticGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

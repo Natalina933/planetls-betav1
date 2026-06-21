@@ -167,7 +167,7 @@ export default function ConciergeLandingPage() {
 
       <section className={styles.section}>
         <div className={styles.sectionHeading}>
-          <span className={styles.sectionKicker}>Onboarding</span>
+          <span className={styles.sectionKicker}>Parcours d'inscription</span>
           <h2>Un parcours simple en 4 étapes</h2>
           <p>
             Voici la structure cible du tunnel concierge : commencer simplement, puis structurer

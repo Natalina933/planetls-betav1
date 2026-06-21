@@ -122,6 +122,12 @@ type RequestFormState = {
   propertyKey: string;
   propertyName: string;
   requestType: RequestKind;
+  collaborationType: string;
+  collaborationFrequency: string;
+  estimatedDuration: string;
+  responsibilityLevel: string;
+  desiredDate: string;
+  propertyConstraints: string;
   title: string;
   region: string;
   city: string;
@@ -137,6 +143,12 @@ const initialForm: RequestFormState = {
   propertyKey: "",
   propertyName: "",
   requestType: "ponctuel",
+  collaborationType: "one_off",
+  collaborationFrequency: "once",
+  estimatedDuration: "",
+  responsibilityLevel: "low",
+  desiredDate: "",
+  propertyConstraints: "",
   title: "",
   region: "",
   city: "",
@@ -163,6 +175,16 @@ const requestTypeLabels: Record<RequestKind, string> = {
   renfort: "Renfort / remplacement",
   durable: "Collaboration durable",
 };
+
+function getCollaborationDefaults(requestType: RequestKind) {
+  if (requestType === "durable") {
+    return { collaborationType: "regular", collaborationFrequency: "year_round", responsibilityLevel: "shared" };
+  }
+  if (requestType === "renfort") {
+    return { collaborationType: "temporary_replacement", collaborationFrequency: "seasonal", responsibilityLevel: "shared" };
+  }
+  return { collaborationType: "one_off", collaborationFrequency: "once", responsibilityLevel: "low" };
+}
 
 const currencyOptions = ["EUR", "USD", "GBP", "CHF"];
 
@@ -690,6 +712,17 @@ export default function OwnerRequestsPage() {
     }));
   }
 
+  function handleRequestTypeChange(requestType: RequestKind) {
+    const defaults = getCollaborationDefaults(requestType);
+    setForm((current) => ({
+      ...current,
+      requestType,
+      collaborationType: defaults.collaborationType,
+      collaborationFrequency: defaults.collaborationFrequency,
+      responsibilityLevel: defaults.responsibilityLevel,
+    }));
+  }
+
   function handleEditRequest(request: OwnerServiceRequestRow) {
     requestReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setEditingRequestId(request.id);
@@ -697,6 +730,11 @@ export default function OwnerRequestsPage() {
       propertyKey: request.property_housing_id ? String(request.property_housing_id) : "",
       propertyName: request.property_name ?? "",
       requestType: request.request_type,
+      ...getCollaborationDefaults(request.request_type),
+      estimatedDuration: "",
+      responsibilityLevel: getCollaborationDefaults(request.request_type).responsibilityLevel,
+      desiredDate: request.desired_date ? request.desired_date.slice(0, 10) : "",
+      propertyConstraints: "",
       title: request.title ?? "",
       region: request.region ?? "",
       city: request.city ?? "",
@@ -770,6 +808,18 @@ export default function OwnerRequestsPage() {
           id: editingRequestId,
           housing_id: form.propertyKey || null,
           request_type: form.requestType,
+          owner_goal:
+            form.requestType === "durable"
+              ? "regular_support"
+              : form.requestType === "renfort"
+                ? "replace_current"
+                : "one_off_quote",
+          collaboration_type: form.collaborationType,
+          collaboration_frequency: form.collaborationFrequency,
+          estimated_duration: form.estimatedDuration.trim() || null,
+          responsibility_level: form.responsibilityLevel,
+          desired_date: form.desiredDate || null,
+          property_constraints: form.propertyConstraints.trim() || null,
           title: form.title.trim(),
           description: form.description.trim() || null,
           property_name: form.propertyName.trim() || null,
@@ -981,11 +1031,51 @@ export default function OwnerRequestsPage() {
           ) : null}
           <label className={styles.field}>
             <span>Type de recherche</span>
-            <Select value={form.requestType} onChange={(event) => setForm((current) => ({ ...current, requestType: event.target.value as RequestKind }))}>
+            <Select value={form.requestType} onChange={(event) => handleRequestTypeChange(event.target.value as RequestKind)}>
               <option value="ponctuel">Besoin ponctuel</option>
               <option value="renfort">Renfort / remplacement</option>
               <option value="durable">Collaboration durable</option>
             </Select>
+          </label>
+          <label className={styles.field}>
+            <span>Mode de collaboration</span>
+            <Select value={form.collaborationType} onChange={(event) => setForm((current) => ({ ...current, collaborationType: event.target.value }))}>
+              <option value="one_off">Mission ponctuelle</option>
+              <option value="regular">Collaboration régulière</option>
+              <option value="partial_management">Gestion partielle</option>
+              <option value="full_management">Gestion complète</option>
+              <option value="temporary_replacement">Remplacement temporaire</option>
+              <option value="trial">Test avant engagement</option>
+              <option value="onboarding">Accompagnement au démarrage</option>
+            </Select>
+          </label>
+          <label className={styles.field}>
+            <span>Rythme prévu</span>
+            <Select value={form.collaborationFrequency} onChange={(event) => setForm((current) => ({ ...current, collaborationFrequency: event.target.value }))}>
+              <option value="once">Une seule fois</option>
+              <option value="weekly">Chaque semaine</option>
+              <option value="monthly">Chaque mois</option>
+              <option value="seasonal">Selon la saison</option>
+              <option value="year_round">Toute l'année</option>
+              <option value="unknown">À définir ensemble</option>
+            </Select>
+          </label>
+          <label className={styles.field}>
+            <span>Responsabilité attendue</span>
+            <Select value={form.responsibilityLevel} onChange={(event) => setForm((current) => ({ ...current, responsibilityLevel: event.target.value }))}>
+              <option value="low">Exécution de tâches précises</option>
+              <option value="shared">Pilotage partagé</option>
+              <option value="full">Pilotage opérationnel complet</option>
+              <option value="unknown">À cadrer ensemble</option>
+            </Select>
+          </label>
+          <label className={styles.field}>
+            <span>Date de démarrage souhaitée</span>
+            <Input type="date" value={form.desiredDate} onChange={(event) => setForm((current) => ({ ...current, desiredDate: event.target.value }))} />
+          </label>
+          <label className={styles.field}>
+            <span>Durée ou période estimée</span>
+            <Input value={form.estimatedDuration} onChange={(event) => setForm((current) => ({ ...current, estimatedDuration: event.target.value }))} placeholder="Ex : saison été, 6 mois, toute l'année" />
           </label>
           <label className={styles.field}>
             <span>Budget indicatif</span>
@@ -1048,6 +1138,10 @@ export default function OwnerRequestsPage() {
           <label className={`${styles.field} ${styles.fullField}`}>
             <span>Détails utiles</span>
             <Textarea rows={4} value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Contexte du logement, services attendus, contraintes de collaboration..." />
+          </label>
+          <label className={`${styles.field} ${styles.fullField}`}>
+            <span>Contraintes à transmettre à la conciergerie</span>
+            <Textarea rows={3} value={form.propertyConstraints} onChange={(event) => setForm((current) => ({ ...current, propertyConstraints: event.target.value }))} placeholder="Accès, clés, horaires, linge, équipement fragile, règles du logement..." />
           </label>
           <div className={`${styles.formActions} ${styles.fullField}`}>
             <Button type="submit" disabled={submitting}>

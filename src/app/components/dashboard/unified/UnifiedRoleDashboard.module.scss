@@ -267,15 +267,21 @@
 }
 
 .mainColumn {
-  grid-column: span 8;
+  grid-column: span 7;
 }
 
 .sidebarColumn {
-  grid-column: span 4;
+  grid-column: span 5;
 }
 
 .sidebarStack {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  /*
+   * Sidebar modules carry a title, a supporting sentence and often a compact
+   * list. Keeping two of them side by side made each card too narrow once the
+   * application navigation was visible. A single, wider rail preserves a
+   * comfortable reading measure and lets its content wrap naturally.
+   */
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
 }
 
@@ -376,7 +382,7 @@
   }
 
   .sidebarStack {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

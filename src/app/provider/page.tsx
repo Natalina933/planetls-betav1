@@ -163,7 +163,7 @@ export default function ProviderLandingPage() {
 
       <section className={styles.section}>
         <div className={styles.sectionHeading}>
-          <span className={styles.sectionKicker}>Onboarding</span>
+          <span className={styles.sectionKicker}>Parcours d'inscription</span>
           <h2>Un parcours artisan en 4 étapes</h2>
           <p>Commencez par votre profil, puis l’exécution terrain, puis la relation client.</p>
         </div>

@@ -1289,6 +1289,48 @@ export async function PATCH(req: NextRequest) {
       } as Json;
     }
 
+    if (
+      typeof body.owner_goal === "string" ||
+      typeof body.collaboration_type === "string" ||
+      typeof body.collaboration_frequency === "string" ||
+      typeof body.estimated_duration === "string" ||
+      typeof body.collaboration_duration === "string" ||
+      typeof body.responsibility_level === "string" ||
+      typeof body.property_constraints === "string"
+    ) {
+      const previousMetadata =
+        updatePayload.metadata && typeof updatePayload.metadata === "object" && !Array.isArray(updatePayload.metadata)
+          ? updatePayload.metadata as Record<string, unknown>
+          : existingRequest.metadata && typeof existingRequest.metadata === "object" && !Array.isArray(existingRequest.metadata)
+            ? existingRequest.metadata
+            : {};
+      updatePayload.metadata = {
+        ...previousMetadata,
+        owner_goal: typeof body.owner_goal === "string" ? body.owner_goal : previousMetadata.owner_goal ?? null,
+        collaboration_type:
+          typeof body.collaboration_type === "string" ? body.collaboration_type : previousMetadata.collaboration_type ?? null,
+        collaboration_frequency:
+          typeof body.collaboration_frequency === "string"
+            ? body.collaboration_frequency
+            : previousMetadata.collaboration_frequency ?? null,
+        estimated_duration:
+          typeof body.estimated_duration === "string"
+            ? body.estimated_duration
+            : typeof body.collaboration_duration === "string"
+              ? body.collaboration_duration
+              : previousMetadata.estimated_duration ?? null,
+        responsibility_level:
+          typeof body.responsibility_level === "string"
+            ? body.responsibility_level
+            : previousMetadata.responsibility_level ?? null,
+        property_constraints:
+          typeof body.property_constraints === "string"
+            ? body.property_constraints
+            : previousMetadata.property_constraints ?? null,
+        updated_from: "owner_requests_page",
+      } as Json;
+    }
+
     if (Object.keys(updatePayload).length === 0) {
       return NextResponse.json({ error: "Aucune donnee a mettre a jour." }, { status: 400 });
     }

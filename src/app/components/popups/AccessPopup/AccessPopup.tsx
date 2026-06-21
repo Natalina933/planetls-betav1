@@ -387,7 +387,7 @@ export default function AccessPopup({
           {submitError ? <p className={styles.formAlert}>{submitError}</p> : null}
 
           {isConciergeExpress ? (
-            <section className={styles.expressFlow} aria-label="Onboarding express concierge">
+            <section className={styles.expressFlow} aria-label="Parcours d'inscription express concierge">
               <div className={styles.expressHeader}>
                 <span>Express {expressStep}/3</span>
                 <strong>

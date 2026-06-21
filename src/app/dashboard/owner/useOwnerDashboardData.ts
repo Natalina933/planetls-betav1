@@ -87,6 +87,9 @@ type OwnerConversationRow = {
 
 type OwnerServiceRequestRow = {
   id: string;
+  property_housing_id?: string | number | null;
+  selected_concierge_name?: string | null;
+  selected_concierge_profile_id?: string | null;
 };
 
 function isActiveHousingStatus(status: string | null) {
@@ -171,7 +174,7 @@ export function useOwnerDashboardData(
               "Impossible de charger vos messages.",
             ),
             fetchJsonOrThrow<{ items?: OwnerServiceRequestRow[] }>(
-              "/api/service-requests?limit=1",
+              "/api/service-requests?view=owner&limit=200",
               "Impossible de charger vos demandes.",
             ),
           ]);
@@ -236,6 +239,7 @@ export function useOwnerDashboardData(
     quotes,
     invoices,
     conversations,
+    serviceRequests: requests,
     requestsCount: requests.length,
     loading,
     error,

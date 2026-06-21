@@ -162,7 +162,7 @@ export default function OwnerLandingPage() {
 
       <section className={styles.section}>
         <div className={styles.sectionHeading}>
-          <span className={styles.sectionKicker}>Onboarding</span>
+          <span className={styles.sectionKicker}>Parcours d'inscription</span>
           <h2>Un parcours propriétaire en 4 étapes</h2>
           <p>La bonne séquence commence par le parc, puis la relation conciergerie, puis le suivi.</p>
         </div>

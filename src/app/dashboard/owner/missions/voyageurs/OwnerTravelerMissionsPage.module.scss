@@ -47,6 +47,15 @@
   overflow: hidden;
 }
 
+.heroFocused {
+  grid-template-columns: minmax(0, 1fr);
+  padding-block: clamp(1rem, 2.4vw, 1.45rem);
+}
+
+.heroFocused .heroContent {
+  max-width: 68ch;
+}
+
 .heroContent,
 .travelerMissionPage,
 .travelerMissionForm,
@@ -257,6 +266,86 @@
   margin: 0.1rem 0 0.25rem;
   color: var(--traveler-ink);
   font-size: clamp(1.15rem, 2vw, 1.45rem);
+}
+
+.postAcceptancePanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.9fr);
+  gap: 1rem;
+  align-items: center;
+  padding: clamp(1.1rem, 2.5vw, 1.5rem);
+  border: 1px solid color-mix(in srgb, var(--traveler-accent) 34%, var(--traveler-border));
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 92% 18%, color-mix(in srgb, var(--traveler-gold) 25%, transparent), transparent 32%),
+    linear-gradient(135deg, color-mix(in srgb, var(--traveler-panel) 96%, white), color-mix(in srgb, var(--traveler-accent) 8%, white));
+  box-shadow: var(--traveler-shadow);
+}
+
+.postAcceptancePanel h2 {
+  margin: 0.2rem 0 0.45rem;
+  color: var(--traveler-ink);
+  font-size: clamp(1.3rem, 2.4vw, 1.75rem);
+  line-height: 1.15;
+}
+
+.postAcceptanceChoices {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.postAcceptanceChoice,
+.postAcceptanceChoicePrimary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: center;
+  width: 100%;
+  min-height: 74px;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.postAcceptanceChoicePrimary {
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, var(--traveler-accent), var(--traveler-accent-strong));
+  color: var(--traveler-panel);
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--traveler-accent) 26%, transparent);
+}
+
+.postAcceptanceChoice {
+  border: 1px solid var(--traveler-border);
+  background: color-mix(in srgb, var(--traveler-panel) 90%, white);
+  color: var(--traveler-accent-strong);
+}
+
+.postAcceptanceChoice:hover,
+.postAcceptanceChoicePrimary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--traveler-shadow-hover);
+}
+
+.postAcceptanceChoice strong,
+.postAcceptanceChoice small,
+.postAcceptanceChoicePrimary strong,
+.postAcceptanceChoicePrimary small {
+  display: block;
+}
+
+.postAcceptanceChoice strong,
+.postAcceptanceChoicePrimary strong {
+  font-size: 0.94rem;
+}
+
+.postAcceptanceChoice small,
+.postAcceptanceChoicePrimary small {
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  opacity: 0.84;
 }
 
 .syncPanel {
@@ -544,6 +633,38 @@
   font-size: clamp(1.25rem, 2vw, 1.65rem);
 }
 
+.quickArrivalContext {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--traveler-accent) 26%, var(--traveler-border));
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--traveler-panel-soft) 70%, white);
+}
+
+.quickArrivalContext span,
+.quickArrivalContext small {
+  color: var(--traveler-muted);
+  font-size: 0.78rem;
+}
+
+.quickArrivalContext span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 800;
+}
+
+.quickArrivalContext strong {
+  color: var(--traveler-accent-strong);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .iconButton {
   display: inline-flex;
   align-items: center;
@@ -712,6 +833,15 @@
   border: 1px solid var(--traveler-border-soft);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.54);
+}
+
+.quickArrivalLayout {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 760px;
+}
+
+.quickArrivalLayout .travelerMissionAside {
+  display: none;
 }
 
 .sectionHeading {
@@ -946,6 +1076,7 @@
 
 @media (max-width: 900px) {
   .hero,
+  .postAcceptancePanel,
   .planningImportGrid,
   .syncPanel,
   .assignmentWorkbench,
@@ -1030,5 +1161,9 @@
   .travelerActionPill {
     width: 100%;
     justify-content: center;
+  }
+
+  .quickArrivalContext {
+    grid-template-columns: 1fr;
   }
 }

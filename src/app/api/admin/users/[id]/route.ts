@@ -530,7 +530,7 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
 
     if (body.onboardingComplete !== undefined) {
       if (typeof body.onboardingComplete !== "boolean") {
-        return NextResponse.json({ error: "Valeur onboarding invalide." }, { status: 400 });
+        return NextResponse.json({ error: "Valeur du parcours d'inscription invalide." }, { status: 400 });
       }
 
       updates.onboarding_complete = body.onboardingComplete;

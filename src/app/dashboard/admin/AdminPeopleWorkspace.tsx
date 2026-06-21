@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { FiAlertTriangle, FiCheckCircle, FiClock, FiHome, FiShield, FiTool, FiUsers } from "react-icons/fi";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
@@ -183,8 +183,8 @@ const ACTIVITY_OPTIONS: Array<{ value: ActivityFilter; label: string }> = [
 
 const ONBOARDING_OPTIONS: Array<{ value: OnboardingFilter; label: string }> = [
   { value: "all", label: "Tous les parcours" },
-  { value: "complete", label: "Onboarding terminé" },
-  { value: "incomplete", label: "Onboarding incomplet" },
+  { value: "complete", label: "Parcours d'inscription terminé" },
+  { value: "incomplete", label: "Parcours d'inscription incomplet" },
   { value: "emailPending", label: "Email non confirme" },
 ];
 
@@ -328,6 +328,105 @@ function DetailList({
   );
 }
 
+function getOnboardingDiagnostics(detail: AdminUserDetailPayload) {
+  const user = detail.user;
+  const missingProfileFields = [
+    user.email ? "" : "e-mail",
+    user.phone ? "" : "telephone",
+    user.city || user.location ? "" : "ville ou zone",
+    user.roleBucket !== "owner" && !user.companyName ? "societe" : "",
+  ].filter(Boolean);
+
+  const businessReady =
+    user.roleBucket === "owner"
+      ? (detail.metrics.properties ?? 0) > 0 || (detail.metrics.ownerRequests ?? 0) > 0
+      : user.roleBucket === "concierge"
+        ? (detail.metrics.serviceSelections ?? 0) > 0 || (detail.metrics.pricingItems ?? 0) > 0
+        : user.roleBucket === "provider"
+          ? (detail.metrics.pricingItems ?? 0) > 0 || (detail.metrics.providerClients ?? 0) > 0
+          : true;
+
+  return [
+    {
+      id: "email",
+      label: "E-mail confirme",
+      ok: Boolean(user.emailConfirmedAt),
+      detail: user.emailConfirmedAt
+        ? `Confirme le ${formatAdminDate(user.emailConfirmedAt)}`
+        : "L'utilisateur n'a pas encore confirme son adresse e-mail.",
+      action: "Faire confirmer l'e-mail ou verifier l'adresse du compte.",
+    },
+    {
+      id: "signin",
+      label: "Premiere connexion",
+      ok: Boolean(user.lastSignInAt),
+      detail: user.lastSignInAt
+        ? `Derniere connexion ${formatAdminDate(user.lastSignInAt)}`
+        : "Aucune connexion n'est visible cote Supabase Auth.",
+      action: "Tester l'acces ou renvoyer les identifiants de connexion.",
+    },
+    {
+      id: "profile",
+      label: "Profil exploitable",
+      ok: missingProfileFields.length === 0,
+      detail: missingProfileFields.length
+        ? `Informations manquantes : ${missingProfileFields.join(", ")}.`
+        : "Les coordonnees minimales du profil sont presentes.",
+      action: "Completer les champs manquants dans la fiche utilisateur.",
+    },
+    {
+      id: "business",
+      label: "Base metier initialisee",
+      ok: businessReady,
+      detail: businessReady
+        ? "Le compte a deja des donnees metier rattachees."
+        : "Aucun logement, service, tarif ou client n'est encore rattache selon le role.",
+      action: "Verifier le bon espace metier et ajouter les premieres donnees utiles.",
+    },
+    {
+      id: "complete",
+      label: "Parcours finalise",
+      ok: user.onboardingComplete,
+      detail: user.onboardingComplete
+        ? user.onboardingCompletedAt
+          ? `Termine le ${formatAdminDate(user.onboardingCompletedAt)}`
+          : "Le parcours est marque termine, sans date de fin."
+        : "Le parcours d'inscription du profil est encore marque incomplet.",
+      action: "Reprendre le parcours d'inscription ou le marquer termine apres verification.",
+    },
+  ];
+}
+
+function OnboardingDiagnosticList({ detail }: { detail: AdminUserDetailPayload }) {
+  const diagnostics = getOnboardingDiagnostics(detail);
+  const problems = diagnostics.filter((item) => !item.ok);
+
+  return (
+    <div className={styles.diagnosticPanel}>
+      <div className={styles.diagnosticHeader}>
+        <div>
+          <h4>Diagnostic inscription</h4>
+          <p>
+            {problems.length
+              ? `${problems.length} point(s) expliquent le parcours d'inscription incomplet.`
+              : "Aucun probleme d'inscription detecte sur cette fiche."}
+          </p>
+        </div>
+        <AdminStatusBadge label={problems.length ? "A corriger" : "OK"} tone={problems.length ? "warning" : "positive"} />
+      </div>
+      <div className={styles.diagnosticGrid}>
+        {diagnostics.map((item) => (
+          <div key={item.id} className={`${styles.diagnosticItem} ${item.ok ? styles.diagnosticOk : styles.diagnosticProblem}`}>
+            <strong>{item.label}</strong>
+            <span>{item.detail}</span>
+            {!item.ok ? <small>{item.action}</small> : null}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function AdminPeopleWorkspace({
   scope = "all",
 }: {
@@ -345,6 +444,7 @@ export function AdminPeopleWorkspace({
   const [detailLoading, setDetailLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const detailPanelRef = useRef<HTMLDivElement | null>(null);
 
   async function loadPayload(keepCurrentSelection = true) {
     const response = await fetch("/api/admin/overview", { cache: "no-store" });
@@ -472,7 +572,7 @@ export function AdminPeopleWorkspace({
       },
       {
         id: "onboarded",
-        label: "Onboarding terminé",
+        label: "Parcours terminé",
         value: onboarded,
         helper: "Profils prets a etre exploites",
         tone: onboarded === users.length ? "positive" : "warning",
@@ -582,11 +682,18 @@ export function AdminPeopleWorkspace({
     }
   }
 
+  function openUserDiagnostic(userId: string) {
+    setSelectedUserId(userId);
+    window.setTimeout(() => {
+      detailPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+  }
+
   const title =
     scope === "all" ? "Centre utilisateurs" : `Contrôle ${ROLE_LABELS[scope].toLowerCase()}`;
   const subtitle =
     scope === "all"
-      ? "Suivre les connexions, l'onboarding, les coordonnées et la préparation métier par profil."
+      ? "Suivre les connexions, le parcours d'inscription, les coordonnées et la préparation métier par profil."
       : `Contrôler les comptes ${ROLE_LABELS[scope].toLowerCase()}, leur activité et leur niveau de préparation.`;
 
   if (loading) {
@@ -613,7 +720,7 @@ export function AdminPeopleWorkspace({
         { label: "Actifs 24 h", value: String(payload?.summary.active24h ?? 0), hint: "Connexions récentes" },
         { label: "Actifs 7 j", value: String(payload?.summary.active7d ?? 0), hint: "Activite hebdo" },
         {
-          label: "Onboarding",
+          label: "Inscription",
           value: String(payload?.summary.onboardingComplete ?? 0),
           hint: `${payload?.summary.onboardingEvents ?? 0} evenement(s)`,
         },
@@ -679,7 +786,7 @@ export function AdminPeopleWorkspace({
               segments={visualSegments.activity}
             />
             <AdminDonutCard
-              title="Onboarding"
+              title="Inscription"
               subtitle="Parcours terminés, incomplets et e-mails en attente."
               icon={FiCheckCircle}
               totalLabel="parcours"
@@ -723,7 +830,7 @@ export function AdminPeopleWorkspace({
               }
             />
             <AdminGaugeCard
-              title="Fiabilité onboarding"
+              title="Fiabilité inscription"
               subtitle="Comptes confirmés et parcours terminés."
               icon={FiCheckCircle}
               value={
@@ -789,7 +896,7 @@ export function AdminPeopleWorkspace({
             </select>
           </label>
           <label className={styles.field}>
-            <span>Onboarding</span>
+            <span>Inscription</span>
             <select
               value={onboardingFilter}
               onChange={(event) => setOnboardingFilter(event.target.value as OnboardingFilter)}
@@ -821,13 +928,14 @@ export function AdminPeopleWorkspace({
                   <h3>{ROLE_LABELS[bucket]}</h3>
                   <span>{users.length}</span>
                 </div>
-                <p>{active} actif(s) sur 7 jours · {onboarded} onboarding(s) terminés</p>
+                <p>{active} actif(s) sur 7 jours · {onboarded} parcours terminé(s)</p>
               </Link>
             );
           })}
         </div>
       </DashboardPanel>
 
+      <div ref={detailPanelRef}>
       <DashboardPanel title="Fiche de contrôle">
         {errorMessage ? <p className={styles.errorBox}>{errorMessage}</p> : null}
 
@@ -873,7 +981,7 @@ export function AdminPeopleWorkspace({
                 <small>{detail.user.authCreatedAt ? `Création auth ${formatAdminDate(detail.user.authCreatedAt)}` : "Auth inconnue"}</small>
               </div>
               <div className={styles.metricItem}>
-                <span>Onboarding</span>
+                <span>Inscription</span>
                 <strong>{detail.user.onboardingComplete ? "Terminé" : "À terminer"}</strong>
                 <small>{detail.user.onboardingCompletedAt ? formatAdminDate(detail.user.onboardingCompletedAt) : "Pas de date de fin"}</small>
               </div>
@@ -940,8 +1048,8 @@ export function AdminPeopleWorkspace({
                 {actionLoading === "toggleOnboarding"
                   ? "Mise à jour..."
                   : detail.user.onboardingComplete
-                    ? "Réouvrir l'onboarding"
-                    : "Marquer onboarding terminé"}
+                    ? "Réouvrir le parcours"
+                    : "Marquer le parcours terminé"}
               </button>
               <label className={styles.roleAction}>
                 <span>Changer le rôle</span>
@@ -963,11 +1071,13 @@ export function AdminPeopleWorkspace({
               title="Alertes compte"
               items={[
                 !detail.user.emailConfirmedAt ? "E-mail non confirmé" : "",
-                !detail.user.onboardingComplete ? "Onboarding incomplet" : "",
+                !detail.user.onboardingComplete ? "Parcours d'inscription incomplet" : "",
                 detail.user.status === "suspended" ? "Compte suspendu" : "",
                 detail.user.status === "deleted" ? "Compte supprimé" : "",
               ].filter(Boolean)}
             />
+
+            <OnboardingDiagnosticList detail={detail} />
 
             <div className={styles.detailGrid}>
               <DetailList
@@ -1021,6 +1131,8 @@ export function AdminPeopleWorkspace({
         )}
       </DashboardPanel>
 
+      </div>
+
       <DashboardPanel title="Base contrôlée">
         {filteredUsers.length ? (
           <div className={styles.userList}>
@@ -1067,15 +1179,21 @@ export function AdminPeopleWorkspace({
                   {user.healthFlags.length ? (
                     <div className={styles.flagRow}>
                       {user.healthFlags.map((flag) => (
-                        <span key={flag} className={styles.flag}>
+                        <button
+                          key={flag}
+                          type="button"
+                          className={styles.flag}
+                          onClick={() => openUserDiagnostic(user.id)}
+                          title="Voir le diagnostic de ce probleme"
+                        >
                           {flag}
-                        </span>
+                        </button>
                       ))}
                     </div>
                   ) : null}
 
                   <div className={styles.cardActions}>
-                    <button type="button" onClick={() => setSelectedUserId(user.id)}>
+                    <button type="button" onClick={() => openUserDiagnostic(user.id)}>
                       Voir la fiche
                     </button>
                     <Link href={getScopeHref(user.roleBucket)}>Voir dans l'espace admin</Link>

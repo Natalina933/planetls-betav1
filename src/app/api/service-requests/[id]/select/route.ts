@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { finalizeAcceptedQuoteWorkflow } from "@/app/api/_shared/acceptedQuoteWorkflow";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
+import { createHousingFromQuote } from "@/app/api/profiles/housing/shared";
+import { upsertAcceptedHousingCollaboration } from "@/app/api/_shared/housingCollaboration";
 import { db } from "@/server/db/dbServer";
 import { requireApiRole } from "@/server/auth/roleGuards";
 
@@ -179,6 +181,7 @@ export async function POST(
     };
 
     let acceptedWorkflow: Awaited<ReturnType<typeof finalizeAcceptedQuoteWorkflow>> | null = null;
+    let autoHousing: { housingId: number; created: boolean; linkedExisting?: boolean } | null = null;
     if (selectedQuote?.id) {
       acceptedWorkflow = await finalizeAcceptedQuoteWorkflow({
         db: dbAny,
@@ -187,6 +190,42 @@ export async function POST(
         serviceRequestId: requestRow.id,
         serviceRequestRecipientId: selectedRecipient.id,
       });
+
+      const metadata = isRecord(requestRow.metadata) ? requestRow.metadata : {};
+      const requestedHousingId = metadata.property_housing_id;
+      const housingId =
+        typeof requestedHousingId === "string" && requestedHousingId.trim()
+          ? requestedHousingId.trim()
+          : typeof requestedHousingId === "number" && Number.isFinite(requestedHousingId)
+            ? requestedHousingId
+            : null;
+
+      try {
+        autoHousing = await createHousingFromQuote(
+          selectedQuote.id,
+          selectedRecipient.concierge_profile_id,
+          housingId,
+        );
+        try {
+          await upsertAcceptedHousingCollaboration({
+            db: dbAny,
+            housingId: autoHousing.housingId,
+            ownerProfileId: requestRow.owner_profile_id ?? userId,
+            conciergeProfileId: selectedRecipient.concierge_profile_id,
+            quoteId: selectedQuote.id,
+            missionId: acceptedWorkflow?.mission?.id ?? selectedQuote.mission_id ?? null,
+            request: requestRow,
+          });
+        } catch (collaborationError) {
+          console.error("[service-requests/select] collaboration record error:", collaborationError);
+        }
+      } catch (housingError) {
+        console.error("[service-requests/select] housing collaboration link error:", housingError);
+        return NextResponse.json(
+          { error: "La conciergerie est sélectionnée, mais le logement n'a pas pu être rattaché." },
+          { status: 500 },
+        );
+      }
     }
 
     const { data: updatedRequest, error: updateRequestError } = await dbAny
@@ -219,6 +258,7 @@ export async function POST(
           mission_id: acceptedWorkflow?.mission?.id ?? selectedQuote?.mission_id ?? null,
           invoice_id: acceptedWorkflow?.invoice?.id ?? null,
         },
+        auto_housing: autoHousing,
       },
       { status: 200 },
     );

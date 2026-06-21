@@ -67,8 +67,68 @@ export async function loadQuotePreview(quoteId: string, managerProfileId: string
   });
 }
 
-export async function createHousingFromQuote(quoteId: string, managerProfileId: string) {
+export async function createHousingFromQuote(
+  quoteId: string,
+  managerProfileId: string,
+  existingHousingId?: string | number | null,
+) {
   const preview = await loadQuotePreview(quoteId, managerProfileId);
+
+  const linkedHousingId =
+    typeof existingHousingId === "number"
+      ? String(existingHousingId)
+      : typeof existingHousingId === "string" && existingHousingId.trim()
+        ? existingHousingId.trim()
+        : null;
+
+  const numericLinkedHousingId = linkedHousingId ? Number(linkedHousingId) : null;
+
+  if (numericLinkedHousingId && Number.isInteger(numericLinkedHousingId) && numericLinkedHousingId > 0) {
+    const { data: linkedHousing, error: linkedHousingError } = await db
+      .from("housing")
+      .select("id, proprietaire, contrat")
+      .eq("id", numericLinkedHousingId)
+      .maybeSingle();
+
+    if (linkedHousingError) {
+      throw new Error("Impossible de verifier le logement lie a la demande.");
+    }
+
+    if (linkedHousing?.id) {
+      const currentOwner =
+        linkedHousing.proprietaire && typeof linkedHousing.proprietaire === "object" && !Array.isArray(linkedHousing.proprietaire)
+          ? linkedHousing.proprietaire
+          : {};
+      const currentContract =
+        linkedHousing.contrat && typeof linkedHousing.contrat === "object" && !Array.isArray(linkedHousing.contrat)
+          ? linkedHousing.contrat
+          : {};
+
+      const { error: linkError } = await db
+        .from("housing")
+        .update({
+          proprietaire: {
+            ...currentOwner,
+            owner_profile_id: preview.owner.profileId,
+            manager_profile_id: managerProfileId,
+            source: "quote",
+          },
+          contrat: {
+            ...currentContract,
+            quote_id: quoteId,
+            quote_number: preview.quoteNumber,
+            signed_at: preview.acceptedAt || new Date().toISOString(),
+          },
+        })
+        .eq("id", linkedHousing.id);
+
+      if (linkError) {
+        throw new Error("Impossible de rattacher la conciergerie au logement existant.");
+      }
+
+      return { housingId: linkedHousing.id, created: false, linkedExisting: true };
+    }
+  }
 
   const { data: existing } = await db
     .from("housing")
@@ -78,7 +138,7 @@ export async function createHousingFromQuote(quoteId: string, managerProfileId: 
     .maybeSingle();
 
   if (existing?.id) {
-    return { housingId: existing.id, created: false };
+    return { housingId: existing.id, created: false, linkedExisting: false };
   }
 
   const payload = buildHousingMutationPayload({
@@ -158,5 +218,5 @@ export async function createHousingFromQuote(quoteId: string, managerProfileId: 
     })
     .eq("id", quoteId);
 
-  return { housingId: createdHousing.id, created: true };
+  return { housingId: createdHousing.id, created: true, linkedExisting: false };
 }

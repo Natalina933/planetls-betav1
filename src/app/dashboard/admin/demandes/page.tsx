@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
 import {
   AdminEmptyState,
   AdminFilterBar,
+  AdminIssueList,
   AdminKpiGrid,
   AdminProcessTimeline,
   AdminStatusBadge,
   formatAdminDate,
   getElapsedLabel,
+  getRequestAdminIssues,
   getRequestAssignee,
   getRequestNextAction,
   getRequestStatus,
@@ -23,33 +25,46 @@ import {
 } from "../AdminOperations";
 import styles from "../AdminListPages.module.scss";
 
-function getArrayPayload<T>(payload: unknown): T[] {
-  if (Array.isArray(payload)) return payload as T[];
-  if (payload && typeof payload === "object" && Array.isArray((payload as { items?: unknown }).items)) {
-    return (payload as { items: T[] }).items;
-  }
-  return [];
-}
+type AdminOperationsPayload = { requests?: AdminRequestRow[]; nextOffset?: number | null };
 
 export default function AdminRequestsPage() {
   const [requests, setRequests] = useState<AdminRequestRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("Tous");
 
-  useEffect(() => {
-    async function loadRequests() {
-      try {
-        const response = await fetch("/api/service-requests?limit=200", { cache: "no-store" });
-        if (!response.ok) return;
-        setRequests(getArrayPayload<AdminRequestRow>(await response.json().catch(() => ({}))));
-      } finally {
-        setLoading(false);
-      }
-    }
+  const loadRequests = useCallback(async (offset = 0) => {
+    if (offset > 0) setLoadingMore(true);
+    else setLoading(true);
 
-    void loadRequests();
+    try {
+      const response = await fetch(`/api/admin/operations?limit=200&offset=${offset}`, { cache: "no-store" });
+      if (!response.ok) {
+        setHasMore(false);
+        return;
+      }
+      const payload = (await response.json().catch(() => ({}))) as AdminOperationsPayload;
+      const nextRequests = Array.isArray(payload.requests) ? payload.requests : [];
+      setRequests((current) => {
+        if (offset === 0) return nextRequests;
+        return Array.from(new Map([...current, ...nextRequests].map((request) => [request.id, request])).values());
+      });
+      setHasMore(typeof payload.nextOffset === "number");
+    } finally {
+      if (offset > 0) setLoadingMore(false);
+      else setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void loadRequests();
+  }, [loadRequests]);
+
+  const loadMore = () => {
+    void loadRequests(requests.length);
+  };
 
   const filteredRequests = useMemo(() => {
     const normalizedSearch = normalizeAdminText(search);
@@ -59,6 +74,8 @@ export default function AdminRequestsPage() {
       const searchable = normalizeAdminText(
         [
           request.title,
+          request.id,
+          request.mission_id,
           request.owner_name,
           request.property_name,
           request.city,
@@ -159,10 +176,14 @@ export default function AdminRequestsPage() {
 
         <DashboardPanel title="Demandes à contrôler">
           {filteredRequests.length ? (
-            <div className={styles.list}>
-              {filteredRequests.map((request) => {
+            <>
+              <div className={styles.list}>
+                {filteredRequests.map((request) => {
                 const currentStatus = getRequestStatus(request);
                 const services = (request.requested_services ?? []).slice(0, 5);
+                const missionHref = request.mission_id
+                  ? `/dashboard/admin/missions?search=${encodeURIComponent(request.mission_id)}`
+                  : "/dashboard/admin/missions";
                 return (
                   <article className={styles.card} key={request.id}>
                     <div className={styles.cardHeader}>
@@ -176,7 +197,7 @@ export default function AdminRequestsPage() {
                       </div>
                       <div className={styles.cardActions}>
                         <AdminStatusBadge label={currentStatus} tone={getRequestUrgency(request)} />
-                        <Link className={styles.primaryLink} href="/dashboard/admin/missions">
+                        <Link className={styles.primaryLink} href={missionHref}>
                           Voir la mission liée
                         </Link>
                       </div>
@@ -210,10 +231,19 @@ export default function AdminRequestsPage() {
                     ) : null}
 
                     <AdminProcessTimeline steps={getRequestTimeline(request)} />
+                    <AdminIssueList issues={getRequestAdminIssues(request)} />
                   </article>
                 );
-              })}
-            </div>
+                })}
+              </div>
+              {hasMore ? (
+                <div className={styles.listFooter}>
+                  <button type="button" className={styles.ghostButton} onClick={loadMore} disabled={loadingMore}>
+                    {loadingMore ? "Chargement..." : "Charger les demandes suivantes"}
+                  </button>
+                </div>
+              ) : null}
+            </>
           ) : (
             <AdminEmptyState
               title="Aucune demande ne correspond aux filtres"

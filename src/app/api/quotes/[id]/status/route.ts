@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { finalizeAcceptedQuoteWorkflow } from "@/app/api/_shared/acceptedQuoteWorkflow";
+import { upsertAcceptedHousingCollaboration } from "@/app/api/_shared/housingCollaboration";
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { deriveQuoteWorkflowStatus } from "@/app/lib/commercialWorkflow";
 import { db } from "@/app/lib/dbServer";
@@ -287,6 +288,8 @@ export async function PATCH(
     }
 
     const actorIsOwner = OWNER_BILLING_ROLES.has(role);
+    let linkedHousingId: string | number | null = null;
+    let acceptedServiceRequest: ServiceRequestRow | null = null;
 
     if (nextStatus === "accepted") {
       const metadata =
@@ -321,6 +324,7 @@ export async function PATCH(
         }
 
         serviceRequest = (requestRow as ServiceRequestRow | null) ?? null;
+        acceptedServiceRequest = serviceRequest;
       }
 
       if (serviceRequestId) {
@@ -328,6 +332,12 @@ export async function PATCH(
           serviceRequest?.metadata && typeof serviceRequest.metadata === "object" && !Array.isArray(serviceRequest.metadata)
             ? { ...serviceRequest.metadata }
             : {};
+        const requestedHousingId = requestMetadata.property_housing_id;
+        if (typeof requestedHousingId === "string" && requestedHousingId.trim()) {
+          linkedHousingId = requestedHousingId.trim();
+        } else if (typeof requestedHousingId === "number" && Number.isFinite(requestedHousingId)) {
+          linkedHousingId = requestedHousingId;
+        }
         delete requestMetadata.selected_mission_id;
 
         const { error: requestUpdateError } = await untypedDb
@@ -481,7 +491,16 @@ export async function PATCH(
       });
 
       try {
-        autoHousingResult = await createHousingFromQuote(id, existing.concierge_profile_id);
+        autoHousingResult = await createHousingFromQuote(id, existing.concierge_profile_id, linkedHousingId);
+        await upsertAcceptedHousingCollaboration({
+          db: untypedDb,
+          housingId: autoHousingResult.housingId,
+          ownerProfileId: existing.owner_profile_id,
+          conciergeProfileId: existing.concierge_profile_id,
+          quoteId: id,
+          missionId: workflowResult?.mission?.id ?? updated.mission_id ?? null,
+          request: acceptedServiceRequest,
+        });
       } catch (autoHousingError) {
         console.error("[PATCH /api/quotes/:id/status] auto housing error:", autoHousingError);
       }
