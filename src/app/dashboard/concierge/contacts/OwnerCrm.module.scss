@@ -1,0 +1,249 @@
+.crmPanel {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid rgba(30, 64, 54, 0.14);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ffffff 0%, #f3f8f5 56%, #fff9ef 100%);
+  padding: clamp(1rem, 2vw, 1.25rem);
+  box-shadow: 0 14px 30px rgba(30, 64, 54, 0.07);
+}
+
+.crmHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.crmHeader h2,
+.ownerCard h3,
+.moduleCard h3,
+.timelineCard h3 {
+  margin: 0;
+  color: #1f2a24;
+}
+
+.crmHeader p {
+  margin: 0.35rem 0 0;
+  max-width: 76ch;
+  color: #53615a;
+  line-height: 1.5;
+}
+
+.eyebrow {
+  margin: 0 0 0.35rem;
+  color: #0f766e;
+  font-size: 0.75rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.crmScore {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 150px;
+  border: 1px solid rgba(15, 118, 110, 0.16);
+  border-radius: 8px;
+  background: #edf7f4;
+  padding: 0.8rem;
+  text-align: right;
+}
+
+.crmScore strong {
+  color: #0f766e;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.crmScore span {
+  color: #315c56;
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.crmScore progress,
+.ownerHealth progress {
+  width: 100%;
+  height: 0.45rem;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: #d9e9e5;
+}
+
+.crmScore progress::-webkit-progress-bar,
+.ownerHealth progress::-webkit-progress-bar {
+  background: #d9e9e5;
+}
+
+.crmScore progress::-webkit-progress-value,
+.ownerHealth progress::-webkit-progress-value {
+  background: #0f766e;
+}
+
+.crmScore progress::-moz-progress-bar,
+.ownerHealth progress::-moz-progress-bar {
+  background: #0f766e;
+}
+
+.ownerGrid,
+.moduleGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.ownerCard,
+.moduleCard,
+.timelineCard {
+  display: grid;
+  gap: 0.8rem;
+  min-width: 0;
+  border: 1px solid rgba(30, 64, 54, 0.11);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.9rem;
+}
+
+.ownerTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.ownerBadge {
+  border-radius: 999px;
+  background: #eef7f4;
+  color: #0f766e;
+  padding: 0.22rem 0.58rem;
+  font-size: 0.74rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ownerHealth {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.ownerHealth span {
+  color: #53615a;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.ownerStats,
+.moduleStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.ownerStats div,
+.moduleStats div {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+  border-radius: 8px;
+  background: #f7faf8;
+  padding: 0.55rem;
+}
+
+.ownerStats span,
+.moduleStats span {
+  color: #65716b;
+  font-size: 0.74rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.ownerStats strong,
+.moduleStats strong {
+  color: #1f2a24;
+  font-size: 1rem;
+}
+
+.ownerLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.ownerLinks a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.2rem;
+  border: 1px solid rgba(15, 118, 110, 0.16);
+  border-radius: 8px;
+  color: #0f766e;
+  padding: 0.45rem 0.7rem;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.moduleHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.moduleHeader svg {
+  color: #0f766e;
+  flex: 0 0 auto;
+}
+
+.moduleCard p,
+.timelineCard p,
+.empty {
+  margin: 0;
+  color: #53615a;
+  line-height: 1.45;
+}
+
+.timeline {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.timelineItem {
+  display: grid;
+  gap: 0.2rem;
+  border-left: 3px solid #0f766e;
+  border-radius: 0 8px 8px 0;
+  background: #f7faf8;
+  padding: 0.6rem 0.7rem;
+}
+
+.timelineItem strong {
+  color: #1f2a24;
+}
+
+.timelineItem span {
+  color: #65716b;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+@media (max-width: 980px) {
+  .ownerGrid,
+  .moduleGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .crmHeader,
+  .ownerTop {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .crmScore {
+    text-align: left;
+  }
+}

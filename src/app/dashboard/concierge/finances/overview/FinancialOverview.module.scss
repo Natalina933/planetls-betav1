@@ -1,0 +1,222 @@
+.financePanel {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  border: 1px solid rgba(20, 83, 45, 0.14);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ffffff 0%, #f4fbf6 52%, #fffaf2 100%);
+  padding: clamp(1rem, 2vw, 1.25rem);
+  box-shadow: 0 14px 30px rgba(20, 83, 45, 0.07);
+}
+
+.financeHeader,
+.formulaFlow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.financeHeader h2,
+.formulaCard h3,
+.chartCard h3,
+.objectiveCard h3 {
+  margin: 0;
+  color: #18241d;
+}
+
+.financeHeader p {
+  margin: 0.35rem 0 0;
+  max-width: 72ch;
+  color: #4d5d54;
+  line-height: 1.5;
+}
+
+.eyebrow {
+  margin: 0 0 0.35rem;
+  color: #166534;
+  font-size: 0.75rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.financeScore {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 150px;
+  border: 1px solid rgba(22, 101, 52, 0.16);
+  border-radius: 8px;
+  background: #eef8f0;
+  padding: 0.8rem;
+  text-align: right;
+}
+
+.financeScore strong {
+  color: #166534;
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.financeScore span,
+.formulaStep span,
+.metricGrid span {
+  color: #4d5d54;
+  font-size: 0.76rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.formulaCard,
+.chartCard,
+.objectiveCard {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+  border: 1px solid rgba(20, 83, 45, 0.11);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0.95rem;
+}
+
+.formulaFlow {
+  align-items: stretch;
+}
+
+.formulaStep {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+  flex: 1 1 0;
+  border-radius: 8px;
+  background: #f7faf8;
+  padding: 0.75rem;
+}
+
+.formulaStep strong {
+  color: #18241d;
+  font-size: 1.2rem;
+}
+
+.formulaArrow {
+  display: grid;
+  place-items: center;
+  color: #166534;
+  font-weight: 900;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.metricGrid article {
+  display: grid;
+  gap: 0.25rem;
+  min-height: 5.8rem;
+  border-radius: 8px;
+  background: #f7faf8;
+  padding: 0.75rem;
+}
+
+.metricGrid strong {
+  color: #18241d;
+  font-size: 1.25rem;
+}
+
+.chartGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+  gap: 0.75rem;
+}
+
+.barChart {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-items: end;
+  gap: 0.45rem;
+  min-height: 13rem;
+  border-radius: 8px;
+  background: #f7faf8;
+  padding: 0.75rem;
+}
+
+.barItem {
+  display: grid;
+  gap: 0.35rem;
+  align-items: end;
+  min-width: 0;
+  height: 100%;
+}
+
+.bar {
+  min-height: 0.35rem;
+  border-radius: 999px 999px 4px 4px;
+  background: linear-gradient(180deg, #22c55e, #166534);
+}
+
+.barItem span {
+  color: #59665f;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.objectiveProgress {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.objectiveProgress progress {
+  width: 100%;
+  height: 0.6rem;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: #dceee2;
+}
+
+.objectiveProgress progress::-webkit-progress-bar {
+  background: #dceee2;
+}
+
+.objectiveProgress progress::-webkit-progress-value {
+  background: #166534;
+}
+
+.objectiveProgress progress::-moz-progress-bar {
+  background: #166534;
+}
+
+.objectiveCard p {
+  margin: 0;
+  color: #4d5d54;
+  line-height: 1.45;
+}
+
+@media (max-width: 980px) {
+  .metricGrid,
+  .chartGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .formulaFlow {
+    display: grid;
+  }
+
+  .formulaArrow {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .financeHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .financeScore {
+    text-align: left;
+  }
+}

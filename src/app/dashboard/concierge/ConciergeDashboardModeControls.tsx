@@ -3,11 +3,14 @@
 import { useEffect, useState } from "react";
 import {
   CONCIERGE_DASHBOARD_MODE_CONFIG,
+  CONCIERGE_OPERATING_MODE_CONFIG,
   CONCIERGE_DASHBOARD_STORAGE_KEY,
   getDefaultConciergeDashboardMode,
+  getDefaultConciergeOperatingMode,
   parseConciergeDashboardPreferences,
   type ConciergeContrastMode,
   type ConciergeDashboardMode,
+  type ConciergeOperatingMode,
   type ConciergeDashboardPreferences,
   type ConciergeTextScale,
 } from "./dashboardModes";
@@ -23,8 +26,10 @@ export default function ConciergeDashboardModeControls({
   onPreferencesChange,
 }: ConciergeDashboardModeControlsProps) {
   const fallbackMode = getDefaultConciergeDashboardMode(experienceLevel);
+  const fallbackOperatingMode = getDefaultConciergeOperatingMode();
   const [preferences, setPreferences] = useState<ConciergeDashboardPreferences>(() => ({
     mode: fallbackMode,
+    operatingMode: fallbackOperatingMode,
     textScale: "normal",
     contrast: "standard",
   }));
@@ -33,13 +38,15 @@ export default function ConciergeDashboardModeControls({
     const nextPreferences = parseConciergeDashboardPreferences(
       window.localStorage.getItem(CONCIERGE_DASHBOARD_STORAGE_KEY),
       fallbackMode,
+      fallbackOperatingMode,
     );
     setPreferences(nextPreferences);
     onPreferencesChange(nextPreferences);
-  }, [fallbackMode, onPreferencesChange]);
+  }, [fallbackMode, fallbackOperatingMode, onPreferencesChange]);
 
   useEffect(() => {
     document.body.dataset.conciergeDashboardMode = preferences.mode;
+    document.body.dataset.conciergeOperatingMode = preferences.operatingMode;
     document.body.dataset.conciergeTextScale = preferences.textScale;
     document.body.dataset.conciergeContrast = preferences.contrast;
     onPreferencesChange(preferences);
@@ -59,6 +66,7 @@ export default function ConciergeDashboardModeControls({
   };
 
   const modeOptions: ConciergeDashboardMode[] = ["essential", "expert"];
+  const operatingModeOptions: ConciergeOperatingMode[] = ["airbnb_cohost", "conciergerie", "provider", "mixed"];
   const textOptions: Array<{ value: ConciergeTextScale; label: string }> = [
     { value: "normal", label: "A" },
     { value: "large", label: "A+" },
@@ -85,6 +93,20 @@ export default function ConciergeDashboardModeControls({
         ))}
       </div>
 
+      <div className={styles.operatingGroup} role="group" aria-label="Mode metier">
+        {operatingModeOptions.map((operatingMode) => (
+          <button
+            key={operatingMode}
+            type="button"
+            className={preferences.operatingMode === operatingMode ? styles.activeOperatingButton : styles.operatingButton}
+            onClick={() => updatePreference("operatingMode", operatingMode)}
+            aria-pressed={preferences.operatingMode === operatingMode}
+          >
+            <strong>{CONCIERGE_OPERATING_MODE_CONFIG[operatingMode].label}</strong>
+            <span>{CONCIERGE_OPERATING_MODE_CONFIG[operatingMode].description}</span>
+          </button>
+        ))}
+      </div>
       <div className={styles.accessibilityGroup} aria-label="Accessibilité">
         <div role="group" aria-label="Taille du texte">
           {textOptions.map((option) => (

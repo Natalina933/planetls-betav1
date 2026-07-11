@@ -630,11 +630,265 @@
   font-weight: 800;
 }
 
+.missionCenter {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid rgba(32, 25, 18, 0.12);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ffffff 0%, #f4f9f7 54%, #fffaf2 100%);
+  padding: clamp(1rem, 2.4vw, 1.35rem);
+  box-shadow: 0 14px 30px rgba(32, 25, 18, 0.06);
+}
+
+.centerHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.centerHeader h2 {
+  margin: 0;
+  color: #201912;
+  font-size: clamp(1.25rem, 2.2vw, 1.7rem);
+}
+
+.centerHeader p {
+  margin: 0.35rem 0 0;
+  max-width: 70ch;
+  color: #4f5b55;
+  line-height: 1.5;
+}
+
+.centerProgress {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 150px;
+  border: 1px solid rgba(15, 118, 110, 0.16);
+  border-radius: 8px;
+  background: #eef6f4;
+  padding: 0.8rem;
+  text-align: right;
+}
+
+.centerProgress strong {
+  color: #0f766e;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.centerProgress span {
+  color: #315c56;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.centerProgress progress,
+.objectProgressLine progress {
+  width: 100%;
+  height: 0.45rem;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: #d9e9e5;
+}
+
+.centerProgress progress::-webkit-progress-bar,
+.objectProgressLine progress::-webkit-progress-bar {
+  background: #d9e9e5;
+}
+
+.centerProgress progress::-webkit-progress-value,
+.objectProgressLine progress::-webkit-progress-value {
+  background: #0f766e;
+}
+
+.centerProgress progress::-moz-progress-bar,
+.objectProgressLine progress::-moz-progress-bar {
+  background: #0f766e;
+}
+
+.objectKpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.objectKpiGrid article {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+  min-height: 6.25rem;
+  border: 1px solid rgba(32, 25, 18, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 0.85rem;
+}
+
+.objectKpiGrid span {
+  color: #315c56;
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.objectKpiGrid strong {
+  color: #201912;
+  font-size: 1.55rem;
+  line-height: 1.1;
+}
+
+.objectKpiGrid small {
+  color: #5d655f;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.objectGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.objectCard {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+  min-height: 15rem;
+  border: 1px solid rgba(32, 25, 18, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0.9rem;
+}
+
+.objectCardTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.objectCardTitle svg {
+  color: #0f766e;
+  flex: 0 0 auto;
+}
+
+.objectCardTitle h3 {
+  margin: 0;
+  color: #201912;
+  font-size: 1rem;
+}
+
+.objectDefinitionList {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.objectDefinitionList div {
+  display: grid;
+  grid-template-columns: minmax(80px, 0.4fr) minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: baseline;
+}
+
+.objectDefinitionList dt {
+  color: #68736e;
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.objectDefinitionList dd {
+  min-width: 0;
+  margin: 0;
+  color: #201912;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.objectProgressLine {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.objectProgressLine span {
+  color: #315c56;
+  font-weight: 850;
+}
+
+.objectMiniList,
+.objectPeopleList,
+.objectSplitList,
+.objectSplitList div {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.objectMiniList > span,
+.objectPeopleList > div,
+.objectSplitList a,
+.objectSplitList div > span {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+  border-radius: 8px;
+  background: #f7faf9;
+  color: #34413c;
+  padding: 0.55rem 0.65rem;
+  line-height: 1.35;
+  text-decoration: none;
+}
+
+.objectMiniList strong,
+.objectPeopleList strong,
+.objectSplitList strong {
+  color: #201912;
+  font-size: 0.9rem;
+}
+
+.objectPeopleList span,
+.objectSplitList span {
+  color: #68736e;
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
+.objectSplitList {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.objectSplitList a {
+  border: 1px solid rgba(15, 118, 110, 0.12);
+  color: #0f766e;
+  font-weight: 800;
+}
+
+.objectDone {
+  border: 1px solid rgba(15, 118, 110, 0.14);
+  background: #eef6f4 !important;
+}
+
+.objectDone svg {
+  color: #0f766e;
+}
+
+.objectPending {
+  border: 1px solid rgba(148, 116, 72, 0.14);
+  background: #fffaf2 !important;
+}
+
+.objectPending svg {
+  color: #8a642f;
+}
 @media (max-width: 920px) {
   .layout {
     grid-template-columns: 1fr;
   }
 
+  .objectKpiGrid,
+  .objectGrid,
   .ownerSummaryGrid,
   .ownerWorkflowGrid,
   .ownerInfoGrid,
@@ -645,6 +899,7 @@
 }
 
 @media (max-width: 640px) {
+  .centerHeader,
   .heroTop,
   .sectionHeader,
   .ownerPanelHeader {
@@ -660,7 +915,8 @@
     grid-template-columns: 1fr;
   }
 
-  .checklistSummary {
+  .checklistSummary,
+  .objectSplitList {
     grid-template-columns: 1fr;
   }
 

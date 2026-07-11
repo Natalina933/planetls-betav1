@@ -4,6 +4,9 @@
 .financeGrid,
 .alertGrid,
 .quickActions,
+.missionFocusGrid,
+.widgetGrid,
+.reportGrid,
 .timelineList,
 .requestList,
 .actionRow,
@@ -73,6 +76,11 @@
 .requestCard,
 .timelineRow,
 .alertCard,
+.activityWeatherCard,
+.modeSelectorCard,
+.missionFocusCard,
+.reportCard,
+.widgetToggle,
 .inspirationManager,
 .inspirationLibrary {
   position: relative;
@@ -89,6 +97,11 @@
 .panelCard,
 .quickActionCard,
 .alertCard,
+.activityWeatherCard,
+.modeSelectorCard,
+.missionFocusCard,
+.reportCard,
+.widgetToggle,
 .inspirationManager,
 .inspirationLibrary {
   padding: 1.1rem;
@@ -214,13 +227,14 @@
 }
 
 .healthGrid,
-.financeGrid,
-.quickActions {
+.financeGrid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-
 .healthCard,
-.financeCard {
+.financeCard,
+.reportCard,
+.missionFocusCard,
+.widgetToggle {
   display: grid;
   gap: 0.55rem;
   padding: 1rem;
@@ -246,7 +260,8 @@
 }
 
 .healthLabel,
-.financeLabel {
+.financeLabel,
+.reportLabel {
   color: var(--theme-text);
   font-size: 0.78rem;
   font-weight: 800;
@@ -255,7 +270,8 @@
 }
 
 .healthValue,
-.financeValue {
+.financeValue,
+.reportCard strong {
   color: var(--theme-accent-strong);
   font-size: clamp(1.35rem, 2vw, 1.85rem);
   line-height: 1;
@@ -263,6 +279,62 @@
   font-weight: 700;
 }
 
+.activityWeatherCard {
+  padding: 1rem;
+  background:
+    radial-gradient(circle at top right, rgba(15, 139, 98, 0.14), transparent 34%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(245, 250, 248, 0.94));
+}
+
+.weatherHeader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: start;
+}
+
+.weatherHeader h3,
+.weatherHeader p {
+  margin: 0;
+}
+
+.weatherIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+  color: #fff;
+}
+
+.weatherGauge {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(15, 139, 98, 0.12);
+}
+
+.weatherGauge span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--theme-accent), var(--theme-accent-strong));
+}
+
+.weatherStats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--theme-text-soft);
+  font-weight: 800;
+}
+
+.weatherStats strong {
+  color: var(--theme-accent-strong);
+  font-size: 1.15rem;
+}
 .dualGrid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -331,6 +403,95 @@
   font-weight: 700;
 }
 
+.missionFocusGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.missionFocusCard {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.85rem;
+  min-height: 92px;
+  padding: 1rem;
+}
+
+.missionFocusCard strong,
+.widgetToggle strong {
+  color: var(--theme-text);
+  line-height: 1.2;
+}
+
+.missionFocusCard p,
+.widgetToggle small {
+  margin: 0;
+  color: var(--theme-text-soft);
+  line-height: 1.4;
+}
+
+.missionFocusTime {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  min-height: 38px;
+  border-radius: 999px;
+  background: rgba(15, 139, 98, 0.1);
+  color: var(--theme-accent-strong);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.reportGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.reportCard {
+  min-height: 136px;
+}
+
+.reportCard p {
+  margin: 0;
+  color: var(--theme-text-soft);
+  line-height: 1.45;
+}
+
+.modeSelectorCard {
+  padding: 1rem;
+}
+.widgetGrid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.widgetToggle {
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 82px;
+  padding: 0.85rem;
+  color: var(--theme-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.widgetToggle[data-enabled="false"] {
+  opacity: 0.62;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.widgetToggle[data-enabled="true"] {
+  border-color: rgba(15, 139, 98, 0.32);
+  box-shadow: 0 16px 34px rgba(15, 139, 98, 0.12);
+}
+
+.widgetToggle svg {
+  color: var(--theme-accent-strong);
+}
+
+.widgetToggle span {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
 .quickActions {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -547,13 +708,18 @@
 .healthCard:hover,
 .timelineRow:hover,
 .quickActionCard:hover,
-.alertCard:hover {
+.alertCard:hover,
+.missionFocusCard:hover,
+.widgetToggle:hover {
   transform: translateY(-2px);
 }
 
 @media (max-width: 1180px) {
   .primaryGrid,
   .dualGrid,
+  .missionFocusGrid,
+  .widgetGrid,
+  .reportGrid,
   .inspirationLayout {
     grid-template-columns: 1fr;
   }
@@ -562,7 +728,10 @@
 @media (max-width: 820px) {
   .healthGrid,
   .financeGrid,
-  .quickActions {
+  .quickActions,
+  .missionFocusGrid,
+  .widgetGrid,
+  .reportGrid {
     grid-template-columns: 1fr;
   }
 
@@ -585,7 +754,9 @@
     align-items: flex-start;
   }
 
-  .timelineRow {
+  .timelineRow,
+  .missionFocusCard,
+  .widgetToggle {
     grid-template-columns: 1fr;
   }
 

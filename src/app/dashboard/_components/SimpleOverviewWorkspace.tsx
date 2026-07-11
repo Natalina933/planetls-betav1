@@ -49,6 +49,7 @@ type SimpleOverviewWorkspaceProps = {
   metrics?: DashboardWorkspaceMetric[];
   cards?: DashboardWorkspaceCard[];
   detailSections?: DashboardWorkspaceDetailSection[];
+  children?: React.ReactNode;
 };
 
 const RISK_ICONS: LucideIcon[] = [Gauge, CheckCircle2, AlertTriangle, ClipboardCheck];
@@ -327,6 +328,7 @@ export default function SimpleOverviewWorkspace({
   metrics,
   cards,
   detailSections,
+  children,
 }: SimpleOverviewWorkspaceProps) {
   const completionAction = getCompletionAction(completion, actions);
   const firstMissingItem = completion.missingItems[0];
@@ -356,6 +358,8 @@ export default function SimpleOverviewWorkspace({
       detailsTitle="Configuration exploitable"
       detailsDescription="Cliquez sur un indicateur pour isoler les priorites, les points en attente ou les donnees utiles."
       detailSections={getDetailSections(cards, detailSections, completion, completionAction)}
-    />
+    >
+      {children}
+    </DashboardOperationalPage>
   );
 }

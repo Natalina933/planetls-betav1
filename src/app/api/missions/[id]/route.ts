@@ -761,6 +761,27 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       eventPayload.checklist_updated = true;
     }
 
+    if (action === "assign_team_member") {
+      if (!CONCIERGE_MISSION_ROLES.has(role)) {
+        return NextResponse.json({ error: "Attribution reservee a la conciergerie" }, { status: 403 });
+      }
+      const teamMemberId = typeof body.team_member_id === "string" ? body.team_member_id.trim() : "";
+      const teamMemberName = typeof body.team_member_name === "string" ? body.team_member_name.trim() : "";
+      if (!teamMemberId) {
+        return NextResponse.json({ error: "Membre equipe requis" }, { status: 400 });
+      }
+      patch.metadata = {
+        ...metadata,
+        assigned_team_member_id: teamMemberId,
+        assigned_team_member_name: teamMemberName || null,
+        assigned_team_member_at: new Date().toISOString(),
+        assigned_team_member_by: userId,
+      } as Json;
+      eventType = "assigned";
+      eventPayload.assigned_team_member_id = teamMemberId;
+      eventPayload.assigned_team_member_name = teamMemberName || null;
+    }
+
     if (action === "signoff") {
       const signature = typeof body.signature === "string" ? body.signature.trim() : "";
       if (!signature) {

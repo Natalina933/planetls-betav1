@@ -32,6 +32,7 @@ import {
   type MissionPriority,
   type MissionStatus,
 } from "@/app/lib/missionStatus";
+import { buildMissionObjectCenter } from "@/app/lib/missionObjectCenter";
 import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
 import OwnerMissionPage from "./OwnerMissionPage";
 import type { OwnerMissionItem, OwnerMissionKpi, OwnerMissionStatus } from "./ownerMissionTypes";
@@ -858,6 +859,13 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
       ].filter((name) => name && name !== "Non renseignÃ©" && name !== "Contact"),
     ),
   );
+  const missionCenter = buildMissionObjectCenter(detail);
+  const missionObjectKpis = [
+    { label: "Avancement", value: `${missionCenter.completionRate}%`, detail: "Objet metier consolide" },
+    { label: "Checklist", value: `${missionCenter.counts.checklistDone}/${missionCenter.counts.checklistTotal}`, detail: `${missionCenter.checklistRate}% controles faits` },
+    { label: "Preuves", value: `${missionCenter.counts.photos + missionCenter.counts.documents}`, detail: `${missionCenter.counts.photos} photo(s), ${missionCenter.counts.documents} document(s)` },
+    { label: "Equipe", value: `${missionCenter.counts.intervenants}`, detail: "Intervenants rattaches" },
+  ];
 
   return (
     <div className={`${styles.page} ${persona === "owner" ? styles.ownerMissionView : ""}`}>
@@ -1269,6 +1277,159 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
         </div>
       </section>
 
+      {persona === "concierge" ? (
+        <section className={styles.missionCenter} aria-labelledby="mission-center-title">
+          <div className={styles.centerHeader}>
+            <div>
+              <p className={styles.eyebrow}>Centre des missions</p>
+              <h2 id="mission-center-title">Objet metier complet</h2>
+              <p>Planning, statut, priorite, preuves, checklist, historique, signatures, commentaires et intervenants.</p>
+            </div>
+            <div className={styles.centerProgress} aria-label="Avancement mission">
+              <strong>{missionCenter.completionRate}%</strong>
+              <span>complet</span>
+              <progress value={missionCenter.completionRate} max={100} />
+            </div>
+          </div>
+
+          <div className={styles.objectKpiGrid}>
+            {missionObjectKpis.map((kpi) => (
+              <article key={kpi.label}>
+                <span>{kpi.label}</span>
+                <strong>{kpi.value}</strong>
+                <small>{kpi.detail}</small>
+              </article>
+            ))}
+          </div>
+
+          <div className={styles.objectGrid}>
+            <article className={styles.objectCard}>
+              <div className={styles.objectCardTitle}>
+                <CalendarClock size={18} aria-hidden="true" />
+                <h3>Planning et statut</h3>
+              </div>
+              <dl className={styles.objectDefinitionList}>
+                <div>
+                  <dt>Etat</dt>
+                  <dd>{getMissionStatusLabel(missionCenter.status)}</dd>
+                </div>
+                <div>
+                  <dt>Priorite</dt>
+                  <dd>{getMissionPriorityLabel(mission.priority)}</dd>
+                </div>
+                <div>
+                  <dt>Debut</dt>
+                  <dd>{formatDateValue(mission.scheduled_start, { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</dd>
+                </div>
+                <div>
+                  <dt>Fin</dt>
+                  <dd>{formatDateValue(mission.scheduled_end, { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</dd>
+                </div>
+              </dl>
+            </article>
+
+            <article className={styles.objectCard}>
+              <div className={styles.objectCardTitle}>
+                <ClipboardList size={18} aria-hidden="true" />
+                <h3>Checklist terrain</h3>
+              </div>
+              <div className={styles.objectProgressLine}>
+                <span>{missionCenter.counts.checklistDone} controles faits sur {missionCenter.counts.checklistTotal}</span>
+                <progress value={missionCenter.checklistRate} max={100} />
+              </div>
+              <div className={styles.objectMiniList}>
+                {missionCenter.checklist.slice(0, 5).map((item) => (
+                  <span key={item.id} className={item.done ? styles.objectDone : styles.objectPending}>
+                    <CheckCircle2 size={14} aria-hidden="true" /> {cleanFrenchText(item.label)}
+                  </span>
+                ))}
+              </div>
+            </article>
+
+            <article className={styles.objectCard}>
+              <div className={styles.objectCardTitle}>
+                <FileText size={18} aria-hidden="true" />
+                <h3>Documents et photos</h3>
+              </div>
+              <div className={styles.objectSplitList}>
+                <div>
+                  <strong>Photos</strong>
+                  {missionCenter.photos.length > 0 ? missionCenter.photos.slice(0, 4).map((proof, index) => {
+                    const proofHref = getProofHref(missionId, proof);
+                    return proofHref ? (
+                      <a key={proof.id || `${proof.url}-${index}`} href={proofHref} target="_blank" rel="noreferrer">{cleanFrenchText(proof.label || "Photo terrain")}</a>
+                    ) : (
+                      <span key={proof.id || `${proof.url}-${index}`}>{cleanFrenchText(proof.label || "Photo terrain")}</span>
+                    );
+                  }) : <span className={styles.empty}>Aucune photo.</span>}
+                </div>
+                <div>
+                  <strong>Documents</strong>
+                  {missionCenter.documents.length > 0 ? missionCenter.documents.slice(0, 4).map((proof, index) => {
+                    const proofHref = getProofHref(missionId, proof);
+                    return proofHref ? (
+                      <a key={proof.id || `${proof.url}-${index}`} href={proofHref} target="_blank" rel="noreferrer">{cleanFrenchText(proof.label || "Document mission")}</a>
+                    ) : (
+                      <span key={proof.id || `${proof.url}-${index}`}>{cleanFrenchText(proof.label || "Document mission")}</span>
+                    );
+                  }) : <span className={styles.empty}>Aucun document.</span>}
+                </div>
+              </div>
+            </article>
+
+            <article className={styles.objectCard}>
+              <div className={styles.objectCardTitle}>
+                <Handshake size={18} aria-hidden="true" />
+                <h3>Intervenants</h3>
+              </div>
+              <div className={styles.objectPeopleList}>
+                {missionCenter.intervenants.map((person) => (
+                  <div key={`${person.role}-${person.id}`}>
+                    <strong>{cleanFrenchText(person.name)}</strong>
+                    <span>{person.role}{person.status ? ` - ${person.status}` : ""}</span>
+                  </div>
+                ))}
+              </div>
+            </article>
+
+            <article className={styles.objectCard}>
+              <div className={styles.objectCardTitle}>
+                <MessageSquareText size={18} aria-hidden="true" />
+                <h3>Commentaires</h3>
+              </div>
+              <div className={styles.objectMiniList}>
+                {missionCenter.comments.length > 0 ? missionCenter.comments.slice(0, 3).map((comment) => (
+                  <span key={comment.id}>
+                    <strong>{cleanFrenchText(comment.subject)}</strong>
+                    {cleanFrenchText(comment.preview)}
+                  </span>
+                )) : <span className={styles.empty}>Aucun commentaire recent.</span>}
+              </div>
+            </article>
+
+            <article className={styles.objectCard}>
+              <div className={styles.objectCardTitle}>
+                <PackageCheck size={18} aria-hidden="true" />
+                <h3>Signature et historique</h3>
+              </div>
+              <div className={styles.objectMiniList}>
+                {missionCenter.signatures.length > 0 ? missionCenter.signatures.map((signature) => (
+                  <span key={`${signature.role}-${signature.name}`}>
+                    <strong>{signature.role === "owner" ? "Proprietaire" : signature.role === "concierge" ? "Conciergerie" : "Mission"}</strong>
+                    {cleanFrenchText(signature.name)}
+                  </span>
+                )) : <span className={styles.empty}>Aucune signature.</span>}
+                {detail.events.slice(0, 3).map((event) => (
+                  <span key={event.id}>
+                    <strong>{getEventLabel(event.event_type)}</strong>
+                    {formatDateValue(event.created_at, { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                ))}
+              </div>
+            </article>
+          </div>
+        </section>
+      ) : null}
       <div className={styles.layout}>
         <main className={styles.page}>
           <section className={styles.panel}>

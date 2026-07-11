@@ -1,17 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
+  BellRing,
   CalendarClock,
+  CheckCircle2,
   CircleAlert,
   Clock3,
+  CloudSun,
   DoorOpen,
   Euro,
   FileText,
+  GripVertical,
   Home,
   MessageSquareText,
+  Radio,
   Search,
   Send,
   ShieldAlert,
@@ -38,6 +43,16 @@ import {
 } from "@/app/components/dashboard/unified";
 import { DashboardEmptyState, DashboardStatusBadge, getDashboardMissionPaceMeta } from "@/app/components/dashboard/saas";
 import { useConciergeDashboardData, type ConciergeDashboardRequest } from "./useConciergeDashboardData";
+import ConciergeDashboardModeControls from "./ConciergeDashboardModeControls";
+import {
+  CONCIERGE_OPERATING_MODE_CONFIG,
+  CONCIERGE_WIDGET_STORAGE_KEY,
+  DEFAULT_CONCIERGE_DASHBOARD_PREFERENCES,
+  DEFAULT_CONCIERGE_WIDGETS,
+  parseConciergeWidgets,
+  type ConciergeDashboardPreferences,
+  type ConciergeWidgetId,
+} from "./dashboardModes";
 import {
   buildAvailabilityHoursWithInspirationLibrary,
   buildYoutubeSearchUrl,
@@ -163,6 +178,57 @@ function getActivityDateLabel(value: string | null | undefined) {
   });
 }
 
+type ActivityWeatherTone = "good" | "warn" | "info";
+
+function getActivityWeather({
+  todayPlanningCount,
+  urgentCount,
+  unreadConversationCount,
+  quotesToSendCount,
+  pendingValidationCount,
+}: {
+  todayPlanningCount: number;
+  urgentCount: number;
+  unreadConversationCount: number;
+  quotesToSendCount: number;
+  pendingValidationCount: number;
+}) {
+  const pressureScore =
+    todayPlanningCount * 12 +
+    urgentCount * 18 +
+    unreadConversationCount * 6 +
+    quotesToSendCount * 8 +
+    pendingValidationCount * 10;
+  const score = Math.min(100, Math.max(8, pressureScore));
+
+  if (urgentCount > 0 || score >= 70) {
+    return {
+      label: "Orage operationnel",
+      detail: "Prioriser urgences, messages et validations avant les actions commerciales.",
+      tone: "warn" as ActivityWeatherTone,
+      score,
+      icon: TriangleAlert,
+    };
+  }
+
+  if (todayPlanningCount > 0 || unreadConversationCount > 0 || quotesToSendCount > 0) {
+    return {
+      label: "Ciel actif",
+      detail: "Le flux est vivant mais reste pilotable depuis le cockpit.",
+      tone: "info" as ActivityWeatherTone,
+      score,
+      icon: CloudSun,
+    };
+  }
+
+  return {
+    label: "Temps clair",
+    detail: "Aucun point bloquant detecte, bon moment pour preparer la suite.",
+    tone: "good" as ActivityWeatherTone,
+    score,
+    icon: CheckCircle2,
+  };
+}
 function ConciergeInspirationPanel({
   availabilityHours,
 }: {
@@ -430,7 +496,43 @@ export default function DashboardPage() {
   } = useConciergeDashboardData(isAuthenticated);
 
   const conciergeName = user?.firstName || user?.company_name || user?.username || "Christa";
+  const [dashboardPreferences, setDashboardPreferences] = useState<ConciergeDashboardPreferences>(
+    DEFAULT_CONCIERGE_DASHBOARD_PREFERENCES,
+  );
+  const [syncedOperatingMode, setSyncedOperatingMode] = useState(dashboardPreferences.operatingMode);
+  const [widgets, setWidgets] = useState(DEFAULT_CONCIERGE_WIDGETS);
 
+  useEffect(() => {
+    try {
+      const savedWidgets = window.localStorage.getItem(CONCIERGE_WIDGET_STORAGE_KEY);
+      if (savedWidgets) setWidgets(parseConciergeWidgets(savedWidgets));
+    } catch {
+      setWidgets(DEFAULT_CONCIERGE_WIDGETS);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(CONCIERGE_WIDGET_STORAGE_KEY, JSON.stringify(widgets));
+  }, [widgets]);
+
+  useEffect(() => {
+    if (syncedOperatingMode === dashboardPreferences.operatingMode) return;
+    const nextWidgets = CONCIERGE_OPERATING_MODE_CONFIG[dashboardPreferences.operatingMode].widgetDefaults;
+    setWidgets({ ...nextWidgets });
+    setSyncedOperatingMode(dashboardPreferences.operatingMode);
+
+    try {
+      window.localStorage.setItem(CONCIERGE_WIDGET_STORAGE_KEY, JSON.stringify(nextWidgets));
+    } catch {
+      // Widget preferences should never block the dashboard.
+    }
+  }, [dashboardPreferences.operatingMode, syncedOperatingMode]);
+
+  const handleDashboardPreferencesChange = useCallback((preferences: ConciergeDashboardPreferences) => {
+    setDashboardPreferences(preferences);
+  }, []);
+
+  const operatingModeConfig = CONCIERGE_OPERATING_MODE_CONFIG[dashboardPreferences.operatingMode];
   const todayRequests = useMemo(() => requests.filter((request) => isToday(request.desired_date)), [requests]);
   const todayArrivals = useMemo(() => {
     const housingArrivals = housings.filter((housing) => housing.statut === "arrivee").length;
@@ -669,7 +771,7 @@ export default function DashboardPage() {
         tone: "info",
       },
       {
-        label: "Devis a envoyer",
+        label: operatingModeConfig.kpiLabels.quotes,
         value: `${quotesToSend.length}`,
         detail:
           quotesToSend.length > 0
@@ -699,7 +801,7 @@ export default function DashboardPage() {
         tone: "info",
       },
     ],
-    [ownerRequestsToHandle, pendingValidationCount, quotesToSend.length, unreadConversationCount],
+    [operatingModeConfig.kpiLabels.quotes, ownerRequestsToHandle, pendingValidationCount, quotesToSend.length, unreadConversationCount],
   );
 
   const revenueCards = useMemo(
@@ -791,6 +893,157 @@ export default function DashboardPage() {
     [housingActionsCount, todayPlanningCount, urgentMissionCount, urgentRequests.length, weekPlanningCount],
   );
 
+  const activityWeather = useMemo(
+    () =>
+      getActivityWeather({
+        todayPlanningCount,
+        urgentCount: urgentMissionCount + urgentRequests.length,
+        unreadConversationCount,
+        quotesToSendCount: quotesToSend.length,
+        pendingValidationCount,
+      }),
+    [pendingValidationCount, quotesToSend.length, todayPlanningCount, unreadConversationCount, urgentMissionCount, urgentRequests.length],
+  );
+  const ActivityWeatherIcon = activityWeather.icon;
+
+  const notificationItems = useMemo<UnifiedSpotlightItem[]>(() => {
+    const items: UnifiedSpotlightItem[] = [];
+
+    if (unreadConversationCount > 0) {
+      items.push({
+        id: "notification-messages",
+        label: "Messages",
+        title: `${unreadConversationCount} message(s) non lus`,
+        detail: "A traiter pour eviter de bloquer devis ou missions.",
+        meta: "Messagerie",
+        href: "/dashboard/concierge/messages",
+        icon: <MessageSquareText size={16} />,
+        tone: "warning",
+      });
+    }
+
+    if (urgentRequests.length > 0) {
+      items.push({
+        id: "notification-requests",
+        label: "Demandes urgentes",
+        title: `${urgentRequests.length} demande(s) prioritaires`,
+        detail: "Demandes proprietaires a qualifier rapidement.",
+        meta: "Demandes",
+        href: "/dashboard/concierge/demandes",
+        icon: <BellRing size={16} />,
+        tone: "warning",
+      });
+    }
+
+    if (pendingValidationCount > 0) {
+      items.push({
+        id: "notification-validation",
+        label: "Validation",
+        title: `${pendingValidationCount} mission(s) a confirmer`,
+        detail: "Dates ou confirmations a verrouiller dans le planning.",
+        meta: "Planning",
+        href: "/dashboard/concierge/planning",
+        icon: <CheckCircle2 size={16} />,
+        tone: "accent",
+      });
+    }
+
+    if (quotesToSend.length > 0) {
+      items.push({
+        id: "notification-quotes",
+        label: "Devis",
+        title: `${quotesToSend.length} devis a envoyer`,
+        detail: "Opportunites commerciales pretes a avancer.",
+        meta: "Revenus",
+        href: "/dashboard/concierge/billing",
+        icon: <Euro size={16} />,
+        tone: "success",
+      });
+    }
+
+    return items.slice(0, 4);
+  }, [pendingValidationCount, quotesToSend.length, unreadConversationCount, urgentRequests.length]);
+
+  const missionFocusItems = useMemo(
+    () =>
+      missionRows
+        .filter((mission) => !isMissionClosed(mission.status))
+        .slice(0, 4)
+        .map((mission) => ({
+          id: mission.id,
+          title: mission.title || "Mission concierge",
+          status: mission.priority === "urgent" ? "Urgente" : mission.status || "A planifier",
+          dateLabel: mission.scheduled_start ? formatDateValue(mission.scheduled_start, { day: "2-digit", month: "short" }) : "Date a caler",
+          timeLabel: mission.scheduled_start ? formatTime(mission.scheduled_start) : "--:--",
+          href: "/dashboard/concierge/planning",
+        })),
+    [missionRows],
+  );
+
+  const widgetControls: Array<{ id: ConciergeWidgetId; label: string; detail: string; icon: LucideIcon }> = [
+    { id: "operations", label: operatingModeConfig.planningLabel, detail: "Jour + demandes", icon: CalendarClock },
+    { id: "notifications", label: "Notifications", detail: "Messages + alertes", icon: BellRing },
+    { id: "missions", label: operatingModeConfig.kpiLabels.missions, detail: "Focus terrain", icon: Radio },
+    { id: "revenues", label: operatingModeConfig.revenueLabel, detail: "Devis + paiements", icon: Euro },
+    { id: "reports", label: "Rapports", detail: operatingModeConfig.shortLabel, icon: FileText },
+    { id: "inspiration", label: "Inspiration", detail: "Bibliotheque video", icon: Sparkles },
+  ];
+
+  const activeWidgetCount = Object.values(widgets).filter(Boolean).length;
+  const widgetTotalCount = Object.keys(DEFAULT_CONCIERGE_WIDGETS).length;
+
+  const modeActivityScore = useMemo(() => {
+    const urgencyWeight = dashboardPreferences.operatingMode === "airbnb_cohost" ? 24 : dashboardPreferences.operatingMode === "provider" ? 22 : 18;
+    const missionWeight = dashboardPreferences.operatingMode === "provider" ? 11 : 8;
+    const arrivalWeight = dashboardPreferences.operatingMode === "airbnb_cohost" ? 16 : 7;
+    const commercialWeight = dashboardPreferences.operatingMode === "conciergerie" ? 10 : 8;
+    const score =
+      todayArrivals * arrivalWeight +
+      openMissionCount * missionWeight +
+      (urgentMissionCount + urgentRequests.length) * urgencyWeight +
+      quotesToSend.length * commercialWeight +
+      unreadConversationCount * 5 +
+      pendingValidationCount * 7 +
+      (projectedRevenue > 0 ? 12 : 0);
+
+    return Math.min(100, Math.max(5, score));
+  }, [
+    dashboardPreferences.operatingMode,
+    openMissionCount,
+    pendingValidationCount,
+    projectedRevenue,
+    quotesToSend.length,
+    todayArrivals,
+    unreadConversationCount,
+    urgentMissionCount,
+    urgentRequests.length,
+  ]);
+
+  const reportCards = useMemo(
+    () => [
+      {
+        label: "Mode actif",
+        value: operatingModeConfig.shortLabel,
+        detail: operatingModeConfig.description,
+      },
+      {
+        label: "Score d'activite",
+        value: `${modeActivityScore}%`,
+        detail: "Calcul pondere selon le mode metier choisi.",
+      },
+      {
+        label: operatingModeConfig.revenueLabel,
+        value: formatCurrencyAmount(projectedRevenue, { currency: "EUR", emptyLabel: "0 EUR" }),
+        detail: operatingModeConfig.statDetails.revenueDetail,
+      },
+      {
+        label: "Risque operationnel",
+        value: `${urgentMissionCount + urgentRequests.length + pendingValidationCount}`,
+        detail: "Urgences, validations et arbitrages qui peuvent ralentir l'exploitation.",
+      },
+    ],
+    [modeActivityScore, operatingModeConfig, pendingValidationCount, projectedRevenue, urgentMissionCount, urgentRequests.length],
+  );
   const quickActions = [
     {
       label: "Ajouter un logement",
@@ -824,9 +1077,9 @@ export default function DashboardPage() {
     <div className="theme-concierge">
       <UnifiedRoleDashboard
         role="concierge"
-        title={`${getGreetingLabel()} ${conciergeName}, voici votre cockpit du jour.`}
-        subtitle={`Vous pilotez ${housings.length} logement(s), ${openMissionCount} mission(s) ouverte(s), ${todayArrivals} arrivee(s) et ${quotesToSend.length} devis a envoyer.`}
-        experienceBadge={user?.years_experience ? `${user.years_experience} ans d'experience` : "Cockpit terrain"}
+        title={`${getGreetingLabel()} ${conciergeName}, voici votre cockpit ${operatingModeConfig.shortLabel.toLowerCase()} du jour.`}
+        subtitle={`${operatingModeConfig.dashboardLead} ${housings.length} actif(s), ${openMissionCount} mission(s), ${todayArrivals} moment(s) du jour et ${quotesToSend.length} opportunite(s) a traiter.`}
+        experienceBadge={user?.years_experience ? `${user.years_experience} ans d'experience` : operatingModeConfig.badge}
         statusLabel={urgentMissionCount + urgentRequests.length > 0 ? "Points chauds a surveiller" : "Activite sous controle"}
         actions={[
           {
@@ -855,14 +1108,14 @@ export default function DashboardPage() {
             value: `${housings.length}`,
             detail: housingActionsCount > 0 ? `${housingActionsCount} logement(s) à suivre` : `${housings.length} logement(s) prêt(s)`,
             icon: <DashboardHomeIcon size={26} />,
-            statusLabel: housingActionsCount > 0 ? `${housingActionsCount} logement(s) à vérifier` : "Logements stables",
+            statusLabel: housingActionsCount > 0 ? `${housingActionsCount} actif(s) a verifier` : operatingModeConfig.statDetails.portfolioStable,
             statusTone: housingActionsCount > 0 ? "warning" : "success",
           },
           {
             id: "missions",
-            label: "Missions ouvertes",
+            label: operatingModeConfig.kpiLabels.missions,
             value: `${openMissionCount}`,
-            detail: todayPlanningCount > 0 ? `${todayPlanningCount} mission(s) aujourd'hui` : "Aucune mission aujourd'hui",
+            detail: todayPlanningCount > 0 ? `${todayPlanningCount} element(s) aujourd'hui` : "Aucun element aujourd'hui",
             icon: <CalendarClock size={18} />,
             statusLabel: pendingValidationCount > 0 ? `${pendingValidationCount} mission(s) à valider` : missionPaceMeta.label,
             statusTone: pendingValidationCount > 0 ? "warning" : missionPaceMeta.tone,
@@ -872,7 +1125,7 @@ export default function DashboardPage() {
           },
           {
             id: "arrivals",
-            label: "Arrivées",
+            label: operatingModeConfig.kpiLabels.arrivals,
             value: `${todayArrivals}`,
             detail: todayArrivals > 0 ? `${todayArrivals} arrivée(s) à coordonner` : "0 arrivée aujourd'hui",
             icon: <DoorOpen size={18} />,
@@ -881,7 +1134,7 @@ export default function DashboardPage() {
           },
           {
             id: "quotes",
-            label: "Devis a envoyer",
+            label: operatingModeConfig.kpiLabels.quotes,
             value: `${quotesToSend.length}`,
             detail: quotesToSend.length > 0 ? `${quotesToSend.length} devis à envoyer` : "Aucun devis à envoyer",
             icon: <FileText size={18} />,
@@ -894,7 +1147,7 @@ export default function DashboardPage() {
             <article className={styles.priorityHeroCard}>
               <div className={styles.priorityTop}>
                 <DashboardStatusBadge
-                  label={priorityRequest?.urgency ? "Mission urgente" : todayArrivals > 0 ? "Arrivée voyageur" : "Point d'attention"}
+                  label={priorityRequest?.urgency ? operatingModeConfig.priorityLabel : todayArrivals > 0 ? operatingModeConfig.kpiLabels.arrivals : "Point d'attention"}
                   tone={priorityRequest?.urgency ? "danger" : todayArrivals > 0 ? "warning" : "info"}
                 />
                 <span className={styles.priorityIcon}>
@@ -941,18 +1194,47 @@ export default function DashboardPage() {
             </article>
 
             <div className={styles.sideStack}>
-              <section className={styles.contentBlock}>
+              <section className={`${styles.contentBlock} ${styles.modeSelectorCard}`}>
                 <div className={styles.blockHeader}>
-                  <h3>Radar rapide</h3>
-                  <p>Les signaux les plus utiles a voir en premier.</p>
+                  <h3>Mode co-hote</h3>
+                  <p>Statistiques, widgets et rapports s'adaptent au modele choisi.</p>
                 </div>
-                <UnifiedSpotlightList items={priorityItems} emptyLabel="Aucun point prioritaire." />
+                <ConciergeDashboardModeControls
+                  experienceLevel={user?.experience_level}
+                  onPreferencesChange={handleDashboardPreferencesChange}
+                />
               </section>
 
               <section className={styles.contentBlock}>
                 <div className={styles.blockHeader}>
-                  <h3>Sante de l&apos;activite</h3>
-                  <p>Demandes, devis, validations et messages en une lecture.</p>
+                  <h3>Radar rapide</h3>
+                  <p>{operatingModeConfig.dashboardLead}</p>
+                </div>
+                <UnifiedSpotlightList items={priorityItems} emptyLabel="Aucun point prioritaire." />
+              </section>
+
+              <section className={`${styles.contentBlock} ${styles.activityWeatherCard}`}>
+                <div className={styles.weatherHeader}>
+                  <span className={`${styles.weatherIcon} ${styles[activityWeather.tone]}`}>
+                    <ActivityWeatherIcon size={22} />
+                  </span>
+                  <div>
+                    <h3>Meteo d&apos;activite</h3>
+                    <p>{activityWeather.detail}</p>
+                  </div>
+                </div>
+                <div className={styles.weatherGauge} aria-label={`Pression operationnelle ${activityWeather.score}%`}>
+                  <span style={{ width: `${activityWeather.score}%` }} />
+                </div>
+                <div className={styles.weatherStats}>
+                  <span>{activityWeather.label}</span>
+                  <strong>{activityWeather.score}%</strong>
+                </div>
+              </section>
+              <section className={styles.contentBlock}>
+                <div className={styles.blockHeader}>
+                  <h3>Sante {operatingModeConfig.shortLabel.toLowerCase()}</h3>
+                  <p>{operatingModeConfig.statDetails.missionDetail}</p>
                 </div>
                 <div className={styles.healthGrid}>
                   {healthCards.map((card) => (
@@ -986,14 +1268,14 @@ export default function DashboardPage() {
         mainSections={[
           {
             id: "operations",
-            title: "Operations du jour",
-            subtitle: "Planning, demandes proprietaires et rythme terrain dans la meme lecture.",
+            title: operatingModeConfig.planningLabel,
+            subtitle: `${operatingModeConfig.planningLabel}, ${operatingModeConfig.demandLabel.toLowerCase()} et rythme terrain dans la meme lecture.`,
             content: (
               <div className={styles.dualGrid}>
                 <article className={styles.panelCard}>
                   <div className={styles.panelHeader}>
                     <div>
-                      <span className={styles.panelEyebrow}>Planning operationnel</span>
+                      <span className={styles.panelEyebrow}>{operatingModeConfig.planningLabel}</span>
                       <h3>Aujourd&apos;hui</h3>
                     </div>
                     <Link href="/dashboard/concierge/planning" className={styles.inlineLink}>
@@ -1028,7 +1310,7 @@ export default function DashboardPage() {
                 <article className={styles.panelCard}>
                   <div className={styles.panelHeader}>
                     <div>
-                      <span className={styles.panelEyebrow}>Demandes proprietaires</span>
+                      <span className={styles.panelEyebrow}>{operatingModeConfig.demandLabel}</span>
                       <h3>A traiter</h3>
                     </div>
                     <Link href="/dashboard/concierge/demandes" className={styles.inlineLink}>
@@ -1092,9 +1374,49 @@ export default function DashboardPage() {
             content: <UnifiedSpotlightList items={activityItems} emptyLabel="Aucune activite recente exploitable pour l'instant." />,
           },
           {
+            id: "notifications",
+            title: "Centre de notifications",
+            subtitle: "Messages, validations et alertes commerciales dans une file actionnable.",
+            content: (
+              <UnifiedSpotlightList
+                items={notificationItems}
+                emptyLabel={operatingModeConfig.statDetails.notificationEmpty}
+              />
+            ),
+          },
+          {
+            id: "missions",
+            title: "Missions terrain",
+            subtitle: "Le prochain travail operationnel visible sans quitter le cockpit.",
+            content: (
+              <div className={styles.missionFocusGrid}>
+                {missionFocusItems.length > 0 ? (
+                  missionFocusItems.map((mission) => (
+                    <Link key={mission.id} href={mission.href} className={styles.missionFocusCard}>
+                      <span className={styles.missionFocusTime}>{mission.timeLabel}</span>
+                      <div>
+                        <strong>{mission.title}</strong>
+                        <p>{mission.dateLabel}</p>
+                      </div>
+                      <DashboardStatusBadge
+                        label={mission.status}
+                        tone={mission.status === "Urgente" ? "danger" : "info"}
+                      />
+                    </Link>
+                  ))
+                ) : (
+                  <DashboardEmptyState
+                    title="Aucune mission ouverte"
+                    copy="Les prochaines missions apparaitront ici des qu'elles seront planifiees."
+                  />
+                )}
+              </div>
+            ),
+          },
+          {
             id: "revenues",
-            title: "Lecture financiere",
-            subtitle: "Des indicateurs simples pour arbitrer devis, missions et encaissements.",
+            title: operatingModeConfig.revenueLabel,
+            subtitle: operatingModeConfig.statDetails.revenueDetail,
             content: (
               <div className={styles.financeGrid}>
                 {revenueCards.map((card) => (
@@ -1114,6 +1436,51 @@ export default function DashboardPage() {
             content: <ConciergeInspirationPanel availabilityHours={user?.availability_hours} />,
           },
           {
+            id: "reports",
+            title: operatingModeConfig.reportTitle,
+            subtitle: operatingModeConfig.reportSubtitle,
+            content: (
+              <div className={styles.reportGrid}>
+                {reportCards.map((card) => (
+                  <article key={card.label} className={styles.reportCard}>
+                    <span className={styles.reportLabel}>{card.label}</span>
+                    <strong>{card.value}</strong>
+                    <p>{card.detail}</p>
+                  </article>
+                ))}
+              </div>
+            ),
+          },          {
+            id: "widgets",
+            title: "Widgets personnalisables",
+            subtitle: `${activeWidgetCount}/${widgetTotalCount} widgets actifs pour composer votre cockpit ${operatingModeConfig.shortLabel.toLowerCase()}.`,
+            content: (
+              <div className={styles.widgetGrid}>
+                {widgetControls.map((widget) => {
+                  const Icon = widget.icon;
+                  const enabled = widgets[widget.id];
+                  return (
+                    <button
+                      key={widget.id}
+                      type="button"
+                      className={styles.widgetToggle}
+                      data-enabled={enabled ? "true" : "false"}
+                      aria-pressed={enabled}
+                      onClick={() => setWidgets((current) => ({ ...current, [widget.id]: !current[widget.id] }))}
+                    >
+                      <GripVertical size={16} aria-hidden="true" />
+                      <Icon size={20} aria-hidden="true" />
+                      <span>
+                        <strong>{widget.label}</strong>
+                        <small>{widget.detail}</small>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ),
+          },
+          {
             id: "actions",
             title: "Actions rapides",
             subtitle: "Les gestes frequents sans chercher dans le menu.",
@@ -1131,7 +1498,14 @@ export default function DashboardPage() {
               </div>
             ),
           },
-        ]}
+        ].filter((section) => {
+          if (section.id === "operations") return widgets.operations;
+          if (section.id === "notifications") return widgets.notifications;
+          if (section.id === "missions") return widgets.missions;
+          if (section.id === "revenues") return widgets.revenues;
+          if (section.id === "inspiration") return widgets.inspiration;
+          return true;
+        })}
         sidebarSections={[
           {
             id: "finance",

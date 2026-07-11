@@ -1,0 +1,226 @@
+.page {
+  display: grid;
+  gap: 1rem;
+}
+
+.panel {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid rgba(32, 25, 18, 0.12);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ffffff 0%, #f4f9f7 58%, #fffaf2 100%);
+  padding: clamp(1rem, 2vw, 1.25rem);
+  box-shadow: 0 14px 30px rgba(32, 25, 18, 0.06);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.header h1,
+.section h2,
+.memberCard h3,
+.assignmentCard h3 {
+  margin: 0;
+  color: #1f2a24;
+}
+
+.header p {
+  margin: 0.35rem 0 0;
+  max-width: 76ch;
+  color: #53615a;
+  line-height: 1.5;
+}
+
+.eyebrow {
+  margin: 0 0 0.35rem;
+  color: #0f766e;
+  font-size: 0.75rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.score {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 150px;
+  border: 1px solid rgba(15, 118, 110, 0.16);
+  border-radius: 8px;
+  background: #eef6f4;
+  padding: 0.8rem;
+  text-align: right;
+}
+
+.score strong {
+  color: #0f766e;
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.score span,
+.metricGrid span,
+.memberFacts span,
+.roleList span {
+  color: #60706a;
+  font-size: 0.76rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.metricGrid,
+.memberGrid,
+.sectionGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.metricGrid article,
+.memberCard,
+.assignmentCard,
+.section {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+  border: 1px solid rgba(32, 25, 18, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0.85rem;
+}
+
+.metricGrid strong {
+  color: #1f2a24;
+  font-size: 1.35rem;
+}
+
+.memberGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.memberTop,
+.assignmentTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.badge {
+  border-radius: 999px;
+  background: #eef6f4;
+  color: #0f766e;
+  padding: 0.2rem 0.58rem;
+  font-size: 0.74rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.warningBadge {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.memberFacts,
+.roleList,
+.planningList {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.memberFacts div,
+.roleList div,
+.planningList div {
+  display: grid;
+  gap: 0.15rem;
+  border-radius: 8px;
+  background: #f7faf8;
+  padding: 0.55rem;
+}
+
+.memberFacts strong,
+.roleList strong,
+.planningList strong {
+  color: #1f2a24;
+}
+
+.permissionList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.permissionList span {
+  border-radius: 999px;
+  background: #eef6f4;
+  color: #315c56;
+  padding: 0.24rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.assignmentList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.assignmentCard select,
+.assignmentCard button {
+  min-height: 2.35rem;
+  border-radius: 8px;
+  border: 1px solid rgba(32, 25, 18, 0.14);
+  background: #fff;
+  color: #1f2a24;
+  padding: 0.45rem 0.6rem;
+  font: inherit;
+}
+
+.assignmentCard button {
+  background: #0f766e;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 850;
+}
+
+.assignmentCard button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.message {
+  margin: 0;
+  border-radius: 8px;
+  background: #eef6f4;
+  color: #315c56;
+  padding: 0.75rem 0.85rem;
+  font-weight: 800;
+}
+
+.error {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+@media (max-width: 980px) {
+  .metricGrid,
+  .memberGrid,
+  .sectionGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .header,
+  .memberTop,
+  .assignmentTop {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .score {
+    text-align: left;
+  }
+}
