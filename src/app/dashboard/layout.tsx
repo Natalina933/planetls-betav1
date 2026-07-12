@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { Compass, Home, MessageSquareText, Receipt } from "lucide-react";
 import Sidebar from "@/app/components/dashboard/Sidebar/Sidebar";
 import Navbar from "@/app/components/dashboard/navbar/DashboardNavbar";
+import { DashboardMobileExperience } from "@/app/components/dashboard/mobile/DashboardMobileExperience";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { DashboardBottomNav } from "@/components/dashboard/DashboardLayout/DashboardBottomNav";
 import { useOwnerDashboardData } from "./owner/useOwnerDashboardData";
@@ -16,7 +17,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const { isAuthenticated } = useCurrentUser();
+  const { user, isAuthenticated } = useCurrentUser();
 
   const isOwnerPage = pathname?.startsWith("/dashboard/owner");
   const { draftCount, ongoingMissions, pendingInvoices, unreadConversationCount } = useOwnerDashboardData(
@@ -35,26 +36,26 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const currentOwnerSectionLabel = useMemo(() => {
     if (!isOwnerPage) return "Tableau de bord";
-    if (pathname === "/dashboard/owner") return "Cockpit propriétaire";
+    if (pathname === "/dashboard/owner") return "Cockpit propriÃ©taire";
     if (pathname.includes("/messages")) return "Messagerie et arbitrages";
-    if (pathname.includes("/factures")) return "Finance et règlements";
-    if (pathname.includes("/planning")) return "Planning et opérations";
+    if (pathname.includes("/factures")) return "Finance et rÃ¨glements";
+    if (pathname.includes("/planning")) return "Planning et opÃ©rations";
     if (pathname.includes("/logements")) return "Parc et annonces";
     if (pathname.includes("/devis")) return "Devis et validation";
     if (pathname.includes("/conciergerie")) return "Conciergeries partenaires";
     if (pathname.includes("/demandes")) return "Demandes en cours";
-    return "Pilotage propriétaire";
+    return "Pilotage propriÃ©taire";
   }, [isOwnerPage, pathname]);
 
   const ownerHeaderMetrics = useMemo(
     () => [
       {
-        label: "Annonces à finaliser",
+        label: "Annonces Ã  finaliser",
         value: `${draftCount}`,
         icon: Home,
       },
       {
-        label: "Factures à traiter",
+        label: "Factures Ã  traiter",
         value: `${pendingInvoices.length}`,
         icon: Receipt,
       },
@@ -100,7 +101,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     <span className="headerEyebrow">Cap du jour</span>
                     <h1>{currentOwnerSectionLabel}</h1>
                     <p>
-                      Retrouvez en un coup d&apos;œil vos priorités, vos points de vigilance et la prochaine action utile
+                      Retrouvez en un coup d&apos;Å“il vos prioritÃ©s, vos points de vigilance et la prochaine action utile
                       pour faire avancer votre parc.
                     </p>
                   </div>
@@ -124,10 +125,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
         {isOwnerPage ? (
-          <DashboardBottomNav items={ownerBottomNavItems} ariaLabel="Navigation propriétaire" />
+          <DashboardBottomNav items={ownerBottomNavItems} ariaLabel="Navigation propriÃ©taire" />
         ) : null}
         <main className="dashboard-content">{children}</main>
+        <DashboardMobileExperience role={user?.role} pathname={pathname} />
       </div>
     </div>
   );
 }
+
+
+

@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { Loader } from "../Loader";
+﻿import type { ReactNode } from "react";
+import { AlertCircle, Sparkles } from "lucide-react";
 import styles from "./AsyncState.module.scss";
 
 export type AsyncStateProps = {
@@ -17,7 +17,7 @@ export function AsyncState({
   error = null,
   isEmpty = false,
   loadingLabel = "Chargement...",
-  emptyLabel = "Aucune donnée disponible.",
+  emptyLabel = "Aucune donnee disponible.",
   className = "",
   children,
 }: AsyncStateProps) {
@@ -25,8 +25,19 @@ export function AsyncState({
 
   if (loading) {
     return (
-      <div className={classes}>
-        <Loader size="sm" showText text={loadingLabel} />
+      <div className={classes} role="status" aria-live="polite">
+        <div className={styles.skeletonPanel}>
+          <div className={styles.skeletonHeader}>
+            <span />
+            <span />
+          </div>
+          <div className={styles.skeletonGrid}>
+            <span />
+            <span />
+            <span />
+          </div>
+          <p className={styles.message}>{loadingLabel}</p>
+        </div>
       </div>
     );
   }
@@ -34,9 +45,11 @@ export function AsyncState({
   if (error) {
     return (
       <div className={classes}>
-        <p className={`${styles.message} ${styles.error}`} role="alert">
-          {error}
-        </p>
+        <div className={`${styles.emptyPanel} ${styles.errorPanel}`} role="alert">
+          <AlertCircle size={22} aria-hidden="true" />
+          <strong>Une action est necessaire</strong>
+          <p className={styles.message}>{error}</p>
+        </div>
       </div>
     );
   }
@@ -44,7 +57,11 @@ export function AsyncState({
   if (isEmpty) {
     return (
       <div className={classes}>
-        <p className={styles.message}>{emptyLabel}</p>
+        <div className={styles.emptyPanel}>
+          <Sparkles size={22} aria-hidden="true" />
+          <strong>Rien a afficher pour le moment</strong>
+          <p className={styles.message}>{emptyLabel}</p>
+        </div>
       </div>
     );
   }

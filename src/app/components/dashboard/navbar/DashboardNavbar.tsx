@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
@@ -16,6 +16,7 @@ import {
 import { useTheme, type Theme } from "@/app/providers/ThemeProvider";
 import { ReadabilityControlsIcon } from "@/components/dashboard";
 import { WorkspaceRoleIcon } from "@/components/ui";
+import { DashboardCommandCenter } from "./DashboardCommandCenter";
 import styles from "./DashboardNavbar.module.scss";
 
 interface DashboardNavbarProps {
@@ -73,8 +74,8 @@ interface OwnerServiceRequestRow {
 }
 
 const ROLE_LABELS = {
-  owner: "Propriétaire",
-  owner_pro: "Propriétaire PRO",
+  owner: "PropriÃ©taire",
+  owner_pro: "PropriÃ©taire PRO",
   concierge: "Concierge",
   concierge_pro: "Concierge PRO",
   provider: "Artisan",
@@ -114,7 +115,7 @@ const getWorkspaceRoleIconRole = (
 const getTimeBasedGreeting = (): string => {
   const hour = new Date().getHours();
   if (hour < 12) return "Bonjour";
-  if (hour < 18) return "Bon après-midi";
+  if (hour < 18) return "Bon aprÃ¨s-midi";
   return "Bonsoir";
 };
 
@@ -177,7 +178,7 @@ const getProfileHref = (role?: string | null) => {
 };
 
 const PAGE_LABELS: Record<string, string> = {
-  owner: "Espace propriétaire",
+  owner: "Espace propriÃ©taire",
   concierge: "Espace concierge",
   provider: "Espace artisan",
   messages: "Messages",
@@ -191,7 +192,7 @@ const PAGE_LABELS: Record<string, string> = {
   recherche: "Recherche",
   demandes: "Demandes",
   objectifs: "Objectifs",
-  settings: "Paramètres",
+  settings: "ParamÃ¨tres",
   profile: "Profil",
   clients: "Clients",
   interventions: "Interventions",
@@ -330,10 +331,10 @@ export default function DashboardNavbar({
                 .slice(0, 6)
                 .map((item) => ({
                   id: item.id,
-                  title: item.counterpart_name || item.subject || "Nouvelle réponse",
+                  title: item.counterpart_name || item.subject || "Nouvelle rÃ©ponse",
                   description:
                     item.last_message_preview ||
-                    "Une réponse est arrivée dans cette conversation.",
+                    "Une rÃ©ponse est arrivÃ©e dans cette conversation.",
                   href: `/dashboard/owner/messages?conversation=${item.id}`,
                   count: Number(item.unread_count ?? 0),
                   kind: getMessageNotificationKind(item.source),
@@ -365,15 +366,15 @@ export default function DashboardNavbar({
                 );
                 const responseLabel =
                   repliedRecipient?.status === "quoted"
-                    ? "Devis reçu"
+                    ? "Devis reÃ§u"
                     : repliedRecipient?.status === "declined"
-                      ? "Refus reçu"
-                      : "Réponse reçue";
+                      ? "Refus reÃ§u"
+                      : "RÃ©ponse reÃ§ue";
 
                 return {
                   id: item.id,
-                  title: repliedRecipient?.concierge_name || item.title || "Réponse concierge",
-                  description: `${responseLabel}${item.city ? ` • ${item.city}` : ""}`,
+                  title: repliedRecipient?.concierge_name || item.title || "RÃ©ponse concierge",
+                  description: `${responseLabel}${item.city ? ` â€¢ ${item.city}` : ""}`,
                   href: "/dashboard/owner/demandes",
                   count: 1,
                   kind: repliedRecipient?.status === "quoted" ? "quote" : "request",
@@ -420,7 +421,7 @@ export default function DashboardNavbar({
                   title: item.counterpart_name || item.subject || "Nouveau message",
                   description:
                     item.last_message_preview ||
-                    "Un propriétaire a répondu ou envoyé un nouveau message.",
+                    "Un propriÃ©taire a rÃ©pondu ou envoyÃ© un nouveau message.",
                   href: `/dashboard/concierge/messages?conversation=${item.id}`,
                   count: Number(item.unread_count ?? 0),
                   kind: getMessageNotificationKind(item.source),
@@ -444,7 +445,7 @@ export default function DashboardNavbar({
                 description:
                   item.title ||
                   item.description ||
-                  "Un propriétaire vous a envoyé une nouvelle demande.",
+                  "Un propriÃ©taire vous a envoyÃ© une nouvelle demande.",
                 href: "/dashboard/concierge/demandes",
                 count: 1,
                 kind: "request" as const,
@@ -474,7 +475,7 @@ export default function DashboardNavbar({
                 id: item.id,
                 title: item.counterpart_name || item.subject || "Nouveau message",
                 description:
-                  item.last_message_preview || "Un client vous a répondu dans ce fil.",
+                  item.last_message_preview || "Un client vous a rÃ©pondu dans ce fil.",
                 href: `/dashboard/provider/messages?conversation=${item.id}`,
                 count: Number(item.unread ?? 0),
                 kind: "message" as const,
@@ -624,12 +625,14 @@ export default function DashboardNavbar({
       </div>
 
       <div className={styles.rightSection}>
+        <DashboardCommandCenter role={userRole} pathname={pathname} pageTitle={pageTitle} />
+
         <div className={styles.themeSwitcher} ref={themeMenuRef}>
           <button
             className={styles.themeTrigger}
             onClick={() => setThemeMenuOpen((prev) => !prev)}
-            title="Changer de thème"
-            aria-label="Changer de thème"
+            title="Changer de thÃ¨me"
+            aria-label="Changer de thÃ¨me"
             type="button"
           >
             <Palette size={18} />
@@ -646,7 +649,7 @@ export default function DashboardNavbar({
                     changeTheme(value as Theme);
                     setThemeMenuOpen(false);
                   }}
-                  aria-label={`Sélectionner thème ${labels[value as Theme]}`}
+                  aria-label={`SÃ©lectionner thÃ¨me ${labels[value as Theme]}`}
                   type="button"
                 >
                   {labels[value as Theme]}
@@ -699,7 +702,7 @@ export default function DashboardNavbar({
                 <div className={styles.notificationsPanelHeader}>
                   <div>
                     <strong>Notifications</strong>
-                    <p>{hasNotifications ? `${liveNotificationCount} retour(s) à traiter` : "Aucun nouveau retour"}</p>
+                    <p>{hasNotifications ? `${liveNotificationCount} retour(s) Ã  traiter` : "Aucun nouveau retour"}</p>
                   </div>
                   <button
                     type="button"
@@ -753,8 +756,8 @@ export default function DashboardNavbar({
                     ))
                   ) : (
                     <div className={styles.notificationEmpty}>
-                      <strong>Rien d&apos;immédiat</strong>
-                      <p>Les nouveaux messages, réponses et alertes apparaîtront ici.</p>
+                      <strong>Rien d&apos;immÃ©diat</strong>
+                      <p>Les nouveaux messages, rÃ©ponses et alertes apparaÃ®tront ici.</p>
                     </div>
                   )}
 
@@ -800,7 +803,7 @@ export default function DashboardNavbar({
                 />
               </div>
             ) : (
-              <div className={styles.avatarPlaceholder} aria-label="Non connecté">
+              <div className={styles.avatarPlaceholder} aria-label="Non connectÃ©">
                 <User size={22} aria-hidden="true" />
               </div>
             )}
@@ -859,7 +862,7 @@ export default function DashboardNavbar({
                   onClick={handleLogout}
                 >
                   <LogOut size={18} aria-hidden="true" />
-                  <span>Se déconnecter</span>
+                  <span>Se dÃ©connecter</span>
                 </button>
               </div>
             </div>
@@ -869,3 +872,5 @@ export default function DashboardNavbar({
     </header>
   );
 }
+
+

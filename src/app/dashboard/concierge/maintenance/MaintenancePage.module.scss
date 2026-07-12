@@ -1,0 +1,351 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 28px;
+  color: #142033;
+}
+
+.hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 26px;
+  border: 1px solid rgba(20, 32, 51, 0.1);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(18, 92, 91, 0.11), rgba(239, 188, 82, 0.14)),
+    #ffffff;
+  box-shadow: 0 18px 46px rgba(20, 32, 51, 0.08);
+}
+
+.hero h1,
+.panel h2,
+.workflowCard h3,
+.focus h3 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.hero h1 {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1;
+  max-width: 780px;
+}
+
+.hero p {
+  max-width: 720px;
+  margin: 12px 0 0;
+  color: #536174;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.heroActions a,
+.workflowFooter a,
+.focus a,
+.financeList a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 9px 12px;
+  border: 1px solid rgba(18, 92, 91, 0.22);
+  border-radius: 8px;
+  color: #125c5b;
+  background: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #9a6a10;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.error {
+  padding: 14px 16px;
+  border: 1px solid rgba(174, 49, 49, 0.2);
+  border-radius: 8px;
+  color: #8f2525;
+  background: #fff2f0;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.kpi,
+.panel {
+  border: 1px solid rgba(20, 32, 51, 0.1);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 14px 34px rgba(20, 32, 51, 0.06);
+}
+
+.kpi {
+  display: flex;
+  gap: 14px;
+  padding: 18px;
+}
+
+.kpi > span {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  border-radius: 8px;
+  color: #125c5b;
+  background: rgba(18, 92, 91, 0.1);
+}
+
+.kpi p,
+.kpi small,
+.workflowTop p,
+.workflowFooter span,
+.timelineItem p,
+.artisanRow span,
+.financeRow span,
+.empty p,
+.focus p {
+  margin: 0;
+  color: #667386;
+}
+
+.kpi strong {
+  display: block;
+  margin: 4px 0;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(320px, 0.75fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.mainColumn,
+.sideColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.panel {
+  padding: 20px;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.panelHeader span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: #125c5b;
+  background: rgba(18, 92, 91, 0.1);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.workflowList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.workflowCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(20, 32, 51, 0.09);
+  border-radius: 8px;
+  background: #fbfcf8;
+}
+
+.workflowTop,
+.workflowFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.workflowTop strong {
+  color: #125c5b;
+  font-size: 1.7rem;
+}
+
+.trace {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 7px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  color: #5d4312;
+  background: rgba(239, 188, 82, 0.24);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.progress {
+  overflow: hidden;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(20, 32, 51, 0.08);
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #125c5b, #efbc52);
+}
+
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 6px 9px;
+  border: 1px solid rgba(20, 32, 51, 0.12);
+  border-radius: 999px;
+  color: #59677a;
+  background: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.stepDone {
+  color: #0f766e;
+  border-color: rgba(15, 118, 110, 0.24);
+  background: rgba(15, 118, 110, 0.09);
+}
+
+.stepCurrent {
+  color: #7a4e00;
+  border-color: rgba(239, 188, 82, 0.4);
+  background: rgba(239, 188, 82, 0.16);
+}
+
+.timeline,
+.artisans,
+.financeList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.timelineItem,
+.artisanRow,
+.financeRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid rgba(20, 32, 51, 0.08);
+  border-radius: 8px;
+  background: #fbfcf8;
+}
+
+.timelineItem svg,
+.artisanRow svg,
+.financeRow svg {
+  color: #125c5b;
+}
+
+.timelineItem time {
+  color: #667386;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.focus {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.empty {
+  padding: 16px;
+  border: 1px dashed rgba(20, 32, 51, 0.18);
+  border-radius: 8px;
+  background: #fbfcf8;
+}
+
+.empty strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+@media (max-width: 1180px) {
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 18px;
+  }
+
+  .hero,
+  .workflowTop,
+  .workflowFooter,
+  .panelHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .heroActions {
+    justify-content: flex-start;
+  }
+
+  .kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .timelineItem,
+  .artisanRow,
+  .financeRow {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .timelineItem time {
+    grid-column: 2;
+  }
+}

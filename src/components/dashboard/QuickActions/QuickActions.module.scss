@@ -1,6 +1,8 @@
-@use "../../../styles/mixins" as *;
+﻿@use "../../../styles/mixins" as *;
 
 .card {
+  position: relative;
+  overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--dash-accent) 34%, var(--dash-border));
   background:
     radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--dash-accent) 18%, transparent), transparent 38%),
@@ -34,6 +36,9 @@
 }
 
 .action {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: grid;
   gap: 0.35rem;
   min-height: 128px;
@@ -44,6 +49,29 @@
   border-radius: var(--dash-radius-md, var(--ds-radius-md));
   padding: var(--dash-space-3);
   @include ui-hover-lift;
+}
+
+.action::before {
+  content: "";
+  position: absolute;
+  inset: auto 14px 12px 14px;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dash-accent) 58%, transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 180ms ease;
+  z-index: -1;
+}
+
+.action::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--dash-accent) 18%, transparent), transparent 34%);
+  opacity: 0;
+  transition: opacity 180ms ease;
+  z-index: -2;
 }
 
 .actionMeta {
@@ -89,10 +117,21 @@
   line-height: 1.45;
 }
 
-.action:hover {
+.action:hover,
+.action:focus-visible {
   background: color-mix(in srgb, var(--dash-accent) 24%, transparent);
   border-color: color-mix(in srgb, var(--dash-accent) 62%, var(--dash-border));
   box-shadow: var(--dash-shadow-md, var(--ds-shadow-md));
+}
+
+.action:hover::before,
+.action:focus-visible::before {
+  transform: scaleX(1);
+}
+
+.action:hover::after,
+.action:focus-visible::after {
+  opacity: 1;
 }
 
 .actionCompleted {
@@ -135,5 +174,13 @@
 
   .actionDescription {
     font-size: 1.16rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action,
+  .action::before,
+  .action::after {
+    transition: none !important;
   }
 }

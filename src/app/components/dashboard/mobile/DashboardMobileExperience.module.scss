@@ -1,0 +1,344 @@
+.mobileDock {
+  display: none;
+}
+
+.sheetOverlay {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .mobileDock {
+    position: fixed;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    left: 10px;
+    z-index: 4600;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+    padding: 8px;
+    border: 1px solid rgba(22, 59, 58, 0.16);
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 18px 48px rgba(20, 24, 31, 0.2);
+    backdrop-filter: blur(18px);
+  }
+
+  .mobileDock button {
+    display: grid;
+    min-width: 0;
+    min-height: 58px;
+    place-items: center;
+    gap: 3px;
+    border: 1px solid transparent;
+    border-radius: 18px;
+    background: transparent;
+    color: #526071;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    transition: transform 160ms ease, background 160ms ease, color 160ms ease;
+  }
+
+  .mobileDock button span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobileDock button:active {
+    transform: scale(0.96);
+  }
+
+  .activeDockItem {
+    background: rgba(22, 59, 58, 0.1) !important;
+    color: #163b3a !important;
+  }
+
+  .primaryDockAction {
+    margin-top: -18px;
+    min-height: 70px !important;
+    border-radius: 22px !important;
+    color: white !important;
+    background: linear-gradient(145deg, #163b3a, #1f766f) !important;
+    box-shadow: 0 14px 30px rgba(22, 59, 58, 0.34);
+  }
+
+  .sheetOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 4700;
+    display: flex;
+    align-items: flex-end;
+    background: rgba(9, 16, 24, 0.42);
+    backdrop-filter: blur(10px);
+  }
+
+  .sheet {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+    display: grid;
+    gap: 16px;
+    padding: 18px 16px calc(22px + env(safe-area-inset-bottom));
+    border-radius: 28px 28px 0 0;
+    background:
+      radial-gradient(circle at top right, rgba(31, 118, 111, 0.14), transparent 34%),
+      #fbfcf8;
+    box-shadow: 0 -20px 60px rgba(9, 16, 24, 0.28);
+    animation: sheetIn 180ms cubic-bezier(0.2, 0.9, 0.2, 1);
+  }
+
+  .sheetHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .sheetHeader p,
+  .sheetHeader h2 {
+    margin: 0;
+  }
+
+  .sheetHeader p {
+    color: #9a6a10;
+    font-size: 0.76rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .sheetHeader h2 {
+    color: #142033;
+    font-size: 1.65rem;
+    line-height: 1.05;
+  }
+
+  .sheetHeader > button {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border: 1px solid rgba(20, 32, 51, 0.1);
+    border-radius: 16px;
+    background: white;
+    color: #526071;
+  }
+
+  .progressCard {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    border: 1px solid rgba(22, 59, 58, 0.12);
+    border-radius: 20px;
+    background: white;
+    box-shadow: 0 12px 28px rgba(20, 24, 31, 0.07);
+  }
+
+  .progressCard > span {
+    display: grid;
+    width: 58px;
+    height: 58px;
+    place-items: center;
+    border-radius: 18px;
+    color: #163b3a;
+    background: rgba(31, 118, 111, 0.1);
+    font-size: 1.15rem;
+    font-weight: 900;
+  }
+
+  .progressCard strong,
+  .progressCard p {
+    margin: 0;
+  }
+
+  .progressCard strong {
+    color: #142033;
+  }
+
+  .progressCard p {
+    color: #667386;
+    line-height: 1.35;
+  }
+
+  .bigActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .bigActions button,
+  .cameraButton {
+    display: grid;
+    min-height: 112px;
+    place-items: center;
+    align-content: center;
+    gap: 9px;
+    border: 1px solid rgba(22, 59, 58, 0.16);
+    border-radius: 22px;
+    background: white;
+    color: #163b3a;
+    font-size: 0.94rem;
+    font-weight: 900;
+    text-align: center;
+    box-shadow: 0 12px 28px rgba(20, 24, 31, 0.07);
+  }
+
+  .cameraButton input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .doneAction {
+    border-color: rgba(31, 118, 111, 0.32) !important;
+    background: linear-gradient(145deg, #163b3a, #1f766f) !important;
+    color: white !important;
+  }
+
+  .photoPreview {
+    display: grid;
+    grid-template-columns: 82px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border: 1px solid rgba(22, 59, 58, 0.12);
+    border-radius: 18px;
+    background: white;
+  }
+
+  .photoPreview img {
+    width: 82px;
+    height: 82px;
+    border-radius: 14px;
+    object-fit: cover;
+  }
+
+  .photoPreview span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: #526071;
+    font-weight: 800;
+  }
+
+  .mobileSection {
+    display: grid;
+    gap: 10px;
+  }
+
+  .sectionTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #163b3a;
+  }
+
+  .sectionTitle h3 {
+    margin: 0;
+    color: #142033;
+    font-size: 1rem;
+  }
+
+  .checklist {
+    display: grid;
+    gap: 8px;
+  }
+
+  .checklist button {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    min-height: 56px;
+    padding: 10px 12px;
+    border: 1px solid rgba(20, 32, 51, 0.1);
+    border-radius: 18px;
+    background: white;
+    color: #142033;
+    font-size: 0.95rem;
+    font-weight: 850;
+    text-align: left;
+  }
+
+  .checklist button > span {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    border: 1px solid rgba(20, 32, 51, 0.14);
+    border-radius: 10px;
+    color: white;
+  }
+
+  .checkDone {
+    border-color: rgba(31, 118, 111, 0.28) !important;
+    background: rgba(31, 118, 111, 0.08) !important;
+  }
+
+  .checkDone > span {
+    border-color: #1f766f !important;
+    background: #1f766f;
+  }
+
+  .signaturePad {
+    width: 100%;
+    height: 156px;
+    border: 1px dashed rgba(22, 59, 58, 0.34);
+    border-radius: 20px;
+    background:
+      linear-gradient(180deg, transparent 0 70%, rgba(22, 59, 58, 0.08) 70% 71%, transparent 71%),
+      white;
+    touch-action: none;
+  }
+
+  .signatureActions,
+  .sheetShortcuts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .signatureActions button,
+  .sheetShortcuts button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 52px;
+    border: 1px solid rgba(20, 32, 51, 0.1);
+    border-radius: 18px;
+    background: white;
+    color: #163b3a;
+    font-weight: 900;
+  }
+
+  .sheetShortcuts button {
+    background: rgba(22, 59, 58, 0.08);
+  }
+}
+
+@keyframes sheetIn {
+  from {
+    transform: translateY(18px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet {
+    animation: none !important;
+  }
+
+  .mobileDock button {
+    transition: none !important;
+  }
+}

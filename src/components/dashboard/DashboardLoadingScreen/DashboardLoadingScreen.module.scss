@@ -1,11 +1,111 @@
-.screen {
+﻿.screen {
   display: grid;
   place-items: center;
-  min-height: 40vh;
+  min-height: 52vh;
+  padding: 24px;
+}
+
+.panel {
+  width: min(720px, 100%);
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid color-mix(in srgb, var(--dash-border, #d8d2c2) 82%, transparent);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent, #c6a66b) 14%, transparent), transparent 36%),
+    var(--dash-bg-panel, #fff);
+  box-shadow: 0 20px 48px rgba(20, 24, 31, 0.08);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.spinner {
+  display: inline-grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 12px;
+  color: var(--dash-accent-strong, #9a6a10);
+  background: color-mix(in srgb, var(--dash-accent, #c6a66b) 12%, white);
+}
+
+.spinner svg {
+  animation: spin 1s linear infinite;
+}
+
+.header strong {
+  display: block;
+  color: var(--dash-text, #1d2939);
+}
+
+.header p {
+  margin: 3px 0 0;
+  color: var(--dash-text-muted, #667085);
+}
+
+.skeletonGrid,
+.skeletonList {
+  display: grid;
   gap: 12px;
 }
 
-.text {
-  margin: 0;
-  color: var(--ui-color-text-muted);
+.skeletonGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.skeletonGrid span,
+.skeletonList span {
+  display: block;
+  border-radius: 12px;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.68), transparent),
+    color-mix(in srgb, var(--dash-accent, #c6a66b) 14%, var(--dash-border, #d8d2c2));
+  background-size: 220% 100%;
+  animation: skeletonSweep 1.25s ease-in-out infinite;
+}
+
+.skeletonGrid span {
+  min-height: 92px;
+}
+
+.skeletonList span {
+  min-height: 46px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes skeletonSweep {
+  from {
+    background-position: 180% 0;
+  }
+  to {
+    background-position: -80% 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .screen {
+    padding: 16px;
+  }
+
+  .skeletonGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner svg,
+  .skeletonGrid span,
+  .skeletonList span {
+    animation: none;
+  }
 }

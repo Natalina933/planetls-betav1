@@ -117,8 +117,10 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       icon: FiCalendar,
       children: [
         { label: "Vue d'ensemble", path: "/dashboard/concierge/missions/overview", icon: DashboardGaugeIcon },
+        { label: "Séjours voyageurs", path: "/dashboard/concierge/sejours", icon: FiUsers },
         { label: "Planning", path: "/dashboard/concierge/planning", icon: FiCalendar },
         { label: "Urgences", path: "/dashboard/concierge/urgences", icon: FiBell },
+        { label: "Maintenance", path: "/dashboard/concierge/maintenance", icon: FiTool },
         {
           label: "Services & disponibilités",
           path: "/dashboard/concierge/profile?tab=missions",
