@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import test from "node:test";
 import {
   mergeDuplicateTravelerStays,
@@ -20,7 +20,7 @@ test("maps reservation workflow metadata to traveler stay input", () => {
     missions: [
       {
         id: "mission-cleaning",
-        title: "Menage avant arrivee",
+        title: "Ménage avant arrivée",
         status: "completed",
         scheduled_start: "2026-07-12T10:00:00.000Z",
         metadata: {
@@ -77,7 +77,7 @@ test("deduplicates workflow and standalone mission stays", () => {
     missions: [
       {
         id: "m2",
-        title: "Controle qualite",
+        title: "Contrôle qualité",
         metadata: { reservation_workflow_id: "reservation-2", guest_name: "Ines" },
       },
     ],
@@ -89,7 +89,7 @@ test("deduplicates workflow and standalone mission stays", () => {
 
 test("merge keeps known traveler identity when duplicates are combined", () => {
   const merged = mergeDuplicateTravelerStays([
-    { id: "stay", primaryTraveler: { displayName: "Voyageur a renseigner" }, missions: [] },
+    { id: "stay", primaryTraveler: { displayName: "Voyageur à renseigner" }, missions: [] },
     { id: "stay", primaryTraveler: { displayName: "Claire" }, missions: [{ id: "m", title: "Check-in" }] },
   ]);
 
@@ -97,3 +97,5 @@ test("merge keeps known traveler identity when duplicates are combined", () => {
   assert.equal(merged[0]?.primaryTraveler?.displayName, "Claire");
   assert.equal(merged[0]?.missions?.length, 1);
 });
+
+

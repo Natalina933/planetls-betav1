@@ -93,7 +93,7 @@ export default function ConciergeDashboardModeControls({
         ))}
       </div>
 
-      <div className={styles.operatingGroup} role="group" aria-label="Mode metier">
+      <div className={styles.operatingGroup} role="group" aria-label="Mode métier">
         {operatingModeOptions.map((operatingMode) => (
           <button
             key={operatingMode}
@@ -139,3 +139,5 @@ export default function ConciergeDashboardModeControls({
     </section>
   );
 }
+
+

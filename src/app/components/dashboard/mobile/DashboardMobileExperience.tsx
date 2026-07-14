@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Camera,
@@ -289,7 +290,9 @@ export function DashboardMobileExperience({ role, pathname }: Props) {
 
             {photoPreview ? (
               <div className={styles.photoPreview}>
-                <img src={photoPreview} alt={photoName || "Photo terrain"} />
+                <span className={styles.photoPreviewImage}>
+                  <Image src={photoPreview} alt={photoName || "Photo terrain"} fill sizes="82px" unoptimized />
+                </span>
                 <span>{photoName || "Photo prete a joindre"}</span>
               </div>
             ) : null}

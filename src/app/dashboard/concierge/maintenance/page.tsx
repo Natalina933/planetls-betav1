@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -93,7 +93,7 @@ function getPropertyLabel(mission: MissionRow, metadata: Record<string, unknown>
     cleanString(metadata.housing_label) ||
     cleanString(metadata.location_label) ||
     cleanString(metadata.address) ||
-    "Logement a preciser"
+    "Logement à préciser"
   );
 }
 
@@ -242,8 +242,8 @@ export default function ConciergeMaintenancePage() {
 
       <section className={styles.kpis} aria-label="Indicateurs maintenance">
         <Kpi icon={<Wrench size={20} />} label="Incidents" value={loading ? "..." : String(dashboard.total)} hint="Flux maintenance ouvert" />
-        <Kpi icon={<AlertTriangle size={20} />} label="Urgents" value={loading ? "..." : String(dashboard.urgent)} hint="Priorite haute" />
-        <Kpi icon={<Hammer size={20} />} label="Artisan" value={loading ? "..." : String(dashboard.waitingArtisan)} hint="A assigner" />
+        <Kpi icon={<AlertTriangle size={20} />} label="Urgents" value={loading ? "..." : String(dashboard.urgent)} hint="Priorité haute" />
+        <Kpi icon={<Hammer size={20} />} label="Artisan" value={loading ? "..." : String(dashboard.waitingArtisan)} hint="À assigner" />
         <Kpi icon={<ShieldCheck size={20} />} label="Avancement" value={loading ? "..." : `${dashboard.averageCompletionPct}%`} hint="Moyenne du workflow" />
       </section>
 
@@ -260,7 +260,7 @@ export default function ConciergeMaintenancePage() {
 
             {loading ? <Empty title="Chargement" text="Analyse des missions maintenance en cours." /> : null}
             {!loading && dashboard.total === 0 ? (
-              <Empty title="Aucun incident maintenance" text="Les missions taguees maintenance, incident, panne ou artisan apparaitront ici." />
+              <Empty title="Aucun incident maintenance" text="Les missions taguées maintenance, incident, panne ou artisan apparaîtront ici." />
             ) : null}
 
             <div className={styles.workflowList}>
@@ -307,7 +307,7 @@ export default function ConciergeMaintenancePage() {
             <div className={styles.panelHeader}>
               <div>
                 <p className={styles.eyebrow}>Historique</p>
-                <h2>TraÃ§abilite recente</h2>
+                <h2>Traçabilité récente</h2>
               </div>
               <span>{leadWorkflow?.history.length ?? 0} trace(s)</span>
             </div>
@@ -339,13 +339,13 @@ export default function ConciergeMaintenancePage() {
               <div className={styles.focus}>
                 <span className={styles.trace}>{leadWorkflow.traceabilityId}</span>
                 <h3>{leadWorkflow.title}</h3>
-                <p>{leadWorkflow.missing.length > 0 ? `A faire : ${leadWorkflow.missing.join(", ")}` : "Workflow complet et facture."}</p>
+                <p>{leadWorkflow.missing.length > 0 ? `À faire : ${leadWorkflow.missing.join(", ")}` : "Workflow complet et facture."}</p>
                 <Link href={`/dashboard/concierge/missions/${leadWorkflow.missionId ?? leadWorkflow.incidentId}`}>
-                  Traiter l incident <ArrowRight size={15} />
+                  Traiter l'incident <ArrowRight size={15} />
                 </Link>
               </div>
             ) : (
-              <Empty title="Rien a arbitrer" text="Aucun incident actif detecte pour cette conciergerie." />
+              <Empty title="Rien à arbitrer" text="Aucun incident actif détecté pour cette conciergerie." />
             )}
           </section>
 
@@ -441,4 +441,7 @@ function getStepIcon(step: string) {
   if (step === "invoice") return <ReceiptText size={14} />;
   return <History size={14} />;
 }
+
+
+
 

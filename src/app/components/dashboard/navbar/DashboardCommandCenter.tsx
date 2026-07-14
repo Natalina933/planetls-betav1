@@ -71,36 +71,36 @@ const BASE_ROUTES: CommandItem[] = [
 
 const ROLE_ROUTES: Record<string, CommandItem[]> = {
   owner: [
-    route("owner-home", "Cockpit proprietaire", "/dashboard/owner", "Priorites, logements et arbitrages du jour."),
+    route("owner-home", "Cockpit propriétaire", "/dashboard/owner", "Priorités, logements et arbitrages du jour."),
     route("owner-logements", "Logements", "/dashboard/owner/logements/overview", "Parc, annonces et documents."),
-    route("owner-planning", "Planning", "/dashboard/owner/planning", "Arrivees, departs, maintenance et validations."),
-    route("owner-demandes", "Demandes", "/dashboard/owner/demandes", "Demandes envoyees et devis recus."),
+    route("owner-planning", "Planning", "/dashboard/owner/planning", "Arrivées, départs, maintenance et validations."),
+    route("owner-demandes", "Demandes", "/dashboard/owner/demandes", "Demandes envoyées et devis reçus."),
     route("owner-devis", "Devis", "/dashboard/owner/devis", "Comparer et valider les propositions."),
-    route("owner-factures", "Factures", "/dashboard/owner/factures", "Reglements et facturation."),
+    route("owner-factures", "Factures", "/dashboard/owner/factures", "Règlements et facturation."),
     route("owner-messages", "Messages", "/dashboard/owner/messages", "Conversations avec les partenaires."),
   ],
   concierge: [
-    route("concierge-home", "Dashboard concierge", "/dashboard/concierge", "KPI, missions, revenus et priorites."),
-    route("concierge-planning", "Planning", "/dashboard/concierge/planning", "Journee, tournÃ©es et missions a cadrer."),
+    route("concierge-home", "Dashboard concierge", "/dashboard/concierge", "KPI, missions, revenus et priorités."),
+    route("concierge-planning", "Planning", "/dashboard/concierge/planning", "Journée, tournées et missions à cadrer."),
     route("concierge-missions", "Centre des missions", "/dashboard/concierge/missions", "Missions, preuves, checklist et historique."),
-    route("concierge-sejours", "Voyageurs et sejours", "/dashboard/concierge/sejours", "Arrivees, departs, preparation et incidents voyageurs."),
+    route("concierge-sejours", "Voyageurs et séjours", "/dashboard/concierge/sejours", "Arrivées, départs, préparation et incidents voyageurs."),
     route("concierge-maintenance", "Maintenance + artisans", "/dashboard/concierge/maintenance", "Incidents, photos, devis, facture et trace."),
-    route("concierge-equipe", "Equipe", "/dashboard/concierge/equipe", "Disponibilites, roles et attribution."),
-    route("concierge-finances", "Finances", "/dashboard/concierge/finances/overview", "Commissions, objectifs et rentabilite."),
-    route("concierge-crm", "CRM proprietaires", "/dashboard/concierge/contacts", "Relations actives, revenus et timeline."),
-    route("concierge-messages", "Messages", "/dashboard/concierge/messages", "Conversations proprietaires."),
+    route("concierge-equipe", "Équipe", "/dashboard/concierge/equipe", "Disponibilités, rôles et attribution."),
+    route("concierge-finances", "Finances", "/dashboard/concierge/finances/overview", "Commissions, objectifs et rentabilité."),
+    route("concierge-crm", "CRM propriétaires", "/dashboard/concierge/contacts", "Relations actives, revenus et timeline."),
+    route("concierge-messages", "Messages", "/dashboard/concierge/messages", "Conversations propriétaires."),
   ],
   provider: [
     route("provider-home", "Dashboard artisan", "/dashboard/provider", "Demandes, interventions et messages."),
     route("provider-interventions", "Interventions", "/dashboard/provider/interventions", "Missions terrain et statuts."),
-    route("provider-planning", "Planning", "/dashboard/provider/planning", "Disponibilite et interventions prevues."),
+    route("provider-planning", "Planning", "/dashboard/provider/planning", "Disponibilité et interventions prévues."),
     route("provider-devis", "Devis", "/dashboard/provider/devis", "Propositions et factures."),
     route("provider-messages", "Messages", "/dashboard/provider/messages", "Conversations clients."),
   ],
   admin: [
     route("admin-home", "Vue plateforme", "/dashboard/admin", "Pilotage global PlanetLS."),
-    route("admin-control", "Controle detaille", "/dashboard/admin/controle", "Risques, qualite et signaux faibles."),
-    route("admin-users", "Utilisateurs", "/dashboard/admin/utilisateurs", "Comptes et roles."),
+    route("admin-control", "Contrôle détaillé", "/dashboard/admin/controle", "Risques, qualité et signaux faibles."),
+    route("admin-users", "Utilisateurs", "/dashboard/admin/utilisateurs", "Comptes et rôles."),
     route("admin-artisans", "Artisans", "/dashboard/admin/artisans", "Profils prestataires."),
   ],
 };
@@ -111,7 +111,7 @@ function route(id: string, label: string, href: string, description: string): Co
 
 function normalizeRole(role?: string | null) {
   const value = String(role ?? "").toLowerCase();
-  if (value.includes("owner") || value.includes("proprietaire")) return "owner";
+  if (value.includes("owner") || value.includes("propriétaire")) return "owner";
   if (value.includes("concierge")) return "concierge";
   if (value.includes("provider") || value.includes("artisan")) return "provider";
   if (value.includes("admin")) return "admin";
@@ -131,31 +131,31 @@ function safeJsonArray<T>(value: string | null): T[] {
 function getQuickActions(role: string): CommandItem[] {
   if (role === "concierge") {
     return [
-      action("qa-concierge-mission", "Nouvelle mission", "/dashboard/concierge/missions", "Creer ou cadrer une mission terrain."),
-      action("qa-concierge-stay", "Preparer un sejour", "/dashboard/concierge/sejours", "Voir les arrivees, departs et blocages."),
+      action("qa-concierge-mission", "Nouvelle mission", "/dashboard/concierge/missions", "Créer ou cadrer une mission terrain."),
+      action("qa-concierge-stay", "Préparer un séjour", "/dashboard/concierge/sejours", "Voir les arrivées, départs et blocages."),
       action("qa-concierge-incident", "Traiter un incident", "/dashboard/concierge/maintenance", "Ouvrir le workflow maintenance."),
-      action("qa-concierge-owner", "Ouvrir le CRM", "/dashboard/concierge/contacts", "Retrouver un proprietaire actif."),
-      action("qa-concierge-billing", "Creer devis ou facture", "/dashboard/concierge/billing", "Passer au suivi financier."),
+      action("qa-concierge-owner", "Ouvrir le CRM", "/dashboard/concierge/contacts", "Retrouver un propriétaire actif."),
+      action("qa-concierge-billing", "Créer devis ou facture", "/dashboard/concierge/billing", "Passer au suivi financier."),
     ];
   }
   if (role === "owner") {
     return [
-      action("qa-owner-request", "Demander un service", "/dashboard/owner/demandes", "Lancer une demande a une conciergerie."),
-      action("qa-owner-stay", "Ajouter un sejour", "/dashboard/owner/missions/voyageurs", "Transformer une reservation en missions."),
-      action("qa-owner-invoice", "Verifier les factures", "/dashboard/owner/factures", "Voir les paiements a traiter."),
-      action("qa-owner-message", "Repondre aux messages", "/dashboard/owner/messages", "Ouvrir les conversations actives."),
+      action("qa-owner-request", "Demander un service", "/dashboard/owner/demandes", "Lancer une demande à une conciergerie."),
+      action("qa-owner-stay", "Ajouter un séjour", "/dashboard/owner/missions/voyageurs", "Transformer une réservation en missions."),
+      action("qa-owner-invoice", "Vérifier les factures", "/dashboard/owner/factures", "Voir les paiements à traiter."),
+      action("qa-owner-message", "Répondre aux messages", "/dashboard/owner/messages", "Ouvrir les conversations actives."),
     ];
   }
   if (role === "provider") {
     return [
       action("qa-provider-intervention", "Voir les interventions", "/dashboard/provider/interventions", "Prioriser les missions terrain."),
-      action("qa-provider-planning", "Ouvrir le planning", "/dashboard/provider/planning", "Verifier les creneaux."),
-      action("qa-provider-message", "Repondre aux messages", "/dashboard/provider/messages", "Traiter les demandes clients."),
+      action("qa-provider-planning", "Ouvrir le planning", "/dashboard/provider/planning", "Vérifier les créneaux."),
+      action("qa-provider-message", "Répondre aux messages", "/dashboard/provider/messages", "Traiter les demandes clients."),
     ];
   }
   return [
-    action("qa-admin-control", "Controle plateforme", "/dashboard/admin/controle", "Surveiller les operations."),
-    action("qa-admin-users", "Gerer les utilisateurs", "/dashboard/admin/utilisateurs", "Verifier les comptes actifs."),
+    action("qa-admin-control", "Contrôle plateforme", "/dashboard/admin/controle", "Surveiller les opérations."),
+    action("qa-admin-users", "Gérer les utilisateurs", "/dashboard/admin/utilisateurs", "Vérifier les comptes actifs."),
   ];
 }
 
@@ -375,7 +375,7 @@ export function DashboardCommandCenter({ role, pathname, pageTitle }: Props) {
               ) : (
                 <div className={styles.emptyState}>
                   <Sparkles size={26} aria-hidden="true" />
-                  <strong>Aucun resultat net</strong>
+                  <strong>Aucun résultat net</strong>
                   <p>Essayez un terme plus court, ou ouvrez une action rapide pour repartir du bon endroit.</p>
                 </div>
               )}
@@ -403,6 +403,9 @@ function CommandSkeleton() {
     </div>
   );
 }
+
+
+
 
 
 

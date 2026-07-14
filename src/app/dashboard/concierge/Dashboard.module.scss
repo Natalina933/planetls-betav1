@@ -764,3 +764,408 @@
     width: 100%;
   }
 }
+/* Concierge dashboard premium spacing refresh */
+.primaryGrid,
+.dualGrid,
+.healthGrid,
+.financeGrid,
+.alertGrid,
+.quickActions,
+.missionFocusGrid,
+.widgetGrid,
+.reportGrid,
+.timelineList,
+.requestList,
+.actionRow,
+.sideStack,
+.contentBlock,
+.inspirationShell,
+.inspirationIntro,
+.inspirationForms {
+  gap: 0.85rem;
+}
+
+.primaryGrid {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.44fr);
+  gap: 1rem;
+}
+
+.dualGrid {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.72fr);
+}
+
+.blockHeader {
+  gap: 0.2rem;
+}
+
+.blockHeader h3,
+.panelHeader h3,
+.inspirationIntro h3,
+.panelHeader h4,
+.weatherHeader h3 {
+  color: #111827;
+  letter-spacing: 0;
+}
+
+.blockHeader p,
+.inspirationIntro p,
+.panelHeader p,
+.healthCard p,
+.financeCard p,
+.timelineRow p,
+.requestCard p,
+.alertCard p,
+.priorityNote,
+.weatherHeader p {
+  color: #667085;
+  line-height: 1.45;
+}
+
+.sectionEyebrow,
+.panelEyebrow {
+  color: #6b7280;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+}
+
+.priorityHeroCard,
+.panelCard,
+.healthCard,
+.financeCard,
+.quickActionCard,
+.requestCard,
+.timelineRow,
+.alertCard,
+.activityWeatherCard,
+.modeSelectorCard,
+.missionFocusCard,
+.reportCard,
+.widgetToggle,
+.inspirationManager,
+.inspirationLibrary,
+.searchPresetCard,
+.inspirationVideoCard {
+  border-color: rgba(17, 24, 39, 0.1);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.priorityHeroCard,
+.panelCard,
+.quickActionCard,
+.alertCard,
+.activityWeatherCard,
+.modeSelectorCard,
+.missionFocusCard,
+.reportCard,
+.widgetToggle,
+.inspirationManager,
+.inspirationLibrary {
+  padding: 0.95rem;
+}
+
+.priorityHeroCard {
+  border-left: 4px solid var(--theme-accent);
+  min-height: auto;
+}
+
+.priorityIcon,
+.weatherIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--theme-accent) 10%, #ffffff);
+  color: var(--theme-accent-strong);
+}
+
+.priorityCopy strong {
+  color: #111827;
+  font-size: clamp(1.15rem, 1.6vw, 1.45rem);
+  letter-spacing: 0;
+}
+
+.priorityMeta span,
+.timelineTime,
+.requestMeta span,
+.missionFocusTime,
+.inspirationVideoMeta span,
+.inspirationPlayBadge {
+  min-height: 28px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.primaryLink,
+.secondaryLink,
+.ghostLink,
+.inlineLink {
+  min-height: 42px;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.primaryLink {
+  background: var(--theme-accent-strong);
+  box-shadow: none;
+}
+
+.secondaryLink,
+.ghostLink,
+.inlineLink {
+  border-color: rgba(17, 24, 39, 0.12);
+  background: #ffffff;
+  color: #111827;
+}
+
+.healthGrid,
+.financeGrid,
+.reportGrid {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.healthCard,
+.financeCard,
+.reportCard,
+.missionFocusCard,
+.widgetToggle {
+  padding: 0.85rem;
+}
+
+.healthLabel,
+.financeLabel,
+.reportLabel {
+  color: #6b7280;
+  letter-spacing: 0.06em;
+}
+
+.healthValue,
+.financeValue,
+.reportCard strong {
+  color: #111827;
+  font-size: clamp(1.2rem, 1.7vw, 1.55rem);
+}
+
+.activityWeatherCard {
+  background: #ffffff;
+}
+
+.weatherGauge {
+  height: 8px;
+  border-radius: 8px;
+  background: #eef2f4;
+}
+
+.weatherGauge span {
+  background: var(--theme-accent-strong);
+}
+
+.weatherStats {
+  color: #667085;
+}
+
+.weatherStats strong {
+  color: #111827;
+}
+
+.timelineRow {
+  grid-template-columns: 76px minmax(0, 1fr) auto;
+  padding: 0.85rem;
+}
+
+.timelineRow strong,
+.requestCard strong,
+.alertCard strong,
+.missionFocusCard strong,
+.widgetToggle strong {
+  color: #111827;
+}
+
+.requestCard {
+  padding: 0.9rem;
+}
+
+.missionFocusGrid {
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.missionFocusCard {
+  min-height: 78px;
+}
+
+.widgetGrid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.widgetToggle[data-enabled="false"] {
+  background: #f8fafc;
+  opacity: 0.74;
+}
+
+.widgetToggle[data-enabled="true"] {
+  border-color: rgba(15, 139, 98, 0.32);
+  box-shadow: 0 0 0 1px rgba(15, 139, 98, 0.04);
+}
+
+.quickActions {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.quickActionCard {
+  min-height: 104px;
+  padding: 0.9rem;
+}
+
+.inspirationLayout {
+  grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr);
+}
+
+.inspirationField textarea,
+.inspirationField input,
+.inspirationSearchBox,
+.inspirationSearchBox input {
+  border-radius: 8px;
+  border-color: rgba(17, 24, 39, 0.12);
+}
+
+.inspirationField textarea,
+.inspirationField input,
+.inspirationSearchBox input {
+  background: #ffffff;
+}
+
+.searchPresetCard,
+.inspirationVideoCard {
+  background: #ffffff;
+}
+
+.inspirationEmbedWrap {
+  border-radius: 8px;
+}
+
+.primaryLink:hover,
+.secondaryLink:hover,
+.ghostLink:hover,
+.inlineLink:hover,
+.healthCard:hover,
+.timelineRow:hover,
+.quickActionCard:hover,
+.alertCard:hover,
+.missionFocusCard:hover,
+.widgetToggle:hover {
+  transform: none;
+}
+
+@media (max-width: 1180px) {
+  .primaryGrid,
+  .dualGrid,
+  .inspirationLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .timelineRow,
+  .missionFocusCard,
+  .widgetToggle {
+    grid-template-columns: 1fr;
+  }
+
+  .priorityHeroCard,
+  .panelCard,
+  .activityWeatherCard,
+  .modeSelectorCard,
+  .inspirationManager,
+  .inspirationLibrary {
+    padding: 0.85rem;
+  }
+}
+/* Owner summary refresh */
+.ownerGrid {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.ownerCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 64px;
+  padding: 0.75rem;
+  border: 1px solid rgba(17, 24, 39, 0.1);
+  border-radius: 8px;
+  background: #ffffff;
+  color: inherit;
+  text-decoration: none;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.ownerAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--theme-accent) 10%, #ffffff);
+  color: var(--theme-accent-strong);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.ownerBody {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.ownerBody strong {
+  overflow: hidden;
+  color: #111827;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ownerBody small {
+  overflow: hidden;
+  color: #667085;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ownerMeta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  max-width: 120px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.ownerCard:hover {
+  transform: none;
+}
+
+@media (max-width: 640px) {
+  .ownerCard {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .ownerMeta {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    max-width: none;
+  }
+}

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
 import { buildTravelerStayDashboard } from "@/app/lib/travelerStayCenter";
@@ -84,7 +84,7 @@ function metadataPatchForAction(body: Record<string, unknown>, actorProfileId: s
     patch.preparation_override = true;
     patch.preparation_override_reason = reason;
   } else {
-    return { error: "Action sejour inconnue." };
+    return { error: "Action séjour inconnue." };
   }
 
   return { patch, action };
@@ -128,7 +128,7 @@ export async function GET(req: NextRequest) {
     const { data, error } = await query;
     if (error) {
       console.error("[GET /api/concierge/stays] DB error:", error);
-      return NextResponse.json({ error: "Erreur chargement sejours" }, { status: 500 });
+      return NextResponse.json({ error: "Erreur chargement séjours" }, { status: 500 });
     }
 
     const missions = ((data ?? []) as Record<string, unknown>[]).map(toMissionRow);
@@ -164,10 +164,10 @@ export async function PATCH(req: NextRequest) {
     const { missions, error } = await loadStayMissions(stayId, userId, role);
     if (error) {
       console.error("[PATCH /api/concierge/stays] load error:", error);
-      return NextResponse.json({ error: "Erreur chargement sejour" }, { status: 500 });
+      return NextResponse.json({ error: "Erreur chargement séjour" }, { status: 500 });
     }
     if (missions.length === 0) {
-      return NextResponse.json({ error: "Sejour introuvable" }, { status: 404 });
+      return NextResponse.json({ error: "Séjour introuvable" }, { status: 404 });
     }
 
     const updated: TravelerStayMissionRow[] = [];
@@ -183,7 +183,7 @@ export async function PATCH(req: NextRequest) {
 
       if (updateError || !data) {
         console.error("[PATCH /api/concierge/stays] update error:", updateError);
-        return NextResponse.json({ error: "Erreur mise a jour sejour" }, { status: 500 });
+        return NextResponse.json({ error: "Erreur mise à jour séjour" }, { status: 500 });
       }
 
       await dbAny.from("mission_events").insert({
@@ -208,3 +208,5 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
+
+

@@ -16,8 +16,8 @@ test("normalizes traveler stay statuses from external values", () => {
   assert.equal(normalizeTravelerStayStatus("unknown"), "to_prepare");
 });
 
-test("blocks ready arrival when critical preparation data is missing", () => {
-  const preparation = buildStayPreparation({
+test("blocks ready arrival when critical préparation data is missing", () => {
+  const préparation = buildStayPreparation({
     id: "stay-1",
     propertyLabel: "Villa Corail",
     primaryTraveler: { displayName: "Nadia M." },
@@ -27,28 +27,28 @@ test("blocks ready arrival when critical preparation data is missing", () => {
     babyBedConfirmed: false,
   });
 
-  assert.equal(preparation.canMarkReady, false);
-  assert.equal(preparation.overrideRequired, true);
-  assert.ok(preparation.criticalBlockers.includes("Horaire d'arrivee"));
-  assert.ok(preparation.criticalBlockers.includes("Acces pret"));
-  assert.ok(preparation.criticalBlockers.includes("Menage termine"));
-  assert.ok(preparation.criticalBlockers.includes("Demandes speciales"));
+  assert.equal(préparation.canMarkReady, false);
+  assert.equal(préparation.overrideRequired, true);
+  assert.ok(préparation.criticalBlockers.includes("Horaire d'arrivée"));
+  assert.ok(préparation.criticalBlockers.includes("Accès prêt"));
+  assert.ok(préparation.criticalBlockers.includes("Ménage terminé"));
+  assert.ok(préparation.criticalBlockers.includes("Demandes spéciales"));
 });
 
 test("allows traced override while keeping blockers visible", () => {
-  const preparation = buildStayPreparation({
+  const préparation = buildStayPreparation({
     id: "stay-2",
     propertyLabel: "Studio Port",
     primaryTraveler: { displayName: "Marc B." },
     checkIn: "2026-07-12T15:00:00.000Z",
     checkOut: "2026-07-14T10:00:00.000Z",
     preparationOverride: true,
-    preparationOverrideReason: "Voyageur deja informe, code envoye par telephone.",
+    preparationOverrideReason: "Voyageur déjà informé, code envoyé par téléphone.",
   });
 
-  assert.equal(preparation.canMarkReady, true);
-  assert.equal(preparation.overrideRequired, false);
-  assert.ok(preparation.criticalBlockers.length > 0);
+  assert.equal(préparation.canMarkReady, true);
+  assert.equal(préparation.overrideRequired, false);
+  assert.ok(préparation.criticalBlockers.length > 0);
 });
 
 test("builds dashboard counters for arrivals, departures and incidents", () => {
@@ -88,7 +88,7 @@ test("keeps traveler profile operational and avoids scoring fields", () => {
   const stay = buildTravelerStay(
     {
       id: "stay-privacy",
-      primaryTraveler: { displayName: "Voyageur RGPD", previousStays: 2, notes: "Prefere une arrivee autonome." },
+      primaryTraveler: { displayName: "Voyageur RGPD", previousStays: 2, notes: "Préfère une arrivée autonome." },
       checkIn: "2026-07-20T15:00:00.000Z",
       checkOut: "2026-07-23T10:00:00.000Z",
     },
@@ -99,4 +99,7 @@ test("keeps traveler profile operational and avoids scoring fields", () => {
   assert.equal("score" in stay.primaryTraveler, false);
   assert.equal("sensitiveCategory" in stay.primaryTraveler, false);
 });
+
+
+
 

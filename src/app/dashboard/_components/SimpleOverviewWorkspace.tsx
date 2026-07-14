@@ -109,7 +109,7 @@ function getOperationalMetrics(
     {
       label: "Avancement",
       value: `${completion.percentage}%`,
-      hint: "Progression de la categorie",
+      hint: "Progression de la catégorie",
       detailSectionId: "completion",
     },
     {
@@ -119,15 +119,15 @@ function getOperationalMetrics(
       detailSectionId: "completion",
     },
     {
-      label: "A finaliser",
+      label: "À finaliser",
       value: String(missingCount),
-      hint: missingCount > 0 ? "Points restants" : "Categorie structuree",
+      hint: missingCount > 0 ? "Points restants" : "Catégorie structurée",
       detailSectionId: "completion",
     },
     {
       label: "Statut",
-      value: completion.percentage >= 100 ? "Pret" : "A suivre",
-      hint: completion.percentage >= 100 ? "Base exploitable" : "Configuration a completer",
+      value: completion.percentage >= 100 ? "Prêt" : "À suivre",
+      hint: completion.percentage >= 100 ? "Base exploitable" : "Configuration à compléter",
       detailSectionId: "completion",
     },
   ];
@@ -154,7 +154,7 @@ function getOperationalRisks(
     {
       label: "Progression",
       value: `${completion.percentage}%`,
-      hint: "Niveau de preparation",
+      hint: "Niveau de préparation",
       icon: Gauge,
       tone: completion.percentage >= 100 ? "success" : "warning",
       detailSectionId: "completion",
@@ -170,7 +170,7 @@ function getOperationalRisks(
     {
       label: "Restants",
       value: missingCount,
-      hint: missingCount > 0 ? "Actions a finaliser" : "Aucun blocage",
+      hint: missingCount > 0 ? "Actions à finaliser" : "Aucun blocage",
       icon: AlertTriangle,
       tone: missingCount > 0 ? "warning" : "success",
       detailSectionId: "completion",
@@ -205,12 +205,12 @@ function getCadence(
     },
     {
       label: secondChip || "Cette semaine",
-      text: firstCard?.text || "Verifier les indicateurs et traiter les points qui demandent une decision.",
+      text: firstCard?.text || "Vérifier les indicateurs et traiter les points qui demandent une décision.",
       icon: ListChecks,
     },
     {
       label: "Avant publication",
-      text: "Relire les actions, les donnees clefs et les elements en attente avant de basculer dans le detail.",
+      text: "Relire les actions, les données clés et les éléments en attente avant de basculer dans le détail.",
       icon: ArrowRight,
     },
   ];
@@ -247,10 +247,10 @@ function toDetailItem(
 ): OperationalDetailItem {
   return {
     title: item.title,
-    meta: item.meta || "A suivre",
+    meta: item.meta || "À suivre",
     description:
       item.description ||
-      (item.facts && item.facts.length > 0 ? item.facts.join(" · ") : "Element a verifier dans cette vue."),
+      (item.facts && item.facts.length > 0 ? item.facts.join(" · ") : "Élément à vérifier dans cette vue."),
     action: getDetailAction(item, fallbackAction),
   };
 }
@@ -266,9 +266,9 @@ function getDetailSections(
   if (cards && cards.length > 0) {
     sections.push({
       id: "priorites",
-      title: "Priorites du moment",
-      description: "Actions et arbitrages a traiter avant d'entrer dans les vues detaillees.",
-      emptyText: "Aucune priorite a afficher pour le moment.",
+      title: "Priorités du moment",
+      description: "Actions et arbitrages à traiter avant d'entrer dans les vues détaillées.",
+      emptyText: "Aucune priorité à afficher pour le moment.",
       items: cards.map((card) => {
         const firstAction = card.actions?.find(
           (action): action is DashboardWorkspaceAction & { href: string } => Boolean(action.href),
@@ -294,8 +294,8 @@ function getDetailSections(
       ...detailSections.map((section, index) => ({
         id: section.id || `detail-${index}`,
         title: section.title,
-        description: section.description || "Elements a garder proches pour le pilotage.",
-        emptyText: section.emptyText || "Aucun element a afficher pour le moment.",
+        description: section.description || "Éléments à garder proches pour le pilotage.",
+        emptyText: section.emptyText || "Aucun élément à afficher pour le moment.",
         items: section.items.map((item) => toDetailItem(item, fallbackAction)),
       })),
     );
@@ -308,8 +308,8 @@ function getDetailSections(
     emptyText: "Aucun point manquant pour le moment.",
     items: completion.missingItems.map((item) => ({
       title: item,
-      meta: "A finaliser",
-      description: "Point requis pour rendre cette categorie plus robuste et exploitable.",
+      meta: "À finaliser",
+      description: "Point requis pour rendre cette catégorie plus robuste et exploitable.",
       action: fallbackAction,
     })),
   });
@@ -344,7 +344,7 @@ export default function SimpleOverviewWorkspace({
       metrics={getOperationalMetrics(metrics, completion)}
       focus={{
         title: "Priorite de configuration",
-        status: isComplete ? "Pret" : "A completer",
+        status: isComplete ? "Prêt" : "À compléter",
         statusVariant: isComplete ? "success" : "warning",
         icon: isComplete ? <CheckCircle2 size={28} /> : <AlertTriangle size={28} />,
         heading: firstMissingItem || completion.title,
@@ -354,12 +354,17 @@ export default function SimpleOverviewWorkspace({
       risks={getOperationalRisks(metrics, completion)}
       cadenceTitle="Cadence de pilotage"
       cadence={getCadence(chips, cards, completion)}
-      detailsBadge="Details"
+      detailsBadge="Détails"
       detailsTitle="Configuration exploitable"
-      detailsDescription="Cliquez sur un indicateur pour isoler les priorites, les points en attente ou les donnees utiles."
+      detailsDescription="Cliquez sur un indicateur pour isoler les priorités, les points en attente ou les données utiles."
       detailSections={getDetailSections(cards, detailSections, completion, completionAction)}
     >
       {children}
     </DashboardOperationalPage>
   );
 }
+
+
+
+
+

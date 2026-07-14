@@ -42,7 +42,11 @@ import {
   type UnifiedStatItem,
 } from "@/app/components/dashboard/unified";
 import { DashboardEmptyState, DashboardStatusBadge, getDashboardMissionPaceMeta } from "@/app/components/dashboard/saas";
-import { useConciergeDashboardData, type ConciergeDashboardRequest } from "./useConciergeDashboardData";
+import {
+  useConciergeDashboardData,
+  type ConciergeDashboardRequest,
+  type ConciergeOwnerProfile,
+} from "./useConciergeDashboardData";
 import ConciergeDashboardModeControls from "./ConciergeDashboardModeControls";
 import {
   CONCIERGE_OPERATING_MODE_CONFIG,
@@ -95,6 +99,38 @@ function getGreetingLabel() {
   return "Bonsoir";
 }
 
+
+type DashboardOwnerCard = {
+  id: string;
+  name: string;
+  city: string;
+  requestCount: number;
+  unreadCount: number;
+  urgentCount: number;
+  lastActivity: string | null;
+  href: string;
+};
+
+function normalizeOwnerKey(value: string | null | undefined) {
+  return (value ?? "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function getOwnerDisplayName(owner: ConciergeOwnerProfile) {
+  const fullName = `${owner.first_name ?? ""} ${owner.last_name ?? ""}`.trim();
+  return owner.username?.trim() || fullName || "Propriétaire";
+}
+
+function getOwnerInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const first = parts[0]?.[0] ?? "P";
+  const second = parts[1]?.[0] ?? "";
+  return `${first}${second}`.toUpperCase();
+}
 function isMissionPendingValidation(status: string | null | undefined) {
   return ["to_schedule", "date_requested", "date_proposed", "date_confirmed"].includes(
     (status ?? "").trim().toLowerCase(),
@@ -148,7 +184,7 @@ function getRequestActionLabel(request: ConciergeDashboardRequest) {
   if (request.recipient_status === "quoted") return "Ouvrir le devis";
   if (isQuoteToSend(request)) return "Proposer un devis";
   if (request.mission_id) return "Voir la mission";
-  return "Repondre";
+  return "Répondre";
 }
 
 function getPriorityIcon(request: ConciergeDashboardRequest | null): LucideIcon {
@@ -203,7 +239,7 @@ function getActivityWeather({
 
   if (urgentCount > 0 || score >= 70) {
     return {
-      label: "Orage operationnel",
+      label: "Orage opérationnel",
       detail: "Prioriser urgences, messages et validations avant les actions commerciales.",
       tone: "warn" as ActivityWeatherTone,
       score,
@@ -223,7 +259,7 @@ function getActivityWeather({
 
   return {
     label: "Temps clair",
-    detail: "Aucun point bloquant detecte, bon moment pour preparer la suite.",
+    detail: "Aucun point bloquant détecté, bon moment pour préparer la suite.",
     tone: "good" as ActivityWeatherTone,
     score,
     icon: CheckCircle2,
@@ -288,7 +324,7 @@ function ConciergeInspirationPanel({
       setSearches(nextSearches);
       setVideoDraft("");
       setSearchDraft("");
-      setFeedback("Bibliotheque video mise a jour.");
+      setFeedback("Bibliothèque vidéo mise à jour.");
       window.dispatchEvent(new Event("user-profile-updated"));
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Erreur de sauvegarde.");
@@ -330,9 +366,9 @@ function ConciergeInspirationPanel({
     <div className={styles.inspirationShell}>
       <div className={styles.inspirationIntro}>
         <span className={styles.sectionEyebrow}>Inspiration concierge</span>
-        <h3>Bibliotheque YouTube et Shorts</h3>
+        <h3>Bibliothèque YouTube et Shorts</h3>
         <p>
-          Ajoutez vos liens au fil de l&apos;eau, gardez des recherches pretes et faites vivre votre veille visuelle
+          Ajoutez vos liens au fil de l&apos;eau, gardez des recherches prêtes et faites vivre votre veille visuelle
           directement depuis le dashboard.
         </p>
       </div>
@@ -395,8 +431,8 @@ function ConciergeInspirationPanel({
         <article className={styles.inspirationLibrary}>
           <div className={styles.panelHeader}>
             <div>
-              <span className={styles.panelEyebrow}>Bibliotheque active</span>
-              <h4>{filteredVideos.length} video(s) visibles</h4>
+              <span className={styles.panelEyebrow}>Bibliothèque active</span>
+              <h4>{filteredVideos.length} vidéo(s) visibles</h4>
             </div>
             <label className={styles.inspirationSearchBox}>
               <Search size={16} />
@@ -492,6 +528,7 @@ export default function DashboardPage() {
     housings,
     conversations,
     quotes,
+    ownerProfiles,
     kpis,
   } = useConciergeDashboardData(isAuthenticated);
 
@@ -610,7 +647,7 @@ export default function DashboardPage() {
         return {
           id: String(housing.id),
           name: housing.nom_logement || `Logement #${housing.id}`,
-          location: housing.ville || "Ville a preciser",
+          location: housing.ville || "Ville à préciser",
           status: getHousingStatusLabel(housing.statut),
           note: relatedMission?.title || "Aucune intervention ouverte pour le moment.",
           href: `/dashboard/concierge/logements/${housing.id}`,
@@ -664,12 +701,12 @@ export default function DashboardPage() {
       .slice(0, 2)
       .map((conversation) => ({
         id: `conversation-${conversation.id}`,
-        label: "Message proprietaire",
+        label: "Message propriétaire",
         title: conversation.subject || conversation.counterpart_name || "Conversation active",
         detail:
           typeof conversation.unread_count === "number" && conversation.unread_count > 0
             ? `${conversation.unread_count} message(s) non lus`
-            : "Dernier echange disponible",
+            : "Dernier échange disponible",
         meta: getActivityDateLabel(conversation.last_message_at),
         href: conversation.id
           ? `/dashboard/concierge/messages?conversation=${encodeURIComponent(conversation.id)}`
@@ -683,9 +720,9 @@ export default function DashboardPage() {
 
     const requestItems = requests.slice(0, 2).map((request) => ({
       id: `request-${request.recipient_id}`,
-      label: isQuoteToSend(request) ? "Devis a envoyer" : "Demande",
+      label: isQuoteToSend(request) ? "Devis à envoyer" : "Demande",
       title: request.title,
-      detail: request.property_name || request.city || "Logement a preciser",
+      detail: request.property_name || request.city || "Logement à préciser",
       meta: getActivityDateLabel(request.updated_at || request.created_at || request.desired_date),
       href: getRequestHref(request),
       icon: isQuoteToSend(request) ? <FileText size={16} /> : <CalendarClock size={16} />,
@@ -703,8 +740,8 @@ export default function DashboardPage() {
         id: `priority-${priorityRequest.recipient_id}`,
         label: priorityRequest.urgency ? "Urgence" : "Point du jour",
         title: priorityRequest.property_name || priorityRequest.title,
-        detail: `${priorityRequest.title} · ${priorityRequest.city || "Ville a preciser"}`,
-        meta: priorityRequest.desired_date ? `A ${formatTime(priorityRequest.desired_date)}` : "Horaire a confirmer",
+        detail: `${priorityRequest.title} · ${priorityRequest.city || "Ville à préciser"}`,
+        meta: priorityRequest.desired_date ? `À ${formatTime(priorityRequest.desired_date)}` : "Horaire à confirmer",
         href: getRequestHref(priorityRequest),
         icon: (() => {
           const PriorityIcon = getPriorityIcon(priorityRequest);
@@ -719,10 +756,10 @@ export default function DashboardPage() {
         id: `quote-${quotesToSend[0].recipient_id}`,
         label: "Devis",
         title: quotesToSend[0].title,
-        detail: quotesToSend[0].property_name || "Proposition commerciale a envoyer",
+        detail: quotesToSend[0].property_name || "Proposition commerciale à envoyer",
         meta: quotesToSend[0].budget_max
-          ? formatCurrencyAmount(quotesToSend[0].budget_max, { currency: "EUR", emptyLabel: "Budget a preciser" })
-          : "Budget a preciser",
+          ? formatCurrencyAmount(quotesToSend[0].budget_max, { currency: "EUR", emptyLabel: "Budget à préciser" })
+          : "Budget à préciser",
         href: getRequestHref(quotesToSend[0]),
         icon: <Euro size={16} />,
         tone: "success",
@@ -734,7 +771,7 @@ export default function DashboardPage() {
         id: `planning-${String(todayPlanning[0].bookingId ?? todayPlanning[0].title ?? "event")}`,
         label: "Planning",
         title: String(todayPlanning[0].title || "Mission du jour"),
-        detail: todayPlanning[0].type === "reminder" ? "Intervention urgente" : "Mission planifiee",
+        detail: todayPlanning[0].type === "reminder" ? "Intervention urgente" : "Mission planifiée",
         meta: formatTime(todayPlanning[0].start),
         href: "/dashboard/concierge/planning",
         icon: <Clock3 size={16} />,
@@ -747,7 +784,7 @@ export default function DashboardPage() {
         id: "urgent-missions",
         label: "Terrain",
         title: `${urgentMissionCount} urgence(s) mission`,
-        detail: "Des interventions terrain meritent une verification rapide.",
+        detail: "Des interventions terrain méritent une vérification rapide.",
         meta: "Alertes concierge",
         href: "/dashboard/concierge/alertes",
         icon: <ShieldAlert size={16} />,
@@ -758,77 +795,31 @@ export default function DashboardPage() {
     return items.slice(0, 4);
   }, [priorityRequest, quotesToSend, todayPlanning, urgentMissionCount]);
 
-  const healthCards = useMemo(
-    () => [
-      {
-        label: "Demandes recues",
-        value: `${ownerRequestsToHandle}`,
-        detail:
-          ownerRequestsToHandle > 0
-            ? "Des proprietaires attendent une reponse ou une qualification."
-            : "Aucune demande a traiter immediatement.",
-        href: "/dashboard/concierge/demandes",
-        tone: "info",
-      },
-      {
-        label: operatingModeConfig.kpiLabels.quotes,
-        value: `${quotesToSend.length}`,
-        detail:
-          quotesToSend.length > 0
-            ? "Des opportunites commerciales sont prêtes a etre envoyees."
-            : "Aucun devis urgent a envoyer.",
-        href: "/dashboard/concierge/billing",
-        tone: "good",
-      },
-      {
-        label: "Missions a valider",
-        value: `${pendingValidationCount}`,
-        detail:
-          pendingValidationCount > 0
-            ? "Certaines dates ou confirmations bloquent la suite."
-            : "Le planning est sous controle.",
-        href: "/dashboard/concierge/planning",
-        tone: "warn",
-      },
-      {
-        label: "Messages non lus",
-        value: `${unreadConversationCount}`,
-        detail:
-          unreadConversationCount > 0
-            ? "Des echanges proprietaires attendent une lecture rapide."
-            : "Messagerie a jour.",
-        href: "/dashboard/concierge/messages",
-        tone: "info",
-      },
-    ],
-    [operatingModeConfig.kpiLabels.quotes, ownerRequestsToHandle, pendingValidationCount, quotesToSend.length, unreadConversationCount],
-  );
-
   const revenueCards = useMemo(
     () => [
       {
-        label: "Revenus a venir",
+        label: "Revenus à venir",
         value: formatCurrencyAmount(projectedRevenue, {
           currency: "EUR",
           emptyLabel: "0 EUR",
         }),
         detail:
           projectedRevenue > 0
-            ? "Projection issue des devis et demandes deja qualifiees."
-            : "Aucun revenu previsionnel consolide pour l'instant.",
+            ? "Projection issue des devis et demandes déjà qualifiées."
+            : "Aucun revenu prévisionnel consolidé pour l'instant.",
       },
       {
-        label: "Missions realisees",
+        label: "Missions réalisées",
         value: `${monthCompletedRevenue}`,
-        detail: "Volume de missions terminees remonte par le cockpit.",
+        detail: "Volume de missions terminées remonté par le cockpit.",
       },
       {
         label: "Arrivées du jour",
         value: `${todayArrivals}`,
-        detail: "Voyageurs a coordonner aujourd'hui sur le terrain.",
+        detail: "Voyageurs à coordonner aujourd'hui sur le terrain.",
       },
       {
-        label: "Paiements a recevoir",
+        label: "Paiements à recevoir",
         value: `${quotes.filter((quote) => (quote.status ?? "").trim().toLowerCase() === "accepted").length}`,
         detail: "Dossiers commerciaux susceptibles de se transformer en encaissement.",
       },
@@ -839,9 +830,9 @@ export default function DashboardPage() {
   const financeStats = useMemo<UnifiedStatItem[]>(
     () => [
       {
-        label: "CA a venir",
+        label: "CA à venir",
         value: formatCurrencyAmount(projectedRevenue, { currency: "EUR", emptyLabel: "0 EUR" }),
-        detail: "Projection devis + demandes qualifiees",
+        detail: "Projection devis + demandes qualifiées",
         icon: <Euro size={16} />,
         tone: "accent",
       },
@@ -855,7 +846,7 @@ export default function DashboardPage() {
       {
         label: "Paiements",
         value: `${quotes.filter((quote) => (quote.status ?? "").trim().toLowerCase() === "accepted").length}`,
-        detail: "Dossiers a encaisser",
+        detail: "Dossiers à encaisser",
         icon: <Euro size={16} />,
         tone: "neutral",
       },
@@ -885,7 +876,7 @@ export default function DashboardPage() {
       {
         label: "Urgences",
         value: `${urgentMissionCount + urgentRequests.length}`,
-        detail: "Terrain + demandes proprietaires",
+        detail: "Terrain + demandes propriétaires",
         icon: <TriangleAlert size={16} />,
         tone: "neutral",
       },
@@ -893,6 +884,85 @@ export default function DashboardPage() {
     [housingActionsCount, todayPlanningCount, urgentMissionCount, urgentRequests.length, weekPlanningCount],
   );
 
+  const ownerCards = useMemo<DashboardOwnerCard[]>(() => {
+    const cards = new Map<string, DashboardOwnerCard>();
+    const nameToKey = new Map<string, string>();
+
+    const touchCard = (key: string, input: Partial<DashboardOwnerCard> & { name: string }) => {
+      const current = cards.get(key);
+      const next: DashboardOwnerCard = {
+        id: current?.id ?? key,
+        name: current?.name ?? input.name,
+        city: input.city ?? current?.city ?? "Ville à préciser",
+        requestCount: current?.requestCount ?? 0,
+        unreadCount: current?.unreadCount ?? 0,
+        urgentCount: current?.urgentCount ?? 0,
+        lastActivity: current?.lastActivity ?? null,
+        href: current?.href ?? input.href ?? "/dashboard/concierge/contacts",
+      };
+
+      if (typeof input.requestCount === "number") next.requestCount += input.requestCount;
+      if (typeof input.unreadCount === "number") next.unreadCount += input.unreadCount;
+      if (typeof input.urgentCount === "number") next.urgentCount += input.urgentCount;
+      if (input.lastActivity) {
+        const previousTime = next.lastActivity ? new Date(next.lastActivity).getTime() : 0;
+        const nextTime = new Date(input.lastActivity).getTime();
+        if (!Number.isNaN(nextTime) && nextTime >= previousTime) next.lastActivity = input.lastActivity;
+      }
+
+      cards.set(key, next);
+      const normalizedName = normalizeOwnerKey(next.name);
+      if (normalizedName) nameToKey.set(normalizedName, key);
+      return next;
+    };
+
+    ownerProfiles.forEach((owner) => {
+      const name = getOwnerDisplayName(owner);
+      touchCard(owner.id, {
+        name,
+        city: owner.city?.trim() || "Ville à préciser",
+        href: `/dashboard/concierge/contacts?owner=${encodeURIComponent(owner.id)}`,
+      });
+    });
+
+    conversations.forEach((conversation) => {
+      const fallbackName = conversation.counterpart_name || "Propriétaire";
+      const normalizedName = normalizeOwnerKey(fallbackName);
+      const key = conversation.counterpart_profile_id || nameToKey.get(normalizedName) || `conversation-${conversation.id}`;
+      touchCard(key, {
+        name: fallbackName,
+        unreadCount: typeof conversation.unread_count === "number" ? conversation.unread_count : 0,
+        lastActivity: conversation.last_message_at,
+        href: conversation.id
+          ? `/dashboard/concierge/messages?conversation=${encodeURIComponent(conversation.id)}`
+          : "/dashboard/concierge/messages",
+      });
+    });
+
+    requests.forEach((request) => {
+      const fallbackName = request.owner_name || "Propriétaire";
+      const normalizedName = normalizeOwnerKey(fallbackName);
+      const key = nameToKey.get(normalizedName) || `request-${normalizedName || request.recipient_id}`;
+      touchCard(key, {
+        name: fallbackName,
+        city: request.city || "Ville à préciser",
+        requestCount: isRequestAwaitingReply(request.recipient_status) || isQuoteToSend(request) ? 1 : 0,
+        urgentCount: request.urgency ? 1 : 0,
+        lastActivity: request.updated_at || request.created_at || request.desired_date,
+        href: getRequestHref(request),
+      });
+    });
+
+    return Array.from(cards.values())
+      .sort((left, right) => {
+        const priorityDelta = right.urgentCount + right.unreadCount + right.requestCount - (left.urgentCount + left.unreadCount + left.requestCount);
+        if (priorityDelta !== 0) return priorityDelta;
+        const rightTime = right.lastActivity ? new Date(right.lastActivity).getTime() : 0;
+        const leftTime = left.lastActivity ? new Date(left.lastActivity).getTime() : 0;
+        return rightTime - leftTime;
+      })
+      .slice(0, 6);
+  }, [conversations, ownerProfiles, requests]);
   const activityWeather = useMemo(
     () =>
       getActivityWeather({
@@ -914,7 +984,7 @@ export default function DashboardPage() {
         id: "notification-messages",
         label: "Messages",
         title: `${unreadConversationCount} message(s) non lus`,
-        detail: "A traiter pour eviter de bloquer devis ou missions.",
+        detail: "À traiter pour éviter de bloquer devis ou missions.",
         meta: "Messagerie",
         href: "/dashboard/concierge/messages",
         icon: <MessageSquareText size={16} />,
@@ -927,7 +997,7 @@ export default function DashboardPage() {
         id: "notification-requests",
         label: "Demandes urgentes",
         title: `${urgentRequests.length} demande(s) prioritaires`,
-        detail: "Demandes proprietaires a qualifier rapidement.",
+        detail: "Demandes propriétaires à qualifier rapidement.",
         meta: "Demandes",
         href: "/dashboard/concierge/demandes",
         icon: <BellRing size={16} />,
@@ -939,8 +1009,8 @@ export default function DashboardPage() {
       items.push({
         id: "notification-validation",
         label: "Validation",
-        title: `${pendingValidationCount} mission(s) a confirmer`,
-        detail: "Dates ou confirmations a verrouiller dans le planning.",
+        title: `${pendingValidationCount} mission(s) à confirmer`,
+        detail: "Dates ou confirmations à verrouiller dans le planning.",
         meta: "Planning",
         href: "/dashboard/concierge/planning",
         icon: <CheckCircle2 size={16} />,
@@ -952,8 +1022,8 @@ export default function DashboardPage() {
       items.push({
         id: "notification-quotes",
         label: "Devis",
-        title: `${quotesToSend.length} devis a envoyer`,
-        detail: "Opportunites commerciales pretes a avancer.",
+        title: `${quotesToSend.length} devis à envoyer`,
+        detail: "Opportunités commerciales prêtes à avancer.",
         meta: "Revenus",
         href: "/dashboard/concierge/billing",
         icon: <Euro size={16} />,
@@ -972,8 +1042,8 @@ export default function DashboardPage() {
         .map((mission) => ({
           id: mission.id,
           title: mission.title || "Mission concierge",
-          status: mission.priority === "urgent" ? "Urgente" : mission.status || "A planifier",
-          dateLabel: mission.scheduled_start ? formatDateValue(mission.scheduled_start, { day: "2-digit", month: "short" }) : "Date a caler",
+          status: mission.priority === "urgent" ? "Urgente" : mission.status || "À planifier",
+          dateLabel: mission.scheduled_start ? formatDateValue(mission.scheduled_start, { day: "2-digit", month: "short" }) : "Date à caler",
           timeLabel: mission.scheduled_start ? formatTime(mission.scheduled_start) : "--:--",
           href: "/dashboard/concierge/planning",
         })),
@@ -986,7 +1056,7 @@ export default function DashboardPage() {
     { id: "missions", label: operatingModeConfig.kpiLabels.missions, detail: "Focus terrain", icon: Radio },
     { id: "revenues", label: operatingModeConfig.revenueLabel, detail: "Devis + paiements", icon: Euro },
     { id: "reports", label: "Rapports", detail: operatingModeConfig.shortLabel, icon: FileText },
-    { id: "inspiration", label: "Inspiration", detail: "Bibliotheque video", icon: Sparkles },
+    { id: "inspiration", label: "Inspiration", detail: "Bibliothèque vidéo", icon: Sparkles },
   ];
 
   const activeWidgetCount = Object.values(widgets).filter(Boolean).length;
@@ -1027,9 +1097,9 @@ export default function DashboardPage() {
         detail: operatingModeConfig.description,
       },
       {
-        label: "Score d'activite",
+        label: "Score d'activité",
         value: `${modeActivityScore}%`,
-        detail: "Calcul pondere selon le mode metier choisi.",
+        detail: "Calcul pondéré selon le mode métier choisi.",
       },
       {
         label: operatingModeConfig.revenueLabel,
@@ -1037,7 +1107,7 @@ export default function DashboardPage() {
         detail: operatingModeConfig.statDetails.revenueDetail,
       },
       {
-        label: "Risque operationnel",
+        label: "Risque opérationnel",
         value: `${urgentMissionCount + urgentRequests.length + pendingValidationCount}`,
         detail: "Urgences, validations et arbitrages qui peuvent ralentir l'exploitation.",
       },
@@ -1051,12 +1121,12 @@ export default function DashboardPage() {
       icon: Home,
     },
     {
-      label: "Creer un devis",
+      label: "Créer un devis",
       href: "/dashboard/concierge/billing",
       icon: FileText,
     },
     {
-      label: "Creer une mission",
+      label: "Créer une mission",
       href: "/dashboard/concierge/demandes",
       icon: CalendarClock,
     },
@@ -1078,9 +1148,9 @@ export default function DashboardPage() {
       <UnifiedRoleDashboard
         role="concierge"
         title={`${getGreetingLabel()} ${conciergeName}, voici votre cockpit ${operatingModeConfig.shortLabel.toLowerCase()} du jour.`}
-        subtitle={`${operatingModeConfig.dashboardLead} ${housings.length} actif(s), ${openMissionCount} mission(s), ${todayArrivals} moment(s) du jour et ${quotesToSend.length} opportunite(s) a traiter.`}
-        experienceBadge={user?.years_experience ? `${user.years_experience} ans d'experience` : operatingModeConfig.badge}
-        statusLabel={urgentMissionCount + urgentRequests.length > 0 ? "Points chauds a surveiller" : "Activite sous controle"}
+        subtitle={`${operatingModeConfig.dashboardLead} ${housings.length} actif(s), ${openMissionCount} mission(s), ${todayArrivals} moment(s) du jour et ${quotesToSend.length} opportunité(s) à traiter.`}
+        experienceBadge={user?.years_experience ? `${user.years_experience} ans d'expérience` : operatingModeConfig.badge}
+        statusLabel={urgentMissionCount + urgentRequests.length > 0 ? "Points chauds à surveiller" : "Activité sous contrôle"}
         actions={[
           {
             id: "planning",
@@ -1108,14 +1178,14 @@ export default function DashboardPage() {
             value: `${housings.length}`,
             detail: housingActionsCount > 0 ? `${housingActionsCount} logement(s) à suivre` : `${housings.length} logement(s) prêt(s)`,
             icon: <DashboardHomeIcon size={26} />,
-            statusLabel: housingActionsCount > 0 ? `${housingActionsCount} actif(s) a verifier` : operatingModeConfig.statDetails.portfolioStable,
+            statusLabel: housingActionsCount > 0 ? `${housingActionsCount} actif(s) à vérifier` : operatingModeConfig.statDetails.portfolioStable,
             statusTone: housingActionsCount > 0 ? "warning" : "success",
           },
           {
             id: "missions",
             label: operatingModeConfig.kpiLabels.missions,
             value: `${openMissionCount}`,
-            detail: todayPlanningCount > 0 ? `${todayPlanningCount} element(s) aujourd'hui` : "Aucun element aujourd'hui",
+            detail: todayPlanningCount > 0 ? `${todayPlanningCount} élément(s) aujourd'hui` : "Aucun élément aujourd'hui",
             icon: <CalendarClock size={18} />,
             statusLabel: pendingValidationCount > 0 ? `${pendingValidationCount} mission(s) à valider` : missionPaceMeta.label,
             statusTone: pendingValidationCount > 0 ? "warning" : missionPaceMeta.tone,
@@ -1124,13 +1194,16 @@ export default function DashboardPage() {
             statusText: pendingValidationCount > 0 ? `${pendingValidationCount} mission(s) à valider` : missionPaceMeta.label,
           },
           {
-            id: "arrivals",
-            label: operatingModeConfig.kpiLabels.arrivals,
-            value: `${todayArrivals}`,
-            detail: todayArrivals > 0 ? `${todayArrivals} arrivée(s) à coordonner` : "0 arrivée aujourd'hui",
-            icon: <DoorOpen size={18} />,
-            statusLabel: todayArrivals > 0 ? `${todayArrivals} arrivée(s) terrain` : "Arrivées calmes",
-            statusTone: todayArrivals > 0 ? "info" : "default",
+            id: "owners",
+            label: "Propriétaires",
+            value: `${ownerProfiles.length}`,
+            detail:
+              ownerRequestsToHandle > 0
+                ? `${ownerRequestsToHandle} relation(s) à relancer`
+                : `${ownerProfiles.length} profil(s) propriétaire(s) suivi(s)`,
+            icon: <UsersRound size={18} />,
+            statusLabel: unreadConversationCount > 0 ? `${unreadConversationCount} message(s) non lus` : "Relations à jour",
+            statusTone: unreadConversationCount > 0 ? "warning" : "success",
           },
           {
             id: "quotes",
@@ -1155,21 +1228,21 @@ export default function DashboardPage() {
                 </span>
               </div>
               <div className={styles.priorityCopy}>
-                <strong>{priorityRequest?.property_name || priorityRequest?.title || "Aucune urgence terrain detectee"}</strong>
+                <strong>{priorityRequest?.property_name || priorityRequest?.title || "Aucune urgence terrain détectée"}</strong>
                 <p>
                   {priorityRequest
-                    ? `${priorityRequest.title} · ${priorityRequest.city || "Ville a preciser"}`
-                    : "Votre tableau de bord ne detecte pas de mission bloquante a cet instant."}
+                    ? `${priorityRequest.title} · ${priorityRequest.city || "Ville à préciser"}`
+                    : "Votre tableau de bord ne détecte pas de mission bloquante à cet instant."}
                 </p>
               </div>
               <div className={styles.priorityMeta}>
                 <span>
                   <Clock3 size={14} />
-                  {priorityRequest?.desired_date ? `Check-in a ${formatTime(priorityRequest.desired_date)}` : "Horaire a confirmer"}
+                  {priorityRequest?.desired_date ? `Check-in à ${formatTime(priorityRequest.desired_date)}` : "Horaire à confirmer"}
                 </span>
                 <span>
                   <UsersRound size={14} />
-                  Voyageur ou proprietaire a coordonner
+                  Voyageur ou propriétaire à coordonner
                 </span>
               </div>
               <p className={styles.priorityNote}>
@@ -1188,7 +1261,7 @@ export default function DashboardPage() {
                   href={priorityRequest ? getConversationHref(priorityRequest) : "/dashboard/concierge/messages"}
                   className={styles.secondaryLink}
                 >
-                  Contacter proprietaire
+                  Contacter propriétaire
                 </Link>
               </div>
             </article>
@@ -1196,8 +1269,8 @@ export default function DashboardPage() {
             <div className={styles.sideStack}>
               <section className={`${styles.contentBlock} ${styles.modeSelectorCard}`}>
                 <div className={styles.blockHeader}>
-                  <h3>Mode co-hote</h3>
-                  <p>Statistiques, widgets et rapports s'adaptent au modele choisi.</p>
+                  <h3>Mode co-hôte</h3>
+                  <p>Statistiques, widgets et rapports s'adaptent au modèle choisi.</p>
                 </div>
                 <ConciergeDashboardModeControls
                   experienceLevel={user?.experience_level}
@@ -1219,11 +1292,11 @@ export default function DashboardPage() {
                     <ActivityWeatherIcon size={22} />
                   </span>
                   <div>
-                    <h3>Meteo d&apos;activite</h3>
+                    <h3>Météo d&apos;activité</h3>
                     <p>{activityWeather.detail}</p>
                   </div>
                 </div>
-                <div className={styles.weatherGauge} aria-label={`Pression operationnelle ${activityWeather.score}%`}>
+                <div className={styles.weatherGauge} aria-label={`Pression opérationnelle ${activityWeather.score}%`}>
                   <span style={{ width: `${activityWeather.score}%` }} />
                 </div>
                 <div className={styles.weatherStats}>
@@ -1233,20 +1306,29 @@ export default function DashboardPage() {
               </section>
               <section className={styles.contentBlock}>
                 <div className={styles.blockHeader}>
-                  <h3>Sante {operatingModeConfig.shortLabel.toLowerCase()}</h3>
-                  <p>{operatingModeConfig.statDetails.missionDetail}</p>
+                  <h3>Propriétaires à suivre</h3>
+                  <p>Relations actives, messages et demandes regroupés au même endroit.</p>
                 </div>
-                <div className={styles.healthGrid}>
-                  {healthCards.map((card) => (
-                    <Link key={card.label} href={card.href} className={styles.healthCard}>
-                      <div className={styles.healthTop}>
-                        <span className={`${styles.healthDot} ${styles[card.tone]}`} />
-                        <span className={styles.healthLabel}>{card.label}</span>
-                      </div>
-                      <strong className={styles.healthValue}>{card.value}</strong>
-                      <p>{card.detail}</p>
-                    </Link>
-                  ))}
+                <div className={styles.ownerGrid}>
+                  {ownerCards.length > 0 ? (
+                    ownerCards.slice(0, 4).map((owner) => (
+                      <Link key={owner.id} href={owner.href} className={styles.ownerCard}>
+                        <span className={styles.ownerAvatar}>{getOwnerInitials(owner.name)}</span>
+                        <span className={styles.ownerBody}>
+                          <strong>{owner.name}</strong>
+                          <small>{owner.city}</small>
+                        </span>
+                        <span className={styles.ownerMeta}>
+                          {owner.urgentCount > 0 ? `${owner.urgentCount} urgent` : owner.unreadCount > 0 ? `${owner.unreadCount} non lu(s)` : `${owner.requestCount} demande(s)`}
+                        </span>
+                      </Link>
+                    ))
+                  ) : (
+                    <DashboardEmptyState
+                      title="Aucun propriétaire à afficher"
+                      copy="Les propriétaires apparaîtront ici dès qu'un profil, une demande ou une conversation sera disponible."
+                    />
+                  )}
                 </div>
               </section>
             </div>
@@ -1269,7 +1351,7 @@ export default function DashboardPage() {
           {
             id: "operations",
             title: operatingModeConfig.planningLabel,
-            subtitle: `${operatingModeConfig.planningLabel}, ${operatingModeConfig.demandLabel.toLowerCase()} et rythme terrain dans la meme lecture.`,
+            subtitle: `${operatingModeConfig.planningLabel}, ${operatingModeConfig.demandLabel.toLowerCase()} et rythme terrain dans la même lecture.`,
             content: (
               <div className={styles.dualGrid}>
                 <article className={styles.panelCard}>
@@ -1279,7 +1361,7 @@ export default function DashboardPage() {
                       <h3>Aujourd&apos;hui</h3>
                     </div>
                     <Link href="/dashboard/concierge/planning" className={styles.inlineLink}>
-                      Vue complete
+                      Vue complète
                     </Link>
                   </div>
                   <div className={styles.timelineList}>
@@ -1293,15 +1375,15 @@ export default function DashboardPage() {
                           <span className={styles.timelineTime}>{formatTime(event.start)}</span>
                           <div>
                             <strong>{String(event.title || "Mission")}</strong>
-                            <p>{event.type === "reminder" ? "Intervention urgente" : "Mission planifiee"}</p>
+                            <p>{event.type === "reminder" ? "Intervention urgente" : "Mission planifiée"}</p>
                           </div>
                           <ArrowRight size={16} />
                         </Link>
                       ))
                     ) : (
                       <DashboardEmptyState
-                        title="Aucun creneau aujourd'hui"
-                        copy="Ouvrez le planning complet pour preparer la suite de la semaine."
+                        title="Aucun créneau aujourd'hui"
+                        copy="Ouvrez le planning complet pour préparer la suite de la semaine."
                       />
                     )}
                   </div>
@@ -1311,7 +1393,7 @@ export default function DashboardPage() {
                   <div className={styles.panelHeader}>
                     <div>
                       <span className={styles.panelEyebrow}>{operatingModeConfig.demandLabel}</span>
-                      <h3>A traiter</h3>
+                      <h3>À traiter</h3>
                     </div>
                     <Link href="/dashboard/concierge/demandes" className={styles.inlineLink}>
                       Voir toutes
@@ -1324,7 +1406,7 @@ export default function DashboardPage() {
                           <div className={styles.requestTop}>
                             <div>
                               <strong>{request.title}</strong>
-                              <p>{request.property_name || request.city || "Logement a preciser"}</p>
+                              <p>{request.property_name || request.city || "Logement à préciser"}</p>
                             </div>
                             <DashboardStatusBadge
                               label={request.urgency ? "Urgente" : isQuoteToSend(request) ? "Devis" : "À répondre"}
@@ -1332,7 +1414,7 @@ export default function DashboardPage() {
                             />
                           </div>
                           <div className={styles.requestMeta}>
-                            <span>{request.owner_name || "Proprietaire"}</span>
+                            <span>{request.owner_name || "Propriétaire"}</span>
                             <span>
                               {request.desired_date
                                 ? formatDateValue(request.desired_date, {
@@ -1344,7 +1426,7 @@ export default function DashboardPage() {
                           </div>
                           <div className={styles.actionRow}>
                             <Link href={getRequestHref(request)} className={styles.primaryLink}>
-                              Repondre
+                              Répondre
                             </Link>
                             <Link href={getRequestHref(request)} className={styles.secondaryLink}>
                               Proposer un devis
@@ -1358,7 +1440,7 @@ export default function DashboardPage() {
                       {requests.length === 0 ? (
                         <DashboardEmptyState
                           title="Aucune demande active"
-                          copy="Le cockpit ne remonte aucune demande proprietaire urgente pour le moment."
+                          copy="Le cockpit ne remonte aucune demande propriétaire urgente pour le moment."
                         />
                       ) : null}
                     </div>
@@ -1369,7 +1451,7 @@ export default function DashboardPage() {
           },
           {
             id: "activity",
-            title: "Activite recente",
+            title: "Activité récente",
             subtitle: "Messages, demandes et points qui viennent de bouger.",
             content: <UnifiedSpotlightList items={activityItems} emptyLabel="Aucune activite recente exploitable pour l'instant." />,
           },
@@ -1387,7 +1469,7 @@ export default function DashboardPage() {
           {
             id: "missions",
             title: "Missions terrain",
-            subtitle: "Le prochain travail operationnel visible sans quitter le cockpit.",
+            subtitle: "Le prochain travail opérationnel visible sans quitter le cockpit.",
             content: (
               <div className={styles.missionFocusGrid}>
                 {missionFocusItems.length > 0 ? (
@@ -1407,7 +1489,7 @@ export default function DashboardPage() {
                 ) : (
                   <DashboardEmptyState
                     title="Aucune mission ouverte"
-                    copy="Les prochaines missions apparaitront ici des qu'elles seront planifiees."
+                    copy="Les prochaines missions apparaîtront ici dès qu'elles seront planifiées."
                   />
                 )}
               </div>
@@ -1431,7 +1513,7 @@ export default function DashboardPage() {
           },
           {
             id: "inspiration",
-            title: "Bibliotheque d'inspiration",
+            title: "Bibliothèque d'inspiration",
             subtitle: "Vos videos YouTube et Shorts restent visibles au coeur du cockpit concierge.",
             content: <ConciergeInspirationPanel availabilityHours={user?.availability_hours} />,
           },
@@ -1516,7 +1598,7 @@ export default function DashboardPage() {
           {
             id: "ops",
             title: "Controle terrain",
-            subtitle: "Cadence operationnelle du jour",
+            subtitle: "Cadence opérationnelle du jour",
             content: <UnifiedStatStack items={operationsStats} />,
           },
           {
@@ -1536,21 +1618,21 @@ export default function DashboardPage() {
                   <CircleAlert size={20} />
                   <div>
                     <strong>{urgentRequests.length} demande(s) urgente(s)</strong>
-                    <p>Demandes proprietaires qui demandent une reaction rapide.</p>
+                    <p>Demandes propriétaires qui demandent une réaction rapide.</p>
                   </div>
                 </Link>
                 <Link href="/dashboard/concierge/logements" className={styles.alertCard}>
                   <Home size={20} />
                   <div>
                     <strong>{housings.filter((housing) => housing.statut === "menage").length} logement(s) en menage</strong>
-                    <p>Points de readiness a verifier avant arrivee ou rotation.</p>
+                    <p>Points de readiness à vérifier avant arrivée ou rotation.</p>
                   </div>
                 </Link>
                 <Link href="/dashboard/concierge/messages" className={styles.alertCard}>
                   <MessageSquareText size={20} />
                   <div>
                     <strong>{unreadConversationCount} message(s) non lus</strong>
-                    <p>Les echanges proprietaires peuvent bloquer devis ou mission si rien n&apos;avance.</p>
+                    <p>Les échanges propriétaires peuvent bloquer devis ou mission si rien n&apos;avance.</p>
                   </div>
                 </Link>
               </div>
@@ -1561,3 +1643,8 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+
+
+
+

@@ -422,3 +422,200 @@
     scrollbar-width: thin;
   }
 }
+/* Premium workspace refresh */
+.dashboardRoot {
+  --theme-border: rgba(17, 24, 39, 0.1);
+  --theme-shadow: rgba(15, 23, 42, 0.06);
+  --theme-muted-surface: #f7f8fa;
+  --paper-warm: #f5f6f8;
+  --radius-md: 8px;
+  --radius-lg: 8px;
+  --radius-lg-token: 8px;
+  --shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.06);
+  gap: 1rem;
+  padding: clamp(0.85rem, 1.8vw, 1.25rem);
+  background: #f5f6f8;
+}
+
+.heroCard,
+.embeddedModule,
+.disclosureCard {
+  border-color: rgba(17, 24, 39, 0.1);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  background: #ffffff;
+}
+
+.heroCard {
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.42fr);
+  align-items: end;
+  gap: 1.25rem;
+  padding: clamp(1rem, 1.8vw, 1.35rem);
+  border-radius: 8px;
+  border-left: 4px solid var(--theme-accent);
+}
+
+.heroOrnament {
+  display: none;
+}
+
+.heroCopy,
+.heroHeadline,
+.heroTitleWrap,
+.heroActions,
+.kpiContent,
+.panelBody,
+.sidebarStack,
+.disclosureList {
+  gap: 0.65rem;
+}
+
+.heroEyebrow,
+.panelEyebrow {
+  color: #6b7280;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+}
+
+.heroHeadline {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.heroTitleWrap h1 {
+  color: #111827;
+  font-size: clamp(1.45rem, 2vw, 2.05rem);
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+
+.heroTitleWrap p,
+.heroLead,
+.panelDescription,
+.kpiContent p,
+.embeddedHeader span,
+.disclosureCard summary small,
+.disclosureBody {
+  color: #667085;
+  line-height: 1.45;
+}
+
+.heroLead {
+  max-width: 78ch;
+}
+
+.heroBadges {
+  justify-content: flex-start;
+}
+
+.heroActions {
+  grid-template-columns: 1fr;
+  align-self: stretch;
+}
+
+.actionButton {
+  min-height: 42px;
+  padding: 0.65rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.86rem;
+}
+
+.actionButton:hover,
+.disclosureCard:hover {
+  transform: none;
+}
+
+.primaryAction {
+  background: var(--theme-accent-strong);
+  box-shadow: none;
+}
+
+.secondaryAction,
+.ghostAction {
+  border-color: rgba(17, 24, 39, 0.12);
+  background: #ffffff;
+  color: #111827;
+}
+
+.kpiSection {
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.dashboardGrid {
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.42fr);
+}
+
+.mainColumn,
+.sidebarColumn {
+  gap: 1rem;
+}
+
+.mainColumn,
+.sidebarColumn {
+  grid-column: auto;
+}
+
+.embeddedModule {
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border-radius: 8px;
+  min-height: auto;
+}
+
+.embeddedHeader h3 {
+  color: #111827;
+  font-size: 0.98rem;
+  letter-spacing: 0;
+}
+
+.disclosureCard {
+  border-radius: 8px;
+}
+
+.disclosureCard[open] {
+  border-color: rgba(15, 139, 98, 0.32);
+}
+
+.disclosureCard summary {
+  padding: 0.85rem;
+}
+
+.disclosureCard summary span {
+  color: #111827;
+}
+
+.disclosureBody {
+  padding: 0 0.85rem 0.85rem;
+}
+
+.dashboardRoot :global(button:hover),
+.dashboardRoot :global(a:hover) {
+  box-shadow: none;
+}
+
+.dashboardRoot :global(input:focus),
+.dashboardRoot :global(select:focus),
+.dashboardRoot :global(textarea:focus) {
+  border-color: var(--theme-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent) 16%, transparent);
+}
+
+@media (max-width: 1180px) {
+  .dashboardGrid,
+  .heroCard {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .dashboardRoot {
+    padding: 0.75rem;
+  }
+
+  .kpiSection {
+    grid-auto-flow: row;
+    grid-auto-columns: unset;
+    grid-template-columns: 1fr;
+    overflow-x: visible;
+  }
+}

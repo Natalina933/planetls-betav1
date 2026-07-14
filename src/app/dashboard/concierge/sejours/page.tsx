@@ -32,8 +32,8 @@ type StayFilter = "all" | "today" | "arrivals" | "departures" | "in_progress" | 
 const FILTERS: Array<{ id: StayFilter; label: string }> = [
   { id: "all", label: "Tous" },
   { id: "today", label: "Aujourd'hui" },
-  { id: "arrivals", label: "Arrivees" },
-  { id: "departures", label: "Departs" },
+  { id: "arrivals", label: "Arrivées" },
+  { id: "departures", label: "Départs" },
   { id: "in_progress", label: "En cours" },
   { id: "blockers", label: "Infos manquantes" },
   { id: "incidents", label: "Incidents" },
@@ -54,9 +54,9 @@ const STATUS_TONE: Record<TravelerStayStatus, string> = {
 };
 
 function formatDateTime(value: string | null | undefined) {
-  if (!value) return "A planifier";
+  if (!value) return "À planifier";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "A planifier";
+  if (Number.isNaN(date.getTime())) return "À planifier";
   return new Intl.DateTimeFormat("fr-FR", {
     day: "2-digit",
     month: "short",
@@ -66,9 +66,9 @@ function formatDateTime(value: string | null | undefined) {
 }
 
 function formatDate(value: string | null | undefined) {
-  if (!value) return "Date a renseigner";
+  if (!value) return "Date à renseigner";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Date a renseigner";
+  if (Number.isNaN(date.getTime())) return "Date à renseigner";
   return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short", year: "numeric" }).format(date);
 }
 
@@ -119,16 +119,16 @@ function StayCard({ stay }: { stay: TravelerStay }) {
       </div>
       <dl className={styles.cardFacts}>
         <div>
-          <dt>Arrivee</dt>
+          <dt>Arrivée</dt>
           <dd>{formatDateTime(stay.checkIn)}</dd>
         </div>
         <div>
-          <dt>Depart</dt>
+          <dt>Départ</dt>
           <dd>{formatDateTime(stay.checkOut)}</dd>
         </div>
         <div>
           <dt>Voyageurs</dt>
-          <dd>{stay.guestCount ?? stay.adultCount ?? "A renseigner"}</dd>
+          <dd>{stay.guestCount ?? stay.adultCount ?? "À renseigner"}</dd>
         </div>
       </dl>
       <ProgressBar value={stay.preparation.completion} />
@@ -153,14 +153,14 @@ export default function ConciergeTravelerStaysPage() {
       try {
         const response = await fetch("/api/concierge/stays?limit=160", { cache: "no-store" });
         if (!response.ok) {
-          throw new Error("Erreur chargement sejours");
+          throw new Error("Erreur chargement séjours");
         }
         const payload = (await response.json()) as { stays?: TravelerStayInput[] };
 
         if (!active) return;
         setStays(payload.stays ?? []);
       } catch {
-        if (active) setError("Impossible de charger les sejours voyageurs pour le moment.");
+        if (active) setError("Impossible de charger les séjours voyageurs pour le moment.");
       } finally {
         if (active) setLoading(false);
       }
@@ -205,35 +205,35 @@ export default function ConciergeTravelerStaysPage() {
     <DashboardOperationalPage
       tone="concierge"
       badge="Centre voyageurs"
-      title="Voyageurs et sejours"
-      description="Pilotez les arrivees, departs, demandes speciales, incidents et missions liees a chaque sejour."
+      title="Voyageurs et séjours"
+      description="Pilotez les arrivées, départs, demandes spéciales, incidents et missions liées à chaque séjour."
       metrics={[]}
       focus={{
-        title: "Preparation",
+        title: "Préparation",
         status: "Actif",
         icon: <Users size={20} />,
-        heading: "Sejours voyageurs",
-        description: "Centre operationnel concierge.",
+        heading: "Séjours voyageurs",
+        description: "Centre opérationnel concierge.",
       }}
       risks={[]}
       cadenceTitle="Cadence"
       cadence={[]}
-      detailsBadge="Details"
-      detailsTitle="Sejours"
-      detailsDescription="Vue operationnelle"
+      detailsBadge="Détails"
+      detailsTitle="Séjours"
+      detailsDescription="Vue opérationnelle"
       detailSections={[]}
       primaryActions={[
-        { label: "Nouvelle reservation", href: "/dashboard/concierge/missions/overview" },
+        { label: "Nouvelle réservation", href: "/dashboard/concierge/missions/overview" },
         { label: "Planning", href: "/dashboard/concierge/planning" },
       ]}
     >
-      <section className={styles.kpiGrid} aria-label="Indicateurs sejours voyageurs">
+      <section className={styles.kpiGrid} aria-label="Indicateurs séjours voyageurs">
         {[
-          { label: "Aujourd'hui", value: dashboard.today, hint: "Arrivees et departs", Icon: CalendarCheck },
-          { label: "Arrivees", value: dashboard.arrivalsToday, hint: "A preparer ce jour", Icon: Clock3 },
-          { label: "Departs", value: dashboard.departuresToday, hint: "Check-out a suivre", Icon: ShieldCheck },
+          { label: "Aujourd'hui", value: dashboard.today, hint: "Arrivées et départs", Icon: CalendarCheck },
+          { label: "Arrivées", value: dashboard.arrivalsToday, hint: "À préparer ce jour", Icon: Clock3 },
+          { label: "Départs", value: dashboard.departuresToday, hint: "Check-out à suivre", Icon: ShieldCheck },
           { label: "Blocages", value: dashboard.criticalBlockers, hint: "Points critiques", Icon: AlertTriangle },
-          { label: "Incidents", value: dashboard.incidentsOpen, hint: "A tracer", Icon: MessageSquare },
+          { label: "Incidents", value: dashboard.incidentsOpen, hint: "À tracer", Icon: MessageSquare },
         ].map(({ label, value, hint, Icon }) => (
           <article key={label} className={styles.kpiCard}>
             <Icon size={18} aria-hidden="true" />
@@ -251,7 +251,7 @@ export default function ConciergeTravelerStaysPage() {
               <Search size={16} aria-hidden="true" />
               <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Rechercher voyageur, logement, canal..." />
             </label>
-            <div className={styles.filters} aria-label="Filtres sejours">
+            <div className={styles.filters} aria-label="Filtres séjours">
               <Filter size={16} aria-hidden="true" />
               {FILTERS.map((item) => (
                 <button key={item.id} type="button" className={filter === item.id ? styles.filterActive : ""} onClick={() => setFilter(item.id)}>
@@ -265,8 +265,8 @@ export default function ConciergeTravelerStaysPage() {
             loading={loading}
             error={error}
             isEmpty={!loading && !error && filteredStays.length === 0}
-            loadingLabel="Chargement des sejours voyageurs..."
-            emptyLabel="Aucun sejour ne correspond aux filtres. Creez une reservation ou enrichissez les missions existantes."
+            loadingLabel="Chargement des séjours voyageurs..."
+            emptyLabel="Aucun séjour ne correspond aux filtres. Créez une réservation ou enrichissez les missions existantes."
           >
             <div className={styles.tableWrap}>
               <table className={styles.desktopTable}>
@@ -274,9 +274,9 @@ export default function ConciergeTravelerStaysPage() {
                   <tr>
                     <th>Voyageur</th>
                     <th>Logement</th>
-                    <th>Arrivee</th>
-                    <th>Depart</th>
-                    <th>Preparation</th>
+                    <th>Arrivée</th>
+                    <th>Départ</th>
+                    <th>Préparation</th>
                     <th>Statut</th>
                   </tr>
                 </thead>
@@ -285,7 +285,7 @@ export default function ConciergeTravelerStaysPage() {
                     <tr key={stay.id} className={selectedStay?.id === stay.id ? styles.rowActive : ""} onClick={() => setSelectedId(stay.id)}>
                       <td>
                         <strong>{stay.primaryTraveler.displayName}</strong>
-                        <span>{stay.guestCount ? `${stay.guestCount} voyageur(s)` : "Effectif a confirmer"}</span>
+                        <span>{stay.guestCount ? `${stay.guestCount} voyageur(s)` : "Effectif à confirmer"}</span>
                       </td>
                       <td>
                         <strong>{stay.propertyLabel}</strong>
@@ -315,7 +315,7 @@ export default function ConciergeTravelerStaysPage() {
           </AsyncState>
         </div>
 
-        <aside className={styles.detailPanel} aria-label="Detail sejour">
+        <aside className={styles.detailPanel} aria-label="Détail séjour">
           {selectedStay ? (
             <>
               <div className={styles.detailHeader}>
@@ -326,11 +326,11 @@ export default function ConciergeTravelerStaysPage() {
 
               <div className={styles.summaryGrid}>
                 <div>
-                  <span>Arrivee</span>
+                  <span>Arrivée</span>
                   <strong>{formatDate(selectedStay.checkIn)}</strong>
                 </div>
                 <div>
-                  <span>Depart</span>
+                  <span>Départ</span>
                   <strong>{formatDate(selectedStay.checkOut)}</strong>
                 </div>
                 <div>
@@ -346,15 +346,15 @@ export default function ConciergeTravelerStaysPage() {
               <section className={styles.panelSection}>
                 <div className={styles.sectionTitle}>
                   <Sparkles size={17} aria-hidden="true" />
-                  <h3>Preparation arrivee</h3>
+                  <h3>Préparation arrivée</h3>
                 </div>
                 <ProgressBar value={selectedStay.preparation.completion} />
                 {selectedStay.preparation.criticalBlockers.length > 0 ? (
                   <p className={styles.warningText}>
-                    Pret arrivee bloque : {selectedStay.preparation.criticalBlockers.join(", ")}.
+                    Prêt arrivée bloqué : {selectedStay.preparation.criticalBlockers.join(", ")}.
                   </p>
                 ) : (
-                  <p className={styles.successText}>Les points critiques sont prets.</p>
+                  <p className={styles.successText}>Les points critiques sont prêts.</p>
                 )}
                 <WorkflowSteps steps={selectedStay.preparation.steps} />
               </section>
@@ -362,7 +362,7 @@ export default function ConciergeTravelerStaysPage() {
               <section className={styles.panelSection}>
                 <div className={styles.sectionTitle}>
                   <CalendarCheck size={17} aria-hidden="true" />
-                  <h3>Depart</h3>
+                  <h3>Départ</h3>
                 </div>
                 <ProgressBar value={selectedStay.departure.completion} />
                 <p>Prochaine action : {selectedStay.departure.nextAction}</p>
@@ -376,8 +376,8 @@ export default function ConciergeTravelerStaysPage() {
                 </div>
                 <p>
                   {selectedStay.primaryTraveler.previousStays
-                    ? `${selectedStay.primaryTraveler.previousStays} sejour(s) deja connus.`
-                    : "Aucun historique consolide pour ce voyageur."}
+                    ? `${selectedStay.primaryTraveler.previousStays} séjour(s) déjà connus.`
+                    : "Aucun historique consolidé pour ce voyageur."}
                 </p>
                 {selectedStay.primaryTraveler.notes ? <p className={styles.note}>{selectedStay.primaryTraveler.notes}</p> : null}
               </section>
@@ -391,8 +391,8 @@ export default function ConciergeTravelerStaysPage() {
           ) : (
             <div className={styles.noSelection}>
               <Users size={22} aria-hidden="true" />
-              <strong>Aucun sejour selectionne</strong>
-              <p>Selectionnez un sejour pour voir la preparation, le depart et l'historique.</p>
+              <strong>Aucun séjour sélectionné</strong>
+              <p>Sélectionnez un séjour pour voir la préparation, le départ et l'historique.</p>
             </div>
           )}
         </aside>
@@ -400,6 +400,10 @@ export default function ConciergeTravelerStaysPage() {
     </DashboardOperationalPage>
   );
 }
+
+
+
+
 
 
 

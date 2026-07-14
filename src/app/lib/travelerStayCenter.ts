@@ -1,4 +1,4 @@
-export const TRAVELER_STAY_STATUSES = [
+﻿export const TRAVELER_STAY_STATUSES = [
   "to_prepare",
   "missing_information",
   "arrival_to_confirm",
@@ -15,16 +15,16 @@ export const TRAVELER_STAY_STATUSES = [
 export type TravelerStayStatus = (typeof TRAVELER_STAY_STATUSES)[number];
 
 export const TRAVELER_STAY_STATUS_LABELS: Record<TravelerStayStatus, string> = {
-  to_prepare: "A preparer",
+  to_prepare: "À préparer",
   missing_information: "Infos manquantes",
-  arrival_to_confirm: "Arrivee a confirmer",
-  ready_for_arrival: "Pret arrivee",
-  guest_arrived: "Voyageur arrive",
-  stay_in_progress: "Sejour en cours",
-  departure_to_prepare: "Depart a preparer",
+  arrival_to_confirm: "Arrivée à confirmer",
+  ready_for_arrival: "Prêt arrivée",
+  guest_arrived: "Voyageur arrivé",
+  stay_in_progress: "Séjour en cours",
+  departure_to_prepare: "Départ à préparer",
   guest_left: "Voyageur parti",
-  closed: "Cloture",
-  canceled: "Annule",
+  closed: "Clôturé",
+  canceled: "Annulé",
   incident_open: "Incident ouvert",
 };
 
@@ -106,7 +106,7 @@ export type StayWorkflowStep = {
   critical?: boolean;
 };
 
-export type StayPreparationState = {
+export type StayPréparationState = {
   steps: StayWorkflowStep[];
   blockers: string[];
   criticalBlockers: string[];
@@ -125,7 +125,7 @@ export type StayDepartureState = {
 export type TravelerStay = TravelerStayInput & {
   status: TravelerStayStatus;
   primaryTraveler: TravelerProfile;
-  preparation: StayPreparationState;
+  preparation: StayPréparationState;
   departure: StayDepartureState;
 };
 
@@ -195,7 +195,7 @@ export function deriveTravelerStayStatus(input: TravelerStayInput, now = new Dat
   return "to_prepare";
 }
 
-export function buildStayPreparation(input: TravelerStayInput): StayPreparationState {
+export function buildStayPreparation(input: TravelerStayInput): StayPréparationState {
   const cleaningDone = Boolean(input.cleaningDone || missionDone(input.missions, ["cleaning", "menage"]));
   const qualityDone = Boolean(input.qualityChecked || missionDone(input.missions, ["control", "controle"]));
   const hasArrivalTime = Boolean(input.arrivalTimeConfirmed || hasValue(input.estimatedArrivalTime));
@@ -207,62 +207,62 @@ export function buildStayPreparation(input: TravelerStayInput): StayPreparationS
   const steps: StayWorkflowStep[] = [
     {
       id: "stay_identity",
-      label: "Sejour identifie",
+      label: "Séjour identifié",
       description: "Logement, voyageur principal et dates sont connus.",
       done: hasValue(input.propertyLabel) && hasValue(input.primaryTraveler?.displayName) && hasValue(input.checkIn) && hasValue(input.checkOut),
       critical: true,
     },
     {
       id: "arrival_time",
-      label: "Horaire d'arrivee",
-      description: "Creneau d'arrivee confirme ou estime.",
+      label: "Horaire d'arrivée",
+      description: "Créneau d'arrivée confirmé ou estimé.",
       done: hasArrivalTime,
       critical: true,
     },
     {
       id: "access",
-      label: "Acces pret",
-      description: "Consignes, code ou cles disponibles pour l'arrivee.",
+      label: "Accès prêt",
+      description: "Consignes, code ou clés disponibles pour l'arrivée.",
       done: accessReady,
       critical: true,
     },
     {
       id: "cleaning",
-      label: "Menage termine",
-      description: "Mission menage terminee ou validation manuelle.",
+      label: "Ménage terminé",
+      description: "Mission ménage terminée ou validation manuelle.",
       done: cleaningDone,
       critical: true,
     },
     {
       id: "quality",
-      label: "Controle qualite",
-      description: "Controle logement, photos ou checklist de readiness.",
+      label: "Contrôle qualité",
+      description: "Contrôle logement, photos ou checklist de readiness.",
       done: qualityDone,
       critical: true,
     },
     {
       id: "linen_consumables",
       label: "Linge et consommables",
-      description: "Linge, accueil et consommables operationnels.",
+      description: "Linge, accueil et consommables opérationnels.",
       done: Boolean(input.linenReady && input.consumablesReady),
     },
     {
       id: "equipment",
-      label: "Equipements verifies",
-      description: "Wifi, cles, chauffage, climatisation ou equipements sensibles verifies.",
+      label: "Équipements vérifiés",
+      description: "Wifi, clés, chauffage, climatisation ou équipements sensibles vérifiés.",
       done: Boolean(input.equipmentChecked),
     },
     {
       id: "special_requests",
-      label: "Demandes speciales",
-      description: "Lit bebe, linge extra et demandes non sensibles traitees.",
+      label: "Demandes spéciales",
+      description: "Lit bébé, linge extra et demandes non sensibles traitées.",
       done: babyReady && extraLinenReady,
       critical: Boolean(input.babyBedRequested || input.extraLinenRequested),
     },
     {
       id: "incident_clearance",
       label: "Aucun incident bloquant",
-      description: "Les incidents ouverts sont leves ou assumes avec trace.",
+      description: "Les incidents ouverts sont levés ou assumés avec trace.",
       done: !openIncident,
       critical: true,
     },
@@ -293,34 +293,34 @@ export function buildStayDeparture(input: TravelerStayInput): StayDepartureState
   const steps: StayWorkflowStep[] = [
     {
       id: "departure_time",
-      label: "Depart cadré",
-      description: "Heure ou consignes de depart communiquees.",
+      label: "Départ cadré",
+      description: "Heure ou consignes de départ communiquées.",
       done: Boolean(input.departureInstructionsReady || hasValue(input.checkOut)),
       critical: true,
     },
     {
       id: "late_checkout",
-      label: "Late check-out tranche",
-      description: "Demande de depart tardif confirmee ou absente.",
+      label: "Late check-out tranché",
+      description: "Demande de départ tardif confirmée ou absente.",
       done: !input.lateCheckoutRequested || Boolean(input.lateCheckoutConfirmed),
       critical: Boolean(input.lateCheckoutRequested),
     },
     {
       id: "inspection",
-      label: "Inspection de depart",
-      description: "Controle apres depart realise ou mission check-out terminee.",
+      label: "Inspection de départ",
+      description: "Contrôle après départ réalisé ou mission check-out terminée.",
       done: checkoutDone,
     },
     {
       id: "deposit",
       label: "Caution et anomalies",
-      description: "Points de caution ou incidents relus sans decision automatique.",
+      description: "Points de caution ou incidents relus sans décision automatique.",
       done: Boolean(input.depositReviewed),
     },
     {
       id: "turnover",
       label: "Rotation suivante",
-      description: "Menage ou remise en etat planifiee apres depart.",
+      description: "Ménage ou remise en état planifiée après départ.",
       done: cleaningPlanned,
     },
   ];
@@ -332,12 +332,12 @@ export function buildStayDeparture(input: TravelerStayInput): StayDepartureState
     steps,
     blockers,
     completion,
-    nextAction: nextStep?.label ?? "Cloturer le sejour",
+    nextAction: nextStep?.label ?? "Clôturer le séjour",
   };
 }
 
 export function buildTravelerStay(input: TravelerStayInput, now = new Date()): TravelerStay {
-  const primaryTraveler = input.primaryTraveler ?? input.travelers?.[0] ?? { displayName: "Voyageur a renseigner" };
+  const primaryTraveler = input.primaryTraveler ?? input.travelers?.[0] ?? { displayName: "Voyageur à renseigner" };
   return {
     ...input,
     status: deriveTravelerStayStatus({ ...input, primaryTraveler }, now),
@@ -379,3 +379,7 @@ export function buildTravelerStayDashboard(stays: TravelerStayInput[], now = new
     },
   );
 }
+
+
+
+

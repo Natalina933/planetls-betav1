@@ -78,3 +78,42 @@
     grid-template-columns: 1fr;
   }
 }
+/* Premium stat stack refresh */
+.stack {
+  gap: 0.6rem;
+}
+
+.row {
+  padding: 0.78rem 0.85rem;
+  border-radius: 8px;
+  border-color: rgba(17, 24, 39, 0.1);
+  background: #ffffff;
+}
+
+.iconWrap {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 8px;
+}
+
+.neutral,
+.accent,
+.soft {
+  background: #ffffff;
+}
+
+.row span {
+  color: #6b7280;
+  letter-spacing: 0.05em;
+}
+
+.row p {
+  color: #667085;
+  line-height: 1.4;
+}
+
+.row strong {
+  color: #111827;
+  font-family: var(--ds-font-heading, var(--font-primary, "Segoe UI", sans-serif));
+  font-size: 1.35rem;
+}

@@ -1,4 +1,4 @@
-import type { TravelerStayInput, TravelerStayMission } from "./travelerStayCenter";
+﻿import type { TravelerStayInput, TravelerStayMission } from "./travelerStayCenter";
 
 export type TravelerStayMissionRow = {
   id: string;
@@ -54,7 +54,7 @@ function getGuestName(metadata: Record<string, unknown> | null | undefined, fall
     stringValue(metadata?.traveler_name) ??
     stringValue(metadata?.primary_guest_name) ??
     stringValue(fallback) ??
-    "Voyageur a renseigner"
+    "Voyageur à renseigner"
   );
 }
 
@@ -62,7 +62,7 @@ function missionToStayMission(mission: TravelerStayMissionRow): TravelerStayMiss
   const metadata = isRecord(mission.metadata) ? mission.metadata : {};
   return {
     id: mission.id,
-    title: mission.title || "Mission sejour",
+    title: mission.title || "Mission séjour",
     step: stringValue(metadata.reservation_step) ?? stringValue(metadata.mission_step),
     status: mission.status,
     scheduledStart: mission.scheduled_start,
@@ -85,7 +85,7 @@ export function workflowToTravelerStay(workflow: TravelerStayReservationWorkflow
     .filter((mission) => mission.priority === "urgent" || mission.metadata?.incident_open === true || mission.metadata?.issue_flag === "urgent")
     .map((mission) => ({
       id: mission.id,
-      title: mission.title || "Incident sejour",
+      title: mission.title || "Incident séjour",
       status: mission.status === "completed" ? "closed" : "open",
       priority: mission.priority,
     }));
@@ -93,7 +93,7 @@ export function workflowToTravelerStay(workflow: TravelerStayReservationWorkflow
   return {
     id: workflow.id,
     reservationId: workflow.id,
-    propertyLabel: stringValue(reservation.property_label) ?? stringValue(metadata.property_label) ?? "Logement a renseigner",
+    propertyLabel: stringValue(reservation.property_label) ?? stringValue(metadata.property_label) ?? "Logement à renseigner",
     ownerName: stringValue(metadata.owner_name),
     channel: stringValue(metadata.booking_source) ?? stringValue(metadata.channel) ?? stringValue(metadata.source),
     status: stringValue(metadata.traveler_stay_status) ?? stringValue(metadata.stay_status),
@@ -163,7 +163,7 @@ export function missionToTravelerStay(mission: TravelerStayMissionRow): Traveler
   return {
     id: stringValue(metadata.reservation_workflow_id) ?? stringValue(metadata.reservation_id) ?? mission.id,
     reservationId: stringValue(metadata.reservation_id) ?? stringValue(metadata.reservation_workflow_id),
-    propertyLabel: stringValue(metadata.property_label) ?? stringValue(metadata.housing_label) ?? "Logement a renseigner",
+    propertyLabel: stringValue(metadata.property_label) ?? stringValue(metadata.housing_label) ?? "Logement à renseigner",
     channel: stringValue(metadata.booking_source) ?? stringValue(metadata.channel),
     status: stringValue(metadata.traveler_stay_status) ?? stringValue(metadata.stay_status),
     primaryTraveler: {
@@ -197,7 +197,7 @@ export function missionToTravelerStay(mission: TravelerStayMissionRow): Traveler
     missions: [missionToStayMission(mission)],
     incidents:
       mission.priority === "urgent" || metadata.incident_open === true
-        ? [{ id: mission.id, title: mission.title || "Incident sejour", status: mission.status === "completed" ? "closed" : "open", priority: mission.priority }]
+        ? [{ id: mission.id, title: mission.title || "Incident séjour", status: mission.status === "completed" ? "closed" : "open", priority: mission.priority }]
         : [],
     messagesCount: numberValue(metadata.messages_count),
     historyCount: 1,
@@ -218,7 +218,7 @@ export function mergeDuplicateTravelerStays(stays: TravelerStayInput[]) {
       ...stay,
       missions: [...(existing.missions ?? []), ...(stay.missions ?? [])],
       incidents: [...(existing.incidents ?? []), ...(stay.incidents ?? [])],
-      primaryTraveler: existing.primaryTraveler?.displayName !== "Voyageur a renseigner" ? existing.primaryTraveler : stay.primaryTraveler,
+      primaryTraveler: existing.primaryTraveler?.displayName !== "Voyageur à renseigner" ? existing.primaryTraveler : stay.primaryTraveler,
     });
   }
   return Array.from(byId.values());
@@ -233,3 +233,5 @@ export function workflowsAndMissionsToTravelerStays(input: {
     ...(input.missions ?? []).filter(missionLooksLikeTravelerStay).map(missionToTravelerStay),
   ]);
 }
+
+

@@ -61,6 +61,16 @@ export type ConciergeHousingRow = {
   };
 };
 
+export type ConciergeOwnerProfile = {
+  id: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  username?: string | null;
+  city?: string | null;
+  role?: string | null;
+  category?: string | null;
+};
+
 export type ConciergeQuoteRow = {
   id: string;
   quote_number?: string | null;
@@ -106,6 +116,7 @@ export function useConciergeDashboardData(isAuthenticated: boolean) {
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [housings, setHousings] = useState<ConciergeHousingRow[]>([]);
   const [quotes, setQuotes] = useState<ConciergeQuoteRow[]>([]);
+  const [ownerProfiles, setOwnerProfiles] = useState<ConciergeOwnerProfile[]>([]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -263,13 +274,14 @@ export function useConciergeDashboardData(isAuthenticated: boolean) {
 
     const loadSupportData = async () => {
       try {
-        const [conversationPayload, housingPayload, quotesPayload] = await Promise.all([
+        const [conversationPayload, housingPayload, quotesPayload, ownerProfilesPayload] = await Promise.all([
           fetchJsonOrFallback<ConciergeConversationsPayload>(
             "/api/messages/conversations?role=concierge&limit=20",
             { items: [] },
           ),
           fetchJsonOrFallback<ConciergeHousingRow[]>("/api/housing", []),
           fetchJsonOrFallback<ConciergeQuoteRow[] | ConciergeQuotesPayload | null>("/api/quotes?limit=20", []),
+          fetchJsonOrFallback<ConciergeOwnerProfile[]>("/api/profiles/owners?limit=20", []),
         ]);
 
         if (!isMounted) return;
@@ -277,11 +289,13 @@ export function useConciergeDashboardData(isAuthenticated: boolean) {
         setConversations(Array.isArray(conversationPayload.items) ? conversationPayload.items : []);
         setHousings(Array.isArray(housingPayload) ? housingPayload : []);
         setQuotes(normalizeQuotesPayload(quotesPayload));
+        setOwnerProfiles(Array.isArray(ownerProfilesPayload) ? ownerProfilesPayload : []);
       } catch {
         if (!isMounted) return;
         setConversations([]);
         setHousings([]);
         setQuotes([]);
+        setOwnerProfiles([]);
       }
     };
 
@@ -311,6 +325,7 @@ export function useConciergeDashboardData(isAuthenticated: boolean) {
     conversations,
     housings,
     quotes,
+    ownerProfiles,
     averageRating,
     plannedNow,
   };
