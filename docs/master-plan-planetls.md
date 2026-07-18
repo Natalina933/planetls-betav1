@@ -147,16 +147,16 @@ Le point d'entrée peut varier par acteur, mais le produit doit converger vers u
 | Dashboard administrateur | 🟡 En cours | N3 | Overview, contrôle, utilisateurs et vues par rôle ; métriques présentes mais pilotage et actions admin à valider en conditions réelles |
 | Profils professionnels | 🟡 En cours | N3 | Profil concierge riche, owner preferences persistées ; profil artisan dédié, certifications/avis/historique complet non aboutis |
 | Recherche et matching de concierges | 🟡 En cours | N3 | Recherche, filtres, cartes publiques, alertes et sélection multi-destinataires ; qualité dépend de la densité et de champs legacy |
-| Demandes de service | 🟡 En cours | N3 | E2E demande → devis accepté → mission → facture émise validé ; checkout/paiement Stripe reste à couvrir |
+| Demandes de service | 🟡 En cours | N3 | E2E demande → devis accepté → mission → facture payée par webhook Stripe signé validé ; création de la session Checkout hébergée reste à couvrir avec une clé test |
 | Devis | 🟡 En cours | N3 | Création, documents, consultation, comparaison, acceptation/refus et lien demande présents ; parcours complet à valider |
 | Missions | 🟡 En cours | N3 | CRUD, permissions, statuts, détails riches, fichiers, événements et affectations ; plusieurs données riches sont en `metadata` |
 | Missions urgentes | 🟡 En cours | N3 | Publication/acceptation et surfaces owner/concierge présentes ; liquidité réelle et règles d'attribution à éprouver |
-| Planning | 🟡 En cours | N3 | Pages owner/concierge/provider, calendrier et statuts ; drag-and-drop, conflits, capacité et E2E manquent |
+| Planning | 🟡 En cours | N3 | Pages owner/concierge/provider, calendrier et statuts ; planification après paiement validée E2E owner/concierge ; garde anti-chevauchement actif ; charge quotidienne visible ; table équipe, RLS et API ajoutées avec repli local ; migration Supabase à appliquer avant persistance réelle, puis drag-and-drop et temps de trajet à consolider |
 | Logements | 🟡 En cours | N3 | Création, édition, photos, vues owner/concierge et collaborations ; coexistence `housing`/`properties` à normaliser |
 | Messagerie owner/concierge | 🟡 En cours | N3 | Conversations/messages et UI des deux rôles ; temps réel, notifications et parcours E2E à confirmer |
 | Messagerie provider | 🟡 En cours | N3 | API et UI présentes, synchronisation du dernier message durcie ; QA fermeture/réouverture et chaîne client-intervention incomplètes |
 | Notifications et alertes | 🟡 En cours | N2 | Centre de notifications, alertes concierge/provider et événements existent ; distribution uniforme, push et préférences manquent |
-| Factures et paiements | 🟡 En cours | N3 | Factures, documents, checkout/sync/webhook, acompte/solde modélisés ; consolidation mission/paiement et échecs visibles restent partiels |
+| Factures et paiements | 🟡 En cours | N3 | Factures, documents, checkout/sync/webhook, acompte/solde modélisés ; webhook de paiement signé validé E2E, Checkout hébergé et échecs visibles restent partiels |
 | Tarification, packs et contrats | 🟡 En cours | N3 | Pricing, segments, règles, scénarios, packs et modèles de contrat ; complexité élevée et validation métier de bout en bout à faire |
 | CRM propriétaires | 🟡 En cours | N2 | Helper et page contacts enrichie ; consolidation utile, mais persistance dédiée et timeline unifiée non finalisées |
 | Équipe et affectations | 🟡 En cours | N2 | Modèle métier, page et action d'affectation ; tables spécialisées, permissions fines et persistance complète manquent |
@@ -168,7 +168,7 @@ Le point d'entrée peut varier par acteur, mais le produit doit converger vers u
 | Mur des missions | 🔴 Non commencée | N1 | Les missions urgentes fournissent un socle, sans marketplace géolocalisée ouverte et filtrable |
 | Avis, réputation et certifications | 🟡 En cours | N2 | API reviews et champs de profil existent ; expérience complète, modération et preuves vérifiées non abouties |
 | KPI produit | 🟡 En cours | N2 | Endpoint overview et affichage admin ; activation J+7, temps de première valeur, conversion et séries fiables incomplets |
-| Tests E2E navigateur | 🟠 Partiel | N3 | 3 smoke tests et 2 flux transactionnels complets passent, dont preuve média et facture provider liée ; Stripe test et première CI restent à faire |
+| Tests E2E navigateur | 🟠 Partiel | N3 | 3 smoke tests et 2 flux transactionnels complets passent ; CI prépare tests, lint, build et E2E, première exécution distante en attente des secrets GitHub ; Checkout Stripe test reste à faire |
 | Responsive et accessibilité | 🟡 En cours | N3 | Socle, checklists et composants accessibles ; audit systématique clavier/mobile et tests automatisés manquent |
 | Design system | 🟡 En cours | N3 | Primitives, tokens, route showcase et direction Art Déco ; double strate UI, snapshot portable et tests au vert |
 | SEO et acquisition publique | 🟡 En cours | N2 | Pages publiques et profils publics présents ; metadata, Open Graph, JSON-LD, pages locales et mesure acquisition restent à faire |
@@ -484,10 +484,10 @@ Dates : `—` signifie non planifié. Le responsable est un rôle, à remplacer 
 | Fonctionnalité / action | Statut | Priorité | Date cible | Responsable | Commentaires / preuve attendue |
 |---|---|---|---|---|---|
 | Baseline tests/lint/build/snapshot | ✅ | P0 Critique | 2026-07-18 | Tech lead | 158/158 tests, lint et build Next.js de 164 pages au vert |
-| E2E owner complet | 🟠 | P0 Critique | Court terme | QA + Produit | Demande → devis → mission → facture émise PASS ; configurer Stripe test et valider le paiement |
-| E2E concierge complet | 🟠 | P0 Critique | Court terme | QA + Produit | Réception → devis envoyé → mission → facture émise PASS ; vérifier planification |
+| E2E owner complet | 🟠 | P0 Critique | Court terme | QA + Produit | Demande → devis → mission → facture payée par webhook signé PASS ; configurer une clé Stripe test pour valider Checkout |
+| E2E concierge complet | 🟠 | P0 Critique | Court terme | QA + Produit | Réception → devis envoyé → mission → facture payée → créneau planifié et relu owner PASS ; Checkout hébergé reste à valider |
 | E2E provider complet | ✅ | P0 Critique | 2026-07-18 | QA + Provider | Mission → intervention → preuve média privée → facture liée PASS ; prochaine évolution : paiement Stripe test |
-| Source canonique migrations | 🟡 | Critique | Court terme | Backend | Inventaire prod et décision tracée |
+| Source canonique migrations | 🟠 | Critique | Court terme | Backend | supabase/migrations canonique ; 20 fichiers historiques figés dans database/migrations ; contrôle CI ajouté ; inventaire distant bloqué sans token |
 | Types Supabase régénérés | 🟡 | Critique | Court terme | Backend | Tables actives entièrement typées |
 | Persistance maintenance | 🟡 | Critique | Court terme | Backend + Concierge | Tables/RLS/API/UI/tests |
 | Persistance équipe/affectations | 🟡 | Critique | Court terme | Backend + Concierge | Permissions fines incluses |
@@ -561,6 +561,15 @@ Une ligne ne passe à `✅` que si :
 | 2026-07-18 | Architecture | Réutiliser le moteur de facturation pour les providers | Éviter un second système tout en empêchant la facturation de missions arbitraires | Route intervention-scopée, contrôle d'appartenance/statut, création idempotente et filtre `providerInterventionId` | Tech |
 | 2026-07-18 | Architecture | Corriger la route mission/provider pour le schéma connecté | UUID valides rejetés et lecture dépendante de `missions.title` | Validateur UUID restauré, résolution par chemin et normalisation `title`/`service_label` | Tech |
 | 2026-07-18 | Architecture | Ouvrir les preuves média aux artisans affectés uniquement | Permettre la restitution terrain sans exposer les fichiers des autres missions | Bucket privé existant réutilisé, contrôle par `provider_interventions.metadata.mission_id`, SHA-256 et URL signée ; E2E 1/1 PASS | Tech/QA |
+| 2026-07-18 | Paiement | Valider la synchronisation Stripe sans transaction réelle | Fermer le risque webhook avant disponibilité des clés test | Signature HMAC avec fenêtre anti-rejeu de 5 minutes ; facture réelle passée à `paid` par webhook E2E signé, 1/1 PASS | Tech/QA |
+| 2026-07-18 | CI | Étendre le workflow critique à toute la quality gate | Empêcher un E2E vert de masquer une régression unitaire, lint ou build | Vérification des secrets, `npm test`, lint, build puis Playwright ; timeout porté à 30 minutes et `.env.example` ajouté sans valeur sensible | Tech/QA |
+| 2026-07-18 | QA | Valider la planification après paiement | Prouver que le garde paiement et le calendrier partagent un état persistant multi-rôles | Concierge planifie une mission payée, statut et créneau relus owner ; E2E 1/1 PASS en 3,3 min | QA/Tech |
+| 2026-07-18 | Planning | Bloquer les chevauchements attribuables | Éviter la double réservation d’un logement ou d’un membre sans bloquer les ressources distinctes | Validation des dates, détection d’intersection stricte, réponse 409 avec conflits ; tests unitaires et E2E de non-régression verts | Tech/QA |
+| 2026-07-18 | Planning | Exposer la capacité quotidienne de l’équipe | Donner un signal de surcharge sans inventer des horaires contractuels absents du modèle | Durée planifiée du jour, plafond configurable, taux de charge, état occupé et compteur de surcharges dans l’espace Équipe ; test dédié vert | Produit/Tech |
+| 2026-07-18 | Architecture | Préparer la persistance de l’équipe concierge | Remplacer progressivement les membres locaux sans casser la base connectée actuelle | Migration concierge_team_members avec RLS, API GET/POST et UI branchée avec fallback ; smoke 3/3 PASS, migration distante non appliquée | Tech/DBA |
+| 2026-07-18 | Architecture | Sécuriser le cycle de vie des membres d’équipe | Éviter les modifications transverses et conserver l’historique d’affectation | API membre PATCH/DELETE scoping propriétaire/admin, validation métier et désactivation logique ; contrat 2/2 PASS | Tech/QA |
+| 2026-07-18 | Produit | Brancher la gestion persistante d’équipe dans le cockpit concierge | Remplacer les membres de démonstration dès que le schéma est disponible sans masquer une équipe réellement vide | Formulaire de création, disponibilité et désactivation connectés aux API ; fallback migration explicite ; contrat 3/3 PASS | Produit/Tech |
+| 2026-07-18 | Architecture | Canoniser les nouvelles migrations Supabase | Empêcher la dette des deux dossiers de continuer sans déplacer à l’aveugle 20 migrations historiques | supabase/migrations devient canonique, archive legacy figée par check:migrations, contrôle ajouté à la CI ; inventaire distant en attente du token Supabase | Tech/DBA |
 
 ---
 
@@ -615,10 +624,11 @@ Ce tableau est le registre de maintenance courant. La photographie détaillée d
 | Domaine | Fonctionnalité | Profil concerné | Statut | Priorité | Dernière évolution | Preuves dans le code | Prochaine action |
 |---|---|---|---|---|---|---|---|
 | Qualité | Baseline tests, lint, build et snapshot | Tous | ✅ Terminé | P0 Critique | 2026-07-18 | 158/158 tests, ESLint, build Next.js 164 pages, snapshot UI portable | Maintenir la baseline |
-| Qualité | Smoke E2E des espaces critiques | Owner, concierge, provider | ✅ Terminé | P0 Critique | 2026-07-18 | Playwright Chromium : 3/3 PASS, auth Supabase, pages et APIs réelles | Configurer les secrets GitHub puis automatiser les mutations métier complètes |
-| Qualité | E2E transactionnel commercial | Owner, concierge | 🟠 Partiel | P0 Critique | 2026-07-18 | Playwright : demande, devis accepté, mission et facture émise, 1/1 PASS | Configurer Stripe test et valider le paiement |
+| Qualité | Smoke E2E des espaces critiques | Owner, concierge, provider | ✅ Terminé | P0 Critique | 2026-07-18 | Playwright Chromium : 3/3 PASS ; workflow GitHub contrôle secrets, tests, lint, build puis tous les E2E | Configurer les secrets GitHub et lancer la première exécution distante |
+| Qualité | E2E transactionnel commercial | Owner, concierge | 🟠 Partiel | P0 Critique | 2026-07-18 | Playwright : demande, devis accepté, mission, facture payée, créneau planifié et relu owner, 1/1 PASS | Configurer une clé Stripe test et valider la session Checkout hébergée |
 | Qualité | E2E transactionnel provider | Concierge, provider | ✅ Terminé | P0 Critique | 2026-07-18 | Mission, intervention, preuve média privée, clôture et facture liée de 90 €, 1/1 PASS | Configurer Stripe test et valider le paiement |
 | Outils métier | Assistant décoration | Concierge, propriétaire | 🟠 Partiel | P2 Important | 2026-07-18 | page `/dashboard/concierge/decoration-ai`, API dédiée, `decorationAssistant.ts`, migration `decoration_ai_reports`, tests | Valider l'usage terrain, tracer l'envoi owner et brancher une génération d'image réelle |
+| Équipe | Cycle de vie des membres concierge | Concierge, admin | 🟠 Partiel | P0 Critique | 2026-07-18 | Migration/RLS, API GET/POST/PATCH/DELETE, UI création/disponibilité/désactivation, fallback explicite, contrat 3/3 PASS | Appliquer la migration distante puis valider le CRUD E2E sur données persistées |
 | Pilotage | Maintenance automatique du Master Plan | Équipe projet | ✅ Terminé | P0 Critique | 2026-07-18 | `AGENTS.md`, présente section | Appliquer la checklist à chaque mission importante |
 
 ### Roadmap par phases permanentes

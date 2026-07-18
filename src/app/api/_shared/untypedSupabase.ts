@@ -25,6 +25,7 @@ export type LooseSupabaseQuery<T = LooseSupabaseData> = PromiseLike<LooseSupabas
   delete: (options?: Record<string, unknown>) => LooseSupabaseQuery<T>;
   eq: (column: string, value: unknown) => LooseSupabaseQuery<T>;
   neq: (column: string, value: unknown) => LooseSupabaseQuery<T>;
+  not: (column: string, operator: string, value: unknown) => LooseSupabaseQuery<T>;
   gt: (column: string, value: unknown) => LooseSupabaseQuery<T>;
   gte: (column: string, value: unknown) => LooseSupabaseQuery<T>;
   lt: (column: string, value: unknown) => LooseSupabaseQuery<T>;

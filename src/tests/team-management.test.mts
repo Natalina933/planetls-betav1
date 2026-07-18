@@ -7,7 +7,7 @@ test("buildTeamManagementDashboard computes roles, availability, performance and
   const dashboard = buildTeamManagementDashboard({
     members: [
       { id: "manager-1", name: "Manager", role: "manager" },
-      { id: "employee-1", name: "Employe", role: "employee" },
+      { id: "employee-1", name: "Employe", role: "employee", dailyCapacityMinutes: 120 },
       { id: "provider-1", name: "Prestataire", role: "provider", availability: "offline" },
     ],
     missions: [
@@ -23,6 +23,8 @@ test("buildTeamManagementDashboard computes roles, availability, performance and
         title: "Check-in urgent",
         status: "in_progress",
         priority: "urgent",
+        scheduled_start: "2026-07-18T08:00:00Z",
+        scheduled_end: "2026-07-18T10:00:00Z",
         metadata: { assigned_team_member_id: "employee-1" },
       },
       {
@@ -33,6 +35,7 @@ test("buildTeamManagementDashboard computes roles, availability, performance and
         metadata: { assigned_team_member_id: "provider-1" },
       },
     ],
+    referenceDate: new Date("2026-07-18T12:00:00Z"),
   });
 
   const employee = dashboard.members.find((member) => member.id === "employee-1");
@@ -45,6 +48,10 @@ test("buildTeamManagementDashboard computes roles, availability, performance and
   assert.equal(employee?.assignedMissionCount, 1);
   assert.equal(employee?.completedMissionCount, 1);
   assert.equal(employee?.notificationCount, 1);
+  assert.equal(employee?.scheduledMinutesToday, 120);
+  assert.equal(employee?.capacityUsagePercent, 100);
+  assert.equal(employee?.availability, "busy");
+  assert.equal(dashboard.metrics.overloaded, 1);
   assert.equal(provider?.availability, "offline");
   assert.ok(employee?.permissions.includes("missions.execute"));
   assert.equal(dashboard.planning.length, 3);

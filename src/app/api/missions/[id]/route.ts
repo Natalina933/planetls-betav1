@@ -17,6 +17,10 @@ import {
   type MissionStatus,
 } from "@/app/lib/missionStatus";
 import { canPlanMissionWithPayment, computePaymentPlanAmounts } from "@/app/lib/paymentWorkflow";
+import {
+  findMissionScheduleConflicts,
+  validateMissionScheduleRange,
+} from "@/app/lib/missionScheduleConflicts";
 import { requireApiRole } from "@/server/auth/roleGuards";
 import type { Json } from "@/types/supabase";
 
@@ -70,6 +74,10 @@ function toRecord(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function isMissingTitleColumn(error: { code?: string; message?: string; details?: string } | null | undefined) {
+  const message = `${error?.message ?? ""} ${error?.details ?? ""}`.toLowerCase();
+  return error?.code === "42703" || error?.code === "PGRST204" || (message.includes("title") && message.includes("column"));
+}
 function canAccessMission(mission: MissionRow, userId: string, role: string) {
   return canAccessMissionForRole({
     role,
@@ -204,13 +212,8 @@ function attachQuoteWorkflow<T extends { status?: string | null }>(quote: T) {
 
 async function loadMission(id: string) {
   const result = await dbAny.from("missions").select(missionSelect).eq("id", id).single<MissionRow>();
-  const message = `${result.error?.message ?? ""} ${result.error?.details ?? ""}`.toLowerCase();
-  const missingTitleColumn =
-    result.error?.code === "42703" ||
-    result.error?.code === "PGRST204" ||
-    (message.includes("title") && message.includes("column"));
+  if (!isMissingTitleColumn(result.error)) {
 
-  if (!missingTitleColumn) {
     return { mission: result.data, error: result.error };
   }
 
@@ -719,6 +722,55 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (requestedFields.length > 0 && !canUpdateMissionFields(role, requestedFields)) {
       return NextResponse.json({ error: "Modification non autorisee pour votre role" }, { status: 403 });
     }
+    const plannedStart = typeof fieldPatch.scheduled_start === "string"
+      ? fieldPatch.scheduled_start
+      : mission.scheduled_start;
+    const plannedEnd = typeof fieldPatch.scheduled_end === "string"
+      ? fieldPatch.scheduled_end
+      : mission.scheduled_end;
+    const checksPlanning =
+      requestedStatus === "scheduled" ||
+      requestedStatus === "date_confirmed" ||
+      requestedFields.includes("scheduled_start") ||
+      requestedFields.includes("scheduled_end");
+    if (checksPlanning && plannedStart && plannedEnd) {
+      const range = validateMissionScheduleRange(plannedStart, plannedEnd);
+      if (!range.valid) return NextResponse.json({ error: range.error }, { status: 400 });
+
+      const { data: overlapping, error: overlapError } = await dbAny
+        .from("missions")
+        .select("id, property_id, scheduled_start, scheduled_end, metadata")
+        .eq("concierge_profile_id", mission.concierge_profile_id)
+        .neq("id", mission.id)
+        .not("status", "in", "(canceled,closed)")
+        .lt("scheduled_start", plannedEnd)
+        .gt("scheduled_end", plannedStart);
+      if (overlapError) {
+        console.error("[PATCH /api/missions/[id]] conflict lookup error:", overlapError);
+        return NextResponse.json({ error: "Vérification du planning impossible." }, { status: 500 });
+      }
+
+      const missionMetadata = toRecord(mission.metadata);
+      const conflicts = findMissionScheduleConflicts(
+        {
+          id: mission.id,
+          propertyId: mission.property_id,
+          assignedTeamMemberId:
+            typeof missionMetadata.assigned_team_member_id === "string"
+              ? missionMetadata.assigned_team_member_id
+              : null,
+          scheduledStart: plannedStart,
+          scheduledEnd: plannedEnd,
+        },
+        overlapping ?? [],
+      );
+      if (conflicts.length > 0) {
+        return NextResponse.json(
+          { error: "Ce créneau chevauche une mission existante.", conflicts },
+          { status: 409 },
+        );
+      }
+    }
     if (requestedFields.length > 0) {
       eventPayload.updated_fields = requestedFields;
       if (action === "update") {
@@ -842,6 +894,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       .eq("id", mission.id)
       .select(missionSelect)
       .single<MissionRow>();
+
+    if (isMissingTitleColumn(updateError)) {
+      const fallbackResult = await dbAny
+        .from("missions")
+        .update(patch)
+        .eq("id", mission.id)
+        .select(missionSelectFallback)
+        .single<MissionRow>();
+      updatedMission = fallbackResult.data;
+      updateError = fallbackResult.error;
+    }
 
     if (updateError?.code === "23514" && patch.status === "validated") {
       const fallbackPatch = {

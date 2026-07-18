@@ -1,15 +1,9 @@
 import { normalizeMissionStatus } from "./missionStatus.ts";
 
 export type TeamRole = "manager" | "lead" | "employee" | "collaborator" | "provider";
-
 export type TeamPermission =
-  | "missions.assign"
-  | "missions.execute"
-  | "missions.validate"
-  | "planning.manage"
-  | "finance.view"
-  | "clients.message"
-  | "team.manage";
+  | "missions.assign" | "missions.execute" | "missions.validate" | "planning.manage"
+  | "finance.view" | "clients.message" | "team.manage";
 
 export type TeamMemberInput = {
   id: string;
@@ -19,6 +13,7 @@ export type TeamMemberInput = {
   availability?: "available" | "busy" | "offline" | null;
   skills?: string[];
   permissions?: TeamPermission[];
+  dailyCapacityMinutes?: number;
 };
 
 export type TeamMissionInput = {
@@ -40,6 +35,9 @@ export type TeamMember = TeamMemberInput & {
   completedMissionCount: number;
   performanceScore: number;
   notificationCount: number;
+  dailyCapacityMinutes: number;
+  scheduledMinutesToday: number;
+  capacityUsagePercent: number;
 };
 
 export type TeamManagementDashboard = {
@@ -52,6 +50,7 @@ export type TeamManagementDashboard = {
     assignedMissions: number;
     notifications: number;
     averagePerformance: number;
+    overloaded: number;
   };
   roleMatrix: Array<{ role: TeamRole; permissions: TeamPermission[] }>;
   planning: Array<{ memberId: string; memberName: string; label: string; start: string | null; status: string }>;
@@ -77,6 +76,20 @@ function getAssignedTeamMemberId(mission: TeamMissionInput) {
   return typeof metadata.assigned_team_member_id === "string" ? metadata.assigned_team_member_id : null;
 }
 
+function missionDurationMinutes(mission: TeamMissionInput) {
+  if (!mission.scheduled_start) return 0;
+  const start = Date.parse(mission.scheduled_start);
+  const end = mission.scheduled_end ? Date.parse(mission.scheduled_end) : start + 60 * 60 * 1000;
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return 0;
+  return Math.min(Math.round((end - start) / 60_000), 24 * 60);
+}
+
+function isScheduledOnDay(mission: TeamMissionInput, day: string) {
+  if (!mission.scheduled_start) return false;
+  const timestamp = Date.parse(mission.scheduled_start);
+  return Number.isFinite(timestamp) && new Date(timestamp).toISOString().slice(0, 10) === day;
+}
+
 function isActiveMission(status: string | null | undefined) {
   const normalized = normalizeMissionStatus(status);
   return !["completed", "validated", "closed", "canceled"].includes(normalized);
@@ -85,7 +98,9 @@ function isActiveMission(status: string | null | undefined) {
 export function buildTeamManagementDashboard(input: {
   members: TeamMemberInput[];
   missions: TeamMissionInput[];
+  referenceDate?: Date;
 }): TeamManagementDashboard {
+  const referenceDay = (input.referenceDate ?? new Date()).toISOString().slice(0, 10);
   const members = input.members.map((member) => {
     const role = normalizeRole(member.role);
     const assignedMissions = input.missions.filter((mission) => getAssignedTeamMemberId(mission) === member.id);
@@ -95,10 +110,17 @@ export function buildTeamManagementDashboard(input: {
     ).length;
     const performanceScore = assignedMissions.length > 0
       ? Math.round((completedMissionCount / assignedMissions.length) * 100)
-      : role === "manager"
-        ? 85
-        : 70;
-    const availability = member.availability ?? (activeAssigned.length >= 3 ? "busy" : "available");
+      : role === "manager" ? 85 : 70;
+    const dailyCapacityMinutes = Math.max(60, Math.min(member.dailyCapacityMinutes ?? 480, 24 * 60));
+    const scheduledMinutesToday = activeAssigned
+      .filter((mission) => isScheduledOnDay(mission, referenceDay))
+      .reduce((sum, mission) => sum + missionDurationMinutes(mission), 0);
+    const capacityUsagePercent = Math.round((scheduledMinutesToday / dailyCapacityMinutes) * 100);
+    const availability: TeamMember["availability"] = member.availability === "offline"
+      ? "offline"
+      : capacityUsagePercent >= 100 || activeAssigned.length >= 3
+        ? "busy"
+        : member.availability ?? "available";
     const notificationCount = activeAssigned.filter((mission) => mission.priority === "urgent" || mission.priority === "high").length;
 
     return {
@@ -110,12 +132,12 @@ export function buildTeamManagementDashboard(input: {
       completedMissionCount,
       performanceScore,
       notificationCount,
+      dailyCapacityMinutes,
+      scheduledMinutesToday,
+      capacityUsagePercent,
     };
   });
-  const assignableMissions = input.missions.map((mission) => ({
-    ...mission,
-    assigned_team_member_id: getAssignedTeamMemberId(mission),
-  }));
+  const assignableMissions = input.missions.map((mission) => ({ ...mission, assigned_team_member_id: getAssignedTeamMemberId(mission) }));
   const assignedMissions = assignableMissions.filter((mission) => mission.assigned_team_member_id).length;
   const notifications = members.reduce((sum, member) => sum + member.notificationCount, 0);
 
@@ -129,6 +151,7 @@ export function buildTeamManagementDashboard(input: {
       assignedMissions,
       notifications,
       averagePerformance: members.length > 0 ? Math.round(members.reduce((sum, member) => sum + member.performanceScore, 0) / members.length) : 0,
+      overloaded: members.filter((member) => member.capacityUsagePercent >= 100).length,
     },
     roleMatrix: Object.entries(DEFAULT_PERMISSIONS).map(([role, permissions]) => ({ role: role as TeamRole, permissions })),
     planning: assignableMissions

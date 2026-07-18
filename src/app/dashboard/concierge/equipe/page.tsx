@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -22,6 +22,8 @@ type ProfilePayload = {
   company_name?: string | null;
   role?: string | null;
 };
+
+type TeamPayload = { items?: TeamMemberInput[]; schema_ready?: boolean; error?: string };
 
 function profileName(profile: ProfilePayload | null) {
   if (!profile) return "Responsable equipe";
@@ -57,6 +59,7 @@ function buildDefaultMembers(profile: ProfilePayload | null): TeamMemberInput[] 
       title: "Responsable conciergerie",
       availability: "available",
       skills: ["Pilotage", "Clients", "Validation"],
+      dailyCapacityMinutes: 480,
     },
     {
       id: "employee-cleaning-lead",
@@ -65,6 +68,7 @@ function buildDefaultMembers(profile: ProfilePayload | null): TeamMemberInput[] 
       title: "Employe terrain",
       availability: "available",
       skills: ["Menage", "Controle", "Photos"],
+      dailyCapacityMinutes: 420,
     },
     {
       id: "collaborator-checkin",
@@ -73,6 +77,7 @@ function buildDefaultMembers(profile: ProfilePayload | null): TeamMemberInput[] 
       title: "Check-in et voyageurs",
       availability: "available",
       skills: ["Accueil", "Cles", "Messages"],
+      dailyCapacityMinutes: 360,
     },
     {
       id: "provider-maintenance",
@@ -81,6 +86,7 @@ function buildDefaultMembers(profile: ProfilePayload | null): TeamMemberInput[] 
       title: "Interventions techniques",
       availability: "offline",
       skills: ["Maintenance", "Urgences"],
+      dailyCapacityMinutes: 480,
     },
   ];
 }
@@ -88,6 +94,11 @@ function buildDefaultMembers(profile: ProfilePayload | null): TeamMemberInput[] 
 export default function EquipePage() {
   const [profile, setProfile] = useState<ProfilePayload | null>(null);
   const [missions, setMissions] = useState<TeamMissionInput[]>([]);
+  const [persistedMembers, setPersistedMembers] = useState<TeamMemberInput[]>([]);
+  const [schemaReady, setSchemaReady] = useState(false);
+  const [newMemberName, setNewMemberName] = useState("");
+  const [newMemberRole, setNewMemberRole] = useState("employee");
+  const [savingMemberId, setSavingMemberId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [savingMissionId, setSavingMissionId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -97,16 +108,21 @@ export default function EquipePage() {
     try {
       setLoading(true);
       setError(null);
-      const [profileResponse, missionsResponse] = await Promise.all([
+      const [profileResponse, missionsResponse, teamResponse] = await Promise.all([
         fetch("/api/profiles/current", { cache: "no-store" }),
         fetch("/api/missions?scope=concierge&limit=80", { cache: "no-store" }),
+        fetch("/api/concierge/team", { cache: "no-store" }),
       ]);
       const profilePayload = await profileResponse.json();
       const missionsPayload = await missionsResponse.json();
+      const teamPayload = await teamResponse.json() as TeamPayload;
       if (!profileResponse.ok) throw new Error(profilePayload?.error || "Impossible de charger le profil.");
       if (!missionsResponse.ok) throw new Error(missionsPayload?.error || "Impossible de charger les missions.");
+      if (!teamResponse.ok) throw new Error(teamPayload.error || "Impossible de charger equipe.");
       setProfile(profilePayload);
       setMissions(Array.isArray(missionsPayload) ? missionsPayload : []);
+      setPersistedMembers(Array.isArray(teamPayload.items) ? teamPayload.items : []);
+      setSchemaReady(teamPayload.schema_ready === true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Chargement equipe impossible.");
     } finally {
@@ -118,7 +134,10 @@ export default function EquipePage() {
     void loadData();
   }, []);
 
-  const members = useMemo(() => buildDefaultMembers(profile), [profile]);
+  const members = useMemo(
+    () => schemaReady ? persistedMembers : buildDefaultMembers(profile),
+    [persistedMembers, profile, schemaReady],
+  );
   const dashboard = useMemo(() => buildTeamManagementDashboard({ members, missions }), [members, missions]);
 
   async function assignMission(missionId: string, teamMemberId: string) {
@@ -148,6 +167,64 @@ export default function EquipePage() {
     }
   }
 
+  async function createMember(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    try {
+      setSavingMemberId("new");
+      setError(null);
+      const response = await fetch("/api/concierge/team", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newMemberName, role: newMemberRole }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || "Creation impossible.");
+      setNewMemberName("");
+      setMessage(`${payload.name} a ete ajoute a l'equipe.`);
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Creation impossible.");
+    } finally {
+      setSavingMemberId(null);
+    }
+  }
+
+  async function updateMember(memberId: string, availability: string) {
+    try {
+      setSavingMemberId(memberId);
+      setError(null);
+      const response = await fetch(`/api/concierge/team/${memberId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ availability }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || "Modification impossible.");
+      setMessage("Disponibilite mise a jour.");
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Modification impossible.");
+    } finally {
+      setSavingMemberId(null);
+    }
+  }
+
+  async function deactivateMember(memberId: string, memberName: string) {
+    if (!window.confirm(`Desactiver ${memberName} de l'equipe ?`)) return;
+    try {
+      setSavingMemberId(memberId);
+      setError(null);
+      const response = await fetch(`/api/concierge/team/${memberId}`, { method: "DELETE" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || "Desactivation impossible.");
+      setMessage(`${memberName} a ete desactive.`);
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Desactivation impossible.");
+    } finally {
+      setSavingMemberId(null);
+    }
+  }
   return (
     <main className={styles.page}>
       <section className={styles.panel}>
@@ -172,7 +249,7 @@ export default function EquipePage() {
           <article><span>Employes</span><strong>{dashboard.metrics.employees}</strong></article>
           <article><span>Collaborateurs</span><strong>{dashboard.metrics.collaborators}</strong></article>
           <article><span>Disponibles</span><strong>{dashboard.metrics.available}</strong></article>
-          <article><span>Notifications</span><strong>{dashboard.metrics.notifications}</strong></article>
+          <article><span>Surcharges</span><strong>{dashboard.metrics.overloaded}</strong></article>
         </div>
       </section>
 
@@ -201,13 +278,51 @@ export default function EquipePage() {
                 <div><span>Terminees</span><strong>{member.completedMissionCount}</strong></div>
                 <div><span>Performance</span><strong>{member.performanceScore}%</strong></div>
                 <div><span>Alertes</span><strong>{member.notificationCount}</strong></div>
+                <div><span>Charge du jour</span><strong>{member.capacityUsagePercent}%</strong></div>
               </div>
               <div className={styles.permissionList}>
                 {member.permissions.slice(0, 5).map((permission) => <span key={permission}>{permission}</span>)}
               </div>
+              {schemaReady ? (
+                <div className={styles.memberActions}>
+                  <select
+                    aria-label={`Disponibilite de ${member.name}`}
+                    value={member.availability}
+                    disabled={savingMemberId === member.id}
+                    onChange={(event) => void updateMember(member.id, event.target.value)}
+                  >
+                    <option value="available">Disponible</option>
+                    <option value="busy">Occupe</option>
+                    <option value="offline">Hors ligne</option>
+                  </select>
+                  <button type="button" disabled={savingMemberId === member.id} onClick={() => void deactivateMember(member.id, member.name)}>
+                    Desactiver
+                  </button>
+                </div>
+              ) : null}
             </article>
           ))}
+          {schemaReady && dashboard.members.length === 0 ? <p className={styles.message}>Ajoutez le premier membre de votre equipe.</p> : null}
         </div>
+        {schemaReady ? (
+          <form className={styles.memberForm} onSubmit={(event) => void createMember(event)}>
+            <label>
+              Nom du membre
+              <input value={newMemberName} minLength={2} maxLength={120} required onChange={(event) => setNewMemberName(event.target.value)} />
+            </label>
+            <label>
+              Role
+              <select value={newMemberRole} onChange={(event) => setNewMemberRole(event.target.value)}>
+                <option value="manager">Manager</option>
+                <option value="lead">Lead terrain</option>
+                <option value="employee">Employe</option>
+                <option value="collaborator">Collaborateur</option>
+                <option value="provider">Prestataire</option>
+              </select>
+            </label>
+            <button type="submit" disabled={savingMemberId === "new"}>{savingMemberId === "new" ? "Ajout..." : "Ajouter a l'equipe"}</button>
+          </form>
+        ) : <p className={styles.message}>Mode demonstration : appliquez la migration Supabase equipe pour activer la gestion persistante.</p>}
       </section>
 
       <div className={styles.sectionGrid}>

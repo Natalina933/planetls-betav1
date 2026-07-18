@@ -20,6 +20,11 @@ test.describe("parcours critiques par espace", () => {
     await expect(page).toHaveURL(/\/dashboard\/concierge\/demandes/);
     await expectApiAvailable(page, "/api/service-requests?view=concierge&limit=5");
 
+    await page.goto("/dashboard/concierge/equipe");
+    await expect(page).toHaveURL(/\/dashboard\/concierge\/equipe/);
+    await expect(page.getByRole("heading", { name: /Employes, collaborateurs/i })).toBeVisible();
+    await expectApiAvailable(page, "/api/concierge/team");
+
     await page.goto("/dashboard/concierge/decoration-ai");
     await expect(page).toHaveURL(/\/dashboard\/concierge\/decoration-ai/);
     await expectApiAvailable(page, "/api/concierge/decoration-assistant?limit=2");

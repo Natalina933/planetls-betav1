@@ -42,7 +42,12 @@ GOOGLE_CLIENT_SECRET=... # optionnel
 
 STRIPE_SECRET_KEY=... # si billing actif
 STRIPE_WEBHOOK_SECRET=... # si webhook actif
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=... # cle publique Stripe
 ```
+
+Copier `.env.example` vers `.env.local`, puis renseigner uniquement des clés Stripe de test
+(`sk_test_`, `pk_test_`, `whsec_`) pour valider Checkout. Ne jamais utiliser une clé
+`sk_live_` dans les tests locaux ou E2E.
 
 ## Commandes
 
@@ -72,6 +77,8 @@ npm run start    # lancer build en local
 
 ## Donnees et migrations
 
+- `supabase/migrations` est la source canonique de toute nouvelle migration ; `database/migrations` est une archive historique gelee.
+- Executer `npm run check:migrations` pour verifier cette gouvernance avant integration.
 - Les endpoints provider/concierge supposent les tables SQL en place.
 - Si une table provider est absente, les APIs renvoient une erreur explicite indiquant d'appliquer les migrations.
 - Generer/mettre a jour les types Supabase avant gros changements de schema.

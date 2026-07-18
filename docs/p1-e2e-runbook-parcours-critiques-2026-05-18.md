@@ -147,3 +147,23 @@ Pour chaque scénario, consigner:
 - Correctifs complémentaires : validation UUID réparée sur les routes de fichiers et sélection de mission rendue compatible avec le schéma connecté sans colonne `title`.
 - Résultat enrichi : `1 passed` en 3,2 minutes avec la preuve média réelle.
 - Suite : configurer Stripe test et ajouter ce scénario à la première exécution CI distante.
+
+### Validation webhook de paiement du 18/07/2026
+
+- Scénario enrichi : demande → devis → mission → facture émise → webhook `checkout.session.completed` signé → facture `paid` relue par le propriétaire.
+- Sécurité : signature HMAC vérifiée sur le corps brut et rejet des signatures altérées ou âgées de plus de cinq minutes.
+- Résultat : `1 passed` en 3,9 minutes sur Supabase réel (`e2e/owner-concierge-service-request.spec.ts`).
+- Frontière restante : la création et l'ouverture de la session Checkout Stripe hébergée nécessitent encore une `STRIPE_SECRET_KEY` de test.
+### Validation planification après paiement du 18/07/2026
+
+- Scénario enrichi : facture `paid` → créneau défini par la concierge → mission `scheduled` → relecture du même instant par le propriétaire.
+- Compatibilité : repli `missions.title` vers `service_label` appliqué aussi aux mises à jour de mission sur le schéma connecté.
+- Résultat : `1 passed` en 3,3 minutes sur Supabase réel.
+- Frontières restantes : Checkout Stripe hébergé, gestion des conflits de créneaux et capacité opérationnelle.
+
+### Garde anti-chevauchement du 18/07/2026
+
+- Une planification est refusée avec 409 lorsqu'elle chevauche une mission active du même logement ou du même membre d'équipe.
+- Deux ressources différentes et les créneaux uniquement adjacents restent autorisés.
+- Les dates invalides ou inversées sont refusées avant écriture.
+- Tests dédiés : 2/2 PASS ; parcours commercial de non-régression : 1 passed en 3,6 minutes.

@@ -190,6 +190,49 @@
   opacity: 0.55;
 }
 
+.memberActions,
+.memberForm {
+  display: flex;
+  align-items: end;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.memberForm label {
+  display: grid;
+  gap: 0.3rem;
+  color: #315c56;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.memberActions select,
+.memberActions button,
+.memberForm input,
+.memberForm select,
+.memberForm button {
+  min-height: 2.35rem;
+  border: 1px solid rgba(32, 25, 18, 0.14);
+  border-radius: 8px;
+  background: #fff;
+  color: #1f2a24;
+  padding: 0.45rem 0.6rem;
+  font: inherit;
+}
+
+.memberActions button,
+.memberForm button {
+  background: #0f766e;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 850;
+}
+
+.memberActions button:disabled,
+.memberForm button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
 .message {
   margin: 0;
   border-radius: 8px;

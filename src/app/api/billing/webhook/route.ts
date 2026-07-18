@@ -1,35 +1,11 @@
-import crypto from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { recordStripeEvent } from "@/app/lib/stripeHistory";
 import {
   extractCheckoutSessionSyncData,
   extractSubscriptionLifecycleData,
+  verifyStripeWebhookSignature,
 } from "@/app/api/billing/shared";
-
-function verifyStripeWebhookSignature(payload: string, signatureHeader: string, secret: string) {
-  const parts = signatureHeader.split(",").map((part) => part.trim());
-  const timestamp = parts.find((part) => part.startsWith("t="))?.slice(2);
-  const signatures = parts
-    .filter((part) => part.startsWith("v1="))
-    .map((part) => part.slice(3))
-    .filter(Boolean);
-
-  if (!timestamp || signatures.length === 0) {
-    return false;
-  }
-
-  const signedPayload = `${timestamp}.${payload}`;
-  const expected = crypto.createHmac("sha256", secret).update(signedPayload, "utf8").digest("hex");
-
-  return signatures.some((signature) => {
-    try {
-      return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
-    } catch {
-      return false;
-    }
-  });
-}
 
 async function markConciergeProFromWebhook(session: Record<string, unknown>) {
   const { userId, plan, sessionId, paymentStatus } = extractCheckoutSessionSyncData(session);

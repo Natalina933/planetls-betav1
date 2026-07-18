@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import { loginWorkspace } from "./helpers/workspace";
 
@@ -33,6 +34,12 @@ type InvoicePayload = {
   status?: string;
 };
 
+type MissionPayload = {
+  id?: string;
+  status?: string;
+  scheduled_start?: string | null;
+  scheduled_end?: string | null;
+};
 type ServiceRequestListItem = {
   id?: string;
   title?: string;
@@ -68,6 +75,7 @@ test("propriétaire → demande → devis accepté → mission et facture émise
   const ownerContext = await browser.newContext();
   const ownerPage = await ownerContext.newPage();
   await loginWorkspace(ownerPage, request, "owner");
+  const ownerProfileId = await profileId(ownerPage);
 
   const marker = `[E2E] Demande propriétaire-concierge ${Date.now()}`;
   const createResponse = await ownerPage.request.post("/api/service-requests", {
@@ -193,6 +201,71 @@ test("propriétaire → demande → devis accepté → mission et facture émise
   const checkoutBody = await checkoutResponse.text();
   expect(checkoutResponse.status(), checkoutBody).toBe(503);
   expect(checkoutBody).toContain("Stripe n'est pas encore configure");
+
+  const webhookSecret = "whsec_planetls_e2e_only";
+  const webhookTimestamp = Math.floor(Date.now() / 1000);
+  const stripeSessionId = `cs_test_planetls_${Date.now()}`;
+  const webhookPayload = JSON.stringify({
+    id: `evt_planetls_${Date.now()}`,
+    type: "checkout.session.completed",
+    data: {
+      object: {
+        id: stripeSessionId,
+        mode: "payment",
+        payment_status: "paid",
+        metadata: { user_id: ownerProfileId, invoice_id: invoiceId },
+      },
+    },
+  });
+  const webhookSignature = crypto
+    .createHmac("sha256", webhookSecret)
+    .update(`${webhookTimestamp}.${webhookPayload}`)
+    .digest("hex");
+  const webhookResponse = await ownerPage.request.post("/api/billing/webhook", {
+    data: webhookPayload,
+    headers: {
+      "Content-Type": "application/json",
+      "stripe-signature": `t=${webhookTimestamp},v1=${webhookSignature}`,
+    },
+  });
+  const webhookBody = await webhookResponse.text();
+  expect(webhookResponse.ok(), webhookBody).toBeTruthy();
+
+  const paidInvoicesResponse = await ownerPage.request.get(`/api/invoices?quoteId=${quoteId}`, {
+    headers: { "Cache-Control": "no-store" },
+  });
+  const paidInvoicesBody = await paidInvoicesResponse.text();
+  expect(paidInvoicesResponse.ok(), paidInvoicesBody).toBeTruthy();
+  const paidInvoice = (JSON.parse(paidInvoicesBody) as InvoicePayload[]).find(
+    (invoice) => invoice.id === invoiceId,
+  );
+  expect(paidInvoice?.status).toBe("paid");
+
+  const scheduledStart = new Date(Date.now() + 48 * 60 * 60 * 1000);
+  const scheduledEnd = new Date(scheduledStart.getTime() + 2 * 60 * 60 * 1000);
+  const scheduleResponse = await conciergePage.request.patch(
+    `/api/missions/${acceptedQuote.mission_id}`,
+    {
+      data: {
+        status: "scheduled",
+        scheduled_start: scheduledStart.toISOString(),
+        scheduled_end: scheduledEnd.toISOString(),
+      },
+    },
+  );
+  const scheduleBody = await scheduleResponse.text();
+  expect(scheduleResponse.ok(), scheduleBody).toBeTruthy();
+  const scheduledMission = (JSON.parse(scheduleBody) as { mission?: MissionPayload }).mission;
+  expect(scheduledMission?.status).toBe("scheduled");
+  expect(Date.parse(scheduledMission?.scheduled_start ?? "")).toBe(scheduledStart.getTime());
+  expect(Date.parse(scheduledMission?.scheduled_end ?? "")).toBe(scheduledEnd.getTime());
+
+  const ownerMissionResponse = await ownerPage.request.get(`/api/missions/${acceptedQuote.mission_id}`);
+  const ownerMissionBody = await ownerMissionResponse.text();
+  expect(ownerMissionResponse.ok(), ownerMissionBody).toBeTruthy();
+  const ownerMission = (JSON.parse(ownerMissionBody) as { mission?: MissionPayload }).mission;
+  expect(ownerMission?.status).toBe("scheduled");
+  expect(Date.parse(ownerMission?.scheduled_start ?? "")).toBe(scheduledStart.getTime());
 
   const ownerListResponse = await ownerPage.request.get("/api/service-requests", {
     headers: { "Cache-Control": "no-store" },
