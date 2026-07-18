@@ -372,7 +372,7 @@
   gap: 0.1rem;
 }
 
-:global(.dashboardMissionPaceIcon) {
+.statusIcon :global(.dashboardMissionPaceIcon) {
   display: inline-flex;
   flex: 0 0 auto;
   width: min(78%, var(--mission-pace-icon-size, 62px));
@@ -385,7 +385,7 @@
   mix-blend-mode: normal;
 }
 
-:global(.dashboardMissionPaceIcon[data-mission-pace="high"]) {
+.statusIcon :global(.dashboardMissionPaceIcon[data-mission-pace="high"]) {
   border-radius: 18px;
 }
 

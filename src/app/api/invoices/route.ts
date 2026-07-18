@@ -41,13 +41,21 @@ const VALID_INVOICE_STATUS: InvoiceStatus[] = [
 
 const round2 = (value: number): number => Math.round(value * 100) / 100;
 
-const ALLOWED_BILLING_ROLES = new Set([
+const INVOICE_CREATE_ROLES = new Set([
   "admin",
   "super_admin",
   "concierge",
   "concierge_pro",
   "owner",
   "owner_pro",
+]);
+
+const INVOICE_READ_ROLES = new Set([
+  ...INVOICE_CREATE_ROLES,
+  "provider",
+  "provider_pro",
+  "artisan",
+  "artisan_pro",
 ]);
 
 const OWNER_BILLING_ROLES = new Set(["owner", "owner_pro"]);
@@ -192,7 +200,7 @@ const invoiceSelect = `
 
 export async function GET(req: NextRequest) {
   try {
-    const guard = await requireApiRole(req, ALLOWED_BILLING_ROLES);
+    const guard = await requireApiRole(req, INVOICE_READ_ROLES);
     if (!guard.ok) return guard.response;
 
     const { userId, role } = guard.auth;
@@ -203,6 +211,7 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url);
     const status = url.searchParams.get("status");
     const quoteId = url.searchParams.get("quoteId");
+    const providerInterventionId = url.searchParams.get("providerInterventionId");
     const ownerProfileId = url.searchParams.get("ownerProfileId");
     const limitRaw = Number(url.searchParams.get("limit") ?? "30");
     const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 200) : 30;
@@ -212,6 +221,9 @@ export async function GET(req: NextRequest) {
     }
     if (quoteId && !isUuidLike(quoteId)) {
       return NextResponse.json({ error: "quoteId invalide" }, { status: 400 });
+    }
+    if (providerInterventionId && !isUuidLike(providerInterventionId)) {
+      return NextResponse.json({ error: "providerInterventionId invalide" }, { status: 400 });
     }
     if (ownerProfileId && !isUuidLike(ownerProfileId)) {
       return NextResponse.json({ error: "ownerProfileId invalide" }, { status: 400 });
@@ -234,6 +246,9 @@ export async function GET(req: NextRequest) {
     }
     if (quoteId) {
       query = query.eq("quote_id", quoteId);
+    }
+    if (providerInterventionId) {
+      query = query.contains("metadata", { provider_intervention_id: providerInterventionId });
     }
     if (ownerProfileId && !OWNER_BILLING_ROLES.has(role)) {
       query = query.eq("owner_profile_id", ownerProfileId);
@@ -260,7 +275,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const guard = await requireApiRole(req, ALLOWED_BILLING_ROLES);
+    const guard = await requireApiRole(req, INVOICE_CREATE_ROLES);
     if (!guard.ok) return guard.response;
 
     const { userId } = guard.auth;

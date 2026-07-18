@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
-import { canAccessMissionForRole } from "@/app/lib/missionPermissions";
+import { canAccessMissionForRole, PROVIDER_ROLES } from "@/app/lib/missionPermissions";
 import { requireApiRole } from "@/server/auth/roleGuards";
 
 const dbAny = asLooseSupabaseClient(db);
-const MISSION_FILE_ROLES = new Set(["admin", "super_admin", "concierge", "concierge_pro", "owner", "owner_pro"]);
+const MISSION_FILE_ROLES = new Set([
+  "admin", "super_admin", "concierge", "concierge_pro", "owner", "owner_pro",
+  "provider", "provider_pro", "artisan", "artisan_pro",
+]);
 const DEFAULT_BUCKET = "mission-evidence";
 const SIGNED_URL_TTL_SECONDS = 10 * 60;
 
@@ -18,7 +21,7 @@ type ProofMetadata = {
 };
 
 const isUuidLike = (value: string): boolean =>
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(value);
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
 function toRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -33,6 +36,17 @@ function toProof(value: unknown): ProofMetadata | null {
 
 function wantsJson(req: NextRequest) {
   return req.nextUrl.searchParams.get("format") === "json" || req.headers.get("accept")?.includes("application/json");
+}
+
+async function isAssignedProvider(userId: string, missionId: string) {
+  const { data, error } = await dbAny
+    .from("provider_interventions")
+    .select("id")
+    .eq("provider_profile_id", userId)
+    .contains("metadata", { mission_id: missionId })
+    .limit(1);
+  if (error) throw error;
+  return Boolean(data?.length);
 }
 
 export async function GET(
@@ -62,14 +76,14 @@ export async function GET(
     if (!mission) {
       return NextResponse.json({ error: "Mission introuvable" }, { status: 404 });
     }
-    if (
-      !canAccessMissionForRole({
-        role,
-        userId,
-        ownerProfileId: mission.owner_profile_id,
-        conciergeProfileId: mission.concierge_profile_id,
-      })
-    ) {
+    const directAccess = canAccessMissionForRole({
+      role,
+      userId,
+      ownerProfileId: mission.owner_profile_id,
+      conciergeProfileId: mission.concierge_profile_id,
+    });
+    const providerAccess = PROVIDER_ROLES.has(role) && (await isAssignedProvider(userId, id));
+    if (!directAccess && !providerAccess) {
       return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 

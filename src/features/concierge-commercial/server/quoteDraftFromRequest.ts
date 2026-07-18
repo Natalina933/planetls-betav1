@@ -189,7 +189,7 @@ export async function prepareQuoteDraftFromRequest(
         })
       : [
           {
-            service_id: null,
+            service_id: matchedServiceIds[0] ?? null,
             pricing_id: null,
             label:
               requestedServices.length > 0

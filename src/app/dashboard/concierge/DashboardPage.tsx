@@ -19,6 +19,7 @@ import {
   Radio,
   Search,
   Send,
+  WandSparkles,
   ShieldAlert,
   Sparkles,
   TriangleAlert,
@@ -1131,6 +1132,11 @@ export default function DashboardPage() {
       icon: CalendarClock,
     },
     {
+      label: "Assistant Décoration IA",
+      href: "/dashboard/concierge/decoration-ai",
+      icon: WandSparkles,
+    },
+    {
       label: "Envoyer un message",
       href: "/dashboard/concierge/messages",
       icon: Send,
@@ -1165,9 +1171,9 @@ export default function DashboardPage() {
             tone: "secondary",
           },
           {
-            id: "billing",
-            label: "Devis et factures",
-            href: "/dashboard/concierge/billing",
+            id: "decoration-ai",
+            label: "Assistant Décoration IA",
+            href: "/dashboard/concierge/decoration-ai",
             tone: "ghost",
           },
         ]}

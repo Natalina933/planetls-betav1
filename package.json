@@ -8,9 +8,12 @@
     "dev:webpack": "next dev --webpack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint src --ext .js,.jsx,.ts,.tsx,.mts",
+    "lint": "eslint src e2e playwright.config.ts --ext .js,.jsx,.ts,.tsx,.mts",
     "test": "node --experimental-strip-types --test src/tests/*.test.mts",
-    "ensure:admin": "node scripts/ensure-admin-profile.mjs"
+    "ensure:admin": "node scripts/ensure-admin-profile.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:install": "playwright install chromium"
   },
   "dependencies": {
     "@radix-ui/react-tabs": "^1.1.13",
@@ -49,6 +52,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.61.1",
     "@types/bcryptjs": "^3.0.0",
     "@types/formidable": "^3.4.6",
     "@types/js-cookie": "^3.0.6",

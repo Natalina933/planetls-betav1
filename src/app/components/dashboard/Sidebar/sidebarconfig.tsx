@@ -1,4 +1,4 @@
-﻿import { IconType } from "react-icons";
+import { IconType } from "react-icons";
 import {
   FiBell,
   FiBox,
@@ -7,6 +7,7 @@ import {
   FiCreditCard,
   FiFileText,
   FiMessageSquare,
+  FiImage,
   FiPackage,
   FiSearch,
   FiSettings,
@@ -137,6 +138,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
         { label: "Tous les logements", path: "/dashboard/concierge/logements", icon: DashboardHousesIcon },
         { label: "Ajouter un logement", path: "/dashboard/concierge/logements/create", icon: DashboardHomeIcon },
         { label: "Stocks & équipements", path: "/dashboard/concierge/stocks", icon: FiBox },
+        { label: "Assistant Décoration IA", path: "/dashboard/concierge/decoration-ai", icon: FiImage },
       ],
     },
     {

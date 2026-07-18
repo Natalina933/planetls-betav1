@@ -7,23 +7,49 @@ import type { Json } from "@/types/supabase";
 
 const dbAny = asLooseSupabaseClient(db);
 const ROLES = new Set(["admin", "super_admin", "concierge", "concierge_pro", "owner", "owner_pro"]);
+type MissionProviderRow = Record<string, unknown> & {
+  id: string;
+  title?: string | null;
+  service_label?: string | null;
+  description?: string | null;
+  owner_profile_id?: string | null;
+  concierge_profile_id?: string | null;
+  scheduled_start?: string | null;
+  scheduled_end?: string | null;
+  amount?: number | null;
+  currency?: string | null;
+  metadata?: Json | null;
+};
 
 const isUuidLike = (value: string): boolean =>
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(value);
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
 async function loadMission(id: string) {
-  return dbAny
+  const result = await dbAny
     .from("missions")
-    .select("id, title, description, owner_profile_id, concierge_profile_id, scheduled_start, scheduled_end, amount, currency, metadata")
+    .select("*")
     .eq("id", id)
     .maybeSingle();
+  const row = result.data as MissionProviderRow | null;
+  return {
+    ...result,
+    data: row ? { ...row, title: row.title ?? row.service_label ?? null } : null,
+  };
+}
+
+async function resolveMissionId(req: NextRequest, params: Promise<{ id: string }>) {
+  const segments = req.nextUrl.pathname.split("/").filter(Boolean);
+  const pathId = segments[2] ?? "";
+  if (isUuidLike(pathId)) return pathId;
+  const routeId = (await params)?.id;
+  return typeof routeId === "string" ? routeId.trim() : "";
 }
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const guard = await requireApiRole(req, ROLES);
   if (!guard.ok) return guard.response;
   const { userId, role } = guard.auth;
-  const { id } = await params;
+  const id = await resolveMissionId(req, params);
   if (!isUuidLike(id)) return NextResponse.json({ error: "Mission invalide" }, { status: 400 });
 
   const { data: mission } = await loadMission(id);
@@ -45,7 +71,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const guard = await requireApiRole(req, ROLES);
   if (!guard.ok) return guard.response;
   const { userId, role } = guard.auth;
-  const { id } = await params;
+  const id = await resolveMissionId(req, params);
   if (!isUuidLike(id)) return NextResponse.json({ error: "Mission invalide" }, { status: 400 });
   if (!CONCIERGE_MISSION_ROLES.has(role)) {
     return NextResponse.json({ error: "Intervention artisan reservee a la conciergerie" }, { status: 403 });

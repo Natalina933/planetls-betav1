@@ -24,7 +24,12 @@ type SupabaseClientLike<T> = {
   from(table: "missions"): SupabaseTableClient<T>;
 };
 
-const OPTIONAL_MISSION_INSERT_COLUMNS = new Set(["description", "metadata"]);
+const OPTIONAL_MISSION_INSERT_COLUMNS = new Set(["description", "metadata", "title"]);
+
+function getCompatibleMissionSelect(columns: string, removedColumns: Set<string>) {
+  if (!removedColumns.has("title")) return columns;
+  return columns.replace(/\btitle\b/g, "service_label");
+}
 
 function getMissingMissionColumn(error: SupabaseMutationError) {
   const message = `${error?.message ?? ""} ${error?.details ?? ""}`.toLowerCase();
@@ -54,10 +59,14 @@ export async function insertMissionWithOptionalMetadata<T>(
   const removedColumns = new Set<string>();
 
   for (let attempt = 0; attempt <= OPTIONAL_MISSION_INSERT_COLUMNS.size; attempt += 1) {
+    const selectedColumns = getCompatibleMissionSelect(
+      removedColumns.size > 0 ? fallbackSelectColumns : selectColumns,
+      removedColumns,
+    );
     const result = await client
       .from("missions")
       .insert(nextPayload)
-      .select(removedColumns.size > 0 ? fallbackSelectColumns : selectColumns)
+      .select(selectedColumns)
       .single();
 
     const missingColumn = getMissingMissionColumn(result.error);
@@ -70,7 +79,11 @@ export async function insertMissionWithOptionalMetadata<T>(
     }
 
     nextPayload = { ...nextPayload };
+    const missingValue = nextPayload[missingColumn];
     delete nextPayload[missingColumn];
+    if (missingColumn === "title" && !("service_label" in nextPayload)) {
+      nextPayload.service_label = missingValue;
+    }
     removedColumns.add(missingColumn);
     console.warn(`[missions] ${missingColumn} column unavailable, retrying insert without it.`);
   }
@@ -78,7 +91,7 @@ export async function insertMissionWithOptionalMetadata<T>(
   const finalAttempt = await client
     .from("missions")
     .insert(nextPayload)
-    .select(fallbackSelectColumns)
+    .select(getCompatibleMissionSelect(fallbackSelectColumns, removedColumns))
     .single();
 
   return {

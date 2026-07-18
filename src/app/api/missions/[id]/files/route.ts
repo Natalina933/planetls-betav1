@@ -1,19 +1,26 @@
 import { createHash, randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { canAccessMissionForRole, CONCIERGE_MISSION_ROLES } from "@/app/lib/missionPermissions";
+import {
+  canAccessMissionForRole,
+  CONCIERGE_MISSION_ROLES,
+  PROVIDER_ROLES,
+} from "@/app/lib/missionPermissions";
 import { requireApiRole } from "@/server/auth/roleGuards";
 import type { Json } from "@/types/supabase";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 
 const dbAny = asLooseSupabaseClient(db);
-const MISSION_FILE_ROLES = new Set(["admin", "super_admin", "concierge", "concierge_pro", "owner", "owner_pro"]);
+const MISSION_FILE_ROLES = new Set([
+  "admin", "super_admin", "concierge", "concierge_pro", "owner", "owner_pro",
+  "provider", "provider_pro", "artisan", "artisan_pro",
+]);
 const BUCKET = "mission-evidence";
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
 const ALLOWED_PREFIXES = ["image/", "video/", "application/pdf"];
 
 const isUuidLike = (value: string): boolean =>
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(value);
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
 function toRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -28,6 +35,17 @@ function extensionFromName(name: string) {
 
 function isAllowedFileType(type: string) {
   return ALLOWED_PREFIXES.some((prefix) => type.startsWith(prefix));
+}
+
+async function isAssignedProvider(userId: string, missionId: string) {
+  const { data, error } = await dbAny
+    .from("provider_interventions")
+    .select("id")
+    .eq("provider_profile_id", userId)
+    .contains("metadata", { mission_id: missionId })
+    .limit(1);
+  if (error) throw error;
+  return Boolean(data?.length);
 }
 
 async function ensureBucket() {
@@ -54,13 +72,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!isUuidLike(id)) {
       return NextResponse.json({ error: "Mission invalide" }, { status: 400 });
     }
-    if (!CONCIERGE_MISSION_ROLES.has(role)) {
-      return NextResponse.json({ error: "Upload reserve a la conciergerie" }, { status: 403 });
+    const providerUpload = PROVIDER_ROLES.has(role);
+    if (!providerUpload && !CONCIERGE_MISSION_ROLES.has(role)) {
+      return NextResponse.json({ error: "Upload reserve aux intervenants de la mission" }, { status: 403 });
     }
 
     const { data: mission, error: missionError } = await dbAny
       .from("missions")
-      .select("id, owner_profile_id, concierge_profile_id, title, metadata")
+      .select("id, owner_profile_id, concierge_profile_id, metadata")
       .eq("id", id)
       .maybeSingle();
 
@@ -71,14 +90,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!mission) {
       return NextResponse.json({ error: "Mission introuvable" }, { status: 404 });
     }
-    if (
-      !canAccessMissionForRole({
-        role,
-        userId,
-        ownerProfileId: mission.owner_profile_id,
-        conciergeProfileId: mission.concierge_profile_id,
-      })
-    ) {
+    const directAccess = canAccessMissionForRole({
+      role,
+      userId,
+      ownerProfileId: mission.owner_profile_id,
+      conciergeProfileId: mission.concierge_profile_id,
+    });
+    const providerAccess = providerUpload && (await isAssignedProvider(userId, id));
+    if (!directAccess && !providerAccess) {
       return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 
@@ -98,7 +117,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     await ensureBucket();
     const buffer = Buffer.from(await file.arrayBuffer());
     const sha256 = createHash("sha256").update(buffer).digest("hex");
-    const kind = typeof formData.get("kind") === "string" ? String(formData.get("kind")) : "document";
+    const kind = typeof formData.get("kind") === "string"
+      ? String(formData.get("kind"))
+      : providerUpload
+        ? "provider_evidence"
+        : "document";
     const label =
       typeof formData.get("label") === "string" && String(formData.get("label")).trim()
         ? String(formData.get("label")).trim()
@@ -127,6 +150,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       sha256,
       created_at: new Date().toISOString(),
       created_by: userId,
+      source: providerUpload ? "provider_intervention" : "mission",
     };
 
     const { data: updatedMission, error: updateError } = await dbAny

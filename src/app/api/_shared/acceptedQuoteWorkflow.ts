@@ -92,6 +92,14 @@ async function findOrCreateMission(input: {
   }
 
   if (!quote.concierge_profile_id) return null;
+  const { data: linkedQuoteItems } = await db
+    .from("quote_items")
+    .select("service_id")
+    .eq("quote_id", quote.id)
+    .limit(1);
+  const linkedServiceId = Array.isArray(linkedQuoteItems)
+    ? (linkedQuoteItems[0] as { service_id?: number | null } | undefined)?.service_id ?? null
+    : null;
 
   const missionMetadata = {
     source: "quote_acceptance",
@@ -113,7 +121,7 @@ async function findOrCreateMission(input: {
       concierge_profile_id: quote.concierge_profile_id,
       owner_profile_id: quote.owner_profile_id ?? request?.owner_profile_id ?? null,
       property_id: request?.property_id ?? null,
-      service_id: null,
+      service_id: linkedServiceId,
       title: buildMissionTitle(request, quote),
       description: request?.description ?? quote.notes ?? null,
       status: request?.desired_date ? "date_requested" : "to_schedule",

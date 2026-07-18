@@ -1,0 +1,399 @@
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.42fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.formPanel,
+.reportPanel,
+.historyPanel,
+.reportCard,
+.promptBox {
+  border: 1px solid rgba(17, 24, 39, 0.1);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.formPanel,
+.reportPanel,
+.historyPanel {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.reportPanel {
+  min-height: 460px;
+}
+
+.panelHeader,
+.reportHeader,
+.reportActions,
+.promptBox > div {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.panelHeader > span,
+.promptBox > div {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #111827;
+  font-weight: 850;
+}
+
+.formGrid,
+.reportSectionGrid,
+.objectGrid,
+.paletteGrid {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.formGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.formGrid label,
+.textareaField,
+.choiceGroup {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.formGrid span,
+.textareaField span,
+.choiceGroup > span {
+  color: #374151;
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.formGrid input,
+.formGrid select,
+.textareaField textarea {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  border-radius: 8px;
+  padding: 0.68rem 0.75rem;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+}
+
+.textareaField textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.segmented button,
+.reportActions button,
+.reportActions a,
+.generateButton,
+.historyList button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 40px;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  font-weight: 850;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.segmented button {
+  padding: 0.5rem 0.7rem;
+  color: #4b5563;
+}
+
+.segmented button[data-active="true"] {
+  border-color: rgba(15, 139, 98, 0.32);
+  background: rgba(15, 139, 98, 0.08);
+  color: #0b6d4d;
+}
+
+.photoDropzone {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  min-height: 128px;
+  padding: 1rem;
+  border: 1px dashed rgba(15, 139, 98, 0.34);
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #0b6d4d;
+  text-align: center;
+  cursor: pointer;
+}
+
+.photoDropzone span {
+  color: #111827;
+  font-weight: 850;
+}
+
+.photoDropzone small {
+  color: #667085;
+  line-height: 1.35;
+}
+
+.photoDropzone input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.photoPreview {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 210px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #e5e7eb;
+}
+
+.photoPreview img {
+  object-fit: cover;
+}
+
+.generateButton {
+  width: 100%;
+  min-height: 46px;
+  border-color: #0b6d4d;
+  background: #0b6d4d;
+  color: #ffffff;
+}
+
+.generateButton:disabled,
+.reportActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.spinner {
+  animation: spin 900ms linear infinite;
+}
+
+.errorText {
+  margin: 0;
+  padding: 0.7rem;
+  border-radius: 8px;
+  background: rgba(212, 138, 31, 0.12);
+  color: #92400e;
+  font-weight: 750;
+}
+
+.reportCard {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.eyebrow {
+  color: #6b7280;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.reportHeader h2,
+.reportHeader p,
+.reportSection h3,
+.reportSectionGrid h3,
+.promptBox h3,
+.promptBox p {
+  margin: 0;
+}
+
+.reportHeader h2 {
+  margin-top: 0.18rem;
+  color: #111827;
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+}
+
+.reportHeader p,
+.reportSection li,
+.suggestionList p,
+.objectGrid p,
+.paletteGrid p,
+.promptBox p {
+  color: #667085;
+  line-height: 1.48;
+}
+
+.reportActions {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.reportActions button,
+.reportActions a {
+  padding: 0.55rem 0.75rem;
+}
+
+.reportSectionGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.reportSectionGrid section,
+.reportSection {
+  display: grid;
+  gap: 0.65rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+.reportSectionGrid ul,
+.reportSection ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.suggestionList,
+.historyList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.suggestionList article,
+.objectGrid article,
+.paletteGrid article {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.8rem;
+  border: 1px solid rgba(17, 24, 39, 0.1);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.suggestionList article {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.suggestionList article p,
+.suggestionList article span {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.suggestionList article small,
+.objectGrid article span {
+  color: #0b6d4d;
+  font-weight: 900;
+}
+
+.objectGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.objectGrid strong,
+.paletteGrid strong,
+.suggestionList strong {
+  color: #111827;
+}
+
+.paletteGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.paletteGrid article > span {
+  display: block;
+  height: 38px;
+  border-radius: 6px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+.promptBox {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.9rem;
+  background: #111827;
+  color: #ffffff;
+}
+
+.promptBox h3,
+.promptBox > div {
+  color: #ffffff;
+}
+
+.promptBox p {
+  color: #e5e7eb;
+  overflow-wrap: anywhere;
+}
+
+.historyList button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  justify-content: stretch;
+  min-height: 62px;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.historyList button span {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.historyList strong,
+.historyList small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historyList small {
+  color: #667085;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 1100px) {
+  .workspace,
+  .reportSectionGrid,
+  .objectGrid,
+  .paletteGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .reportHeader,
+  .panelHeader {
+    flex-direction: column;
+  }
+
+  .historyList button {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+}

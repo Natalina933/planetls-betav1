@@ -1,4 +1,4 @@
-﻿# P1 - Parcours critiques E2E (runbook exécutable)
+# P1 - Parcours critiques E2E (runbook exécutable)
 
 _Date: 18 mai 2026_
 
@@ -108,8 +108,42 @@ Pour chaque scénario, consigner:
 
 ---
 
+### Exécution automatisée 2026-07-18
+
+- Testeur : Codex / Playwright Chromium.
+- Environnement : serveur Next.js Webpack isolé sur le port 3100, comptes workspace locaux préparés via Supabase.
+- Scénario owner smoke : `PASS` — authentification, dashboard, recherche concierge, API profils publics et demandes owner.
+- Scénario concierge smoke : `PASS` — authentification, cockpit, demandes, assistant décoration et APIs associées.
+- Scénario provider smoke : `PASS` — authentification, cockpit, clients, messages et interventions.
+- Résultat : `3 passed` en 3,9 minutes ; tests unitaires `157/157`, lint et build `164 pages` au vert.
+- Correctif découvert : les sélecteurs SCSS globaux de `dashboardSaas.module.scss` devaient être rattachés à une classe locale pour fonctionner avec Webpack.
+- Limite : ces scénarios valident l'accès et les lectures critiques, pas encore les mutations complètes demande → devis → mission → paiement.
+- Écart données : la table `decoration_ai_reports` n'est pas disponible dans le cache de schéma de la base connectée ; l'API renvoie donc l'historique vide de secours.
+- CI : workflow `.github/workflows/e2e.yml` ajouté ; secrets E2E GitHub à configurer avant première exécution distante.
+### Exécution transactionnelle du 18/07/2026
+
+- Testeur : Codex / Playwright Chromium.
+- Scénario : owner authentifié → demande ciblée persistée → intérêt concierge → devis envoyé/accepté → mission générée → facture brouillon → facture émise et visible owner.
+- Données : titre préfixé `[E2E]`, deux sessions isolées et APIs Supabase réelles ; la trace est conservée et clôturée plutôt que supprimée, conformément à la règle métier qui interdit la suppression après envoi.
+- Résultat final : `1 passed` en 2,9 minutes (`e2e/owner-concierge-service-request.spec.ts`).
+- Frontières validées : authentification, demande, devis, acceptation, mission, facture brouillon, émission concierge et lecture owner.
+- Incident corrigé : compatibilité de création de mission entre le schéma moderne `title` et le schéma connecté `service_label`, avec rattachement au service catalogue.
+- Paiement : checkout correctement bloqué avec `503` car `STRIPE_SECRET_KEY` est absente ; aucun paiement réel déclenché.
+- Suite : configurer Stripe en mode test pour valider checkout + synchronisation, puis automatiser le parcours provider.
+---
+
 ## Priorité de correction en cas d'échec
 1. `P0` API 500/403 sur parcours critique.
 2. `P0` perte de lien entre objets métier (demande/devis/mission).
 3. `P1` incohérence d’état UI sans perte de donnée.
 4. `P2` microcopie/ergonomie non bloquante.
+### Exécution transactionnelle provider du 18/07/2026
+
+- Scénario : concierge authentifiée → mission → affectation provider → `in_progress` → preuve persistée → `completed` → facture provider émise de 90 € → relecture filtrée par intervention → relecture concierge.
+- Résultat final : `1 passed` en 4,0 minutes (`e2e/provider-intervention-transaction.spec.ts`).
+- Incidents corrigés : validateur UUID incomplet sur la route d'affectation ; lecture de mission rendue compatible avec `title` et `service_label` via normalisation du schéma connecté.
+- Facturation : route dédiée sécurisée et idempotente ; intervention terminée obligatoire, facture/ligne reliées par `provider_intervention_id`, lecture limitée au provider authentifié.
+- Preuve média : JPEG téléversé dans le bucket privé `mission-evidence`, empreinte SHA-256 persistée et téléchargement provider validé par URL signée ; accès limité au provider affecté.
+- Correctifs complémentaires : validation UUID réparée sur les routes de fichiers et sélection de mission rendue compatible avec le schéma connecté sans colonne `title`.
+- Résultat enrichi : `1 passed` en 3,2 minutes avec la preuve média réelle.
+- Suite : configurer Stripe test et ajouter ce scénario à la première exécution CI distante.

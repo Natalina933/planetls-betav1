@@ -31,7 +31,10 @@ function buildSnapshot() {
   const snapshot: Record<string, string> = {};
 
   for (const filePath of files) {
-    const content = readFileSync(filePath);
+    // Git may materialize text files as CRLF on Windows and LF in CI.
+    // Snapshot logical source content so line-ending conversion alone
+    // cannot invalidate every UI primitive.
+    const content = readFileSync(filePath, "utf8").replaceAll("\r\n", "\n");
     const digest = createHash("sha256").update(content).digest("hex");
     snapshot[relative(ROOT_DIR, filePath).replaceAll("\\", "/")] = digest;
   }
