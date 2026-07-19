@@ -7,6 +7,27 @@
 .metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 1rem; margin: 1.2rem 0; }
 .metrics article { display: grid; grid-template-columns: auto 1fr; gap: .15rem .75rem; align-items: center; padding: 1rem; border: 1px solid #e7e0d5; border-radius: 16px; background: #fff; }
 .metrics svg { grid-row: 1 / 3; color: #b27b24; } .metrics strong { font-size: 1.1rem; color: #183f36; } .metrics span { color: #727b77; font-size: .78rem; }
+.planning { margin: 0 0 1.2rem; padding: clamp(1rem,2vw,1.5rem); border: 1px solid rgba(116,87,41,.22); border-radius: 20px; background: linear-gradient(145deg,#fff,#f8f4eb); }
+.planningHeader { display: flex; justify-content: space-between; align-items: end; gap: 1.5rem; margin-bottom: 1rem; }
+.planningHeader h2 { margin: .35rem 0 0; color: #183f36; font-size: clamp(1.4rem,2.5vw,2rem); }
+.planningHeader p { max-width: 520px; margin: 0; color: #65706c; }
+.planningGroups { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem; }
+.planningGroup { min-width: 0; padding: .85rem; border: 1px solid #e3ddd2; border-radius: 14px; background: rgba(255,255,255,.9); }
+.planningGroupTitle { display: flex; justify-content: space-between; align-items: center; margin-bottom: .7rem; }
+.planningGroupTitle h3 { margin: 0; color: #183f36; font-size: 1rem; }
+.planningGroupTitle > span { display: grid; place-items: center; min-width: 1.8rem; height: 1.8rem; border-radius: 999px; background: #efe7d8; color: #8c641e; font-weight: 800; }
+.planningGroup ol { display: grid; gap: .65rem; margin: 0; padding: 0; list-style: none; }
+.planningGroup li { display: grid; gap: .55rem; padding: .8rem; border-radius: 11px; background: #faf9f6; }
+.planningItemHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem; }
+.planningItemHeader > div:first-child { display: grid; gap: .1rem; }
+.planningItemHeader > div:first-child span { color: #8c641e; font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.planningItemHeader strong { color: #25332f; }
+.planningTags { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .3rem; }
+.planningTags span { padding: .22rem .42rem; border-radius: 999px; background: #edf1ee; color: #52605b; font-size: .66rem; font-weight: 700; white-space: nowrap; }
+.planningGroup p { margin: 0; color: #53605b; font-size: .84rem; line-height: 1.45; }
+.planningGroup details { color: #68736f; font-size: .78rem; }
+.planningGroup summary { cursor: pointer; font-weight: 700; }
+.planningGroup details p { margin: .45rem 0; font-size: .78rem; }
 .breakdown { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1rem; margin: 0 0 1.2rem; }
 .breakdown > div { min-width: 0; padding: 1rem; border: 1px solid #e3ddd2; border-radius: 16px; background: #fff; }
 .breakdown h2 { margin: 0 0 .7rem; color: #183f36; font-size: .88rem; letter-spacing: .08em; text-transform: uppercase; }
@@ -33,7 +54,13 @@
 .sectionHeading { display: flex; gap: .75rem; align-items: flex-start; } .sectionHeading > span { margin-top: .2rem; padding: .2rem .45rem; border-radius: 6px; background: #efe7d8; color: #8c641e; font-size: .68rem; font-weight: 800; } .sectionHeading h2 { margin: 0; color: #183f36; font-size: clamp(1.2rem,2.4vw,1.75rem); }
 .tags { display: flex; flex-wrap: wrap; gap: .4rem; margin: .75rem 0; } .tags span { padding: .3rem .55rem; border-radius: 999px; background: #f3f5f3; color: #52605b; font-size: .72rem; font-weight: 700; }
 .markdown { color: #4d5854; line-height: 1.65; } .markdown p { margin: .7rem 0; } .listItem { padding-left: 1rem; }
+.childSectionIndex { padding: .85rem 1rem; border-left: 3px solid #b27b24; border-radius: 0 12px 12px 0; background: #faf6ee; }
+.childSectionIndex > p { margin-top: 0; color: #5f6965; }
+.childSectionIndex nav { display: flex; flex-wrap: wrap; gap: .5rem; }
+.childSectionIndex a { padding: .4rem .65rem; border: 1px solid #ded5c7; border-radius: 999px; background: #fff; color: #27453d; font-size: .8rem; font-weight: 700; text-decoration: none; }
+.childSectionIndex a:hover { border-color: #ad7a2d; background: #f5ecdc; }
+.emptySection { color: #737c78; font-style: italic; }
 .tableScroll { overflow-x: auto; margin: 1rem 0; border: 1px solid #e5dfd5; border-radius: 12px; } .tableScroll table { width: 100%; border-collapse: collapse; font-size: .84rem; } .tableScroll th,.tableScroll td { min-width: 130px; padding: .7rem .8rem; border-bottom: 1px solid #ece7df; text-align: left; vertical-align: top; } .tableScroll th { background: #f6f1e8; color: #27453d; font-weight: 800; } .tableScroll tr:last-child td { border-bottom: 0; }
 .empty { padding: 4rem 2rem; text-align: center; border: 1px dashed #cfc7b9; border-radius: 18px; background: #fff; } .empty h2 { margin-bottom: .2rem; color: #183f36; } .empty p { margin: 0; color: #737c78; }
-@media (max-width:1050px) { .metrics { grid-template-columns: repeat(2,1fr); } .breakdown { grid-template-columns: 1fr; } .workspace { grid-template-columns: 1fr; } .toc { position: static; max-height: 260px; } }
-@media (max-width:720px) { .hero { align-items: flex-start; flex-direction: column; padding: 1.3rem; } .metrics { grid-template-columns: 1fr; } .filters { position: static; flex-direction: column; } .search { min-width: 0; } .breakdownGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); } .readingControls { flex-wrap: wrap; justify-content: flex-start; } .readingControls span { flex-basis: 100%; } }
+@media (max-width:1050px) { .metrics { grid-template-columns: repeat(2,1fr); } .planningGroups { grid-template-columns: 1fr; } .breakdown { grid-template-columns: 1fr; } .workspace { grid-template-columns: 1fr; } .toc { position: static; max-height: 260px; } }
+@media (max-width:720px) { .hero,.planningHeader,.planningItemHeader { align-items: flex-start; flex-direction: column; } .hero { padding: 1.3rem; } .metrics { grid-template-columns: 1fr; } .planningTags { justify-content: flex-start; } .filters { position: static; flex-direction: column; } .search { min-width: 0; } .breakdownGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); } .readingControls { flex-wrap: wrap; justify-content: flex-start; } .readingControls span { flex-basis: 100%; } }

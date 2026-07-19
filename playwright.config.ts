@@ -36,6 +36,7 @@ export default defineConfig({
           NEXTAUTH_URL: baseURL,
           NEXT_DIST_DIR: ".next-e2e",
           WORKSPACE_QUICK_LOGIN_ENABLED: "true",
+          STRIPE_SECRET_KEY: process.env.E2E_STRIPE_SECRET_KEY ?? "",
           STRIPE_WEBHOOK_SECRET: process.env.E2E_STRIPE_WEBHOOK_SECRET ?? "whsec_planetls_e2e_only",
         },
       },

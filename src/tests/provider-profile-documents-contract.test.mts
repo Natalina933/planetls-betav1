@@ -31,3 +31,17 @@ test("provider settings exposes upload, status and private download", () => {
   assert.match(panel, /En attente de vérification/);
   assert.match(panel, /api\/provider\/profile-documents\/\$\{item\.id\}\/download/);
 });
+
+test("admin can decide verification and provider directory exposes signals only", () => {
+  const decision = read("../app/api/provider/profile-documents/[id]/route.ts");
+  const directory = read("../app/api/profiles/providers/route.ts");
+  const admin = read("../app/dashboard/admin/ProviderDocumentReviewPanel.tsx");
+  assert.match(decision, /requireApiRole\(req, ADMIN_ROLES\)/);
+  assert.match(decision, /verified_by: guard\.auth\.userId/);
+  assert.match(decision, /status === "rejected" && rejectionReason\.length < 3/);
+  assert.match(directory, /verifiedDocumentCount/);
+  assert.match(directory, /insuranceVerified/);
+  assert.doesNotMatch(directory, /storage_path/);
+  assert.match(admin, /Consulter le fichier privé/);
+  assert.match(admin, /ProviderDocumentReviewPanel/);
+});

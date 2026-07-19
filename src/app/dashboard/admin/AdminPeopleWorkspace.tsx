@@ -13,6 +13,7 @@ import {
   type AdminKpi,
 } from "./AdminOperations";
 import { AdminBubblePanel, AdminDonutCard, AdminGaugeCard, AdminToneLegend } from "./AdminVisuals";
+import { ProviderDocumentReviewPanel } from "./ProviderDocumentReviewPanel";
 import styles from "./AdminPeopleWorkspace.module.scss";
 
 type RoleBucket = "admin" | "owner" | "concierge" | "provider";
@@ -358,7 +359,7 @@ function getOnboardingDiagnostics(detail: AdminUserDetailPayload) {
     },
     {
       id: "signin",
-      label: "Premiere connexion",
+      label: "Première connexion",
       ok: Boolean(user.lastSignInAt),
       detail: user.lastSignInAt
         ? `Derniere connexion ${formatAdminDate(user.lastSignInAt)}`
@@ -1078,6 +1079,10 @@ export function AdminPeopleWorkspace({
             />
 
             <OnboardingDiagnosticList detail={detail} />
+
+            {detail.user.roleBucket === "provider" ? (
+              <ProviderDocumentReviewPanel providerId={detail.user.id} />
+            ) : null}
 
             <div className={styles.detailGrid}>
               <DetailList

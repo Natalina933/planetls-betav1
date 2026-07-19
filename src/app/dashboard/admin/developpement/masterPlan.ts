@@ -13,6 +13,22 @@ export type MasterPlanSection = {
 export type MasterPlanView = {
   title: string; updatedAt: string; sections: MasterPlanSection[];
   statusCounts: Record<string, number>; priorityCounts: Record<string, number>; lineCount: number;
+  registryPriorityCounts: Record<string, number>;
+  remainingPriorityCounts: Record<string, number>;
+  planning: MasterPlanPlanningItem[];
+};
+
+export type MasterPlanPlanningItem = {
+  id: string;
+  order: number;
+  horizon: "Maintenant" | "Ensuite" | "Après stabilisation" | "Plus tard";
+  domain: string;
+  feature: string;
+  audience: string;
+  status: string;
+  priority: string;
+  evidence: string;
+  nextAction: string;
 };
 
 function slugify(value: string) {
@@ -22,6 +38,55 @@ function slugify(value: string) {
 
 function countOccurrences(source: string, token: string) {
   return source.split(token).length - 1;
+}
+
+function markdownCells(line: string) {
+  return line.split("|").slice(1, -1).map((cell) => cell.trim().replace(/[`*_]/g, ""));
+}
+
+function registryRows(lines: string[]) {
+  const headerIndex = lines.findIndex((line) => {
+    const cells = markdownCells(line);
+    return cells.includes("Domaine") && cells.includes("Fonctionnalité") && cells.includes("Prochaine action");
+  });
+  if (headerIndex < 0) return [] as string[][];
+  const rows: string[][] = [];
+  for (let index = headerIndex + 2; index < lines.length && lines[index].trim().startsWith("|"); index += 1) {
+    rows.push(markdownCells(lines[index]));
+  }
+  return rows;
+}
+
+function buildPlanning(lines: string[]) {
+  const headerIndex = lines.findIndex((line) => {
+    const cells = markdownCells(line);
+    return cells.includes("Domaine") && cells.includes("Fonctionnalité") && cells.includes("Prochaine action");
+  });
+  if (headerIndex < 0) return [];
+  const headers = markdownCells(lines[headerIndex]);
+  const column = (name: string) => headers.indexOf(name);
+  const priorityOrder = new Map(MASTER_PLAN_PRIORITIES.map((priority, index) => [priority, index]));
+  const rows: MasterPlanPlanningItem[] = [];
+  for (let index = headerIndex + 2; index < lines.length && lines[index].trim().startsWith("|"); index += 1) {
+    const cells = markdownCells(lines[index]);
+    const status = cells[column("Statut")] ?? "";
+    const priority = cells[column("Priorité")] ?? "";
+    if (!priorityOrder.has(priority as typeof MASTER_PLAN_PRIORITIES[number]) || status === "✅ Terminé") continue;
+    const rank = priorityOrder.get(priority as typeof MASTER_PLAN_PRIORITIES[number]) ?? 99;
+    rows.push({
+      id: `${slugify(cells[column("Domaine")] ?? "")}-${slugify(cells[column("Fonctionnalité")] ?? "")}`,
+      order: rank,
+      horizon: rank === 0 ? "Maintenant" : rank === 1 ? "Ensuite" : rank === 2 ? "Après stabilisation" : "Plus tard",
+      domain: cells[column("Domaine")] ?? "",
+      feature: cells[column("Fonctionnalité")] ?? "",
+      audience: cells[column("Profil concerné")] ?? "",
+      status,
+      priority,
+      evidence: cells[column("Preuves dans le code")] ?? "",
+      nextAction: cells[column("Prochaine action")] ?? "",
+    });
+  }
+  return rows.sort((left, right) => left.order - right.order || left.feature.localeCompare(right.feature, "fr"));
 }
 
 export function parseMasterPlan(markdown: string, updatedAt: string): MasterPlanView {
@@ -45,10 +110,23 @@ export function parseMasterPlan(markdown: string, updatedAt: string): MasterPlan
       priorities: MASTER_PLAN_PRIORITIES.filter((priority) => content.includes(priority)),
     };
   });
+  const planning = buildPlanning(lines);
+  const registry = registryRows(lines);
+  const registryPriorityCounts = Object.fromEntries(MASTER_PLAN_PRIORITIES.map((priority) => [
+    priority,
+    registry.filter((cells) => cells.includes(priority)).length,
+  ]));
+  const remainingPriorityCounts = Object.fromEntries(MASTER_PLAN_PRIORITIES.map((priority) => [
+    priority,
+    planning.filter((item) => item.priority === priority).length,
+  ]));
   return {
     title: headings[0]?.title ?? "Master Plan PlanetLS", updatedAt, sections,
     statusCounts: Object.fromEntries(MASTER_PLAN_STATUSES.map((status) => [status, countOccurrences(normalized, status)])),
     priorityCounts: Object.fromEntries(MASTER_PLAN_PRIORITIES.map((priority) => [priority, countOccurrences(normalized, priority)])),
+    registryPriorityCounts,
+    remainingPriorityCounts,
     lineCount: lines.length,
+    planning,
   };
 }

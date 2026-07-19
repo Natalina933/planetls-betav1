@@ -53,6 +53,26 @@ type ServiceRequestListPayload = {
   scope?: "owner" | "concierge";
 };
 
+async function completeStripeTestCheckout(page: Page, checkoutUrl: string) {
+  expect(checkoutUrl).toMatch(/^https:\/\/checkout\.stripe\.com\//);
+  await page.goto(checkoutUrl, { waitUntil: "domcontentloaded", timeout: 90_000 });
+  await page.getByLabel(/Card number|Numéro de carte/i).fill("4242424242424242");
+  await page.getByLabel(/Expiration|Date d.expiration/i).fill("1234");
+  await page.getByLabel(/CVC|Code de sécurité/i).fill("123");
+  const cardholder = page.getByLabel(/Name on card|Nom du titulaire/i);
+  if (await cardholder.count()) await cardholder.fill("PlanetLS Owner E2E");
+  const postalCode = page.getByLabel(/ZIP|Postal|Code postal/i);
+  if (await postalCode.count()) await postalCode.fill("75001");
+  await page.getByRole("button", { name: /Pay|Payer/i }).click();
+  await page.waitForURL("**/dashboard/owner/factures?payment=success**", {
+    waitUntil: "domcontentloaded",
+    timeout: 120_000,
+  });
+  await expect(page.getByText(/Paiement confirmé|Paiement synchronisé|Facture payée/i).first()).toBeVisible({
+    timeout: 60_000,
+  });
+}
+
 async function profileId(page: Page) {
   const response = await page.request.get("/api/auth/session", {
     headers: { "Cache-Control": "no-store" },
@@ -199,37 +219,46 @@ test("propriétaire → demande → devis accepté → mission et facture émise
 
   const checkoutResponse = await ownerPage.request.post(`/api/billing/invoices/${invoiceId}/checkout`);
   const checkoutBody = await checkoutResponse.text();
-  expect(checkoutResponse.status(), checkoutBody).toBe(503);
-  expect(checkoutBody).toContain("Stripe n'est pas encore configure");
+  const stripeTestEnabled = process.env.E2E_STRIPE_SECRET_KEY?.startsWith("sk_test_") === true;
+  if (stripeTestEnabled) {
+    expect(checkoutResponse.ok(), checkoutBody).toBeTruthy();
+    const checkout = JSON.parse(checkoutBody) as { id?: string; url?: string };
+    expect(checkout.id).toMatch(/^cs_/);
+    expect(checkout.url).toBeTruthy();
+    await completeStripeTestCheckout(ownerPage, checkout.url!);
+  } else {
+    expect(checkoutResponse.status(), checkoutBody).toBe(503);
+    expect(checkoutBody).toContain("Stripe n'est pas encore configure");
 
-  const webhookSecret = "whsec_planetls_e2e_only";
-  const webhookTimestamp = Math.floor(Date.now() / 1000);
-  const stripeSessionId = `cs_test_planetls_${Date.now()}`;
-  const webhookPayload = JSON.stringify({
-    id: `evt_planetls_${Date.now()}`,
-    type: "checkout.session.completed",
-    data: {
-      object: {
-        id: stripeSessionId,
-        mode: "payment",
-        payment_status: "paid",
-        metadata: { user_id: ownerProfileId, invoice_id: invoiceId },
+    const webhookSecret = "whsec_planetls_e2e_only";
+    const webhookTimestamp = Math.floor(Date.now() / 1000);
+    const stripeSessionId = `cs_test_planetls_${Date.now()}`;
+    const webhookPayload = JSON.stringify({
+      id: `evt_planetls_${Date.now()}`,
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: stripeSessionId,
+          mode: "payment",
+          payment_status: "paid",
+          metadata: { user_id: ownerProfileId, invoice_id: invoiceId },
+        },
       },
-    },
-  });
-  const webhookSignature = crypto
-    .createHmac("sha256", webhookSecret)
-    .update(`${webhookTimestamp}.${webhookPayload}`)
-    .digest("hex");
-  const webhookResponse = await ownerPage.request.post("/api/billing/webhook", {
-    data: webhookPayload,
-    headers: {
-      "Content-Type": "application/json",
-      "stripe-signature": `t=${webhookTimestamp},v1=${webhookSignature}`,
-    },
-  });
-  const webhookBody = await webhookResponse.text();
-  expect(webhookResponse.ok(), webhookBody).toBeTruthy();
+    });
+    const webhookSignature = crypto
+      .createHmac("sha256", webhookSecret)
+      .update(`${webhookTimestamp}.${webhookPayload}`)
+      .digest("hex");
+    const webhookResponse = await ownerPage.request.post("/api/billing/webhook", {
+      data: webhookPayload,
+      headers: {
+        "Content-Type": "application/json",
+        "stripe-signature": `t=${webhookTimestamp},v1=${webhookSignature}`,
+      },
+    });
+    const webhookBody = await webhookResponse.text();
+    expect(webhookResponse.ok(), webhookBody).toBeTruthy();
+  }
 
   const paidInvoicesResponse = await ownerPage.request.get(`/api/invoices?quoteId=${quoteId}`, {
     headers: { "Cache-Control": "no-store" },

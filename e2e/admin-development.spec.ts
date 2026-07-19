@@ -24,6 +24,11 @@ test("admin : le Master Plan reste lisible et filtrable sur desktop et mobile", 
   await expect(page.getByRole("heading", { name: "Master Plan PlanetLS", exact: true })).toBeVisible();
   await expect(page.getByRole("navigation", { name: "Sommaire du Master Plan" })).toBeVisible();
   await expect(page.getByText("sections indexées")).toBeVisible();
+  await expect(page.getByText("P0 restants sur 10")).toBeVisible();
+  await expect(page.getByRole("button", { name: "3 / 10 P0 Critique restant / total" })).toBeVisible();
+  const visionSubsections = page.getByRole("navigation", { name: "Sous-sections de 1. Vision du projet" });
+  await expect(visionSubsections).toBeVisible();
+  await expect(visionSubsections.getByRole("link", { name: "Mission", exact: true })).toBeVisible();
 
   const search = page.getByPlaceholder("Rechercher une fonctionnalité, une décision, une limite…");
   await search.fill("Stripe");
@@ -36,6 +41,7 @@ test("admin : le Master Plan reste lisible et filtrable sur desktop et mobile", 
 
   await page.getByRole("button", { name: /P1 Prioritaire/ }).click();
   await expect(page.getByLabel(/Filtrer par priorit/)).toHaveValue("P1 Prioritaire");
+  await page.getByLabel(/Filtrer par priorit/).selectOption("");
   await page.getByRole("button", { name: /En cours/ }).click();
   await expect(page.getByLabel("Filtrer par statut")).not.toHaveValue("");
   await expect(page.getByText(/Aucun r.sultat/)).toHaveCount(0);

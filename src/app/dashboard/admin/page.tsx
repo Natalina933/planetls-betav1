@@ -457,6 +457,13 @@ export default function AdminDashboard() {
       <DashboardPanel title="Activation J+7">
         {kpiError ? <p className={styles.kpiState}>{kpiError}</p> : null}
         {!kpiError && activationRoles.length === 0 ? <p className={styles.kpiState}>Aucune cohorte mature sur les 30 derniers jours.</p> : null}
+        {kpiOverview?.activation_alerts.length ? <div className={styles.activationAlerts} aria-label="Alertes activation">
+          {kpiOverview.activation_alerts.map((alert) => <article key={alert.id} data-severity={alert.severity}>
+            <div><strong>{alert.title}</strong><span>{alert.detail}</span></div>
+            <p>{alert.next_action}</p>
+            <Link href={alert.role === "owner" ? "/dashboard/admin/proprietaires" : alert.role === "concierge" ? "/dashboard/admin/conciergeries" : "/dashboard/admin/artisans"}>Ouvrir les profils concernés</Link>
+          </article>)}
+        </div> : null}
         <div className={styles.activationGrid}>
           {activationRoles.map(({ key, label, metric }) => {
             const zones = kpiOverview?.activation_by_zone[key] ?? [];
@@ -475,7 +482,7 @@ export default function AdminDashboard() {
                   ))}
                 </div>
                 <p>{zones[0] ? `Zone principale : ${zones[0].zone} (${zones[0].activated}/${zones[0].eligible})` : "Aucune zone avec cohorte mature"}</p>
-                <small>Definition : {metric.activation_definition}</small>
+                <small>Définition : {metric.activation_definition} · cible {kpiOverview?.activation_alert_policy.roles[key].target_rate}% · alerte critique sous {kpiOverview?.activation_alert_policy.roles[key].critical_rate}%</small>
               </article>
             );
           })}

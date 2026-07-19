@@ -4,6 +4,7 @@ import { requireApiRole } from "@/server/auth/roleGuards";
 import { resolveUserRole } from "@/app/utils/roles";
 import { buildControlTowerHealth, type ControlSourceHealth } from "./health";
 import { evaluateMissionHealth } from "./missionHealth";
+import { controlActionKey, parseAdminControlAction, type AdminControlTarget } from "./actions";
 
 const ADMIN_ROLES = new Set(["admin", "super_admin"]);
 
@@ -153,6 +154,7 @@ export async function GET(req: NextRequest) {
       messagesRes,
       interventionsRes,
       maintenanceRes,
+      controlActionsRes,
     ] = await Promise.all([
       safeQuery(
         adminClient
@@ -286,7 +288,56 @@ export async function GET(req: NextRequest) {
           QueryResult<{ id: string; mission_id: string | null; status: string }>
         >,
       ),
+      safeQuery(
+        adminClient
+          .from("workflow_events")
+          .select("id,actor_profile_id,event_type,body,metadata,created_at")
+          .in("event_type", ["admin_control_acknowledged", "admin_control_escalated", "admin_control_closed"])
+          .order("created_at", { ascending: false })
+          .limit(300) as unknown as PromiseLike<QueryResult<{
+            id: string;
+            actor_profile_id: string | null;
+            event_type: string;
+            body: string | null;
+            metadata: Record<string, unknown> | null;
+            created_at: string;
+          }>>,
+      ),
     ]);
+
+    const latestControlAction = new Map<string, {
+      status: "acknowledged" | "escalated" | "closed";
+      note: string | null;
+      actorProfileId: string | null;
+      createdAt: string;
+    }>();
+    ((controlActionsRes.data ?? []) as Array<{
+      actor_profile_id: string | null;
+      event_type: string;
+      body: string | null;
+      metadata: Record<string, unknown> | null;
+      created_at: string;
+    }>).forEach((event) => {
+      const targetType = event.metadata?.target_type;
+      const targetId = event.metadata?.target_id;
+      if ((targetType !== "onboarding" && targetType !== "mission" && targetType !== "message") || typeof targetId !== "string") return;
+      const key = controlActionKey(targetType, targetId);
+      if (latestControlAction.has(key)) return;
+      latestControlAction.set(key, {
+        status: event.event_type === "admin_control_closed"
+          ? "closed"
+          : event.event_type === "admin_control_escalated"
+            ? "escalated"
+            : "acknowledged",
+        note: event.body,
+        actorProfileId: event.actor_profile_id,
+        createdAt: event.created_at,
+      });
+    });
+    const withControlAction = <T extends { id: string }>(targetType: AdminControlTarget, item: T) => ({
+      ...item,
+      controlAction: latestControlAction.get(controlActionKey(targetType, item.id)) ?? null,
+    });
 
     const profiles = (profilesRes.data ?? []) as RawProfile[];
     const profileById = new Map(profiles.map((profile) => [profile.id, profile]));
@@ -306,11 +357,11 @@ export async function GET(req: NextRequest) {
         const resolvedRole = resolveUserRole(profile.role, profile.category) ?? "owner";
         const createdAt = authUser?.created_at ?? profile.created_at;
         const steps = [
-          { id: "account", label: "Compte cree", ok: Boolean(createdAt) },
-          { id: "email", label: "Email confirme", ok: Boolean(authUser?.email_confirmed_at) },
-          { id: "signin", label: "Premiere connexion", ok: Boolean(authUser?.last_sign_in_at) },
-          { id: "events", label: "Evenements d'inscription", ok: (onboardingEventCountByProfile.get(profile.id) ?? 0) > 0 },
-          { id: "complete", label: "Inscription terminee", ok: profile.onboarding_complete === true },
+          { id: "account", label: "Compte créé", ok: Boolean(createdAt) },
+          { id: "email", label: "E-mail confirmé", ok: Boolean(authUser?.email_confirmed_at) },
+          { id: "signin", label: "Première connexion", ok: Boolean(authUser?.last_sign_in_at) },
+          { id: "events", label: "Événements d'inscription", ok: (onboardingEventCountByProfile.get(profile.id) ?? 0) > 0 },
+          { id: "complete", label: "Inscription terminée", ok: profile.onboarding_complete === true },
         ];
         const issueCount = buildIssueCount(steps);
         const ageHours = getAgeHours(createdAt);
@@ -523,6 +574,7 @@ export async function GET(req: NextRequest) {
       { key: "messages", label: "Messages", available: messagesRes.available, reason: messagesRes.reason },
       { key: "provider-interventions", label: "Affectations prestataires", available: interventionsRes.available, reason: interventionsRes.reason },
       { key: "maintenance-incidents", label: "Incidents de maintenance", available: maintenanceRes.available, reason: maintenanceRes.reason },
+      { key: "control-actions", label: "Actions administratives", available: controlActionsRes.available, reason: controlActionsRes.reason },
     ];
     const health = buildControlTowerHealth({ sources: sourceHealth, dangerCount, warningCount });
 
@@ -550,14 +602,53 @@ export async function GET(req: NextRequest) {
           },
           totalProblems: onboardingProblemCount + missionProblemCount + conversationProblemCount,
         },
-        onboarding: onboardingItems.slice(0, 24),
-        missions: missionItems.slice(0, 24),
-        messages: conversationItems.slice(0, 24),
+        onboarding: onboardingItems.slice(0, 24).map((item) => withControlAction("onboarding", item)),
+        missions: missionItems.slice(0, 24).map((item) => withControlAction("mission", item)),
+        messages: conversationItems.slice(0, 24).map((item) => withControlAction("message", item)),
       },
       { status: 200 },
     );
   } catch (error) {
     console.error("[GET /api/admin/control-tower] error", error);
+    return NextResponse.json({ error: "Erreur serveur admin" }, { status: 500 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const guard = await requireApiRole(req, ADMIN_ROLES);
+    if (!guard.ok) return guard.response;
+    const parsed = parseAdminControlAction(await req.json().catch(() => null));
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
+
+    const adminClient = createAdminClient();
+    const action = parsed.data;
+    const eventType = "admin_control_" + action.status;
+    const { data, error } = await adminClient.from("workflow_events").insert({
+      actor_profile_id: guard.auth.userId,
+      mission_id: action.targetType === "mission" ? action.targetId : null,
+      event_type: eventType,
+      title: action.status === "closed"
+        ? "Suivi administrateur clôturé"
+        : action.status === "escalated"
+          ? "Contrôle transmis au responsable"
+          : "Contrôle administrateur pris en charge",
+      body: action.note,
+      action_href: "/dashboard/admin/controle",
+      metadata: {
+        target_type: action.targetType,
+        target_id: action.targetId,
+        control_status: action.status,
+      },
+    }).select("id,actor_profile_id,event_type,body,metadata,created_at").single();
+
+    if (error) {
+      console.error("[POST /api/admin/control-tower] insert error", error);
+      return NextResponse.json({ error: "Impossible d'enregistrer l'action administrateur." }, { status: 500 });
+    }
+    return NextResponse.json({ action: data }, { status: 201 });
+  } catch (error) {
+    console.error("[POST /api/admin/control-tower] error", error);
     return NextResponse.json({ error: "Erreur serveur admin" }, { status: 500 });
   }
 }

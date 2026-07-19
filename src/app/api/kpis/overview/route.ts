@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
-import type { KpiOverviewPayload } from "./shared";
+import { ACTIVATION_ALERT_POLICY, buildActivationAlerts, type KpiOverviewPayload } from "./shared";
 import { computeActivationByZone, computeActivationCohort, computeWeeklyActivationSeries } from "@/app/lib/activationKpis";
 
 type RoleKey = "owner" | "concierge" | "provider";
@@ -29,7 +29,7 @@ const ROLE_GROUPS: Record<RoleKey, string[]> = {
   provider: ["provider", "provider_pro", "artisan", "artisan_pro"],
 };
 
-const SCHEMA_DRIFT_CODES = new Set(["42P01", "42703"]);
+const SCHEMA_DRIFT_CODES = new Set(["42P01", "42703", "PGRST205"]);
 
 function round2(value: number): number {
   return Math.round(value * 100) / 100;
@@ -199,10 +199,20 @@ export async function GET(req: NextRequest) {
       if (invoice.provider_profile_id) markActivity(invoice.provider_profile_id, "invoice", invoice.created_at);
     }
 
-    const { data: messagesData, error: messagesError } = await kpiDb
+    let { data: messagesData, error: messagesError } = await kpiDb
       .from("messages")
       .select("conversation_id, sender_id, created_at")
       .gte("created_at", windowIso);
+    if (messagesError && isSchemaDriftError(messagesError)) {
+      const contactMessagesResult = await kpiDb.from("contact_messages")
+        .select("conversation_id, sender_profile_id, created_at")
+        .gte("created_at", windowIso);
+      messagesData = (contactMessagesResult.data ?? []).map((row) => {
+        const value = row as { conversation_id?: unknown; sender_profile_id?: unknown; created_at?: unknown };
+        return { conversation_id: value.conversation_id, sender_id: value.sender_profile_id, created_at: value.created_at };
+      });
+      messagesError = contactMessagesResult.error;
+    }
     if (messagesError && !isSchemaDriftError(messagesError)) throw messagesError;
     const messages = (messagesError ? [] : messagesData ?? []) as Array<{
       conversation_id: string | null;
@@ -312,34 +322,29 @@ export async function GET(req: NextRequest) {
     const providerMissionCompletedRate =
       providerMissions.length > 0 ? round2((providerCompleted / providerMissions.length) * 100) : null;
 
+    const activationSeries = {
+      owner: activationSeriesFor("owner"),
+      concierge: activationSeriesFor("concierge"),
+      provider: activationSeriesFor("provider"),
+    };
+    const roleMetrics = {
+      owner: { ...ownerActivation, median_signup_to_first_request_minutes: median(ownerSignupToFirstRequest), request_to_quote_rate: requestToQuoteRate },
+      concierge: { ...conciergeActivation, median_signup_to_first_response_minutes: median(firstResponseMinutes), quote_to_mission_rate: quoteToMissionRate },
+      provider: { ...providerActivation, median_signup_to_first_response_minutes: median(firstResponseMinutes), missions_completed_rate: providerMissionCompletedRate },
+    };
     const payload: KpiOverviewPayload = {
       window_days: windowDays,
       generated_at: now.toISOString(),
-      owner: {
-        ...ownerActivation,
-        median_signup_to_first_request_minutes: median(ownerSignupToFirstRequest),
-        request_to_quote_rate: requestToQuoteRate,
-      },
-      concierge: {
-        ...conciergeActivation,
-        median_signup_to_first_response_minutes: median(firstResponseMinutes),
-        quote_to_mission_rate: quoteToMissionRate,
-      },
-      provider: {
-        ...providerActivation,
-        median_signup_to_first_response_minutes: median(firstResponseMinutes),
-        missions_completed_rate: providerMissionCompletedRate,
-      },
-      activation_series: {
-        owner: activationSeriesFor("owner"),
-        concierge: activationSeriesFor("concierge"),
-        provider: activationSeriesFor("provider"),
-      },
+      ...roleMetrics,
+      activation_series: activationSeries,
       activation_by_zone: {
         owner: activationByZoneFor("owner"),
         concierge: activationByZoneFor("concierge"),
         provider: activationByZoneFor("provider"),
-      },      shared: {
+      },
+      activation_alert_policy: ACTIVATION_ALERT_POLICY,
+      activation_alerts: buildActivationAlerts(roleMetrics, activationSeries),
+      shared: {
         mission_to_paid_invoice_rate: missionToPaidInvoiceRate,
         median_first_message_response_minutes: median(firstResponseMinutes),
       },

@@ -105,6 +105,8 @@
 }
 
 .legendLabel {
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: rgba(47, 38, 29, 0.76);
   font-weight: 600;
 }
@@ -353,16 +355,8 @@
 .toneLegendItem small {
   color: rgba(47, 38, 29, 0.72);
 }
-
 @media (min-width: 900px) {
   .donutGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 760px) {
-  .chartRow {
-    grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
-    align-items: center;
   }
 }

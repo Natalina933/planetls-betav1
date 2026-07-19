@@ -30,6 +30,7 @@ type OnboardingItem = {
   steps: AdminControlStep[];
   issueCount: number;
   tone: AdminTone;
+  controlAction: ControlAction | null;
 };
 
 type MissionItem = {
@@ -52,6 +53,7 @@ type MissionItem = {
   steps: AdminControlStep[];
   issueCount: number;
   tone: AdminTone;
+  controlAction: ControlAction | null;
 };
 
 type MessageItem = {
@@ -68,6 +70,14 @@ type MessageItem = {
   steps: AdminControlStep[];
   issueCount: number;
   tone: AdminTone;
+  controlAction: ControlAction | null;
+};
+
+type ControlAction = {
+  status: "acknowledged" | "escalated" | "closed";
+  note: string | null;
+  actorProfileId: string | null;
+  createdAt: string;
 };
 
 type ControlPayload = {
@@ -112,6 +122,92 @@ function StepRow({ steps }: { steps: AdminControlStep[] }) {
           {formatControlStepLabel(step)}
         </span>
       ))}
+    </div>
+  );
+}
+
+function ControlActionPanel({
+  targetType,
+  targetId,
+  tone,
+  action,
+  onSaved,
+}: {
+  targetType: "onboarding" | "mission" | "message";
+  targetId: string;
+  tone: AdminTone;
+  action: ControlAction | null;
+  onSaved: () => void;
+}) {
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState<"acknowledged" | "escalated" | "closed" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save(status: "acknowledged" | "escalated" | "closed") {
+    setSaving(status);
+    setError(null);
+    try {
+      const response = await fetch("/api/admin/control-tower", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetType, targetId, status, note }),
+      });
+      const result = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) {
+        setError(result?.error || "Action non enregistrée.");
+        return;
+      }
+      setNote("");
+      onSaved();
+    } catch {
+      setError("Action non enregistrée.");
+    } finally {
+      setSaving(null);
+    }
+  }
+
+  if (tone === "positive" && !action) return null;
+
+  return (
+    <div className={styles.controlAction}>
+      {action ? (
+        <p>
+          <strong>
+            {action.status === "closed"
+              ? "Suivi clôturé"
+              : action.status === "escalated"
+                ? "Transmis au responsable"
+                : "Pris en charge"}
+          </strong>
+          {" · "}{formatAdminDate(action.createdAt)}
+          {action.note ? <span>{action.note}</span> : null}
+        </p>
+      ) : <p>Aucune prise en charge enregistrée.</p>}
+      {tone !== "positive" ? (
+        <>
+          <input
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            maxLength={500}
+            placeholder="Motif, consigne ou compte rendu"
+            aria-label="Motif de l'action administrateur"
+          />
+          <div>
+            <button type="button" disabled={saving !== null} onClick={() => void save("acknowledged")}>
+              {saving === "acknowledged" ? "Enregistrement…" : "Prendre en charge"}
+            </button>
+            <button type="button" disabled={saving !== null || note.trim().length < 3} onClick={() => void save("escalated")}>
+              {saving === "escalated" ? "Transmission…" : "Transmettre au responsable"}
+            </button>
+            {action && action.status !== "closed" ? (
+              <button type="button" disabled={saving !== null || note.trim().length < 3} onClick={() => void save("closed")}>
+                {saving === "closed" ? "Clôture…" : "Clôturer le suivi"}
+              </button>
+            ) : null}
+          </div>
+        </>
+      ) : null}
+      {error ? <small role="alert">{error}</small> : null}
     </div>
   );
 }
@@ -443,6 +539,7 @@ function AdminControlPageContent() {
                     </div>
                   </div>
                   <StepRow steps={item.steps} />
+                  <ControlActionPanel targetType="onboarding" targetId={item.id} tone={item.tone} action={item.controlAction} onSaved={() => setReloadKey((value) => value + 1)} />
                   <div className={styles.actions}>
                     <Link href="/dashboard/admin/utilisateurs">Ouvrir la base utilisateurs</Link>
                   </div>
@@ -480,6 +577,7 @@ function AdminControlPageContent() {
                     </div>
                   </div>
                   <StepRow steps={item.steps} />
+                  <ControlActionPanel targetType="mission" targetId={item.id} tone={item.tone} action={item.controlAction} onSaved={() => setReloadKey((value) => value + 1)} />
                   <div className={styles.actions}>
                     <Link href="/dashboard/admin/missions">Ouvrir le suivi missions</Link>
                   </div>
@@ -513,6 +611,7 @@ function AdminControlPageContent() {
                     </div>
                   </div>
                   <StepRow steps={item.steps} />
+                  <ControlActionPanel targetType="message" targetId={item.id} tone={item.tone} action={item.controlAction} onSaved={() => setReloadKey((value) => value + 1)} />
                   <div className={styles.actions}>
                     <Link href="/dashboard/admin/demandes">Ouvrir les demandes liées</Link>
                   </div>
