@@ -78,8 +78,15 @@ const CONCIERGE_BOOLEAN_FIELDS = [
 const PROVIDER_STRING_FIELDS = [
   ...COMMON_STRING_FIELDS,
   "company_name",
+  "legal_form",
+  "siret",
+  "siren",
+  "vat_number",
   "location",
   "category",
+  "insurance_number",
+  "insurance_company",
+  "certifications",
   "service_area",
   "availability_hours",
   // Legacy service field kept during transition.
@@ -201,7 +208,7 @@ export function getProfilePatchPolicy(role: string | null | undefined, isAdmin: 
     return {
       stringFields: new Set(PROVIDER_STRING_FIELDS),
       numberFields: new Set(PROVIDER_NUMBER_FIELDS),
-      booleanFields: new Set(COMMON_BOOLEAN_FIELDS),
+      booleanFields: new Set([...COMMON_BOOLEAN_FIELDS, "emergency_service"]),
       allowRoleMutation: false,
       allowExperienceLevel: true,
       allowOwnerPreferencesObject: false,

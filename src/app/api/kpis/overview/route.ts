@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import type { KpiOverviewPayload } from "./shared";
+import { computeActivationByZone, computeActivationCohort, computeWeeklyActivationSeries } from "@/app/lib/activationKpis";
 
 type RoleKey = "owner" | "concierge" | "provider";
 
@@ -68,7 +69,7 @@ function profileMatchesRole(profileRole: string | null, role: RoleKey): boolean 
 async function fetchProfiles() {
   const { data, error } = await kpiDb
     .from("profiles")
-    .select("id, role, created_at")
+    .select("id, role, city, created_at")
     .not("created_at", "is", null);
 
   if (error) {
@@ -76,7 +77,7 @@ async function fetchProfiles() {
     throw error;
   }
 
-  return (data ?? []) as Array<{ id: string; role: string | null; created_at: string | null }>;
+  return (data ?? []) as Array<{ id: string; role: string | null; city: string | null; created_at: string | null }>;
 }
 
 export async function GET(req: NextRequest) {
@@ -99,10 +100,13 @@ export async function GET(req: NextRequest) {
       profiles.map((profile) => [profile.id, { role: profile.role ?? "", createdAt: asDate(profile.created_at) }]),
     );
 
-    const activityByProfile = new Map<string, Set<string>>();
-    const markActivity = (profileId: string, marker: string) => {
-      const existing = activityByProfile.get(profileId) ?? new Set<string>();
-      existing.add(marker);
+    const activityByProfile = new Map<string, Map<string, Date>>();
+    const markActivity = (profileId: string, marker: string, occurredAt: unknown) => {
+      const date = asDate(occurredAt);
+      if (!date) return;
+      const existing = activityByProfile.get(profileId) ?? new Map<string, Date>();
+      const previous = existing.get(marker);
+      if (!previous || date < previous) existing.set(marker, date);
       activityByProfile.set(profileId, existing);
     };
 
@@ -120,7 +124,7 @@ export async function GET(req: NextRequest) {
     const ownerSignupToFirstRequest: number[] = [];
     const firstRequestByOwner = new Map<string, Date>();
     for (const requestRow of requests) {
-      if (requestRow.owner_profile_id) markActivity(requestRow.owner_profile_id, "request");
+      if (requestRow.owner_profile_id) markActivity(requestRow.owner_profile_id, "request", requestRow.created_at);
       if (!requestRow.owner_profile_id) continue;
       const createdAt = asDate(requestRow.created_at);
       if (!createdAt) continue;
@@ -149,9 +153,9 @@ export async function GET(req: NextRequest) {
     }>;
 
     for (const quote of quotes) {
-      if (quote.owner_profile_id) markActivity(quote.owner_profile_id, "quote");
-      if (quote.concierge_profile_id) markActivity(quote.concierge_profile_id, "quote");
-      if (quote.provider_profile_id) markActivity(quote.provider_profile_id, "quote");
+      if (quote.owner_profile_id) markActivity(quote.owner_profile_id, "quote", quote.created_at);
+      if (quote.concierge_profile_id) markActivity(quote.concierge_profile_id, "quote", quote.created_at);
+      if (quote.provider_profile_id) markActivity(quote.provider_profile_id, "quote", quote.created_at);
     }
 
     const { data: missionsData, error: missionsError } = await kpiDb
@@ -170,9 +174,9 @@ export async function GET(req: NextRequest) {
     }>;
 
     for (const mission of missions) {
-      if (mission.owner_profile_id) markActivity(mission.owner_profile_id, "mission");
-      if (mission.concierge_profile_id) markActivity(mission.concierge_profile_id, "mission");
-      if (mission.provider_profile_id) markActivity(mission.provider_profile_id, "mission");
+      if (mission.owner_profile_id) markActivity(mission.owner_profile_id, "mission", mission.created_at);
+      if (mission.concierge_profile_id) markActivity(mission.concierge_profile_id, "mission", mission.created_at);
+      if (mission.provider_profile_id) markActivity(mission.provider_profile_id, "mission", mission.created_at);
     }
 
     const { data: invoicesData, error: invoicesError } = await kpiDb
@@ -190,9 +194,9 @@ export async function GET(req: NextRequest) {
     }>;
 
     for (const invoice of invoices) {
-      if (invoice.owner_profile_id) markActivity(invoice.owner_profile_id, "invoice");
-      if (invoice.concierge_profile_id) markActivity(invoice.concierge_profile_id, "invoice");
-      if (invoice.provider_profile_id) markActivity(invoice.provider_profile_id, "invoice");
+      if (invoice.owner_profile_id) markActivity(invoice.owner_profile_id, "invoice", invoice.created_at);
+      if (invoice.concierge_profile_id) markActivity(invoice.concierge_profile_id, "invoice", invoice.created_at);
+      if (invoice.provider_profile_id) markActivity(invoice.provider_profile_id, "invoice", invoice.created_at);
     }
 
     const { data: messagesData, error: messagesError } = await kpiDb
@@ -207,7 +211,7 @@ export async function GET(req: NextRequest) {
     }>;
 
     for (const message of messages) {
-      if (message.sender_id) markActivity(message.sender_id, "message");
+      if (message.sender_id) markActivity(message.sender_id, "message", message.created_at);
     }
 
     const firstResponseByConversation = new Map<string, Date>();
@@ -235,22 +239,38 @@ export async function GET(req: NextRequest) {
       firstResponseMinutes.push(toMinutes(firstAt, responseAt));
     }
 
-    const computeActivationRate = (role: RoleKey): number | null => {
-      const candidates = profiles.filter((profile) => {
-        const createdAt = asDate(profile.created_at);
-        return Boolean(
-          createdAt &&
-            createdAt >= windowStart &&
-            profileMatchesRole(profile.role, role),
-        );
-      });
-      if (candidates.length === 0) return null;
-      const activated = candidates.filter((profile) => {
-        const markers = activityByProfile.get(profile.id);
-        return (markers?.size ?? 0) >= 3;
-      }).length;
-      return round2((activated / candidates.length) * 100);
-    };
+    const activationProfiles = profiles.map((profile) => ({
+      id: profile.id,
+      role: profile.role,
+      createdAt: asDate(profile.created_at),
+      zone: profile.city,
+    }));
+    const activationFor = (role: RoleKey) => computeActivationCohort({
+      role,
+      profiles: activationProfiles,
+      roleAliases: ROLE_GROUPS[role],
+      activityByProfile,
+      windowStart,
+      now,
+    });
+    const ownerActivation = activationFor("owner");
+    const conciergeActivation = activationFor("concierge");
+    const providerActivation = activationFor("provider");
+    const activationSeriesFor = (role: RoleKey) => computeWeeklyActivationSeries({
+      role,
+      profiles: activationProfiles,
+      roleAliases: ROLE_GROUPS[role],
+      activityByProfile,
+      windowStart,
+      now,
+    });    const activationByZoneFor = (role: RoleKey) => computeActivationByZone({
+      role,
+      profiles: activationProfiles,
+      roleAliases: ROLE_GROUPS[role],
+      activityByProfile,
+      windowStart,
+      now,
+    });
 
     const requestToQuoteRate =
       requestIds.length > 0
@@ -296,21 +316,30 @@ export async function GET(req: NextRequest) {
       window_days: windowDays,
       generated_at: now.toISOString(),
       owner: {
-        activation_j7: computeActivationRate("owner"),
+        ...ownerActivation,
         median_signup_to_first_request_minutes: median(ownerSignupToFirstRequest),
         request_to_quote_rate: requestToQuoteRate,
       },
       concierge: {
-        activation_j7: computeActivationRate("concierge"),
+        ...conciergeActivation,
         median_signup_to_first_response_minutes: median(firstResponseMinutes),
         quote_to_mission_rate: quoteToMissionRate,
       },
       provider: {
-        activation_j7: computeActivationRate("provider"),
+        ...providerActivation,
         median_signup_to_first_response_minutes: median(firstResponseMinutes),
         missions_completed_rate: providerMissionCompletedRate,
       },
-      shared: {
+      activation_series: {
+        owner: activationSeriesFor("owner"),
+        concierge: activationSeriesFor("concierge"),
+        provider: activationSeriesFor("provider"),
+      },
+      activation_by_zone: {
+        owner: activationByZoneFor("owner"),
+        concierge: activationByZoneFor("concierge"),
+        provider: activationByZoneFor("provider"),
+      },      shared: {
         mission_to_paid_invoice_rate: missionToPaidInvoiceRate,
         median_first_message_response_minutes: median(firstResponseMinutes),
       },

@@ -33,16 +33,18 @@ test("concierge patch policy allows operational profile fields", () => {
   assert.equal(policy.allowExperienceLevel, true);
 });
 
-test("provider patch policy keeps category and zone but blocks concierge compliance fields", () => {
+test("provider patch policy allows professional, compliance and operational fields", () => {
   const policy = getProfilePatchPolicy("artisan", false);
 
   assert.equal(policy.stringFields.has("category"), true);
   assert.equal(policy.stringFields.has("service_area"), true);
   assert.equal(policy.stringFields.has("availability_hours"), true);
-  assert.equal(policy.stringFields.has("insurance_number"), false);
-  assert.equal(policy.stringFields.has("siret"), false);
+  assert.equal(policy.stringFields.has("insurance_number"), true);
+  assert.equal(policy.stringFields.has("certifications"), true);
+  assert.equal(policy.stringFields.has("siret"), true);
   assert.equal(policy.numberFields.has("hourly_rate"), true);
   assert.equal(policy.numberFields.has("monthly_rate"), false);
+  assert.equal(policy.booleanFields.has("emergency_service"), true);
   assert.equal(policy.allowExperienceLevel, true);
 });
 

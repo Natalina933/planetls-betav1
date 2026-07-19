@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import {
   AlertTriangle,
   ArrowRight,
@@ -38,6 +38,40 @@ type MissionRow = {
   metadata?: Record<string, unknown> | null;
 };
 
+type ProviderOption = {
+  id: string;
+  displayName: string;
+  companyName?: string | null;
+  category?: string | null;
+  city?: string | null;
+  isPro?: boolean;
+};
+
+const INCIDENT_STATUS_LABELS: Record<string, string> = {
+  reported: "Signale",
+  qualified: "Qualifie",
+  assigned: "Artisan affecte",
+  quoted: "Devis recu",
+  approved: "Devis valide",
+  scheduled: "Planifie",
+  in_progress: "En cours",
+  resolved: "Resolu",
+  closed: "Cloture",
+  cancelled: "Annule",
+};
+
+const INCIDENT_NEXT_STATUSES: Record<string, string[]> = {
+  reported: ["qualified", "cancelled"],
+  qualified: ["assigned", "cancelled"],
+  assigned: ["quoted", "scheduled", "cancelled"],
+  quoted: ["approved", "cancelled"],
+  approved: ["scheduled", "cancelled"],
+  scheduled: ["in_progress", "cancelled"],
+  in_progress: ["resolved", "cancelled"],
+  resolved: ["closed", "in_progress"],
+  closed: [],
+  cancelled: [],
+};
 const MAINTENANCE_KEYWORDS = [
   "maintenance",
   "incident",
@@ -181,6 +215,15 @@ function formatDate(value?: string | null) {
 
 export default function ConciergeMaintenancePage() {
   const [missions, setMissions] = useState<MissionRow[]>([]);
+  const [persistedIncidents, setPersistedIncidents] = useState<MaintenanceIncidentInput[]>([]);
+  const [providers, setProviders] = useState<ProviderOption[]>([]);
+  const [schemaReady, setSchemaReady] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [priority, setPriority] = useState("normal");
+  const [saving, setSaving] = useState(false);
+  const [savingIncidentId, setSavingIncidentId] = useState<string | null>(null);
+  const [uploadingIncidentId, setUploadingIncidentId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -191,10 +234,23 @@ export default function ConciergeMaintenancePage() {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch("/api/missions?scope=concierge&limit=120", { cache: "no-store" });
-        const payload = await response.json();
-        if (!response.ok) throw new Error(payload?.error || "Impossible de charger la maintenance.");
-        if (active) setMissions(Array.isArray(payload) ? payload : []);
+        const [missionsResponse, incidentsResponse, providersResponse] = await Promise.all([
+          fetch("/api/missions?scope=concierge&limit=120", { cache: "no-store" }),
+          fetch("/api/concierge/maintenance", { cache: "no-store" }),
+          fetch("/api/profiles/providers?limit=120", { cache: "no-store" }),
+        ]);
+        const missionsPayload = await missionsResponse.json();
+        const incidentsPayload = await incidentsResponse.json();
+        const providersPayload = await providersResponse.json();
+        if (!missionsResponse.ok) throw new Error(missionsPayload?.error || "Impossible de charger la maintenance.");
+        if (!incidentsResponse.ok) throw new Error(incidentsPayload?.error || "Impossible de charger les incidents.");
+        if (!providersResponse.ok) throw new Error(providersPayload?.error || "Impossible de charger les artisans.");
+        if (active) {
+          setMissions(Array.isArray(missionsPayload) ? missionsPayload : []);
+          setPersistedIncidents(Array.isArray(incidentsPayload.items) ? incidentsPayload.items : []);
+          setProviders(Array.isArray(providersPayload.items) ? providersPayload.items : []);
+          setSchemaReady(incidentsPayload.schema_ready === true);
+        }
       } catch (err) {
         if (active) setError(err instanceof Error ? err.message : "Impossible de charger la maintenance.");
       } finally {
@@ -209,14 +265,109 @@ export default function ConciergeMaintenancePage() {
   }, []);
 
   const dashboard = useMemo(() => {
-    const source = missions.filter(isMaintenanceMission).map(missionToIncident);
+    const legacyIncidents = missions.filter(isMaintenanceMission).map(missionToIncident);
+    const persistedMissionIds = new Set(persistedIncidents.map((incident) => incident.missionId).filter(Boolean));
+    const source = [...persistedIncidents, ...legacyIncidents.filter((incident) => !persistedMissionIds.has(incident.missionId))];
     return buildMaintenanceWorkflowDashboard({ incidents: source });
-  }, [missions]);
+  }, [missions, persistedIncidents]);
 
   const leadWorkflow = dashboard.workflows[0] ?? null;
   const activeWorkflows = dashboard.workflows.filter((workflow) => workflow.completionPct < 100);
   const completedWorkflows = dashboard.workflows.filter((workflow) => workflow.completionPct === 100);
 
+  async function createIncident(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    try {
+      setSaving(true);
+      setError(null);
+      const response = await fetch("/api/concierge/maintenance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, description, priority }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || "Creation incident impossible.");
+      setPersistedIncidents((current) => [payload, ...current]);
+      setTitle("");
+      setDescription("");
+      setPriority("normal");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Creation incident impossible.");
+    } finally {
+      setSaving(false);
+    }
+  }
+  async function updateIncidentStatus(incidentId: string, status: string) {
+    if (!status) return;
+    try {
+      setSavingIncidentId(incidentId);
+      setError(null);
+      const response = await fetch(`/api/concierge/maintenance/${incidentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || "Mise a jour impossible.");
+      setPersistedIncidents((current) => current.map((incident) => incident.id === incidentId ? payload : incident));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Mise a jour impossible.");
+    } finally {
+      setSavingIncidentId(null);
+    }
+  }
+  async function uploadEvidence(incidentId: string, file: File | undefined) {
+    if (!file) return;
+    try {
+      setUploadingIncidentId(incidentId);
+      setError(null);
+      const form = new FormData();
+      form.append("file", file);
+      form.append("label", file.name);
+      const response = await fetch(`/api/concierge/maintenance/${incidentId}/media`, { method: "POST", body: form });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || "Upload preuve impossible.");
+      const photo = {
+        id: String(payload.id),
+        label: typeof payload.label === "string" ? payload.label : file.name,
+        url: `/api/concierge/maintenance/${incidentId}/media/${payload.id}/download`,
+        created_at: typeof payload.created_at === "string" ? payload.created_at : new Date().toISOString(),
+      };
+      setPersistedIncidents((current) => current.map((incident) =>
+        incident.id === incidentId ? { ...incident, photos: [photo, ...(incident.photos ?? [])] } : incident,
+      ));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload preuve impossible.");
+    } finally {
+      setUploadingIncidentId(null);
+    }
+  }
+  async function assignProvider(incidentId: string, providerProfileId: string) {
+    try {
+      setSavingIncidentId(incidentId);
+      setError(null);
+      const response = await fetch(`/api/concierge/maintenance/${incidentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ providerProfileId: providerProfileId || null }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || "Affectation impossible.");
+      const selectedProvider = providers.find((provider) => provider.id === providerProfileId);
+      const hydratedPayload = selectedProvider
+        ? { ...payload, artisan: { ...payload.artisan, name: selectedProvider.displayName } }
+        : payload;
+      setPersistedIncidents((current) => current.map((incident) => incident.id === incidentId ? hydratedPayload : incident));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Affectation impossible.");
+    } finally {
+      setSavingIncidentId(null);
+    }
+  }
+  function nextIncidentStatuses(incidentId: string) {
+    const incident = persistedIncidents.find((entry) => entry.id === incidentId);
+    return incident ? INCIDENT_NEXT_STATUSES[String(incident.status ?? "reported")] ?? [] : [];
+  }
   return (
     <main className={styles.page}>
       <header className={styles.hero}>
@@ -239,6 +390,39 @@ export default function ConciergeMaintenancePage() {
       </header>
 
       {error ? <div className={styles.error}>{error}</div> : null}
+
+      {schemaReady ? (
+        <section className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <div>
+              <p className={styles.eyebrow}>Nouvel incident</p>
+              <h2>Qualifier une demande de maintenance</h2>
+            </div>
+          </div>
+          <form className={styles.incidentForm} onSubmit={(event) => void createIncident(event)}>
+            <label>
+              Titre
+              <input value={title} minLength={3} maxLength={160} required onChange={(event) => setTitle(event.target.value)} />
+            </label>
+            <label>
+              Priorite
+              <select value={priority} onChange={(event) => setPriority(event.target.value)}>
+                <option value="low">Faible</option>
+                <option value="normal">Normale</option>
+                <option value="high">Haute</option>
+                <option value="urgent">Urgente</option>
+              </select>
+            </label>
+            <label className={styles.descriptionField}>
+              Description
+              <textarea value={description} maxLength={5000} rows={3} onChange={(event) => setDescription(event.target.value)} />
+            </label>
+            <button type="submit" disabled={saving}>{saving ? "Creation..." : "Creer l'incident"}</button>
+          </form>
+        </section>
+      ) : (
+        <div className={styles.notice}>Mode historique : appliquez la migration maintenance pour creer des incidents persistants.</div>
+      )}
 
       <section className={styles.kpis} aria-label="Indicateurs maintenance">
         <Kpi icon={<Wrench size={20} />} label="Incidents" value={loading ? "..." : String(dashboard.total)} hint="Flux maintenance ouvert" />
@@ -294,6 +478,45 @@ export default function ConciergeMaintenancePage() {
 
                   <div className={styles.workflowFooter}>
                     <span>Prochaine etape : {workflow.steps.find((step) => step.current)?.label}</span>
+                    {persistedIncidents.some((incident) => incident.id === workflow.incidentId) ? (
+                      <label className={styles.uploadButton}>
+                        {uploadingIncidentId === workflow.incidentId ? "Envoi..." : "Ajouter une preuve"}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,video/mp4,application/pdf"
+                          disabled={uploadingIncidentId === workflow.incidentId}
+                          onChange={(event) => void uploadEvidence(workflow.incidentId, event.target.files?.[0])}
+                        />
+                      </label>
+                    ) : null}
+                    {persistedIncidents.some((incident) => incident.id === workflow.incidentId) ? (
+                      <select
+                        aria-label={`Affecter un artisan a ${workflow.title}`}
+                        value={persistedIncidents.find((incident) => incident.id === workflow.incidentId)?.artisan?.id ?? ""}
+                        disabled={savingIncidentId === workflow.incidentId}
+                        onChange={(event) => void assignProvider(workflow.incidentId, event.target.value)}
+                      >
+                        <option value="">Sans artisan</option>
+                        {providers.map((provider) => (
+                          <option key={provider.id} value={provider.id}>
+                            {provider.displayName}{provider.category ? ` - ${provider.category}` : ""}{provider.city ? ` (${provider.city})` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    ) : null}
+                    {nextIncidentStatuses(workflow.incidentId).length > 0 ? (
+                      <select
+                        aria-label={`Faire evoluer ${workflow.title}`}
+                        value=""
+                        disabled={savingIncidentId === workflow.incidentId}
+                        onChange={(event) => void updateIncidentStatus(workflow.incidentId, event.target.value)}
+                      >
+                        <option value="">Changer le statut</option>
+                        {nextIncidentStatuses(workflow.incidentId).map((status) => (
+                          <option key={status} value={status}>{INCIDENT_STATUS_LABELS[status] ?? status}</option>
+                        ))}
+                      </select>
+                    ) : null}
                     <Link href={`/dashboard/concierge/missions/${workflow.missionId ?? workflow.incidentId}`}>
                       Ouvrir <ArrowRight size={15} />
                     </Link>

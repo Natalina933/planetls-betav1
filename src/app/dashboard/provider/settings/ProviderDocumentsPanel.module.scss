@@ -1,0 +1,38 @@
+.panel {
+  max-width: 1180px;
+  margin: 24px auto;
+  padding: 24px;
+  border: 1px solid rgba(150, 113, 55, 0.28);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 14px 40px rgba(38, 28, 18, 0.08);
+}
+.header, .document, .actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.header h2 { margin: 2px 0 6px; }
+.header p, .document p { margin: 0; color: #665f56; }
+.eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: .72rem; font-weight: 700; }
+.counter { white-space: nowrap; padding: 7px 11px; border-radius: 999px; background: #f2eadc; }
+.form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 22px 0; }
+.form label { display: grid; gap: 7px; font-weight: 650; }
+.form input, .form select { width: 100%; padding: 11px 12px; border: 1px solid #d7cbbb; border-radius: 10px; background: #fff; color: inherit; }
+.fileField { grid-column: 1 / -1; }
+.form button { width: fit-content; padding: 11px 16px; border: 0; border-radius: 10px; background: #28231d; color: #fff; font-weight: 700; cursor: pointer; }
+.form button:disabled { opacity: .55; cursor: wait; }
+.list { display: grid; gap: 10px; }
+.document { padding: 14px; border: 1px solid #e2d8ca; border-radius: 12px; }
+.actions { justify-content: flex-end; flex-wrap: wrap; }
+.actions span { padding: 6px 9px; border-radius: 999px; background: #f2eadc; font-size: .82rem; }
+.actions span[data-status="verified"] { background: #dff4e7; color: #176137; }
+.actions span[data-status="rejected"] { background: #fde4e1; color: #8b271f; }
+.actions a { color: #5f431a; font-weight: 700; }
+.error, .success { padding: 10px 12px; border-radius: 10px; }
+.error { background: #fde4e1; color: #8b271f; }
+.success { background: #dff4e7; color: #176137; }
+.reason { margin-top: 5px !important; color: #8b271f !important; }
+.empty { padding: 18px; text-align: center; border: 1px dashed #d7cbbb; border-radius: 12px; color: #665f56; }
+@media (max-width: 720px) {
+  .panel { margin: 16px; padding: 18px; }
+  .header, .document { align-items: flex-start; flex-direction: column; }
+  .form { grid-template-columns: 1fr; }
+  .actions { justify-content: flex-start; }
+}

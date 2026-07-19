@@ -37,6 +37,7 @@ import {
   AdminToneLegend,
 } from "./AdminVisuals";
 import { ADMIN_VISUAL_PRESETS } from "./adminVisualPresets";
+import type { KpiOverviewPayload } from "@/app/api/kpis/overview/shared";
 import styles from "./AdminDashboard.module.scss";
 
 type DashboardStats = {
@@ -127,15 +128,18 @@ export default function AdminDashboard() {
   const [invoiceCount, setInvoiceCount] = useState(0);
   const [adminOverview, setAdminOverview] = useState<AdminOverviewPayload | null>(null);
   const [adminControl, setAdminControl] = useState<AdminControlPayload | null>(null);
+  const [kpiOverview, setKpiOverview] = useState<KpiOverviewPayload | null>(null);
+  const [kpiError, setKpiError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchAdminData() {
       try {
-        const [operationsRes, overviewRes, controlRes] = await Promise.allSettled([
+        const [operationsRes, overviewRes, controlRes, kpiRes] = await Promise.allSettled([
           fetch("/api/admin/operations?limit=200", { cache: "no-store" }),
           fetch("/api/admin/overview", { cache: "no-store" }),
           fetch("/api/admin/control-tower", { cache: "no-store" }),
+          fetch("/api/kpis/overview?window_days=30", { cache: "no-store" }),
         ]);
 
         let overviewPayload: AdminOverviewPayload | null = null;
@@ -152,6 +156,11 @@ export default function AdminDashboard() {
         }
         if (controlRes.status === "fulfilled" && controlRes.value.ok) {
           setAdminControl((await controlRes.value.json().catch(() => null)) as AdminControlPayload | null);
+        }
+        if (kpiRes.status === "fulfilled" && kpiRes.value.ok) {
+          setKpiOverview((await kpiRes.value.json().catch(() => null)) as KpiOverviewPayload | null);
+        } else {
+          setKpiError("Indicateurs d activation indisponibles.");
         }
 
         setStats({
@@ -342,6 +351,12 @@ export default function AdminDashboard() {
     },
   ];
 
+  const activationRoles = kpiOverview ? ([
+    { key: "owner" as const, label: "Proprietaires", metric: kpiOverview.owner },
+    { key: "concierge" as const, label: "Conciergeries", metric: kpiOverview.concierge },
+    { key: "provider" as const, label: "Artisans", metric: kpiOverview.provider },
+  ]) : [];
+
   if (loading) return <div className="center">Chargement du cockpit admin...</div>;
 
   return (
@@ -438,6 +453,33 @@ export default function AdminDashboard() {
     >
       <DashboardPanel title="Santé opérationnelle">
         <AdminKpiGrid kpis={kpis} />
+      </DashboardPanel>
+      <DashboardPanel title="Activation J+7">
+        {kpiError ? <p className={styles.kpiState}>{kpiError}</p> : null}
+        {!kpiError && activationRoles.length === 0 ? <p className={styles.kpiState}>Aucune cohorte mature sur les 30 derniers jours.</p> : null}
+        <div className={styles.activationGrid}>
+          {activationRoles.map(({ key, label, metric }) => {
+            const zones = kpiOverview?.activation_by_zone[key] ?? [];
+            const series = (kpiOverview?.activation_series[key] ?? []).slice(-4);
+            return (
+              <article className={styles.activationCard} key={key}>
+                <div className={styles.activationHeader}>
+                  <div><span>{label}</span><strong>{metric.activation_j7 === null ? "—" : `${metric.activation_j7}%`}</strong></div>
+                  <small>{metric.activation_j7_activated}/{metric.activation_j7_eligible} actives</small>
+                </div>
+                <div className={styles.activationBars} aria-label={`Tendance activation ${label}`}>
+                  {series.map((point) => (
+                    <span key={point.period_start} title={`${point.rate ?? 0}% - ${point.activated}/${point.eligible}`}>
+                      <i style={{ height: `${Math.max(4, point.rate ?? 0)}%` }} />
+                    </span>
+                  ))}
+                </div>
+                <p>{zones[0] ? `Zone principale : ${zones[0].zone} (${zones[0].activated}/${zones[0].eligible})` : "Aucune zone avec cohorte mature"}</p>
+                <small>Definition : {metric.activation_definition}</small>
+              </article>
+            );
+          })}
+        </div>
       </DashboardPanel>
 
       <DashboardPanel title="Priorités à traiter">

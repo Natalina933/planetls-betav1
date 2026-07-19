@@ -75,6 +75,64 @@
   text-transform: uppercase;
 }
 
+.notice {
+  padding: 14px 16px;
+  border: 1px solid rgba(154, 106, 16, 0.2);
+  border-radius: 8px;
+  color: #6f4d0b;
+  background: #fff8e8;
+  font-weight: 700;
+}
+
+.incidentForm {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(150px, 0.35fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.incidentForm label {
+  display: grid;
+  gap: 6px;
+  color: #405064;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.descriptionField {
+  grid-column: 1 / -1;
+}
+
+.incidentForm input,
+.incidentForm select,
+.incidentForm textarea,
+.incidentForm button {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid rgba(20, 32, 51, 0.16);
+  border-radius: 8px;
+  background: #fff;
+  color: #142033;
+  padding: 9px 11px;
+  font: inherit;
+}
+
+.incidentForm textarea {
+  resize: vertical;
+}
+
+.incidentForm button {
+  width: auto;
+  background: #125c5b;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.incidentForm button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
 .error {
   padding: 14px 16px;
   border: 1px solid rgba(174, 49, 49, 0.2);
@@ -193,6 +251,41 @@
   gap: 14px;
 }
 
+.uploadButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  border: 1px solid rgba(18, 92, 91, 0.22);
+  border-radius: 8px;
+  background: #125c5b;
+  color: #fff;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.uploadButton input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.workflowFooter select {
+  min-height: 38px;
+  border: 1px solid rgba(18, 92, 91, 0.22);
+  border-radius: 8px;
+  background: #fff;
+  color: #125c5b;
+  padding: 8px 10px;
+  font: inherit;
+  font-weight: 700;
+}
+
+.workflowFooter select:disabled {
+  opacity: 0.6;
+}
 .workflowTop strong {
   color: #125c5b;
   font-size: 1.7rem;
@@ -336,6 +429,10 @@
   }
 
   .kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .incidentForm {
     grid-template-columns: 1fr;
   }
 

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { ChangeEvent, KeyboardEvent, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -9,6 +9,7 @@ import {
   FiMapPin,
   FiMessageSquare,
   FiShield,
+  FiTool,
 } from "react-icons/fi";
 import { useSession } from "next-auth/react";
 import conciergeStyles from "@/app/dashboard/concierge/profile/ConciergeProfilePage.module.scss";
@@ -21,7 +22,7 @@ import {
 } from "@/app/components/dashboard/profile/ProfilePageShell";
 import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/ProfileSummary";
 import { ProfileIdentity } from "@/app/components/dashboard/concierge/ProfileSummary/profileIdentity";
-import { buildBasicProfileCompletion } from "@/app/components/dashboard/profile/completion";
+import { buildBasicProfileCompletion, buildCompletionState } from "@/app/components/dashboard/profile/completion";
 import { ProfileOverviewWorkspace } from "@/app/components/dashboard/profile/ProfileOverviewWorkspace";
 import {
   UNIFIED_PROFILE_TABS,
@@ -51,6 +52,20 @@ export type UnifiedProfileForm = {
   facebook: string;
   instagram: string;
   additional_info: string;
+  category: string;
+  service_area: string;
+  service_radius_km: string;
+  availability_hours: string;
+  hourly_rate: string;
+  travel_fee: string;
+  years_experience: string;
+  experience_level: string;
+  legal_form: string;
+  siret: string;
+  insurance_company: string;
+  insurance_number: string;
+  certifications: string;
+  emergency_service: boolean;
 };
 
 type EditableUnifiedProfilePageProps = {
@@ -62,6 +77,7 @@ type EditableUnifiedProfilePageProps = {
   presentationIntro: string;
   preferCompanyName?: boolean;
   requireCompanyForVerified?: boolean;
+  showProfessionalDetails?: boolean;
 };
 
 const DEFAULT_AVATAR = "/icons/account-svgrepo-com.svg";
@@ -74,6 +90,7 @@ const SECTION_IDS = {
   ADDRESS: "address",
   SOCIALS: "socials",
   PRESENTATION: "presentation",
+  PROFESSIONAL: "professional",
 } as const;
 
 
@@ -82,6 +99,12 @@ const SECTION_FIELDS: Record<string, Array<keyof UnifiedProfileForm>> = {
   [SECTION_IDS.ADDRESS]: ["street_address", "postal_code", "city", "country"],
   [SECTION_IDS.SOCIALS]: ["website", "linkedin", "facebook", "instagram"],
   [SECTION_IDS.PRESENTATION]: ["additional_info"],
+  [SECTION_IDS.PROFESSIONAL]: [
+    "category", "service_area", "service_radius_km", "availability_hours",
+    "hourly_rate", "travel_fee", "years_experience", "experience_level",
+    "legal_form", "siret", "insurance_company", "insurance_number",
+    "certifications", "emergency_service",
+  ],
 };
 
 const emptyForm: UnifiedProfileForm = {
@@ -107,6 +130,20 @@ const emptyForm: UnifiedProfileForm = {
   facebook: "",
   instagram: "",
   additional_info: "",
+  category: "",
+  service_area: "",
+  service_radius_km: "",
+  availability_hours: "",
+  hourly_rate: "",
+  travel_fee: "",
+  years_experience: "",
+  experience_level: "",
+  legal_form: "",
+  siret: "",
+  insurance_company: "",
+  insurance_number: "",
+  certifications: "",
+  emergency_service: false,
 };
 
 const toFormValue = (value: string | null | undefined) => value ?? "";
@@ -120,6 +157,7 @@ export default function EditableUnifiedProfilePage({
   presentationIntro,
   preferCompanyName = false,
   requireCompanyForVerified = false,
+  showProfessionalDetails = false,
 }: EditableUnifiedProfilePageProps) {
   const { update } = useSession();
   const router = useRouter();
@@ -143,6 +181,7 @@ export default function EditableUnifiedProfilePage({
     [SECTION_IDS.ADDRESS]: true,
     [SECTION_IDS.SOCIALS]: true,
     [SECTION_IDS.PRESENTATION]: true,
+    [SECTION_IDS.PROFESSIONAL]: true,
   });
 
   useEffect(() => {
@@ -184,6 +223,20 @@ export default function EditableUnifiedProfilePage({
           facebook: toFormValue(profile.facebook),
           instagram: toFormValue(profile.instagram),
           additional_info: toFormValue(profile.additional_info),
+          category: toFormValue(profile.category),
+          service_area: toFormValue(profile.service_area),
+          service_radius_km: profile.service_radius_km?.toString() ?? "",
+          availability_hours: toFormValue(profile.availability_hours),
+          hourly_rate: profile.hourly_rate?.toString() ?? "",
+          travel_fee: profile.travel_fee?.toString() ?? "",
+          years_experience: profile.years_experience?.toString() ?? "",
+          experience_level: toFormValue(profile.experience_level),
+          legal_form: toFormValue(profile.legal_form),
+          siret: toFormValue(profile.siret),
+          insurance_company: toFormValue(profile.insurance_company),
+          insurance_number: toFormValue(profile.insurance_number),
+          certifications: toFormValue(profile.certifications),
+          emergency_service: profile.emergency_service === true,
         };
 
         setForm(nextForm);
@@ -204,7 +257,10 @@ export default function EditableUnifiedProfilePage({
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
+    const nextValue = event.target instanceof HTMLInputElement && event.target.type === "checkbox"
+      ? event.target.checked
+      : value;
+    setForm((current) => ({ ...current, [name]: nextValue }));
   };
 
   const handleHeaderKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -264,7 +320,7 @@ export default function EditableUnifiedProfilePage({
     setSuccess(null);
 
     try {
-      const payload: Record<string, string | number | null> = {};
+      const payload: Record<string, string | number | boolean | null> = {};
 
       if (sectionId === SECTION_IDS.AVATAR) {
         payload.avatar_url = (await uploadAvatarIfNeeded()) || null;
@@ -273,9 +329,17 @@ export default function EditableUnifiedProfilePage({
         payload.avatar_offset_y = form.avatar_offset_y;
         payload.avatar_rotation = form.avatar_rotation;
       } else {
+        const numericFields = new Set([
+          "service_radius_km", "hourly_rate", "travel_fee", "years_experience",
+        ]);
         for (const field of SECTION_FIELDS[sectionId] ?? []) {
           const value = form[field];
-          payload[field] = typeof value === "string" ? value.trim() : value;
+          if (numericFields.has(field)) {
+            const normalized = typeof value === "string" ? value.trim() : value;
+            payload[field] = normalized === "" ? null : Number(normalized);
+          } else {
+            payload[field] = typeof value === "string" ? value.trim() : value;
+          }
         }
       }
 
@@ -322,6 +386,20 @@ export default function EditableUnifiedProfilePage({
         facebook: toFormValue(result.facebook),
         instagram: toFormValue(result.instagram),
         additional_info: toFormValue(result.additional_info),
+        category: toFormValue(result.category),
+        service_area: toFormValue(result.service_area),
+        service_radius_km: result.service_radius_km?.toString() ?? "",
+        availability_hours: toFormValue(result.availability_hours),
+        hourly_rate: result.hourly_rate?.toString() ?? "",
+        travel_fee: result.travel_fee?.toString() ?? "",
+        years_experience: result.years_experience?.toString() ?? "",
+        experience_level: toFormValue(result.experience_level),
+        legal_form: toFormValue(result.legal_form),
+        siret: toFormValue(result.siret),
+        insurance_company: toFormValue(result.insurance_company),
+        insurance_number: toFormValue(result.insurance_number),
+        certifications: toFormValue(result.certifications),
+        emergency_service: result.emergency_service === true,
       };
 
       setForm(nextForm);
@@ -383,7 +461,7 @@ export default function EditableUnifiedProfilePage({
   const isVerified = Boolean(
     form.email && form.phone && form.city && (!requireCompanyForVerified || form.company_name),
   );
-  const profileCompletion = buildBasicProfileCompletion({
+  const basicProfileCompletion = buildBasicProfileCompletion({
     firstName: form.first_name,
     lastName: form.last_name,
     email: form.email,
@@ -395,6 +473,20 @@ export default function EditableUnifiedProfilePage({
     city: form.city,
     presentation: form.additional_info,
   });
+  const profileCompletion = showProfessionalDetails
+    ? buildCompletionState([
+        { label: "Identité et coordonnées", complete: basicProfileCompletion.percentage === 100 },
+        { label: "Métier principal", complete: Boolean(form.category.trim()) },
+        { label: "Zone d'intervention", complete: Boolean(form.service_area.trim()) },
+        { label: "Rayon d'intervention", complete: Boolean(form.service_radius_km.trim()) },
+        { label: "Disponibilités", complete: Boolean(form.availability_hours.trim()) },
+        { label: "Tarif horaire", complete: Boolean(form.hourly_rate.trim()) },
+        { label: "Expérience", complete: Boolean(form.years_experience.trim()) },
+        { label: "SIRET", complete: Boolean(form.siret.trim()) },
+        { label: "Assurance professionnelle", complete: Boolean(form.insurance_company.trim() && form.insurance_number.trim()) },
+        { label: "Certifications", complete: Boolean(form.certifications.trim()) },
+      ])
+    : basicProfileCompletion;
 
   const renderAccountSection = () => (
     <EditableProfileSection
@@ -479,6 +571,44 @@ export default function EditableUnifiedProfilePage({
     </EditableProfileSection>
   );
 
+  const renderProfessionalSection = () => (
+    <EditableProfileSection
+      styles={conciergeStyles}
+      title="Activité, confiance et disponibilité"
+      icon={<FiTool />}
+      canEdit
+      collapsible
+      isOpen={openSections[SECTION_IDS.PROFESSIONAL]}
+      isEditing={editingSection === SECTION_IDS.PROFESSIONAL}
+      isDirty={isSectionDirty(SECTION_IDS.PROFESSIONAL)}
+      isLoading={saving}
+      onToggle={() => toggleSection(SECTION_IDS.PROFESSIONAL)}
+      onHeaderKeyDown={handleHeaderKeyDown}
+      onBeginEdit={() => beginEditSection(SECTION_IDS.PROFESSIONAL)}
+      onSave={() => void saveSection(SECTION_IDS.PROFESSIONAL)}
+      onCancel={cancelEditSection}
+    >
+      <p className={conciergeStyles.sectionIntroText}>
+        Décrivez précisément votre métier, votre capacité d'intervention et les preuves qui rassurent vos clients.
+      </p>
+      <div className={conciergeStyles.fieldsGrid}>
+        <EditableProfileField styles={conciergeStyles} label="Métier principal" name="category" value={form.category} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Zone couverte" name="service_area" value={form.service_area} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Rayon (km)" name="service_radius_km" value={form.service_radius_km} type="number" inputProps={{ min: 0 }} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Disponibilités" name="availability_hours" value={form.availability_hours} isTextarea isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Tarif horaire (€)" name="hourly_rate" value={form.hourly_rate} type="number" inputProps={{ min: 0, step: 0.01 }} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Frais de déplacement (€)" name="travel_fee" value={form.travel_fee} type="number" inputProps={{ min: 0, step: 0.01 }} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Années d'expérience" name="years_experience" value={form.years_experience} type="number" inputProps={{ min: 0, step: 1 }} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Niveau d'expérience" name="experience_level" value={form.experience_level} placeholder="debutant, intermediaire ou experimente" isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Forme juridique" name="legal_form" value={form.legal_form} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="SIRET" name="siret" value={form.siret} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Assureur RC Pro" name="insurance_company" value={form.insurance_company} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="N° de police RC Pro" name="insurance_number" value={form.insurance_number} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Certifications et habilitations" name="certifications" value={form.certifications} isTextarea isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Interventions urgentes acceptées" name="emergency_service" value={form.emergency_service} type="checkbox" isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+      </div>
+    </EditableProfileSection>
+  );
   const renderPresentationSection = () => (
     <EditableProfileSection
       styles={conciergeStyles}
@@ -660,7 +790,12 @@ export default function EditableUnifiedProfilePage({
               />
             </>
           ) : null}
-          {activeTab === "account" ? renderAccountSection() : null}
+          {activeTab === "account" ? (
+            <>
+              {renderAccountSection()}
+              {showProfessionalDetails ? renderProfessionalSection() : null}
+            </>
+          ) : null}
           {activeTab === "address" ? renderAddressSection() : null}
           {activeTab === "socials" ? renderSocialsSection() : null}
           {activeTab === "presentation" ? renderPresentationSection() : null}

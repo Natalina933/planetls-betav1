@@ -529,7 +529,7 @@ interface EditableProfileFieldProps {
   styles: Record<string, string>;
   label: string;
   name: string;
-  value: string | number | null;
+  value: string | number | boolean | null;
   error?: string;
   isEditing: boolean;
   isTextarea?: boolean;
@@ -755,7 +755,7 @@ export function EditableProfileField({
         )
       ) : (
         <span className={styles.fieldValue}>
-          {value !== null && value !== "" ? value : "Non renseigné"}
+          {typeof value === "boolean" ? (value ? "Oui" : "Non") : value !== null && value !== "" ? value : "Non renseigné"}
         </span>
       )}
     </div>

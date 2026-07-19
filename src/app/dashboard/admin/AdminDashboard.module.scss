@@ -144,3 +144,85 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+.kpiState {
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #4b5563;
+}
+
+.activationGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.activationCard {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(20, 32, 51, 0.1);
+  border-radius: 8px;
+  background: linear-gradient(145deg, #fff, #f7faf8);
+}
+
+.activationHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.activationHeader div {
+  display: grid;
+  gap: 4px;
+}
+
+.activationHeader span,
+.activationCard small {
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.activationHeader strong {
+  color: #125c5b;
+  font-size: 1.8rem;
+}
+
+.activationCard p {
+  margin: 0;
+  color: #334155;
+}
+
+.activationBars {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(14px, 1fr));
+  align-items: end;
+  gap: 6px;
+  height: 72px;
+}
+
+.activationBars span {
+  display: flex;
+  align-items: end;
+  height: 100%;
+  border-radius: 5px;
+  background: rgba(18, 92, 91, 0.08);
+  overflow: hidden;
+}
+
+.activationBars i {
+  display: block;
+  width: 100%;
+  background: linear-gradient(180deg, #efbc52, #125c5b);
+}
+
+@media (max-width: 980px) {
+  .activationGrid {
+    grid-template-columns: 1fr;
+  }
+}

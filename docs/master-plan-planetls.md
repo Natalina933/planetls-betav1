@@ -143,9 +143,9 @@ Le point d'entrée peut varier par acteur, mais le produit doit converger vers u
 | Onboarding multi-profils | 🟡 En cours | N3 | Tunnel multi-étapes et événements présents ; personnalisation concierge plus mûre que owner/provider ; cohérence et instrumentation à finir |
 | Dashboard propriétaire | 🟡 En cours | N3 | Cockpit riche et données réelles ; quelques strates historiques et états UX restent à harmoniser |
 | Dashboard concierge | 🟡 En cours | N3 | Surface la plus avancée : cockpit, modes, objectifs, alertes, finance, CRM, maintenance ; plusieurs fonctions récentes restent partiellement locales/`metadata` |
-| Dashboard artisan/provider | 🟡 En cours | N3 | E2E mission → intervention → preuve média privée → facture liée validé ; paiement et profil de confiance restent incomplets |
+| Dashboard artisan/provider | 🟡 En cours | N3 | E2E mission → intervention → preuve média privée → facture liée validé ; profil métier éditable et persistant (activité, zone, disponibilité, tarifs, expérience, identité légale, assurance, certifications) ; paiement et preuves documentaires restent incomplets |
 | Dashboard administrateur | 🟡 En cours | N3 | Overview, contrôle, utilisateurs et vues par rôle ; métriques présentes mais pilotage et actions admin à valider en conditions réelles |
-| Profils professionnels | 🟡 En cours | N3 | Profil concierge riche, owner preferences persistées ; profil artisan dédié, certifications/avis/historique complet non aboutis |
+| Profils professionnels | 🟡 En cours | N3 | Profil concierge riche, owner preferences persistées ; profil artisan enrichi et persistant avec complétude métier ; portfolio, pièces justificatives vérifiées, avis et historique complet non aboutis |
 | Recherche et matching de concierges | 🟡 En cours | N3 | Recherche, filtres, cartes publiques, alertes et sélection multi-destinataires ; qualité dépend de la densité et de champs legacy |
 | Demandes de service | 🟡 En cours | N3 | E2E demande → devis accepté → mission → facture payée par webhook Stripe signé validé ; création de la session Checkout hébergée reste à couvrir avec une clé test |
 | Devis | 🟡 En cours | N3 | Création, documents, consultation, comparaison, acceptation/refus et lien demande présents ; parcours complet à valider |
@@ -483,17 +483,17 @@ Dates : `—` signifie non planifié. Le responsable est un rôle, à remplacer 
 
 | Fonctionnalité / action | Statut | Priorité | Date cible | Responsable | Commentaires / preuve attendue |
 |---|---|---|---|---|---|
-| Baseline tests/lint/build/snapshot | ✅ | P0 Critique | 2026-07-18 | Tech lead | 158/158 tests, lint et build Next.js de 164 pages au vert |
+| Baseline tests/lint/build/snapshot | ✅ Terminé | P0 Critique | 2026-07-19 | Tech lead | 178/178 tests, lint ciblé et build Next.js de 168 pages au vert |
 | E2E owner complet | 🟠 | P0 Critique | Court terme | QA + Produit | Demande → devis → mission → facture payée par webhook signé PASS ; configurer une clé Stripe test pour valider Checkout |
 | E2E concierge complet | 🟠 | P0 Critique | Court terme | QA + Produit | Réception → devis envoyé → mission → facture payée → créneau planifié et relu owner PASS ; Checkout hébergé reste à valider |
 | E2E provider complet | ✅ | P0 Critique | 2026-07-18 | QA + Provider | Mission → intervention → preuve média privée → facture liée PASS ; prochaine évolution : paiement Stripe test |
 | Source canonique migrations | 🟠 | Critique | Court terme | Backend | supabase/migrations canonique ; 20 fichiers historiques figés dans database/migrations ; contrôle CI ajouté ; inventaire distant bloqué sans token |
 | Types Supabase régénérés | 🟡 | Critique | Court terme | Backend | Tables actives entièrement typées |
-| Persistance maintenance | 🟡 | Critique | Court terme | Backend + Concierge | Tables/RLS/API/UI/tests |
+| Persistance maintenance | 🟠 Partiel | P0 Critique | Court terme | Backend + Concierge | Incidents et médias/RLS, API CRUD partiel, transitions, affectation, preuves privées SHA-256 et URL signées, contrat 6/6 ; migrations distantes et E2E restent à faire |
 | Persistance équipe/affectations | 🟡 | Critique | Court terme | Backend + Concierge | Permissions fines incluses |
 | Persistance réservations/terrain | 🟡 | Critique | Court terme | Backend + Mobile | Photos/signatures/checklists Storage |
-| Profil artisan complet | 🟡 | Critique | Court terme | Produit + Provider | Métiers, zone, disponibilité, preuves |
-| KPI activation/funnel | 🟡 | Critique | Court terme | Data + Produit | Cohortes rôle/zone, définitions stables |
+| Profil artisan complet | 🟠 Partiel | P0 Critique | Court terme | Produit + Provider | Édition métier persistante et complétude dédiées ; justificatifs privés PDF/images avec SHA-256, statuts de vérification et liens signés livrés ; migration distante, validation admin, avis et vue publique détaillée restent à finaliser |
+| KPI activation/funnel | 🟠 Partiel | P0 Critique | Court terme | Data + Produit | Définitions J+7, cohortes, séries, villes et visualisation admin livrées ; validation statistique sur données réelles et seuils alerte restent à faire |
 | Paiement consolidé mission | 🟡 | Importante | Moyen terme | Backend + Produit | Acompte, solde, échec, relance visibles |
 | Notifications structurées | 🟡 | Importante | Moyen terme | Produit + Backend | Préférences et événements utiles |
 | Litiges/preuves E2E | 🟡 | Importante | Moyen terme | Produit + QA | Parcours post-checkout validé |
@@ -570,6 +570,16 @@ Une ligne ne passe à `✅` que si :
 | 2026-07-18 | Architecture | Sécuriser le cycle de vie des membres d’équipe | Éviter les modifications transverses et conserver l’historique d’affectation | API membre PATCH/DELETE scoping propriétaire/admin, validation métier et désactivation logique ; contrat 2/2 PASS | Tech/QA |
 | 2026-07-18 | Produit | Brancher la gestion persistante d’équipe dans le cockpit concierge | Remplacer les membres de démonstration dès que le schéma est disponible sans masquer une équipe réellement vide | Formulaire de création, disponibilité et désactivation connectés aux API ; fallback migration explicite ; contrat 3/3 PASS | Produit/Tech |
 | 2026-07-18 | Architecture | Canoniser les nouvelles migrations Supabase | Empêcher la dette des deux dossiers de continuer sans déplacer à l’aveugle 20 migrations historiques | supabase/migrations devient canonique, archive legacy figée par check:migrations, contrôle ajouté à la CI ; inventaire distant en attente du token Supabase | Tech/DBA |
+| 2026-07-19 | Architecture | Créer le dossier maintenance canonique | Sortir les incidents de missions.metadata sans casser l’historique existant | Table maintenance_incidents et RLS participants, API GET/POST, fusion UI dédupliquée et formulaire ; 167/167 tests, build 166 pages ; migration distante non appliquée | Tech/QA |
+| 2026-07-19 | Métier | Encadrer le cycle de vie des incidents maintenance | Empêcher les clôtures arbitraires et tracer une progression opérationnelle cohérente | API PATCH scopée, transitions signalé → qualifié → affecté → devis → validé → planifié → en cours → résolu → clôturé, action UI ; contrat 4/4, 168/168 tests, build 166 pages | Produit/Tech |
+| 2026-07-19 | Sécurité | Restreindre et valider l’affectation artisan | Permettre le dispatch sans exposer les coordonnées privées ni accepter un profil arbitraire | Annuaire provider dédié limité aux champs professionnels, contrôle du rôle à l’écriture, sélection cockpit ; contrat 5/5, 169/169 tests, build 167 pages | Tech/Produit |
+| 2026-07-19 | Sécurité | Rendre les preuves maintenance privées et vérifiables | Conserver les photos terrain sans URL publique ni fichier non tracé | Table média/RLS, bucket privé mission-evidence réutilisé, contrôle MIME/25 Mo, SHA-256, URL signée 10 min et upload cockpit ; contrat 6/6, 170/170 tests, build 167 pages | Tech/QA |
+| 2026-07-19 | Data | Stabiliser la définition de l’activation J+7 | L’ancien calcul comptait trois activités arbitraires et incluait des comptes trop récents | Cohorte limitée aux comptes ayant atteint J+7, événement dans la fenêtre individuelle : demande owner, devis concierge, mission provider ; éligibles/activés exposés ; 172/172 tests, build 167 pages | Data/Produit |
+| 2026-07-19 | Data | Ajouter les séries hebdomadaires d’activation | Un taux global masque les variations de qualité d’acquisition et d’onboarding | Cohortes d’inscription hebdomadaires matures, éligibles/activés/taux par rôle, même moteur J+7 que la synthèse ; 173/173 tests, build 167 pages | Data/Produit |
+| 2026-07-19 | Data | Segmenter l’activation J+7 par ville | Identifier les zones où l’acquisition ou l’onboarding fonctionne sans masquer la taille d’échantillon | Top 20 zones par rôle avec éligibles, activés et taux ; cohortes immatures exclues ; 174/174 tests, build 167 pages | Data/Growth |
+| 2026-07-19 | Produit/Data | Exposer activation J+7 dans le cockpit admin | Rendre les cohortes actionnables sans consulter directement API | Cartes owner/concierge/provider, activés/éligibles, tendance quatre cohortes et zone principale ; erreur locale non bloquante ; 175/175 tests, build 167 pages | Admin/Data |
+| 2026-07-19 | Produit | Enrichir le profil professionnel artisan sans nouveau modèle concurrent | Le workspace provider ne permettait d'éditer que l'identité générique malgré les colonnes métier existantes | Policy de patch étendue et section persistante activité/zone/disponibilité/tarifs/expérience/légal/assurance/certifications avec complétude dédiée ; 175/175 tests, lint et build 167 pages | Produit/Tech |
+| 2026-07-19 | Sécurité | Conserver les justificatifs artisan privés jusqu'à vérification | Une certification déclarée ne doit pas être confondue avec une preuve validée ni exposer un document sensible | Table/RLS dédiée, bucket privé réutilisé, PDF/images 10 Mo, SHA-256, statuts pending/verified/rejected, liens signés 10 min et panneau profil ; migration distante non appliquée ; 178/178 tests, build 168 pages | Tech/Produit |
 
 ---
 
@@ -623,11 +633,14 @@ Ce tableau est le registre de maintenance courant. La photographie détaillée d
 
 | Domaine | Fonctionnalité | Profil concerné | Statut | Priorité | Dernière évolution | Preuves dans le code | Prochaine action |
 |---|---|---|---|---|---|---|---|
-| Qualité | Baseline tests, lint, build et snapshot | Tous | ✅ Terminé | P0 Critique | 2026-07-18 | 158/158 tests, ESLint, build Next.js 164 pages, snapshot UI portable | Maintenir la baseline |
+| Qualité | Baseline tests, lint, build et snapshot | Tous | ✅ Terminé | P0 Critique | 2026-07-19 | 175/175 tests, ESLint ciblé, build Next.js 167 pages, snapshot UI portable | Maintenir la baseline |
 | Qualité | Smoke E2E des espaces critiques | Owner, concierge, provider | ✅ Terminé | P0 Critique | 2026-07-18 | Playwright Chromium : 3/3 PASS ; workflow GitHub contrôle secrets, tests, lint, build puis tous les E2E | Configurer les secrets GitHub et lancer la première exécution distante |
 | Qualité | E2E transactionnel commercial | Owner, concierge | 🟠 Partiel | P0 Critique | 2026-07-18 | Playwright : demande, devis accepté, mission, facture payée, créneau planifié et relu owner, 1/1 PASS | Configurer une clé Stripe test et valider la session Checkout hébergée |
 | Qualité | E2E transactionnel provider | Concierge, provider | ✅ Terminé | P0 Critique | 2026-07-18 | Mission, intervention, preuve média privée, clôture et facture liée de 90 €, 1/1 PASS | Configurer Stripe test et valider le paiement |
 | Outils métier | Assistant décoration | Concierge, propriétaire | 🟠 Partiel | P2 Important | 2026-07-18 | page `/dashboard/concierge/decoration-ai`, API dédiée, `decorationAssistant.ts`, migration `decoration_ai_reports`, tests | Valider l'usage terrain, tracer l'envoi owner et brancher une génération d'image réelle |
+| Maintenance | Incidents persistants | Concierge, owner, provider | 🟠 Partiel | P0 Critique | 2026-07-19 | incidents+médias/RLS, API GET/POST/PATCH, cycle, affectation, upload privé et liens signés, contrat 6/6 PASS | Appliquer les migrations puis valider le parcours E2E persistant |
+| Data | Activation et funnel par rôle | Admin, direction | 🟠 Partiel | P0 Critique | 2026-07-19 | taux/volumes par rôle, tendances 4 cohortes et zone principale visibles dans le cockpit ; erreur analytique non bloquante | Valider sur données réelles puis définir les seuils alerte |
+| Profils | Identité professionnelle artisan | Provider/artisan | 🟠 Partiel | P0 Critique | 2026-07-19 | Profil métier persistant + justificatifs privés PDF/images, empreinte SHA-256, statuts pending/verified/rejected, téléchargement signé 10 min ; contrat 3/3, 178/178 tests, lint, build 168 pages | Appliquer la migration distante puis livrer la décision admin et les signaux publics vérifiés |
 | Équipe | Cycle de vie des membres concierge | Concierge, admin | 🟠 Partiel | P0 Critique | 2026-07-18 | Migration/RLS, API GET/POST/PATCH/DELETE, UI création/disponibilité/désactivation, fallback explicite, contrat 3/3 PASS | Appliquer la migration distante puis valider le CRUD E2E sur données persistées |
 | Pilotage | Maintenance automatique du Master Plan | Équipe projet | ✅ Terminé | P0 Critique | 2026-07-18 | `AGENTS.md`, présente section | Appliquer la checklist à chaque mission importante |
 
@@ -658,7 +671,7 @@ Statuts d'idée autorisés : `À étudier`, `Validée`, `Planifiée`, `En dével
 |---|---|---|---|---|---|---|
 | Authentification et permissions | Avant 2026-04 | 2026-06-18 | 🟡 En cours | E2E multi-rôles absent | NextAuth, Supabase, guards API, proxy | Automatiser les parcours et confirmer la sécurité en environnement réel |
 | Demande → devis → mission → paiement | Avant 2026-05 | 2026-06-06 | 🟡 En cours | Validation bout en bout et consolidation paiement incomplètes | Tables métier, Stripe, workflow events | E2E owner/concierge et gestion visible des échecs |
-| Profils professionnels | Avant 2026-04 | 2026-06-20 | 🟡 En cours | Artisan et données legacy incomplets | `profiles`, services, preferences | Terminer le profil artisan et normaliser les champs |
+| Profils professionnels | Avant 2026-04 | 2026-07-19 | 🟠 Partiel | Édition et preuves privées artisan livrées ; migration distante, validation admin, avis et vue publique détaillée manquent | `profiles`, `provider_profile_documents`, Storage privé, reviews | Appliquer la migration puis ajouter validation admin et signaux publics vérifiés |
 | Maintenance, équipe et séjours | 2026-07 | 2026-07-12 | 🟠 Partiel | Persistance spécialisée incomplète | Missions, metadata, interventions | Tables/RLS/types et E2E |
 | Assistant décoration | 2026-07-18 | 2026-07-18 | 🟠 Partiel | Moteur déterministe, pas d'image réelle ni envoi owner tracé | `decoration_ai_reports`, API concierge | Tester avec des concierges avant extension |
 | Réseau professionnel | Vision 2026-07 | 2026-07-18 | 🔴 À faire | Liquidité locale non prouvée | Profils, zones, missions, modération | Pilote local puis mur des missions |
