@@ -7,6 +7,9 @@ import styles from "./LoginPage.module.scss";
 import { FaEye, FaEyeSlash, FaTimesCircle, FaCheckCircle } from "react-icons/fa";
 import { Button, Input } from "@/components/ui";
 
+type WorkspaceKey = "owner" | "concierge" | "provider" | "admin";
+type QuickWorkspace = { key: WorkspaceKey; label: string; href: string };
+
 const validateEmail = (email: string): boolean =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -52,6 +55,44 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<{ email?: string; password?: string; auth?: string }>({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [quickWorkspaces, setQuickWorkspaces] = useState<QuickWorkspace[]>([]);
+  const [preparingWorkspace, setPreparingWorkspace] = useState<WorkspaceKey | null>(null);
+  const [quickLoginMessage, setQuickLoginMessage] = useState("");
+
+  const prepareWorkspaceCredentials = async (workspace: WorkspaceKey) => {
+    setPreparingWorkspace(workspace);
+    setQuickLoginMessage("");
+
+    try {
+      const response = await fetch("/api/auth/dev-workspace-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspace }),
+      });
+      const payload = (await response.json().catch(() => ({}))) as {
+        email?: string;
+        password?: string;
+        label?: string;
+      };
+
+      if (!response.ok || !payload.email || !payload.password) {
+        throw new Error("Compte de travail indisponible");
+      }
+
+      setFormData({ email: payload.email, password: payload.password });
+      setErrors({});
+      setQuickLoginMessage(
+        `Identifiants ${payload.label ?? workspace} proposes. Vous pouvez maintenant vous connecter.`,
+      );
+      window.history.replaceState(null, "", `/login?workspace=${workspace}`);
+    } catch {
+      setQuickLoginMessage(
+        "Impossible de preparer ce compte. Verifiez la configuration Supabase locale.",
+      );
+    } finally {
+      setPreparingWorkspace(null);
+    }
+  };
 
   useEffect(() => {
     const syncAutofilledValues = () => {
@@ -71,6 +112,30 @@ export default function LoginPage() {
     syncAutofilledValues();
     const timeoutId = window.setTimeout(syncAutofilledValues, 250);
     return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadQuickWorkspaces() {
+      const response = await fetch("/api/auth/dev-workspace-login", { cache: "no-store" }).catch(
+        () => null,
+      );
+      if (!response?.ok) return;
+
+      const payload = (await response.json()) as { workspaces?: QuickWorkspace[] };
+      if (cancelled || !Array.isArray(payload.workspaces)) return;
+      setQuickWorkspaces(payload.workspaces);
+
+      const requestedWorkspace = new URLSearchParams(window.location.search).get("workspace");
+      const workspace = payload.workspaces.find((item) => item.key === requestedWorkspace)?.key;
+      if (workspace) await prepareWorkspaceCredentials(workspace);
+    }
+
+    void loadQuickWorkspaces();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const resolveRoleFromSession = async (): Promise<string | null> => {
@@ -271,6 +336,37 @@ export default function LoginPage() {
             </p>
           </div>
           <form onSubmit={handleSubmit} className={styles.form} noValidate>
+            {quickWorkspaces.length > 0 ? (
+              <section className={styles.quickAccess} aria-labelledby="quick-access-title">
+                <div>
+                  <strong id="quick-access-title">Acces rapide de travail</strong>
+                  <p>Choisissez un espace pour proposer un compte existant dans Supabase.</p>
+                </div>
+                <div className={styles.quickAccessButtons}>
+                  {quickWorkspaces.map((workspace) => (
+                    <Button
+                      key={workspace.key}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={preparingWorkspace !== null || loading}
+                      aria-busy={preparingWorkspace === workspace.key}
+                      onClick={() => void prepareWorkspaceCredentials(workspace.key)}
+                    >
+                      {preparingWorkspace === workspace.key
+                        ? "Preparation..."
+                        : workspace.label}
+                    </Button>
+                  ))}
+                </div>
+                {quickLoginMessage ? (
+                  <p className={styles.quickAccessMessage} role="status">
+                    {quickLoginMessage}
+                  </p>
+                ) : null}
+              </section>
+            ) : null}
+
             <label htmlFor="email" className={styles.fieldLabel}>
               Email
             </label>

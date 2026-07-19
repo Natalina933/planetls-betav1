@@ -1,6 +1,7 @@
 import { IconType } from "react-icons";
 import {
   FiBell,
+  FiBookOpen,
   FiBox,
   FiCalendar,
   FiClipboard,
@@ -36,6 +37,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
     { label: "Propriétaires", path: "/dashboard/admin/proprietaires", icon: FiUsers },
     { label: "Conciergeries", path: "/dashboard/admin/conciergeries", icon: FiClipboard },
     { label: "Artisans", path: "/dashboard/admin/artisans", icon: FiTool },
+    { label: "D\u00e9veloppement", path: "/dashboard/admin/developpement", icon: FiBookOpen },
   ],
 
   owner: [

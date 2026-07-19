@@ -233,7 +233,7 @@ export function DashboardMobileExperience({ role, pathname }: Props) {
           const active = pathname === action.href || pathname?.startsWith(`${action.href}/`);
           return (
             <button
-              key={action.href}
+              key={`${action.label}-${action.href}`}
               type="button"
               className={active ? styles.activeDockItem : ""}
               onClick={() => navigate(action.href)}

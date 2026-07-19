@@ -66,6 +66,8 @@ import { createStockItemId, type HousingStockBed } from "@/app/lib/housingStock"
 
 type OwnerHousingTab = "synthese" | "infos" | "demandes" | "documents" | "stocks" | "planning" | "litiges";
 
+import HousingPurchaseNeedsPanel from '@/app/components/housing/HousingPurchaseNeedsPanel';
+
 const BED_TYPE_OPTIONS = [
   "Lit simple",
   "Lit double",
@@ -402,7 +404,7 @@ function getHousingCapacityValue(housing: ConciergeHousing) {
   return housing.characteristics.guestCapacity ?? housing.characteristics.capacite ?? null;
 }
 
-function formatCapacityLabel(value: number | null | undefined, fallback = "Ã€ complÃ©ter") {
+function formatCapacityLabel(value: number | null | undefined, fallback = "À compléter") {
   if (value == null) return fallback;
   return `${value} personne${value > 1 ? "s" : ""}`;
 }
@@ -2768,6 +2770,7 @@ export default function OwnerHousingDetailPage() {
                 <p>Aucun équipement n&apos;est renseigné pour ce logement.</p>
               </div>
             ) : null}
+            <HousingPurchaseNeedsPanel housing={draft} role={'owner'} onSaved={(saved) => { setLogement(saved); setDraft(saved); }} />
           </div>
         ) : null}
 

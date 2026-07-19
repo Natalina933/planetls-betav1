@@ -36,26 +36,26 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const currentOwnerSectionLabel = useMemo(() => {
     if (!isOwnerPage) return "Tableau de bord";
-    if (pathname === "/dashboard/owner") return "Cockpit propriÃ©taire";
+    if (pathname === "/dashboard/owner") return "Cockpit propriétaire";
     if (pathname.includes("/messages")) return "Messagerie et arbitrages";
-    if (pathname.includes("/factures")) return "Finance et rÃ¨glements";
-    if (pathname.includes("/planning")) return "Planning et opÃ©rations";
+    if (pathname.includes("/factures")) return "Finance et règlements";
+    if (pathname.includes("/planning")) return "Planning et opérations";
     if (pathname.includes("/logements")) return "Parc et annonces";
     if (pathname.includes("/devis")) return "Devis et validation";
     if (pathname.includes("/conciergerie")) return "Conciergeries partenaires";
     if (pathname.includes("/demandes")) return "Demandes en cours";
-    return "Pilotage propriÃ©taire";
+    return "Pilotage propriétaire";
   }, [isOwnerPage, pathname]);
 
   const ownerHeaderMetrics = useMemo(
     () => [
       {
-        label: "Annonces Ã  finaliser",
+        label: "Annonces à finaliser",
         value: `${draftCount}`,
         icon: Home,
       },
       {
-        label: "Factures Ã  traiter",
+        label: "Factures à traiter",
         value: `${pendingInvoices.length}`,
         icon: Receipt,
       },
@@ -101,7 +101,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     <span className="headerEyebrow">Cap du jour</span>
                     <h1>{currentOwnerSectionLabel}</h1>
                     <p>
-                      Retrouvez en un coup d&apos;Å“il vos prioritÃ©s, vos points de vigilance et la prochaine action utile
+                      Retrouvez en un coup d&apos;œil vos priorités, vos points de vigilance et la prochaine action utile
                       pour faire avancer votre parc.
                     </p>
                   </div>
@@ -125,7 +125,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
         {isOwnerPage ? (
-          <DashboardBottomNav items={ownerBottomNavItems} ariaLabel="Navigation propriÃ©taire" />
+          <DashboardBottomNav items={ownerBottomNavItems} ariaLabel="Navigation propriétaire" />
         ) : null}
         <main className="dashboard-content">{children}</main>
         <DashboardMobileExperience role={user?.role} pathname={pathname} />

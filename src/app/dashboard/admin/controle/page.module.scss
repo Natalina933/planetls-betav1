@@ -142,6 +142,9 @@
 }
 
 @media (min-width: 760px) {
+  .healthBanner { grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr); align-items: start; }
+  .healthBanner .refreshButton { grid-column: 1 / -1; }
+  .unavailableSources { grid-column: 1 / -1; }
   .filterRow {
     grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.8fr);
   }
@@ -150,3 +153,33 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+.healthBanner {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+  border: 1px solid rgba(47, 79, 57, 0.2);
+  border-radius: 1.4rem;
+  background: rgba(244, 250, 245, 0.96);
+  box-shadow: 0 18px 42px rgba(44, 36, 27, 0.08);
+}
+
+.health_healthy { border-color: rgba(31, 157, 85, 0.35); background: rgba(236, 253, 243, 0.96); }
+.health_warning { border-color: rgba(217, 145, 17, 0.4); background: rgba(255, 248, 230, 0.96); }
+.health_danger { border-color: rgba(205, 55, 55, 0.4); background: rgba(255, 239, 239, 0.96); }
+.health_unverifiable { border-color: rgba(92, 99, 112, 0.4); background: rgba(244, 246, 249, 0.97); }
+
+.healthSummary { display: grid; gap: 0.35rem; }
+.healthSummary h2, .healthSummary p { margin: 0; }
+.healthSummary p, .healthSummary small { color: rgba(47, 38, 29, 0.72); }
+.healthEyebrow { font-size: 0.76rem; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; }
+
+.healthCounters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.7rem; }
+.healthCounters div { display: grid; gap: 0.15rem; padding: 0.85rem; border-radius: 1rem; background: rgba(255, 255, 255, 0.68); }
+.healthCounters strong { font-size: 1.45rem; }
+.healthCounters span { color: rgba(47, 38, 29, 0.7); font-size: 0.8rem; }
+
+.refreshButton { width: fit-content; border: 0; border-radius: 999px; padding: 0.75rem 1rem; background: #315b43; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+.unavailableSources { display: grid; gap: 0.65rem; padding: 0.9rem; border-radius: 1rem; background: rgba(255, 255, 255, 0.72); }
+.unavailableSources ul { display: grid; gap: 0.5rem; margin: 0; padding-left: 1.2rem; }
+.unavailableSources li span, .unavailableSources li small { display: block; }
+.unavailableSources li small { margin-top: 0.15rem; color: rgba(47, 38, 29, 0.68); }

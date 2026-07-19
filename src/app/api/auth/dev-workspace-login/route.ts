@@ -70,6 +70,12 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const targetEmail = process.env.TARGET_EMAIL || process.env.ADMIN_EMAIL || "admin@planetls.fr";
 const workspacePassword = process.env.WORKSPACE_PASSWORD || process.env.ADMIN_PASSWORD || "Admin123!";
 
+function isQuickLoginRequestAllowed(req: NextRequest) {
+  if (!quickLoginEnabled || isProduction) return false;
+  const host = req.nextUrl.hostname.toLowerCase();
+  return ["localhost", "127.0.0.1"].includes(host);
+}
+
 function buildWorkspaceEmail(email: string, key: WorkspaceKey) {
   const [local, domain] = email.split("@");
   if (!local || !domain) return `${key}.${email}`;
@@ -227,13 +233,22 @@ async function ensureWorkspaceProfiles() {
   return result;
 }
 
-export async function POST(req: NextRequest) {
-  if (!quickLoginEnabled || isProduction) {
+export async function GET(req: NextRequest) {
+  if (!isQuickLoginRequestAllowed(req)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const host = req.nextUrl.hostname.toLowerCase();
-  if (!["localhost", "127.0.0.1"].includes(host)) {
+  return NextResponse.json(
+    {
+      enabled: true,
+      workspaces: Object.values(WORKSPACES).map(({ key, label, href }) => ({ key, label, href })),
+    },
+    { headers: { "Cache-Control": "no-store" } },
+  );
+}
+
+export async function POST(req: NextRequest) {
+  if (!isQuickLoginRequestAllowed(req)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 

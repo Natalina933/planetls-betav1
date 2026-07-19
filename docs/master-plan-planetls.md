@@ -507,6 +507,8 @@ Dates : `—` signifie non planifié. Le responsable est un rôle, à remplacer 
 | PWA/push/offline | 🔴 | Évolution future | Long terme | Mobile + Backend | Après persistance et E2E |
 | Assistant décoration : partage owner et image | 🟠 | P2 Important | Moyen terme | Produit + Concierge | Confirmer valeur terrain, envoi traçable et génération d'image réelle |
 
+| Achats et renouvellements logement | 🟠 Partiel | P1 Prioritaire | Court terme | Produit + Owner + Concierge | Besoin structuré persistant dans la fiche logement partagée : article, dimensions, quantité, motif, photo/lien marchand, budget/plafond, règle contractuelle, livraison, décision owner, facture, preuve et statuts signalé → installé. Garde contrat/plafond/preuve testé ; upload privé, notifications et E2E multi-rôles restent à faire. |
+
 ### Definition of Done commune
 
 Une ligne ne passe à `✅` que si :
@@ -534,6 +536,7 @@ Une ligne ne passe à `✅` que si :
 
 | Date | Type | Décision / évolution | Motif | Impact | Responsable |
 |---|---|---|---|---|---|
+| 2026-07-19 | Produit/Technique | Faire de l'état non vérifiable un statut explicite de la tour de contrôle | Une table ou colonne absente ne doit jamais produire un faux état sain | API trace 9 sources, santé globale horodatée, bandeau admin et recontrôle manuel ; 181/181 tests et build au vert | Produit/Tech/QA |
 | 2026-04-25 | UX | Conserver deux modes d'accompagnement concierge : simplicité et expert | Besoins et aisance numérique très différents | Onboarding et densité UI adaptatifs | Produit |
 | 2026-05-18 | Technique | Durcir la messagerie provider et synchroniser le dernier message | Fiabilité des conversations | Routes provider messages | Tech |
 | 2026-05-18 | Produit | Introduire KPI partagés owner/concierge/provider | Mesurer activation et conversion | Endpoint KPI + admin, encore incomplet | Produit/Data |
@@ -580,8 +583,15 @@ Une ligne ne passe à `✅` que si :
 | 2026-07-19 | Produit/Data | Exposer activation J+7 dans le cockpit admin | Rendre les cohortes actionnables sans consulter directement API | Cartes owner/concierge/provider, activés/éligibles, tendance quatre cohortes et zone principale ; erreur locale non bloquante ; 175/175 tests, build 167 pages | Admin/Data |
 | 2026-07-19 | Produit | Enrichir le profil professionnel artisan sans nouveau modèle concurrent | Le workspace provider ne permettait d'éditer que l'identité générique malgré les colonnes métier existantes | Policy de patch étendue et section persistante activité/zone/disponibilité/tarifs/expérience/légal/assurance/certifications avec complétude dédiée ; 175/175 tests, lint et build 167 pages | Produit/Tech |
 | 2026-07-19 | Sécurité | Conserver les justificatifs artisan privés jusqu'à vérification | Une certification déclarée ne doit pas être confondue avec une preuve validée ni exposer un document sensible | Table/RLS dédiée, bucket privé réutilisé, PDF/images 10 Mo, SHA-256, statuts pending/verified/rejected, liens signés 10 min et panneau profil ; migration distante non appliquée ; 178/178 tests, build 168 pages | Tech/Produit |
+| 2026-07-19 | Administration | Étendre le centre de santé aux contradictions opérationnelles | Un simple comptage des objets liés ne détecte ni mission sans affectation, ni planning incohérent, ni paiement ou maintenance bloquants | 11 sources tracées, moteur métier isolé et testé, contrôles affectation/planning/facture/paiement/maintenance exposés dans le cockpit ; 191/191 tests, lint ciblé et build 168 pages | Admin/Tech/QA |
 
 ---
+
+| 2026-07-19 | Métier | Séparer information permanente, besoin d’achat et exécution | Une dimension d’équipement doit rester liée au logement tandis que la commande suit une décision contractuelle traçable | purchaseNeeds persiste dans stockManagement partagé ; garde contrat, plafond et photo finale ; surfaces owner et concierge ; 3 tests métier ajoutés | Produit/Tech |
+
+**2026-07-19 - Produit/UX.** La page admin `/dashboard/admin/developpement` devient la vue de lecture du Master Plan. Elle lit directement le Markdown afin de conserver une seule source de vérité et ajoute synthèse, recherche, filtres et sommaire.
+
+**2026-07-19 - Correctif React/mobile.** La navigation mobile admin conserve deux actions vers `/dashboard/admin/controle`, mais leur clé React combine désormais libellé et URL. Le warning de clé dupliquée est couvert par un contrat `2/2 PASS` et une assertion console Playwright `1/1 PASS`.
 
 ## 11. Index documentaire et destination
 
@@ -633,7 +643,7 @@ Ce tableau est le registre de maintenance courant. La photographie détaillée d
 
 | Domaine | Fonctionnalité | Profil concerné | Statut | Priorité | Dernière évolution | Preuves dans le code | Prochaine action |
 |---|---|---|---|---|---|---|---|
-| Qualité | Baseline tests, lint, build et snapshot | Tous | ✅ Terminé | P0 Critique | 2026-07-19 | 175/175 tests, ESLint ciblé, build Next.js 167 pages, snapshot UI portable | Maintenir la baseline |
+| Qualité | Baseline tests, lint, build et snapshot | Tous | ✅ Terminé | P0 Critique | 2026-07-19 | 191/191 tests, ESLint ciblé, build Next.js 168 pages, snapshot UI portable | Maintenir la baseline |
 | Qualité | Smoke E2E des espaces critiques | Owner, concierge, provider | ✅ Terminé | P0 Critique | 2026-07-18 | Playwright Chromium : 3/3 PASS ; workflow GitHub contrôle secrets, tests, lint, build puis tous les E2E | Configurer les secrets GitHub et lancer la première exécution distante |
 | Qualité | E2E transactionnel commercial | Owner, concierge | 🟠 Partiel | P0 Critique | 2026-07-18 | Playwright : demande, devis accepté, mission, facture payée, créneau planifié et relu owner, 1/1 PASS | Configurer une clé Stripe test et valider la session Checkout hébergée |
 | Qualité | E2E transactionnel provider | Concierge, provider | ✅ Terminé | P0 Critique | 2026-07-18 | Mission, intervention, preuve média privée, clôture et facture liée de 90 €, 1/1 PASS | Configurer Stripe test et valider le paiement |
@@ -643,6 +653,14 @@ Ce tableau est le registre de maintenance courant. La photographie détaillée d
 | Profils | Identité professionnelle artisan | Provider/artisan | 🟠 Partiel | P0 Critique | 2026-07-19 | Profil métier persistant + justificatifs privés PDF/images, empreinte SHA-256, statuts pending/verified/rejected, téléchargement signé 10 min ; contrat 3/3, 178/178 tests, lint, build 168 pages | Appliquer la migration distante puis livrer la décision admin et les signaux publics vérifiés |
 | Équipe | Cycle de vie des membres concierge | Concierge, admin | 🟠 Partiel | P0 Critique | 2026-07-18 | Migration/RLS, API GET/POST/PATCH/DELETE, UI création/disponibilité/désactivation, fallback explicite, contrat 3/3 PASS | Appliquer la migration distante puis valider le CRUD E2E sur données persistées |
 | Pilotage | Maintenance automatique du Master Plan | Équipe projet | ✅ Terminé | P0 Critique | 2026-07-18 | `AGENTS.md`, présente section | Appliquer la checklist à chaque mission importante |
+| Administration | Centre de santé opérationnelle | Admin | 🟠 Partiel | P0 Critique | 2026-07-19 | Étapes 1 et 2 : état global fiable sur 11 sources ; règles testées mission/affectation/planning/facture/paiement/maintenance, échéances et incohérences critiques visibles ; contrat dédié 6/6, 191/191 tests, lint ciblé et build 168 pages | Valider le diagnostic sur la base connectée après application des migrations maintenance, puis ajouter des actions admin tracées |
+
+| Authentification | Acces rapide aux espaces de travail | Owner, concierge, provider, admin | ✅ Terminé | P1 Prioritaire | 2026-07-19 | `/login` propose les quatre comptes Supabase de travail et preremplit email/mot de passe ; selection directe par `?workspace=` ; route strictement locale et hors production | Conserver les secrets uniquement dans `.env.local` et valider periodiquement les quatre comptes |
+
+- **Vue de développement du Master Plan** — `✅ Terminé`, `P1 Prioritaire` au 2026-07-19. Preuve : route admin sécurisée `/dashboard/admin/developpement`, lecture serveur du fichier, synthèse, recherche, filtres statut/priorité, sommaire et test du parseur. Prochaine action : valider la lisibilité mobile et enrichir seulement selon l'usage réel.
+  - Validation navigateur : Playwright Chromium `1/1 PASS` sur connexion admin, lecture desktop, recherche, remise à zéro, filtre P0 et viewport mobile 390 px. Limite : inspection visuelle automatisée de la capture indisponible à cause du sandbox Windows.
+  - Évolution de lecture : cartes cliquables pour chaque statut et priorité, état actif accessible avec `aria-pressed`, synchronisation avec les listes de filtres et adaptation mobile. Preuves : parseur `2/2 PASS`, ESLint ciblé et Playwright `1/1 PASS`.
+  - Navigation longue : sections repliables individuellement, commandes Tout replier/Tout déplier, compteur de sections ouvertes, chevrons et états `aria-expanded`/`aria-controls`. Preuves : ESLint ciblé, parseur `2/2 PASS` et Playwright Chromium `1/1 PASS` desktop/mobile.
 
 ### Roadmap par phases permanentes
 

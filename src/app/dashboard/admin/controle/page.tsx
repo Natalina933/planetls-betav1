@@ -42,9 +42,13 @@ type MissionItem = {
   createdAt: string;
   updatedAt: string;
   scheduledStart: string | null;
+  scheduledEnd: string | null;
   completedAt: string | null;
   quoteCount: number;
   invoiceCount: number;
+  assignmentCount: number;
+  openMaintenanceCount: number;
+  hasOverdueInvoice: boolean;
   steps: AdminControlStep[];
   issueCount: number;
   tone: AdminTone;
@@ -67,6 +71,17 @@ type MessageItem = {
 };
 
 type ControlPayload = {
+  health: {
+    status: "healthy" | "warning" | "danger" | "unverifiable";
+    label: string;
+    checkedAt: string;
+    fullyVerifiable: boolean;
+    checkedSourceCount: number;
+    totalSourceCount: number;
+    dangerCount: number;
+    warningCount: number;
+    unavailableSources: Array<{ key: string; label: string; reason: string | null }>;
+  };
   summary: {
     onboarding: { total: number; healthy: number; warning: number; danger: number };
     missions: { total: number; healthy: number; warning: number; danger: number };
@@ -108,6 +123,7 @@ function AdminControlPageContent() {
   const [tab, setTab] = useState<TabKey>("inscriptions");
   const [search, setSearch] = useState("");
   const [severity, setSeverity] = useState<"all" | AdminTone>("all");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     const nextTab = searchParams.get("tab");
@@ -129,17 +145,23 @@ function AdminControlPageContent() {
 
   useEffect(() => {
     async function load() {
+      setLoading(true);
       try {
         const response = await fetch("/api/admin/control-tower", { cache: "no-store" });
-        if (!response.ok) return;
+        if (!response.ok) {
+          setPayload(null);
+          return;
+        }
         setPayload((await response.json()) as ControlPayload);
+      } catch {
+        setPayload(null);
       } finally {
         setLoading(false);
       }
     }
 
     void load();
-  }, []);
+  }, [reloadKey]);
 
   const kpis = useMemo<AdminKpi[]>(() => {
     if (!payload) return [];
@@ -307,6 +329,50 @@ function AdminControlPageContent() {
       ]}
       profile={{ name: "PlanetLS", subtitle: "Contrôle des étapes", badge: "Administration" }}
     >
+      {payload ? (
+        <section className={`${styles.healthBanner} ${styles[`health_${payload.health.status}`]}`}>
+          <div className={styles.healthSummary}>
+            <span className={styles.healthEyebrow}>État général</span>
+            <h2>{payload.health.label}</h2>
+            <p>
+              {payload.health.fullyVerifiable
+                ? `${payload.health.checkedSourceCount} sources sur ${payload.health.totalSourceCount} ont été contrôlées.`
+                : `${payload.health.checkedSourceCount} sources sur ${payload.health.totalSourceCount} seulement sont vérifiables.`}
+            </p>
+            <small>Dernier contrôle : {formatAdminDate(payload.health.checkedAt)}</small>
+          </div>
+          <div className={styles.healthCounters} aria-label="Résultat du contrôle global">
+            <div><strong>{payload.health.dangerCount}</strong><span>critiques</span></div>
+            <div><strong>{payload.health.warningCount}</strong><span>à surveiller</span></div>
+            <div><strong>{payload.health.unavailableSources.length}</strong><span>non vérifiables</span></div>
+          </div>
+          <button type="button" className={styles.refreshButton} onClick={() => setReloadKey((value) => value + 1)}>
+            Relancer le contrôle
+          </button>
+          {payload.health.unavailableSources.length > 0 ? (
+            <div className={styles.unavailableSources} role="alert">
+              <strong>Contrôles impossibles à confirmer</strong>
+              <ul>
+                {payload.health.unavailableSources.map((source) => (
+                  <li key={source.key}><span>{source.label}</span><small>{source.reason}</small></li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </section>
+      ) : (
+        <section className={`${styles.healthBanner} ${styles.health_unverifiable}`} role="alert">
+          <div className={styles.healthSummary}>
+            <span className={styles.healthEyebrow}>État général</span>
+            <h2>Contrôle indisponible</h2>
+            <p>L’état de la plateforme ne peut pas être confirmé pour le moment.</p>
+          </div>
+          <button type="button" className={styles.refreshButton} onClick={() => setReloadKey((value) => value + 1)}>
+            Réessayer
+          </button>
+        </section>
+      )}
+
       <DashboardPanel title="Vue rapide">
         <AdminKpiGrid kpis={kpis} />
       </DashboardPanel>
@@ -401,12 +467,16 @@ function AdminControlPageContent() {
                       <strong>{item.status || "Non renseigné"}</strong>
                     </div>
                     <div>
-                      <span>Planning</span>
-                      <strong>{formatAdminDate(item.scheduledStart)}</strong>
+                      <span>Affectation</span>
+                      <strong>{item.assignmentCount} intervenant(s)</strong>
                     </div>
                     <div>
                       <span>Facturation</span>
-                      <strong>{item.invoiceCount} facture(s)</strong>
+                      <strong>{item.invoiceCount} facture(s){item.hasOverdueInvoice ? " · en retard" : ""}</strong>
+                    </div>
+                    <div>
+                      <span>Maintenance ouverte</span>
+                      <strong>{item.openMaintenanceCount} incident(s)</strong>
                     </div>
                   </div>
                   <StepRow steps={item.steps} />

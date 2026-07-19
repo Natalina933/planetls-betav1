@@ -30,6 +30,42 @@ export type HousingStockLaundry = {
   notes: string;
 };
 
+export type HousingPurchaseStatus =
+  | 'reported'
+  | 'awaiting_contract_check'
+  | 'awaiting_owner_approval'
+  | 'product_selected'
+  | 'ordered'
+  | 'delivered'
+  | 'installed'
+  | 'cancelled';
+
+export type HousingPurchaseContractRule = 'unknown' | 'included' | 'coordination_only' | 'extra_quote';
+
+export type HousingPurchaseNeed = {
+  id: string;
+  itemName: string;
+  widthCm: number | null;
+  heightCm: number | null;
+  quantity: number;
+  room: string;
+  reason: string;
+  photoUrl: string;
+  productUrl: string;
+  estimatedBudget: number | null;
+  deadline: string;
+  deliveryDestination: 'housing' | 'concierge' | 'owner';
+  contractRule: HousingPurchaseContractRule;
+  approvalLimit: number | null;
+  status: HousingPurchaseStatus;
+  reportedBy: string;
+  ownerDecisionNote: string;
+  invoiceUrl: string;
+  installationPhotoUrl: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type HousingStockManagement = {
   beds: HousingStockBed[];
   consumables: HousingStockConsumable[];
@@ -37,6 +73,7 @@ export type HousingStockManagement = {
   equipmentNotes: string;
   storageNotes: string;
   conciergeInstructions: string;
+  purchaseNeeds: HousingPurchaseNeed[];
   lastUpdatedAt: string | null;
 };
 
@@ -58,6 +95,7 @@ export const EMPTY_HOUSING_STOCK_MANAGEMENT: HousingStockManagement = {
   equipmentNotes: "",
   storageNotes: "",
   conciergeInstructions: "",
+  purchaseNeeds: [],
   lastUpdatedAt: null,
 };
 
@@ -76,8 +114,43 @@ function toNumber(value: unknown) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 }
 
+function toNullableNumber(value: unknown) {
+  if (value === null || value === undefined || value === '') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}
+
+const PURCHASE_STATUSES = new Set<HousingPurchaseStatus>([
+  'reported', 'awaiting_contract_check', 'awaiting_owner_approval', 'product_selected',
+  'ordered', 'delivered', 'installed', 'cancelled',
+]);
+const CONTRACT_RULES = new Set<HousingPurchaseContractRule>([
+  'unknown', 'included', 'coordination_only', 'extra_quote',
+]);
+
 export function createStockItemId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+export function validateHousingPurchaseNeed(need: HousingPurchaseNeed): string | null {
+  if (need.itemName.trim().length < 2) return 'Article obligatoire.';
+  if (!Number.isFinite(need.quantity) || need.quantity < 1) return 'Quantité invalide.';
+  const orderStarted = ['ordered', 'delivered', 'installed'].includes(need.status);
+  if (orderStarted && need.contractRule === 'unknown') {
+    return 'Le contrat doit être vérifié avant de commander.';
+  }
+  if (
+    orderStarted &&
+    need.estimatedBudget !== null &&
+    need.approvalLimit !== null &&
+    need.estimatedBudget > need.approvalLimit
+  ) {
+    return 'Le budget dépasse le plafond autorisé : accord propriétaire requis.';
+  }
+  if (need.status === 'installed' && !need.installationPhotoUrl.trim()) {
+    return 'Une photo après installation est requise pour terminer le besoin.';
+  }
+  return null;
 }
 
 export function normalizeHousingStockManagement(value: unknown): HousingStockManagement {
@@ -127,6 +200,37 @@ export function normalizeHousingStockManagement(value: unknown): HousingStockMan
     equipmentNotes: cleanString(record.equipmentNotes ?? record.equipment_notes),
     storageNotes: cleanString(record.storageNotes ?? record.storage_notes),
     conciergeInstructions: cleanString(record.conciergeInstructions ?? record.concierge_instructions),
+    purchaseNeeds: Array.isArray(record.purchaseNeeds ?? record.purchase_needs)
+      ? ((record.purchaseNeeds ?? record.purchase_needs) as unknown[]).map((item, index) => {
+          const need = asRecord(item);
+          const status = cleanString(need.status) as HousingPurchaseStatus;
+          const contractRule = cleanString(need.contractRule ?? need.contract_rule) as HousingPurchaseContractRule;
+          const destination = cleanString(need.deliveryDestination ?? need.delivery_destination);
+          return {
+            id: cleanString(need.id) || `purchase-${index}`,
+            itemName: cleanString(need.itemName ?? need.item_name),
+            widthCm: toNullableNumber(need.widthCm ?? need.width_cm),
+            heightCm: toNullableNumber(need.heightCm ?? need.height_cm),
+            quantity: Math.max(1, toNumber(need.quantity)),
+            room: cleanString(need.room),
+            reason: cleanString(need.reason),
+            photoUrl: cleanString(need.photoUrl ?? need.photo_url),
+            productUrl: cleanString(need.productUrl ?? need.product_url),
+            estimatedBudget: toNullableNumber(need.estimatedBudget ?? need.estimated_budget),
+            deadline: cleanString(need.deadline),
+            deliveryDestination: destination === 'concierge' || destination === 'owner' ? destination : 'housing',
+            contractRule: CONTRACT_RULES.has(contractRule) ? contractRule : 'unknown',
+            approvalLimit: toNullableNumber(need.approvalLimit ?? need.approval_limit),
+            status: PURCHASE_STATUSES.has(status) ? status : 'reported',
+            reportedBy: cleanString(need.reportedBy ?? need.reported_by),
+            ownerDecisionNote: cleanString(need.ownerDecisionNote ?? need.owner_decision_note),
+            invoiceUrl: cleanString(need.invoiceUrl ?? need.invoice_url),
+            installationPhotoUrl: cleanString(need.installationPhotoUrl ?? need.installation_photo_url),
+            createdAt: cleanString(need.createdAt ?? need.created_at) || new Date(0).toISOString(),
+            updatedAt: cleanString(need.updatedAt ?? need.updated_at) || new Date(0).toISOString(),
+          };
+        })
+      : [],
     lastUpdatedAt: cleanString(record.lastUpdatedAt ?? record.last_updated_at) || null,
   };
 }
@@ -154,6 +258,7 @@ export function getHousingStockSummary(stock: HousingStockManagement) {
       bedCount > 0 ||
       consumableCount > 0 ||
       laundryTotal > 0 ||
+      stock.purchaseNeeds.length > 0 ||
       Boolean(stock.equipmentNotes || stock.storageNotes || stock.conciergeInstructions),
   };
 }

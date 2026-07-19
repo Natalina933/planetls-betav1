@@ -30,6 +30,8 @@ import {
 
 type TabId = "synthese" | "infos" | "stocks" | "services" | "timeline" | "docs" | "quotes";
 
+import HousingPurchaseNeedsPanel from '@/app/components/housing/HousingPurchaseNeedsPanel';
+
 type ConciergeProfileService = {
   label: string;
   category: string;
@@ -1293,6 +1295,7 @@ export default function LogementPage() {
                     </label>
                   </div>
                 </section>
+                <HousingPurchaseNeedsPanel housing={draft} role={'concierge'} onSaved={(saved) => { setHousing(saved); setDraft(saved); }} />
               </div>
             ) : null}
 

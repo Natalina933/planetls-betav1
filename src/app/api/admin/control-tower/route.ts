@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { requireApiRole } from "@/server/auth/roleGuards";
 import { resolveUserRole } from "@/app/utils/roles";
+import { buildControlTowerHealth, type ControlSourceHealth } from "./health";
+import { evaluateMissionHealth } from "./missionHealth";
 
 const ADMIN_ROLES = new Set(["admin", "super_admin"]);
 
@@ -69,13 +71,19 @@ async function safeQuery<T>(promise: PromiseLike<QueryResult<T>>, fallback: T[] 
   if (result.error) {
     if (isMissingSchemaError(result.error)) {
       console.warn("[admin/control-tower] optional query skipped:", result.error.message);
-      return { data: fallback, count: 0, error: null };
+      return {
+        data: fallback,
+        count: 0,
+        error: null,
+        available: false,
+        reason: "Table ou colonne absente du schéma Supabase appliqué.",
+      };
     }
 
     throw new Error(result.error.message);
   }
 
-  return result;
+  return { ...result, available: true, reason: null };
 }
 
 async function listAllAuthUsers(adminClient: ReturnType<typeof createAdminClient>) {
@@ -143,6 +151,8 @@ export async function GET(req: NextRequest) {
       invoicesRes,
       conversationsRes,
       messagesRes,
+      interventionsRes,
+      maintenanceRes,
     ] = await Promise.all([
       safeQuery(
         adminClient
@@ -164,7 +174,7 @@ export async function GET(req: NextRequest) {
         adminClient
           .from("missions")
           .select(
-            "id,title,status,priority,owner_profile_id,concierge_profile_id,property_id,scheduled_start,completed_at,created_at,updated_at",
+            "id,title,status,priority,owner_profile_id,concierge_profile_id,property_id,scheduled_start,scheduled_end,completed_at,metadata,created_at,updated_at",
           )
           .order("created_at", { ascending: false })
           .limit(60) as unknown as PromiseLike<
@@ -177,7 +187,9 @@ export async function GET(req: NextRequest) {
             concierge_profile_id: string | null;
             property_id: string | null;
             scheduled_start: string | null;
+            scheduled_end: string | null;
             completed_at: string | null;
+            metadata: Record<string, unknown> | null;
             created_at: string;
             updated_at: string;
           }>
@@ -211,10 +223,20 @@ export async function GET(req: NextRequest) {
       safeQuery(
         adminClient
           .from("invoices")
-          .select("id, mission_id, status, created_at")
+          .select("id,mission_id,status,total_amount,paid_amount,balance_amount,due_date,paid_at,created_at")
           .order("created_at", { ascending: false })
           .limit(120) as unknown as PromiseLike<
-          QueryResult<{ id: string; mission_id: string | null; status: string; created_at: string }>
+          QueryResult<{
+            id: string;
+            mission_id: string | null;
+            status: string;
+            total_amount: number | null;
+            paid_amount: number | null;
+            balance_amount: number | null;
+            due_date: string | null;
+            paid_at: string | null;
+            created_at: string;
+          }>
         >,
       ),
       safeQuery(
@@ -252,6 +274,16 @@ export async function GET(req: NextRequest) {
             sender_profile_id: string;
             created_at: string;
           }>
+        >,
+      ),
+      safeQuery(
+        adminClient.from("provider_interventions").select("id,provider_profile_id,status,metadata").limit(200) as unknown as PromiseLike<
+          QueryResult<{ id: string; provider_profile_id: string; status: string; metadata: Record<string, unknown> | null }>
+        >,
+      ),
+      safeQuery(
+        adminClient.from("maintenance_incidents").select("id,mission_id,status").limit(200) as unknown as PromiseLike<
+          QueryResult<{ id: string; mission_id: string | null; status: string }>
         >,
       ),
     ]);
@@ -307,7 +339,17 @@ export async function GET(req: NextRequest) {
 
     const requests = (serviceRequestsRes.data ?? []) as Array<{ id: string; mission_id: string | null }>;
     const quotes = (quotesRes.data ?? []) as Array<{ id: string; mission_id: string | null; status: string; created_at: string }>;
-    const invoices = (invoicesRes.data ?? []) as Array<{ id: string; mission_id: string | null; status: string; created_at: string }>;
+    const invoices = (invoicesRes.data ?? []) as Array<{
+      id: string;
+      mission_id: string | null;
+      status: string;
+      total_amount: number | null;
+      paid_amount: number | null;
+      balance_amount: number | null;
+      due_date: string | null;
+      paid_at: string | null;
+      created_at: string;
+    }>;
 
     const requestByMissionId = new Map<string, { id: string; mission_id: string | null }>();
     requests.forEach((request) => {
@@ -323,6 +365,17 @@ export async function GET(req: NextRequest) {
       if (!invoice.mission_id) return;
       invoicesByMissionId.set(invoice.mission_id, [...(invoicesByMissionId.get(invoice.mission_id) ?? []), invoice]);
     });
+    const assignmentCountByMissionId = new Map<string, number>();
+    ((interventionsRes.data ?? []) as Array<{ metadata: Record<string, unknown> | null }>).forEach((intervention) => {
+      const missionId = typeof intervention.metadata?.mission_id === "string" ? intervention.metadata.mission_id : null;
+      if (missionId) assignmentCountByMissionId.set(missionId, (assignmentCountByMissionId.get(missionId) ?? 0) + 1);
+    });
+    const openMaintenanceCountByMissionId = new Map<string, number>();
+    const closedMaintenanceStatuses = new Set(["resolved", "closed", "cancelled"]);
+    ((maintenanceRes.data ?? []) as Array<{ mission_id: string | null; status: string }>).forEach((incident) => {
+      if (!incident.mission_id || closedMaintenanceStatuses.has(incident.status)) return;
+      openMaintenanceCountByMissionId.set(incident.mission_id, (openMaintenanceCountByMissionId.get(incident.mission_id) ?? 0) + 1);
+    });
 
     const missionItems = ((missionsRes.data ?? []) as Array<{
       id: string;
@@ -333,27 +386,28 @@ export async function GET(req: NextRequest) {
       concierge_profile_id: string | null;
       property_id: string | null;
       scheduled_start: string | null;
+      scheduled_end: string | null;
       completed_at: string | null;
+      metadata: Record<string, unknown> | null;
       created_at: string;
       updated_at: string;
     }>)
       .map((mission) => {
         const relatedQuotes = quotesByMissionId.get(mission.id) ?? [];
         const relatedInvoices = invoicesByMissionId.get(mission.id) ?? [];
-        const steps = [
-          { id: "request", label: "Demande liee", ok: requestByMissionId.has(mission.id) },
-          { id: "quote", label: "Devis lie", ok: relatedQuotes.length > 0 },
-          { id: "planning", label: "Planning fixe", ok: Boolean(mission.scheduled_start) },
-          { id: "execution", label: "Realisation", ok: Boolean(mission.completed_at) },
-          { id: "invoice", label: "Facture liee", ok: relatedInvoices.length > 0 },
-        ];
-        const issueCount = buildIssueCount(steps);
-        const tone: ControlTone =
-          (Boolean(mission.completed_at) && relatedInvoices.length === 0) || issueCount >= 3
-            ? "danger"
-            : issueCount > 0
-              ? "warning"
-              : "positive";
+        const evaluation = evaluateMissionHealth({
+          status: mission.status,
+          scheduled_start: mission.scheduled_start,
+          scheduled_end: mission.scheduled_end,
+          completed_at: mission.completed_at,
+          hasRequest: requestByMissionId.has(mission.id),
+          quoteCount: relatedQuotes.length,
+          invoices: relatedInvoices,
+          assignmentCount:
+            (assignmentCountByMissionId.get(mission.id) ?? 0) +
+            (typeof mission.metadata?.assigned_team_member_id === "string" ? 1 : 0),
+          openMaintenanceCount: openMaintenanceCountByMissionId.get(mission.id) ?? 0,
+        });
 
         return {
           id: mission.id,
@@ -367,12 +421,18 @@ export async function GET(req: NextRequest) {
           createdAt: mission.created_at,
           updatedAt: mission.updated_at,
           scheduledStart: mission.scheduled_start,
+          scheduledEnd: mission.scheduled_end,
           completedAt: mission.completed_at,
           quoteCount: relatedQuotes.length,
           invoiceCount: relatedInvoices.length,
-          steps,
-          issueCount,
-          tone,
+          assignmentCount:
+            (assignmentCountByMissionId.get(mission.id) ?? 0) +
+            (typeof mission.metadata?.assigned_team_member_id === "string" ? 1 : 0),
+          openMaintenanceCount: openMaintenanceCountByMissionId.get(mission.id) ?? 0,
+          hasOverdueInvoice: evaluation.hasOverdueInvoice,
+          steps: evaluation.steps,
+          issueCount: evaluation.issueCount,
+          tone: evaluation.tone,
         };
       })
       .sort((left, right) => right.issueCount - left.issueCount || getAgeHours(right.updatedAt) - getAgeHours(left.updatedAt));
@@ -443,9 +503,32 @@ export async function GET(req: NextRequest) {
     const onboardingProblemCount = onboardingItems.filter((item) => item.tone !== "positive").length;
     const missionProblemCount = missionItems.filter((item) => item.tone !== "positive").length;
     const conversationProblemCount = conversationItems.filter((item) => item.tone !== "positive").length;
+    const dangerCount =
+      onboardingItems.filter((item) => item.tone === "danger").length +
+      missionItems.filter((item) => item.tone === "danger").length +
+      conversationItems.filter((item) => item.tone === "danger").length;
+    const warningCount =
+      onboardingItems.filter((item) => item.tone === "warning").length +
+      missionItems.filter((item) => item.tone === "warning").length +
+      conversationItems.filter((item) => item.tone === "warning").length;
+    const sourceHealth: ControlSourceHealth[] = [
+      { key: "profiles", label: "Profils", available: profilesRes.available, reason: profilesRes.reason },
+      { key: "auth-users", label: "Comptes Supabase Auth", available: true, reason: null },
+      { key: "onboarding-events", label: "Événements d'inscription", available: onboardingEventsRes.available, reason: onboardingEventsRes.reason },
+      { key: "missions", label: "Missions", available: missionsRes.available, reason: missionsRes.reason },
+      { key: "service-requests", label: "Demandes", available: serviceRequestsRes.available, reason: serviceRequestsRes.reason },
+      { key: "quotes", label: "Devis", available: quotesRes.available, reason: quotesRes.reason },
+      { key: "invoices", label: "Factures", available: invoicesRes.available, reason: invoicesRes.reason },
+      { key: "conversations", label: "Conversations", available: conversationsRes.available, reason: conversationsRes.reason },
+      { key: "messages", label: "Messages", available: messagesRes.available, reason: messagesRes.reason },
+      { key: "provider-interventions", label: "Affectations prestataires", available: interventionsRes.available, reason: interventionsRes.reason },
+      { key: "maintenance-incidents", label: "Incidents de maintenance", available: maintenanceRes.available, reason: maintenanceRes.reason },
+    ];
+    const health = buildControlTowerHealth({ sources: sourceHealth, dangerCount, warningCount });
 
     return NextResponse.json(
       {
+        health,
         summary: {
           onboarding: {
             total: onboardingItems.length,

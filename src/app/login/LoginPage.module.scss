@@ -222,6 +222,43 @@ $danger: #e74c3c;
   font-weight: 700;
 }
 
+.quickAccess {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+  padding: 0.9rem;
+  border: 1px solid rgba($gold, 0.24);
+  border-radius: 16px;
+  background: rgba($gold, 0.07);
+}
+
+.quickAccess strong {
+  color: #4b3715;
+}
+
+.quickAccess p {
+  margin: 0.25rem 0 0;
+  color: $muted;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.quickAccessButtons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.quickAccessButtons button {
+  width: 100%;
+}
+
+.quickAccess .quickAccessMessage {
+  margin: 0;
+  color: $gold-dark;
+  font-weight: 700;
+}
+
 .inputWrapper,
 .passwordInputWrapper {
   position: relative;
@@ -356,7 +393,8 @@ $danger: #e74c3c;
 
   .title,
   .fieldLabel,
-  .passwordToggle {
+  .passwordToggle,
+  .quickAccess strong {
     color: #e6cf92;
   }
 
@@ -368,6 +406,15 @@ $danger: #e74c3c;
 
   .subtitle {
     color: rgba(244, 232, 196, 0.78);
+  }
+
+  .quickAccess {
+    border-color: rgba(198, 167, 92, 0.24);
+    background: rgba(198, 167, 92, 0.08);
+  }
+
+  .quickAccess p {
+    color: rgba(244, 232, 196, 0.72);
   }
 
   .input,
@@ -453,5 +500,9 @@ $danger: #e74c3c;
   .submitButton {
     width: 100%;
     min-width: 0;
+  }
+
+  .quickAccessButtons {
+    grid-template-columns: 1fr;
   }
 }
