@@ -86,6 +86,20 @@ function buildWorkspaceInfo(email: string, role: string) {
   return `workspace_parent_email:${email.toLowerCase()};workspace_role:${role}`;
 }
 
+function buildWorkspaceAccount(workspaceKey: WorkspaceKey) {
+  const workspace = WORKSPACES[workspaceKey];
+  const email =
+    workspaceKey === "admin" ? targetEmail : buildWorkspaceEmail(targetEmail, workspaceKey);
+
+  return {
+    workspace: workspaceKey,
+    email,
+    password: workspacePassword,
+    href: workspace.href,
+    label: workspace.label,
+  };
+}
+
 function createAdminClient() {
   if (!supabaseUrl || !serviceRoleKey) {
     throw new Error("Variables Supabase manquantes pour la connexion rapide.");
@@ -125,16 +139,27 @@ async function findExistingProfile(
   role: string,
 ) {
   const marker = buildWorkspaceInfo(targetEmail, role);
-  const { data, error } = await supabase
+  const markerLookup = await supabase
     .from("profiles")
     .select("id,email,role,category,username,additional_info")
-    .or(`email.eq.${email},additional_info.ilike.%${marker}%`)
+    .ilike("additional_info", `%${marker}%`)
     .eq("role", role)
     .limit(1)
     .maybeSingle();
 
-  if (error) throw error;
-  return data;
+  if (markerLookup.error) throw markerLookup.error;
+  if (markerLookup.data) return markerLookup.data;
+
+  const emailLookup = await supabase
+    .from("profiles")
+    .select("id,email,role,category,username,additional_info")
+    .eq("email", email)
+    .eq("role", role)
+    .limit(1)
+    .maybeSingle();
+
+  if (emailLookup.error) throw emailLookup.error;
+  return emailLookup.data;
 }
 
 async function findAuthUser(supabase: ReturnType<typeof createAdminClient>, email: string) {
@@ -274,6 +299,7 @@ export async function POST(req: NextRequest) {
         password: account.password,
         href: account.href,
         label: account.label,
+        prepared: true,
       },
       {
         status: 200,
@@ -284,6 +310,20 @@ export async function POST(req: NextRequest) {
     );
   } catch (error) {
     console.error("[dev-workspace-login] failed", error);
-    return NextResponse.json({ error: "Unable to prepare test workspace account" }, { status: 500 });
+    const fallbackAccount = buildWorkspaceAccount(workspaceKey);
+
+    return NextResponse.json(
+      {
+        ...fallbackAccount,
+        prepared: false,
+        warning: "Workspace account returned without remote preparation.",
+      },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      },
+    );
   }
 }

@@ -1,3 +1,68 @@
+.foldablePanel {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.foldableContent {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.foldableToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(138, 109, 74, 0.16);
+  border-radius: 1.2rem;
+  background: rgba(255, 252, 246, 0.92);
+  box-shadow: 0 14px 34px rgba(61, 44, 25, 0.06);
+  cursor: pointer;
+  text-align: left;
+}
+
+.foldableHeading {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.foldableLabel {
+  color: #2f261d;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.foldableHeading p {
+  margin: 0;
+  color: rgba(47, 38, 29, 0.72);
+  font-size: 0.88rem;
+}
+
+.foldableMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: #8c641e;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.chevron {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+}
+
+.chevronOpen {
+  transform: rotate(225deg);
+}
+
 .tabRow {
   display: flex;
   flex-wrap: wrap;
@@ -46,6 +111,31 @@
   background: rgba(255, 252, 246, 0.94);
   padding: 0.88rem 1rem;
   color: #2f261d;
+}
+
+.filterSummary {
+  display: grid;
+  gap: 0.22rem;
+  padding: 0.9rem 0.95rem;
+  border-radius: 1rem;
+  background: rgba(246, 239, 229, 0.7);
+}
+
+.filterSummary span {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(91, 74, 53, 0.7);
+}
+
+.filterSummary strong {
+  color: #2f261d;
+}
+
+.filterSummary p {
+  margin: 0;
+  color: rgba(47, 38, 29, 0.72);
+  font-size: 0.82rem;
 }
 
 .cardList {
@@ -104,6 +194,31 @@
   color: #2f261d;
 }
 
+.inlineFacts {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.inlineFacts div {
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.95rem;
+  background: rgba(246, 239, 229, 0.45);
+}
+
+.inlineFacts span {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(91, 74, 53, 0.68);
+}
+
+.inlineFacts strong {
+  color: #2f261d;
+}
+
 .stepRow {
   display: flex;
   flex-wrap: wrap;
@@ -146,7 +261,7 @@
   .healthBanner .refreshButton { grid-column: 1 / -1; }
   .unavailableSources { grid-column: 1 / -1; }
   .filterRow {
-    grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.8fr);
+    grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.8fr) minmax(240px, 0.9fr);
   }
 
   .metaGrid {

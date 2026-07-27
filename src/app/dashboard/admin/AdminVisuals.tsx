@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useEffect, useId, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { IconType } from "react-icons";
@@ -32,6 +32,26 @@ type AdminVisualDecoration = {
 
 function totalize(segments: DonutSegment[]) {
   return segments.reduce((sum, segment) => sum + segment.value, 0);
+}
+
+function percentOf(value: number, total: number) {
+  if (total <= 0) return 0;
+  return Math.round((value / total) * 100);
+}
+
+function resolveSegmentTone(label: string): AdminTone {
+  const normalized = label.toLowerCase();
+  if (normalized.includes("crit")) return "danger";
+  if (normalized.includes("suivre")) return "warning";
+  if (normalized.includes("sain")) return "positive";
+  return "neutral";
+}
+
+function resolveToneLabel(tone: AdminTone) {
+  if (tone === "positive") return "Stable";
+  if (tone === "warning") return "Sous tension";
+  if (tone === "danger") return "Critique";
+  return "Neutre";
 }
 
 function VisualDecoration({
@@ -85,7 +105,17 @@ export function AdminDonutCard({
   segments: DonutSegment[];
   totalLabel?: string;
 } & AdminVisualDecoration) {
+  const legendId = useId();
+  const [legendOpen, setLegendOpen] = useState(false);
   const total = totalize(segments);
+  const primarySegment = [...segments].sort((left, right) => right.value - left.value)[0];
+  const primaryTone = primarySegment ? resolveSegmentTone(primarySegment.label) : "neutral";
+
+  useEffect(() => {
+    if (window.matchMedia("(min-width: 980px)").matches) {
+      setLegendOpen(true);
+    }
+  }, []);
 
   return (
     <article className={styles.donutCard}>
@@ -98,12 +128,22 @@ export function AdminDonutCard({
       <div className={styles.cardInner}>
         <div className={styles.donutHeader}>
           <div>
+            <div className={styles.headerMetaRow}>
+              <span className={styles.cardEyebrow}>Lecture immédiate</span>
+              <span className={`${styles.toneBadge} ${styles[`toneBadge_${primaryTone}`]}`}>
+                {resolveToneLabel(primaryTone)}
+              </span>
+            </div>
             <h3>{title}</h3>
             <p>{subtitle}</p>
           </div>
           <span className={styles.iconBadge}>
             <Icon />
           </span>
+        </div>
+
+        <div className={styles.artDecoDivider} aria-hidden="true">
+          <span />
         </div>
 
         <div className={styles.chartRow}>
@@ -128,20 +168,40 @@ export function AdminDonutCard({
               </PieChart>
             </ResponsiveContainer>
             <div className={styles.chartCenter}>
-              <strong>{total}</strong>
+              <strong className={total === 0 ? styles.chartCenterEmpty : ""}>{total}</strong>
               <span>{totalLabel}</span>
+              <small>{primarySegment?.label ?? "Aucun signal"}</small>
             </div>
           </div>
+        </div>
 
-          <div className={styles.legend}>
-            {segments.map((segment) => (
-              <div key={segment.label} className={styles.legendItem}>
-                <span className={styles.legendDot} style={{ background: segment.color }} />
-                <span className={styles.legendLabel}>{segment.label}</span>
-                <span className={styles.legendValue}>{segment.value}</span>
-              </div>
-            ))}
-          </div>
+        <div className={styles.legendPanelInline}>
+          <button
+            type="button"
+            className={styles.legendToggle}
+            aria-expanded={legendOpen}
+            aria-controls={legendId}
+            onClick={() => setLegendOpen((current) => !current)}
+          >
+            <span>Légende du camembert</span>
+            <span className={`${styles.legendChevron} ${legendOpen ? styles.legendChevronOpen : ""}`} aria-hidden="true">
+              ^
+            </span>
+          </button>
+
+          {legendOpen ? (
+            <div id={legendId} className={styles.legend}>
+              {segments.map((segment) => (
+                <div key={segment.label} className={styles.legendItem}>
+                  <span className={styles.legendDot} style={{ background: segment.color }} />
+                  <div className={styles.legendText}>
+                    <span className={styles.legendLabel}>{segment.label}</span>
+                    <small>{percentOf(segment.value, total)}%</small>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       </div>
     </article>
@@ -171,8 +231,16 @@ export function AdminBubblePanel({
       />
       <div className={styles.cardInner}>
         <div className={styles.bubbleHeader}>
+          <div className={styles.headerMetaRow}>
+            <span className={styles.cardEyebrow}>Signaux immédiats</span>
+            <span className={`${styles.toneBadge} ${styles.toneBadge_warning}`}>À traiter vite</span>
+          </div>
           <h3>{title}</h3>
           <p>{subtitle}</p>
+        </div>
+
+        <div className={styles.artDecoDivider} aria-hidden="true">
+          <span />
         </div>
 
         <div className={styles.bubbleList}>
@@ -234,7 +302,21 @@ export function AdminGaugeCard({
 } & AdminVisualDecoration) {
   const percent = total > 0 ? Math.max(0, Math.min(100, Math.round((value / total) * 100))) : 0;
   const stroke =
-    tone === "positive" ? "#1f9d55" : tone === "warning" ? "#f59e0b" : tone === "danger" ? "#ef4444" : "#64748b";
+    tone === "positive"
+      ? "#1f9d55"
+      : tone === "warning"
+        ? "#f59e0b"
+        : tone === "danger"
+          ? "#ef4444"
+          : "#64748b";
+  const toneLabel =
+    tone === "positive"
+      ? "Exploitable"
+      : tone === "warning"
+        ? "À surveiller"
+        : tone === "danger"
+          ? "Bloquant"
+          : "Neutre";
 
   return (
     <article className={styles.gaugeCard}>
@@ -247,12 +329,22 @@ export function AdminGaugeCard({
       <div className={styles.cardInner}>
         <div className={styles.donutHeader}>
           <div>
+            <div className={styles.headerMetaRow}>
+              <span className={styles.cardEyebrow}>Indice de fiabilité</span>
+              <span className={`${styles.toneBadge} ${styles[`toneBadge_${tone}`]}`}>
+                {toneLabel}
+              </span>
+            </div>
             <h3>{title}</h3>
             <p>{subtitle}</p>
           </div>
           <span className={styles.iconBadge}>
             <Icon />
           </span>
+        </div>
+
+        <div className={styles.artDecoDivider} aria-hidden="true">
+          <span />
         </div>
 
         <div className={styles.gaugeWrap}>
@@ -275,6 +367,7 @@ export function AdminGaugeCard({
             <span>
               {value}/{total}
             </span>
+            <small>{toneLabel}</small>
           </div>
         </div>
       </div>
@@ -298,25 +391,33 @@ export function AdminToneLegend({
       />
       <div className={styles.cardInner}>
         <div className={styles.bubbleHeader}>
+          <div className={styles.headerMetaRow}>
+            <span className={styles.cardEyebrow}>Référence commune</span>
+            <span className={styles.toneBadge}>Palette admin</span>
+          </div>
           <h3>Légende visuelle</h3>
-          <p>Le même code couleur s'applique sur les badges, bulles et graphiques.</p>
+          <p>Un seul code couleur pour toute la lecture visuelle.</p>
+        </div>
+
+        <div className={styles.artDecoDivider} aria-hidden="true">
+          <span />
         </div>
 
         <div className={styles.toneLegendRow}>
           <div className={styles.toneLegendItem}>
             <span className={`${styles.legendDot} ${styles.tonePositive}`} />
             <strong>Vert</strong>
-            <small>Tout est exploitable</small>
+            <small>Exploitable</small>
           </div>
           <div className={styles.toneLegendItem}>
             <span className={`${styles.legendDot} ${styles.toneWarning}`} />
             <strong>Orange</strong>
-            <small>À suivre rapidement</small>
+            <small>À suivre</small>
           </div>
           <div className={styles.toneLegendItem}>
             <span className={`${styles.legendDot} ${styles.toneDanger}`} />
             <strong>Rouge</strong>
-            <small>Blocage ou anomalie</small>
+            <small>Blocage</small>
           </div>
         </div>
       </div>

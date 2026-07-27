@@ -6,14 +6,12 @@ import { useSearchParams } from "next/navigation";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
 import {
   AdminEmptyState,
-  AdminKpiGrid,
   AdminStatusBadge,
   formatAdminDate,
   formatControlStepLabel,
   getControlToneLabel,
   normalizeAdminText,
   type AdminControlStep,
-  type AdminKpi,
   type AdminTone,
 } from "../AdminOperations";
 import styles from "./page.module.scss";
@@ -104,12 +102,46 @@ type ControlPayload = {
 };
 
 type TabKey = "inscriptions" | "missions" | "messages";
+type PanelKey = "health" | "filters" | "details";
 
 const TAB_LABELS: Record<TabKey, string> = {
   inscriptions: "Inscriptions",
   missions: "Missions",
   messages: "Messages",
 };
+
+function FoldableSectionHeader({
+  title,
+  summary,
+  isOpen,
+  onToggle,
+  controlsId,
+}: {
+  title: string;
+  summary: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  controlsId: string;
+}) {
+  return (
+    <button
+      type="button"
+      className={styles.foldableToggle}
+      onClick={onToggle}
+      aria-expanded={isOpen}
+      aria-controls={controlsId}
+    >
+      <div className={styles.foldableHeading}>
+        <span className={styles.foldableLabel}>{title}</span>
+        <p>{summary}</p>
+      </div>
+      <span className={styles.foldableMeta}>
+        <span>{isOpen ? "Replier" : "Deplier"}</span>
+        <span className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ""}`} aria-hidden="true" />
+      </span>
+    </button>
+  );
+}
 
 function StepRow({ steps }: { steps: AdminControlStep[] }) {
   return (
@@ -154,13 +186,13 @@ function ControlActionPanel({
       });
       const result = (await response.json().catch(() => null)) as { error?: string } | null;
       if (!response.ok) {
-        setError(result?.error || "Action non enregistrée.");
+        setError(result?.error || "Action non enregistree.");
         return;
       }
       setNote("");
       onSaved();
     } catch {
-      setError("Action non enregistrée.");
+      setError("Action non enregistree.");
     } finally {
       setSaving(null);
     }
@@ -174,15 +206,18 @@ function ControlActionPanel({
         <p>
           <strong>
             {action.status === "closed"
-              ? "Suivi clôturé"
+              ? "Suivi cloture"
               : action.status === "escalated"
                 ? "Transmis au responsable"
                 : "Pris en charge"}
           </strong>
-          {" · "}{formatAdminDate(action.createdAt)}
+          {" | "}
+          {formatAdminDate(action.createdAt)}
           {action.note ? <span>{action.note}</span> : null}
         </p>
-      ) : <p>Aucune prise en charge enregistrée.</p>}
+      ) : (
+        <p>Aucune prise en charge enregistree.</p>
+      )}
       {tone !== "positive" ? (
         <>
           <input
@@ -193,15 +228,27 @@ function ControlActionPanel({
             aria-label="Motif de l'action administrateur"
           />
           <div>
-            <button type="button" disabled={saving !== null} onClick={() => void save("acknowledged")}>
-              {saving === "acknowledged" ? "Enregistrement…" : "Prendre en charge"}
+            <button
+              type="button"
+              disabled={saving !== null}
+              onClick={() => void save("acknowledged")}
+            >
+              {saving === "acknowledged" ? "Enregistrement..." : "Prendre en charge"}
             </button>
-            <button type="button" disabled={saving !== null || note.trim().length < 3} onClick={() => void save("escalated")}>
-              {saving === "escalated" ? "Transmission…" : "Transmettre au responsable"}
+            <button
+              type="button"
+              disabled={saving !== null || note.trim().length < 3}
+              onClick={() => void save("escalated")}
+            >
+              {saving === "escalated" ? "Transmission..." : "Transmettre au responsable"}
             </button>
             {action && action.status !== "closed" ? (
-              <button type="button" disabled={saving !== null || note.trim().length < 3} onClick={() => void save("closed")}>
-                {saving === "closed" ? "Clôture…" : "Clôturer le suivi"}
+              <button
+                type="button"
+                disabled={saving !== null || note.trim().length < 3}
+                onClick={() => void save("closed")}
+              >
+                {saving === "closed" ? "Cloture..." : "Cloturer le suivi"}
               </button>
             ) : null}
           </div>
@@ -212,6 +259,14 @@ function ControlActionPanel({
   );
 }
 
+function renderHealthSummary(payload: ControlPayload | null) {
+  if (!payload) {
+    return "Controle indisponible, relance manuelle necessaire.";
+  }
+
+  return `${payload.health.dangerCount} critique(s), ${payload.health.warningCount} a surveiller, ${payload.health.unavailableSources.length} source(s) non verifiable(s).`;
+}
+
 function AdminControlPageContent() {
   const searchParams = useSearchParams();
   const [payload, setPayload] = useState<ControlPayload | null>(null);
@@ -220,6 +275,11 @@ function AdminControlPageContent() {
   const [search, setSearch] = useState("");
   const [severity, setSeverity] = useState<"all" | AdminTone>("all");
   const [reloadKey, setReloadKey] = useState(0);
+  const [panelOpen, setPanelOpen] = useState<Record<PanelKey, boolean>>({
+    health: true,
+    filters: true,
+    details: true,
+  });
 
   useEffect(() => {
     const nextTab = searchParams.get("tab");
@@ -259,56 +319,6 @@ function AdminControlPageContent() {
     void load();
   }, [reloadKey]);
 
-  const kpis = useMemo<AdminKpi[]>(() => {
-    if (!payload) return [];
-
-    return [
-      {
-        id: "problems",
-        label: "Problèmes détectés",
-        value: payload.summary.totalProblems,
-        helper: "Points à corriger sur les parcours contrôlés",
-        tone: payload.summary.totalProblems > 0 ? "danger" : "positive",
-      },
-      {
-        id: "onboarding",
-        label: "Inscriptions à surveiller",
-        value: payload.summary.onboarding.warning + payload.summary.onboarding.danger,
-        helper: `${payload.summary.onboarding.healthy} parcours sains`,
-        tone:
-          payload.summary.onboarding.danger > 0
-            ? "danger"
-            : payload.summary.onboarding.warning > 0
-              ? "warning"
-              : "positive",
-      },
-      {
-        id: "missions",
-        label: "Missions à surveiller",
-        value: payload.summary.missions.warning + payload.summary.missions.danger,
-        helper: `${payload.summary.missions.healthy} missions saines`,
-        tone:
-          payload.summary.missions.danger > 0
-            ? "danger"
-            : payload.summary.missions.warning > 0
-              ? "warning"
-              : "positive",
-      },
-      {
-        id: "messages",
-        label: "Conversations à surveiller",
-        value: payload.summary.messages.warning + payload.summary.messages.danger,
-        helper: `${payload.summary.messages.healthy} conversations saines`,
-        tone:
-          payload.summary.messages.danger > 0
-            ? "danger"
-            : payload.summary.messages.warning > 0
-              ? "warning"
-              : "positive",
-      },
-    ];
-  }, [payload]);
-
   const currentItems = useMemo(() => {
     if (!payload) return [];
     if (tab === "inscriptions") return payload.onboarding;
@@ -323,9 +333,11 @@ function AdminControlPageContent() {
       const haystack =
         tab === "inscriptions"
           ? normalizeAdminText(
-              [(item as OnboardingItem).displayName, (item as OnboardingItem).email, (item as OnboardingItem).role].join(
-                " ",
-              ),
+              [
+                (item as OnboardingItem).displayName,
+                (item as OnboardingItem).email,
+                (item as OnboardingItem).role,
+              ].join(" "),
             )
           : tab === "missions"
             ? normalizeAdminText(
@@ -334,6 +346,7 @@ function AdminControlPageContent() {
                   (item as MissionItem).ownerName,
                   (item as MissionItem).conciergeName,
                   (item as MissionItem).status,
+                  (item as MissionItem).priority,
                 ].join(" "),
               )
             : normalizeAdminText(
@@ -350,25 +363,44 @@ function AdminControlPageContent() {
     });
   }, [currentItems, search, severity, tab]);
 
+  const filterSummary = useMemo(
+    () =>
+      `${TAB_LABELS[tab]} : ${filteredItems.length} resultat(s) affiches sur ${currentItems.length} avant filtres.`,
+    [currentItems.length, filteredItems.length, tab],
+  );
+
+  const detailSummary = useMemo(() => {
+    if (filteredItems.length === 0) {
+      return `Aucun element visible dans ${TAB_LABELS[tab].toLowerCase()}.`;
+    }
+
+    const withProblems = filteredItems.filter((item) => item.tone !== "positive").length;
+    return `${filteredItems.length} element(s) visible(s), ${withProblems} a surveiller dans ${TAB_LABELS[tab].toLowerCase()}.`;
+  }, [filteredItems, tab]);
+
+  function togglePanel(panel: PanelKey) {
+    setPanelOpen((current) => ({ ...current, [panel]: !current[panel] }));
+  }
+
   if (loading) {
-    return <div className="center">Chargement du contrôle détaillé...</div>;
+    return <div className="center">Chargement du controle detaille...</div>;
   }
 
   return (
     <DashboardLayout
       persona="admin"
-      title="Contrôle détaillé"
-      subtitle="Vérifier et colorer les étapes d'inscription, les missions et les messages pour repérer vite ce qui bloque."
+      title="Controle detaille"
+      subtitle="Verifier et colorer les etapes d'inscription, les missions et les messages pour reperer vite ce qui bloque."
       navTitle="Pilotage admin"
       navItems={[
         { label: "Vue d'ensemble", href: "/dashboard/admin" },
-        { label: "Contrôle détaillé", href: "/dashboard/admin/controle" },
+        { label: "Controle detaille", href: "/dashboard/admin/controle" },
         { label: "Utilisateurs", href: "/dashboard/admin/utilisateurs" },
         { label: "Demandes", href: "/dashboard/admin/demandes" },
         { label: "Missions", href: "/dashboard/admin/missions" },
       ]}
       stats={[
-        { label: "Problèmes", value: String(payload?.summary.totalProblems ?? 0), hint: "Rouge + orange" },
+        { label: "Problemes", value: String(payload?.summary.totalProblems ?? 0), hint: "Rouge + orange" },
         {
           label: "Inscriptions",
           value: String(payload?.summary.onboarding.total ?? 0),
@@ -394,26 +426,26 @@ function AdminControlPageContent() {
         {
           id: "onboarding",
           title: "Parcours d'inscription",
-          description: "Création, confirmation e-mail, première connexion et complétion",
+          description: "Creation, confirmation e-mail, premiere connexion et completion",
           href: "/dashboard/admin/controle",
         },
         {
           id: "missions",
           title: "Parcours mission",
-          description: "Demande, devis, planning, exécution et facture",
+          description: "Demande, devis, planning, execution et facture",
           href: "/dashboard/admin/controle",
         },
         {
           id: "messages",
           title: "Parcours messages",
-          description: "Conversation, premier message, réponse et activité récente",
+          description: "Conversation, premier message, reponse et activite recente",
           href: "/dashboard/admin/controle",
         },
       ]}
       notifications={[
         {
           id: "control-problems",
-          title: `${payload?.summary.totalProblems ?? 0} point(s) à corriger sur le parcours plateforme.`,
+          title: `${payload?.summary.totalProblems ?? 0} point(s) a corriger sur le parcours plateforme.`,
           level: (payload?.summary.totalProblems ?? 0) > 0 ? "warning" : "info",
           href: "/dashboard/admin/controle",
         },
@@ -423,210 +455,323 @@ function AdminControlPageContent() {
         { label: "Demandes", href: "/dashboard/admin/demandes" },
         { label: "Missions", href: "/dashboard/admin/missions" },
       ]}
-      profile={{ name: "PlanetLS", subtitle: "Contrôle des étapes", badge: "Administration" }}
+      profile={{ name: "PlanetLS", subtitle: "Controle des etapes", badge: "Administration" }}
     >
-      {payload ? (
-        <section className={`${styles.healthBanner} ${styles[`health_${payload.health.status}`]}`}>
-          <div className={styles.healthSummary}>
-            <span className={styles.healthEyebrow}>État général</span>
-            <h2>{payload.health.label}</h2>
-            <p>
-              {payload.health.fullyVerifiable
-                ? `${payload.health.checkedSourceCount} sources sur ${payload.health.totalSourceCount} ont été contrôlées.`
-                : `${payload.health.checkedSourceCount} sources sur ${payload.health.totalSourceCount} seulement sont vérifiables.`}
-            </p>
-            <small>Dernier contrôle : {formatAdminDate(payload.health.checkedAt)}</small>
+      <section className={styles.foldablePanel}>
+        <FoldableSectionHeader
+          title="Etat general"
+          summary={renderHealthSummary(payload)}
+          isOpen={panelOpen.health}
+          onToggle={() => togglePanel("health")}
+          controlsId="admin-control-health"
+        />
+        {panelOpen.health ? (
+          <div id="admin-control-health" className={styles.foldableContent}>
+            {payload ? (
+              <section className={`${styles.healthBanner} ${styles[`health_${payload.health.status}`]}`}>
+                <div className={styles.healthSummary}>
+                  <span className={styles.healthEyebrow}>Etat general</span>
+                  <h2>{payload.health.label}</h2>
+                  <p>
+                    {payload.health.fullyVerifiable
+                      ? `${payload.health.checkedSourceCount} sources sur ${payload.health.totalSourceCount} ont ete controlees.`
+                      : `${payload.health.checkedSourceCount} sources sur ${payload.health.totalSourceCount} seulement sont verifiables.`}
+                  </p>
+                  <small>Dernier controle : {formatAdminDate(payload.health.checkedAt)}</small>
+                </div>
+                <div className={styles.healthCounters} aria-label="Resultat du controle global">
+                  <div>
+                    <strong>{payload.health.dangerCount}</strong>
+                    <span>critiques</span>
+                  </div>
+                  <div>
+                    <strong>{payload.health.warningCount}</strong>
+                    <span>a surveiller</span>
+                  </div>
+                  <div>
+                    <strong>{payload.health.unavailableSources.length}</strong>
+                    <span>non verifiables</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className={styles.refreshButton}
+                  onClick={() => setReloadKey((value) => value + 1)}
+                >
+                  Relancer le controle
+                </button>
+                {payload.health.unavailableSources.length > 0 ? (
+                  <div className={styles.unavailableSources} role="alert">
+                    <strong>Controles impossibles a confirmer</strong>
+                    <ul>
+                      {payload.health.unavailableSources.map((source) => (
+                        <li key={source.key}>
+                          <span>{source.label}</span>
+                          <small>{source.reason}</small>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </section>
+            ) : (
+              <section className={`${styles.healthBanner} ${styles.health_unverifiable}`} role="alert">
+                <div className={styles.healthSummary}>
+                  <span className={styles.healthEyebrow}>Etat general</span>
+                  <h2>Controle indisponible</h2>
+                  <p>L'etat de la plateforme ne peut pas etre confirme pour le moment.</p>
+                </div>
+                <button
+                  type="button"
+                  className={styles.refreshButton}
+                  onClick={() => setReloadKey((value) => value + 1)}
+                >
+                  Reessayer
+                </button>
+              </section>
+            )}
           </div>
-          <div className={styles.healthCounters} aria-label="Résultat du contrôle global">
-            <div><strong>{payload.health.dangerCount}</strong><span>critiques</span></div>
-            <div><strong>{payload.health.warningCount}</strong><span>à surveiller</span></div>
-            <div><strong>{payload.health.unavailableSources.length}</strong><span>non vérifiables</span></div>
-          </div>
-          <button type="button" className={styles.refreshButton} onClick={() => setReloadKey((value) => value + 1)}>
-            Relancer le contrôle
-          </button>
-          {payload.health.unavailableSources.length > 0 ? (
-            <div className={styles.unavailableSources} role="alert">
-              <strong>Contrôles impossibles à confirmer</strong>
-              <ul>
-                {payload.health.unavailableSources.map((source) => (
-                  <li key={source.key}><span>{source.label}</span><small>{source.reason}</small></li>
+        ) : null}
+      </section>
+
+      <section className={styles.foldablePanel}>
+        <FoldableSectionHeader
+          title="Onglets de controle"
+          summary={filterSummary}
+          isOpen={panelOpen.filters}
+          onToggle={() => togglePanel("filters")}
+          controlsId="admin-control-filters"
+        />
+        {panelOpen.filters ? (
+          <div id="admin-control-filters" className={styles.foldableContent}>
+            <DashboardPanel title="Onglets de controle">
+              <div className={styles.tabRow}>
+                {(["inscriptions", "missions", "messages"] as TabKey[]).map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => setTab(item)}
+                    className={`${styles.tabButton} ${tab === item ? styles.tabButtonActive : ""}`}
+                  >
+                    {TAB_LABELS[item]}
+                  </button>
                 ))}
-              </ul>
-            </div>
-          ) : null}
-        </section>
-      ) : (
-        <section className={`${styles.healthBanner} ${styles.health_unverifiable}`} role="alert">
-          <div className={styles.healthSummary}>
-            <span className={styles.healthEyebrow}>État général</span>
-            <h2>Contrôle indisponible</h2>
-            <p>L’état de la plateforme ne peut pas être confirmé pour le moment.</p>
+              </div>
+
+              <div className={styles.filterRow}>
+                <label className={styles.field}>
+                  <span>Recherche</span>
+                  <input
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder="Nom, sujet, mission..."
+                  />
+                </label>
+                <label className={styles.field}>
+                  <span>Couleur</span>
+                  <select
+                    value={severity}
+                    onChange={(event) => setSeverity(event.target.value as "all" | AdminTone)}
+                  >
+                    <option value="all">Toutes</option>
+                    <option value="danger">Rouge</option>
+                    <option value="warning">Orange</option>
+                    <option value="positive">Vert</option>
+                  </select>
+                </label>
+                <div className={styles.filterSummary} aria-live="polite">
+                  <span>{TAB_LABELS[tab]}</span>
+                  <strong>{filteredItems.length} resultat(s)</strong>
+                  <p>{currentItems.length} element(s) dans cet onglet avant filtres.</p>
+                </div>
+              </div>
+            </DashboardPanel>
           </div>
-          <button type="button" className={styles.refreshButton} onClick={() => setReloadKey((value) => value + 1)}>
-            Réessayer
-          </button>
-        </section>
-      )}
+        ) : null}
+      </section>
 
-      <DashboardPanel title="Vue rapide">
-        <AdminKpiGrid kpis={kpis} />
-      </DashboardPanel>
+      <section className={styles.foldablePanel}>
+        <FoldableSectionHeader
+          title={`Detail ${TAB_LABELS[tab].toLowerCase()}`}
+          summary={detailSummary}
+          isOpen={panelOpen.details}
+          onToggle={() => togglePanel("details")}
+          controlsId="admin-control-details"
+        />
+        {panelOpen.details ? (
+          <div id="admin-control-details" className={styles.foldableContent}>
+            <DashboardPanel title={`Detail ${TAB_LABELS[tab].toLowerCase()}`}>
+              {filteredItems.length === 0 ? (
+                <AdminEmptyState
+                  title="Aucun element pour ce filtre"
+                  description="Ajustez la recherche ou la couleur pour afficher les etapes a controler."
+                />
+              ) : (
+                <div className={styles.cardList}>
+                  {tab === "inscriptions" &&
+                    (filteredItems as OnboardingItem[]).map((item) => (
+                      <article key={item.id} className={styles.card}>
+                        <div className={styles.cardHeader}>
+                          <div>
+                            <h3>{item.displayName}</h3>
+                            <p>{item.email || "E-mail manquant"}</p>
+                          </div>
+                          <AdminStatusBadge label={getControlToneLabel(item.tone)} tone={item.tone} />
+                        </div>
+                        <div className={styles.inlineFacts}>
+                          <div>
+                            <span>Role</span>
+                            <strong>{item.role}</strong>
+                          </div>
+                          <div>
+                            <span>Alertes</span>
+                            <strong>{item.issueCount}</strong>
+                          </div>
+                          <div>
+                            <span>Derniere activite</span>
+                            <strong>{formatAdminDate(item.lastSignInAt)}</strong>
+                          </div>
+                        </div>
+                        <div className={styles.metaGrid}>
+                          <div>
+                            <span>Creation</span>
+                            <strong>{formatAdminDate(item.createdAt)}</strong>
+                          </div>
+                          <div>
+                            <span>Fin inscription</span>
+                            <strong>{formatAdminDate(item.onboardingCompletedAt)}</strong>
+                          </div>
+                        </div>
+                        <StepRow steps={item.steps} />
+                        <ControlActionPanel
+                          targetType="onboarding"
+                          targetId={item.id}
+                          tone={item.tone}
+                          action={item.controlAction}
+                          onSaved={() => setReloadKey((value) => value + 1)}
+                        />
+                        <div className={styles.actions}>
+                          <Link href="/dashboard/admin/utilisateurs">Ouvrir la base utilisateurs</Link>
+                        </div>
+                      </article>
+                    ))}
 
-      <DashboardPanel title="Onglets de contrôle">
-        <div className={styles.tabRow}>
-          {(["inscriptions", "missions", "messages"] as TabKey[]).map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => setTab(item)}
-              className={`${styles.tabButton} ${tab === item ? styles.tabButtonActive : ""}`}
-            >
-              {TAB_LABELS[item]}
-            </button>
-          ))}
-        </div>
+                  {tab === "missions" &&
+                    (filteredItems as MissionItem[]).map((item) => (
+                      <article key={item.id} className={styles.card}>
+                        <div className={styles.cardHeader}>
+                          <div>
+                            <h3>{item.title || "Mission"}</h3>
+                            <p>
+                              {item.ownerName} | {item.conciergeName}
+                            </p>
+                          </div>
+                          <AdminStatusBadge label={getControlToneLabel(item.tone)} tone={item.tone} />
+                        </div>
+                        <div className={styles.inlineFacts}>
+                          <div>
+                            <span>Statut</span>
+                            <strong>{item.status || "Non renseigne"}</strong>
+                          </div>
+                          <div>
+                            <span>Priorite</span>
+                            <strong>{item.priority || "Non renseignee"}</strong>
+                          </div>
+                          <div>
+                            <span>Alertes</span>
+                            <strong>{item.issueCount}</strong>
+                          </div>
+                        </div>
+                        <div className={styles.metaGrid}>
+                          <div>
+                            <span>Affectation</span>
+                            <strong>{item.assignmentCount} intervenant(s)</strong>
+                          </div>
+                          <div>
+                            <span>Facturation</span>
+                            <strong>{item.invoiceCount} facture(s){item.hasOverdueInvoice ? " | en retard" : ""}</strong>
+                          </div>
+                          <div>
+                            <span>Maintenance ouverte</span>
+                            <strong>{item.openMaintenanceCount} incident(s)</strong>
+                          </div>
+                        </div>
+                        <StepRow steps={item.steps} />
+                        <ControlActionPanel
+                          targetType="mission"
+                          targetId={item.id}
+                          tone={item.tone}
+                          action={item.controlAction}
+                          onSaved={() => setReloadKey((value) => value + 1)}
+                        />
+                        <div className={styles.actions}>
+                          <Link href="/dashboard/admin/missions">Ouvrir le suivi missions</Link>
+                        </div>
+                      </article>
+                    ))}
 
-        <div className={styles.filterRow}>
-          <label className={styles.field}>
-            <span>Recherche</span>
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Nom, sujet, mission..." />
-          </label>
-          <label className={styles.field}>
-            <span>Couleur</span>
-            <select value={severity} onChange={(event) => setSeverity(event.target.value as "all" | AdminTone)}>
-              <option value="all">Toutes</option>
-              <option value="danger">Rouge</option>
-              <option value="warning">Orange</option>
-              <option value="positive">Vert</option>
-            </select>
-          </label>
-        </div>
-      </DashboardPanel>
-
-      <DashboardPanel title={`Détail ${TAB_LABELS[tab].toLowerCase()}`}>
-        {filteredItems.length === 0 ? (
-          <AdminEmptyState
-            title="Aucun élément pour ce filtre"
-            description="Ajustez la recherche ou la couleur pour afficher les étapes à contrôler."
-          />
-        ) : (
-          <div className={styles.cardList}>
-            {tab === "inscriptions" &&
-              (filteredItems as OnboardingItem[]).map((item) => (
-                <article key={item.id} className={styles.card}>
-                  <div className={styles.cardHeader}>
-                    <div>
-                      <h3>{item.displayName}</h3>
-                      <p>
-                        {item.email || "E-mail manquant"} · {item.role}
-                      </p>
-                    </div>
-                    <AdminStatusBadge label={getControlToneLabel(item.tone)} tone={item.tone} />
-                  </div>
-                  <div className={styles.metaGrid}>
-                    <div>
-                      <span>Création</span>
-                      <strong>{formatAdminDate(item.createdAt)}</strong>
-                    </div>
-                    <div>
-                      <span>Dernière connexion</span>
-                      <strong>{formatAdminDate(item.lastSignInAt)}</strong>
-                    </div>
-                    <div>
-                      <span>Fin inscription</span>
-                      <strong>{formatAdminDate(item.onboardingCompletedAt)}</strong>
-                    </div>
-                  </div>
-                  <StepRow steps={item.steps} />
-                  <ControlActionPanel targetType="onboarding" targetId={item.id} tone={item.tone} action={item.controlAction} onSaved={() => setReloadKey((value) => value + 1)} />
-                  <div className={styles.actions}>
-                    <Link href="/dashboard/admin/utilisateurs">Ouvrir la base utilisateurs</Link>
-                  </div>
-                </article>
-              ))}
-
-            {tab === "missions" &&
-              (filteredItems as MissionItem[]).map((item) => (
-                <article key={item.id} className={styles.card}>
-                  <div className={styles.cardHeader}>
-                    <div>
-                      <h3>{item.title || "Mission"}</h3>
-                      <p>
-                        {item.ownerName} · {item.conciergeName}
-                      </p>
-                    </div>
-                    <AdminStatusBadge label={getControlToneLabel(item.tone)} tone={item.tone} />
-                  </div>
-                  <div className={styles.metaGrid}>
-                    <div>
-                      <span>Statut</span>
-                      <strong>{item.status || "Non renseigné"}</strong>
-                    </div>
-                    <div>
-                      <span>Affectation</span>
-                      <strong>{item.assignmentCount} intervenant(s)</strong>
-                    </div>
-                    <div>
-                      <span>Facturation</span>
-                      <strong>{item.invoiceCount} facture(s){item.hasOverdueInvoice ? " · en retard" : ""}</strong>
-                    </div>
-                    <div>
-                      <span>Maintenance ouverte</span>
-                      <strong>{item.openMaintenanceCount} incident(s)</strong>
-                    </div>
-                  </div>
-                  <StepRow steps={item.steps} />
-                  <ControlActionPanel targetType="mission" targetId={item.id} tone={item.tone} action={item.controlAction} onSaved={() => setReloadKey((value) => value + 1)} />
-                  <div className={styles.actions}>
-                    <Link href="/dashboard/admin/missions">Ouvrir le suivi missions</Link>
-                  </div>
-                </article>
-              ))}
-
-            {tab === "messages" &&
-              (filteredItems as MessageItem[]).map((item) => (
-                <article key={item.id} className={styles.card}>
-                  <div className={styles.cardHeader}>
-                    <div>
-                      <h3>{item.subject}</h3>
-                      <p>
-                        {item.ownerName} · {item.conciergeName}
-                      </p>
-                    </div>
-                    <AdminStatusBadge label={getControlToneLabel(item.tone)} tone={item.tone} />
-                  </div>
-                  <div className={styles.metaGrid}>
-                    <div>
-                      <span>Source</span>
-                      <strong>{item.source || "manual"}</strong>
-                    </div>
-                    <div>
-                      <span>Dernier message</span>
-                      <strong>{formatAdminDate(item.lastMessageAt)}</strong>
-                    </div>
-                    <div>
-                      <span>Attente</span>
-                      <strong>{item.waitingHours} h</strong>
-                    </div>
-                  </div>
-                  <StepRow steps={item.steps} />
-                  <ControlActionPanel targetType="message" targetId={item.id} tone={item.tone} action={item.controlAction} onSaved={() => setReloadKey((value) => value + 1)} />
-                  <div className={styles.actions}>
-                    <Link href="/dashboard/admin/demandes">Ouvrir les demandes liées</Link>
-                  </div>
-                </article>
-              ))}
+                  {tab === "messages" &&
+                    (filteredItems as MessageItem[]).map((item) => (
+                      <article key={item.id} className={styles.card}>
+                        <div className={styles.cardHeader}>
+                          <div>
+                            <h3>{item.subject}</h3>
+                            <p>
+                              {item.ownerName} | {item.conciergeName}
+                            </p>
+                          </div>
+                          <AdminStatusBadge label={getControlToneLabel(item.tone)} tone={item.tone} />
+                        </div>
+                        <div className={styles.inlineFacts}>
+                          <div>
+                            <span>Source</span>
+                            <strong>{item.source || "manual"}</strong>
+                          </div>
+                          <div>
+                            <span>Alertes</span>
+                            <strong>{item.issueCount}</strong>
+                          </div>
+                          <div>
+                            <span>Messages</span>
+                            <strong>{item.messageCount}</strong>
+                          </div>
+                        </div>
+                        <div className={styles.metaGrid}>
+                          <div>
+                            <span>Dernier message</span>
+                            <strong>{formatAdminDate(item.lastMessageAt)}</strong>
+                          </div>
+                          <div>
+                            <span>Attente</span>
+                            <strong>{item.waitingHours} h</strong>
+                          </div>
+                        </div>
+                        <StepRow steps={item.steps} />
+                        <ControlActionPanel
+                          targetType="message"
+                          targetId={item.id}
+                          tone={item.tone}
+                          action={item.controlAction}
+                          onSaved={() => setReloadKey((value) => value + 1)}
+                        />
+                        <div className={styles.actions}>
+                          <Link href="/dashboard/admin/demandes">Ouvrir les demandes liees</Link>
+                        </div>
+                      </article>
+                    ))}
+                </div>
+              )}
+            </DashboardPanel>
           </div>
-        )}
-      </DashboardPanel>
+        ) : null}
+      </section>
     </DashboardLayout>
   );
 }
 
 export default function AdminControlPage() {
   return (
-    <Suspense fallback={<div className="center">Chargement du contrôle détaillé...</div>}>
+    <Suspense fallback={<div className="center">Chargement du controle detaille...</div>}>
       <AdminControlPageContent />
     </Suspense>
   );

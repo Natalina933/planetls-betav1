@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { UserRole } from "@/types/supabase";
 import { resolveUserRole } from "@/app/utils/roles";
 import { logAuthDebug } from "@/server/logging/authDebug";
+import { resolveDevWorkspaceAccount } from "@/server/auth/devWorkspace";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321",
@@ -78,6 +79,19 @@ const providers: NextAuthConfig["providers"] = [
           });
 
         if (error || !authData.user) {
+          const devWorkspaceAccount = resolveDevWorkspaceAccount(
+            String(credentials.email),
+            String(credentials.password),
+          );
+
+          if (devWorkspaceAccount) {
+            logAuthDebug("[NextAuth][credentials] dev workspace fallback", {
+              email: maskEmail(String(credentials.email)),
+              role: devWorkspaceAccount.role,
+            });
+            return devWorkspaceAccount satisfies CustomUser;
+          }
+
           logAuthDebug("[NextAuth][credentials] Supabase auth rejected", {
             email: maskEmail(String(credentials.email)),
             error: error?.message ?? "unknown",
@@ -134,6 +148,19 @@ const providers: NextAuthConfig["providers"] = [
           status: profile.status ?? "active",
         } satisfies CustomUser;
       } catch (error) {
+        const devWorkspaceAccount = resolveDevWorkspaceAccount(
+          String(credentials?.email ?? ""),
+          String(credentials?.password ?? ""),
+        );
+
+        if (devWorkspaceAccount) {
+          logAuthDebug("[NextAuth][credentials] dev workspace fallback after exception", {
+            email: maskEmail(String(credentials?.email ?? "")),
+            role: devWorkspaceAccount.role,
+          });
+          return devWorkspaceAccount satisfies CustomUser;
+        }
+
         console.error("[NextAuth][credentials] authorize exception", error);
         return null;
       }
