@@ -3,6 +3,7 @@ import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { ACTIVATION_ALERT_POLICY, buildActivationAlerts, type KpiOverviewPayload } from "./shared";
 import { computeActivationByZone, computeActivationCohort, computeWeeklyActivationSeries } from "@/app/lib/activationKpis";
+import { buildWorkspaceEmail, getTargetWorkspaceEmail, isDevWorkspaceAuthEnabled } from "@/server/auth/devWorkspace";
 
 type RoleKey = "owner" | "concierge" | "provider";
 
@@ -27,6 +28,56 @@ const ROLE_GROUPS: Record<RoleKey, string[]> = {
   owner: ["owner", "owner_pro", "proprietaire"],
   concierge: ["concierge", "concierge_pro"],
   provider: ["provider", "provider_pro", "artisan", "artisan_pro"],
+};
+
+const ROLE_DEFINITIONS: Record<
+  RoleKey,
+  {
+    marker: "request" | "quote" | "mission";
+    baseZone: string;
+    supportZones: string[];
+    activationIndexes: number[];
+    medianMetricKey:
+      | "median_signup_to_first_request_minutes"
+      | "median_signup_to_first_response_minutes";
+    medianMetricValue: number;
+    rateMetricKey:
+      | "request_to_quote_rate"
+      | "quote_to_mission_rate"
+      | "missions_completed_rate";
+    rateMetricValue: number;
+  }
+> = {
+  owner: {
+    marker: "request",
+    baseZone: "Nice",
+    supportZones: ["Cannes", "Antibes"],
+    activationIndexes: [0, 1, 2, 4],
+    medianMetricKey: "median_signup_to_first_request_minutes",
+    medianMetricValue: 195,
+    rateMetricKey: "request_to_quote_rate",
+    rateMetricValue: 72,
+  },
+  concierge: {
+    marker: "quote",
+    baseZone: "Paris",
+    supportZones: ["Lyon", "Bordeaux"],
+    activationIndexes: [0, 2, 4],
+    medianMetricKey: "median_signup_to_first_response_minutes",
+    medianMetricValue: 48,
+    rateMetricKey: "quote_to_mission_rate",
+    rateMetricValue: 61,
+  },
+  provider: {
+    marker: "mission",
+    baseZone: "Marseille",
+    supportZones: ["Toulouse", "Montpellier"],
+    activationIndexes: [0, 1, 2, 3, 5],
+    medianMetricKey: "median_signup_to_first_response_minutes",
+    medianMetricValue: 36,
+    rateMetricKey: "missions_completed_rate",
+    rateMetricValue: 84,
+  },
 };
 
 const SCHEMA_DRIFT_CODES = new Set(["42P01", "42703", "PGRST205"]);
@@ -57,6 +108,263 @@ function median(values: number[]): number | null {
 
 const kpiDb = db as unknown as KpiDb;
 
+function isTransportError(error: unknown): boolean {
+  const message =
+    error instanceof Error
+      ? error.message.toLowerCase()
+      : typeof error === "object" &&
+          error &&
+          "message" in error &&
+          typeof (error as { message?: unknown }).message === "string"
+        ? (error as { message: string }).message.toLowerCase()
+        : "";
+
+  return (
+    message.includes("fetch failed") ||
+    message.includes("network") ||
+    message.includes("timeout") ||
+    message.includes("econn") ||
+    message.includes("enotfound") ||
+    message.includes("eacces")
+  );
+}
+
+function buildEmptyRolePayload(definition: string): KpiOverviewPayload["owner"] {
+  return {
+    activation_j7: null,
+    activation_j7_eligible: 0,
+    activation_j7_activated: 0,
+    activation_definition: definition,
+  };
+}
+
+function buildUnavailablePayload(windowDays: number, reason: string): KpiOverviewPayload {
+  const nowIso = new Date().toISOString();
+  return {
+    window_days: windowDays,
+    generated_at: nowIso,
+    health: {
+      available: false,
+      reasons: [reason],
+      updated_at: nowIso,
+    },
+    owner: buildEmptyRolePayload("request"),
+    concierge: buildEmptyRolePayload("quote"),
+    provider: buildEmptyRolePayload("mission"),
+    activation_series: {
+      owner: [],
+      concierge: [],
+      provider: [],
+    },
+    activation_by_zone: {
+      owner: [],
+      concierge: [],
+      provider: [],
+    },
+    activation_alert_policy: ACTIVATION_ALERT_POLICY,
+    activation_alerts: [],
+    shared: {
+      mission_to_paid_invoice_rate: null,
+      median_first_message_response_minutes: null,
+    },
+  };
+}
+
+function canUseWorkspaceFallback(req: NextRequest) {
+  if (!isDevWorkspaceAuthEnabled()) return false;
+  const host = req.nextUrl.hostname.toLowerCase();
+  return host === "localhost" || host === "127.0.0.1";
+}
+
+function hasNoMatureActivationData(payload: KpiOverviewPayload) {
+  return (["owner", "concierge", "provider"] as const).every((role) =>
+    payload[role].activation_j7_eligible === 0 &&
+    payload.activation_series[role].length === 0 &&
+    payload.activation_by_zone[role].length === 0,
+  );
+}
+
+function buildWorkspaceFallbackPayload(windowDays: number, reason: string): KpiOverviewPayload {
+  const now = new Date();
+  const windowStart = new Date(now.getTime() - windowDays * 24 * 60 * 60 * 1000);
+  const targetEmail = getTargetWorkspaceEmail().toLowerCase();
+  const profiles: Array<{ id: string; role: string; createdAt: Date; zone: string }> = [];
+  const activityByProfile = new Map<string, Map<string, Date>>();
+  const matureOffsets = [26, 24, 19, 17, 12, 10];
+  const immatureOffsets = [4, 2];
+
+  const markActivity = (profileId: string, marker: string, occurredAt: Date) => {
+    activityByProfile.set(profileId, new Map([[marker, occurredAt]]));
+  };
+
+  for (const role of ["owner", "concierge", "provider"] as const) {
+    const definition = ROLE_DEFINITIONS[role];
+    const workspaceEmail = buildWorkspaceEmail(targetEmail, role);
+    const profileIds = [
+      workspaceEmail,
+      ...matureOffsets.slice(1).map((_, index) => `${workspaceEmail}#cohort-${index + 1}`),
+      ...immatureOffsets.map((_, index) => `${workspaceEmail}#fresh-${index + 1}`),
+    ];
+
+    matureOffsets.forEach((offset, index) => {
+      const zone =
+        index < 3
+          ? definition.baseZone
+          : definition.supportZones[(index - 3) % definition.supportZones.length] ?? definition.baseZone;
+      const createdAt = new Date(now.getTime() - offset * 24 * 60 * 60 * 1000);
+      profiles.push({
+        id: profileIds[index] ?? `${workspaceEmail}#mature-${index + 1}`,
+        role,
+        createdAt,
+        zone,
+      });
+
+      if (definition.activationIndexes.includes(index)) {
+        markActivity(
+          profileIds[index] ?? `${workspaceEmail}#mature-${index + 1}`,
+          definition.marker,
+          new Date(createdAt.getTime() + (index % 3 === 0 ? 20 : index % 3 === 1 ? 30 : 45) * 60 * 1000),
+        );
+      }
+    });
+
+    immatureOffsets.forEach((offset, index) => {
+      const createdAt = new Date(now.getTime() - offset * 24 * 60 * 60 * 1000);
+      profiles.push({
+        id: profileIds[matureOffsets.length + index] ?? `${workspaceEmail}#fresh-${index + 1}`,
+        role,
+        createdAt,
+        zone: definition.supportZones[index % definition.supportZones.length] ?? definition.baseZone,
+      });
+      markActivity(
+        profileIds[matureOffsets.length + index] ?? `${workspaceEmail}#fresh-${index + 1}`,
+        definition.marker,
+        new Date(createdAt.getTime() + 25 * 60 * 1000),
+      );
+    });
+  }
+
+  const activationProfiles = profiles.map((profile) => ({
+    id: profile.id,
+    role: profile.role,
+    createdAt: profile.createdAt,
+    zone: profile.zone,
+  }));
+
+  const activationSeries = {
+    owner: computeWeeklyActivationSeries({
+      role: "owner",
+      profiles: activationProfiles,
+      roleAliases: ROLE_GROUPS.owner,
+      activityByProfile,
+      windowStart,
+      now,
+    }),
+    concierge: computeWeeklyActivationSeries({
+      role: "concierge",
+      profiles: activationProfiles,
+      roleAliases: ROLE_GROUPS.concierge,
+      activityByProfile,
+      windowStart,
+      now,
+    }),
+    provider: computeWeeklyActivationSeries({
+      role: "provider",
+      profiles: activationProfiles,
+      roleAliases: ROLE_GROUPS.provider,
+      activityByProfile,
+      windowStart,
+      now,
+    }),
+  };
+
+  const roleMetrics = {
+    owner: {
+      ...computeActivationCohort({
+        role: "owner",
+        profiles: activationProfiles,
+        roleAliases: ROLE_GROUPS.owner,
+        activityByProfile,
+        windowStart,
+        now,
+      }),
+      [ROLE_DEFINITIONS.owner.medianMetricKey]: ROLE_DEFINITIONS.owner.medianMetricValue,
+      [ROLE_DEFINITIONS.owner.rateMetricKey]: ROLE_DEFINITIONS.owner.rateMetricValue,
+    },
+    concierge: {
+      ...computeActivationCohort({
+        role: "concierge",
+        profiles: activationProfiles,
+        roleAliases: ROLE_GROUPS.concierge,
+        activityByProfile,
+        windowStart,
+        now,
+      }),
+      [ROLE_DEFINITIONS.concierge.medianMetricKey]: ROLE_DEFINITIONS.concierge.medianMetricValue,
+      [ROLE_DEFINITIONS.concierge.rateMetricKey]: ROLE_DEFINITIONS.concierge.rateMetricValue,
+    },
+    provider: {
+      ...computeActivationCohort({
+        role: "provider",
+        profiles: activationProfiles,
+        roleAliases: ROLE_GROUPS.provider,
+        activityByProfile,
+        windowStart,
+        now,
+      }),
+      [ROLE_DEFINITIONS.provider.medianMetricKey]: ROLE_DEFINITIONS.provider.medianMetricValue,
+      [ROLE_DEFINITIONS.provider.rateMetricKey]: ROLE_DEFINITIONS.provider.rateMetricValue,
+    },
+  };
+
+  return {
+    window_days: windowDays,
+    generated_at: now.toISOString(),
+    health: {
+      available: false,
+      reasons: [
+        reason,
+        "Mode local enrichi : cohortes workspace injectées pour conserver des KPI lisibles pendant l'initialisation des données réelles.",
+      ],
+      updated_at: now.toISOString(),
+    },
+    ...roleMetrics,
+    activation_series: activationSeries,
+    activation_by_zone: {
+      owner: computeActivationByZone({
+        role: "owner",
+        profiles: activationProfiles,
+        roleAliases: ROLE_GROUPS.owner,
+        activityByProfile,
+        windowStart,
+        now,
+      }),
+      concierge: computeActivationByZone({
+        role: "concierge",
+        profiles: activationProfiles,
+        roleAliases: ROLE_GROUPS.concierge,
+        activityByProfile,
+        windowStart,
+        now,
+      }),
+      provider: computeActivationByZone({
+        role: "provider",
+        profiles: activationProfiles,
+        roleAliases: ROLE_GROUPS.provider,
+        activityByProfile,
+        windowStart,
+        now,
+      }),
+    },
+    activation_alert_policy: ACTIVATION_ALERT_POLICY,
+    activation_alerts: buildActivationAlerts(roleMetrics, activationSeries),
+    shared: {
+      mission_to_paid_invoice_rate: 78,
+      median_first_message_response_minutes: 42,
+    },
+  };
+}
+
 function isSchemaDriftError(error: SchemaDriftError): boolean {
   return Boolean(error?.code && SCHEMA_DRIFT_CODES.has(error.code));
 }
@@ -81,15 +389,15 @@ async function fetchProfiles() {
 }
 
 export async function GET(req: NextRequest) {
+  const windowDaysRaw = Number(req.nextUrl.searchParams.get("window_days") ?? 30);
+  const windowDays = Number.isFinite(windowDaysRaw)
+    ? Math.min(120, Math.max(7, Math.trunc(windowDaysRaw)))
+    : 30;
+
   try {
     const auth = await getApiAuthContext(req);
     if (!auth.userId) return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     if (!auth.isAdmin) return NextResponse.json({ error: "Non autorise" }, { status: 403 });
-
-    const windowDaysRaw = Number(req.nextUrl.searchParams.get("window_days") ?? 30);
-    const windowDays = Number.isFinite(windowDaysRaw)
-      ? Math.min(120, Math.max(7, Math.trunc(windowDaysRaw)))
-      : 30;
 
     const now = new Date();
     const windowStart = new Date(now.getTime() - windowDays * 24 * 60 * 60 * 1000);
@@ -335,6 +643,11 @@ export async function GET(req: NextRequest) {
     const payload: KpiOverviewPayload = {
       window_days: windowDays,
       generated_at: now.toISOString(),
+      health: {
+        available: true,
+        reasons: [],
+        updated_at: now.toISOString(),
+      },
       ...roleMetrics,
       activation_series: activationSeries,
       activation_by_zone: {
@@ -350,8 +663,30 @@ export async function GET(req: NextRequest) {
       },
     };
 
+    if (canUseWorkspaceFallback(req) && hasNoMatureActivationData(payload)) {
+      return NextResponse.json(
+        buildWorkspaceFallbackPayload(
+          windowDays,
+          "Aucune cohorte mature exploitable n'a encore été observée sur cette fenêtre.",
+        ),
+      );
+    }
+
     return NextResponse.json(payload);
   } catch (error) {
+    if (isTransportError(error)) {
+      console.warn("[GET /api/kpis/overview] transport unavailable, returning degraded payload", error);
+      return NextResponse.json(
+        canUseWorkspaceFallback(req)
+          ? buildWorkspaceFallbackPayload(
+              windowDays,
+              "Connexion Supabase indisponible pour les KPI d'activation.",
+            )
+          : buildUnavailablePayload(windowDays, "Connexion Supabase indisponible pour les KPI d'activation."),
+        { status: 200 },
+      );
+    }
+
     console.error("[GET /api/kpis/overview] ERROR:", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }

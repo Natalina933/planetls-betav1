@@ -186,13 +186,13 @@ function ControlActionPanel({
       });
       const result = (await response.json().catch(() => null)) as { error?: string } | null;
       if (!response.ok) {
-        setError(result?.error || "Action non enregistree.");
+        setError(result?.error || "Action non enregistrée.");
         return;
       }
       setNote("");
       onSaved();
     } catch {
-      setError("Action non enregistree.");
+      setError("Action non enregistrée.");
     } finally {
       setSaving(null);
     }
@@ -206,7 +206,7 @@ function ControlActionPanel({
         <p>
           <strong>
             {action.status === "closed"
-              ? "Suivi cloture"
+              ? "Suivi clôturé"
               : action.status === "escalated"
                 ? "Transmis au responsable"
                 : "Pris en charge"}
@@ -216,7 +216,7 @@ function ControlActionPanel({
           {action.note ? <span>{action.note}</span> : null}
         </p>
       ) : (
-        <p>Aucune prise en charge enregistree.</p>
+        <p>Aucune prise en charge enregistrée.</p>
       )}
       {tone !== "positive" ? (
         <>
@@ -248,7 +248,7 @@ function ControlActionPanel({
                 disabled={saving !== null || note.trim().length < 3}
                 onClick={() => void save("closed")}
               >
-                {saving === "closed" ? "Cloture..." : "Cloturer le suivi"}
+                {saving === "closed" ? "Clôture..." : "Clôturer le suivi"}
               </button>
             ) : null}
           </div>
@@ -261,10 +261,16 @@ function ControlActionPanel({
 
 function renderHealthSummary(payload: ControlPayload | null) {
   if (!payload) {
-    return "Controle indisponible, relance manuelle necessaire.";
+    return "Contrôle indisponible, relance manuelle nécessaire.";
   }
 
-  return `${payload.health.dangerCount} critique(s), ${payload.health.warningCount} a surveiller, ${payload.health.unavailableSources.length} source(s) non verifiable(s).`;
+  return `${payload.health.dangerCount} critique(s), ${payload.health.warningCount} à surveiller, ${payload.health.unavailableSources.length} source(s) non vérifiable(s).`;
+}
+
+function resolveHealthTone(status: ControlPayload["health"]["status"] | undefined): AdminTone {
+  if (status === "danger") return "danger";
+  if (status === "warning" || status === "unverifiable") return "warning";
+  return "positive";
 }
 
 function AdminControlPageContent() {
@@ -365,42 +371,79 @@ function AdminControlPageContent() {
 
   const filterSummary = useMemo(
     () =>
-      `${TAB_LABELS[tab]} : ${filteredItems.length} resultat(s) affiches sur ${currentItems.length} avant filtres.`,
+      `${TAB_LABELS[tab]} : ${filteredItems.length} résultat(s) affiché(s) sur ${currentItems.length} avant filtres.`,
     [currentItems.length, filteredItems.length, tab],
   );
 
   const detailSummary = useMemo(() => {
     if (filteredItems.length === 0) {
-      return `Aucun element visible dans ${TAB_LABELS[tab].toLowerCase()}.`;
+      return `Aucun élément visible dans ${TAB_LABELS[tab].toLowerCase()}.`;
     }
 
     const withProblems = filteredItems.filter((item) => item.tone !== "positive").length;
-    return `${filteredItems.length} element(s) visible(s), ${withProblems} a surveiller dans ${TAB_LABELS[tab].toLowerCase()}.`;
+    return `${filteredItems.length} élément(s) visible(s), ${withProblems} à surveiller dans ${TAB_LABELS[tab].toLowerCase()}.`;
   }, [filteredItems, tab]);
+
+  const heroTone = resolveHealthTone(payload?.health.status);
+  const heroStory = payload
+    ? [
+        {
+          id: "critical",
+          label: "Critiques",
+          value: String(payload.health.dangerCount),
+          detail: "Points qui demandent une intervention immédiate.",
+          tone: payload.health.dangerCount > 0 ? "danger" : "positive",
+        },
+        {
+          id: "watch",
+          label: "Sous surveillance",
+          value: String(payload.health.warningCount),
+          detail: "Étapes qui dérivent mais restent encore récupérables.",
+          tone: payload.health.warningCount > 0 ? "warning" : "positive",
+        },
+        {
+          id: "coverage",
+          label: "Sources contrôlées",
+          value: `${payload.health.checkedSourceCount}/${payload.health.totalSourceCount}`,
+          detail: payload.health.fullyVerifiable
+            ? "Couverture complète du diagnostic disponible."
+            : "Une partie du diagnostic reste non confirmable à distance.",
+          tone: payload.health.fullyVerifiable ? "positive" : "warning",
+        },
+      ]
+    : [];
+
+  const tabCards = payload
+    ? {
+        inscriptions: payload.summary.onboarding,
+        missions: payload.summary.missions,
+        messages: payload.summary.messages,
+      }
+    : null;
 
   function togglePanel(panel: PanelKey) {
     setPanelOpen((current) => ({ ...current, [panel]: !current[panel] }));
   }
 
   if (loading) {
-    return <div className="center">Chargement du controle detaille...</div>;
+    return <div className="center">Chargement du contrôle détaillé...</div>;
   }
 
   return (
     <DashboardLayout
       persona="admin"
-      title="Controle detaille"
-      subtitle="Verifier et colorer les etapes d'inscription, les missions et les messages pour reperer vite ce qui bloque."
+      title="Contrôle détaillé"
+      subtitle="Vérifier et colorer les étapes d'inscription, les missions et les messages pour repérer vite ce qui bloque."
       navTitle="Pilotage admin"
       navItems={[
         { label: "Vue d'ensemble", href: "/dashboard/admin" },
-        { label: "Controle detaille", href: "/dashboard/admin/controle" },
+        { label: "Contrôle détaillé", href: "/dashboard/admin/controle" },
         { label: "Utilisateurs", href: "/dashboard/admin/utilisateurs" },
         { label: "Demandes", href: "/dashboard/admin/demandes" },
         { label: "Missions", href: "/dashboard/admin/missions" },
       ]}
       stats={[
-        { label: "Problemes", value: String(payload?.summary.totalProblems ?? 0), hint: "Rouge + orange" },
+        { label: "Problèmes", value: String(payload?.summary.totalProblems ?? 0), hint: "Rouge + orange" },
         {
           label: "Inscriptions",
           value: String(payload?.summary.onboarding.total ?? 0),
@@ -426,26 +469,26 @@ function AdminControlPageContent() {
         {
           id: "onboarding",
           title: "Parcours d'inscription",
-          description: "Creation, confirmation e-mail, premiere connexion et completion",
+          description: "Création, confirmation e-mail, première connexion et complétion",
           href: "/dashboard/admin/controle",
         },
         {
           id: "missions",
           title: "Parcours mission",
-          description: "Demande, devis, planning, execution et facture",
+          description: "Demande, devis, planning, exécution et facture",
           href: "/dashboard/admin/controle",
         },
         {
           id: "messages",
           title: "Parcours messages",
-          description: "Conversation, premier message, reponse et activite recente",
+          description: "Conversation, premier message, réponse et activité récente",
           href: "/dashboard/admin/controle",
         },
       ]}
       notifications={[
         {
           id: "control-problems",
-          title: `${payload?.summary.totalProblems ?? 0} point(s) a corriger sur le parcours plateforme.`,
+          title: `${payload?.summary.totalProblems ?? 0} point(s) à corriger sur le parcours plateforme.`,
           level: (payload?.summary.totalProblems ?? 0) > 0 ? "warning" : "info",
           href: "/dashboard/admin/controle",
         },
@@ -455,11 +498,49 @@ function AdminControlPageContent() {
         { label: "Demandes", href: "/dashboard/admin/demandes" },
         { label: "Missions", href: "/dashboard/admin/missions" },
       ]}
-      profile={{ name: "PlanetLS", subtitle: "Controle des etapes", badge: "Administration" }}
+      profile={{ name: "PlanetLS", subtitle: "Contrôle des étapes", badge: "Administration" }}
     >
+      <section className={styles.hero} data-tone={heroTone}>
+        <div className={styles.heroTop}>
+          <div className={styles.heroCopy}>
+            <span className={styles.heroEyebrow}>Centre de santé opérationnelle</span>
+            <AdminStatusBadge label={payload?.health.label ?? "Contrôle indisponible"} tone={heroTone} />
+            <h2>Voir en quelques secondes où le parcours se tend, ce qui reste récupérable et quelle file doit être reprise maintenant.</h2>
+            <p>{renderHealthSummary(payload)}</p>
+          </div>
+
+          <div className={styles.heroActions}>
+            <Link href="/dashboard/admin" className={styles.heroActionCard}>
+              <span>Retour cockpit</span>
+              <strong>Revenir au Mission Control</strong>
+              <p>Retrouver la vue globale, les tendances et les priorités du jour.</p>
+            </Link>
+            <button
+              type="button"
+              className={styles.heroRefresh}
+              onClick={() => setReloadKey((value) => value + 1)}
+            >
+              Relancer le contrôle complet
+            </button>
+          </div>
+        </div>
+
+        {heroStory.length > 0 ? (
+          <div className={styles.heroStoryGrid}>
+            {heroStory.map((item) => (
+              <article key={item.id} className={styles.heroStoryCard} data-tone={item.tone}>
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+                <p>{item.detail}</p>
+              </article>
+            ))}
+          </div>
+        ) : null}
+      </section>
+
       <section className={styles.foldablePanel}>
         <FoldableSectionHeader
-          title="Etat general"
+          title="État général"
           summary={renderHealthSummary(payload)}
           isOpen={panelOpen.health}
           onToggle={() => togglePanel("health")}
@@ -470,27 +551,27 @@ function AdminControlPageContent() {
             {payload ? (
               <section className={`${styles.healthBanner} ${styles[`health_${payload.health.status}`]}`}>
                 <div className={styles.healthSummary}>
-                  <span className={styles.healthEyebrow}>Etat general</span>
+                  <span className={styles.healthEyebrow}>État général</span>
                   <h2>{payload.health.label}</h2>
                   <p>
                     {payload.health.fullyVerifiable
-                      ? `${payload.health.checkedSourceCount} sources sur ${payload.health.totalSourceCount} ont ete controlees.`
-                      : `${payload.health.checkedSourceCount} sources sur ${payload.health.totalSourceCount} seulement sont verifiables.`}
+                      ? `${payload.health.checkedSourceCount} sources sur ${payload.health.totalSourceCount} ont été contrôlées.`
+                      : `${payload.health.checkedSourceCount} sources sur ${payload.health.totalSourceCount} seulement sont vérifiables.`}
                   </p>
-                  <small>Dernier controle : {formatAdminDate(payload.health.checkedAt)}</small>
+                  <small>Dernier contrôle : {formatAdminDate(payload.health.checkedAt)}</small>
                 </div>
-                <div className={styles.healthCounters} aria-label="Resultat du controle global">
+                <div className={styles.healthCounters} aria-label="Résultat du contrôle global">
                   <div>
                     <strong>{payload.health.dangerCount}</strong>
                     <span>critiques</span>
                   </div>
                   <div>
                     <strong>{payload.health.warningCount}</strong>
-                    <span>a surveiller</span>
+                    <span>à surveiller</span>
                   </div>
                   <div>
                     <strong>{payload.health.unavailableSources.length}</strong>
-                    <span>non verifiables</span>
+                    <span>non vérifiables</span>
                   </div>
                 </div>
                 <button
@@ -498,11 +579,11 @@ function AdminControlPageContent() {
                   className={styles.refreshButton}
                   onClick={() => setReloadKey((value) => value + 1)}
                 >
-                  Relancer le controle
+                  Relancer le contrôle
                 </button>
                 {payload.health.unavailableSources.length > 0 ? (
                   <div className={styles.unavailableSources} role="alert">
-                    <strong>Controles impossibles a confirmer</strong>
+                    <strong>Contrôles impossibles à confirmer</strong>
                     <ul>
                       {payload.health.unavailableSources.map((source) => (
                         <li key={source.key}>
@@ -517,16 +598,16 @@ function AdminControlPageContent() {
             ) : (
               <section className={`${styles.healthBanner} ${styles.health_unverifiable}`} role="alert">
                 <div className={styles.healthSummary}>
-                  <span className={styles.healthEyebrow}>Etat general</span>
-                  <h2>Controle indisponible</h2>
-                  <p>L'etat de la plateforme ne peut pas etre confirme pour le moment.</p>
+                  <span className={styles.healthEyebrow}>État général</span>
+                  <h2>Contrôle indisponible</h2>
+                  <p>L'état de la plateforme ne peut pas être confirmé pour le moment.</p>
                 </div>
                 <button
                   type="button"
                   className={styles.refreshButton}
                   onClick={() => setReloadKey((value) => value + 1)}
                 >
-                  Reessayer
+                  Réessayer
                 </button>
               </section>
             )}
@@ -536,7 +617,7 @@ function AdminControlPageContent() {
 
       <section className={styles.foldablePanel}>
         <FoldableSectionHeader
-          title="Onglets de controle"
+          title="Onglets de contrôle"
           summary={filterSummary}
           isOpen={panelOpen.filters}
           onToggle={() => togglePanel("filters")}
@@ -544,7 +625,7 @@ function AdminControlPageContent() {
         />
         {panelOpen.filters ? (
           <div id="admin-control-filters" className={styles.foldableContent}>
-            <DashboardPanel title="Onglets de controle">
+            <DashboardPanel title="Onglets de contrôle">
               <div className={styles.tabRow}>
                 {(["inscriptions", "missions", "messages"] as TabKey[]).map((item) => (
                   <button
@@ -552,8 +633,49 @@ function AdminControlPageContent() {
                     type="button"
                     onClick={() => setTab(item)}
                     className={`${styles.tabButton} ${tab === item ? styles.tabButtonActive : ""}`}
+                    data-tone={
+                      !tabCards
+                        ? "warning"
+                        : item === "inscriptions"
+                          ? resolveHealthTone(
+                              tabCards.inscriptions.danger > 0
+                                ? "danger"
+                                : tabCards.inscriptions.warning > 0
+                                  ? "warning"
+                                  : "healthy",
+                            )
+                          : item === "missions"
+                            ? resolveHealthTone(
+                                tabCards.missions.danger > 0
+                                  ? "danger"
+                                  : tabCards.missions.warning > 0
+                                    ? "warning"
+                                    : "healthy",
+                              )
+                            : resolveHealthTone(
+                                tabCards.messages.danger > 0
+                                  ? "danger"
+                                  : tabCards.messages.warning > 0
+                                    ? "warning"
+                                    : "healthy",
+                              )
+                    }
                   >
-                    {TAB_LABELS[item]}
+                    <span>{TAB_LABELS[item]}</span>
+                    <strong>
+                      {item === "inscriptions"
+                        ? (tabCards?.inscriptions.total ?? 0)
+                        : item === "missions"
+                          ? (tabCards?.missions.total ?? 0)
+                          : (tabCards?.messages.total ?? 0)}
+                    </strong>
+                    <small>
+                      {item === "inscriptions"
+                        ? `${tabCards?.inscriptions.danger ?? 0} critique(s)`
+                        : item === "missions"
+                          ? `${tabCards?.missions.danger ?? 0} critique(s)`
+                          : `${tabCards?.messages.warning ?? 0} à suivre`}
+                    </small>
                   </button>
                 ))}
               </div>
@@ -581,8 +703,8 @@ function AdminControlPageContent() {
                 </label>
                 <div className={styles.filterSummary} aria-live="polite">
                   <span>{TAB_LABELS[tab]}</span>
-                  <strong>{filteredItems.length} resultat(s)</strong>
-                  <p>{currentItems.length} element(s) dans cet onglet avant filtres.</p>
+                  <strong>{filteredItems.length} résultat(s)</strong>
+                  <p>{currentItems.length} élément(s) dans cet onglet avant filtres.</p>
                 </div>
               </div>
             </DashboardPanel>
@@ -592,7 +714,7 @@ function AdminControlPageContent() {
 
       <section className={styles.foldablePanel}>
         <FoldableSectionHeader
-          title={`Detail ${TAB_LABELS[tab].toLowerCase()}`}
+          title={`Détail ${TAB_LABELS[tab].toLowerCase()}`}
           summary={detailSummary}
           isOpen={panelOpen.details}
           onToggle={() => togglePanel("details")}
@@ -600,11 +722,11 @@ function AdminControlPageContent() {
         />
         {panelOpen.details ? (
           <div id="admin-control-details" className={styles.foldableContent}>
-            <DashboardPanel title={`Detail ${TAB_LABELS[tab].toLowerCase()}`}>
+            <DashboardPanel title={`Détail ${TAB_LABELS[tab].toLowerCase()}`}>
               {filteredItems.length === 0 ? (
                 <AdminEmptyState
-                  title="Aucun element pour ce filtre"
-                  description="Ajustez la recherche ou la couleur pour afficher les etapes a controler."
+                  title="Aucun élément pour ce filtre"
+                  description="Ajustez la recherche ou la couleur pour afficher les étapes à contrôler."
                 />
               ) : (
                 <div className={styles.cardList}>
@@ -620,7 +742,7 @@ function AdminControlPageContent() {
                         </div>
                         <div className={styles.inlineFacts}>
                           <div>
-                            <span>Role</span>
+                            <span>Rôle</span>
                             <strong>{item.role}</strong>
                           </div>
                           <div>
@@ -628,17 +750,17 @@ function AdminControlPageContent() {
                             <strong>{item.issueCount}</strong>
                           </div>
                           <div>
-                            <span>Derniere activite</span>
+                            <span>Dernière activité</span>
                             <strong>{formatAdminDate(item.lastSignInAt)}</strong>
                           </div>
                         </div>
                         <div className={styles.metaGrid}>
                           <div>
-                            <span>Creation</span>
+                            <span>Création</span>
                             <strong>{formatAdminDate(item.createdAt)}</strong>
                           </div>
                           <div>
-                            <span>Fin inscription</span>
+                            <span>Fin d'inscription</span>
                             <strong>{formatAdminDate(item.onboardingCompletedAt)}</strong>
                           </div>
                         </div>
@@ -671,11 +793,11 @@ function AdminControlPageContent() {
                         <div className={styles.inlineFacts}>
                           <div>
                             <span>Statut</span>
-                            <strong>{item.status || "Non renseigne"}</strong>
+                            <strong>{item.status || "Non renseigné"}</strong>
                           </div>
                           <div>
-                            <span>Priorite</span>
-                            <strong>{item.priority || "Non renseignee"}</strong>
+                            <span>Priorité</span>
+                            <strong>{item.priority || "Non renseignée"}</strong>
                           </div>
                           <div>
                             <span>Alertes</span>
@@ -755,7 +877,7 @@ function AdminControlPageContent() {
                           onSaved={() => setReloadKey((value) => value + 1)}
                         />
                         <div className={styles.actions}>
-                          <Link href="/dashboard/admin/demandes">Ouvrir les demandes liees</Link>
+                          <Link href="/dashboard/admin/demandes">Ouvrir les demandes liées</Link>
                         </div>
                       </article>
                     ))}

@@ -56,9 +56,10 @@ test("admin : une anomalie peut être prise en charge avec une trace persistée"
 
   const tab = target.targetType === "onboarding" ? "inscriptions" : target.targetType === "mission" ? "missions" : "messages";
   await page.goto("/dashboard/admin/controle?tab=" + tab, { waitUntil: "domcontentloaded" });
-  const trackedCard = page.locator("article", { hasText: note }).first();
-  await expect(trackedCard).toBeVisible();
+  const noteMatch = page.getByText(note).first();
+  await expect(noteMatch).toBeVisible();
+  const trackedCard = page.locator("article").filter({ has: noteMatch }).first();
   await expect(trackedCard.getByRole("button", { name: "Prendre en charge" })).toBeVisible();
   await expect(trackedCard.getByRole("button", { name: "Transmettre au responsable" })).toBeVisible();
-  await expect(trackedCard.getByRole("button", { name: "Cloturer le suivi" })).toBeVisible();
+  await expect(trackedCard.getByRole("button", { name: "Clôturer le suivi" })).toBeVisible();
 });

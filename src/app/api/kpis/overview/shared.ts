@@ -112,6 +112,11 @@ export function buildActivationAlerts(
 export type KpiOverviewPayload = {
   window_days: number;
   generated_at: string;
+  health?: {
+    available: boolean;
+    reasons: string[];
+    updated_at: string;
+  };
   owner: KpiRolePayload;
   concierge: KpiRolePayload;
   provider: KpiRolePayload;
@@ -185,6 +190,14 @@ export function isKpiOverviewPayload(value: unknown): value is KpiOverviewPayloa
   if (!isObject(value)) return false;
   if (typeof value.window_days !== "number") return false;
   if (typeof value.generated_at !== "string") return false;
+  if (value.health !== undefined) {
+    if (!isObject(value.health)) return false;
+    if (typeof value.health.available !== "boolean") return false;
+    if (!Array.isArray(value.health.reasons) || !value.health.reasons.every((reason) => typeof reason === "string")) {
+      return false;
+    }
+    if (typeof value.health.updated_at !== "string") return false;
+  }
   if (!hasKpiRoleShape(value.owner)) return false;
   if (!hasKpiRoleShape(value.concierge)) return false;
   if (!hasKpiRoleShape(value.provider)) return false;

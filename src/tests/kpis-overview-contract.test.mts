@@ -106,11 +106,10 @@ test("KPI overview payload contract rejects malformed activation alerts", () => 
 });
 
 test("admin cockpit renders activation rates, cohorts and zones without blocking operations", () => {
-  assert.match(adminPage, /\/api\/kpis\/overview\?window_days=30/);
+  assert.match(adminPage, /\/api\/kpis\/overview\?window_days=\$\{period\}/);
   assert.match(adminPage, /Promise\.allSettled/);
   assert.match(adminPage, /Activation J\+7/);
-  assert.match(adminPage, /activation_series/);
-  assert.match(adminPage, /activation_by_zone/);
-  assert.match(adminPage, /activation_alerts/);
-  assert.match(adminPage, /Indicateurs d activation indisponibles/);
+  assert.match(adminPage, /activationSummary/);
+  assert.match(adminPage, /kpiData\?\.health\?\.available === false/);
+  assert.match(adminPage, /Mode dégradé/);
 });

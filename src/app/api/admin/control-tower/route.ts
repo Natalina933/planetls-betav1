@@ -217,10 +217,10 @@ function buildIssueCount(steps: Array<{ ok: boolean }>) {
 function buildFallbackOnboardingItem() {
   return {
     id: FALLBACK_ONBOARDING_ID,
-    displayName: "Connexion Supabase a retablir",
+    displayName: "Connexion Supabase à rétablir",
     email: null,
-    role: "admin",
-    roleBucket: "admin",
+    role: "admin" as const,
+    roleBucket: "admin" as const,
     createdAt: new Date().toISOString(),
     lastSignInAt: null,
     onboardingCompletedAt: null,
@@ -229,11 +229,29 @@ function buildFallbackOnboardingItem() {
       { id: "email", label: "Authentification distante", ok: false },
       { id: "signin", label: "Lecture des comptes", ok: false },
       { id: "events", label: "Journal distant", ok: false },
-      { id: "complete", label: "Controle complet", ok: false },
+      { id: "complete", label: "Contrôle complet", ok: false },
     ],
     issueCount: 5,
     tone: "danger" as const,
   };
+}
+
+type OnboardingEventRow = {
+  id: string;
+  profile_id: string | null;
+  created_at: string | null;
+};
+
+function queryTable(table: string) {
+  const untypedDb = db as unknown as {
+    from: (relation: string) => any;
+  };
+
+  return untypedDb.from(table);
+}
+
+function queryOnboardingEvents() {
+  return queryTable("onboarding_events").select("id, profile_id, created_at") as PromiseLike<QueryResult<OnboardingEventRow>>;
 }
 
 export async function GET(req: NextRequest) {
@@ -265,20 +283,16 @@ export async function GET(req: NextRequest) {
       controlActionsRes,
     ] = await Promise.all([
       safeQuery(
-        db
-          .from("profiles")
+        queryTable("profiles")
           .select("id,email,first_name,last_name,username,company_name,role,category,onboarding_complete,onboarding_completed_at,created_at")
           .order("created_at", { ascending: false }) as unknown as PromiseLike<QueryResult<RawProfile>>,
       ),
       listAllAuthUsers(adminClient),
       safeQuery(
-        db.from("onboarding_events").select("id, profile_id, created_at") as unknown as PromiseLike<
-          QueryResult<{ id: string; profile_id: string | null; created_at: string | null }>
-        >,
+        queryOnboardingEvents(),
       ),
       safeQuery(
-        db
-          .from("missions")
+        queryTable("missions")
           .select("id,title,status,priority,owner_profile_id,concierge_profile_id,property_id,scheduled_start,scheduled_end,completed_at,metadata,created_at,updated_at")
           .order("created_at", { ascending: false })
           .limit(60) as unknown as PromiseLike<
@@ -300,8 +314,7 @@ export async function GET(req: NextRequest) {
         >,
       ),
       safeQuery(
-        db
-          .from("service_requests")
+        queryTable("service_requests")
           .select("id, mission_id, title, status, workflow_status, created_at")
           .order("created_at", { ascending: false })
           .limit(120) as unknown as PromiseLike<
@@ -316,8 +329,7 @@ export async function GET(req: NextRequest) {
         >,
       ),
       safeQuery(
-        db
-          .from("quotes")
+        queryTable("quotes")
           .select("id, mission_id, status, created_at")
           .order("created_at", { ascending: false })
           .limit(120) as unknown as PromiseLike<
@@ -325,8 +337,7 @@ export async function GET(req: NextRequest) {
         >,
       ),
       safeQuery(
-        db
-          .from("invoices")
+        queryTable("invoices")
           .select("id,mission_id,status,total_amount,paid_amount,balance_amount,due_date,paid_at,created_at")
           .order("created_at", { ascending: false })
           .limit(120) as unknown as PromiseLike<
@@ -344,8 +355,7 @@ export async function GET(req: NextRequest) {
         >,
       ),
       safeQuery(
-        db
-          .from("contact_conversations")
+        queryTable("contact_conversations")
           .select("id,owner_profile_id,concierge_profile_id,source,source_reference,subject,status,last_message_preview,last_message_at,created_at,updated_at")
           .order("updated_at", { ascending: false })
           .limit(80) as unknown as PromiseLike<
@@ -365,8 +375,7 @@ export async function GET(req: NextRequest) {
         >,
       ),
       safeQuery(
-        db
-          .from("contact_messages")
+        queryTable("contact_messages")
           .select("id,conversation_id,sender_profile_id,created_at")
           .order("created_at", { ascending: false })
           .limit(400) as unknown as PromiseLike<
@@ -379,18 +388,17 @@ export async function GET(req: NextRequest) {
         >,
       ),
       safeQuery(
-        db.from("provider_interventions").select("id,provider_profile_id,status,metadata").limit(200) as unknown as PromiseLike<
+        queryTable("provider_interventions").select("id,provider_profile_id,status,metadata").limit(200) as unknown as PromiseLike<
           QueryResult<{ id: string; provider_profile_id: string; status: string; metadata: Record<string, unknown> | null }>
         >,
       ),
       safeQuery(
-        db.from("maintenance_incidents").select("id,mission_id,status").limit(200) as unknown as PromiseLike<
+        queryTable("maintenance_incidents").select("id,mission_id,status").limit(200) as unknown as PromiseLike<
           QueryResult<{ id: string; mission_id: string | null; status: string }>
         >,
       ),
       safeQuery(
-        db
-          .from("workflow_events")
+        queryTable("workflow_events")
           .select("id,actor_profile_id,event_type,body,metadata,created_at")
           .in("event_type", ["admin_control_acknowledged", "admin_control_escalated", "admin_control_closed"])
           .order("created_at", { ascending: false })
@@ -462,11 +470,11 @@ export async function GET(req: NextRequest) {
         const resolvedRole = resolveUserRole(profile.role, profile.category) ?? "owner";
         const createdAt = authUser?.created_at ?? profile.created_at;
         const steps = [
-          { id: "account", label: "Compte cree", ok: Boolean(createdAt) },
-          { id: "email", label: "E-mail confirme", ok: Boolean(authUser?.email_confirmed_at) },
-          { id: "signin", label: "Premiere connexion", ok: Boolean(authUser?.last_sign_in_at) },
-          { id: "events", label: "Evenements d'inscription", ok: (onboardingEventCountByProfile.get(profile.id) ?? 0) > 0 },
-          { id: "complete", label: "Inscription terminee", ok: profile.onboarding_complete === true },
+          { id: "account", label: "Compte créé", ok: Boolean(createdAt) },
+          { id: "email", label: "E-mail confirmé", ok: Boolean(authUser?.email_confirmed_at) },
+          { id: "signin", label: "Première connexion", ok: Boolean(authUser?.last_sign_in_at) },
+          { id: "events", label: "Événements d'inscription", ok: (onboardingEventCountByProfile.get(profile.id) ?? 0) > 0 },
+          { id: "complete", label: "Inscription terminée", ok: profile.onboarding_complete === true },
         ];
         const issueCount = buildIssueCount(steps);
         const ageHours = getAgeHours(createdAt);
@@ -630,7 +638,7 @@ export async function GET(req: NextRequest) {
         const distinctSenders = new Set(threadMessages.map((message) => message.sender_profile_id));
         const waitingHours = getAgeHours(lastMessage?.created_at ?? conversation.last_message_at ?? conversation.created_at);
         const steps = [
-          { id: "created", label: "Conversation creee", ok: Boolean(conversation.created_at) },
+          { id: "created", label: "Conversation créée", ok: Boolean(conversation.created_at) },
           { id: "first", label: "Premier message", ok: threadMessages.length > 0 },
           { id: "reply", label: "Reponse croisee", ok: distinctSenders.size > 1 },
           { id: "recent", label: "Activite recente", ok: waitingHours <= 72 },
@@ -698,7 +706,7 @@ export async function GET(req: NextRequest) {
     const sourceHealth: ControlSourceHealth[] = [
       { key: "profiles", label: "Profils", available: profilesRes.available, reason: profilesRes.reason },
       { key: "auth-users", label: "Comptes Supabase Auth", available: authUsersRes.available, reason: authUsersRes.reason },
-      { key: "onboarding-events", label: "Evenements d'inscription", available: onboardingEventsRes.available, reason: onboardingEventsRes.reason },
+      { key: "onboarding-events", label: "Événements d'inscription", available: onboardingEventsRes.available, reason: onboardingEventsRes.reason },
       { key: "missions", label: "Missions", available: missionsRes.available, reason: missionsRes.reason },
       { key: "service-requests", label: "Demandes", available: serviceRequestsRes.available, reason: serviceRequestsRes.reason },
       { key: "quotes", label: "Devis", available: quotesRes.available, reason: quotesRes.reason },
@@ -770,10 +778,10 @@ export async function POST(req: NextRequest) {
       event_type: eventType,
       title:
         action.status === "closed"
-          ? "Suivi administrateur cloture"
+          ? "Suivi administrateur clôturé"
           : action.status === "escalated"
-            ? "Controle transmis au responsable"
-            : "Controle administrateur pris en charge",
+            ? "Contrôle transmis au responsable"
+            : "Contrôle administrateur pris en charge",
       body: action.note,
       action_href: "/dashboard/admin/controle",
       metadata: {
@@ -784,8 +792,7 @@ export async function POST(req: NextRequest) {
     };
 
     try {
-      const { data, error } = await db
-        .from("workflow_events")
+      const { data, error } = await queryTable("workflow_events")
         .insert(payload)
         .select("id,actor_profile_id,event_type,body,metadata,created_at")
         .single();

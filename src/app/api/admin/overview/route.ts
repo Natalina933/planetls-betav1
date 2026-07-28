@@ -4,6 +4,7 @@ import { requireApiRole } from "@/server/auth/roleGuards";
 import { resolveUserRole } from "@/app/utils/roles";
 
 const ADMIN_ROLES = new Set(["admin", "super_admin"]);
+const CONFIG_UNAVAILABLE_REASON = "Configuration Supabase serveur indisponible pour la vue admin.";
 
 type RawProfile = {
   id: string;
@@ -74,12 +75,27 @@ type QueryResult<T> = {
   count?: number | null;
 };
 
+type SafeResult<T> = {
+  data: T[] | null;
+  count?: number | null;
+  error: null;
+  available: boolean;
+  reason: string | null;
+};
+
+type SourceHealth = {
+  key: string;
+  label: string;
+  available: boolean;
+  reason: string | null;
+};
+
 function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error("Supabase server configuration missing.");
+    return null;
   }
 
   return createClient(supabaseUrl, serviceRoleKey, {
@@ -116,26 +132,6 @@ function incrementCount(map: Map<string, number>, key: string | null | undefined
   map.set(key, (map.get(key) ?? 0) + 1);
 }
 
-async function listAllAuthUsers(adminClient: ReturnType<typeof createAdminClient>) {
-  const users: AuthUser[] = [];
-  let page = 1;
-  const perPage = 200;
-
-  while (true) {
-    const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage });
-    if (error) {
-      throw error;
-    }
-
-    users.push(...(data.users as AuthUser[]));
-
-    if (data.users.length < perPage) break;
-    page += 1;
-  }
-
-  return users;
-}
-
 function isMissingSchemaError(error: { code?: string; message: string } | null | undefined) {
   const message = error?.message?.toLowerCase() ?? "";
   return (
@@ -143,22 +139,119 @@ function isMissingSchemaError(error: { code?: string; message: string } | null |
     error?.code === "42703" ||
     message.includes("could not find the table") ||
     message.includes("schema cache") ||
-    message.includes("column") && message.includes("does not exist")
+    (message.includes("column") && message.includes("does not exist"))
   );
 }
 
-async function safeQuery<T>(promise: PromiseLike<QueryResult<T>>, fallback: T[] = []) {
-  const result = await promise;
+function isTransportError(error: unknown) {
+  const message =
+    error instanceof Error
+      ? error.message.toLowerCase()
+      : typeof error === "object" &&
+          error &&
+          "message" in error &&
+          typeof (error as { message?: unknown }).message === "string"
+        ? (error as { message: string }).message.toLowerCase()
+        : "";
+
+  return (
+    message.includes("fetch failed") ||
+    message.includes("network") ||
+    message.includes("timeout") ||
+    message.includes("econn") ||
+    message.includes("enotfound") ||
+    message.includes("eacces")
+  );
+}
+
+function buildUnavailableResult<T>(fallback: T[], reason: string): SafeResult<T> {
+  return {
+    data: fallback,
+    count: 0,
+    error: null,
+    available: false,
+    reason,
+  };
+}
+
+async function safeQuery<T>(promise: PromiseLike<QueryResult<T>>, fallback: T[] = []): Promise<SafeResult<T>> {
+  let result: QueryResult<T>;
+  try {
+    result = await promise;
+  } catch (error) {
+    if (isTransportError(error)) {
+      return buildUnavailableResult(fallback, "Connexion Supabase indisponible pour cette source.");
+    }
+    throw error;
+  }
+
   if (result.error) {
     if (isMissingSchemaError(result.error)) {
       console.warn("[admin/overview] optional query skipped:", result.error.message);
-      return { data: fallback, count: 0, error: null };
+      return buildUnavailableResult(fallback, "Table ou colonne absente du schéma Supabase appliqué.");
+    }
+
+    if (isTransportError(result.error)) {
+      return buildUnavailableResult(fallback, "Connexion Supabase indisponible pour cette source.");
     }
 
     throw new Error(result.error.message);
   }
 
-  return result;
+  return { ...result, error: null, available: true, reason: null };
+}
+
+async function listAllAuthUsers(adminClient: ReturnType<typeof createAdminClient>) {
+  if (!adminClient) {
+    return {
+      users: [] as AuthUser[],
+      available: false,
+      reason: CONFIG_UNAVAILABLE_REASON,
+    };
+  }
+
+  const users: AuthUser[] = [];
+  let page = 1;
+  const perPage = 200;
+
+  while (true) {
+    try {
+      const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage });
+      if (error) {
+        if (isTransportError(error)) {
+          return {
+            users,
+            available: false,
+            reason: "Connexion Supabase indisponible pour les comptes Auth.",
+          };
+        }
+        throw error;
+      }
+
+      users.push(...(data.users as AuthUser[]));
+
+      if (data.users.length < perPage) break;
+      page += 1;
+    } catch (error) {
+      if (isTransportError(error)) {
+        return {
+          users,
+          available: false,
+          reason: "Connexion Supabase indisponible pour les comptes Auth.",
+        };
+      }
+      throw error;
+    }
+  }
+
+  return { users, available: true, reason: null };
+}
+
+function createUnavailableSource<T>(
+  adminClient: ReturnType<typeof createAdminClient>,
+  fallback: T[] = [],
+): Promise<SafeResult<T>> {
+  return Promise.resolve(buildUnavailableResult(fallback, adminClient ? "Source indisponible." : CONFIG_UNAVAILABLE_REASON));
 }
 
 export async function GET(req: NextRequest) {
@@ -172,7 +265,7 @@ export async function GET(req: NextRequest) {
 
     const [
       profilesRes,
-      authUsers,
+      authUsersRes,
       propertiesRes,
       missionsRes,
       servicesPricingRes,
@@ -185,77 +278,101 @@ export async function GET(req: NextRequest) {
       totalWorkflowEventsRes,
       totalOnboardingEventsRes,
     ] = await Promise.all([
-      safeQuery(
-        adminClient
-          .from("profiles")
-          .select(
-            "id,email,username,first_name,last_name,role,category,company_name,city,phone,created_at,updated_at,onboarding_complete,onboarding_completed_at,status",
+      adminClient
+        ? safeQuery(
+            adminClient
+              .from("profiles")
+              .select(
+                "id,email,username,first_name,last_name,role,category,company_name,city,phone,created_at,updated_at,onboarding_complete,onboarding_completed_at,status",
+              )
+              .order("created_at", { ascending: false }) as unknown as PromiseLike<QueryResult<RawProfile>>,
           )
-          .order("created_at", { ascending: false }) as unknown as PromiseLike<QueryResult<RawProfile>>,
-      ),
+        : createUnavailableSource<RawProfile>(adminClient),
       listAllAuthUsers(adminClient),
-      safeQuery(
-        adminClient.from("properties").select("id, owner_id") as unknown as PromiseLike<
-          QueryResult<{ owner_id: string | null }>
-        >,
-      ),
-      safeQuery(
-        adminClient.from("missions").select("id, owner_profile_id, concierge_profile_id") as unknown as PromiseLike<
-          QueryResult<{ owner_profile_id: string | null; concierge_profile_id: string | null }>
-        >,
-      ),
-      safeQuery(
-        adminClient.from("services_pricing").select("id, profile_id") as unknown as PromiseLike<
-          QueryResult<{ profile_id: string | null }>
-        >,
-      ),
-      safeQuery(
-        adminClient.from("service_requests").select("id, owner_profile_id") as unknown as PromiseLike<
-          QueryResult<{ id: string; owner_profile_id: string | null }>
-        >,
-      ),
-      safeQuery(
-        adminClient
-          .from("service_request_recipients")
-          .select("id, concierge_profile_id") as unknown as PromiseLike<
-          QueryResult<{ id: string; concierge_profile_id: string | null }>
-        >,
-      ),
-      safeQuery(
-        adminClient.from("provider_clients").select("id, provider_profile_id") as unknown as PromiseLike<
-          QueryResult<{ id: string; provider_profile_id: string | null }>
-        >,
-      ),
-      safeQuery(
-        adminClient.from("service_requests").select("id", { count: "exact", head: true }) as unknown as PromiseLike<
-          QueryResult<{ id: string }>
-        >,
-      ),
-      safeQuery(
-        adminClient.from("invoices").select("id", { count: "exact", head: true }) as unknown as PromiseLike<
-          QueryResult<{ id: string }>
-        >,
-      ),
-      safeQuery(
-        adminClient.from("planning_entries").select("id", { count: "exact", head: true }) as unknown as PromiseLike<
-          QueryResult<{ id: string }>
-        >,
-      ),
-      safeQuery(
-        adminClient.from("workflow_events").select("id", { count: "exact", head: true }) as unknown as PromiseLike<
-          QueryResult<{ id: string }>
-        >,
-      ),
-      safeQuery(
-        adminClient.from("onboarding_events").select("id", { count: "exact", head: true }) as unknown as PromiseLike<
-          QueryResult<{ id: string }>
-        >,
-      ),
+      adminClient
+        ? safeQuery(
+            adminClient.from("properties").select("id, owner_id") as unknown as PromiseLike<
+              QueryResult<{ owner_id: string | null }>
+            >,
+          )
+        : createUnavailableSource<{ owner_id: string | null }>(adminClient),
+      adminClient
+        ? safeQuery(
+            adminClient.from("missions").select("id, owner_profile_id, concierge_profile_id") as unknown as PromiseLike<
+              QueryResult<{ owner_profile_id: string | null; concierge_profile_id: string | null }>
+            >,
+          )
+        : createUnavailableSource<{ owner_profile_id: string | null; concierge_profile_id: string | null }>(adminClient),
+      adminClient
+        ? safeQuery(
+            adminClient.from("services_pricing").select("id, profile_id") as unknown as PromiseLike<
+              QueryResult<{ profile_id: string | null }>
+            >,
+          )
+        : createUnavailableSource<{ profile_id: string | null }>(adminClient),
+      adminClient
+        ? safeQuery(
+            adminClient.from("service_requests").select("id, owner_profile_id") as unknown as PromiseLike<
+              QueryResult<{ id: string; owner_profile_id: string | null }>
+            >,
+          )
+        : createUnavailableSource<{ id: string; owner_profile_id: string | null }>(adminClient),
+      adminClient
+        ? safeQuery(
+            adminClient
+              .from("service_request_recipients")
+              .select("id, concierge_profile_id") as unknown as PromiseLike<
+              QueryResult<{ id: string; concierge_profile_id: string | null }>
+            >,
+          )
+        : createUnavailableSource<{ id: string; concierge_profile_id: string | null }>(adminClient),
+      adminClient
+        ? safeQuery(
+            adminClient.from("provider_clients").select("id, provider_profile_id") as unknown as PromiseLike<
+              QueryResult<{ id: string; provider_profile_id: string | null }>
+            >,
+          )
+        : createUnavailableSource<{ id: string; provider_profile_id: string | null }>(adminClient),
+      adminClient
+        ? safeQuery(
+            adminClient.from("service_requests").select("id", { count: "exact", head: true }) as unknown as PromiseLike<
+              QueryResult<{ id: string }>
+            >,
+          )
+        : createUnavailableSource<{ id: string }>(adminClient),
+      adminClient
+        ? safeQuery(
+            adminClient.from("invoices").select("id", { count: "exact", head: true }) as unknown as PromiseLike<
+              QueryResult<{ id: string }>
+            >,
+          )
+        : createUnavailableSource<{ id: string }>(adminClient),
+      adminClient
+        ? safeQuery(
+            adminClient.from("planning_entries").select("id", { count: "exact", head: true }) as unknown as PromiseLike<
+              QueryResult<{ id: string }>
+            >,
+          )
+        : createUnavailableSource<{ id: string }>(adminClient),
+      adminClient
+        ? safeQuery(
+            adminClient.from("workflow_events").select("id", { count: "exact", head: true }) as unknown as PromiseLike<
+              QueryResult<{ id: string }>
+            >,
+          )
+        : createUnavailableSource<{ id: string }>(adminClient),
+      adminClient
+        ? safeQuery(
+            adminClient.from("onboarding_events").select("id", { count: "exact", head: true }) as unknown as PromiseLike<
+              QueryResult<{ id: string }>
+            >,
+          )
+        : createUnavailableSource<{ id: string }>(adminClient),
     ]);
 
     const profiles = (profilesRes.data ?? []) as RawProfile[];
     const authById = new Map<string, AuthUser>();
-    authUsers.forEach((user) => {
+    authUsersRes.users.forEach((user) => {
       authById.set(user.id, user);
     });
 
@@ -385,8 +502,33 @@ export async function GET(req: NextRequest) {
         .slice(0, 8),
     };
 
+    const sources: SourceHealth[] = [
+      { key: "profiles", label: "Profils", available: profilesRes.available, reason: profilesRes.reason },
+      { key: "auth-users", label: "Comptes Auth", available: authUsersRes.available, reason: authUsersRes.reason },
+      { key: "properties", label: "Logements", available: propertiesRes.available, reason: propertiesRes.reason },
+      { key: "missions", label: "Missions", available: missionsRes.available, reason: missionsRes.reason },
+      { key: "services-pricing", label: "Tarification", available: servicesPricingRes.available, reason: servicesPricingRes.reason },
+      { key: "service-requests", label: "Demandes", available: serviceRequestsRes.available, reason: serviceRequestsRes.reason },
+      { key: "recipients", label: "Destinataires", available: recipientsRes.available, reason: recipientsRes.reason },
+      { key: "provider-clients", label: "Clients artisan", available: providerClientsRes.available, reason: providerClientsRes.reason },
+      { key: "request-count", label: "Volume demandes", available: totalRequestsRes.available, reason: totalRequestsRes.reason },
+      { key: "invoice-count", label: "Volume factures", available: totalInvoicesRes.available, reason: totalInvoicesRes.reason },
+      { key: "planning-count", label: "Volume planning", available: totalPlanningRes.available, reason: totalPlanningRes.reason },
+      { key: "workflow-events", label: "Workflow events", available: totalWorkflowEventsRes.available, reason: totalWorkflowEventsRes.reason },
+      { key: "onboarding-events", label: "Onboarding events", available: totalOnboardingEventsRes.available, reason: totalOnboardingEventsRes.reason },
+    ];
+
+    const unavailableSources = sources.filter((source) => !source.available);
+
     return NextResponse.json(
       {
+        health: {
+          available: unavailableSources.length === 0,
+          availableSources: sources.length - unavailableSources.length,
+          totalSources: sources.length,
+          reasons: unavailableSources.map((source) => `${source.label} : ${source.reason ?? "indisponible"}`),
+          updatedAt: new Date().toISOString(),
+        },
         summary,
         spotlights,
         users,

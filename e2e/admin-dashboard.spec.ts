@@ -18,71 +18,63 @@ async function loginAdmin(page: Page) {
   await page.waitForURL("**/dashboard/admin", { timeout: 60_000, waitUntil: "commit" });
 }
 
-async function expectFoldablePanel(
-  page: Page,
-  title: string,
-  panelId: string,
-  initiallyOpen: boolean,
-) {
-  const toggle = page.getByRole("button", { name: new RegExp(title) });
-  const panel = page.locator(`#${panelId}`);
-
-  await expect(toggle).toHaveAttribute("aria-expanded", initiallyOpen ? "true" : "false");
-  await expect(panel).toHaveCount(initiallyOpen ? 1 : 0);
-
-  await toggle.click();
-  await expect(toggle).toHaveAttribute("aria-expanded", initiallyOpen ? "false" : "true");
-  await expect(panel).toHaveCount(initiallyOpen ? 0 : 1);
-
-  await toggle.click();
-  await expect(toggle).toHaveAttribute("aria-expanded", initiallyOpen ? "true" : "false");
-  await expect(panel).toHaveCount(initiallyOpen ? 1 : 0);
-}
-
-test("admin : le cockpit reste lisible avec ses panneaux repliables", async ({ page }) => {
-  const duplicateKeyErrors: string[] = [];
+test("admin : le Mission Control reste lisible sur desktop et mobile", async ({ page }) => {
+  const relevantConsoleErrors: string[] = [];
 
   page.on("console", (message) => {
-    if (message.type() === "error" && message.text().includes("same key")) {
-      duplicateKeyErrors.push(message.text());
+    if (message.type() !== "error") return;
+    const text = message.text();
+    if (/same key|hydration|Minified React error/i.test(text)) {
+      relevantConsoleErrors.push(text);
     }
   });
 
   await loginAdmin(page);
-  await page.goto("/dashboard/admin");
+  await page.goto("/dashboard/admin", { waitUntil: "domcontentloaded" });
 
-  await expect(page.getByRole("heading", { name: "Cockpit de controle", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Mission Control", exact: true })).toBeVisible();
+  await expect(page.getByText("Cockpit administrateur", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Voir la tension du jour, les conversions qui accélèrent/i)).toBeVisible();
 
-  await expectFoldablePanel(page, "Sante operationnelle", "admin-health-panel", true);
-  await expectFoldablePanel(page, "Activation J\\+7", "admin-activation-panel", false);
-  await expectFoldablePanel(page, "Priorites a traiter", "admin-priorities-panel", true);
-  await expectFoldablePanel(page, "Lecture visuelle", "admin-visuals-panel", false);
-  await expectFoldablePanel(page, "Parcours et feux de controle", "admin-journey-panel", true);
-  await expectFoldablePanel(page, "Acces metier", "admin-access-panel", false);
+  await expect(page.getByRole("button", { name: "7 jours" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "30 jours" })).toHaveAttribute("data-active", "true");
+  await expect(page.getByRole("button", { name: "90 jours" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Propriétaires" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Conciergeries" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Artisans" })).toBeVisible();
 
-  await expect(page.getByText("Demandes en cours")).toBeVisible();
-  await expect(page.getByText("Blocages")).toBeVisible();
+  await expect(page.getByText(/Nouveaux comptes \(30 j\)/i)).toBeVisible();
+  await expect(page.getByText("Complétude onboarding", { exact: true })).toBeVisible();
+  await expect(page.getByText("Confirmation e-mail", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Demandes entrantes \(30 j\)/i)).toBeVisible();
+  await expect(page.getByText("Missions à surveiller", { exact: true })).toBeVisible();
+  await expect(page.getByText("Facturation", { exact: true })).toBeVisible();
 
-  await expect(page.getByText(/alerte/i).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ce qui mérite une action admin maintenant" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Ouvrir le contrôle détaillé/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Les derniers mouvements utiles à relire" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Les portes d'entrée utiles pour agir vite" })).toBeVisible();
 
-  const journeyPanel = page.locator("#admin-journey-panel");
-  await expect(journeyPanel.getByText("Demande", { exact: true })).toBeVisible();
-  await expect(journeyPanel.getByRole("link", { name: /^Inscriptions/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Nouveaux profils à relire" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Demandes nécessitant un suivi" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Missions opérationnelles à contrôler" })).toBeVisible();
 
-  await page.getByRole("button", { name: /Acces metier/ }).click();
-  const accessPanel = page.locator("#admin-access-panel");
-  await expect(accessPanel.getByRole("link", { name: /Controle detaille/ })).toBeVisible();
-  await expect(accessPanel.getByRole("link", { name: /Decisions architecture/ })).toBeVisible();
-  await expect(accessPanel.getByRole("link", { name: /Proprietaires/ })).toHaveCount(0);
-  await expect(accessPanel.getByRole("link", { name: /Conciergeries/ })).toHaveCount(0);
-  await expect(accessPanel.getByRole("link", { name: /^Artisans$/ })).toHaveCount(0);
+  await page.getByRole("button", { name: "7 jours" }).click();
+  await expect(page.getByRole("button", { name: "7 jours" })).toHaveAttribute("data-active", "true");
+  await expect(page.getByText(/Nouveaux comptes \(7 j\)/i)).toBeVisible();
 
-  await page.getByRole("button", { name: /Lecture visuelle/ }).click();
-  await expect(page.getByText("Bulles de signalement")).toBeVisible();
+  await page.getByRole("button", { name: "Artisans" }).evaluate((button: HTMLButtonElement) => button.click());
+  await expect(page.getByRole("button", { name: "Artisans" })).toHaveAttribute("data-active", "true");
+  await expect(page.getByText("Tendance d'activation", { exact: true })).toBeVisible();
+  await expect(page.getByText("Zones les plus mûres", { exact: true })).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.getByRole("heading", { name: "Cockpit de controle", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: /Sante operationnelle/ })).toBeVisible();
+  await page.reload({ waitUntil: "domcontentloaded" });
 
-  expect(duplicateKeyErrors).toEqual([]);
+  await expect(page.getByRole("heading", { name: "Mission Control", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "7 jours" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ce qui mérite une action admin maintenant" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Nouveaux profils à relire" })).toBeVisible();
+
+  expect(relevantConsoleErrors).toEqual([]);
 });

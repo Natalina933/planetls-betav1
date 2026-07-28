@@ -5,6 +5,7 @@ import { requireApiRole } from "@/server/auth/roleGuards";
 
 const ADMIN_ROLES = new Set(["admin", "super_admin"]);
 const EMPTY_UUID = "00000000-0000-0000-0000-000000000000";
+const CONFIG_UNAVAILABLE_REASON = "Configuration Supabase serveur indisponible pour les opérations admin.";
 
 type Row = Record<string, unknown>;
 type QueryResult<T> = {
@@ -13,12 +14,27 @@ type QueryResult<T> = {
   count?: number | null;
 };
 
+type SafeResult<T> = {
+  data: T[] | null;
+  count?: number | null;
+  error: null;
+  available: boolean;
+  reason: string | null;
+};
+
+type SourceHealth = {
+  key: string;
+  label: string;
+  available: boolean;
+  reason: string | null;
+};
+
 function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error("Supabase server configuration missing.");
+    return null;
   }
 
   return createClient(supabaseUrl, serviceRoleKey, {
@@ -29,16 +45,67 @@ function createAdminClient() {
   });
 }
 
-async function readRows<T extends Row>(query: PromiseLike<QueryResult<T>>) {
-  const result = await query;
-  if (result.error) throw new Error(result.error.message);
-  return result.data ?? [];
+function isTransportError(error: unknown) {
+  const message =
+    error instanceof Error
+      ? error.message.toLowerCase()
+      : typeof error === "object" &&
+          error &&
+          "message" in error &&
+          typeof (error as { message?: unknown }).message === "string"
+        ? (error as { message: string }).message.toLowerCase()
+        : "";
+
+  return (
+    message.includes("fetch failed") ||
+    message.includes("network") ||
+    message.includes("timeout") ||
+    message.includes("econn") ||
+    message.includes("enotfound") ||
+    message.includes("eacces")
+  );
 }
 
-async function readCount(query: PromiseLike<QueryResult<Row>>) {
-  const result = await query;
-  if (result.error) throw new Error(result.error.message);
-  return result.count ?? 0;
+function buildUnavailableResult<T>(fallback: T[], reason: string): SafeResult<T> {
+  return {
+    data: fallback,
+    count: 0,
+    error: null,
+    available: false,
+    reason,
+  };
+}
+
+async function safeReadRows<T extends Row>(
+  query: PromiseLike<QueryResult<T>>,
+  fallback: T[] = [],
+): Promise<SafeResult<T>> {
+  let result: QueryResult<T>;
+  try {
+    result = await query;
+  } catch (error) {
+    if (isTransportError(error)) {
+      return buildUnavailableResult(fallback, "Connexion Supabase indisponible pour cette source.");
+    }
+    throw error;
+  }
+
+  if (result.error) {
+    if (isTransportError(result.error)) {
+      return buildUnavailableResult(fallback, "Connexion Supabase indisponible pour cette source.");
+    }
+    throw new Error(result.error.message);
+  }
+
+  return { ...result, error: null, available: true, reason: null };
+}
+
+async function safeReadCount(query: PromiseLike<QueryResult<Row>>): Promise<SafeResult<Row>> {
+  return safeReadRows<Row>(query, []);
+}
+
+function createUnavailableSource<T>(adminClient: ReturnType<typeof createAdminClient>, fallback: T[] = []) {
+  return Promise.resolve(buildUnavailableResult(fallback, adminClient ? "Source indisponible." : CONFIG_UNAVAILABLE_REASON));
 }
 
 function getString(row: Row | null | undefined, key: string) {
@@ -117,53 +184,73 @@ export async function GET(req: NextRequest) {
     const offset = parseOffset(url.searchParams.get("offset"));
     const adminClient = createAdminClient();
 
-    const [requestRows, missionRows] = await Promise.all([
-      readRows(
-        adminClient
-          .from("service_requests")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .range(offset, offset + limit - 1) as unknown as PromiseLike<QueryResult<Row>>,
-      ),
-      readRows(
-        adminClient
-          .from("missions")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .range(offset, offset + limit - 1) as unknown as PromiseLike<QueryResult<Row>>,
-      ),
+    const [requestRowsRes, missionRowsRes] = await Promise.all([
+      adminClient
+        ? safeReadRows(
+            adminClient
+              .from("service_requests")
+              .select("*")
+              .order("created_at", { ascending: false })
+              .range(offset, offset + limit - 1) as unknown as PromiseLike<QueryResult<Row>>,
+          )
+        : createUnavailableSource<Row>(adminClient),
+      adminClient
+        ? safeReadRows(
+            adminClient
+              .from("missions")
+              .select("*")
+              .order("created_at", { ascending: false })
+              .range(offset, offset + limit - 1) as unknown as PromiseLike<QueryResult<Row>>,
+          )
+        : createUnavailableSource<Row>(adminClient),
     ]);
+
+    const requestRows = requestRowsRes.data ?? [];
+    const missionRows = missionRowsRes.data ?? [];
 
     const requestIds = requestRows.map((row) => getString(row, "id")).filter((id): id is string => Boolean(id));
     const missionIds = missionRows.map((row) => getString(row, "id")).filter((id): id is string => Boolean(id));
 
-    const [recipientRows, quoteRows, invoiceCount, invoiceRows] = await Promise.all([
-      readRows(
-        adminClient
-          .from("service_request_recipients")
-          .select("*")
-          .in("service_request_id", requestIds.length ? requestIds : [EMPTY_UUID]) as unknown as PromiseLike<QueryResult<Row>>,
-      ),
-      readRows(
-        adminClient
-          .from("quotes")
-          .select("*")
-          .in("service_request_id", requestIds.length ? requestIds : [EMPTY_UUID])
-          .limit(1000) as unknown as PromiseLike<QueryResult<Row>>,
-      ),
-      readCount(
-        adminClient
-          .from("invoices")
-          .select("id", { count: "exact", head: true }) as unknown as PromiseLike<QueryResult<Row>>,
-      ),
-      readRows(
-        adminClient
-          .from("invoices")
-          .select("*")
-          .in("mission_id", missionIds.length ? missionIds : [EMPTY_UUID])
-          .limit(1000) as unknown as PromiseLike<QueryResult<Row>>,
-      ),
+    const [recipientRowsRes, quoteRowsRes, invoiceCountRes, invoiceRowsRes] = await Promise.all([
+      adminClient
+        ? safeReadRows(
+            adminClient
+              .from("service_request_recipients")
+              .select("*")
+              .in("service_request_id", requestIds.length ? requestIds : [EMPTY_UUID]) as unknown as PromiseLike<QueryResult<Row>>,
+          )
+        : createUnavailableSource<Row>(adminClient),
+      adminClient
+        ? safeReadRows(
+            adminClient
+              .from("quotes")
+              .select("*")
+              .in("service_request_id", requestIds.length ? requestIds : [EMPTY_UUID])
+              .limit(1000) as unknown as PromiseLike<QueryResult<Row>>,
+          )
+        : createUnavailableSource<Row>(adminClient),
+      adminClient
+        ? safeReadCount(
+            adminClient
+              .from("invoices")
+              .select("id", { count: "exact", head: true }) as unknown as PromiseLike<QueryResult<Row>>,
+          )
+        : createUnavailableSource<Row>(adminClient),
+      adminClient
+        ? safeReadRows(
+            adminClient
+              .from("invoices")
+              .select("*")
+              .in("mission_id", missionIds.length ? missionIds : [EMPTY_UUID])
+              .limit(1000) as unknown as PromiseLike<QueryResult<Row>>,
+          )
+        : createUnavailableSource<Row>(adminClient),
     ]);
+
+    const recipientRows = recipientRowsRes.data ?? [];
+    const quoteRows = quoteRowsRes.data ?? [];
+    const invoiceRows = invoiceRowsRes.data ?? [];
+    const invoiceCount = invoiceCountRes.count ?? 0;
 
     const profileIds = Array.from(
       new Set(
@@ -192,30 +279,46 @@ export async function GET(req: NextRequest) {
       ),
     );
 
-    const [profileRows, propertyRows, housingRows] = await Promise.all([
-      readRows(
-        adminClient
-          .from("profiles")
-          .select("id,email,first_name,last_name,username,company_name")
-          .in("id", profileIds.length ? profileIds : [EMPTY_UUID]) as unknown as PromiseLike<QueryResult<Row>>,
-      ),
-      readRows(
-        adminClient
-          .from("properties")
-          .select("id,name,city")
-          .in("id", propertyIds.length ? propertyIds : [EMPTY_UUID]) as unknown as PromiseLike<QueryResult<Row>>,
-      ),
-      readRows(
-        adminClient
-          .from("housing")
-          .select("id,nom_logement,ville")
-          .in("id", housingIds.length ? housingIds : [-1]) as unknown as PromiseLike<QueryResult<Row>>,
-      ),
+    const [profileRowsRes, propertyRowsRes, housingRowsRes] = await Promise.all([
+      adminClient
+        ? safeReadRows(
+            adminClient
+              .from("profiles")
+              .select("id,email,first_name,last_name,username,company_name")
+              .in("id", profileIds.length ? profileIds : [EMPTY_UUID]) as unknown as PromiseLike<QueryResult<Row>>,
+          )
+        : createUnavailableSource<Row>(adminClient),
+      adminClient
+        ? safeReadRows(
+            adminClient
+              .from("properties")
+              .select("id,name,city")
+              .in("id", propertyIds.length ? propertyIds : [EMPTY_UUID]) as unknown as PromiseLike<QueryResult<Row>>,
+          )
+        : createUnavailableSource<Row>(adminClient),
+      adminClient
+        ? safeReadRows(
+            adminClient
+              .from("housing")
+              .select("id,nom_logement,ville")
+              .in("id", housingIds.length ? housingIds : [-1]) as unknown as PromiseLike<QueryResult<Row>>,
+          )
+        : createUnavailableSource<Row>(adminClient),
     ]);
 
-    const profilesById = new Map(profileRows.map((row) => [getString(row, "id"), row]).filter((entry): entry is [string, Row] => Boolean(entry[0])));
-    const propertiesById = new Map(propertyRows.map((row) => [getString(row, "id"), row]).filter((entry): entry is [string, Row] => Boolean(entry[0])));
-    const housingById = new Map(housingRows.map((row) => [getIdentifier(row, "id"), row]).filter((entry): entry is [string, Row] => Boolean(entry[0])));
+    const profileRows = profileRowsRes.data ?? [];
+    const propertyRows = propertyRowsRes.data ?? [];
+    const housingRows = housingRowsRes.data ?? [];
+
+    const profilesById = new Map(
+      profileRows.map((row) => [getString(row, "id"), row]).filter((entry): entry is [string, Row] => Boolean(entry[0])),
+    );
+    const propertiesById = new Map(
+      propertyRows.map((row) => [getString(row, "id"), row]).filter((entry): entry is [string, Row] => Boolean(entry[0])),
+    );
+    const housingById = new Map(
+      housingRows.map((row) => [getIdentifier(row, "id"), row]).filter((entry): entry is [string, Row] => Boolean(entry[0])),
+    );
     const recipientsByRequestId = new Map<string, Row[]>();
     const quotesByRecipientId = new Map<string, Row>();
     const quotesByRequestAndConcierge = new Map<string, Row>();
@@ -240,7 +343,9 @@ export async function GET(req: NextRequest) {
       setLatest(requestsByMissionId, getString(requestRow, "mission_id") ?? getMetadataString(requestRow, "selected_mission_id"), requestRow);
     });
 
-    const missionById = new Map(missionRows.map((row) => [getString(row, "id"), row]).filter((entry): entry is [string, Row] => Boolean(entry[0])));
+    const missionById = new Map(
+      missionRows.map((row) => [getString(row, "id"), row]).filter((entry): entry is [string, Row] => Boolean(entry[0])),
+    );
     const requests = requestRows.map((requestRow) => {
       const requestId = getString(requestRow, "id") ?? "";
       const recipients = (recipientsByRequestId.get(requestId) ?? []).map((recipient) => {
@@ -255,8 +360,14 @@ export async function GET(req: NextRequest) {
           quote_status: getString(quote, "status"),
         };
       });
-      const primaryRecipientStatus = pickPrimaryStatus(recipients, ["selected", "quoted", "interested", "viewed", "sent", "declined", "not_selected"]);
-      const primaryQuoteStatus = pickPrimaryStatus(recipients.map((recipient) => ({ status: recipient.quote_status })), ["accepted", "sent", "rejected", "expired", "canceled", "draft"]);
+      const primaryRecipientStatus = pickPrimaryStatus(
+        recipients,
+        ["selected", "quoted", "interested", "viewed", "sent", "declined", "not_selected"],
+      );
+      const primaryQuoteStatus = pickPrimaryStatus(
+        recipients.map((recipient) => ({ status: recipient.quote_status })),
+        ["accepted", "sent", "rejected", "expired", "canceled", "draft"],
+      );
       const missionId = getString(requestRow, "mission_id") ?? getMetadataString(requestRow, "selected_mission_id");
       const linkedMission = missionId ? missionById.get(missionId) : undefined;
       const workflow = deriveCommercialWorkflowStatus({
@@ -292,7 +403,10 @@ export async function GET(req: NextRequest) {
         created_at: getString(requestRow, "created_at"),
         updated_at: getString(requestRow, "updated_at"),
         selected_concierge_name: getString(requestRow, "selected_concierge_profile_id")
-          ? getDisplayName(profilesById.get(getString(requestRow, "selected_concierge_profile_id") ?? ""), "Conciergerie")
+          ? getDisplayName(
+              profilesById.get(getString(requestRow, "selected_concierge_profile_id") ?? ""),
+              "Conciergerie",
+            )
           : null,
         requested_services: getStringArray(requestRow, "requested_services"),
         recipients,
@@ -302,7 +416,9 @@ export async function GET(req: NextRequest) {
     const missions = missionRows.map((missionRow) => {
       const missionId = getString(missionRow, "id") ?? "";
       const request = requestsByMissionId.get(missionId);
-      const quote = quotesByMissionId.get(missionId) ?? (request ? quoteRows.find((row) => getString(row, "service_request_id") === getString(request, "id")) : undefined);
+      const quote =
+        quotesByMissionId.get(missionId) ??
+        (request ? quoteRows.find((row) => getString(row, "service_request_id") === getString(request, "id")) : undefined);
       const invoice = invoicesByMissionId.get(missionId);
       const property = propertiesById.get(getString(missionRow, "property_id") ?? "");
       const workflowStatus = deriveMissionWorkflowStatus({
@@ -336,8 +452,29 @@ export async function GET(req: NextRequest) {
       };
     });
 
+    const sources: SourceHealth[] = [
+      { key: "service-requests", label: "Demandes", available: requestRowsRes.available, reason: requestRowsRes.reason },
+      { key: "missions", label: "Missions", available: missionRowsRes.available, reason: missionRowsRes.reason },
+      { key: "recipients", label: "Destinataires", available: recipientRowsRes.available, reason: recipientRowsRes.reason },
+      { key: "quotes", label: "Devis", available: quoteRowsRes.available, reason: quoteRowsRes.reason },
+      { key: "invoice-count", label: "Compteur factures", available: invoiceCountRes.available, reason: invoiceCountRes.reason },
+      { key: "invoice-rows", label: "Factures liées", available: invoiceRowsRes.available, reason: invoiceRowsRes.reason },
+      { key: "profiles", label: "Profils", available: profileRowsRes.available, reason: profileRowsRes.reason },
+      { key: "properties", label: "Logements", available: propertyRowsRes.available, reason: propertyRowsRes.reason },
+      { key: "housing", label: "Housing legacy", available: housingRowsRes.available, reason: housingRowsRes.reason },
+    ];
+
+    const unavailableSources = sources.filter((source) => !source.available);
+
     return NextResponse.json(
       {
+        health: {
+          available: unavailableSources.length === 0,
+          availableSources: sources.length - unavailableSources.length,
+          totalSources: sources.length,
+          reasons: unavailableSources.map((source) => `${source.label} : ${source.reason ?? "indisponible"}`),
+          updatedAt: new Date().toISOString(),
+        },
         requests,
         missions,
         invoiceCount,
