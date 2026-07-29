@@ -24,11 +24,20 @@ type SupabaseClientLike<T> = {
   from(table: "missions"): SupabaseTableClient<T>;
 };
 
-const OPTIONAL_MISSION_INSERT_COLUMNS = new Set(["description", "metadata", "title"]);
+const OPTIONAL_MISSION_INSERT_COLUMNS = new Set(["description", "metadata", "title", "reservation_id"]);
+const OPTIONAL_MISSION_SELECT_FALLBACK: Record<string, string> = {
+  title: "service_label",
+};
 
 function getCompatibleMissionSelect(columns: string, removedColumns: Set<string>) {
-  if (!removedColumns.has("title")) return columns;
-  return columns.replace(/\btitle\b/g, "service_label");
+  let nextColumns = columns;
+  for (const removedColumn of removedColumns) {
+    const fallback = OPTIONAL_MISSION_SELECT_FALLBACK[removedColumn];
+    nextColumns = fallback
+      ? nextColumns.replace(new RegExp(`\\b${removedColumn}\\b`, "g"), fallback)
+      : nextColumns.replace(new RegExp(`(?:^|,\\s*)${removedColumn}(?=,|$)`, "g"), "");
+  }
+  return nextColumns.replace(/,\s*,/g, ", ").replace(/^,\s*|\s*,\s*$/g, "");
 }
 
 function getMissingMissionColumn(error: SupabaseMutationError) {

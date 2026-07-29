@@ -1,9 +1,19 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import {
+  cleanString,
+  getReservationMissionKey,
+  profileDisplayName,
+  reservationToTravelerStay,
+  type ProfileMini,
+  type PropertyMini,
+  type ReservationRow,
+} from "@/app/api/_shared/reservations";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
 import { buildTravelerStayDashboard } from "@/app/lib/travelerStayCenter";
 import {
   isRecord,
+  mergeDuplicateTravelerStays,
   stringValue,
   workflowsAndMissionsToTravelerStays,
   type TravelerStayMissionRow,
@@ -17,6 +27,7 @@ const dbAny = asLooseSupabaseClient(db);
 function toMissionRow(value: Record<string, unknown>): TravelerStayMissionRow {
   return {
     id: String(value.id ?? ""),
+    reservation_id: stringValue(value.reservation_id),
     title: stringValue(value.title),
     description: stringValue(value.description),
     status: stringValue(value.status),
@@ -31,15 +42,24 @@ function toMissionRow(value: Record<string, unknown>): TravelerStayMissionRow {
   };
 }
 
+function isMissingMissionReservationIdColumn(error: { code?: string; message?: string; details?: string } | null) {
+  const message = `${error?.message ?? ""} ${error?.details ?? ""}`.toLowerCase();
+  return (
+    (error?.code === "PGRST204" || error?.code === "42703" || message.includes("could not find") || message.includes("column")) &&
+    message.includes("reservation_id")
+  );
+}
+
 function groupReservationWorkflows(missions: TravelerStayMissionRow[]): TravelerStayReservationWorkflow[] {
   const workflows = new Map<string, TravelerStayReservationWorkflow>();
   for (const mission of missions) {
     const metadata = isRecord(mission.metadata) ? mission.metadata : {};
-    const workflowId = stringValue(metadata.reservation_workflow_id) ?? stringValue(metadata.reservation_id);
-    if (!workflowId) continue;
-    const current = workflows.get(workflowId) ?? {
-      id: workflowId,
+    const reservationId = mission.reservation_id ?? stringValue(metadata.reservation_id) ?? stringValue(metadata.reservation_workflow_id);
+    if (!reservationId) continue;
+    const current = workflows.get(reservationId) ?? {
+      id: reservationId,
       reservation: {
+        id: reservationId,
         property_label: metadata.property_label ?? null,
         guest_name: metadata.guest_name ?? null,
         check_in: metadata.check_in ?? null,
@@ -48,7 +68,7 @@ function groupReservationWorkflows(missions: TravelerStayMissionRow[]): Traveler
       missions: [],
     };
     current.missions?.push(mission);
-    workflows.set(workflowId, current);
+    workflows.set(reservationId, current);
   }
   return Array.from(workflows.values());
 }
@@ -91,19 +111,46 @@ function metadataPatchForAction(body: Record<string, unknown>, actorProfileId: s
 }
 
 async function loadStayMissions(stayId: string, userId: string, role: string) {
-  let query = dbAny
-    .from("missions")
-    .select("id, title, description, status, priority, amount, currency, scheduled_start, scheduled_end, metadata, created_at, updated_at")
-    .or(`metadata->>reservation_workflow_id.eq.${stayId},metadata->>reservation_id.eq.${stayId},id.eq.${stayId}`)
-    .order("scheduled_start", { ascending: true })
-    .limit(80);
+  const run = async (useReservationLink: boolean) => {
+    let query = dbAny
+      .from("missions")
+      .select(
+        useReservationLink
+          ? "id, reservation_id, title, description, status, priority, amount, currency, scheduled_start, scheduled_end, metadata, created_at, updated_at"
+          : "id, title, description, status, priority, amount, currency, scheduled_start, scheduled_end, metadata, created_at, updated_at",
+      )
+      .order("scheduled_start", { ascending: true })
+      .limit(80);
+
+    query = useReservationLink
+      ? query.or(`reservation_id.eq.${stayId},metadata->>reservation_workflow_id.eq.${stayId},metadata->>reservation_id.eq.${stayId},id.eq.${stayId}`)
+      : query.or(`metadata->>reservation_workflow_id.eq.${stayId},metadata->>reservation_id.eq.${stayId},id.eq.${stayId}`);
+
+    if (role !== "admin" && role !== "super_admin") {
+      query = query.eq("concierge_profile_id", userId);
+    }
+
+    return query;
+  };
+
+  const firstAttempt = await run(true);
+  if (isMissingMissionReservationIdColumn(firstAttempt.error)) {
+    const fallback = await run(false);
+    return { missions: ((fallback.data ?? []) as Record<string, unknown>[]).map(toMissionRow), error: fallback.error };
+  }
+
+  return { missions: ((firstAttempt.data ?? []) as Record<string, unknown>[]).map(toMissionRow), error: firstAttempt.error };
+}
+
+async function loadReservationStay(stayId: string, userId: string, role: string) {
+  let query = dbAny.from("reservations").select("*").eq("id", stayId).limit(1);
 
   if (role !== "admin" && role !== "super_admin") {
     query = query.eq("concierge_profile_id", userId);
   }
 
-  const { data, error } = await query;
-  return { missions: ((data ?? []) as Record<string, unknown>[]).map(toMissionRow), error };
+  const { data, error } = await query.maybeSingle();
+  return { reservation: (data ?? null) as ReservationRow | null, error };
 }
 
 export async function GET(req: NextRequest) {
@@ -115,25 +162,85 @@ export async function GET(req: NextRequest) {
     const limitParam = Number(url.searchParams.get("limit") ?? "160");
     const limit = Number.isFinite(limitParam) ? Math.min(Math.max(limitParam, 1), 240) : 160;
 
-    let query = dbAny
-      .from("missions")
-      .select("id, title, description, status, priority, amount, currency, scheduled_start, scheduled_end, metadata, created_at, updated_at")
-      .order("scheduled_start", { ascending: true })
+    const missionSelectWithReservationId =
+      "id, reservation_id, title, description, status, priority, amount, currency, scheduled_start, scheduled_end, metadata, created_at, updated_at";
+    const missionSelectWithoutReservationId =
+      "id, title, description, status, priority, amount, currency, scheduled_start, scheduled_end, metadata, created_at, updated_at";
+    const loadMissionList = async (includeReservationId: boolean) => {
+      let missionQuery = dbAny
+        .from("missions")
+        .select(includeReservationId ? missionSelectWithReservationId : missionSelectWithoutReservationId)
+        .order("scheduled_start", { ascending: true })
+        .limit(limit);
+
+      if (role !== "admin" && role !== "super_admin") {
+        missionQuery = missionQuery.eq("concierge_profile_id", userId);
+      }
+
+      return missionQuery;
+    };
+    let reservationQuery = dbAny
+      .from("reservations")
+      .select("*")
+      .order("check_in_at", { ascending: true })
       .limit(limit);
 
     if (role !== "admin" && role !== "super_admin") {
-      query = query.eq("concierge_profile_id", userId);
+      reservationQuery = reservationQuery.eq("concierge_profile_id", userId);
     }
 
-    const { data, error } = await query;
-    if (error) {
-      console.error("[GET /api/concierge/stays] DB error:", error);
+    const [{ data: missionData, error: missionError }, { data: reservationData, error: reservationError }] = await Promise.all([
+      (async () => {
+        const firstAttempt = await loadMissionList(true);
+        if (isMissingMissionReservationIdColumn(firstAttempt.error)) return loadMissionList(false);
+        return firstAttempt;
+      })(),
+      reservationQuery,
+    ]);
+    if (missionError || reservationError) {
+      console.error("[GET /api/concierge/stays] DB error:", missionError ?? reservationError);
       return NextResponse.json({ error: "Erreur chargement séjours" }, { status: 500 });
     }
 
-    const missions = ((data ?? []) as Record<string, unknown>[]).map(toMissionRow);
+    const missions = ((missionData ?? []) as Record<string, unknown>[]).map(toMissionRow);
+    const reservations = (reservationData ?? []) as ReservationRow[];
     const workflows = groupReservationWorkflows(missions);
-    const stays = workflowsAndMissionsToTravelerStays({ workflows, missions });
+    const missionsByReservationId = new Map<string, TravelerStayMissionRow[]>();
+
+    for (const mission of missions) {
+      const reservationId = getReservationMissionKey(mission);
+      if (!reservationId) continue;
+      missionsByReservationId.set(reservationId, [...(missionsByReservationId.get(reservationId) ?? []), mission]);
+    }
+
+    const profileIds = Array.from(new Set(reservations.flatMap((item) => [item.owner_profile_id, item.concierge_profile_id]).filter(Boolean)));
+    const propertyIds = Array.from(new Set(reservations.map((item) => item.property_id).filter(Boolean)));
+
+    const [{ data: profiles }, { data: properties }] = await Promise.all([
+      profileIds.length
+        ? dbAny.from("profiles").select("id,first_name,last_name,company_name,username,email").in("id", profileIds)
+        : Promise.resolve({ data: [] }),
+      propertyIds.length
+        ? dbAny.from("properties").select("id,name,city").in("id", propertyIds)
+        : Promise.resolve({ data: [] }),
+    ]);
+
+    const profileMap = new Map<string, ProfileMini>(((profiles ?? []) as ProfileMini[]).map((item) => [item.id, item]));
+    const propertyMap = new Map<string, PropertyMini>(((properties ?? []) as PropertyMini[]).map((item) => [item.id, item]));
+
+    const reservationStays = reservations.map((reservation) =>
+      reservationToTravelerStay({
+        reservation,
+        ownerName: profileDisplayName(profileMap.get(reservation.owner_profile_id), "Propriétaire"),
+        propertyLabel: reservation.property_id ? cleanString(propertyMap.get(reservation.property_id)?.name) : null,
+        missions: missionsByReservationId.get(reservation.id) ?? [],
+      }),
+    );
+
+    const stays = mergeDuplicateTravelerStays([
+      ...reservationStays,
+      ...workflowsAndMissionsToTravelerStays({ workflows, missions }),
+    ]);
 
     return NextResponse.json({
       stays,
@@ -159,6 +266,33 @@ export async function PATCH(req: NextRequest) {
     const actionPatch = metadataPatchForAction(body, userId);
     if ("error" in actionPatch) {
       return NextResponse.json({ error: actionPatch.error }, { status: 400 });
+    }
+
+    const { reservation, error: reservationError } = await loadReservationStay(stayId, userId, role);
+    if (reservationError) {
+      console.error("[PATCH /api/concierge/stays] reservation load error:", reservationError);
+      return NextResponse.json({ error: "Erreur chargement séjour" }, { status: 500 });
+    }
+
+    if (reservation) {
+      const metadata = isRecord(reservation.metadata) ? reservation.metadata : {};
+      const nextMetadata = { ...metadata, ...actionPatch.patch };
+      const { data, error: updateError } = await dbAny
+        .from("reservations")
+        .update({ metadata: nextMetadata })
+        .eq("id", stayId)
+        .select("*")
+        .single();
+
+      if (updateError || !data) {
+        console.error("[PATCH /api/concierge/stays] reservation update error:", updateError);
+        return NextResponse.json({ error: "Erreur mise à jour séjour" }, { status: 500 });
+      }
+
+      return NextResponse.json({
+        stay: reservationToTravelerStay({ reservation: data as ReservationRow, missions: [] }),
+        reservation: data,
+      });
     }
 
     const { missions, error } = await loadStayMissions(stayId, userId, role);
@@ -192,6 +326,7 @@ export async function PATCH(req: NextRequest) {
         event_type: `traveler_stay_${actionPatch.action}`,
         payload: {
           stay_id: stayId,
+          reservation_id: mission.reservation_id ?? null,
           action: actionPatch.action,
           patch: actionPatch.patch,
         },
@@ -208,5 +343,3 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
-
-

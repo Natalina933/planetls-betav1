@@ -26,6 +26,7 @@ interface CreateMissionBody {
   concierge_profile_id?: string | null;
   owner_profile_id?: string | null;
   property_id?: string | null;
+  reservation_id?: string | null;
   service_id?: number | null;
   title?: string;
   description?: string | null;
@@ -43,6 +44,7 @@ type CreatedMissionRow = {
   concierge_profile_id: string | null;
   owner_profile_id: string | null;
   property_id: string | null;
+  reservation_id?: string | null;
   service_id: number | null;
   title: string | null;
   description?: string | null;
@@ -375,6 +377,9 @@ export async function POST(req: NextRequest) {
         concierge_profile_id: conciergeProfileId,
         owner_profile_id: ownerProfileId,
         property_id: body.property_id ?? null,
+        reservation_id:
+          body.reservation_id ??
+          (isRecord(body.metadata) && typeof body.metadata.reservation_id === "string" ? body.metadata.reservation_id : null),
         service_id: body.service_id ?? null,
         title,
         description: body.description ?? null,
@@ -386,7 +391,7 @@ export async function POST(req: NextRequest) {
         scheduled_end: body.scheduled_end ?? null,
         metadata: body.metadata ?? {},
       },
-      "id, concierge_profile_id, owner_profile_id, property_id, service_id, title, status, priority, amount, currency, scheduled_start, scheduled_end, metadata, created_at, updated_at",
+      "id, concierge_profile_id, owner_profile_id, property_id, reservation_id, service_id, title, status, priority, amount, currency, scheduled_start, scheduled_end, metadata, created_at, updated_at",
       "id, concierge_profile_id, owner_profile_id, property_id, service_id, title, status, priority, amount, currency, scheduled_start, scheduled_end, metadata, created_at, updated_at",
     );
 
@@ -451,6 +456,7 @@ export async function POST(req: NextRequest) {
       actorProfileId: auth.userId,
       ownerProfileId: data.owner_profile_id,
       conciergeProfileId: data.concierge_profile_id,
+      reservationId: data.reservation_id ?? (getMetadataString(body.metadata, "reservation_id") || null),
       serviceRequestId: serviceRequestId || null,
       missionId: data.id,
       eventType: "mission_created",

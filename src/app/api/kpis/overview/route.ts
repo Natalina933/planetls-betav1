@@ -80,7 +80,7 @@ const ROLE_DEFINITIONS: Record<
   },
 };
 
-const SCHEMA_DRIFT_CODES = new Set(["42P01", "42703", "PGRST205"]);
+const SCHEMA_DRIFT_CODES = new Set(["42P01", "42703", "PGRST204", "PGRST205"]);
 
 function round2(value: number): number {
   return Math.round(value * 100) / 100;
@@ -388,6 +388,12 @@ async function fetchProfiles() {
   return (data ?? []) as Array<{ id: string; role: string | null; city: string | null; created_at: string | null }>;
 }
 
+async function queryWithOptionalProviderColumn(relation: string, columnsWithProvider: string, columnsWithoutProvider: string, windowIso: string) {
+  const primary = await kpiDb.from(relation).select(columnsWithProvider).gte("created_at", windowIso);
+  if (!primary.error || !isSchemaDriftError(primary.error)) return primary;
+  return kpiDb.from(relation).select(columnsWithoutProvider).gte("created_at", windowIso);
+}
+
 export async function GET(req: NextRequest) {
   const windowDaysRaw = Number(req.nextUrl.searchParams.get("window_days") ?? 30);
   const windowDays = Number.isFinite(windowDaysRaw)
@@ -446,19 +452,21 @@ export async function GET(req: NextRequest) {
     }
 
     const requestIds = requests.map((row) => row.id);
-    const { data: quotesData, error: quotesError } = await kpiDb
-      .from("quotes")
-      .select("id, request_id, owner_profile_id, concierge_profile_id, provider_profile_id, created_at")
-      .gte("created_at", windowIso);
+    const { data: quotesData, error: quotesError } = await queryWithOptionalProviderColumn(
+      "quotes",
+      "id, request_id, owner_profile_id, concierge_profile_id, provider_profile_id, created_at",
+      "id, request_id, owner_profile_id, concierge_profile_id, created_at",
+      windowIso,
+    );
     if (quotesError && !isSchemaDriftError(quotesError)) throw quotesError;
-    const quotes = (quotesError ? [] : quotesData ?? []) as Array<{
-      id: string;
-      request_id: string | null;
-      owner_profile_id: string | null;
-      concierge_profile_id: string | null;
-      provider_profile_id: string | null;
-      created_at: string | null;
-    }>;
+    const quotes = ((quotesError ? [] : quotesData ?? []) as Array<Record<string, unknown>>).map((row) => ({
+      id: typeof row.id === "string" ? row.id : "",
+      request_id: typeof row.request_id === "string" ? row.request_id : null,
+      owner_profile_id: typeof row.owner_profile_id === "string" ? row.owner_profile_id : null,
+      concierge_profile_id: typeof row.concierge_profile_id === "string" ? row.concierge_profile_id : null,
+      provider_profile_id: typeof row.provider_profile_id === "string" ? row.provider_profile_id : null,
+      created_at: typeof row.created_at === "string" ? row.created_at : null,
+    }));
 
     for (const quote of quotes) {
       if (quote.owner_profile_id) markActivity(quote.owner_profile_id, "quote", quote.created_at);
@@ -466,20 +474,38 @@ export async function GET(req: NextRequest) {
       if (quote.provider_profile_id) markActivity(quote.provider_profile_id, "quote", quote.created_at);
     }
 
-    const { data: missionsData, error: missionsError } = await kpiDb
+    let providerMissionColumnMissing = false;
+    let missionRequestColumnMissing = false;
+    let { data: missionsData, error: missionsError } = await kpiDb
       .from("missions")
       .select("id, request_id, owner_profile_id, concierge_profile_id, provider_profile_id, status, created_at")
       .gte("created_at", windowIso);
+    if (missionsError && isSchemaDriftError(missionsError)) {
+      providerMissionColumnMissing = true;
+      let fallbackResult = await kpiDb
+        .from("missions")
+        .select("id, request_id, owner_profile_id, concierge_profile_id, status, created_at")
+        .gte("created_at", windowIso);
+      if (fallbackResult.error && isSchemaDriftError(fallbackResult.error)) {
+        missionRequestColumnMissing = true;
+        fallbackResult = await kpiDb
+          .from("missions")
+          .select("id, owner_profile_id, concierge_profile_id, status, created_at")
+          .gte("created_at", windowIso);
+      }
+      missionsData = fallbackResult.data;
+      missionsError = fallbackResult.error;
+    }
     if (missionsError && !isSchemaDriftError(missionsError)) throw missionsError;
-    const missions = (missionsError ? [] : missionsData ?? []) as Array<{
-      id: string;
-      request_id: string | null;
-      owner_profile_id: string | null;
-      concierge_profile_id: string | null;
-      provider_profile_id: string | null;
-      status: string | null;
-      created_at: string | null;
-    }>;
+    const missions = ((missionsError ? [] : missionsData ?? []) as Array<Record<string, unknown>>).map((row) => ({
+      id: typeof row.id === "string" ? row.id : "",
+      request_id: !missionRequestColumnMissing && typeof row.request_id === "string" ? row.request_id : null,
+      owner_profile_id: typeof row.owner_profile_id === "string" ? row.owner_profile_id : null,
+      concierge_profile_id: typeof row.concierge_profile_id === "string" ? row.concierge_profile_id : null,
+      provider_profile_id: typeof row.provider_profile_id === "string" ? row.provider_profile_id : null,
+      status: typeof row.status === "string" ? row.status : null,
+      created_at: typeof row.created_at === "string" ? row.created_at : null,
+    }));
 
     for (const mission of missions) {
       if (mission.owner_profile_id) markActivity(mission.owner_profile_id, "mission", mission.created_at);
@@ -487,19 +513,38 @@ export async function GET(req: NextRequest) {
       if (mission.provider_profile_id) markActivity(mission.provider_profile_id, "mission", mission.created_at);
     }
 
-    const { data: invoicesData, error: invoicesError } = await kpiDb
-      .from("invoices")
-      .select("id, status, owner_profile_id, concierge_profile_id, provider_profile_id, created_at")
-      .gte("created_at", windowIso);
+    let providerInterventions: Array<{ provider_profile_id: string | null; status: string | null; created_at: string | null }> = [];
+    if (providerMissionColumnMissing) {
+      const { data: providerInterventionsData, error: providerInterventionsError } = await kpiDb
+        .from("provider_interventions")
+        .select("provider_profile_id, status, created_at")
+        .gte("created_at", windowIso);
+      if (providerInterventionsError && !isSchemaDriftError(providerInterventionsError)) throw providerInterventionsError;
+      providerInterventions = ((providerInterventionsError ? [] : providerInterventionsData ?? []) as Array<Record<string, unknown>>).map((row) => ({
+        provider_profile_id: typeof row.provider_profile_id === "string" ? row.provider_profile_id : null,
+        status: typeof row.status === "string" ? row.status : null,
+        created_at: typeof row.created_at === "string" ? row.created_at : null,
+      }));
+      for (const intervention of providerInterventions) {
+        if (intervention.provider_profile_id) markActivity(intervention.provider_profile_id, "mission", intervention.created_at);
+      }
+    }
+
+    const { data: invoicesData, error: invoicesError } = await queryWithOptionalProviderColumn(
+      "invoices",
+      "id, status, owner_profile_id, concierge_profile_id, provider_profile_id, created_at",
+      "id, status, owner_profile_id, concierge_profile_id, created_at",
+      windowIso,
+    );
     if (invoicesError && !isSchemaDriftError(invoicesError)) throw invoicesError;
-    const invoices = (invoicesError ? [] : invoicesData ?? []) as Array<{
-      id: string;
-      status: string | null;
-      owner_profile_id: string | null;
-      concierge_profile_id: string | null;
-      provider_profile_id: string | null;
-      created_at: string | null;
-    }>;
+    const invoices = ((invoicesError ? [] : invoicesData ?? []) as Array<Record<string, unknown>>).map((row) => ({
+      id: typeof row.id === "string" ? row.id : "",
+      status: typeof row.status === "string" ? row.status : null,
+      owner_profile_id: typeof row.owner_profile_id === "string" ? row.owner_profile_id : null,
+      concierge_profile_id: typeof row.concierge_profile_id === "string" ? row.concierge_profile_id : null,
+      provider_profile_id: typeof row.provider_profile_id === "string" ? row.provider_profile_id : null,
+      created_at: typeof row.created_at === "string" ? row.created_at : null,
+    }));
 
     for (const invoice of invoices) {
       if (invoice.owner_profile_id) markActivity(invoice.owner_profile_id, "invoice", invoice.created_at);
@@ -621,11 +666,17 @@ export async function GET(req: NextRequest) {
           )
         : null;
 
-    const providerMissions = missions.filter((mission) =>
-      mission.provider_profile_id
-        ? profileMatchesRole(profileMap.get(mission.provider_profile_id)?.role ?? "", "provider")
-        : false,
-    );
+    const providerMissions = providerMissionColumnMissing
+      ? providerInterventions.filter((intervention) =>
+          intervention.provider_profile_id
+            ? profileMatchesRole(profileMap.get(intervention.provider_profile_id)?.role ?? "", "provider")
+            : false,
+        )
+      : missions.filter((mission) =>
+          mission.provider_profile_id
+            ? profileMatchesRole(profileMap.get(mission.provider_profile_id)?.role ?? "", "provider")
+            : false,
+        );
     const providerCompleted = providerMissions.filter((mission) => mission.status === "completed").length;
     const providerMissionCompletedRate =
       providerMissions.length > 0 ? round2((providerCompleted / providerMissions.length) * 100) : null;

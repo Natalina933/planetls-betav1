@@ -109,6 +109,52 @@ type MissionRow = {
   metadata?: Record<string, unknown> | null;
 };
 
+type OwnerReservationApiRow = {
+  id: string;
+  property_id?: string | null;
+  property_label?: string | null;
+  concierge_profile_id?: string | null;
+  concierge_name?: string | null;
+  traveler_first_name?: string | null;
+  traveler_last_name?: string | null;
+  traveler_phone?: string | null;
+  traveler_email?: string | null;
+  guest_count?: number | null;
+  adults_count?: number | null;
+  children_count?: number | null;
+  check_in_at?: string | null;
+  check_out_at?: string | null;
+  channel?: string | null;
+  access_instructions?: string | null;
+  owner_notes?: string | null;
+  concierge_notes?: string | null;
+  status?: string | null;
+  metadata?: Record<string, unknown> | null;
+};
+
+type ReservationTimelineItem = {
+  id: string;
+  created_at?: string | null;
+  title?: string | null;
+  body?: string | null;
+  event_type?: string | null;
+};
+
+type ReservationDetailPayload = {
+  reservation?: {
+    id: string;
+    owner_name?: string | null;
+    concierge_name?: string | null;
+    property_label?: string | null;
+    access_instructions?: string | null;
+    owner_notes?: string | null;
+    concierge_notes?: string | null;
+    status?: string | null;
+    updated_at?: string | null;
+  } | null;
+  timeline?: ReservationTimelineItem[];
+};
+
 type TravelerMissionForm = {
   firstName: string;
   lastName: string;
@@ -173,6 +219,7 @@ type AssignmentOption = {
 };
 
 type MissionOperationalContext = {
+  assignment: AssignmentOption | null;
   quote: OwnerQuoteRow | null;
   housing: HousingRow | null;
   quoteServiceLabels: string[];
@@ -716,6 +763,7 @@ function buildOperationalContext(input: {
   ];
 
   return {
+    assignment: input.assignment,
     quote,
     housing: selectedHousing,
     quoteServiceLabels,
@@ -872,24 +920,135 @@ function buildResetForm(current: TravelerMissionForm): TravelerMissionForm {
   };
 }
 
-function buildMissionPayload(form: TravelerMissionForm, context?: MissionOperationalContext) {
+function mapReservationStatusToMissionStatus(status: string | null | undefined) {
+  switch (status) {
+    case "completed":
+      return "completed";
+    case "canceled":
+      return "canceled";
+    case "in_stay":
+      return "in_progress";
+    case "scheduled":
+      return "in_progress";
+    case "acknowledged":
+      return "accepted";
+    case "shared":
+      return "assigned";
+    default:
+      return "assigned";
+  }
+}
+
+function formatTimelineDate(value: string | null | undefined) {
+  if (!value) return "A l'instant";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "A l'instant";
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function reservationToMissionRow(reservation: OwnerReservationApiRow): MissionRow {
+  const metadata = asRecord(reservation.metadata);
+  const firstName = cleanString(reservation.traveler_first_name);
+  const lastName = cleanString(reservation.traveler_last_name);
+  const travelerName = [firstName, lastName].filter(Boolean).join(" ").trim();
+  const normalizedStatus = mapReservationStatusToMissionStatus(reservation.status);
+  const normalizedMetadata: Record<string, unknown> = {
+    ...metadata,
+    mission_kind: "traveler_stay",
+    reservation_id: reservation.id,
+    reservation_status: reservation.status ?? null,
+    housing_id: reservation.property_id ?? null,
+    property_label: reservation.property_label ?? cleanString(metadata.property_label),
+    concierge_profile_id: reservation.concierge_profile_id ?? cleanString(metadata.concierge_profile_id),
+    concierge_name: reservation.concierge_name ?? cleanString(metadata.concierge_name),
+    guest_first_name: firstName,
+    guest_last_name: lastName,
+    guest_phone: cleanString(reservation.traveler_phone) || cleanString(metadata.guest_phone),
+    guest_email: cleanString(reservation.traveler_email) || cleanString(metadata.guest_email),
+    guest_adults:
+      typeof reservation.adults_count === "number"
+        ? reservation.adults_count
+        : Number(metadata.guest_adults ?? reservation.guest_count ?? 0),
+    guest_children:
+      typeof reservation.children_count === "number"
+        ? reservation.children_count
+        : Number(metadata.guest_children ?? 0),
+    booking_platform: cleanString(reservation.channel) || cleanString(metadata.booking_platform) || cleanString(metadata.channel),
+    check_in: reservation.check_in_at ?? cleanString(metadata.check_in),
+    check_out: reservation.check_out_at ?? cleanString(metadata.check_out),
+    access_instructions: cleanString(reservation.access_instructions) || cleanString(metadata.access_instructions),
+    owner_notes: cleanString(reservation.owner_notes) || cleanString(metadata.owner_notes),
+    concierge_notes: cleanString(reservation.concierge_notes) || cleanString(metadata.concierge_notes),
+    visible_in_owner_space: true,
+  };
+
+  if (["accepted", "in_progress", "completed"].includes(normalizedStatus)) {
+    normalizedMetadata.concierge_viewed_at =
+      cleanString(metadata.concierge_viewed_at) || cleanString(metadata.viewed_at) || reservation.check_in_at || new Date().toISOString();
+  }
+
+  if (["in_progress", "completed"].includes(normalizedStatus)) {
+    normalizedMetadata.planning_registered_at =
+      cleanString(metadata.planning_registered_at) || cleanString(metadata.concierge_planned_at) || reservation.check_in_at || new Date().toISOString();
+    normalizedMetadata.added_to_concierge_planning = true;
+    normalizedMetadata.concierge_planning_status = "planned";
+  }
+
+  return {
+    id: reservation.id,
+    title: travelerName || "Voyageur",
+    description: cleanString(reservation.owner_notes) || null,
+    status: normalizedStatus,
+    priority:
+      cleanString(metadata.issue_flag) === "urgent" ? "urgent" : ((cleanString(metadata.priority) as MissionRow["priority"]) ?? "normal"),
+    property_id: reservation.property_id ?? null,
+    scheduled_start: reservation.check_in_at ?? null,
+    scheduled_end: reservation.check_out_at ?? null,
+    metadata: normalizedMetadata,
+  };
+}
+
+function buildReservationPayload(form: TravelerMissionForm, context?: MissionOperationalContext) {
   const requestedActions = uniqueStrings([...form.actions, ...(context?.actionValues ?? [])]);
-  const description = [form.notes.trim(), context?.missionBrief ?? ""].filter(Boolean).join("\n\n");
   const internalNotes = [form.internalNotes.trim(), context?.housingInternalNotes ?? ""].filter(Boolean).join("\n\n");
+  const selectedHousing = context?.housing;
+  const propertyLabel =
+    cleanString(selectedHousing?.nom_logement) ||
+    cleanString(selectedHousing?.ville) ||
+    cleanString(context?.assignment?.propertyName) ||
+    "";
 
   return {
     concierge_profile_id: form.conciergeProfileId,
     property_id: isUuidLike(form.propertyId) ? form.propertyId : null,
-    title: buildTitle(form),
-    description: description || null,
-    status: "assigned",
-    priority: form.issueFlag === "urgent" ? "urgent" : form.priority,
-    scheduled_start: buildDateTime(form.arrivalDate, form.arrivalTime),
-    scheduled_end: buildDateTime(form.departureDate, form.departureTime),
+    property_label: propertyLabel || null,
+    traveler_first_name: form.firstName.trim(),
+    traveler_last_name: form.lastName.trim(),
+    traveler_phone: form.phone.trim() || null,
+    traveler_email: form.email.trim() || null,
+    guest_count: Number(form.adults || 0) + Number(form.children || 0) + (form.hasBaby === "yes" ? 1 : 0),
+    adults_count: Number(form.adults || 0),
+    children_count: Number(form.children || 0),
+    infants_count: form.hasBaby === "yes" ? 1 : 0,
+    check_in_at: buildDateTime(form.arrivalDate, form.arrivalTime),
+    check_out_at: buildDateTime(form.departureDate, form.departureTime),
+    arrival_time_window: form.arrivalTime || null,
+    departure_time_window: form.departureTime || null,
+    access_instructions: form.accessInstructions.trim() || context?.accessInstructions || null,
+    owner_notes: [form.notes.trim(), context?.missionBrief ?? ""].filter(Boolean).join("\n\n") || null,
+    status: "shared",
+    channel: form.bookingPlatform,
     metadata: {
       mission_kind: "traveler_stay",
       housing_id: form.propertyId || null,
+      property_label: propertyLabel || null,
       concierge_profile_id: form.conciergeProfileId,
+      concierge_name: context?.assignment?.conciergeName ?? null,
       guest_first_name: form.firstName.trim(),
       guest_last_name: form.lastName.trim(),
       guest_phone: form.phone.trim(),
@@ -921,14 +1080,14 @@ function buildMissionPayload(form: TravelerMissionForm, context?: MissionOperati
       source_housing_instructions: context?.housekeepingInstructions ?? "",
       source_housing_internal_notes: context?.housingInternalNotes ?? "",
       source_contract_summary: context?.contractSummary ?? "",
-      notice_mode: "simple_stay_notification",
+      notice_mode: "shared_reservation",
       concierge_planning_status: "pending",
-      notification_reason: "new_traveler_mission",
+      notification_reason: "new_shared_reservation",
       assignment_flow: "owner_proposed_to_concierge",
       visible_in_owner_space: true,
       visible_in_owner_planning: true,
       visible_in_concierge_workspace: true,
-      created_from: "owner_traveler_mission",
+      created_from: "owner_shared_reservation",
     },
   };
 }
@@ -959,11 +1118,13 @@ function TravelerMissionCard({
   housing,
   partners,
   onDuplicate,
+  onFocus,
 }: {
   mission: MissionRow;
   housing: HousingRow[];
   partners: PartnerRequestRow[];
   onDuplicate: (mission: MissionRow) => void;
+  onFocus: (missionId: string) => void;
 }) {
   const actionValues = Array.isArray(mission.metadata?.requested_actions)
     ? (mission.metadata?.requested_actions as string[])
@@ -1008,6 +1169,10 @@ function TravelerMissionCard({
             <Copy size={15} aria-hidden="true" />
             Dupliquer
           </button>
+          <button type="button" className={styles.buttonSecondary} onClick={() => onFocus(mission.id)}>
+            <Eye size={15} aria-hidden="true" />
+            Suivi
+          </button>
           <ButtonLink href={`/dashboard/owner/missions/${mission.id}`} variant="secondary" size="sm">
             Ouvrir
           </ButtonLink>
@@ -1039,6 +1204,16 @@ function OwnerTravelerMissionsContent() {
   const [creationMode, setCreationMode] = useState<CreationMode>("platform");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [focusedMissionId, setFocusedMissionId] = useState<string | null>(null);
+  const [focusedReservationDetail, setFocusedReservationDetail] = useState<ReservationDetailPayload | null>(null);
+  const [focusedReservationLoading, setFocusedReservationLoading] = useState(false);
+  const [focusedReservationError, setFocusedReservationError] = useState<string | null>(null);
+  const [focusedReservationSaving, setFocusedReservationSaving] = useState(false);
+  const [focusedReservationSuccess, setFocusedReservationSuccess] = useState<string | null>(null);
+  const [focusedReservationDraft, setFocusedReservationDraft] = useState({
+    accessInstructions: "",
+    ownerNotes: "",
+  });
   const [planningText, setPlanningText] = useState("");
   const [parsedStayDrafts, setParsedStayDrafts] = useState<Record<string, ParsedStayDraft>>({});
   const [sentParsedStayIds, setSentParsedStayIds] = useState<Record<string, boolean>>({});
@@ -1094,19 +1269,19 @@ function OwnerTravelerMissionsContent() {
     try {
       setLoading(true);
       setError(null);
-      const [missionsResponse, housingResponse, requestsResponse, quotesResponse] = await Promise.all([
-        fetch("/api/missions?scope=owner&limit=100", { cache: "no-store" }),
+      const [reservationsResponse, housingResponse, requestsResponse, quotesResponse] = await Promise.all([
+        fetch("/api/owner/reservations", { cache: "no-store" }),
         fetch("/api/housing", { cache: "no-store" }),
         fetch("/api/service-requests?limit=100", { cache: "no-store" }),
         fetch("/api/quotes?status=accepted&limit=100", { cache: "no-store" }),
       ]);
 
-      const missionsPayload = await missionsResponse.json();
+      const reservationsPayload = await reservationsResponse.json();
       const housingPayload = await housingResponse.json();
       const requestsPayload = await requestsResponse.json();
       const quotesPayload = await quotesResponse.json();
 
-      if (!missionsResponse.ok) throw new Error(missionsPayload?.error || "Impossible de charger les missions.");
+      if (!reservationsResponse.ok) throw new Error(reservationsPayload?.error || "Impossible de charger les séjours.");
       if (!housingResponse.ok) throw new Error(housingPayload?.error || "Impossible de charger les logements.");
       if (!requestsResponse.ok) throw new Error(requestsPayload?.error || "Impossible de charger les partenaires.");
       if (!quotesResponse.ok) throw new Error(quotesPayload?.error || "Impossible de charger les devis acceptés.");
@@ -1120,11 +1295,12 @@ function OwnerTravelerMissionsContent() {
         nextAssignments.find((option) => targetRequestId && option.requestId === targetRequestId) ??
         nextAssignments.find((option) => targetQuoteId && option.selectedQuoteId === targetQuoteId) ??
         nextAssignments[0];
+      const nextReservations = Array.isArray(reservationsPayload?.reservations) ? reservationsPayload.reservations : [];
 
       setMissions(
-        (Array.isArray(missionsPayload) ? missionsPayload : []).filter(
-          (mission: MissionRow) => mission.metadata?.mission_kind === "traveler_stay",
-        ),
+        nextReservations
+          .map((reservation: OwnerReservationApiRow) => reservationToMissionRow(reservation))
+          .filter((mission: MissionRow) => mission.metadata?.mission_kind === "traveler_stay"),
       );
       setHousing(nextHousing);
       setPartners(acceptedPartners);
@@ -1194,6 +1370,104 @@ function OwnerTravelerMissionsContent() {
       }),
     [missions, statusFilter],
   );
+  const focusedMission = useMemo(
+    () => filteredMissions.find((mission) => mission.id === focusedMissionId) ?? filteredMissions[0] ?? null,
+    [filteredMissions, focusedMissionId],
+  );
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadFocusedReservation() {
+      if (!focusedMission?.id) {
+        setFocusedReservationDetail(null);
+        setFocusedReservationError(null);
+        return;
+      }
+
+      setFocusedReservationLoading(true);
+      setFocusedReservationError(null);
+      try {
+        const response = await fetch(`/api/reservations/${encodeURIComponent(focusedMission.id)}`, { cache: "no-store" });
+        const payload = (await response.json()) as ReservationDetailPayload & { error?: string };
+        if (!response.ok) throw new Error(payload?.error || "Impossible de charger le detail du sejour.");
+        if (active) setFocusedReservationDetail(payload);
+      } catch (err) {
+        if (active) {
+          setFocusedReservationDetail(null);
+          setFocusedReservationError(err instanceof Error ? err.message : "Impossible de charger le suivi collaboratif.");
+        }
+      } finally {
+        if (active) setFocusedReservationLoading(false);
+      }
+    }
+
+    void loadFocusedReservation();
+    return () => {
+      active = false;
+    };
+  }, [focusedMission?.id]);
+
+  useEffect(() => {
+    setFocusedReservationDraft({
+      accessInstructions: focusedReservationDetail?.reservation?.access_instructions ?? "",
+      ownerNotes: focusedReservationDetail?.reservation?.owner_notes ?? "",
+    });
+  }, [focusedReservationDetail?.reservation?.access_instructions, focusedReservationDetail?.reservation?.owner_notes]);
+
+  useEffect(() => {
+    if (!focusedReservationSuccess) return;
+    const timeout = window.setTimeout(() => setFocusedReservationSuccess(null), 2600);
+    return () => window.clearTimeout(timeout);
+  }, [focusedReservationSuccess]);
+
+  const patchFocusedReservation = useCallback(
+    async (payload: Record<string, unknown>) => {
+      if (!focusedMission?.id) return false;
+      setFocusedReservationSaving(true);
+      setFocusedReservationError(null);
+      setFocusedReservationSuccess(null);
+      try {
+        const response = await fetch(`/api/reservations/${encodeURIComponent(focusedMission.id)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = (await response.json()) as ReservationDetailPayload & { error?: string };
+        if (!response.ok) throw new Error(data?.error || "Impossible de mettre a jour le sejour.");
+        setFocusedReservationDetail(data);
+        setFocusedReservationSuccess("Brief proprietaire mis a jour.");
+        return true;
+      } catch (err) {
+        setFocusedReservationError(err instanceof Error ? err.message : "Impossible de mettre a jour le sejour.");
+        return false;
+      } finally {
+        setFocusedReservationSaving(false);
+      }
+    },
+    [focusedMission?.id],
+  );
+
+  const saveFocusedReservationBrief = useCallback(async () => {
+    await patchFocusedReservation({
+      patch: {
+        access_instructions: focusedReservationDraft.accessInstructions,
+        owner_notes: focusedReservationDraft.ownerNotes,
+      },
+    });
+  }, [focusedReservationDraft.accessInstructions, focusedReservationDraft.ownerNotes, patchFocusedReservation]);
+
+  const cancelFocusedReservation = useCallback(async () => {
+    if (!focusedMission?.id) return;
+    if (!window.confirm("Annuler ce sejour partage et l'ajouter a la timeline collaborative ?")) return;
+    const ok = await patchFocusedReservation({
+      action: "cancel",
+      reason: "Annulation demandee par le proprietaire depuis le cockpit owner.",
+    });
+    if (ok) {
+      setFocusedReservationSuccess("Sejour annule et timeline mise a jour.");
+    }
+  }, [focusedMission?.id, patchFocusedReservation]);
 
   const upcomingCount = useMemo(
     () => missions.filter((mission) => mission.status !== "completed" && mission.status !== "canceled").length,
@@ -1336,10 +1610,10 @@ function OwnerTravelerMissionsContent() {
       housing,
       quotes: acceptedQuotes,
     });
-    const response = await fetch("/api/missions", {
+    const response = await fetch("/api/owner/reservations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(buildMissionPayload(input, context)),
+      body: JSON.stringify(buildReservationPayload(input, context)),
     });
     const payload = await response.json();
     if (!response.ok) throw new Error(payload?.error || "Impossible de créer la mission voyageur.");
@@ -2066,20 +2340,20 @@ function OwnerTravelerMissionsContent() {
           </form>
 
           <aside className={styles.travelerMissionAside}>
-            {filteredMissions[0] ? (
+            {focusedMission ? (
               <div className={styles.travelerSummaryCard}>
                 <p className={styles.eyebrow}>Derniere prise en compte</p>
                 <span className={styles.plannedChip}>
                   <CheckCircle2 size={15} aria-hidden="true" />
                   Mission bien prise en compte
                 </span>
-                <strong>{getTravelerName(filteredMissions[0])}</strong>
+                <strong>{getTravelerName(focusedMission)}</strong>
                 <span>
                   <Building2 size={15} aria-hidden="true" />
-                  {getPropertyLabel(housing, getMissionHousingId(filteredMissions[0]))}
+                  {getPropertyLabel(housing, getMissionHousingId(focusedMission))}
                 </span>
                 <span>
-                  {formatDateValue(filteredMissions[0].scheduled_start, {
+                  {formatDateValue(focusedMission.scheduled_start, {
                     day: "2-digit",
                     month: "short",
                     year: "numeric",
@@ -2087,12 +2361,82 @@ function OwnerTravelerMissionsContent() {
                     minute: "2-digit",
                   }) || "Arrivee a confirmer"}
                 </span>
-                <span>{getGuestCount(filteredMissions[0])} voyageur(s)</span>
+                <span>{getGuestCount(focusedMission)} voyageur(s)</span>
                 <span>
-                  {getMetadataString(filteredMissions[0], "booking_platform") || form.bookingPlatform}
+                  {getMetadataString(focusedMission, "booking_platform") || form.bookingPlatform}
                   {" · "}
-                  {filteredMissions[0].status === "assigned" ? "transmise a la concierge" : "suivi actif"}
+                  {focusedMission.status === "assigned" ? "transmise a la concierge" : "suivi actif"}
                 </span>
+              </div>
+            ) : null}
+            {focusedMission ? (
+              <div className={styles.travelerSummaryCard}>
+                <p className={styles.eyebrow}>Brief collaboratif</p>
+                <strong>{focusedReservationDetail?.reservation?.concierge_name || getMissionConciergeName(partners, focusedMission)}</strong>
+                <span>
+                  <ShieldCheck size={15} aria-hidden="true" />
+                  {focusedReservationDetail?.reservation?.status || getMetadataString(focusedMission, "reservation_status") || "shared"}
+                </span>
+                <span>
+                  <MapPin size={15} aria-hidden="true" />
+                  {focusedReservationDetail?.reservation?.property_label || getPropertyLabel(housing, getMissionHousingId(focusedMission))}
+                </span>
+                {focusedReservationLoading ? <p className={styles.meta}>Chargement du suivi collaboratif...</p> : null}
+                {focusedReservationError ? <p className={styles.meta}>{focusedReservationError}</p> : null}
+                <div className={styles.editorialCardBlock}>
+                  <strong>Acces et consignes</strong>
+                  <Textarea
+                    rows={3}
+                    value={focusedReservationDraft.accessInstructions}
+                    onChange={(event) =>
+                      setFocusedReservationDraft((current) => ({ ...current, accessInstructions: event.target.value }))
+                    }
+                    placeholder="Acces, codes, parking, instructions d'arrivee..."
+                  />
+                </div>
+                <div className={styles.editorialCardBlock}>
+                  <strong>Note proprietaire</strong>
+                  <Textarea
+                    rows={3}
+                    value={focusedReservationDraft.ownerNotes}
+                    onChange={(event) =>
+                      setFocusedReservationDraft((current) => ({ ...current, ownerNotes: event.target.value }))
+                    }
+                    placeholder="Contexte voyageur, priorites, demandes editoriales pour la conciergerie..."
+                  />
+                </div>
+                {focusedReservationDetail?.reservation?.concierge_notes ? (
+                  <div className={styles.editorialCardBlock}>
+                    <strong>Retour conciergerie</strong>
+                    <p>{focusedReservationDetail.reservation.concierge_notes}</p>
+                  </div>
+                ) : null}
+                {focusedReservationSuccess ? <p className={`${styles.message} ${styles.messageSuccess}`}>{focusedReservationSuccess}</p> : null}
+                <div className={styles.heroActions}>
+                  <button type="button" className={styles.buttonSecondary} onClick={() => void saveFocusedReservationBrief()} disabled={focusedReservationSaving}>
+                    {focusedReservationSaving ? "Enregistrement..." : "Mettre a jour le brief"}
+                  </button>
+                  {focusedReservationDetail?.reservation?.status !== "canceled" && focusedReservationDetail?.reservation?.status !== "completed" ? (
+                    <button type="button" className={styles.buttonSecondary} onClick={() => void cancelFocusedReservation()} disabled={focusedReservationSaving}>
+                      Annuler le sejour
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+            {focusedMission ? (
+              <div className={styles.travelerSummaryCard}>
+                <p className={styles.eyebrow}>Timeline recente</p>
+                {(focusedReservationDetail?.timeline ?? []).slice(0, 4).map((item) => (
+                  <div key={item.id} className={styles.timelineCardItem}>
+                    <small>{formatTimelineDate(item.created_at)}</small>
+                    <strong>{item.title || "Evenement sejour"}</strong>
+                    {item.body ? <p>{item.body}</p> : null}
+                  </div>
+                ))}
+                {!focusedReservationLoading && (focusedReservationDetail?.timeline?.length ?? 0) === 0 ? (
+                  <p className={styles.meta}>Le suivi collaboratif apparaitra ici des la premiere mise a jour concierge.</p>
+                ) : null}
               </div>
             ) : null}
             <div className={styles.travelerSummaryCard}>
@@ -2171,6 +2515,7 @@ function OwnerTravelerMissionsContent() {
                 housing={housing}
                 partners={partners}
                 onDuplicate={duplicateMission}
+                onFocus={setFocusedMissionId}
               />
             ))}
           </div>

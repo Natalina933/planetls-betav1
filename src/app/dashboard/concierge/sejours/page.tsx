@@ -29,6 +29,29 @@ import styles from "./page.module.scss";
 
 type StayFilter = "all" | "today" | "arrivals" | "departures" | "in_progress" | "blockers" | "incidents";
 
+type ReservationTimelineItem = {
+  id: string;
+  created_at?: string | null;
+  event_type?: string | null;
+  title?: string | null;
+  body?: string | null;
+};
+
+type StayReservationDetail = {
+  reservation?: {
+    id: string;
+    owner_name?: string | null;
+    concierge_name?: string | null;
+    property_label?: string | null;
+    access_instructions?: string | null;
+    owner_notes?: string | null;
+    concierge_notes?: string | null;
+    status?: string | null;
+    updated_at?: string | null;
+  } | null;
+  timeline?: ReservationTimelineItem[];
+};
+
 const FILTERS: Array<{ id: StayFilter; label: string }> = [
   { id: "all", label: "Tous" },
   { id: "today", label: "Aujourd'hui" },
@@ -81,6 +104,18 @@ function sameDay(value: string | null | undefined, now = new Date()) {
 
 function statusClass(status: TravelerStayStatus) {
   return `${styles.statusPill} ${styles[`tone_${STATUS_TONE[status]}`]}`;
+}
+
+function formatTimelineDate(value: string | null | undefined) {
+  if (!value) return "A l'instant";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "A l'instant";
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }
 
 function ProgressBar({ value }: { value: number }) {
@@ -144,6 +179,15 @@ export default function ConciergeTravelerStaysPage() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<StayFilter>("today");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedDetail, setSelectedDetail] = useState<StayReservationDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
+  const [detailSaving, setDetailSaving] = useState(false);
+  const [detailSuccess, setDetailSuccess] = useState<string | null>(null);
+  const [detailDraft, setDetailDraft] = useState({
+    accessInstructions: "",
+    conciergeNotes: "",
+  });
 
   useEffect(() => {
     let active = true;
@@ -178,6 +222,96 @@ export default function ConciergeTravelerStaysPage() {
     () => normalizedStays.find((stay) => stay.id === selectedId) ?? normalizedStays[0] ?? null,
     [normalizedStays, selectedId],
   );
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadReservationDetail() {
+      if (!selectedStay?.id) {
+        setSelectedDetail(null);
+        setDetailError(null);
+        return;
+      }
+
+      setDetailLoading(true);
+      setDetailError(null);
+      try {
+        const response = await fetch(`/api/reservations/${encodeURIComponent(selectedStay.id)}`, { cache: "no-store" });
+        const payload = (await response.json()) as StayReservationDetail & { error?: string };
+        if (!response.ok) throw new Error(payload?.error || "Erreur chargement detail sejour");
+        if (active) setSelectedDetail(payload);
+      } catch (err) {
+        if (active) {
+          setSelectedDetail(null);
+          setDetailError(err instanceof Error ? err.message : "Impossible de charger la timeline du sejour.");
+        }
+      } finally {
+        if (active) setDetailLoading(false);
+      }
+    }
+
+    void loadReservationDetail();
+    return () => {
+      active = false;
+    };
+  }, [selectedStay?.id]);
+
+  useEffect(() => {
+    setDetailDraft({
+      accessInstructions: selectedDetail?.reservation?.access_instructions ?? "",
+      conciergeNotes: selectedDetail?.reservation?.concierge_notes ?? "",
+    });
+  }, [selectedDetail?.reservation?.access_instructions, selectedDetail?.reservation?.concierge_notes, selectedDetail?.reservation?.status]);
+
+  useEffect(() => {
+    if (!detailSuccess) return;
+    const timeout = window.setTimeout(() => setDetailSuccess(null), 2600);
+    return () => window.clearTimeout(timeout);
+  }, [detailSuccess]);
+
+  async function updateReservation(payload: Record<string, unknown>) {
+    if (!selectedStay?.id) return;
+    setDetailSaving(true);
+    setDetailError(null);
+    setDetailSuccess(null);
+    try {
+      const response = await fetch(`/api/reservations/${encodeURIComponent(selectedStay.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = (await response.json()) as StayReservationDetail & { error?: string };
+      if (!response.ok) throw new Error(data?.error || "Impossible de mettre a jour le sejour.");
+      setSelectedDetail(data);
+      setDetailSuccess("Suivi collaboratif mis a jour.");
+    } catch (err) {
+      setDetailError(err instanceof Error ? err.message : "Impossible de mettre a jour le sejour.");
+    } finally {
+      setDetailSaving(false);
+    }
+  }
+
+  async function handleSaveCollaborativeBrief() {
+    await updateReservation({
+      patch: {
+        access_instructions: detailDraft.accessInstructions,
+        concierge_notes: detailDraft.conciergeNotes,
+      },
+    });
+  }
+
+  async function handleConciergeAction(action: "acknowledge" | "completed" | "in_stay") {
+    if (action === "acknowledge") {
+      await updateReservation({ action: "acknowledge" });
+      return;
+    }
+
+    await updateReservation({
+      patch: {
+        status: action,
+      },
+    });
+  }
 
   const filteredStays = useMemo(() => {
     const now = new Date();
@@ -380,6 +514,100 @@ export default function ConciergeTravelerStaysPage() {
                     : "Aucun historique consolidé pour ce voyageur."}
                 </p>
                 {selectedStay.primaryTraveler.notes ? <p className={styles.note}>{selectedStay.primaryTraveler.notes}</p> : null}
+              </section>
+
+              <section className={styles.panelSection}>
+                <div className={styles.sectionTitle}>
+                  <ShieldCheck size={17} aria-hidden="true" />
+                  <h3>Lecture collaborative</h3>
+                </div>
+                <div className={styles.editorialFacts}>
+                  <div>
+                    <span>Proprietaire</span>
+                    <strong>{selectedDetail?.reservation?.owner_name || selectedStay.ownerName || "A confirmer"}</strong>
+                  </div>
+                  <div>
+                    <span>Derniere mise a jour</span>
+                    <strong>{formatTimelineDate(selectedDetail?.reservation?.updated_at || selectedStay.updatedAt)}</strong>
+                  </div>
+                </div>
+                {selectedDetail?.reservation?.access_instructions ? (
+                  <div className={styles.editorialBlock}>
+                    <strong>Consignes d'acces</strong>
+                    <p>{selectedDetail.reservation.access_instructions}</p>
+                  </div>
+                ) : (
+                  <p className={styles.note}>Aucune consigne d'acces canonique n'est encore renseignee.</p>
+                )}
+                {selectedDetail?.reservation?.owner_notes ? (
+                  <div className={styles.editorialBlock}>
+                    <strong>Note proprietaire</strong>
+                    <p>{selectedDetail.reservation.owner_notes}</p>
+                  </div>
+                ) : null}
+                <div className={styles.editorialForm}>
+                  <label className={styles.fieldLabel}>
+                    <span>Consignes d'acces partagees</span>
+                    <textarea
+                      rows={3}
+                      value={detailDraft.accessInstructions}
+                      onChange={(event) => setDetailDraft((current) => ({ ...current, accessInstructions: event.target.value }))}
+                      placeholder="Codes, remise des cles, parking, accès residence..."
+                    />
+                  </label>
+                  <label className={styles.fieldLabel}>
+                    <span>Notes conciergerie</span>
+                    <textarea
+                      rows={3}
+                      value={detailDraft.conciergeNotes}
+                      onChange={(event) => setDetailDraft((current) => ({ ...current, conciergeNotes: event.target.value }))}
+                      placeholder="Préparation, incident, consigne terrain, détail utile pour le propriétaire..."
+                    />
+                  </label>
+                  {detailError ? <p className={styles.warningText}>{detailError}</p> : null}
+                  {detailSuccess ? <p className={styles.successText}>{detailSuccess}</p> : null}
+                  <div className={styles.editorialActions}>
+                    <button type="button" onClick={() => void handleSaveCollaborativeBrief()} disabled={detailSaving}>
+                      {detailSaving ? "Enregistrement..." : "Enregistrer le brief"}
+                    </button>
+                    {(selectedDetail?.reservation?.status === "shared" || selectedDetail?.reservation?.status === "draft") ? (
+                      <button type="button" onClick={() => void handleConciergeAction("acknowledge")} disabled={detailSaving}>
+                        Accuser reception
+                      </button>
+                    ) : null}
+                    {selectedDetail?.reservation?.status !== "in_stay" && selectedDetail?.reservation?.status !== "completed" ? (
+                      <button type="button" onClick={() => void handleConciergeAction("in_stay")} disabled={detailSaving}>
+                        Marquer en sejour
+                      </button>
+                    ) : null}
+                    {selectedDetail?.reservation?.status !== "completed" ? (
+                      <button type="button" onClick={() => void handleConciergeAction("completed")} disabled={detailSaving}>
+                        Cloturer
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              </section>
+
+              <section className={styles.panelSection}>
+                <div className={styles.sectionTitle}>
+                  <Clock3 size={17} aria-hidden="true" />
+                  <h3>Timeline recente</h3>
+                </div>
+                {detailLoading ? <p className={styles.note}>Chargement de la timeline...</p> : null}
+                {detailError ? <p className={styles.warningText}>{detailError}</p> : null}
+                {!detailLoading && !detailError && (selectedDetail?.timeline?.length ?? 0) === 0 ? (
+                  <p className={styles.note}>La timeline se remplira avec les validations, notes et changements de statut.</p>
+                ) : null}
+                <div className={styles.timelineList}>
+                  {(selectedDetail?.timeline ?? []).slice(0, 5).map((item) => (
+                    <article key={item.id} className={styles.timelineItem}>
+                      <small>{formatTimelineDate(item.created_at)}</small>
+                      <strong>{item.title || "Evenement sejour"}</strong>
+                      {item.body ? <p>{item.body}</p> : null}
+                    </article>
+                  ))}
+                </div>
               </section>
 
               <div className={styles.actions}>

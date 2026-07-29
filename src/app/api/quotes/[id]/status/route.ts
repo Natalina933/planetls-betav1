@@ -11,6 +11,13 @@ import { createHousingFromQuote } from "@/app/api/profiles/housing/shared";
 
 const untypedDb = asLooseSupabaseClient(db);
 
+async function loadMissionReservationId(missionId: string | null | undefined) {
+  if (!missionId) return null;
+  const { data } = await untypedDb.from("missions").select("reservation_id, metadata").eq("id", missionId).maybeSingle();
+  const row = data as { reservation_id?: string | null; metadata?: Record<string, unknown> | null } | null;
+  return row?.reservation_id ?? (typeof row?.metadata?.reservation_id === "string" ? row.metadata.reservation_id : null);
+}
+
 type QuoteStatus =
   | "draft"
   | "sent"
@@ -522,6 +529,7 @@ export async function PATCH(
       actorProfileId: userId,
       ownerProfileId: existing.owner_profile_id,
       conciergeProfileId: existing.concierge_profile_id,
+      reservationId: await loadMissionReservationId(workflowResult?.mission?.id ?? updated.mission_id ?? null),
       serviceRequestId,
       serviceRequestRecipientId,
       quoteId: id,

@@ -2,6 +2,7 @@
 
 export type TravelerStayMissionRow = {
   id: string;
+  reservation_id?: string | null;
   title?: string | null;
   description?: string | null;
   status?: string | null;
@@ -18,6 +19,7 @@ export type TravelerStayMissionRow = {
 export type TravelerStayReservationWorkflow = {
   id: string;
   reservation?: {
+    id?: unknown;
     property_label?: unknown;
     guest_name?: unknown;
     check_in?: unknown;
@@ -75,6 +77,7 @@ export function workflowToTravelerStay(workflow: TravelerStayReservationWorkflow
   const firstMission = missions[0];
   const metadata = isRecord(firstMission?.metadata) ? firstMission.metadata : {};
   const reservation = workflow.reservation ?? {};
+  const resolvedReservationId = stringValue(reservation.id) ?? workflow.id;
   const checkIn = stringValue(reservation.check_in) ?? stringValue(metadata.check_in) ?? firstMission?.scheduled_start ?? null;
   const checkOut = stringValue(reservation.check_out) ?? stringValue(metadata.check_out) ?? missions.at(-1)?.scheduled_end ?? null;
   const guestCount =
@@ -91,8 +94,8 @@ export function workflowToTravelerStay(workflow: TravelerStayReservationWorkflow
     }));
 
   return {
-    id: workflow.id,
-    reservationId: workflow.id,
+    id: resolvedReservationId,
+    reservationId: resolvedReservationId,
     propertyLabel: stringValue(reservation.property_label) ?? stringValue(metadata.property_label) ?? "Logement à renseigner",
     ownerName: stringValue(metadata.owner_name),
     channel: stringValue(metadata.booking_source) ?? stringValue(metadata.channel) ?? stringValue(metadata.source),
@@ -160,9 +163,11 @@ export function missionLooksLikeTravelerStay(mission: TravelerStayMissionRow) {
 
 export function missionToTravelerStay(mission: TravelerStayMissionRow): TravelerStayInput {
   const metadata = isRecord(mission.metadata) ? mission.metadata : {};
+  const resolvedReservationId =
+    stringValue(mission.reservation_id) ?? stringValue(metadata.reservation_id) ?? stringValue(metadata.reservation_workflow_id);
   return {
-    id: stringValue(metadata.reservation_workflow_id) ?? stringValue(metadata.reservation_id) ?? mission.id,
-    reservationId: stringValue(metadata.reservation_id) ?? stringValue(metadata.reservation_workflow_id),
+    id: resolvedReservationId ?? mission.id,
+    reservationId: resolvedReservationId,
     propertyLabel: stringValue(metadata.property_label) ?? stringValue(metadata.housing_label) ?? "Logement à renseigner",
     channel: stringValue(metadata.booking_source) ?? stringValue(metadata.channel),
     status: stringValue(metadata.traveler_stay_status) ?? stringValue(metadata.stay_status),

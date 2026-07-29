@@ -95,7 +95,8 @@ function renderEventPill(item: OwnerPlanningItem, compact = false) {
       <span>
         {formatPlanningTime(item.date)} · {planningTypeLabels[item.type]}
       </span>
-      <strong>{item.propertyName}</strong>
+      <strong>{item.travelerName || item.propertyName}</strong>
+      <em>{item.propertyName}</em>
     </Link>
   );
 }
@@ -126,6 +127,7 @@ function renderItemCard(item: OwnerPlanningItem) {
           </span>
         </div>
         {item.notes ? <p>{item.notes}</p> : null}
+        {item.narrative ? <small className={styles.narrative}>{item.narrative}</small> : null}
       </div>
       <Link href={`/dashboard/owner/missions/${item.id}`} className={styles.actionLink}>
         Voir

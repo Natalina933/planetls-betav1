@@ -972,6 +972,29 @@
   font-size: 1.05rem;
 }
 
+.editorialCardBlock,
+.timelineCardItem {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.72rem 0.78rem;
+  border: 1px solid var(--traveler-border-soft);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.editorialCardBlock p,
+.timelineCardItem p,
+.timelineCardItem small {
+  margin: 0;
+  color: var(--traveler-muted);
+}
+
+.timelineCardItem {
+  border-left: 3px solid var(--traveler-accent);
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
 .travelerMissionGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(315px, 1fr));

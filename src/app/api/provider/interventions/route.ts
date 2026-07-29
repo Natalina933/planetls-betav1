@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
     provider_profile_id: providerProfileId,
     client_id: typeof body?.client_id === "string" ? body.client_id : null,
     owner_profile_id: typeof body?.owner_profile_id === "string" ? body.owner_profile_id : null,
+    reservation_id: typeof body?.reservation_id === "string" ? body.reservation_id : null,
     title,
     description: typeof body?.description === "string" ? body.description : null,
     service_label: typeof body?.service_label === "string" ? body.service_label : null,

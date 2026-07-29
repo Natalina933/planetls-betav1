@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { db } from "@/app/lib/dbServer";
 import { getInvoiceWorkflowEventType } from "@/app/lib/invoiceStatus";
@@ -34,6 +35,14 @@ const ALLOWED_BILLING_ROLES = new Set([
   "concierge",
   "concierge_pro",
 ]);
+const dbAny = asLooseSupabaseClient(db);
+
+async function loadMissionReservationId(missionId: string | null | undefined) {
+  if (!missionId) return null;
+  const { data } = await dbAny.from("missions").select("reservation_id, metadata").eq("id", missionId).maybeSingle();
+  const row = data as { reservation_id?: string | null; metadata?: Record<string, unknown> | null } | null;
+  return row?.reservation_id ?? (typeof row?.metadata?.reservation_id === "string" ? row.metadata.reservation_id : null);
+}
 
 async function closeMissionAfterFinalPayment(input: {
   missionId: string;
@@ -92,6 +101,7 @@ async function closeMissionAfterFinalPayment(input: {
     actorProfileId: input.actorProfileId,
     ownerProfileId: closedMission.owner_profile_id,
     conciergeProfileId: closedMission.concierge_profile_id,
+    reservationId: await loadMissionReservationId(input.missionId),
     missionId: input.missionId,
     eventType: "mission_closed",
     title: "Mission cloturee",
@@ -225,6 +235,7 @@ export async function PATCH(
       actorProfileId: userId,
       ownerProfileId: updated.owner_profile_id,
       conciergeProfileId: updated.concierge_profile_id ?? userId,
+      reservationId: await loadMissionReservationId(updated.mission_id),
       quoteId: updated.quote_id,
       missionId: updated.mission_id,
       eventType: getInvoiceWorkflowEventType(nextStatus),

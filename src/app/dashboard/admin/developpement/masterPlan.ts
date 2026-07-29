@@ -40,6 +40,12 @@ function countOccurrences(source: string, token: string) {
   return source.split(token).length - 1;
 }
 
+function countSectionsWithToken(sections: Array<{ statuses: string[]; priorities: string[] }>, token: string, kind: "status" | "priority") {
+  return sections.filter((section) => (
+    kind === "status" ? section.statuses.includes(token) : section.priorities.includes(token)
+  )).length;
+}
+
 function markdownCells(line: string) {
   return line.split("|").slice(1, -1).map((cell) => cell.trim().replace(/[`*_]/g, ""));
 }
@@ -122,8 +128,8 @@ export function parseMasterPlan(markdown: string, updatedAt: string): MasterPlan
   ]));
   return {
     title: headings[0]?.title ?? "Master Plan PlanetLS", updatedAt, sections,
-    statusCounts: Object.fromEntries(MASTER_PLAN_STATUSES.map((status) => [status, countOccurrences(normalized, status)])),
-    priorityCounts: Object.fromEntries(MASTER_PLAN_PRIORITIES.map((priority) => [priority, countOccurrences(normalized, priority)])),
+    statusCounts: Object.fromEntries(MASTER_PLAN_STATUSES.map((status) => [status, countSectionsWithToken(sections, status, "status")])),
+    priorityCounts: Object.fromEntries(MASTER_PLAN_PRIORITIES.map((priority) => [priority, countSectionsWithToken(sections, priority, "priority")])),
     registryPriorityCounts,
     remainingPriorityCounts,
     lineCount: lines.length,

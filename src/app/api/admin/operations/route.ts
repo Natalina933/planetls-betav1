@@ -134,6 +134,16 @@ function getMetadataString(row: Row | null | undefined, key: string) {
   return getString(getRecord(row?.metadata), key);
 }
 
+function getMissionLabel(row: Row | null | undefined, fallback = "Mission") {
+  return (
+    getString(row, "title") ??
+    getMetadataString(row, "mission_title") ??
+    getMetadataString(row, "service_label") ??
+    getMetadataString(row, "property_label") ??
+    fallback
+  );
+}
+
 function getHousingId(row: Row) {
   const value = getRecord(row.metadata).property_housing_id;
   if (typeof value === "number" && Number.isFinite(value)) return String(value);
@@ -429,7 +439,7 @@ export async function GET(req: NextRequest) {
 
       return {
         id: missionId,
-        title: getString(missionRow, "title"),
+        title: getMissionLabel(missionRow),
         status: getString(missionRow, "status"),
         priority: getString(missionRow, "priority"),
         property_id: getString(missionRow, "property_id"),

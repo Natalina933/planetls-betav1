@@ -193,6 +193,15 @@
   overflow-wrap: anywhere;
 }
 
+.eventPill em {
+  min-width: 0;
+  color: var(--dash-text);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
 .eventPillCompact {
   min-height: 34px;
   padding: 0.32rem 0.48rem;
@@ -202,14 +211,22 @@
 }
 
 .eventPillCompact span,
-.eventPillCompact strong {
+.eventPillCompact strong,
+.eventPillCompact em {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.eventPillCompact strong {
+.eventPillCompact strong,
+.eventPillCompact em {
   font-size: 0.68rem;
+}
+
+.narrative {
+  display: block;
+  color: var(--dash-text-muted);
+  line-height: 1.5;
 }
 
 .eventPill.urgent {

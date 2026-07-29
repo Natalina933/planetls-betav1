@@ -14,6 +14,7 @@ type MissionProviderRow = Record<string, unknown> & {
   description?: string | null;
   owner_profile_id?: string | null;
   concierge_profile_id?: string | null;
+  reservation_id?: string | null;
   scheduled_start?: string | null;
   scheduled_end?: string | null;
   amount?: number | null;
@@ -37,6 +38,36 @@ async function loadMission(id: string) {
   };
 }
 
+function isMissingReservationIdColumn(error: { code?: string; message?: string; details?: string } | null | undefined) {
+  const message = `${error?.message ?? ""} ${error?.details ?? ""}`.toLowerCase();
+  return (
+    error?.code === "42703" ||
+    error?.code === "PGRST204" ||
+    (message.includes("reservation_id") && message.includes("column"))
+  );
+}
+
+async function loadProviderInterventionsForMission(mission: MissionProviderRow) {
+  const reservationId = typeof mission.reservation_id === "string" ? mission.reservation_id : null;
+  if (reservationId) {
+    const withReservationLink = await dbAny
+      .from("provider_interventions")
+      .select("*")
+      .or(`reservation_id.eq.${reservationId},metadata->>mission_id.eq.${mission.id}`)
+      .order("created_at", { ascending: false });
+
+    if (!isMissingReservationIdColumn(withReservationLink.error)) {
+      return withReservationLink;
+    }
+  }
+
+  return dbAny
+    .from("provider_interventions")
+    .select("*")
+    .contains("metadata", { mission_id: mission.id })
+    .order("created_at", { ascending: false });
+}
+
 async function resolveMissionId(req: NextRequest, params: Promise<{ id: string }>) {
   const segments = req.nextUrl.pathname.split("/").filter(Boolean);
   const pathId = segments[2] ?? "";
@@ -58,11 +89,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
   }
 
-  const { data, error } = await dbAny
-    .from("provider_interventions")
-    .select("*")
-    .contains("metadata", { mission_id: id })
-    .order("created_at", { ascending: false });
+  const { data, error } = await loadProviderInterventionsForMission(mission);
   if (error) return NextResponse.json({ error: "Erreur chargement interventions" }, { status: 500 });
   return NextResponse.json({ items: data ?? [] });
 }
@@ -104,6 +131,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     .insert({
       provider_profile_id: providerProfileId,
       owner_profile_id: mission.owner_profile_id,
+      reservation_id: typeof mission.reservation_id === "string" ? mission.reservation_id : null,
       title,
       description: typeof body?.description === "string" ? body.description : mission.description,
       service_label: typeof body?.service_label === "string" ? body.service_label : null,

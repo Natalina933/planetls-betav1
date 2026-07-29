@@ -9,6 +9,7 @@ const dbAny = asLooseSupabaseClient(db);
 type MissionRow = {
   id: string;
   concierge_profile_id: string | null;
+  reservation_id?: string | null;
   status: string | null;
   scheduled_start: string | null;
   scheduled_end: string | null;
@@ -51,32 +52,60 @@ function normalizeMissionStatus(status: unknown) {
   }
 }
 
-async function loadWorkflowMissions(workflowId: string, userId: string, role: string) {
-  let query = dbAny
-    .from("missions")
-    .select("id, concierge_profile_id, status, scheduled_start, scheduled_end, metadata")
-    .contains("metadata", { reservation_workflow_id: workflowId })
-    .order("scheduled_start", { ascending: true });
+function isMissingMissionReservationIdColumn(error: { code?: string; message?: string; details?: string } | null) {
+  const message = `${error?.message ?? ""} ${error?.details ?? ""}`.toLowerCase();
+  return (
+    (error?.code === "PGRST204" || error?.code === "42703" || message.includes("could not find") || message.includes("column")) &&
+    message.includes("reservation_id")
+  );
+}
 
-  if (role !== "admin" && role !== "super_admin") {
-    query = query.eq("concierge_profile_id", userId);
+async function loadWorkflowMissions(workflowId: string, userId: string, role: string) {
+  const run = async (useReservationLink: boolean) => {
+    let query = dbAny
+      .from("missions")
+      .select(
+        useReservationLink
+          ? "id, concierge_profile_id, reservation_id, status, scheduled_start, scheduled_end, metadata"
+          : "id, concierge_profile_id, status, scheduled_start, scheduled_end, metadata",
+      )
+      .order("scheduled_start", { ascending: true });
+
+    query = useReservationLink
+      ? query.or(`reservation_id.eq.${workflowId},metadata->>reservation_id.eq.${workflowId},metadata->>reservation_workflow_id.eq.${workflowId}`)
+      : query.contains("metadata", { reservation_workflow_id: workflowId });
+
+    if (role !== "admin" && role !== "super_admin") {
+      query = query.eq("concierge_profile_id", userId);
+    }
+
+    return query;
+  };
+
+  const firstAttempt = await run(true);
+  if (isMissingMissionReservationIdColumn(firstAttempt.error)) {
+    const fallback = await run(false);
+    return { missions: (fallback.data ?? []) as MissionRow[], error: fallback.error };
   }
 
-  const { data, error } = await query;
-  return { missions: (data ?? []) as MissionRow[], error };
+  return { missions: (firstAttempt.data ?? []) as MissionRow[], error: firstAttempt.error };
 }
 
 async function recordActionEvent(input: {
   mission: MissionRow;
   actorProfileId: string;
   eventType: string;
+  reservationId: string | null;
   payload: Record<string, unknown>;
 }) {
   await dbAny.from("mission_events").insert({
     mission_id: input.mission.id,
     actor_profile_id: input.actorProfileId,
     event_type: input.eventType,
-    payload: input.payload,
+    payload: {
+      reservation_id: input.reservationId,
+      ...input.payload,
+    },
   });
 }
 
@@ -174,6 +203,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         mission: data,
         actorProfileId: userId,
         eventType: `reservation_${action}`,
+        reservationId: mission.reservation_id ?? null,
         payload: {
           reservation_workflow_id: workflowId,
           reservation_step: getStep(data.metadata),
@@ -186,10 +216,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
 
     if (action === "delete" && !stepId) {
+      const invoiceMissionIds = targetMissions.map((mission) => mission.id).filter((value) => typeof value === "string" && value.length > 0);
       await dbAny
         .from("invoices")
         .update({ status: "canceled", canceled_at: new Date().toISOString() })
-        .contains("metadata", { reservation_workflow_id: workflowId });
+        .in("mission_id", invoiceMissionIds);
     }
 
     return NextResponse.json({ id: workflowId, action, updated_missions: updated });

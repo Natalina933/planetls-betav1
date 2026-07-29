@@ -163,6 +163,7 @@ export function buildReservationWorkflow(input: ReservationWorkflowInput): Reser
   }
 
   const workflowId = makeWorkflowId(input);
+  const reservationId = input.reservationId?.trim() || workflowId;
   const propertyLabel = input.propertyLabel?.trim() || "Logement";
   const currency = input.currency || "EUR";
   const cleaningAmount = input.cleaningAmount ?? null;
@@ -170,7 +171,7 @@ export function buildReservationWorkflow(input: ReservationWorkflowInput): Reser
   const guestName = input.guestName?.trim() || null;
   const common = {
     workflowId,
-    reservationId: workflowId,
+    reservationId,
     propertyLabel,
     guestName,
     checkIn: toIso(checkIn),
@@ -259,7 +260,7 @@ export function buildReservationWorkflow(input: ReservationWorkflowInput): Reser
   return {
     id: workflowId,
     reservation: {
-      id: workflowId,
+      id: reservationId,
       propertyId: input.propertyId ?? null,
       propertyLabel,
       ownerProfileId: input.ownerProfileId ?? null,
@@ -280,7 +281,7 @@ export function buildReservationWorkflow(input: ReservationWorkflowInput): Reser
       metadata: {
         reservation_workflow: true,
         reservation_workflow_id: workflowId,
-        reservation_id: workflowId,
+        reservation_id: reservationId,
         check_in: toIso(checkIn),
         check_out: toIso(checkOut),
         property_label: propertyLabel,

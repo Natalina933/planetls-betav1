@@ -36,6 +36,7 @@ test("buildReservationWorkflow generates the full reservation mission chain", ()
   assert.equal(workflow.missionPlans[3].scheduledStart, baseReservation.checkIn);
   assert.equal(workflow.missionPlans[4].scheduledStart, baseReservation.checkOut);
   assert.equal(workflow.invoicePlan.totalAmount, 1295);
+  assert.equal(workflow.invoicePlan.metadata.reservation_id, "airbnb-42");
   assert.equal(workflow.invoicePlan.metadata.reservation_workflow_id, "airbnb-42");
 });
 

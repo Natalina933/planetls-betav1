@@ -1,0 +1,225 @@
+.section {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto 2.75rem;
+  padding: clamp(1.4rem, 3vw, 2rem);
+  border: 1px solid rgba(140, 96, 55, 0.22);
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at top left, rgba(219, 170, 89, 0.16), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(199, 109, 76, 0.1), transparent 28%),
+    linear-gradient(145deg, rgba(255, 250, 241, 0.98), rgba(246, 234, 221, 0.94));
+  box-shadow: 0 22px 48px rgba(57, 41, 21, 0.08);
+  color: #2f2418;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.8fr);
+  gap: 1.1rem;
+  align-items: stretch;
+}
+
+.introCard,
+.asideCard,
+.commitmentCard {
+  border: 1px solid rgba(140, 96, 55, 0.16);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    0 12px 28px rgba(57, 41, 21, 0.06);
+}
+
+.introCard,
+.asideCard {
+  padding: 1.5rem;
+}
+
+.eyebrow {
+  display: inline-flex;
+  margin-bottom: 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9a6730;
+}
+
+.introCard h2 {
+  margin: 0;
+  font-family: var(--font-title), serif;
+  font-size: clamp(2rem, 3.8vw, 3.1rem);
+  line-height: 1.02;
+  color: #2d2117;
+  max-width: 14ch;
+}
+
+.lead,
+.note,
+.commitmentCard p,
+.roadmap li {
+  line-height: 1.68;
+  color: #4c3c2f;
+}
+
+.lead {
+  margin: 1rem 0 0;
+  max-width: 64ch;
+}
+
+.note {
+  margin: 0.95rem 0 0;
+  padding-left: 0.9rem;
+  border-left: 3px solid rgba(154, 103, 48, 0.34);
+  color: #6c5643;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-top: 1.3rem;
+}
+
+.primaryAction {
+  box-shadow: 0 14px 28px rgba(57, 41, 21, 0.14);
+}
+
+.asideCard {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+  background:
+    linear-gradient(180deg, rgba(62, 40, 26, 0.98), rgba(86, 58, 38, 0.95)),
+    linear-gradient(135deg, rgba(214, 172, 92, 0.12), transparent 42%);
+  color: #fff4e6;
+}
+
+.asideHeader {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 233, 205, 0.84);
+}
+
+.roadmap {
+  display: grid;
+  gap: 0.95rem;
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.roadmap li {
+  color: rgba(255, 244, 230, 0.9);
+}
+
+.commitmentsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.commitmentCard {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.35rem;
+}
+
+.iconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(216, 174, 95, 0.18);
+  color: #8f5f25;
+}
+
+.commitmentCard h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #2f2418;
+}
+
+.commitmentCard p {
+  margin: 0;
+}
+
+:global([data-theme="art-deco"]) .section {
+  border-radius: 6px;
+  border-color: #d5dbdf;
+  background:
+    radial-gradient(circle at top left, rgba(212, 175, 55, 0.14), transparent 30%),
+    linear-gradient(180deg, #f7f9fb 0%, #edf2f5 100%);
+  color: #2c3e50;
+}
+
+:global([data-theme="art-deco"]) .introCard,
+:global([data-theme="art-deco"]) .asideCard,
+:global([data-theme="art-deco"]) .commitmentCard {
+  border-radius: 4px;
+  border-color: #d5dbdf;
+}
+
+:global([data-theme="art-deco"]) .introCard h2,
+:global([data-theme="art-deco"]) .commitmentCard h3 {
+  color: #1a2530;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+:global([data-theme="art-deco"]) .lead,
+:global([data-theme="art-deco"]) .note,
+:global([data-theme="art-deco"]) .commitmentCard p {
+  color: #5d6d7e;
+}
+
+:global([data-theme="art-deco"]) .asideCard {
+  background: linear-gradient(160deg, #1f2c36, #304250);
+}
+
+:global([data-theme="art-deco"]) .iconWrap {
+  border-radius: 4px;
+  background: #f9f1d8;
+  color: #1a2530;
+}
+
+@media (max-width: 980px) {
+  .layout,
+  .commitmentsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .introCard h2 {
+    max-width: 16ch;
+    text-wrap: balance;
+  }
+}
+
+@media (max-width: 640px) {
+  .section {
+    width: calc(100% - 20px);
+    padding: 1rem;
+    border-radius: 22px;
+  }
+
+  .introCard,
+  .asideCard,
+  .commitmentCard {
+    padding: 1.15rem;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .primaryAction {
+    width: 100%;
+  }
+}

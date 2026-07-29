@@ -5,6 +5,7 @@ type InsertableWorkflowEvent = {
   actorProfileId?: string | null;
   ownerProfileId?: string | null;
   conciergeProfileId?: string | null;
+  reservationId?: string | null;
   serviceRequestId?: string | null;
   serviceRequestRecipientId?: string | null;
   quoteId?: string | null;
@@ -34,6 +35,11 @@ type WorkflowEventDb = {
 
 const MISSING_WORKFLOW_EVENTS_CODES = new Set(["42P01", "PGRST204", "PGRST205"]);
 
+function isMissingWorkflowReservationIdColumn(error: { code?: string; message?: string } | null | undefined) {
+  const message = `${error?.message ?? ""}`.toLowerCase();
+  return MISSING_WORKFLOW_EVENTS_CODES.has(error?.code ?? "") && message.includes("reservation_id");
+}
+
 export async function recordWorkflowEvent(db: WorkflowEventDb, input: InsertableWorkflowEvent) {
   const workflow = deriveCommercialWorkflowStatus({
     workflowStatus: input.workflowStatus,
@@ -46,10 +52,11 @@ export async function recordWorkflowEvent(db: WorkflowEventDb, input: Insertable
     scheduledEnd: input.scheduledEnd,
   });
 
-  const { error } = await db.from("workflow_events").insert({
+  const basePayload = {
     actor_profile_id: input.actorProfileId ?? null,
     owner_profile_id: input.ownerProfileId ?? null,
     concierge_profile_id: input.conciergeProfileId ?? null,
+    reservation_id: input.reservationId ?? null,
     service_request_id: input.serviceRequestId ?? null,
     service_request_recipient_id: input.serviceRequestRecipientId ?? null,
     quote_id: input.quoteId ?? null,
@@ -62,7 +69,13 @@ export async function recordWorkflowEvent(db: WorkflowEventDb, input: Insertable
     body: input.body ?? null,
     action_href: input.actionHref ?? null,
     metadata: input.metadata ?? {},
-  });
+  };
+
+  let { error } = await db.from("workflow_events").insert(basePayload);
+  if (isMissingWorkflowReservationIdColumn(error)) {
+    const { reservation_id: _reservationId, ...fallbackPayload } = basePayload;
+    ({ error } = await db.from("workflow_events").insert(fallbackPayload));
+  }
 
   if (error && !MISSING_WORKFLOW_EVENTS_CODES.has(error.code ?? "")) {
     console.error("[workflow_events] insert error:", error);

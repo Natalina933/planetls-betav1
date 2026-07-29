@@ -697,6 +697,7 @@ export type Database = {
           owner_profile_id: string | null
           priority: string
           property_id: string | null
+          reservation_id: string | null
           response_time_minutes: number | null
           scheduled_end: string | null
           scheduled_start: string | null
@@ -720,6 +721,7 @@ export type Database = {
           owner_profile_id?: string | null
           priority?: string
           property_id?: string | null
+          reservation_id?: string | null
           response_time_minutes?: number | null
           scheduled_end?: string | null
           scheduled_start?: string | null
@@ -743,6 +745,7 @@ export type Database = {
           owner_profile_id?: string | null
           priority?: string
           property_id?: string | null
+          reservation_id?: string | null
           response_time_minutes?: number | null
           scheduled_end?: string | null
           scheduled_start?: string | null
@@ -787,6 +790,13 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "missions_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
             referencedColumns: ["id"]
           },
         ]
@@ -1490,6 +1500,7 @@ export type Database = {
           owner_profile_id: string | null
           priority: string
           provider_profile_id: string
+          reservation_id: string | null
           scheduled_end: string | null
           scheduled_start: string | null
           service_label: string | null
@@ -1509,6 +1520,7 @@ export type Database = {
           owner_profile_id?: string | null
           priority?: string
           provider_profile_id: string
+          reservation_id?: string | null
           scheduled_end?: string | null
           scheduled_start?: string | null
           service_label?: string | null
@@ -1528,6 +1540,7 @@ export type Database = {
           owner_profile_id?: string | null
           priority?: string
           provider_profile_id?: string
+          reservation_id?: string | null
           scheduled_end?: string | null
           scheduled_start?: string | null
           service_label?: string | null
@@ -1565,10 +1578,176 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "provider_interventions_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "provider_interventions_provider_profile_id_fkey"
             columns: ["provider_profile_id"]
             isOneToOne: false
             referencedRelation: "user_dashboard_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reservations: {
+        Row: {
+          access_instructions: string | null
+          acknowledged_at: string | null
+          adults_count: number | null
+          canceled_at: string | null
+          channel: string | null
+          check_in_at: string
+          check_out_at: string
+          children_count: number | null
+          completed_at: string | null
+          concierge_notes: string | null
+          concierge_profile_id: string
+          contract_id: string | null
+          created_at: string
+          created_by_profile_id: string | null
+          departure_time_window: string | null
+          external_reference: string | null
+          guest_count: number | null
+          id: string
+          infants_count: number | null
+          metadata: Json
+          owner_notes: string | null
+          owner_profile_id: string
+          pets_count: number | null
+          property_id: string | null
+          source: string
+          status: string
+          traveler_email: string | null
+          traveler_first_name: string | null
+          traveler_last_name: string | null
+          traveler_phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_instructions?: string | null
+          acknowledged_at?: string | null
+          adults_count?: number | null
+          canceled_at?: string | null
+          channel?: string | null
+          check_in_at: string
+          check_out_at: string
+          children_count?: number | null
+          completed_at?: string | null
+          concierge_notes?: string | null
+          concierge_profile_id: string
+          contract_id?: string | null
+          created_at?: string
+          created_by_profile_id?: string | null
+          departure_time_window?: string | null
+          external_reference?: string | null
+          guest_count?: number | null
+          id?: string
+          infants_count?: number | null
+          metadata?: Json
+          owner_notes?: string | null
+          owner_profile_id: string
+          pets_count?: number | null
+          property_id?: string | null
+          source?: string
+          status?: string
+          traveler_email?: string | null
+          traveler_first_name?: string | null
+          traveler_last_name?: string | null
+          traveler_phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_instructions?: string | null
+          acknowledged_at?: string | null
+          adults_count?: number | null
+          canceled_at?: string | null
+          channel?: string | null
+          check_in_at?: string
+          check_out_at?: string
+          children_count?: number | null
+          completed_at?: string | null
+          concierge_notes?: string | null
+          concierge_profile_id?: string
+          contract_id?: string | null
+          created_at?: string
+          created_by_profile_id?: string | null
+          departure_time_window?: string | null
+          external_reference?: string | null
+          guest_count?: number | null
+          id?: string
+          infants_count?: number | null
+          metadata?: Json
+          owner_notes?: string | null
+          owner_profile_id?: string
+          pets_count?: number | null
+          property_id?: string | null
+          source?: string
+          status?: string
+          traveler_email?: string | null
+          traveler_first_name?: string | null
+          traveler_last_name?: string | null
+          traveler_phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_concierge_profile_id_fkey"
+            columns: ["concierge_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_concierge_profile_id_fkey"
+            columns: ["concierge_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "services_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_created_by_profile_id_fkey"
+            columns: ["created_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_created_by_profile_id_fkey"
+            columns: ["created_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_owner_profile_id_fkey"
+            columns: ["owner_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_owner_profile_id_fkey"
+            columns: ["owner_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]

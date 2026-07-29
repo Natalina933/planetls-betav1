@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
+import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { db } from "@/app/lib/dbServer";
 import { recordStripeEvent } from "@/app/lib/stripeHistory";
 
 const ALLOWED_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
+const dbAny = asLooseSupabaseClient(db);
+
+async function loadMissionReservationId(missionId: string | null | undefined) {
+  if (!missionId) return null;
+  const { data } = await dbAny.from("missions").select("reservation_id, metadata").eq("id", missionId).maybeSingle();
+  const row = data as { reservation_id?: string | null; metadata?: Record<string, unknown> | null } | null;
+  return row?.reservation_id ?? (typeof row?.metadata?.reservation_id === "string" ? row.metadata.reservation_id : null);
+}
 
 async function closeMissionAfterFinalPayment(input: {
   missionId: string;
@@ -63,6 +72,7 @@ async function closeMissionAfterFinalPayment(input: {
     actorProfileId: input.actorProfileId,
     ownerProfileId: closedMission.owner_profile_id,
     conciergeProfileId: closedMission.concierge_profile_id,
+    reservationId: await loadMissionReservationId(input.missionId),
     missionId: input.missionId,
     eventType: "mission_closed",
     title: "Mission cloturee",
@@ -198,6 +208,7 @@ export async function POST(
       actorProfileId: auth.userId,
       ownerProfileId: invoice.owner_profile_id,
       conciergeProfileId: invoice.concierge_profile_id,
+      reservationId: await loadMissionReservationId(invoice.mission_id),
       quoteId: invoice.quote_id,
       missionId: invoice.mission_id,
       eventType: "invoice_paid",

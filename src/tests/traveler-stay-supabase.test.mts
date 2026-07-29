@@ -65,6 +65,37 @@ test("detects standalone traveler missions and keeps operational fields", () => 
   assert.equal(stay.missions?.length, 1);
 });
 
+test("prefers canonical reservation_id over legacy workflow metadata when grouping stays", () => {
+  const stays = workflowsAndMissionsToTravelerStays({
+    workflows: [
+      {
+        id: "legacy-workflow-7",
+        reservation: { id: "reservation-7", guest_name: "Lina", property_label: "Maison Océan" },
+        missions: [
+          {
+            id: "m1",
+            reservation_id: "reservation-7",
+            title: "Check-in",
+            metadata: { reservation_workflow_id: "legacy-workflow-7" },
+          },
+        ],
+      },
+    ],
+    missions: [
+      {
+        id: "m2",
+        reservation_id: "reservation-7",
+        title: "Contrôle qualité",
+        metadata: { reservation_workflow_id: "legacy-workflow-7", guest_name: "Lina" },
+      },
+    ],
+  });
+
+  assert.equal(stays.length, 1);
+  assert.equal(stays[0]?.id, "reservation-7");
+  assert.equal(stays[0]?.reservationId, "reservation-7");
+});
+
 test("deduplicates workflow and standalone mission stays", () => {
   const stays = workflowsAndMissionsToTravelerStays({
     workflows: [

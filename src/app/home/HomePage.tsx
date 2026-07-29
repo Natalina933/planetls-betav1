@@ -7,6 +7,7 @@ import ForWhomSection from "../components/layout/Home/ForWhomSection/ForWhomSect
 import HeroSection from "../components/layout/Home/Hero/HeroSection";
 import { HowItWorksSection } from "../components/layout/Home/HowItWorksSection/HowItWorksSection";
 import BlogNewsSection from "../components/layout/Home/BlogNewsSection/BlogNewsSection";
+import { HumanitarianImpactSection } from "../components/layout/Home/HumanitarianImpactSection/HumanitarianImpactSection";
 import PromotePlatformSection from "../components/layout/Home/PromotePlatformSection/PromotePlatformSection";
 import RecommendedConciergesSection from "../components/layout/Home/RecommendedConciergesSection/RecommendedConciergesSection";
 import ServiceList from "../components/layout/Home/SectionBlock/services/ServiceList";
@@ -39,6 +40,7 @@ export default function HomePage() {
           </div>
         </section>
         <PromotePlatformSection />
+        <HumanitarianImpactSection />
         <RecommendedConciergesSection />
         <TrustSection />
         <BlogNewsSection />

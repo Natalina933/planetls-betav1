@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url);
     const limit = parseLimit(url.searchParams.get("limit"));
     const unreadOnly = url.searchParams.get("unread") === "1";
+    const reservationId = url.searchParams.get("reservationId");
     const serviceRequestId = url.searchParams.get("serviceRequestId");
     const quoteId = url.searchParams.get("quoteId");
     const missionId = url.searchParams.get("missionId");
@@ -46,6 +47,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (unreadOnly) query = query.is("read_at", null);
+    if (reservationId && isUuidLike(reservationId)) query = query.eq("reservation_id", reservationId);
     if (serviceRequestId && isUuidLike(serviceRequestId)) query = query.eq("service_request_id", serviceRequestId);
     if (quoteId && isUuidLike(quoteId)) query = query.eq("quote_id", quoteId);
     if (missionId && isUuidLike(missionId)) query = query.eq("mission_id", missionId);

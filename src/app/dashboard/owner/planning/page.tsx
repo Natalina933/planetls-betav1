@@ -6,23 +6,24 @@ import OwnerPlanningPage from "./OwnerPlanningPage";
 import { planningStatusLabels, planningTypeLabels } from "./planningLabels";
 import type { OwnerPlanningItem, OwnerPlanningKpi } from "./types";
 
-type OwnerMissionRow = {
+type OwnerReservationRow = {
   id: string;
-  title?: string | null;
-  service_label?: string | null;
-  status: string | null;
-  priority: string | null;
-  amount: number | null;
-  scheduled_start: string | null;
-  scheduled_end: string | null;
-  description?: string | null;
+  property_label?: string | null;
   concierge_name?: string | null;
+  traveler_first_name?: string | null;
+  traveler_last_name?: string | null;
+  status: string | null;
+  channel?: string | null;
+  check_in_at: string | null;
+  check_out_at: string | null;
+  access_instructions?: string | null;
+  owner_notes?: string | null;
+  concierge_notes?: string | null;
   metadata?: Record<string, unknown> | null;
 };
 
 const urgentStatuses = new Set(["urgent"]);
-const validationStatuses = new Set(["pending", "quote_pending", "invoice_pending", "date_requested", "date_proposed", "to_schedule", "draft"]);
-const confirmedStatuses = new Set(["scheduled", "accepted", "assigned", "date_confirmed", "confirmed", "in_progress"]);
+const confirmedStatuses = new Set(["scheduled", "accepted", "acknowledged", "assigned", "confirmed", "in_progress", "in_stay"]);
 const completedStatuses = new Set(["completed"]);
 
 function isSameDay(value: string, date: Date) {
@@ -48,12 +49,12 @@ function getMetadataString(metadata: Record<string, unknown> | null | undefined,
   return typeof value === "string" ? value.trim() : null;
 }
 
-function getPropertyName(mission: OwnerMissionRow) {
-  return getMetadataString(mission.metadata, ["property_label", "housing_name", "property_name"]) || "Logement à préciser";
+function getPropertyName(reservation: OwnerReservationRow) {
+  return reservation.property_label || getMetadataString(reservation.metadata, ["property_label", "housing_name", "property_name"]) || "Logement à préciser";
 }
 
-function getCity(mission: OwnerMissionRow) {
-  return getMetadataString(mission.metadata, ["property_city", "city"]);
+function getCity(reservation: OwnerReservationRow) {
+  return getMetadataString(reservation.metadata, ["property_city", "city"]);
 }
 
 function normalizeType(value: string | null | undefined): OwnerPlanningItem["type"] {
@@ -61,46 +62,58 @@ function normalizeType(value: string | null | undefined): OwnerPlanningItem["typ
 
   if (key.includes("clean") || key.includes("ménage") || key.includes("menage")) return "menage";
   if (key.includes("maintenance") || key.includes("serrure") || key.includes("plomberie") || key.includes("réparation")) return "maintenance";
-  if (key.includes("check_in") || key.includes("check-in") || key.includes("arrivée") || key.includes("arrivee")) return "checkin";
   if (key.includes("check_out") || key.includes("check-out") || key.includes("départ") || key.includes("depart")) return "checkout";
+  if (key.includes("check_in") || key.includes("check-in") || key.includes("arrivée") || key.includes("arrivee")) return "checkin";
 
   return "autre";
 }
 
-function getMissionType(mission: OwnerMissionRow): OwnerPlanningItem["type"] {
-  const requestedServices = mission.metadata?.requested_services;
-  const firstService = Array.isArray(requestedServices)
-    ? requestedServices.find((service): service is string => typeof service === "string" && service.trim().length > 0)
+function getReservationType(reservation: OwnerReservationRow): OwnerPlanningItem["type"] {
+  const requestedActions = reservation.metadata?.requested_actions;
+  const firstAction = Array.isArray(requestedActions)
+    ? requestedActions.find((action): action is string => typeof action === "string" && action.trim().length > 0)
     : null;
 
   return normalizeType(
-    getMetadataString(mission.metadata, ["service_type", "category", "mission_type"]) ||
-      firstService ||
-      mission.service_label ||
-      mission.title,
+    getMetadataString(reservation.metadata, ["service_type", "category", "mission_type"]) ||
+      firstAction ||
+      reservation.channel ||
+      "check_in",
   );
 }
 
-function mapStatus(mission: OwnerMissionRow): OwnerPlanningItem["status"] {
-  if (mission.priority === "urgent" || urgentStatuses.has(mission.status || "")) return "urgent";
-  if (validationStatuses.has(mission.status || "")) return "en_attente_validation";
-  if (completedStatuses.has(mission.status || "")) return "pret_voyageurs";
-  if (confirmedStatuses.has(mission.status || "")) return "confirme";
+function mapStatus(reservation: OwnerReservationRow): OwnerPlanningItem["status"] {
+  const issueFlag = getMetadataString(reservation.metadata, ["issue_flag"]);
+  if (issueFlag === "urgent" || urgentStatuses.has(reservation.status || "")) return "urgent";
+  if ((reservation.status || "") === "shared") return "en_attente_validation";
+  if (completedStatuses.has(reservation.status || "")) return "pret_voyageurs";
+  if (confirmedStatuses.has(reservation.status || "")) return "confirme";
   return "a_faire";
 }
 
-function mapMissionToPlanningItem(mission: OwnerMissionRow): OwnerPlanningItem {
+function mapReservationToPlanningItem(reservation: OwnerReservationRow): OwnerPlanningItem {
+  const travelerName = [reservation.traveler_first_name, reservation.traveler_last_name].filter(Boolean).join(" ").trim();
+  const narrativeParts = [
+    travelerName ? `Voyageur ${travelerName}` : null,
+    reservation.concierge_name ? `Conciergerie ${reservation.concierge_name}` : null,
+    reservation.owner_notes ? `Note owner : ${reservation.owner_notes}` : null,
+    reservation.concierge_notes ? `Retour concierge : ${reservation.concierge_notes}` : null,
+    reservation.access_instructions ? `Acces : ${reservation.access_instructions}` : null,
+  ].filter(Boolean);
+
   return {
-    id: mission.id,
-    date: mission.scheduled_start || new Date().toISOString(),
-    propertyName: getPropertyName(mission),
-    propertyCode: getMetadataString(mission.metadata, ["property_code"]) || undefined,
-    city: getCity(mission) || undefined,
-    type: getMissionType(mission),
-    status: mapStatus(mission),
-    assignedTo: mission.concierge_name || undefined,
-    notes: mission.description || undefined,
-    amount: mission.amount,
+    id: reservation.id,
+    date: reservation.check_in_at || reservation.check_out_at || new Date().toISOString(),
+    propertyName: getPropertyName(reservation),
+    propertyCode: getMetadataString(reservation.metadata, ["property_code"]) || undefined,
+    city: getCity(reservation) || undefined,
+    travelerName: travelerName || undefined,
+    type: getReservationType(reservation),
+    status: mapStatus(reservation),
+    assignedTo: reservation.concierge_name || undefined,
+    notes: [reservation.owner_notes, reservation.concierge_notes, reservation.access_instructions].filter(Boolean).join(" · ") || travelerName || undefined,
+    narrative: narrativeParts.join(" · ") || undefined,
+    amount: null,
   };
 }
 
@@ -168,7 +181,7 @@ function sortPlanningItems(a: OwnerPlanningItem, b: OwnerPlanningItem) {
 }
 
 export default function OwnerPlanningRoutePage() {
-  const [missions, setMissions] = useState<OwnerMissionRow[]>([]);
+  const [reservations, setReservations] = useState<OwnerReservationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -178,14 +191,14 @@ export default function OwnerPlanningRoutePage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("/api/missions?scope=owner&limit=80", { cache: "no-store" });
+      const response = await fetch("/api/owner/reservations", { cache: "no-store" });
       const payload = await response.json();
 
       if (!response.ok) {
         throw new Error(ownerApiError("Impossible de charger votre planning.", payload?.error));
       }
 
-      setMissions(Array.isArray(payload) ? payload : []);
+      setReservations(Array.isArray(payload?.reservations) ? payload.reservations : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : ownerApiError("Impossible de charger votre planning."));
     } finally {
@@ -204,8 +217,8 @@ export default function OwnerPlanningRoutePage() {
   }, [success]);
 
   const items = useMemo(
-    () => missions.map(mapMissionToPlanningItem).sort(sortPlanningItems),
-    [missions],
+    () => reservations.map(mapReservationToPlanningItem).sort(sortPlanningItems),
+    [reservations],
   );
 
   const kpis = useMemo(() => buildKpis(items), [items]);

@@ -32,6 +32,7 @@ type MissionRow = {
   concierge_profile_id: string | null;
   owner_profile_id: string | null;
   property_id: string | null;
+  reservation_id?: string | null;
   service_id: number | null;
   title?: string | null;
   service_label?: string | null;
@@ -53,7 +54,7 @@ type MissionRow = {
 };
 
 const missionSelect =
-  "id, concierge_profile_id, owner_profile_id, property_id, service_id, title, description, status, priority, amount, currency, scheduled_start, scheduled_end, response_time_minutes, started_at, completed_at, canceled_at, cancel_reason, metadata, created_at, updated_at";
+  "id, concierge_profile_id, owner_profile_id, property_id, reservation_id, service_id, title, description, status, priority, amount, currency, scheduled_start, scheduled_end, response_time_minutes, started_at, completed_at, canceled_at, cancel_reason, metadata, created_at, updated_at";
 const missionSelectFallback =
   "id, concierge_profile_id, owner_profile_id, property_id, service_id, service_label, description, status, priority, amount, currency, scheduled_start, scheduled_end, response_time_minutes, started_at, completed_at, canceled_at, cancel_reason, metadata, created_at, updated_at";
 
@@ -77,6 +78,34 @@ function toRecord(value: unknown): Record<string, unknown> {
 function isMissingTitleColumn(error: { code?: string; message?: string; details?: string } | null | undefined) {
   const message = `${error?.message ?? ""} ${error?.details ?? ""}`.toLowerCase();
   return error?.code === "42703" || error?.code === "PGRST204" || (message.includes("title") && message.includes("column"));
+}
+
+function isMissingReservationIdColumn(error: { code?: string; message?: string; details?: string } | null | undefined) {
+  const message = `${error?.message ?? ""} ${error?.details ?? ""}`.toLowerCase();
+  return error?.code === "42703" || error?.code === "PGRST204" || (message.includes("reservation_id") && message.includes("column"));
+}
+
+async function loadProviderInterventionsForMission(mission: MissionRow) {
+  const reservationId = typeof mission.reservation_id === "string" ? mission.reservation_id : null;
+  if (reservationId) {
+    const withReservationLink = await dbAny
+      .from("provider_interventions")
+      .select("id, provider_profile_id, title, status, priority, scheduled_start, scheduled_end, budget_amount, currency, location_label, metadata, created_at, updated_at")
+      .or(`reservation_id.eq.${reservationId},metadata->>mission_id.eq.${mission.id}`)
+      .order("created_at", { ascending: false })
+      .limit(10);
+
+    if (!isMissingReservationIdColumn(withReservationLink.error)) {
+      return withReservationLink;
+    }
+  }
+
+  return dbAny
+    .from("provider_interventions")
+    .select("id, provider_profile_id, title, status, priority, scheduled_start, scheduled_end, budget_amount, currency, location_label, metadata, created_at, updated_at")
+    .contains("metadata", { mission_id: mission.id })
+    .order("created_at", { ascending: false })
+    .limit(10);
 }
 function canAccessMission(mission: MissionRow, userId: string, role: string) {
   return canAccessMissionForRole({
@@ -212,7 +241,7 @@ function attachQuoteWorkflow<T extends { status?: string | null }>(quote: T) {
 
 async function loadMission(id: string) {
   const result = await dbAny.from("missions").select(missionSelect).eq("id", id).single<MissionRow>();
-  if (!isMissingTitleColumn(result.error)) {
+  if (!isMissingTitleColumn(result.error) && !isMissingReservationIdColumn(result.error)) {
 
     return { mission: result.data, error: result.error };
   }
@@ -404,6 +433,7 @@ async function requestMissionBalance(input: {
         actorProfileId: input.actorProfileId,
         ownerProfileId: input.mission.owner_profile_id,
         conciergeProfileId: input.mission.concierge_profile_id,
+        reservationId: input.mission.reservation_id ?? null,
         missionId: input.mission.id,
         eventType: "invoice_balance_due",
         title: "Solde a regler",
@@ -565,12 +595,7 @@ async function hydrateMissionDetail(mission: MissionRow) {
         .eq("mission_id", mission.id)
         .order("created_at", { ascending: false })
         .limit(10),
-      dbAny
-        .from("provider_interventions")
-        .select("id, provider_profile_id, title, status, priority, scheduled_start, scheduled_end, budget_amount, currency, location_label, metadata, created_at, updated_at")
-        .contains("metadata", { mission_id: mission.id })
-        .order("created_at", { ascending: false })
-        .limit(10),
+      loadProviderInterventionsForMission(mission),
       dbAny
         .from("profiles")
         .select("id, first_name, last_name, username, company_name, role, city")
@@ -984,6 +1009,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         actorProfileId: userId,
         ownerProfileId: updatedMission.owner_profile_id,
         conciergeProfileId: updatedMission.concierge_profile_id,
+        reservationId: updatedMission.reservation_id ?? null,
         serviceRequestId,
         missionId: updatedMission.id,
         eventType: `mission_${requestedStatus}`,

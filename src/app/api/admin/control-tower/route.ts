@@ -254,6 +254,75 @@ function queryOnboardingEvents() {
   return queryTable("onboarding_events").select("id, profile_id, created_at") as PromiseLike<QueryResult<OnboardingEventRow>>;
 }
 
+function getRecord(value: unknown) {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
+
+function getNullableString(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function getMissionLabel(mission: { title?: string | null; metadata?: Record<string, unknown> | null }) {
+  return (
+    getNullableString(mission.title) ??
+    getNullableString(getRecord(mission.metadata).mission_title) ??
+    getNullableString(getRecord(mission.metadata).service_label) ??
+    getNullableString(getRecord(mission.metadata).property_label) ??
+    "Mission"
+  );
+}
+
+async function queryControlTowerMissions() {
+  const primary = await safeQuery(
+    queryTable("missions")
+      .select("id,title,status,priority,owner_profile_id,concierge_profile_id,property_id,scheduled_start,scheduled_end,completed_at,metadata,created_at,updated_at")
+      .order("created_at", { ascending: false })
+      .limit(60) as unknown as PromiseLike<
+      QueryResult<{
+        id: string;
+        title: string;
+        status: string;
+        priority: string;
+        owner_profile_id: string | null;
+        concierge_profile_id: string | null;
+        property_id: string | null;
+        scheduled_start: string | null;
+        scheduled_end: string | null;
+        completed_at: string | null;
+        metadata: Record<string, unknown> | null;
+        created_at: string;
+        updated_at: string;
+      }>
+    >,
+  );
+
+  if (primary.available || primary.data !== null) {
+    return primary;
+  }
+
+  return safeQuery(
+    queryTable("missions")
+      .select("id,status,priority,owner_profile_id,concierge_profile_id,property_id,scheduled_start,scheduled_end,completed_at,metadata,created_at,updated_at")
+      .order("created_at", { ascending: false })
+      .limit(60) as unknown as PromiseLike<
+      QueryResult<{
+        id: string;
+        status: string;
+        priority: string;
+        owner_profile_id: string | null;
+        concierge_profile_id: string | null;
+        property_id: string | null;
+        scheduled_start: string | null;
+        scheduled_end: string | null;
+        completed_at: string | null;
+        metadata: Record<string, unknown> | null;
+        created_at: string;
+        updated_at: string;
+      }>
+    >,
+  );
+}
+
 export async function GET(req: NextRequest) {
   let stage = "boot";
 
@@ -291,28 +360,7 @@ export async function GET(req: NextRequest) {
       safeQuery(
         queryOnboardingEvents(),
       ),
-      safeQuery(
-        queryTable("missions")
-          .select("id,title,status,priority,owner_profile_id,concierge_profile_id,property_id,scheduled_start,scheduled_end,completed_at,metadata,created_at,updated_at")
-          .order("created_at", { ascending: false })
-          .limit(60) as unknown as PromiseLike<
-          QueryResult<{
-            id: string;
-            title: string;
-            status: string;
-            priority: string;
-            owner_profile_id: string | null;
-            concierge_profile_id: string | null;
-            property_id: string | null;
-            scheduled_start: string | null;
-            scheduled_end: string | null;
-            completed_at: string | null;
-            metadata: Record<string, unknown> | null;
-            created_at: string;
-            updated_at: string;
-          }>
-        >,
-      ),
+      queryControlTowerMissions(),
       safeQuery(
         queryTable("service_requests")
           .select("id, mission_id, title, status, workflow_status, created_at")
@@ -583,7 +631,7 @@ export async function GET(req: NextRequest) {
 
         return {
           id: mission.id,
-          title: mission.title,
+          title: getMissionLabel(mission),
           status: mission.status,
           priority: mission.priority,
           ownerName: mission.owner_profile_id ? formatDisplayName(profileById.get(mission.owner_profile_id)) : "Proprietaire manquant",
