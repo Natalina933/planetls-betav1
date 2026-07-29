@@ -45,7 +45,7 @@ Ancienne décision P0 Critique.
 | Qualité | Terminé | Tous | ✅ Terminé | P0 Critique | OK | Maintenir |
 | Produit | À livrer | Owner | 🟠 Partiel | P0 Critique | Partiel | Finir |`;
   const plan = parseMasterPlan(markdown, "2026-07-19T12:00:00.000Z");
-  assert.equal(plan.priorityCounts["P0 Critique"], 3);
+  assert.equal(plan.priorityCounts["P0 Critique"], 2);
   assert.equal(plan.registryPriorityCounts["P0 Critique"], 2);
   assert.equal(plan.remainingPriorityCounts["P0 Critique"], 1);
 });

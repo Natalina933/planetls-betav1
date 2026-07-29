@@ -57,6 +57,7 @@ import {
   type DeveloperLogPriority,
   type DeveloperLogView,
 } from "./developerLog";
+import { type ProjectAdvisorAnswer, type ProjectAdvisorView } from "./projectAdvisor";
 import {
   type MissionControlHealthStatus,
   type MissionControlView,
@@ -77,6 +78,7 @@ type MasterPlanViewerProps = {
   missionControl: MissionControlView;
   roadmap: RoadmapView;
   technicalMemory: TechnicalMemoryView;
+  advisor: ProjectAdvisorView;
   defaultAuthor: string;
   projectVersion: string;
 };
@@ -554,7 +556,7 @@ function FoldableSectionHeader({
   );
 }
 
-export function MasterPlanViewer({ plan, journal, missionControl, roadmap, technicalMemory, defaultAuthor, projectVersion }: MasterPlanViewerProps) {
+export function MasterPlanViewer({ plan, journal, missionControl, roadmap, technicalMemory, advisor, defaultAuthor, projectVersion }: MasterPlanViewerProps) {
   const blockedMasterPlanStatus = "⚠️ Bloqué";
   const [masterPlanQuery, setMasterPlanQuery] = useState("");
   const [masterPlanStatus, setMasterPlanStatus] = useState("");
@@ -585,6 +587,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   const [isManualEntryModalOpen, setIsManualEntryModalOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState({
     missionControl: true,
+    advisor: true,
     technicalMemory: false,
     roadmap: true,
     journal: false,
@@ -778,6 +781,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   const canonicalMemoryCount = technicalMemory.entries.filter((entry) => entry.source === "canonique").length;
   const missionControlSummary = `${missionControl.progressionPct}% d'avancement, ${missionControl.inProgressFeatures} actif(s), ${missionControl.blockedFeatures} bloqué(s)`;
   const memorySummary = `${technicalMemory.entries.length} décisions indexées, filtres et recherche instantanée`;
+  const advisorSummary = `${advisor.answers.length} réponses calculées, preuves et niveaux de confiance visibles`;
   const roadmapSummary = `${roadmapReadyCount} prête(s), ${roadmapBlockedCount} dépendance(s), recalcul automatique`;
   const journalSummary = `${filteredEntries.length} entrée(s), ${favoriteCount} favori(s), ${commentCount} commentaire(s)`;
   const masterPlanSummary = `${visibleSections.length} section(s) visibles, ${expandedSections.size} ouverte(s), filtres et sommaire inclus`;
@@ -1439,6 +1443,77 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
             ))}
           </CardBody>
         </Card>
+      </div>
+      </div> : null}
+    </section>
+
+    <section className={`${styles.advisorShell} ${styles.sectionAdvisor}`} aria-labelledby="advisor-title">
+      <FoldableSectionHeader
+        title="Conseiller projet"
+        summary={advisorSummary}
+        isOpen={panelOpen.advisor}
+        onToggle={() => togglePanel("advisor")}
+        controlsId="project-advisor-panel"
+      />
+      {panelOpen.advisor ? <div id="project-advisor-panel" className={styles.foldableContent}>
+      <SectionIntro
+        title="Conseiller IA du projet"
+        titleId="advisor-title"
+        align="left"
+        eyebrow={<><Sparkles size={16} /> Coach technique</>}
+        subtitle="Ce n'est pas un chat libre : c'est un conseiller qui répond à des questions précises à partir de l'état réel de PlanetLS."
+        description="Chaque réponse s'appuie sur le Master Plan, la roadmap, Mission Control, la mémoire technique et quelques scans heuristiques du repo. Le niveau de confiance te dit immédiatement s'il s'agit d'un fait, d'un croisement ou d'un signal à confirmer."
+      />
+
+      <div className={styles.advisorMetrics}>
+        <StatsCard label="Questions couvertes" value={String(advisor.answers.length)} hint="Réponses calculées" visual={<MessageSquareText size={18} />} visualLabel="Questions" />
+        <StatsCard label="Factuelles" value={String(advisor.answers.filter((answer) => answer.confidence === "Factuel").length)} hint="Source directe" visual={<ShieldCheck size={18} />} visualLabel="Factuel" />
+        <StatsCard label="Croisées" value={String(advisor.answers.filter((answer) => answer.confidence === "Croisé").length)} hint="Plusieurs signaux" visual={<Radar size={18} />} visualLabel="Croisé" />
+        <StatsCard label="Heuristiques" value={String(advisor.answers.filter((answer) => answer.confidence === "Heuristique").length)} hint="À confirmer humainement" visual={<AlertTriangle size={18} />} visualLabel="Heuristique" />
+      </div>
+
+      <div className={styles.advisorGrid}>
+        {advisor.answers.map((answer: ProjectAdvisorAnswer) => (
+          <Card key={answer.id} className={styles.advisorCard}>
+            <CardHeader className={styles.advisorHeader}>
+              <div>
+                <p className={styles.categoryLabel}>Question prioritaire</p>
+                <h3>{answer.question}</h3>
+              </div>
+              <Tag
+                tone="neutral"
+                className={
+                  answer.confidence === "Factuel"
+                    ? styles.advisorConfidenceFact
+                    : answer.confidence === "Croisé"
+                      ? styles.advisorConfidenceCross
+                      : styles.advisorConfidenceHeuristic
+                }
+              >
+                {answer.confidence}
+              </Tag>
+            </CardHeader>
+            <CardBody className={styles.advisorBody}>
+              <article className={`${styles.advisorLead} ${answer.tone === "success" ? styles.advisorToneSuccess : answer.tone === "warning" ? styles.advisorToneWarning : styles.advisorToneNeutral}`}>
+                <strong>{answer.answer}</strong>
+                <p>{answer.detail}</p>
+              </article>
+              <div className={styles.featureRow}>
+                {answer.tags.map((tag) => <Tag key={`${answer.id}-${tag}`} tone="category">{tag}</Tag>)}
+              </div>
+              <article className={styles.advisorEvidence}>
+                <strong>Preuves et signaux utilisés</strong>
+                {answer.evidence.length ? (
+                  <ul className={styles.auditList}>
+                    {answer.evidence.map((item) => <li key={`${answer.id}-${item}`}>{item}</li>)}
+                  </ul>
+                ) : (
+                  <p>Aucune preuve complémentaire listée.</p>
+                )}
+              </article>
+            </CardBody>
+          </Card>
+        ))}
       </div>
       </div> : null}
     </section>

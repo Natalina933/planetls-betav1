@@ -9,7 +9,8 @@ import { buildDeveloperLogView, type DeveloperLogCommit } from "./developerLog";
 import { MasterPlanViewer } from "./MasterPlanViewer";
 import { parseMasterPlan } from "./masterPlan";
 import { buildMissionControlView, type MissionControlHealthCard } from "./missionControl";
-import { buildRoadmapView } from "./roadmap";
+import { buildProjectAdvisorView } from "./projectAdvisor";
+import { buildRoadmapView, projectRoadmap } from "./roadmap";
 import { buildTechnicalMemoryView } from "./technicalMemory";
 
 export const dynamic = "force-dynamic";
@@ -131,6 +132,173 @@ async function getSupabaseHealth(): Promise<MissionControlHealthCard> {
   }
 }
 
+async function collectFiles(root: string, extensions: Set<string>): Promise<string[]> {
+  const entries = await fs.readdir(root, { withFileTypes: true });
+  const files = await Promise.all(entries.map(async (entry) => {
+    const resolved = path.join(root, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name === "node_modules" || entry.name === ".next" || entry.name === ".git") return [];
+      return collectFiles(resolved, extensions);
+    }
+    if (!extensions.has(path.extname(entry.name))) return [];
+    return [resolved];
+  }));
+
+  return files.flat();
+}
+
+function toPosix(value: string) {
+  return value.replaceAll("\\", "/");
+}
+
+function relativeFromRepo(filePath: string) {
+  return toPosix(path.relative(process.cwd(), filePath));
+}
+
+function lineCount(content: string) {
+  return content.split(/\r?\n/).length;
+}
+
+function routeFromPageFile(relativePath: string) {
+  const normalized = toPosix(relativePath)
+    .replace(/^src\/app/, "")
+    .replace(/\/page\.(tsx|jsx|ts|js)$/, "");
+  return normalized || "/";
+}
+
+function slugTokens(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length >= 4);
+}
+
+async function collectProjectAdvisorSignals(): Promise<{
+  designSystemDriftPages: Array<{
+    route: string;
+    file: string;
+    lines: number;
+    signals: string[];
+    testReferences: string[];
+  }>;
+  productionReadyPages: Array<{
+    route: string;
+    file: string;
+    lines: number;
+    signals: string[];
+    testReferences: string[];
+  }>;
+  largeFiles: Array<{
+    file: string;
+    lines: number;
+  }>;
+  underusedComponents: Array<{
+    component: string;
+    count: number;
+    evidence: string[];
+  }>;
+}> {
+  const sourceExtensions = new Set([".ts", ".tsx", ".js", ".jsx"]);
+  const sourceFiles = await collectFiles(path.join(process.cwd(), "src"), sourceExtensions);
+  const pageFiles = sourceFiles.filter((filePath) => /[\\/]page\.(tsx|jsx|ts|js)$/.test(filePath) && !filePath.includes(`${path.sep}api${path.sep}`));
+  const testRoots = [path.join(process.cwd(), "src", "tests"), path.join(process.cwd(), "e2e")];
+  const testFiles = (await Promise.all(testRoots.map(async (root) => {
+    try {
+      return await collectFiles(root, sourceExtensions);
+    } catch {
+      return [];
+    }
+  }))).flat();
+
+  const [sourceContents, testContents] = await Promise.all([
+    Promise.all(sourceFiles.map(async (filePath) => ({ filePath, content: await fs.readFile(filePath, "utf8") }))),
+    Promise.all(testFiles.map(async (filePath) => ({ filePath, content: await fs.readFile(filePath, "utf8") }))),
+  ]);
+
+  const uiComponentRoots = await fs.readdir(path.join(process.cwd(), "src", "components", "ui"), { withFileTypes: true });
+  const uiComponents = uiComponentRoots
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+
+  const componentUsage = uiComponents.map((component) => {
+    const pattern = new RegExp(`\\b${component}\\b`);
+    const evidence = sourceContents
+      .filter(({ filePath, content }) => !filePath.includes(`${path.sep}components${path.sep}ui${path.sep}${component}${path.sep}`) && pattern.test(content))
+      .map(({ filePath }) => relativeFromRepo(filePath));
+
+    return {
+      component,
+      count: evidence.length,
+      evidence: evidence.slice(0, 4),
+    };
+  }).filter((item) => item.count <= 1).sort((left, right) => left.count - right.count || left.component.localeCompare(right.component, "fr"));
+
+  const pageInsights = pageFiles.map((filePath) => {
+    const relativePath = relativeFromRepo(filePath);
+    const content = sourceContents.find((entry) => entry.filePath === filePath)?.content ?? "";
+    const route = routeFromPageFile(relativePath);
+    const lines = lineCount(content);
+    const importsDesignSystem = content.includes("@/components/ui")
+      || content.includes("@/components/dashboard")
+      || content.includes("@/features/shared/components");
+    const usesSectionIntro = content.includes("SectionIntro");
+    const usesStatsCard = content.includes("StatsCard");
+    const usesCard = content.includes("<Card") || content.includes("CardHeader") || content.includes("CardBody");
+    const matchingTests = testContents.filter(({ content }) => {
+      if (route !== "/" && content.includes(route)) return true;
+      const tokens = slugTokens(route);
+      return tokens.length >= 2 && tokens.every((token) => content.toLowerCase().includes(token));
+    }).map(({ filePath: testPath }) => relativeFromRepo(testPath));
+
+    const signals = [
+      importsDesignSystem ? "Imports UI partagés" : "",
+      usesSectionIntro ? "SectionIntro présent" : "",
+      usesStatsCard ? "StatsCard présent" : "",
+      usesCard ? "Cartes partagées" : "",
+      matchingTests.length ? `${matchingTests.length} référence(s) de test` : "",
+    ].filter(Boolean);
+
+    return {
+      route,
+      file: relativePath,
+      lines,
+      signals,
+      testReferences: matchingTests,
+      importsDesignSystem,
+    };
+  });
+
+  const designSystemDriftPages = pageInsights
+    .filter((page) => !page.importsDesignSystem && page.lines >= 120)
+    .sort((left, right) => right.lines - left.lines)
+    .slice(0, 8)
+    .map(({ importsDesignSystem: _importsDesignSystem, ...page }) => page);
+
+  const productionReadyPages = pageInsights
+    .filter((page) => page.route !== "/" && !page.route.includes("[") && page.testReferences.length > 0)
+    .sort((left, right) => right.testReferences.length - left.testReferences.length || right.signals.length - left.signals.length || left.lines - right.lines)
+    .slice(0, 8)
+    .map(({ importsDesignSystem: _importsDesignSystem, ...page }) => page);
+
+  const largeFiles = sourceContents
+    .map(({ filePath, content }) => ({
+      file: relativeFromRepo(filePath),
+      lines: lineCount(content),
+    }))
+    .filter((item) => item.lines >= 350)
+    .sort((left, right) => right.lines - left.lines)
+    .slice(0, 8);
+
+  return {
+    designSystemDriftPages,
+    productionReadyPages,
+    largeFiles,
+    underusedComponents: componentUsage.slice(0, 8),
+  };
+}
+
 export default async function DevelopmentPage() {
   const session = await auth();
   const role = session?.user?.role;
@@ -178,6 +346,32 @@ export default async function DevelopmentPage() {
     projectVersion,
     workflowExists,
   });
+  const advisorSignals = await collectProjectAdvisorSignals();
+  const roadmapProjection = projectRoadmap(roadmap, []);
+  const missingTestCandidates = roadmapProjection.items
+    .filter((item) => !item.isCompleted && (item.priority === "P0 Critique" || item.priority === "P1 Prioritaire"))
+    .filter((item) => {
+      const evidence = `${item.evidence} ${item.nextAction}`.toLowerCase();
+      return !evidence.includes("test") && !evidence.includes("e2e") && !evidence.includes("playwright") && !evidence.includes("build");
+    })
+    .slice(0, 8)
+    .map((item) => ({
+      title: item.title,
+      priority: item.priority,
+      nextAction: item.nextAction,
+      evidence: item.evidence,
+    }));
+  const advisor = buildProjectAdvisorView({
+    checkedAt: new Date().toISOString(),
+    plan,
+    missionControl,
+    roadmap: roadmapProjection,
+    technicalMemory,
+    codeInsights: {
+      ...advisorSignals,
+      missingTestCandidates,
+    },
+  });
 
-  return <MasterPlanViewer plan={plan} journal={journal} missionControl={missionControl} roadmap={roadmap} technicalMemory={technicalMemory} defaultAuthor={defaultAuthor} projectVersion={projectVersion} />;
+  return <MasterPlanViewer plan={plan} journal={journal} missionControl={missionControl} roadmap={roadmap} technicalMemory={technicalMemory} advisor={advisor} defaultAuthor={defaultAuthor} projectVersion={projectVersion} />;
 }

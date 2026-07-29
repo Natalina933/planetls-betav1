@@ -99,6 +99,12 @@ const ROLE_ROUTES: Record<string, CommandItem[]> = {
   ],
   admin: [
     route("admin-home", "Vue plateforme", "/dashboard/admin", "Pilotage global PlanetLS."),
+    route(
+      "admin-business",
+      "Pilotage business et financier",
+      "/dashboard/admin/pilotage",
+      "Croissance, activation, pipeline et tension financiere.",
+    ),
     route("admin-control", "Contrôle détaillé", "/dashboard/admin/controle", "Risques, qualité et signaux faibles."),
     route("admin-users", "Utilisateurs", "/dashboard/admin/utilisateurs", "Comptes et rôles."),
     route("admin-artisans", "Artisans", "/dashboard/admin/artisans", "Profils prestataires."),
@@ -154,6 +160,12 @@ function getQuickActions(role: string): CommandItem[] {
     ];
   }
   return [
+    action(
+      "qa-admin-business",
+      "Ouvrir le pilotage business",
+      "/dashboard/admin/pilotage",
+      "Suivre l'activation, le pipeline et la tension financiere.",
+    ),
     action("qa-admin-control", "Contrôle plateforme", "/dashboard/admin/controle", "Surveiller les opérations."),
     action("qa-admin-users", "Gérer les utilisateurs", "/dashboard/admin/utilisateurs", "Vérifier les comptes actifs."),
   ];
