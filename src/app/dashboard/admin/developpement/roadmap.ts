@@ -267,8 +267,9 @@ export function projectRoadmap(view: RoadmapView, completedIds: string[]): Roadm
   const completedSet = new Set(completedIds);
   const projectedItems = view.items.map((item) => {
     const isCompleted = completedSet.has(item.id) || item.status.includes("Terminé");
+    const isPaused = item.status.includes("Reporté") || item.status.includes("Abandonné");
     const blockedBy = item.dependencies.filter((dependencyId) => !completedSet.has(dependencyId));
-    const isReady = !isCompleted && blockedBy.length === 0;
+    const isReady = !isCompleted && !isPaused && blockedBy.length === 0;
     return {
       ...item,
       isCompleted,
@@ -282,7 +283,7 @@ export function projectRoadmap(view: RoadmapView, completedIds: string[]): Roadm
     (left, right) => right.effectivePriorityScore - left.effectivePriorityScore || left.targetDate.localeCompare(right.targetDate) || left.title.localeCompare(right.title, "fr"),
   );
   const readyItems = sorted.filter((item) => item.isReady);
-  const blockedItems = sorted.filter((item) => !item.isCompleted && !item.isReady);
+  const blockedItems = sorted.filter((item) => !item.isCompleted && !item.isReady && !item.status.includes("Reporté") && !item.status.includes("Abandonné"));
   const completedItems = sorted.filter((item) => item.isCompleted);
 
   return {

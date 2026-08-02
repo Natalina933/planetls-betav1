@@ -3,9 +3,10 @@ import { expect, test, type Page } from "@playwright/test";
 type AdminCredentials = { email: string; password: string; href: string };
 
 async function expectFoldablePanel(page: Page, title: string, panelId: string, initiallyOpen: boolean) {
-  const toggle = page.getByRole("button", { name: new RegExp(title) });
+  const toggle = page.locator(`button[aria-controls="${panelId}"]`);
   const panel = page.locator(`#${panelId}`);
 
+  await expect(toggle).toHaveAccessibleName(new RegExp(title));
   await expect(toggle).toHaveAttribute("aria-expanded", initiallyOpen ? "true" : "false");
   await expect(panel).toHaveCount(initiallyOpen ? 1 : 0);
 
@@ -42,18 +43,22 @@ test("admin : le Master Plan reste lisible, pilotable et la roadmap se recalcule
   await page.goto("/dashboard/admin/developpement");
 
   await expect(page.getByRole("heading", { name: "Master Plan PlanetLS", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Mission Control", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Mémoire technique", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Roadmap intelligente", exact: true })).toBeVisible();
+  const pageSummary = page.getByRole("navigation", { name: "Sommaire de la page Développement" });
+  await expect(pageSummary).toBeVisible();
+  await expect(pageSummary.getByRole("link", { name: /Mission Control/ })).toBeVisible();
+  await expect(pageSummary.getByRole("link", { name: /Master Plan détaillé/ })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
+  await expect(page.locator("#mission-control")).toBeVisible();
+  await expect(page.locator("#memoire-technique")).toBeVisible();
+  await expect(page.locator("#roadmap-intelligente")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Planning opérationnel" })).toHaveCount(0);
 
   await expectFoldablePanel(page, "Mission Control", "mission-control-panel", true);
   await expectFoldablePanel(page, "Mémoire technique", "technical-memory-panel", false);
   await expectFoldablePanel(page, "Roadmap intelligente", "smart-roadmap-panel", true);
   await expectFoldablePanel(page, "Journal de bord", "developer-log-panel", false);
-  await expectFoldablePanel(page, "Sommaire et détail du Master Plan", "master-plan-detail-panel", false);
+  await expectFoldablePanel(page, "Sommaire et détail du Master Plan", "master-plan-detail-panel", true);
 
-  await page.getByRole("button", { name: /Sommaire et détail du Master Plan/ }).click();
   await expect(page.getByRole("navigation", { name: "Sommaire du Master Plan" })).toBeVisible();
   await expect(page.getByText("sections indexées")).toBeVisible();
 
@@ -79,7 +84,11 @@ test("admin : le Master Plan reste lisible, pilotable et la roadmap se recalcule
   await expect(page.getByText(/Aucun r.sultat/)).toHaveCount(0);
 
   await page.getByRole("button", { name: "Tout replier" }).click();
-  const firstSectionToggle = page.locator("article").filter({ has: page.locator("button[aria-expanded]") }).first().getByRole("button");
+  const firstSectionToggle = page
+    .locator("#master-plan-detail-panel article")
+    .filter({ has: page.locator("button[aria-expanded]") })
+    .first()
+    .getByRole("button");
   await expect(firstSectionToggle).toHaveAttribute("aria-expanded", "false");
   await firstSectionToggle.click();
   await expect(firstSectionToggle).toHaveAttribute("aria-expanded", "true");
@@ -90,19 +99,20 @@ test("admin : le Master Plan reste lisible, pilotable et la roadmap se recalcule
   await page.getByRole("button", { name: /Mémoire technique/ }).click();
   const memorySearch = page.getByPlaceholder("Pourquoi Supabase, Next.js, Vercel, cette architecture, ce workflow...");
   await memorySearch.fill("Supabase");
-  await expect(page.getByRole("heading", { name: "Supabase comme socle data" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Supabase comme socle data/ })).toBeVisible();
   await memorySearch.fill("");
 
   const nextRoadmapTitle = page.getByTestId("roadmap-next-title");
   const initialRoadmapTitle = (await nextRoadmapTitle.textContent()) ?? "";
   await page.locator('[data-testid^="roadmap-toggle-"]').first().click();
-  await expect(page.getByRole("button", { name: "Réouvrir" })).toBeVisible();
   await expect(nextRoadmapTitle).not.toHaveText(initialRoadmapTitle);
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByRole("heading", { name: "Master Plan PlanetLS", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Roadmap intelligente", exact: true })).toBeVisible();
+  await expect(pageSummary).toBeVisible();
+  await expect(page.locator("#roadmap-intelligente")).toBeVisible();
   await expect(page.getByLabel("Filtres du Master Plan")).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
   await page.screenshot({ path: "test-results/master-plan-mobile.png", fullPage: true });
 
   expect(duplicateKeyErrors).toEqual([]);

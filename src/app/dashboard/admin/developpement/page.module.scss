@@ -1,6 +1,11 @@
 .page {
+  container: development-page / inline-size;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
   color: #25332f;
   padding: 0 0 4rem;
   background:
@@ -71,6 +76,217 @@
   color: #65706c;
   line-height: 1.72;
   font-size: 1rem;
+}
+
+.page *,
+.page *::before,
+.page *::after {
+  box-sizing: border-box;
+}
+
+.page > *,
+.executiveHeroMain,
+.executiveSignalGrid,
+.executiveBoard,
+.journalLayout,
+.workspace,
+.content {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.page :where(h1, h2, h3, p, strong, span, a, li) {
+  overflow-wrap: anywhere;
+}
+
+.pageSummary {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.8fr) repeat(3, minmax(0, 1fr));
+  gap: 0;
+  padding: 0.75rem;
+  border: 1px solid rgba(24, 63, 54, 0.1);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.pageSummaryIntro,
+.pageSummaryGroup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 0.45rem;
+  min-width: 0;
+  padding: 0.8rem 1rem;
+}
+
+.pageSummaryGroup {
+  position: relative;
+  border-left: 1px solid rgba(24, 63, 54, 0.12);
+}
+
+.pageSummaryGroup::before {
+  position: absolute;
+  top: 0.8rem;
+  bottom: 0.8rem;
+  left: -1px;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #b27a29, rgba(24, 63, 54, 0.32));
+  content: "";
+}
+
+.pageSummaryIntro span,
+.pageSummaryGroup > span {
+  margin-bottom: 0.2rem;
+  color: #9a6a20;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pageSummaryIntro strong {
+  color: #183f36;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.pageSummaryIntro p {
+  margin: 0;
+  color: #65706c;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.pageSummary a {
+  display: grid;
+  gap: 0.08rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0.42rem 0.5rem;
+  border-radius: 10px;
+  color: #244b43;
+  line-height: 1.35;
+  text-decoration: none;
+}
+
+.pageSummary a:hover,
+.pageSummary a:focus-visible {
+  background: rgba(245, 236, 220, 0.72);
+  color: #9a6a20;
+  outline: 2px solid rgba(154, 106, 32, 0.18);
+  outline-offset: 1px;
+}
+
+.pageSummary a strong {
+  font-size: 0.86rem;
+}
+
+.pageSummary a small {
+  color: #77807d;
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.missionControlShell,
+.advisorShell,
+.memoryShell,
+.roadmapShell,
+.journalShell {
+  scroll-margin-top: 6.5rem;
+}
+
+@container development-page (max-width: 1180px) {
+  .pageSummary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pageSummaryIntro {
+    grid-column: 1 / -1;
+    padding-bottom: 0.6rem;
+  }
+
+  .executiveSignalGrid,
+  .executiveBoard,
+  .missionGrid,
+  .missionPanels,
+  .healthGrid,
+  .objectiveCards,
+  .memoryMetrics,
+  .memoryGrid,
+  .memoryPanels,
+  .advisorMetrics,
+  .advisorGrid,
+  .roadmapSummaryGrid,
+  .roadmapLanes,
+  .journalMetrics,
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .executiveMetrics,
+  .executiveFooter {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .journalLayout,
+  .workspace,
+  .breakdown,
+  .planningGroups {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .journalSidebar,
+  .manualEntryCard,
+  .toc {
+    position: static;
+    max-height: none;
+  }
+}
+
+@container development-page (max-width: 760px) {
+  .pageSummary {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0.55rem;
+  }
+
+  .pageSummaryIntro {
+    grid-column: auto;
+  }
+
+  .pageSummaryGroup {
+    border-top: 1px solid rgba(24, 63, 54, 0.1);
+    border-left: 0;
+  }
+
+  .pageSummaryGroup::before {
+    top: -1px;
+    right: 1rem;
+    bottom: auto;
+    left: 1rem;
+    width: auto;
+    height: 2px;
+  }
+
+  .executiveSignalGrid,
+  .executiveMetrics,
+  .executiveBoard,
+  .executiveFooter,
+  .missionGrid,
+  .missionPanels,
+  .healthGrid,
+  .objectiveCards,
+  .memoryMetrics,
+  .memoryGrid,
+  .memoryPanels,
+  .advisorMetrics,
+  .advisorGrid,
+  .roadmapSummaryGrid,
+  .roadmapLanes,
+  .journalMetrics,
+  .metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .eyebrow {
@@ -446,24 +662,28 @@
   padding: 1rem 0.5rem;
 }
 
-.sectionRoadmap {
+.sectionMasterPlan {
   order: 2;
 }
 
-.sectionMissionControl {
+.sectionRoadmap {
   order: 3;
 }
 
-.sectionAdvisor {
+.sectionMissionControl {
   order: 4;
 }
 
-.sectionJournal {
+.sectionAdvisor {
   order: 5;
 }
 
-.sectionMemory {
+.sectionJournal {
   order: 6;
+}
+
+.sectionMemory {
+  order: 7;
 }
 
 .advisorShell {
@@ -2577,6 +2797,7 @@
   }
 
   .filterChipsRow,
+  .pageSummary,
   .executiveSignalGrid,
   .executiveMetrics,
   .executiveBoard,

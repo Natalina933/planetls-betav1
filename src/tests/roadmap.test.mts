@@ -10,6 +10,7 @@ test("la roadmap intelligente recalcule la prochaine fonctionnalité quand un ch
 |---|---|---|---|---|---|---|
 | Qualité | Smoke E2E des espaces critiques | Owner, concierge, provider | 🟡 En cours | P0 Critique | Playwright Chromium 3/3 PASS | Consolider le passage continu |
 | Qualité | E2E transactionnel commercial | Owner, concierge | ⚠️ Bloqué | P0 Critique | Checkout hébergé prêt | Ajouter la clé de test |
+| Qualité | Paiement Stripe différé | Owner | ⏸️ Reporté | P0 Critique | Clé indisponible | Reprendre quand une clé de test sera disponible |
 | Pilotage | Vue de développement du Master Plan | Admin | ✅ Terminé | P1 Prioritaire | Route admin sécurisée | Observer l'usage |
 | Pilotage | Roadmap intelligente | Admin | 🟡 En cours | P1 Prioritaire | Mission Control déjà présent | Recalculer les dépendances |`;
   const plan = parseMasterPlan(markdown, "2026-07-27T10:00:00.000Z");
@@ -18,6 +19,8 @@ test("la roadmap intelligente recalcule la prochaine fonctionnalité quand un ch
   const initial = projectRoadmap(roadmap, []);
   assert.equal(initial.readyItems[0]?.title, "Smoke E2E des espaces critiques");
   assert.equal(initial.blockedItems[0]?.title, "E2E transactionnel commercial");
+  assert.equal(initial.readyItems.some((item) => item.title === "Paiement Stripe différé"), false);
+  assert.equal(initial.blockedItems.some((item) => item.title === "Paiement Stripe différé"), false);
   assert.deepEqual(initial.blockedItems[0]?.dependencyLabels, ["Smoke E2E des espaces critiques"]);
 
   const afterCompletion = projectRoadmap(roadmap, [initial.readyItems[0]!.id]);

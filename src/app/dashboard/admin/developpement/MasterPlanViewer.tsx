@@ -47,6 +47,7 @@ import {
 } from "@/components/ui";
 import { focusFirstModalElement, trapFocusInModal } from "@/app/dashboard/owner/modalAccessibility";
 import { FilterChipGroup } from "@/features/shared/components/FilterChipGroup";
+import { DevelopmentSectionNav } from "@/components/development/DevelopmentSectionNav";
 import {
   createManualLogEntrySeed,
   DEVELOPER_LOG_PRIORITIES,
@@ -591,7 +592,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
     technicalMemory: false,
     roadmap: true,
     journal: false,
-    masterPlan: false,
+    masterPlan: true,
   });
   const [manualDraft, setManualDraft] = useState<ManualEntryDraft>(() => {
     const seed = createManualLogEntrySeed(projectVersion, defaultAuthor);
@@ -1068,6 +1069,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       <div className={styles.executiveHeroMain}>
         <div className={styles.executiveHeroTopline}>
           <span className={styles.eyebrow}><Radar size={16} /> Pilotage développement</span>
+          <DevelopmentSectionNav active="pilotage" />
           <Tag tone="neutral" className={executiveHealth.className}>{executiveHealth.label}</Tag>
         </div>
         <div className={styles.executiveHeroHeading}>
@@ -1080,6 +1082,28 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
           </div>
           <Link href="/dashboard/admin" className={styles.backLink}>Retour au cockpit admin</Link>
         </div>
+        <nav className={styles.pageSummary} aria-label="Sommaire de la page Développement">
+          <div className={styles.pageSummaryIntro}>
+            <span>Sommaire</span>
+            <strong>Accéder directement à l’essentiel</strong>
+            <p>Les sections sont regroupées selon l’action à mener.</p>
+          </div>
+          <div className={styles.pageSummaryGroup}>
+            <span>01 · Agir maintenant</span>
+            <a href="#mission-control"><strong>Mission Control</strong><small>État, alertes et priorités</small></a>
+            <a href="#roadmap-intelligente"><strong>Roadmap intelligente</strong><small>Prochaine action exécutable</small></a>
+          </div>
+          <div className={styles.pageSummaryGroup}>
+            <span>02 · Décider</span>
+            <a href="#conseiller-projet"><strong>Conseiller projet</strong><small>Réponses et arbitrages guidés</small></a>
+            <a href="#memoire-technique"><strong>Mémoire technique</strong><small>Décisions de référence</small></a>
+          </div>
+          <div className={styles.pageSummaryGroup}>
+            <span>03 · Documenter</span>
+            <a href="#journal-de-bord"><strong>Journal de bord</strong><small>Activité et décisions récentes</small></a>
+            <a href="#master-plan"><strong>Master Plan détaillé</strong><small>Source complète du pilotage</small></a>
+          </div>
+        </nav>
         <div className={styles.executiveSignalGrid}>
           <Card className={styles.executiveLeadCard}>
             <CardBody className={styles.executiveLeadBody}>
@@ -1303,7 +1327,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       </div>
     </header>
 
-    <section className={`${styles.missionControlShell} ${styles.sectionMissionControl}`} aria-labelledby="mission-control-title">
+    <section id="mission-control" className={`${styles.missionControlShell} ${styles.sectionMissionControl}`} aria-labelledby="mission-control-title">
       <FoldableSectionHeader
         title="Mission Control"
         summary={missionControlSummary}
@@ -1447,7 +1471,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       </div> : null}
     </section>
 
-    <section className={`${styles.advisorShell} ${styles.sectionAdvisor}`} aria-labelledby="advisor-title">
+    <section id="conseiller-projet" className={`${styles.advisorShell} ${styles.sectionAdvisor}`} aria-labelledby="advisor-title">
       <FoldableSectionHeader
         title="Conseiller projet"
         summary={advisorSummary}
@@ -1518,7 +1542,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       </div> : null}
     </section>
 
-    <section className={`${styles.memoryShell} ${styles.sectionMemory}`} aria-labelledby="memory-title">
+    <section id="memoire-technique" className={`${styles.memoryShell} ${styles.sectionMemory}`} aria-labelledby="memory-title">
       <FoldableSectionHeader
         title="Mémoire technique"
         summary={memorySummary}
@@ -1613,7 +1637,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       </div> : null}
     </section>
 
-    <section className={`${styles.roadmapShell} ${styles.sectionRoadmap}`} aria-labelledby="roadmap-title">
+    <section id="roadmap-intelligente" className={`${styles.roadmapShell} ${styles.sectionRoadmap}`} aria-labelledby="roadmap-title">
       <FoldableSectionHeader
         title="Roadmap intelligente"
         summary={roadmapSummary}
@@ -1808,7 +1832,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       </div> : null}
     </section>
 
-    <section className={`${styles.journalShell} ${styles.sectionJournal}`} aria-labelledby="journal-title">
+    <section id="journal-de-bord" className={`${styles.journalShell} ${styles.sectionJournal}`} aria-labelledby="journal-title">
       <FoldableSectionHeader
         title="Journal de bord"
         summary={journalSummary}
@@ -2163,7 +2187,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       </div> : null}
     </section>
 
-    <section className={styles.journalShell} aria-labelledby="master-plan-detail-title">
+    <section id="master-plan" className={`${styles.journalShell} ${styles.sectionMasterPlan}`} aria-labelledby="master-plan-detail-title">
       <FoldableSectionHeader
         title="Sommaire et détail du Master Plan"
         summary={masterPlanSummary}
