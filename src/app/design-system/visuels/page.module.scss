@@ -1,3 +1,42 @@
+.developmentNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 1380px;
+  margin: 0 auto 1rem;
+}
+
+.backToDesignSystem {
+  flex: 0 0 auto;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid rgba(35, 67, 55, 0.14);
+  border-radius: 999px;
+  background: #fff;
+  color: #285246;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.backToDesignSystem:hover,
+.backToDesignSystem:focus-visible {
+  border-color: #b7842e;
+  color: #7c5822;
+  outline: 2px solid rgba(183, 132, 46, 0.2);
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .developmentNav {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .backToDesignSystem {
+    text-align: center;
+  }
+}
 .page {
   min-height: 100vh;
   padding: clamp(1rem, 2.6vw, 2rem);

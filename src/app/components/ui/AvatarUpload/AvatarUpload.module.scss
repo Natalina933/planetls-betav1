@@ -571,3 +571,27 @@
   color: #d9d2b6;
   border-color: rgba(180, 168, 132, 0.7);
 }
+
+.large .imageWrapper {
+  width: 168px;
+  height: 168px;
+}
+
+.large .cameraButton {
+  right: 8px;
+  bottom: 8px;
+  width: 34px;
+  height: 34px;
+}
+
+.large .cameraButton svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 640px) {
+  .large .imageWrapper {
+    width: 142px;
+    height: 142px;
+  }
+}

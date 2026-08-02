@@ -1,3 +1,10 @@
+.developmentNav {
+  display: flex;
+  justify-content: center;
+  padding: 1rem clamp(1rem, 3vw, 2rem) 0;
+  background: #fcf9f3;
+}
+
 .visualReferenceCallout {
   display: flex;
   align-items: center;

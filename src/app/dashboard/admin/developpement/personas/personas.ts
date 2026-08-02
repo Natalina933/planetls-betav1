@@ -1,0 +1,80 @@
+export type PersonaStatus = "Hypothèse" | "À valider" | "Validé";
+
+export type ProductPersona = {
+  id: string; name: string; initials: string; image: string; avatarScale?: number; avatarOffsetX?: number; avatarOffsetY?: number; avatarRotation?: number; role: string; segment: string; context: string;
+  digitalLevel: "Débutant" | "Intermédiaire" | "Avancé";
+  primaryDevice: "Mobile" | "Ordinateur" | "Mobile et ordinateur";
+  status: PersonaStatus; quote: string; goals: string[]; frustrations: string[];
+  firstValue: string; priorityFeatures: string[]; mainJourney: string[];
+  trustSignals: string[]; validationSource: string;
+};
+
+export const productPersonas: ProductPersona[] = [
+  {
+    id: "owner-individual", name: "Sophie Martin", initials: "SM", image: "/avatars/sophie.png", role: "Propriétaire particulier", segment: "1 à 2 logements",
+    context: "Elle loue une résidence secondaire à distance et veut déléguer sans perdre le contrôle.", digitalLevel: "Intermédiaire", primaryDevice: "Mobile", status: "À valider",
+    quote: "Je veux savoir qui intervient chez moi et ce qui a réellement été fait.",
+    goals: ["Trouver une conciergerie fiable", "Comparer clairement les offres", "Suivre séjours, incidents et dépenses"],
+    frustrations: ["Prestataires difficiles à comparer", "Informations dispersées", "Manque de preuves après intervention"],
+    firstValue: "Recevoir une première réponse qualifiée à sa demande.", priorityFeatures: ["Recherche de conciergeries", "Demandes et devis", "Planning", "Documents et factures"],
+    mainJourney: ["Décrire son logement", "Trouver une conciergerie", "Accepter un devis", "Suivre l’exploitation"],
+    trustSignals: ["Avis vérifiés", "Assurance et identité", "Preuves d’intervention"], validationSource: "Hypothèses produit et parcours propriétaire existants.",
+  },
+  {
+    id: "owner-professional", name: "Thomas Leroy", initials: "TL", image: "/avatars/marc.png", role: "Propriétaire professionnel", segment: "5 logements ou plus",
+    context: "Il pilote plusieurs biens et partenaires avec un besoin de consolidation financière et opérationnelle.", digitalLevel: "Avancé", primaryDevice: "Ordinateur", status: "Hypothèse",
+    quote: "Je dois voir les écarts et les urgences sans ouvrir cinq outils.",
+    goals: ["Centraliser son portefeuille", "Comparer la performance", "Déléguer clairement"], frustrations: ["Données éclatées", "Reporting manuel", "Partenaires difficiles à suivre"],
+    firstValue: "Importer ses biens et identifier les responsables et alertes.", priorityFeatures: ["Vue portefeuille", "Pilotage financier", "Collaborations", "Alertes"],
+    mainJourney: ["Créer le portefeuille", "Inviter les partenaires", "Affecter les logements", "Piloter les résultats"], trustSignals: ["Historique complet", "Permissions explicites", "Indicateurs traçables"],
+    validationSource: "Persona à confronter à des multipropriétaires réels.",
+  },
+  {
+    id: "concierge-independent", name: "Claire Bernard", initials: "CB", image: "/avatars/julie.png", role: "Concierge indépendante", segment: "5 à 15 logements",
+    context: "Elle gère seule la relation propriétaire et une grande partie des opérations terrain.", digitalLevel: "Intermédiaire", primaryDevice: "Mobile et ordinateur", status: "À valider",
+    quote: "Je dois gagner du temps sans rendre mon service impersonnel.", goals: ["Signer des mandats", "Organiser les journées", "Prouver la qualité"],
+    frustrations: ["Messages dispersés", "Planning changeant", "Temps administratif non facturé"], firstValue: "Recevoir une demande pertinente ou intégrer un premier logement.",
+    priorityFeatures: ["Demandes propriétaires", "Planning", "Missions et checklists", "Facturation"], mainJourney: ["Présenter ses services", "Répondre", "Intégrer un logement", "Exécuter et rendre compte"],
+    trustSignals: ["Profil complet", "Avis propriétaires", "Suivi visible"], validationSource: "Audit UX concierge et hypothèses du cockpit actuel.",
+  },
+  {
+    id: "concierge-manager", name: "Nicolas Petit", initials: "NP", image: "/avatars/jean.png", role: "Dirigeant de conciergerie", segment: "Équipe, 20 logements ou plus",
+    context: "Il développe son portefeuille tout en maîtrisant équipes, marges et incidents.", digitalLevel: "Avancé", primaryDevice: "Ordinateur", status: "Hypothèse",
+    quote: "Je veux voir où l’exploitation décroche avant que le propriétaire m’appelle.", goals: ["Piloter la rentabilité", "Structurer l’équipe", "Standardiser la qualité"],
+    frustrations: ["Charge imprévisible", "Responsabilités floues", "Indicateurs manuels"], firstValue: "Visualiser la charge, les alertes et les responsabilités du jour.",
+    priorityFeatures: ["Mission Control", "Équipe et affectations", "Finance", "Maintenance"], mainJourney: ["Configurer", "Intégrer logements et équipe", "Planifier", "Contrôler qualité et marge"],
+    trustSignals: ["Journal d’activité", "Alertes fiables", "Droits par responsabilité"], validationSource: "À valider auprès de conciergeries structurées.",
+  },
+  {
+    id: "team-member", name: "Inès Robert", initials: "IR", image: "/avatars/emma.png", role: "Membre d’équipe terrain", segment: "Intervenante récurrente",
+    context: "Elle réalise les missions sur place et veut des instructions immédiates sans surcharge administrative.", digitalLevel: "Débutant", primaryDevice: "Mobile", status: "Hypothèse",
+    quote: "Dites-moi où aller, quoi faire et comment signaler un problème.", goals: ["Comprendre la mission", "Signaler un blocage", "Clôturer avec une preuve"],
+    frustrations: ["Consignes incomplètes", "Changements tardifs", "Interfaces mobiles complexes"], firstValue: "Voir sa prochaine mission avec adresse, horaire et checklist.",
+    priorityFeatures: ["Planning du jour", "Checklists", "Photos et signalements", "Notifications"], mainJourney: ["Consulter", "Exécuter", "Signaler", "Prouver et clôturer"],
+    trustSignals: ["Consignes à jour", "Responsable visible", "Confirmation de prise en compte"], validationSource: "Hypothèse issue des parcours d’affectation.",
+  },
+  {
+    id: "provider", name: "Karim Benali", initials: "KB", image: "/avatars/leo.png", role: "Artisan ou prestataire", segment: "Indépendant local",
+    context: "Il cherche des missions qualifiées à proximité sans perdre de temps en prospection et en paperasse.", digitalLevel: "Intermédiaire", primaryDevice: "Mobile", status: "À valider",
+    quote: "Une bonne demande doit me dire tout de suite où, quand et pourquoi intervenir.", goals: ["Recevoir des missions pertinentes", "Valoriser son savoir-faire", "Être payé sans relance"],
+    frustrations: ["Demandes imprécises", "Déplacements inutiles", "Paiements tardifs"], firstValue: "Recevoir une mission locale adaptée à son métier.",
+    priorityFeatures: ["Profil métier", "Missions locales", "Interventions et preuves", "Devis et factures"], mainJourney: ["Compléter son profil", "Recevoir", "Intervenir", "Facturer et être évalué"],
+    trustSignals: ["Client identifié", "Périmètre précis", "Paiement traçable"], validationSource: "Parcours provider existant et audit multi-profils.",
+  },
+  {
+    id: "local-merchant", name: "Élodie Garcia", initials: "EG", image: "/avatars/marie.png", role: "Commerçante locale", segment: "Produits et services récurrents",
+    context: "Elle veut développer des partenariats récurrents avec les conciergeries et logements voisins.", digitalLevel: "Intermédiaire", primaryDevice: "Mobile et ordinateur", status: "Hypothèse",
+    quote: "Je cherche des commandes régulières, pas seulement une vitrine de plus.", goals: ["Être découverte localement", "Créer des partenariats", "Simplifier les commandes"],
+    frustrations: ["Rôle confondu avec l’artisan", "Demande irrégulière", "Volumes inconnus"], firstValue: "Recevoir une première demande commerciale qualifiée.",
+    priorityFeatures: ["Profil commerçant", "Catalogue", "Partenariats", "Commandes récurrentes"], mainJourney: ["Présenter l’offre", "Définir la zone", "Recevoir une demande", "Fidéliser"],
+    trustSignals: ["Entreprise vérifiée", "Conditions visibles", "Historique"], validationSource: "Rôle encore à distinguer du parcours artisan.",
+  },
+  {
+    id: "admin", name: "Nathalie", initials: "NA", image: "/avatars/Copilot_20250701_194013.png", role: "Administratrice PlanetLS", segment: "Pilotage de la plateforme",
+    context: "Elle arbitre le produit, contrôle la qualité du réseau et détecte les blocages.", digitalLevel: "Avancé", primaryDevice: "Ordinateur", status: "Validé",
+    quote: "Je veux savoir ce qui fonctionne, ce qui bloque et quelle action lancer ensuite.", goals: ["Garantir qualité et sécurité", "Prioriser le développement", "Piloter activation et conversion"],
+    frustrations: ["Signaux dispersés", "Fonctionnalités non prouvées", "Décisions sans contexte"], firstValue: "Identifier les alertes critiques et la prochaine meilleure action.",
+    priorityFeatures: ["Cockpit admin", "Développement", "Contrôle détaillé", "KPI et décisions"], mainJourney: ["Lire les signaux", "Qualifier le risque", "Décider", "Vérifier les preuves"],
+    trustSignals: ["Données sourcées", "Statuts explicites", "Historique des tests"], validationSource: "Usage direct du cockpit d’administration PlanetLS.",
+  },
+];

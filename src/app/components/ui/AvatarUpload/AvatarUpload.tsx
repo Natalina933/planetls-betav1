@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 import Image from "next/image";
 import {
   FaArrowsAltH,
@@ -26,6 +26,8 @@ interface AvatarUploadProps {
   onSave?: () => void;
   onRemove?: () => void;
   isEditing?: boolean;
+  alt?: string;
+  size?: "default" | "large";
 }
 
 export default function AvatarUpload({
@@ -41,6 +43,8 @@ export default function AvatarUpload({
   onRotationChange,
   onSave,
   onRemove,
+  alt = "Avatar",
+  size = "default",
 }: AvatarUploadProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(existingUrl || null);
   const [scale, setScale] = useState(existingScale);
@@ -51,6 +55,12 @@ export default function AvatarUpload({
   const [hasChanged, setHasChanged] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewUrlRef = useRef<string | null>(null);
+  const inputId = useId();
+  const scaleId = useId();
+  const offsetXId = useId();
+  const offsetYId = useId();
+  const rotationId = useId();
+  const modalTitleId = useId();
 
   useEffect(() => {
     return () => {
@@ -161,12 +171,12 @@ export default function AvatarUpload({
   `;
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${size === "large" ? styles.large : ""}`}>
       <div className={styles.imageWrapper}>
         {previewUrl ? (
           <Image
             src={previewUrl}
-            alt="Avatar"
+            alt={alt}
             fill
             sizes="(max-width: 640px) 96px, 130px"
             className={styles.image}
@@ -192,7 +202,7 @@ export default function AvatarUpload({
 
         <input
           ref={fileInputRef}
-          id="avatar-file-input"
+          id={inputId}
           type="file"
           accept="image/*"
           className={styles.hiddenFileInput}
@@ -214,10 +224,10 @@ export default function AvatarUpload({
             className={styles.modal}
             role="dialog"
             aria-modal="true"
-            aria-labelledby="avatar-modal-title"
+            aria-labelledby={modalTitleId}
           >
             <div className={styles.modalHeader}>
-              <h3 id="avatar-modal-title" className={styles.modalTitle}>
+              <h3 id={modalTitleId} className={styles.modalTitle}>
                 Personnaliser l&apos;avatar
               </h3>
               <button
@@ -260,12 +270,12 @@ export default function AvatarUpload({
                 </button>
 
                 <div className={styles.controlGroup}>
-                  <label htmlFor="avatar-scale" className={styles.controlLabel}>
+                  <label htmlFor={scaleId} className={styles.controlLabel}>
                     <span className={styles.controlLabelIcon}><FaExpandArrowsAlt /></span>
                     <span>Zoom</span>
                   </label>
                   <input
-                    id="avatar-scale"
+                    id={scaleId}
                     type="range"
                     min="0.5"
                     max="3"
@@ -279,12 +289,12 @@ export default function AvatarUpload({
 
                 <div className={styles.offsetControls}>
                   <div className={styles.controlGroup}>
-                    <label htmlFor="avatar-offset-x" className={styles.controlLabel}>
+                    <label htmlFor={offsetXId} className={styles.controlLabel}>
                       <span className={styles.controlLabelIcon}><FaArrowsAltH /></span>
                       <span>Horizontal</span>
                     </label>
                     <input
-                      id="avatar-offset-x"
+                      id={offsetXId}
                       type="range"
                       min="-50"
                       max="50"
@@ -296,12 +306,12 @@ export default function AvatarUpload({
                   </div>
 
                   <div className={styles.controlGroup}>
-                    <label htmlFor="avatar-offset-y" className={styles.controlLabel}>
+                    <label htmlFor={offsetYId} className={styles.controlLabel}>
                       <span className={styles.controlLabelIcon}><FaArrowsAltV /></span>
                       <span>Vertical</span>
                     </label>
                     <input
-                      id="avatar-offset-y"
+                      id={offsetYId}
                       type="range"
                       min="-50"
                       max="50"
@@ -314,12 +324,12 @@ export default function AvatarUpload({
                 </div>
 
                 <div className={styles.controlGroup}>
-                  <label htmlFor="avatar-rotation" className={styles.controlLabel}>
+                  <label htmlFor={rotationId} className={styles.controlLabel}>
                     <span className={styles.controlLabelIcon}><FaRedoAlt /></span>
                     <span>Rotation</span>
                   </label>
                   <input
-                    id="avatar-rotation"
+                    id={rotationId}
                     type="range"
                     min="-45"
                     max="45"

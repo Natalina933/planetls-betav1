@@ -6,6 +6,7 @@ import {
 } from "./getServiceCatalogGroups";
 import path from "path";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Activity,
   AlertTriangle,
@@ -75,6 +76,7 @@ import {
   PROFILE_VISUAL_KIT_IMPORT,
   type VisualKitSlice,
 } from "@/app/lib/profileVisualKit";
+import { DevelopmentSectionNav } from "@/components/development/DevelopmentSectionNav";
 import styles from "./page.module.scss";
 
 export const dynamic = "force-dynamic";
@@ -1652,6 +1654,10 @@ export default async function VisualReferencePage() {
 
   return (
     <main className={styles.page}>
+      <div className={styles.developmentNav}>
+        <DevelopmentSectionNav active="design-system" />
+        <Link href="/design-system" className={styles.backToDesignSystem}>Retour au Design system</Link>
+      </div>
 
       {/* ── Hero ── */}
       <section className={styles.hero}>
