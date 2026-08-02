@@ -14,6 +14,7 @@ import {
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
 import type { KpiOverviewPayload } from "@/app/api/kpis/overview/shared";
 import type { AdminMissionRow, AdminRequestRow } from "../AdminOperations";
+import { BusinessStrategyCenter } from "./business-strategy/BusinessStrategyCenter";
 import styles from "./page.module.scss";
 
 type AdminOverviewPayload = {
@@ -596,6 +597,8 @@ export default function AdminBusinessPage() {
           </div>
         </DashboardPanel>
       </section>
+
+      <BusinessStrategyCenter />
     </DashboardLayout>
   );
 }

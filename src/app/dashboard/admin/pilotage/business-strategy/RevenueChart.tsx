@@ -1,0 +1,3 @@
+import { formatMoney } from "./types";
+import styles from "./BusinessStrategyCenter.module.scss";
+export function RevenueChart({ values }: { values: { label: string; value: number }[] }) { const max = Math.max(...values.map((item) => item.value), 1); return <div className={styles.chart} role="img" aria-label="Projection de revenus"><div className={styles.chartBars}>{values.map((item) => <div key={item.label}><span style={{ height: `${Math.max(4, item.value/max*100)}%` }} title={`${item.label} : ${formatMoney(item.value)}`} /><small>{item.label}</small></div>)}</div></div>; }

@@ -1,0 +1,16 @@
+"use client";
+import { BrainCircuit, Download, FlaskConical, Plus } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { BusinessDashboard } from "./BusinessDashboard";
+import { BusinessScore } from "./BusinessScore";
+import { BusinessTimeline } from "./BusinessTimeline";
+import { CompetitorComparison } from "./CompetitorComparison";
+import { DecisionLog } from "./DecisionLog";
+import { FeatureMatrix } from "./FeatureMatrix";
+import { FinancialSimulator } from "./FinancialSimulator";
+import { PricingEditor } from "./PricingEditor";
+import { StrategySelector } from "./StrategySelector";
+import { useBusinessStrategies } from "./useBusinessStrategies";
+import styles from "./BusinessStrategyCenter.module.scss";
+
+export function BusinessStrategyCenter(){const store=useBusinessStrategies();return <section className={styles.center} aria-labelledby="strategy-center-title"><header className={styles.centerHero}><div><span><FlaskConical size={16}/> Laboratoire privé administrateur</span><h2 id="strategy-center-title">Business Strategy Center</h2><p>Comparer des modèles économiques avant toute décision de production. Aucun scénario de cette zone ne modifie Stripe ni les droits utilisateurs.</p></div><nav aria-label="Sections du centre stratégique"><a href="#strategy-configuration">Configuration</a><a href="#strategy-simulation">Simulation</a><a href="#strategy-analysis">Analyse</a><a href="#strategy-history">Décisions</a></nav></header><StrategySelector strategies={store.strategies} active={store.active} onSelect={store.setActiveId} onCreate={store.create} onDuplicate={store.duplicate} onChange={store.update}/>{store.active?<><BusinessDashboard strategy={store.active}/><div id="strategy-configuration"><PricingEditor strategy={store.active} onChange={store.update}/><FeatureMatrix strategy={store.active} onChange={store.update}/></div><div id="strategy-simulation"><FinancialSimulator strategy={store.active} onChange={store.update}/></div><div id="strategy-analysis" className={styles.twoColumns}><BusinessScore strategy={store.active} onChange={store.update}/><CompetitorComparison strategy={store.active} onChange={store.update}/></div><div id="strategy-history" className={styles.twoColumns}><BusinessTimeline strategy={store.active} onChange={store.update}/><DecisionLog strategy={store.active} onChange={store.update}/></div><section className={styles.module}><div className={styles.moduleHeader}><div><span>Préparation</span><h2>IA et exports futurs</h2></div><BrainCircuit size={22}/></div><p className={styles.aiNote}>Le modèle de données regroupe rentabilité, cohérence, positionnement, risques et opportunités. Aucun assistant IA n’est connecté.</p><div className={styles.exportRow}>{['PDF','Excel','CSV','Business Plan','Pitch investisseur'].map(label=><Button key={label} variant="outline" disabled title="Export préparé, non connecté"><Download size={15}/>{label}</Button>)}</div></section></>:<div className={styles.emptyCenter}><FlaskConical size={36}/><h3>Aucun modèle économique figé</h3><p>Créez une première stratégie vide, puis ajoutez uniquement les profils et offres à tester.</p><Button onClick={store.create} disabled={!store.ready}><Plus size={16}/> Créer une stratégie</Button></div>}</section>}

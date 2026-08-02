@@ -1,0 +1,11 @@
+import { Plus, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { availabilityLabels, makeId, type BusinessStrategy, type FeatureAvailability } from "./types";
+import styles from "./BusinessStrategyCenter.module.scss";
+
+const states: FeatureAvailability[] = ["included", "limited", "option", "unavailable"];
+export function FeatureMatrix({ strategy, onChange }: { strategy: BusinessStrategy; onChange: (strategy: BusinessStrategy) => void }) {
+  const add = () => onChange({ ...strategy, features: [...strategy.features, { id: makeId("feature"), name: "Nouvelle fonctionnalité", description: "", availability: {} }] });
+  return <section className={styles.module}><div className={styles.moduleHeader}><div><span>Comparaison rapide</span><h2>Matrice des fonctionnalités</h2></div><Button variant="outline" onClick={add}><Plus size={16} /> Ajouter une ligne</Button></div>{strategy.offers.length && strategy.features.length ? <div className={styles.tableScroll}><table><thead><tr><th>Fonctionnalité</th>{strategy.offers.map((offer) => <th key={offer.id}>{offer.name}</th>)}<th /></tr></thead><tbody>{strategy.features.map((feature) => <tr key={feature.id}><td><Input aria-label="Nom de la fonctionnalité" value={feature.name} title={feature.description} onChange={(e) => onChange({ ...strategy, features: strategy.features.map((item) => item.id === feature.id ? { ...item, name: e.target.value } : item) })} /></td>{strategy.offers.map((offer) => { const current = feature.availability[offer.id] ?? "unavailable"; return <td key={offer.id}><button className={styles.availability} data-state={current} title={availabilityLabels[current]} onClick={() => { const next = states[(states.indexOf(current)+1)%states.length]; onChange({ ...strategy, features: strategy.features.map((item) => item.id === feature.id ? { ...item, availability: { ...item.availability, [offer.id]: next } } : item) }); }}>{availabilityLabels[current]}</button></td>; })}<td><Button variant="ghost" size="sm" onClick={() => onChange({ ...strategy, features: strategy.features.filter((item) => item.id !== feature.id) })}><Trash2 size={15} /></Button></td></tr>)}</tbody></table></div> : <p className={styles.empty}>Ajoutez au moins une offre et une fonctionnalité pour construire la matrice.</p>}</section>;
+}
