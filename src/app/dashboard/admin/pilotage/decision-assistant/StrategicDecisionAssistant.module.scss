@@ -1,0 +1,175 @@
+.section {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.hero,
+.panel {
+  border: 1px solid rgba(138, 109, 74, 0.16);
+  border-radius: 1.4rem;
+  background:
+    radial-gradient(circle at top right, rgba(212, 167, 74, 0.14), transparent 32%),
+    linear-gradient(135deg, rgba(255, 252, 246, 0.98), rgba(255, 255, 255, 0.98) 62%),
+    #fff;
+  box-shadow: 0 18px 42px rgba(61, 44, 25, 0.07);
+}
+
+.hero {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.1rem, 2vw, 1.6rem);
+}
+
+.eyebrow {
+  color: #8a641a;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero h2,
+.panel h3,
+.stepHeader strong,
+.questionHead strong,
+.criterion strong {
+  margin: 0;
+  color: #2f261d;
+}
+
+.hero p,
+.step p,
+.questionCard p,
+.criterion p,
+.panel li,
+.callout p {
+  margin: 0;
+  color: rgba(47, 38, 29, 0.76);
+  line-height: 1.6;
+}
+
+.principles,
+.triggerList,
+.stepsGrid,
+.questionGrid,
+.criteriaGrid,
+.outputGrid,
+.componentGrid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.principles,
+.triggerList {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.principle,
+.trigger,
+.step,
+.questionCard,
+.criterion,
+.output,
+.component {
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(138, 109, 74, 0.14);
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.principle strong,
+.trigger strong,
+.output strong,
+.component strong {
+  color: #2f261d;
+}
+
+.panel {
+  padding: clamp(1rem, 2vw, 1.4rem);
+  display: grid;
+  gap: 1rem;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.panelHeader p {
+  margin: 0.3rem 0 0;
+  color: rgba(47, 38, 29, 0.76);
+  line-height: 1.6;
+  max-width: 70ch;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(49, 91, 67, 0.1);
+  color: #315b43;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.stepsGrid,
+.questionGrid,
+.criteriaGrid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.step {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.stepHeader,
+.questionHead {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.stepHeader span,
+.questionHead span,
+.criterion span {
+  color: #8a641a;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.step ul,
+.panel ul {
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.questionCard,
+.criterion {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.callout {
+  padding: 1rem 1.05rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(49, 91, 67, 0.15);
+  background: rgba(240, 249, 243, 0.88);
+}
+
+.outputGrid,
+.componentGrid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+@media (max-width: 760px) {
+  .panelHeader {
+    flex-direction: column;
+  }
+}

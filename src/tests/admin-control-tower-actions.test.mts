@@ -30,3 +30,15 @@ test("control tower rejects unsupported targets and identifiers", () => {
   assert.equal(parseAdminControlAction({ targetType: "invoice", targetId, status: "acknowledged" }).ok, false);
   assert.equal(parseAdminControlAction({ targetType: "mission", targetId: "not-an-id", status: "acknowledged" }).ok, false);
 });
+
+test("control tower accepts system incidents with stable non-UUID identifiers", () => {
+  const result = parseAdminControlAction({
+    targetType: "system",
+    targetId: "permission-dispute-export",
+    status: "acknowledged",
+    note: "Investigation ouverte",
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(controlActionKey("system", "permission-dispute-export"), "system:permission-dispute-export");
+});

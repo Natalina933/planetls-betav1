@@ -1,4 +1,4 @@
-export const ADMIN_CONTROL_TARGETS = ["onboarding", "mission", "message"] as const;
+export const ADMIN_CONTROL_TARGETS = ["onboarding", "mission", "message", "system"] as const;
 export const ADMIN_CONTROL_ACTIONS = ["acknowledged", "escalated", "closed"] as const;
 
 export type AdminControlTarget = (typeof ADMIN_CONTROL_TARGETS)[number];
@@ -12,6 +12,7 @@ export type AdminControlActionInput = {
 };
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const SYSTEM_TARGET_PATTERN = /^[a-z0-9-]{3,160}$/i;
 
 export function parseAdminControlAction(value: unknown):
   | { ok: true; data: AdminControlActionInput }
@@ -21,9 +22,14 @@ export function parseAdminControlAction(value: unknown):
   if (!ADMIN_CONTROL_TARGETS.includes(body.targetType as AdminControlTarget)) {
     return { ok: false, error: "Type de cible invalide." };
   }
-  if (typeof body.targetId !== "string" || !UUID_PATTERN.test(body.targetId)) {
+  const targetType = body.targetType as AdminControlTarget;
+  const hasValidTargetId =
+    typeof body.targetId === "string" &&
+    (targetType === "system" ? SYSTEM_TARGET_PATTERN.test(body.targetId) : UUID_PATTERN.test(body.targetId));
+  if (!hasValidTargetId) {
     return { ok: false, error: "Identifiant de cible invalide." };
   }
+  const targetId = body.targetId as string;
   if (!ADMIN_CONTROL_ACTIONS.includes(body.status as AdminControlActionStatus)) {
     return { ok: false, error: "Statut d'action invalide." };
   }
@@ -41,7 +47,7 @@ export function parseAdminControlAction(value: unknown):
     ok: true,
     data: {
       targetType: body.targetType as AdminControlTarget,
-      targetId: body.targetId,
+      targetId,
       status: body.status as AdminControlActionStatus,
       note: note || null,
     },

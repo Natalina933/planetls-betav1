@@ -41,6 +41,13 @@ const DEFAULT_CHECKLIST: ChecklistItem[] = [
   { id: "owner", label: "Proprietaire informe", done: false },
 ];
 
+const ADMIN_CHECKLIST: ChecklistItem[] = [
+  { id: "business", label: "Pilotage business relu", done: false },
+  { id: "control", label: "Controle detaille verifie", done: false },
+  { id: "product", label: "Priorites produit clarifiees", done: false },
+  { id: "team", label: "Decisions partagees a l equipe", done: false },
+];
+
 function normalizeRole(role?: string | null): MobileRole {
   const value = String(role ?? "").toLowerCase();
   if (value.includes("admin")) return "admin";
@@ -61,6 +68,10 @@ function safeChecklist(value: string | null) {
   } catch {
     return DEFAULT_CHECKLIST;
   }
+}
+
+function getDefaultChecklist(role: MobileRole) {
+  return role === "admin" ? ADMIN_CHECKLIST : DEFAULT_CHECKLIST;
 }
 
 function getRoleHome(role: MobileRole) {
@@ -103,6 +114,7 @@ export function DashboardMobileExperience({ role, pathname }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const drawingRef = useRef(false);
   const lastPointRef = useRef<{ x: number; y: number } | null>(null);
+  const defaultChecklist = useMemo(() => getDefaultChecklist(roleKey), [roleKey]);
 
   const progress = useMemo(() => {
     const done = checklist.filter((item) => item.done).length + (validated ? 1 : 0) + (signatureSaved ? 1 : 0);
@@ -110,19 +122,33 @@ export function DashboardMobileExperience({ role, pathname }: Props) {
   }, [checklist, signatureSaved, validated]);
 
   const quickActions = useMemo(
-    () => [
-      { label: "Accueil", href: getRoleHome(roleKey), icon: Home },
-      { label: "Planning", href: getRolePlanning(roleKey), icon: Route },
-      { label: roleKey === "provider" ? "Interventions" : "Missions", href: getRoleMissionHub(roleKey), icon: ClipboardCheck },
-      { label: "Messages", href: getRoleMessages(roleKey), icon: MessageSquareText },
-    ],
+    () =>
+      roleKey === "admin"
+        ? [
+            { label: "Vue plateforme", href: getRoleHome(roleKey), icon: Home },
+            { label: "Pilotage business", href: "/dashboard/admin/pilotage", icon: Route },
+            { label: "Controle detaille", href: "/dashboard/admin/controle", icon: ClipboardCheck },
+            { label: "Developpement", href: "/dashboard/admin/developpement", icon: MessageSquareText },
+          ]
+        : [
+            { label: "Accueil", href: getRoleHome(roleKey), icon: Home },
+            { label: "Planning", href: getRolePlanning(roleKey), icon: Route },
+            { label: roleKey === "provider" ? "Interventions" : "Missions", href: getRoleMissionHub(roleKey), icon: ClipboardCheck },
+            { label: "Messages", href: getRoleMessages(roleKey), icon: MessageSquareText },
+          ],
     [roleKey],
   );
 
   useEffect(() => {
-    setChecklist(safeChecklist(localStorage.getItem(CHECKLIST_KEY)));
+    const storedChecklist = safeChecklist(localStorage.getItem(CHECKLIST_KEY));
+    setChecklist(
+      defaultChecklist.map((item) => ({
+        ...item,
+        done: Boolean(storedChecklist.find((entry) => entry.id === item.id)?.done),
+      })),
+    );
     setSignatureSaved(Boolean(localStorage.getItem(SIGNATURE_KEY)));
-  }, []);
+  }, [defaultChecklist]);
 
   useEffect(() => {
     localStorage.setItem(CHECKLIST_KEY, JSON.stringify(checklist));
@@ -224,10 +250,11 @@ export function DashboardMobileExperience({ role, pathname }: Props) {
   }, []);
 
   const isConcierge = roleKey === "concierge";
+  const isAdmin = roleKey === "admin";
 
   return (
     <>
-      <nav className={styles.mobileDock} aria-label="Navigation mobile terrain">
+      <nav className={styles.mobileDock} aria-label={isAdmin ? "Navigation mobile administration" : "Navigation mobile terrain"}>
         {quickActions.map((action) => {
           const Icon = action.icon;
           const active = pathname === action.href || pathname?.startsWith(`${action.href}/`);
@@ -245,7 +272,7 @@ export function DashboardMobileExperience({ role, pathname }: Props) {
         })}
         <button type="button" className={styles.primaryDockAction} onClick={() => setOpen(true)}>
           <Plus size={24} aria-hidden="true" />
-          <span>Terrain</span>
+          <span>{isAdmin ? "Actions" : "Terrain"}</span>
         </button>
       </nav>
 
@@ -255,13 +282,13 @@ export function DashboardMobileExperience({ role, pathname }: Props) {
             className={styles.sheet}
             role="dialog"
             aria-modal="true"
-            aria-label="Actions mobiles terrain"
+            aria-label={isAdmin ? "Actions mobiles administration" : "Actions mobiles terrain"}
             onMouseDown={(event) => event.stopPropagation()}
           >
             <header className={styles.sheetHeader}>
               <div>
-                <p>{isConcierge ? "Mode concierge mobile" : "Mode mobile"}</p>
-                <h2>Action terrain</h2>
+                <p>{isAdmin ? "Mode administration mobile" : isConcierge ? "Mode concierge mobile" : "Mode mobile"}</p>
+                <h2>{isAdmin ? "Action admin" : "Action terrain"}</h2>
               </div>
               <button type="button" onClick={() => setOpen(false)} aria-label="Fermer">
                 <X size={20} aria-hidden="true" />
@@ -271,29 +298,33 @@ export function DashboardMobileExperience({ role, pathname }: Props) {
             <div className={styles.progressCard}>
               <span>{progress}%</span>
               <div>
-                <strong>Tournee prete</strong>
-                <p>Checklist, preuve, validation et signature depuis le telephone.</p>
+                <strong>{isAdmin ? "Pilotage pret" : "Tournee prete"}</strong>
+                <p>
+                  {isAdmin
+                    ? "Verification rapide du pilotage, du controle et des priorites depuis le mobile."
+                    : "Checklist, preuve, validation et signature depuis le telephone."}
+                </p>
               </div>
             </div>
 
             <div className={styles.bigActions}>
               <label className={styles.cameraButton}>
                 <Camera size={24} aria-hidden="true" />
-                <span>Prendre une photo</span>
+                <span>{isAdmin ? "Ajouter une capture" : "Prendre une photo"}</span>
                 <input type="file" accept="image/*" capture="environment" onChange={handlePhotoChange} />
               </label>
               <button type="button" onClick={() => setValidated(true)} className={validated ? styles.doneAction : ""}>
                 <Check size={24} aria-hidden="true" />
-                <span>{validated ? "Valide" : "Valider en 1 clic"}</span>
+                <span>{validated ? "Valide" : isAdmin ? "Valider la revue" : "Valider en 1 clic"}</span>
               </button>
             </div>
 
             {photoPreview ? (
               <div className={styles.photoPreview}>
                 <span className={styles.photoPreviewImage}>
-                  <Image src={photoPreview} alt={photoName || "Photo terrain"} fill sizes="82px" unoptimized />
+                  <Image src={photoPreview} alt={photoName || (isAdmin ? "Capture admin" : "Photo terrain")} fill sizes="82px" unoptimized />
                 </span>
-                <span>{photoName || "Photo prete a joindre"}</span>
+                <span>{photoName || (isAdmin ? "Capture prete a joindre" : "Photo prete a joindre")}</span>
               </div>
             ) : null}
 
@@ -342,13 +373,13 @@ export function DashboardMobileExperience({ role, pathname }: Props) {
             </section>
 
             <div className={styles.sheetShortcuts}>
-              <button type="button" onClick={() => navigate(getRolePlanning(roleKey))}>
+              <button type="button" onClick={() => navigate(isAdmin ? "/dashboard/admin/pilotage" : getRolePlanning(roleKey))}>
                 <MapPinned size={18} aria-hidden="true" />
-                Planning
+                {isAdmin ? "Pilotage business" : "Planning"}
               </button>
-              <button type="button" onClick={() => navigate(getRoleMissionHub(roleKey))}>
+              <button type="button" onClick={() => navigate(isAdmin ? "/dashboard/admin/controle" : getRoleMissionHub(roleKey))}>
                 <Sparkles size={18} aria-hidden="true" />
-                Ouvrir mission
+                {isAdmin ? "Controle detaille" : "Ouvrir mission"}
               </button>
             </div>
           </section>

@@ -12,6 +12,7 @@ import {
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
+import type { TravelerStayMissionRow } from "@/app/lib/travelerStaySupabase";
 import { requireApiRole } from "@/server/auth/roleGuards";
 
 const dbAny = asLooseSupabaseClient(db);
@@ -231,7 +232,7 @@ async function loadReservationContext(id: string) {
       reservation,
       ownerName,
       propertyLabel,
-      missions: ((missions ?? []) as any[]) ?? [],
+      missions: (missions ?? []) as TravelerStayMissionRow[],
     }),
     profiles: {
       owner_name: ownerName,

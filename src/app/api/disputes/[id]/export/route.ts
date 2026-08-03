@@ -36,6 +36,7 @@ const formatAmount = (value: number | null | undefined, currency = "EUR"): strin
 
 // Legacy Supabase typing is incomplete on new dispute tables.
 const dbAny = asLooseSupabaseClient(db);
+const SIGNED_URL_TTL_SECONDS = 10 * 60;
 
 export async function GET(
   req: NextRequest,
@@ -151,17 +152,33 @@ export async function GET(
       },
     );
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
+    const signedMediaUrlById = new Map<string, string>();
+    await Promise.all(
+      Array.from(mediaById.values()).map(async (media) => {
+        if (!media.storage_bucket || !media.storage_path) {
+          return;
+        }
+
+        const { data: signed, error: signError } = await db.storage
+          .from(media.storage_bucket)
+          .createSignedUrl(media.storage_path, SIGNED_URL_TTL_SECONDS, {
+            download: `${media.id}.${media.media_type === "video" ? "mp4" : "jpg"}`,
+          });
+
+        if (signError || !signed?.signedUrl) {
+          console.error("[GET /api/disputes/:id/export] signed url error:", signError);
+          return;
+        }
+
+        signedMediaUrlById.set(media.id, signed.signedUrl);
+      }),
+    );
 
     const evidenceRows = links
       .map((link: { media_id?: string | null; checklist_item_id?: string | null; comment?: string | null; created_at?: string | null }) => {
         const media = link.media_id ? mediaById.get(link.media_id) : null;
         const checklist = link.checklist_item_id ? checklistById.get(link.checklist_item_id) : null;
-
-        const mediaUrl =
-          media && supabaseUrl && media.storage_bucket && media.storage_path
-            ? `${supabaseUrl}/storage/v1/object/public/${media.storage_bucket}/${media.storage_path}`
-            : null;
+        const mediaUrl = link.media_id ? signedMediaUrlById.get(link.media_id) ?? null : null;
 
         return `
           <tr>
