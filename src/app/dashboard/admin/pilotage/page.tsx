@@ -558,19 +558,6 @@ export default function AdminBusinessPage() {
     },
   ];
 
-  const quickActions = [
-    {
-      label: "Ouvrir le contrôle admin",
-      href: "/dashboard/admin/controle",
-      description: "Relier les arbitrages business aux tensions opérationnelles visibles.",
-    },
-    {
-      label: "Ouvrir le développement",
-      href: "/dashboard/admin/developpement",
-      description: "Vérifier l'alignement entre priorité business, roadmap et réalité du code.",
-    },
-  ];
-
   const boardNarrative = [
     "PlanetLS possède déjà un socle produit crédible sur les demandes, devis, missions, preuves et dashboards métier.",
     "La priorité n'est plus la largeur fonctionnelle mais la preuve qu'une conciergerie paie et reste active pour ce cockpit.",
@@ -596,7 +583,7 @@ export default function AdminBusinessPage() {
     <DashboardLayout
       persona="admin"
       title="Business plan PlanetLS"
-      subtitle="Une lecture unique pour cadrer la traction, le modèle économique, le benchmark et les priorités de lancement."
+      subtitle="Une lecture direction pour piloter la traction, le modèle économique, le benchmark et les priorités de lancement."
       navTitle="Pilotage admin"
       navItems={[
         { label: "Vue d'ensemble", href: "/dashboard/admin" },
@@ -614,7 +601,7 @@ export default function AdminBusinessPage() {
           hint: `${validationCounts.hypotheses} hypothèses à challenger`,
         },
       ]}
-      actions={quickActions}
+      actions={[]}
       activity={[
         {
           id: "business-thesis",
@@ -659,11 +646,11 @@ export default function AdminBusinessPage() {
         <section className={styles.hero}>
           <div className={styles.heroContent}>
             <span className={styles.eyebrow}>Business plan 2026</span>
-            <h2>Construire un SaaS métier qui connecte acquisition locale et exécution terrain.</h2>
+            <h2>Construire un SaaS métier qui relie acquisition locale, coordination et exécution terrain.</h2>
             <p>
-              PlanetLS a déjà un socle produit crédible. Le prochain enjeu n&apos;est pas d&apos;ajouter
-              encore des modules, mais de prouver qu&apos;une conciergerie paie pour un cockpit qui relie
-              réseau local, demandes, devis, missions, preuves et suivi opérationnel.
+              PlanetLS dispose déjà d&apos;un socle crédible. L&apos;enjeu n&apos;est plus d&apos;empiler des modules,
+              mais de prouver qu&apos;une conciergerie paie pour un cockpit qui centralise réseau local,
+              demandes, devis, missions, preuves et suivi opérationnel.
             </p>
           </div>
 
@@ -679,7 +666,7 @@ export default function AdminBusinessPage() {
             <article className={styles.heroCard}>
               <span>Dernière mise à jour</span>
               <strong>{formatDateTime(lastUpdated)}</strong>
-              <p>Lecture alimentée par les endpoints admin et par le cadre business déjà présent dans le projet.</p>
+              <p>Lecture alimentée par les endpoints admin et le cadre business déjà structuré dans le projet.</p>
             </article>
           </div>
         </section>
@@ -725,7 +712,7 @@ export default function AdminBusinessPage() {
                 <div className={styles.decisionList}>
                   {boardNarrative.map((item) => (
                     <article key={item} className={styles.decisionCard}>
-                      <strong>Point clé</strong>
+                      <strong>Thèse</strong>
                       <p>{item}</p>
                     </article>
                   ))}
@@ -1117,15 +1104,15 @@ export default function AdminBusinessPage() {
               <DashboardPanel title="Conditions avant accélération">
                 <div className={styles.decisionList}>
                   <article className={styles.decisionCard}>
-                    <strong>Condition 1</strong>
+                    <strong>Validation de la volonté de payer</strong>
                     <p>Des comptes pilotes doivent payer ou confirmer une intention de paiement défendable.</p>
                   </article>
                   <article className={styles.decisionCard}>
-                    <strong>Condition 2</strong>
+                    <strong>Preuve d&apos;un gain opérationnel répété</strong>
                     <p>Le gain opérationnel doit être visible sur un cas d&apos;usage répété, pas seulement apprécié en démo.</p>
                   </article>
                   <article className={styles.decisionCard}>
-                    <strong>Condition 3</strong>
+                    <strong>Onboarding et support plus standardisés</strong>
                     <p>Le support et l&apos;onboarding doivent commencer à se standardiser avant toute expansion plus large.</p>
                   </article>
                 </div>

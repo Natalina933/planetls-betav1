@@ -482,24 +482,24 @@ export function EconomicModelTab() {
           ))}
         </div>
         <p className={styles.sectionNote}>
-          Ce module est pensé comme un atelier de décision visuel. Il sépare strictement les hypothèses de pricing,
-          les offres réelles publiées et les tests à venir.
+          Ce module sert d&apos;atelier de décision. Il sépare clairement les hypothèses de pricing,
+          les offres réelles et les tests à préparer.
         </p>
       </DashboardPanel>
 
       <section className={styles.economicHero}>
         <div className={styles.economicHeroContent}>
           <span className={styles.eyebrow}>Modèle économique</span>
-          <h3>Une lecture unique, plus claire, sans sous-onglets à l&apos;intérieur du cockpit</h3>
+          <h3>Un cadrage business continu, sans sous-onglets ni rupture de lecture</h3>
           <p>
-            La page déroule maintenant les sujets dans l&apos;ordre naturel d&apos;une décision business :
-            gouvernance, stratégies, architecture des offres, simulations, comparaison, tests, puis décisions.
+            La page suit désormais l&apos;ordre naturel d&apos;une décision business :
+            gouvernance, stratégies, architecture des offres, simulations, comparaison, tests puis décisions.
           </p>
         </div>
         <div className={styles.economicHeroAside}>
           <article className={styles.economicHeroNote}>
             <strong>Décision tarifaire à préparer</strong>
-            <p>Confirmer si PlanetLS doit lancer un SaaS lisible d&apos;abord, puis ajouter une sophistication après preuve terrain.</p>
+            <p>Confirmer un SaaS lisible au lancement, puis complexifier l&apos;offre seulement après preuve terrain.</p>
           </article>
           <article className={styles.economicHeroNote}>
             <strong>Règle non négociable</strong>
@@ -518,7 +518,7 @@ export function EconomicModelTab() {
             </div>
           </div>
 
-          <section className={styles.grid}>
+          <section className={styles.economicWideGrid}>
             <DashboardPanel title="Règles de gouvernance">
               <div className={styles.decisionList}>
                 <article className={styles.decisionCard}>
@@ -539,7 +539,7 @@ export function EconomicModelTab() {
             <DashboardPanel title="Bloc protégé - Conciergerie Pro existante">
               <div className={styles.protectedOfferCard}>
                 <div className={styles.protectedOfferHeader}>
-                  <div>
+                  <div className={styles.strategyHeading}>
                     <span className={styles.eyebrow}>Production verrouillée</span>
                     <h3>{protectedOffer.name}</h3>
                   </div>
@@ -634,8 +634,9 @@ export function EconomicModelTab() {
                     <h3>{strategy.name}</h3>
                   </div>
                   <div className={styles.strategyScoreStack}>
-                    <span className={styles.scorePill} data-tone="strong">
-                      {strategy.scoreAverage}/10
+                    <span className={styles.strategyScoreBadge}>
+                      <span>Score moyen</span>
+                      <strong>{strategy.scoreAverage}/10</strong>
                     </span>
                     <span className={styles.scorePill} data-tone={strategy.status === "simulating" ? "good" : "mid"}>
                       {PRICING_STRATEGY_STATUS_LABELS[strategy.status]}
@@ -644,24 +645,24 @@ export function EconomicModelTab() {
                 </div>
                 <p>{strategy.description}</p>
                 <div className={styles.strategyMetaGrid}>
-                  <div>
-                    <span>Profils</span>
+                  <div className={styles.strategyMetaItem}>
+                    <span>Profils :</span>
                     <strong>
                       {strategy.targetProfileIds
                         .map((profileId) => pricingProfileMap.get(profileId)?.label ?? profileId)
                         .join(", ")}
                     </strong>
                   </div>
-                  <div>
-                    <span>Revenu visé</span>
+                  <div className={styles.strategyMetaItem}>
+                    <span>Revenu visé :</span>
                     <strong>{strategy.targetRevenue}</strong>
                   </div>
-                  <div>
-                    <span>Complexité</span>
+                  <div className={styles.strategyMetaItem}>
+                    <span>Complexité :</span>
                     <strong>{strategy.complexityLabel}</strong>
                   </div>
-                  <div>
-                    <span>Délai</span>
+                  <div className={styles.strategyMetaItem}>
+                    <span>Délai :</span>
                     <strong>{strategy.implementationDelay}</strong>
                   </div>
                 </div>
@@ -693,7 +694,7 @@ export function EconomicModelTab() {
             <span className={styles.sectionIndex}>03</span>
             <div>
               <h3>Offres & profils</h3>
-              <p>Une lecture plus premium des offres simulées, des profils cibles et de la structure commerciale future.</p>
+              <p>Les hypothèses d&apos;offres, les profils cibles et la structure commerciale future.</p>
             </div>
           </div>
 
@@ -764,7 +765,7 @@ export function EconomicModelTab() {
             ))}
           </section>
 
-          <section className={styles.grid}>
+          <section className={styles.economicWideGrid}>
             <DashboardPanel title="Profils tarifaires de référence">
               <div className={styles.profileInsightGrid}>
                 {profileHighlights.map((profile) => (
@@ -789,7 +790,7 @@ export function EconomicModelTab() {
             </DashboardPanel>
           </section>
 
-          <section className={styles.grid}>
+          <section className={styles.economicWideGrid}>
             <DashboardPanel title="Cadre produit de la future offre">
               <div className={styles.offerBuilderGrid}>
                 <article className={styles.offerBuilderCard}>
@@ -873,8 +874,8 @@ export function EconomicModelTab() {
             </div>
 
             <p className={styles.sectionNote}>
-              Cette matrice sert de repère executive pour montrer où se situe la valeur visible, où commencent les limites,
-              et quelles briques doivent rester des options ou des évolutions futures.
+              Cette matrice montre où se situe la valeur visible, où commencent les limites et quelles briques
+              doivent rester optionnelles ou futures.
             </p>
           </DashboardPanel>
         </div>
@@ -884,7 +885,7 @@ export function EconomicModelTab() {
             <span className={styles.sectionIndex}>04</span>
             <div>
               <h3>Simulations</h3>
-              <p>Les hypothèses clés prennent ici une forme plus premium, avec lecture KPI, projection et angle investisseur.</p>
+              <p>Les hypothèses clés prennent ici une forme KPI, projection et lecture investisseur.</p>
             </div>
           </div>
 
@@ -961,7 +962,7 @@ export function EconomicModelTab() {
               <span className={styles.eyebrow}>Projection investisseur</span>
               <h4>Ce que racontent les scénarios dans le temps</h4>
               <p>
-                L'objectif n'est pas de figer une vérité financière, mais de visualiser quelle histoire chaque scénario
+                L&apos;objectif n&apos;est pas de figer une vérité financière, mais de visualiser le récit que chaque scénario
                 permet de défendre devant un board, une banque ou un partenaire.
               </p>
             </div>
@@ -1057,7 +1058,7 @@ export function EconomicModelTab() {
           </section>
 
           <p className={styles.sectionNote}>
-            Lecture simplifiée : le modèle par niveau reste le plus simple à lancer, le modèle hybride conserve le meilleur potentiel,
+            Lecture simplifiée : le modèle par niveau reste le plus simple à lancer, le modèle hybride conserve le meilleur potentiel
             et l&apos;abonnement + commission reste le plus exigeant à exécuter.
           </p>
         </div>
@@ -1067,11 +1068,11 @@ export function EconomicModelTab() {
             <span className={styles.sectionIndex}>06</span>
             <div>
               <h3>Tests tarifaires</h3>
-              <p>Le module reste un espace de préparation, pas un outil de mise en production directe.</p>
+              <p>Un espace de préparation, pas un outil de mise en production directe.</p>
             </div>
           </div>
 
-          <section className={styles.grid}>
+          <section className={styles.economicWideGrid}>
             <DashboardPanel title="Backlog des tests tarifaires">
               <div className={styles.tableWrap}>
                 <table className={styles.dataTable}>
@@ -1129,7 +1130,7 @@ export function EconomicModelTab() {
             <span className={styles.sectionIndex}>07</span>
             <div>
               <h3>Décisions</h3>
-              <p>On termine la lecture par la mémoire de pilotage et les prochaines briques à brancher.</p>
+              <p>La mémoire de pilotage et les prochaines briques à raccorder.</p>
             </div>
           </div>
 
