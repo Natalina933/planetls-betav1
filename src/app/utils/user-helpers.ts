@@ -9,8 +9,8 @@ export type KnownRole =
   | "artisan_pro";
 
 export const ROLE_LABELS: Record<KnownRole, string> = {
-  owner: "Proprietaire",
-  owner_pro: "Proprietaire PRO",
+  owner: "Propriétaire",
+  owner_pro: "Propriétaire PRO",
   concierge: "Conciergerie",
   concierge_pro: "Conciergerie PRO",
   provider: "Artisan",
@@ -20,7 +20,7 @@ export const ROLE_LABELS: Record<KnownRole, string> = {
 };
 
 export const getRoleLabel = (role?: string | null): string => {
-  if (!role) return "Invite";
+  if (!role) return "Invité";
   return ROLE_LABELS[role as KnownRole] || role.charAt(0).toUpperCase() + role.slice(1);
 };
 

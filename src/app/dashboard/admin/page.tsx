@@ -6,14 +6,22 @@ import type { CSSProperties } from "react";
 import {
   ArrowRight,
   BellRing,
-  Clock3,
-  Compass,
+  CalendarRange,
+  CircleDollarSign,
   LifeBuoy,
   ShieldAlert,
   Sparkles,
   UserRoundPlus,
+  Users,
 } from "lucide-react";
-import { DashboardLayout } from "@/components/dashboard";
+import { DashboardEmptyState } from "@/app/components/dashboard/saas";
+import {
+  UnifiedRoleDashboard,
+  UnifiedSpotlightList,
+  UnifiedStatStack,
+  type UnifiedSpotlightItem,
+} from "@/app/components/dashboard/unified";
+import type { KpiOverviewPayload } from "@/app/api/kpis/overview/shared";
 import {
   getElapsedLabel,
   getMissionNextAction,
@@ -27,11 +35,11 @@ import {
   type AdminMissionRow,
   type AdminRequestRow,
 } from "./AdminOperations";
-import type { KpiOverviewPayload } from "@/app/api/kpis/overview/shared";
 import styles from "./AdminDashboard.module.scss";
 
 type TimeWindow = 7 | 30 | 90;
 type ActivationRole = "owner" | "concierge" | "provider";
+type MetricTone = "neutral" | "positive" | "warning" | "danger";
 
 type AdminUserSummary = {
   id: string;
@@ -123,8 +131,6 @@ type AdminOperationsPayload = {
   missions: AdminMissionRow[];
   invoiceCount: number;
 };
-
-type MetricTone = "neutral" | "positive" | "warning" | "danger";
 
 type PriorityItem = {
   id: string;
@@ -235,7 +241,6 @@ function buildLinePath(points: number[], width: number, height: number) {
   }
 
   const stepX = (width - 16) / (points.length - 1);
-
   return points
     .map((point, index) => {
       const x = 8 + index * stepX;
@@ -250,26 +255,6 @@ function StatusChip({ tone, children }: { tone: MetricTone; children: string }) 
     <span className={styles.statusChip} data-tone={tone}>
       {children}
     </span>
-  );
-}
-
-function MetricCard({
-  label,
-  value,
-  helper,
-  tone = "neutral",
-}: {
-  label: string;
-  value: string;
-  helper: string;
-  tone?: MetricTone;
-}) {
-  return (
-    <article className={styles.metricCard} data-tone={tone}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-      <p>{helper}</p>
-    </article>
   );
 }
 
@@ -365,7 +350,7 @@ function HealthSectionCard({
   const tone = resolveBlockTone(block);
   const segments = [
     { label: "Sains", value: block.healthy, color: "#1f9d55" },
-    { label: "À suivre", value: block.warning, color: "#f59e0b" },
+    { label: "A suivre", value: block.warning, color: "#f59e0b" },
     { label: "Critiques", value: block.danger, color: "#ef4444" },
   ];
 
@@ -475,7 +460,7 @@ function ZoneBarChart({
   points: Array<{ zone: string; eligible: number; activated: number; rate: number | null }>;
 }) {
   if (points.length === 0) {
-    return <p className={styles.chartEmpty}>Aucune zone exploitable n'est remontée pour le moment.</p>;
+    return <p className={styles.chartEmpty}>Aucune zone exploitable n'est remontee pour le moment.</p>;
   }
 
   return (
@@ -487,12 +472,9 @@ function ZoneBarChart({
             <span>{formatNullablePercent(point.rate, "Non disponible")}</span>
           </div>
           <div className={styles.zoneTrack} aria-hidden="true">
-            <div
-              className={styles.zoneFill}
-              style={{ width: `${Math.max(6, Math.min(point.rate ?? 0, 100))}%` }}
-            />
+            <div className={styles.zoneFill} style={{ width: `${Math.max(6, Math.min(point.rate ?? 0, 100))}%` }} />
           </div>
-          <small>{point.activated} activés sur {point.eligible} éligibles</small>
+          <small>{point.activated} actives sur {point.eligible} éligibles</small>
         </div>
       ))}
     </div>
@@ -550,7 +532,7 @@ export default function AdminDashboard() {
         if (controlRes.status === "fulfilled" && controlRes.value.ok) {
           controlData = (await controlRes.value.json().catch(() => null)) as AdminControlPayload | null;
         } else {
-          warnings.push("Tour de contrôle indisponible.");
+          warnings.push("Tour de controle indisponible.");
         }
 
         if (kpiRes.status === "fulfilled" && kpiRes.value.ok) {
@@ -582,7 +564,7 @@ export default function AdminDashboard() {
       } catch (fetchError) {
         if (!active) return;
         console.error("Erreur chargement cockpit admin :", fetchError);
-        setError("Le cockpit admin a rencontré une erreur inattendue.");
+        setError("Le cockpit admin a rencontre une erreur inattendue.");
       } finally {
         if (active) setLoading(false);
       }
@@ -614,7 +596,7 @@ export default function AdminDashboard() {
     () =>
       requests.filter((request) => {
         const status = getRequestStatus(request);
-        return status === "Bloquée" || getRequestUrgency(request) === "danger";
+        return status === "Bloquee" || getRequestUrgency(request) === "danger";
       }),
     [requests],
   );
@@ -622,16 +604,13 @@ export default function AdminDashboard() {
   const acceptedQuotesWithoutMission = useMemo(
     () =>
       requests.filter((request) => {
-        const quoteAccepted = getRequestStatus(request) === "Devis accepté";
+        const quoteAccepted = getRequestStatus(request) === "Devis accepte";
         return quoteAccepted && !normalizeAdminText(request.mission_workflow_status);
       }),
     [requests],
   );
 
-  const lateMissions = useMemo(
-    () => missions.filter((mission) => getMissionUrgency(mission) === "danger"),
-    [missions],
-  );
+  const lateMissions = useMemo(() => missions.filter((mission) => getMissionUrgency(mission) === "danger"), [missions]);
 
   const missionWarnings = useMemo(
     () =>
@@ -660,7 +639,7 @@ export default function AdminDashboard() {
     blockedRequests.slice(0, 3).forEach((request) => {
       items.push({
         id: `request-${request.id}`,
-        title: `${getRequestStatus(request)} · ${request.property_name || "Logement non renseigné"}`,
+        title: `${getRequestStatus(request)} · ${request.property_name || "Logement non renseigne"}`,
         description: `${getRequestNextAction(request)} · ${getRequestAssignee(request)} · ${getElapsedLabel(
           request.updated_at ?? request.created_at,
         )}`,
@@ -672,8 +651,8 @@ export default function AdminDashboard() {
     acceptedQuotesWithoutMission.slice(0, 2).forEach((request) => {
       items.push({
         id: `quote-${request.id}`,
-        title: `Devis accepté sans mission · ${request.property_name || request.title || "Demande"}`,
-        description: "Vérifier la création de mission et le relais côté conciergerie.",
+        title: `Devis accepte sans mission · ${request.property_name || request.title || "Demande"}`,
+        description: "Verifier la creation de mission et le relais cote conciergerie.",
         href: "/dashboard/admin/demandes",
         tone: "warning",
       });
@@ -683,9 +662,7 @@ export default function AdminDashboard() {
       items.push({
         id: `mission-${mission.id}`,
         title: `${getMissionStatus(mission)} · ${mission.property_name || mission.title || "Mission"}`,
-        description: `${getMissionNextAction(mission)} · ${getElapsedLabel(
-          mission.updated_at ?? mission.scheduled_start,
-        )}`,
+        description: `${getMissionNextAction(mission)} · ${getElapsedLabel(mission.updated_at ?? mission.scheduled_start)}`,
         href: "/dashboard/admin/missions",
         tone: getMissionUrgency(mission),
       });
@@ -694,8 +671,8 @@ export default function AdminDashboard() {
     (adminOverview?.spotlights.onboardingAlerts ?? []).slice(0, 3).forEach((user) => {
       items.push({
         id: `user-${user.id}`,
-        title: `Inscription à vérifier · ${user.displayName}`,
-        description: user.healthFlags[0] ?? "Contrôle de complétude recommandé.",
+        title: `Inscription a verifier · ${user.displayName}`,
+        description: user.healthFlags[0] ?? "Controle de completude recommande.",
         href: resolveAdminSegment(user.roleBucket),
         tone: user.lastSignInAt ? "warning" : "danger",
       });
@@ -710,8 +687,8 @@ export default function AdminDashboard() {
     (adminOverview?.spotlights.recentlySignedIn ?? []).slice(0, 4).forEach((user) => {
       items.push({
         id: `signin-${user.id}`,
-        title: `${user.displayName} s'est reconnecté`,
-        detail: `${resolveRoleLabel(user.roleBucket)} · ${user.city || "Ville non renseignée"}`,
+        title: `${user.displayName} s'est reconnecte`,
+        detail: `${resolveRoleLabel(user.roleBucket)} · ${user.city || "Ville non renseignee"}`,
         href: resolveAdminSegment(user.roleBucket),
         timestamp: user.lastSignInAt,
         kind: "user",
@@ -753,19 +730,9 @@ export default function AdminDashboard() {
     if (!kpiOverview) return null;
 
     return [
-      {
-        label: "Propriétaires",
-        value:
-          formatNullablePercent(kpiOverview.owner.activation_j7),
-      },
-      {
-        label: "Conciergeries",
-        value: formatNullablePercent(kpiOverview.concierge.activation_j7),
-      },
-      {
-        label: "Artisans",
-        value: formatNullablePercent(kpiOverview.provider.activation_j7),
-      },
+      { label: "Propriétaires", value: formatNullablePercent(kpiOverview.owner.activation_j7) },
+      { label: "Conciergeries", value: formatNullablePercent(kpiOverview.concierge.activation_j7) },
+      { label: "Artisans", value: formatNullablePercent(kpiOverview.provider.activation_j7) },
     ];
   }, [kpiOverview]);
 
@@ -793,15 +760,27 @@ export default function AdminDashboard() {
 
   const selectedRoleActivation = kpiOverview?.[roleFilter] ?? null;
   const selectedRoleLabel = ROLE_OPTIONS.find((option) => option.value === roleFilter)?.label ?? "Segment";
+
   const roleDistributionSegments = useMemo(
     () => [
       { label: "Propriétaires", value: adminOverview?.summary.owners ?? 0, color: "#125c5b" },
       { label: "Conciergeries", value: adminOverview?.summary.concierges ?? 0, color: "#d4a74a" },
       { label: "Artisans", value: adminOverview?.summary.providers ?? 0, color: "#6f8a91" },
-      { label: "Admins", value: Math.max(0, (adminOverview?.summary.totalUsers ?? 0) - ((adminOverview?.summary.owners ?? 0) + (adminOverview?.summary.concierges ?? 0) + (adminOverview?.summary.providers ?? 0))), color: "#d46f5d" },
+      {
+        label: "Admins",
+        value: Math.max(
+          0,
+          (adminOverview?.summary.totalUsers ?? 0) -
+            ((adminOverview?.summary.owners ?? 0) +
+              (adminOverview?.summary.concierges ?? 0) +
+              (adminOverview?.summary.providers ?? 0)),
+        ),
+        color: "#d46f5d",
+      },
     ],
     [adminOverview],
   );
+
   const controlHealthSegments = useMemo(
     () => [
       {
@@ -813,7 +792,7 @@ export default function AdminDashboard() {
         color: "#1f9d55",
       },
       {
-        label: "À suivre",
+        label: "A suivre",
         value:
           (adminControl?.summary.onboarding.warning ?? 0) +
           (adminControl?.summary.missions.warning ?? 0) +
@@ -843,8 +822,9 @@ export default function AdminDashboard() {
     (adminControl?.summary.totalProblems ?? 0) > 0;
 
   const summarySentence = adminControl
-    ? `${adminControl.summary.totalProblems} point(s) de contrôle à traiter, ${blockedRequests.length} demande(s) bloquée(s) et ${lateMissions.length} mission(s) critiques.`
-    : "Le cockpit admin centralise les anomalies, l'activité et les conversions récentes.";
+    ? `${adminControl.summary.totalProblems} point(s) de controle a traiter, ${blockedRequests.length} demande(s) bloquee(s) et ${lateMissions.length} mission(s) critiques.`
+    : "Le cockpit admin centralise les anomalies, l'activite et les conversions recentes.";
+
   const selectedRoleActivationTone: MetricTone =
     selectedRoleActivation?.activation_j7 === null
       ? "neutral"
@@ -855,36 +835,35 @@ export default function AdminDashboard() {
           : selectedRoleActivation
             ? "positive"
             : "neutral";
+
   const heroTone: MetricTone =
     lateMissions.length > 0 || (adminControl?.summary.totalProblems ?? 0) >= 8
       ? "danger"
       : blockedRequests.length > 0 || sourceWarnings.length > 0 || (adminControl?.summary.totalProblems ?? 0) > 0
         ? "warning"
         : "positive";
+
   const heroStatusLabel =
-    heroTone === "danger"
-      ? "Tension opérationnelle forte"
-      : heroTone === "warning"
-        ? "Journée sous surveillance"
-        : "Exploitation fluide";
+    heroTone === "danger" ? "Tension operationnelle forte" : heroTone === "warning" ? "Journee sous surveillance" : "Exploitation fluide";
+
   const heroStoryCards: HeroStoryCard[] = [
     {
       id: "problems",
-      label: "Points à traiter",
+      label: "Points a traiter",
       value: String(adminControl?.summary.totalProblems ?? 0),
       detail:
         heroTone === "danger"
-          ? "Le cockpit remonte plusieurs anomalies à escalader."
+          ? "Le cockpit remonte plusieurs anomalies a escalader."
           : heroTone === "warning"
             ? "Des points existent, mais restent encore absorbables."
-            : "Aucune dérive majeure visible sur le périmètre suivi.",
+            : "Aucune derive majeure visible sur le perimetre suivi.",
       tone: heroTone,
     },
     {
       id: "flow",
       label: "Flux entrant",
       value: `${recentRequests}`,
-      detail: `${blockedRequests.length} demande(s) bloquée(s) et ${missions.length} mission(s) suivies.`,
+      detail: `${blockedRequests.length} demande(s) bloquee(s) et ${missions.length} mission(s) suivies.`,
       tone: blockedRequests.length > 0 ? "warning" : "positive",
     },
     {
@@ -892,33 +871,41 @@ export default function AdminDashboard() {
       label: `Activation ${selectedRoleLabel}`,
       value: selectedRoleActivation ? formatNullablePercent(selectedRoleActivation.activation_j7) : "Non disponible",
       detail: selectedRoleActivation
-        ? `${selectedRoleActivation.activation_j7_activated}/${selectedRoleActivation.activation_j7_eligible} activés à J+7.`
-        : "Les données connectées de ce segment ne sont pas encore exploitables.",
+        ? `${selectedRoleActivation.activation_j7_activated}/${selectedRoleActivation.activation_j7_eligible} actives a J+7.`
+        : "Les donnees connectees de ce segment ne sont pas encore exploitables.",
       tone: selectedRoleActivationTone,
     },
   ];
-  const heroActionCards = [
-    {
-      id: "control",
-      label: "Escalade prioritaire",
-      title: blockedRequests.length > 0 ? "Débloquer les demandes coincées" : "Ouvrir la tour de contrôle",
-      detail:
-        blockedRequests.length > 0
-          ? `${blockedRequests.length} demande(s) bloquée(s) attendent une reprise manuelle.`
-          : "Balayer les anomalies inscriptions, missions et messages en un seul passage.",
-      href: "/dashboard/admin/controle",
-    },
-    {
-      id: "missions",
-      label: "Point chaud du jour",
-      title: lateMissions.length > 0 ? "Missions critiques à reprendre" : "Missions globalement sous contrôle",
-      detail:
-        lateMissions.length > 0
-          ? `${lateMissions.length} mission(s) en criticité élevée côté planning ou exécution.`
-          : `${missionWarnings.length} mission(s) seulement restent à surveiller.`,
-      href: "/dashboard/admin/missions",
-    },
-  ];
+
+  const prioritySpotlights = useMemo<UnifiedSpotlightItem[]>(
+    () =>
+      priorities.map((item) => ({
+        id: item.id,
+        label: item.tone === "danger" ? "Urgent" : item.tone === "warning" ? "A verifier" : "Info",
+        title: item.title,
+        detail: item.description,
+        href: item.href,
+        tone: item.tone === "danger" ? "warning" : item.tone === "warning" ? "accent" : "neutral",
+        icon:
+          item.tone === "danger" ? <ShieldAlert size={16} /> : item.tone === "warning" ? <BellRing size={16} /> : <Sparkles size={16} />,
+      })),
+    [priorities],
+  );
+
+  const activitySpotlights = useMemo<UnifiedSpotlightItem[]>(
+    () =>
+      recentActivity.map((item) => ({
+        id: item.id,
+        label: item.kind === "user" ? "Compte" : item.kind === "request" ? "Demande" : "Mission",
+        title: item.title,
+        detail: item.detail,
+        meta: formatDateTime(item.timestamp),
+        href: item.href,
+        tone: item.kind === "mission" ? "accent" : item.kind === "request" ? "warning" : "neutral",
+        icon: item.kind === "user" ? <UserRoundPlus size={16} /> : item.kind === "request" ? <BellRing size={16} /> : <LifeBuoy size={16} />,
+      })),
+    [recentActivity],
+  );
 
   if (loading) {
     return (
@@ -951,322 +938,308 @@ export default function AdminDashboard() {
   }
 
   return (
-    <DashboardLayout
-      persona="admin"
-      title="Mission Control"
-      subtitle="Vue de pilotage des inscriptions, demandes, missions et signaux d'activité."
-      navTitle="Pilotage admin"
-      navItems={[
-        { label: "Mission Control", href: "/dashboard/admin" },
-        { label: "Contrôle détaillé", href: "/dashboard/admin/controle" },
-        { label: "Utilisateurs", href: "/dashboard/admin/utilisateurs" },
-        { label: "Propriétaires", href: "/dashboard/admin/proprietaires" },
-        { label: "Conciergeries", href: "/dashboard/admin/conciergeries" },
-        { label: "Artisans", href: "/dashboard/admin/artisans" },
-        { label: "Demandes", href: "/dashboard/admin/demandes" },
-        { label: "Missions", href: "/dashboard/admin/missions" },
-        { label: "Développement", href: "/dashboard/admin/developpement" },
-      ]}
-      stats={[]}
-      actions={[]}
-      activity={[]}
-      notifications={priorities.slice(0, 3).map((item) => ({
-        id: item.id,
-        title: item.title,
-        href: item.href,
-        level: item.tone === "danger" ? "danger" : item.tone === "warning" ? "warning" : "info",
-      }))}
-      shortcuts={[
-        { label: "Contrôle détaillé", href: "/dashboard/admin/controle" },
-        { label: "Utilisateurs", href: "/dashboard/admin/utilisateurs" },
-        { label: "Demandes", href: "/dashboard/admin/demandes" },
-        { label: "Missions", href: "/dashboard/admin/missions" },
-      ]}
-      profile={{
-        name: "PlanetLS",
-        subtitle: "Administration",
-        badge: "Admin",
-      }}
-      hideTodaySection
-      hideQuickActions
-      hideProfileSummary
-      hideActivityFeed
-      hideShortcuts
-    >
-      <section className={styles.hero} data-tone={heroTone}>
-        <div className={styles.heroTop}>
-          <div className={styles.heroCopy}>
-            <span className={styles.eyebrow}>Cockpit administrateur</span>
-            <StatusChip tone={heroTone}>{heroStatusLabel}</StatusChip>
-            <h2>Voir la tension du jour, les conversions qui accélèrent et les points où l'équipe doit intervenir maintenant.</h2>
-            <p>{summarySentence}</p>
-          </div>
-
-          <div className={styles.heroActionRail}>
-            {heroActionCards.map((card) => (
-              <Link key={card.id} href={card.href} className={styles.heroActionCard}>
-                <span>{card.label}</span>
-                <strong>{card.title}</strong>
-                <p>{card.detail}</p>
-                <ArrowRight size={16} />
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        <div className={styles.heroStoryGrid}>
-          {heroStoryCards.map((card) => (
-            <article key={card.id} className={styles.heroStoryCard} data-tone={card.tone}>
-              <span>{card.label}</span>
-              <strong>{card.value}</strong>
-              <p>{card.detail}</p>
-            </article>
-          ))}
-        </div>
-
-        <div className={styles.heroMeta}>
-          <div className={styles.periodSwitch} role="group" aria-label="Période d'analyse">
-            {PERIOD_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={styles.periodButton}
-                data-active={option.value === period}
-                aria-pressed={option.value === period}
-                onClick={() => setPeriod(option.value)}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-
-          <div className={styles.heroSignals}>
-            <StatusChip tone={adminControl?.health?.tone ?? "neutral"}>
-              {adminControl?.health?.tone === "danger"
-                ? "Santé dégradée"
-                : adminControl?.health?.tone === "warning"
-                  ? "Santé à surveiller"
-                  : "Santé stable"}
-            </StatusChip>
-            <span>
-              {adminControl?.health?.updatedAt
-                ? `Contrôle mis à jour le ${formatDateTime(adminControl.health.updatedAt)}`
-                : "Dernière mise à jour indisponible"}
-            </span>
-          </div>
-
-          {sourceWarnings.length ? (
-            <div className={styles.warningBanner} role="status" aria-live="polite">
-              <strong>Mode dégradé :</strong>
-              <span>{sourceWarnings.join(" ")}</span>
-            </div>
-          ) : null}
-
-          {!hasAnyData ? (
-            <div className={styles.feedbackCard} data-tone="neutral">
-              <strong>Aucune donnée exploitable pour l'instant</strong>
-              <p>Le cockpit est prêt, mais aucune inscription, mission, demande ou facture n'a encore été remontée sur cette fenêtre.</p>
-            </div>
-          ) : null}
-        </div>
-      </section>
-
-      <section className={styles.metricsGrid}>
-        <MetricCard
-          label={`Nouveaux comptes (${period} j)`}
-          value={String(recentUsers)}
-          helper={`${adminOverview?.summary.totalUsers ?? 0} profils au total`}
-          tone={recentUsers > 0 ? "positive" : "neutral"}
-        />
-        <MetricCard
-          label="Complétude onboarding"
-          value={formatPercent(onboardingCompletionRate)}
-          helper={`${recentCompletedOnboarding} onboarding(s) finalisé(s) sur ${period} jours`}
-          tone={onboardingCompletionRate >= 70 ? "positive" : onboardingCompletionRate >= 40 ? "warning" : "danger"}
-        />
-        <MetricCard
-          label="Confirmation e-mail"
-          value={formatPercent(emailConfirmationRate)}
-          helper={`${adminOverview?.summary.emailConfirmed ?? 0} compte(s) confirmés`}
-          tone={emailConfirmationRate >= 80 ? "positive" : emailConfirmationRate >= 50 ? "warning" : "danger"}
-        />
-        <MetricCard
-          label={`Demandes entrantes (${period} j)`}
-          value={String(recentRequests)}
-          helper={`${requests.length} demande(s) actuellement en suivi`}
-          tone={blockedRequests.length > 0 ? "warning" : "neutral"}
-        />
-        <MetricCard
-          label="Missions à surveiller"
-          value={String(missionWarnings.length)}
-          helper={`${lateMissions.length} mission(s) critique(s)`}
-          tone={lateMissions.length > 0 ? "danger" : missionWarnings.length > 0 ? "warning" : "positive"}
-        />
-        <MetricCard
-          label="Facturation"
-          value={String(invoiceCount)}
-          helper={`${adminOverview?.summary.invoices ?? invoiceCount} facture(s) suivie(s)`}
-          tone={invoiceCount > 0 ? "neutral" : "positive"}
-        />
-      </section>
-
-      <section className={styles.contentGrid}>
-        <div className={styles.primaryColumn}>
-          <article className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <div>
-                <span className={styles.panelEyebrow}>
-                  <ShieldAlert size={16} />
-                  Priorités immédiates
-                </span>
-                <h3>Ce qui mérite une action admin maintenant</h3>
-              </div>
-              <Link href="/dashboard/admin/controle" className={styles.panelLink}>
-                Ouvrir le contrôle détaillé
-                <ArrowRight size={16} />
-              </Link>
+    <div className="theme-admin">
+      <UnifiedRoleDashboard
+        role="admin"
+        title="Mission Control"
+        subtitle="Voir la tension du jour, les conversions qui accelerent et les points ou l'equipe doit intervenir maintenant."
+        experienceBadge={`Fenetre ${period} jours`}
+        experienceBadgeTone="info"
+        statusLabel={heroStatusLabel}
+        statusTone={heroTone === "danger" ? "danger" : heroTone === "warning" ? "warning" : "success"}
+        actions={[
+          {
+            id: "control",
+            label: blockedRequests.length > 0 ? "Debloquer les demandes coincees" : "Ouvrir la tour de controle",
+            href: "/dashboard/admin/controle",
+            tone: "primary",
+          },
+          {
+            id: "missions",
+            label: lateMissions.length > 0 ? "Missions critiques a reprendre" : "Suivre les missions",
+            href: "/dashboard/admin/missions",
+            tone: "secondary",
+          },
+          {
+            id: "development",
+            label: "Mission Control dev",
+            href: "/dashboard/admin/developpement",
+            tone: "ghost",
+          },
+        ]}
+        heroSupplement={
+          <>
+            <div className={styles.heroStoryGrid}>
+              {heroStoryCards.map((card) => (
+                <article key={card.id} className={styles.heroStoryCard} data-tone={card.tone}>
+                  <span>{card.label}</span>
+                  <strong>{card.value}</strong>
+                  <p>{card.detail}</p>
+                </article>
+              ))}
             </div>
 
-            <div className={styles.priorityList}>
-              {priorities.length === 0 ? (
-                <div className={styles.feedbackCard} data-tone="positive">
-                  <strong>Aucune priorité critique en ce moment</strong>
-                  <p>Toutes les demandes, missions et inscriptions visibles sont actuellement sous contrôle.</p>
-                </div>
-              ) : (
-                priorities.map((item) => (
-                  <Link key={item.id} href={item.href} className={styles.priorityItem} data-tone={item.tone}>
-                    <div>
-                      <StatusChip tone={item.tone}>
-                        {item.tone === "danger"
-                          ? "Urgent"
-                          : item.tone === "warning"
-                            ? "À vérifier"
-                            : "Info"}
-                      </StatusChip>
-                      <strong>{item.title}</strong>
-                      <p>{item.description}</p>
-                    </div>
-                    <ArrowRight size={16} />
-                  </Link>
-                ))
-              )}
-            </div>
-          </article>
+            <div className={styles.heroMeta}>
+              <p>{summarySentence}</p>
 
-          <article className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <div>
-                <span className={styles.panelEyebrow}>
-                  <Sparkles size={16} />
-                  Vue business
-                </span>
-                <h3>Activation, flux opérationnel et qualité de parcours</h3>
-              </div>
-              <div className={styles.roleSwitch} role="group" aria-label="Segment analysé">
-                {ROLE_OPTIONS.map((option) => (
+              <div className={styles.periodSwitch} role="group" aria-label="Periode d'analyse">
+                {PERIOD_OPTIONS.map((option) => (
                   <button
                     key={option.value}
                     type="button"
-                    className={styles.roleButton}
-                    data-active={option.value === roleFilter}
-                    aria-pressed={option.value === roleFilter}
-                    onClick={() => setRoleFilter(option.value)}
+                    className={styles.periodButton}
+                    data-active={option.value === period}
+                    aria-pressed={option.value === period}
+                    onClick={() => setPeriod(option.value)}
                   >
                     {option.label}
                   </button>
                 ))}
               </div>
-            </div>
 
-            <div className={styles.insightGrid}>
-              <div className={styles.insightCard}>
-                <DonutCard
-                  title="Répartition des rôles"
-                  subtitle="Vue instantanée des comptes suivis"
-                  totalLabel="comptes"
-                  segments={roleDistributionSegments}
-                />
+              <div className={styles.heroSignals}>
+                <StatusChip tone={adminControl?.health?.tone ?? "neutral"}>
+                  {adminControl?.health?.tone === "danger"
+                    ? "Santé dégradée"
+                    : adminControl?.health?.tone === "warning"
+                      ? "Santé à surveiller"
+                      : "Santé stable"}
+                </StatusChip>
+                <span>
+                  {adminControl?.health?.updatedAt
+                    ? `Contrôle mis à jour le ${formatDateTime(adminControl.health.updatedAt)}`
+                    : "Dernière mise à jour indisponible"}
+                </span>
               </div>
-              <div className={styles.insightCard}>
-                <span>Activation J+7</span>
-                <div className={styles.inlineMetrics}>
-                  {(activationSummary ?? []).map((item) => (
-                    <div key={item.label}>
-                      <strong>{item.value}</strong>
-                      <small>{item.label}</small>
-                    </div>
+
+              {sourceWarnings.length ? (
+                <div className={styles.warningBanner} role="status" aria-live="polite">
+                  <strong>Mode degrade :</strong>
+                  <span>{sourceWarnings.join(" ")}</span>
+                </div>
+              ) : null}
+
+              {!hasAnyData ? (
+                <div className={styles.feedbackCard} data-tone="neutral">
+                  <strong>Aucune donnée exploitable pour l'instant</strong>
+                  <p>Le cockpit est prêt, mais aucune inscription, mission, demande ou facture n'a encore été remontée sur cette fenêtre.</p>
+                </div>
+              ) : null}
+            </div>
+          </>
+        }
+        kpis={[
+          {
+            id: "users",
+            label: `Nouveaux comptes (${period} j)`,
+            value: String(recentUsers),
+            detail: `${adminOverview?.summary.totalUsers ?? 0} profils au total`,
+            icon: <Users size={18} />,
+            statusLabel: recentUsers > 0 ? "Actif" : "Stable",
+            statusTone: recentUsers > 0 ? "success" : "info",
+            href: "/dashboard/admin/utilisateurs",
+          },
+          {
+            id: "onboarding",
+            label: "Completude onboarding",
+            value: formatPercent(onboardingCompletionRate),
+            detail: `${recentCompletedOnboarding} onboarding(s) finalise(s) sur ${period} jours`,
+            icon: <Sparkles size={18} />,
+            statusLabel: onboardingCompletionRate >= 70 ? "Bon niveau" : onboardingCompletionRate >= 40 ? "A suivre" : "A corriger",
+            statusTone: onboardingCompletionRate >= 70 ? "success" : onboardingCompletionRate >= 40 ? "warning" : "danger",
+            href: "/dashboard/admin/controle?tab=inscriptions",
+          },
+          {
+            id: "email",
+            label: "Confirmation e-mail",
+            value: formatPercent(emailConfirmationRate),
+            detail: `${adminOverview?.summary.emailConfirmed ?? 0} compte(s) confirmes`,
+            icon: <UserRoundPlus size={18} />,
+            statusLabel: emailConfirmationRate >= 80 ? "Fiable" : emailConfirmationRate >= 50 ? "Inegal" : "Fragile",
+            statusTone: emailConfirmationRate >= 80 ? "success" : emailConfirmationRate >= 50 ? "warning" : "danger",
+            href: "/dashboard/admin/controle?tab=inscriptions",
+          },
+          {
+            id: "requests",
+            label: `Demandes entrantes (${period} j)`,
+            value: String(recentRequests),
+            detail: `${requests.length} demande(s) actuellement en suivi`,
+            icon: <BellRing size={18} />,
+            statusLabel: blockedRequests.length > 0 ? "Blocages" : "Flux net",
+            statusTone: blockedRequests.length > 0 ? "warning" : "success",
+            href: "/dashboard/admin/demandes",
+          },
+          {
+            id: "missions",
+            label: "Missions a surveiller",
+            value: String(missionWarnings.length),
+            detail: `${lateMissions.length} mission(s) critiques`,
+            icon: <CalendarRange size={18} />,
+            statusLabel: lateMissions.length > 0 ? "Urgent" : missionWarnings.length > 0 ? "Surveillance" : "Sous controle",
+            statusTone: lateMissions.length > 0 ? "danger" : missionWarnings.length > 0 ? "warning" : "success",
+            href: "/dashboard/admin/missions",
+          },
+          {
+            id: "billing",
+            label: "Facturation",
+            value: String(invoiceCount),
+            detail: `${adminOverview?.summary.invoices ?? invoiceCount} facture(s) suivie(s)`,
+            icon: <CircleDollarSign size={18} />,
+            statusLabel: invoiceCount > 0 ? "En suivi" : "Calme",
+            statusTone: invoiceCount > 0 ? "info" : "success",
+            href: "/dashboard/admin/pilotage",
+          },
+        ]}
+        leftPrimary={
+          <>
+            <article className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <div>
+                  <span className={styles.panelEyebrow}>
+                    <ShieldAlert size={16} />
+                    Priorités immédiates
+                  </span>
+                  <h3>Ce qui merite une action admin maintenant</h3>
+                </div>
+                <Link href="/dashboard/admin/controle" className={styles.panelLink}>
+                  Ouvrir le contrôle détaillé
+                  <ArrowRight size={16} />
+                </Link>
+              </div>
+
+              {prioritySpotlights.length > 0 ? (
+                <UnifiedSpotlightList items={prioritySpotlights} />
+              ) : (
+                <DashboardEmptyState
+                  title="Aucune priorite critique en ce moment"
+                  copy="Toutes les demandes, missions et inscriptions visibles sont actuellement sous controle."
+                />
+              )}
+            </article>
+
+            <article className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <div>
+                  <span className={styles.panelEyebrow}>
+                    <Sparkles size={16} />
+                    Vue business
+                  </span>
+                  <h3>Activation, flux operationnel et qualite de parcours</h3>
+                </div>
+                <div className={styles.roleSwitch} role="group" aria-label="Segment analyse">
+                  {ROLE_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={styles.roleButton}
+                      data-active={option.value === roleFilter}
+                      aria-pressed={option.value === roleFilter}
+                      onClick={() => setRoleFilter(option.value)}
+                    >
+                      {option.label}
+                    </button>
                   ))}
-                  {!activationSummary ? <p className={styles.inlineNote}>Indicateurs d'activation indisponibles.</p> : null}
                 </div>
               </div>
 
-              <div className={styles.insightCard}>
-                <DonutCard
-                  title="Feux de contrôle"
-                  subtitle="Synthèse visuelle onboarding, missions, messages"
-                  totalLabel="signaux"
-                  segments={controlHealthSegments}
-                />
-              </div>
+              <div className={styles.insightGrid}>
+                <div className={styles.insightCard}>
+                  <DonutCard
+                    title="Repartition des roles"
+                    subtitle="Vue instantanee des comptes suivis"
+                    totalLabel="comptes"
+                    segments={roleDistributionSegments}
+                  />
+                </div>
 
-              <div className={styles.insightCard}>
-                <span>Volume réseau</span>
-                <div className={styles.inlineMetrics}>
-                  <div>
-                    <strong>{adminOverview?.summary.properties ?? 0}</strong>
-                    <small>Logements</small>
-                  </div>
-                  <div>
-                    <strong>{adminOverview?.summary.planningEntries ?? 0}</strong>
-                    <small>Entrées planning</small>
-                  </div>
-                  <div>
-                    <strong>{adminOverview?.summary.workflowEvents ?? 0}</strong>
-                    <small>Événements workflow</small>
-                  </div>
+                <div className={styles.insightCard}>
+                  <span>Activation J+7</span>
+                  {activationSummary ? (
+                    <UnifiedStatStack
+                      items={activationSummary.map((item) => ({
+                        label: item.label,
+                        value: item.value,
+                        detail: "Conversion des cohortes matures",
+                      }))}
+                    />
+                  ) : (
+                    <p className={styles.inlineNote}>Indicateurs d'activation indisponibles.</p>
+                  )}
+                </div>
+
+                <div className={styles.insightCard}>
+                  <DonutCard
+                    title="Feux de controle"
+                    subtitle="Synthese visuelle onboarding, missions, messages"
+                    totalLabel="signaux"
+                    segments={controlHealthSegments}
+                  />
+                </div>
+
+                <div className={styles.insightCard}>
+                  <span>Volume reseau</span>
+                  <UnifiedStatStack
+                    items={[
+                      {
+                        label: "Logements",
+                        value: String(adminOverview?.summary.properties ?? 0),
+                        detail: "Parc actuellement relie au reseau",
+                      },
+                      {
+                        label: "Entrees planning",
+                        value: String(adminOverview?.summary.planningEntries ?? 0),
+                        detail: "Charge terrain visible cote exploitation",
+                      },
+                      {
+                        label: "Evenements workflow",
+                        value: String(adminOverview?.summary.workflowEvents ?? 0),
+                        detail: "Historique operationnel suivi",
+                      },
+                    ]}
+                  />
                 </div>
               </div>
-            </div>
 
-            <div className={styles.visualGrid}>
-              <div className={styles.visualCard}>
-                <div className={styles.visualCardHeader}>
-                  <div>
-                    <span>Tendance d'activation</span>
-                    <strong>{selectedRoleLabel}</strong>
+              <div className={styles.visualGrid}>
+                <div className={styles.visualCard}>
+                  <div className={styles.visualCardHeader}>
+                    <div>
+                      <span>Tendance d'activation</span>
+                      <strong>{selectedRoleLabel}</strong>
+                    </div>
+                    <small>
+                      {selectedRoleActivation
+                        ? `${selectedRoleActivation.activation_j7_activated}/${selectedRoleActivation.activation_j7_eligible} actives a J+7`
+                        : "Donnee indisponible"}
+                    </small>
                   </div>
-                  <small>
-                    {selectedRoleActivation
-                      ? `${selectedRoleActivation.activation_j7_activated}/${selectedRoleActivation.activation_j7_eligible} activés à J+7`
-                      : "Donnée indisponible"}
-                  </small>
+                  <TrendChart label={selectedRoleLabel} points={activationTrendPoints} />
                 </div>
-                <TrendChart label={selectedRoleLabel} points={activationTrendPoints} />
-              </div>
 
-              <div className={styles.visualCard}>
-                <div className={styles.visualCardHeader}>
-                  <div>
-                    <span>Zones les plus mûres</span>
-                    <strong>{selectedRoleLabel}</strong>
+                <div className={styles.visualCard}>
+                  <div className={styles.visualCardHeader}>
+                    <div>
+                      <span>Zones les plus mures</span>
+                      <strong>{selectedRoleLabel}</strong>
+                    </div>
+                    <small>Classement par taux d'activation puis volume eligible</small>
                   </div>
-                  <small>Classement par taux d'activation puis volume éligible</small>
+                  <ZoneBarChart points={activationZonePoints} />
                 </div>
-                <ZoneBarChart points={activationZonePoints} />
               </div>
-            </div>
-          </article>
-
+            </article>
+          </>
+        }
+        leftSecondary={
           <div className={styles.tablesGrid}>
             <article className={styles.panel}>
               <div className={styles.panelHeader}>
                 <div>
                   <span className={styles.panelEyebrow}>
                     <UserRoundPlus size={16} />
-                    Utilisateurs récents
+                    Utilisateurs recents
                   </span>
-                  <h3>Nouveaux profils à relire</h3>
+                  <h3>Nouveaux profils a relire</h3>
                 </div>
                 <Link href="/dashboard/admin/utilisateurs" className={styles.panelLink}>
                   Voir tout
@@ -1276,16 +1249,16 @@ export default function AdminDashboard() {
 
               <div className={styles.tableWrap}>
                 {latestUsers.length === 0 ? (
-                  <p className={styles.emptyState}>Aucun nouveau profil à relire sur la période en cours.</p>
+                  <p className={styles.emptyState}>Aucun nouveau profil a relire sur la periode en cours.</p>
                 ) : (
                   <table className={styles.table}>
-                    <caption className={styles.srOnly}>Derniers profils à relire par l'administration</caption>
+                    <caption className={styles.srOnly}>Derniers profils a relire par l'administration</caption>
                     <thead>
                       <tr>
                         <th scope="col">Profil</th>
-                        <th scope="col">Rôle</th>
-                        <th scope="col">État</th>
-                        <th scope="col">Créé le</th>
+                        <th scope="col">Role</th>
+                        <th scope="col">Etat</th>
+                        <th scope="col">Cree le</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1295,8 +1268,8 @@ export default function AdminDashboard() {
                             <strong>{user.displayName}</strong>
                             <span>{user.email || "E-mail indisponible"}</span>
                           </td>
-                          <td data-label="Rôle">{resolveRoleLabel(user.roleBucket)}</td>
-                          <td data-label="État">
+                          <td data-label="Role">{resolveRoleLabel(user.roleBucket)}</td>
+                          <td data-label="Etat">
                             <StatusChip
                               tone={
                                 user.onboardingComplete && user.emailConfirmedAt
@@ -1306,10 +1279,10 @@ export default function AdminDashboard() {
                                     : "danger"
                               }
                             >
-                              {user.onboardingComplete ? "Complet" : "À finir"}
+                              {user.onboardingComplete ? "Complet" : "A finir"}
                             </StatusChip>
                           </td>
-                          <td data-label="Créé le">{formatShortDate(user.createdAt)}</td>
+                          <td data-label="Cree le">{formatShortDate(user.createdAt)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1325,7 +1298,7 @@ export default function AdminDashboard() {
                     <BellRing size={16} />
                     Demandes
                   </span>
-                  <h3>Demandes nécessitant un suivi</h3>
+                  <h3>Demandes necessitant un suivi</h3>
                 </div>
                 <Link href="/dashboard/admin/demandes" className={styles.panelLink}>
                   Ouvrir
@@ -1335,10 +1308,10 @@ export default function AdminDashboard() {
 
               <div className={styles.tableWrap}>
                 {latestRequestRows.length === 0 ? (
-                  <p className={styles.emptyState}>Aucune demande nécessitant un suivi n'est remontée actuellement.</p>
+                  <p className={styles.emptyState}>Aucune demande necessitant un suivi n'est remontee actuellement.</p>
                 ) : (
                   <table className={styles.table}>
-                    <caption className={styles.srOnly}>Demandes nécessitant un suivi administratif</caption>
+                    <caption className={styles.srOnly}>Demandes necessitant un suivi administratif</caption>
                     <thead>
                       <tr>
                         <th scope="col">Demande</th>
@@ -1374,7 +1347,7 @@ export default function AdminDashboard() {
                     <LifeBuoy size={16} />
                     Missions
                   </span>
-                  <h3>Missions opérationnelles à contrôler</h3>
+                  <h3>Missions operationnelles a controler</h3>
                 </div>
                 <Link href="/dashboard/admin/missions" className={styles.panelLink}>
                   Ouvrir
@@ -1384,16 +1357,16 @@ export default function AdminDashboard() {
 
               <div className={styles.tableWrap}>
                 {latestMissionRows.length === 0 ? (
-                  <p className={styles.emptyState}>Aucune mission opérationnelle à contrôler n'est remontée actuellement.</p>
+                  <p className={styles.emptyState}>Aucune mission operationnelle a controler n'est remontee actuellement.</p>
                 ) : (
                   <table className={styles.table}>
-                    <caption className={styles.srOnly}>Missions opérationnelles à contrôler</caption>
+                    <caption className={styles.srOnly}>Missions operationnelles a controler</caption>
                     <thead>
                       <tr>
                         <th scope="col">Mission</th>
                         <th scope="col">Statut</th>
                         <th scope="col">Action suivante</th>
-                        <th scope="col">Échéance</th>
+                        <th scope="col">Echeance</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1407,7 +1380,7 @@ export default function AdminDashboard() {
                             <StatusChip tone={getMissionUrgency(mission)}>{getMissionStatus(mission)}</StatusChip>
                           </td>
                           <td data-label="Action suivante">{getMissionNextAction(mission)}</td>
-                          <td data-label="Échéance">{formatShortDate(mission.scheduled_start ?? mission.updated_at ?? mission.created_at)}</td>
+                          <td data-label="Echeance">{formatShortDate(mission.scheduled_start ?? mission.updated_at ?? mission.created_at)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1416,99 +1389,76 @@ export default function AdminDashboard() {
               </div>
             </article>
           </div>
-        </div>
-
-        <div className={styles.secondaryColumn}>
-          <article className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <div>
-                <span className={styles.panelEyebrow}>
-                  <Clock3 size={16} />
-                  Activité récente
-                </span>
-                <h3>Les derniers mouvements utiles à relire</h3>
-              </div>
-            </div>
-
-            <div className={styles.activityList}>
-              {recentActivity.length === 0 ? (
-                <p className={styles.emptyState}>Aucun mouvement récent utile à relire pour l'instant.</p>
+        }
+        sidebarSections={[
+          {
+            id: "activity",
+            title: "Activite recente",
+            subtitle: "Les derniers mouvements utiles a relire",
+            content:
+              activitySpotlights.length > 0 ? (
+                <UnifiedSpotlightList items={activitySpotlights} />
               ) : (
-                recentActivity.map((item) => (
-                  <Link key={item.id} href={item.href} className={styles.activityItem}>
-                    <div className={styles.activityTime}>
-                      <span>{item.kind === "user" ? "Compte" : item.kind === "request" ? "Demande" : "Mission"}</span>
-                      <strong>{formatDateTime(item.timestamp)}</strong>
-                    </div>
-                    <div className={styles.activityCopy}>
-                      <strong>{item.title}</strong>
-                      <p>{item.detail}</p>
-                    </div>
-                  </Link>
-                ))
-              )}
-            </div>
-          </article>
-
-          <article className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <div>
-                <span className={styles.panelEyebrow}>
-                  <Compass size={16} />
-                  Raccourcis métier
-                </span>
-                <h3>Les portes d'entrée utiles pour agir vite</h3>
+                <DashboardEmptyState
+                  title="Aucun mouvement recent utile a relire"
+                  copy="Les signaux recents utilisateurs, demandes et missions apparaitront ici."
+                />
+              ),
+          },
+          {
+            id: "shortcuts",
+            title: "Raccourcis metier",
+            subtitle: "Les portes d'entree utiles pour agir vite",
+            content: (
+              <div className={styles.shortcutList}>
+                <HealthSectionCard
+                  title="Inscriptions"
+                  href="/dashboard/admin/controle?tab=inscriptions"
+                  description="Onboarding, e-mail confirme, premiere connexion"
+                  block={
+                    adminControl?.summary.onboarding ?? {
+                      total: 0,
+                      healthy: 0,
+                      warning: 0,
+                      danger: 0,
+                    }
+                  }
+                />
+                <HealthSectionCard
+                  title="Parcours missions"
+                  href="/dashboard/admin/controle?tab=missions"
+                  description="Devis, planning, mission et facturation"
+                  block={
+                    adminControl?.summary.missions ?? {
+                      total: 0,
+                      healthy: 0,
+                      warning: 0,
+                      danger: 0,
+                    }
+                  }
+                />
+                <HealthSectionCard
+                  title="Messages"
+                  href="/dashboard/admin/controle?tab=messages"
+                  description="Conversations actives, attentes et relances"
+                  block={
+                    adminControl?.summary.messages ?? {
+                      total: 0,
+                      healthy: 0,
+                      warning: 0,
+                      danger: 0,
+                    }
+                  }
+                />
+                <Link href="/dashboard/admin/developpement" className={styles.shortcutCard}>
+                  <strong>Mission Control dev</strong>
+                  <p>Suivre la roadmap, la dette et les decisions techniques.</p>
+                </Link>
               </div>
-            </div>
-
-            <div className={styles.shortcutList}>
-              <HealthSectionCard
-                title="Inscriptions"
-                href="/dashboard/admin/controle?tab=inscriptions"
-                description="Onboarding, e-mail confirmé, première connexion"
-                block={
-                  adminControl?.summary.onboarding ?? {
-                    total: 0,
-                    healthy: 0,
-                    warning: 0,
-                    danger: 0,
-                  }
-                }
-              />
-              <HealthSectionCard
-                title="Parcours missions"
-                href="/dashboard/admin/controle?tab=missions"
-                description="Devis, planning, mission et facturation"
-                block={
-                  adminControl?.summary.missions ?? {
-                    total: 0,
-                    healthy: 0,
-                    warning: 0,
-                    danger: 0,
-                  }
-                }
-              />
-              <HealthSectionCard
-                title="Messages"
-                href="/dashboard/admin/controle?tab=messages"
-                description="Conversations actives, attentes et relances"
-                block={
-                  adminControl?.summary.messages ?? {
-                    total: 0,
-                    healthy: 0,
-                    warning: 0,
-                    danger: 0,
-                  }
-                }
-              />
-              <Link href="/dashboard/admin/developpement" className={styles.shortcutCard}>
-                <strong>Mission Control dev</strong>
-                <p>Suivre la roadmap, la dette et les décisions techniques.</p>
-              </Link>
-            </div>
-          </article>
-        </div>
-      </section>
-    </DashboardLayout>
+            ),
+          },
+        ]}
+      />
+    </div>
   );
 }

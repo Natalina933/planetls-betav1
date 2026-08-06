@@ -28,7 +28,10 @@ import {
 import {
   UnifiedPropertyPortfolio,
   UnifiedRoleDashboard,
+  UnifiedSpotlightList,
+  UnifiedStatStack,
   type UnifiedPropertyItem,
+  type UnifiedSpotlightItem,
 } from "@/app/components/dashboard/unified";
 import { DashboardEmptyState, DashboardStatusBadge, getDashboardMissionPaceMeta } from "@/app/components/dashboard/saas";
 import { useOwnerDashboardData } from "./useOwnerDashboardData";
@@ -485,6 +488,46 @@ export default function OwnerDashboardPage() {
     [draftCount, pendingInvoices.length, quoteAwaitingCount, requestsCount, unreadConversationCount],
   );
 
+  const priorityItems = useMemo<UnifiedSpotlightItem[]>(
+    () =>
+      actionQueue.slice(0, 3).map((item) => ({
+        id: item.id,
+        label: item.kicker,
+        title: item.label,
+        detail: item.detail,
+        href: item.href,
+        icon:
+          item.icon === "home" ? (
+            <Home size={18} />
+          ) : item.icon === "request" ? (
+            <ClipboardList size={18} />
+          ) : item.icon === "invoice" ? (
+            <Wallet size={18} />
+          ) : item.icon === "quote" ? (
+            <CircleDollarSign size={18} />
+          ) : (
+            <BellRing size={18} />
+          ),
+        tone: item.tone === "warning" ? "warning" : item.tone === "success" ? "success" : "accent",
+      })),
+    [actionQueue],
+  );
+
+  const missionSpotlights = useMemo<UnifiedSpotlightItem[]>(
+    () =>
+      timelineMissions.slice(0, 5).map((mission) => ({
+        id: mission.id,
+        label: mission.status,
+        title: mission.title,
+        detail: mission.property,
+        meta: `${mission.partner} · ${mission.date}`,
+        href: "/dashboard/owner/planning",
+        icon: <CalendarDays size={16} />,
+        tone: "accent",
+      })),
+    [timelineMissions],
+  );
+
   if (userLoading || !isAuthenticated) {
     return <DashboardLoadingScreen label="Chargement de votre espace propriétaire..." />;
   }
@@ -581,25 +624,8 @@ export default function OwnerDashboardPage() {
               <h3>Prochaines missions</h3>
               <p>Les interventions à surveiller, dans leur ordre d'arrivée.</p>
             </div>
-            {timelineMissions.length > 0 ? (
-              <div className={styles.timelineList}>
-                {timelineMissions.slice(0, 5).map((mission) => (
-                  <Link key={mission.id} href="/dashboard/owner/planning" className={styles.timelineRow}>
-                    <span className={styles.timelineDot}>
-                      <CalendarDays size={16} />
-                    </span>
-                    <div className={styles.timelineCopy}>
-                      <div className={styles.timelineTopline}>
-                        <strong>{mission.title}</strong>
-                        <DashboardStatusBadge label={mission.status} tone="info" className={styles.timelineBadge} />
-                      </div>
-                      <span>{mission.property}</span>
-                      <small>{mission.partner}</small>
-                    </div>
-                    <time>{mission.date}</time>
-                  </Link>
-                ))}
-              </div>
+            {missionSpotlights.length > 0 ? (
+              <UnifiedSpotlightList items={missionSpotlights} />
             ) : (
               <DashboardEmptyState
                 title="Aucune mission planifiée"
@@ -628,38 +654,8 @@ export default function OwnerDashboardPage() {
             title: "À traiter maintenant",
             subtitle: "Les actions utiles, sans liste interminable.",
             content:
-              actionQueue.length > 0 ? (
-                <div className={styles.actionQueue}>
-                  {actionQueue.slice(0, 3).map((item) => (
-                    <Link
-                      key={item.id}
-                      href={item.href}
-                      className={`${styles.actionQueueRow} ${styles[`actionQueueRow${item.tone.charAt(0).toUpperCase()}${item.tone.slice(1)}`]}`}
-                    >
-                      <span className={styles.actionQueueIcon}>
-                        {item.icon === "home" ? (
-                          <Home size={18} />
-                        ) : item.icon === "request" ? (
-                          <ClipboardList size={18} />
-                        ) : item.icon === "invoice" ? (
-                          <Wallet size={18} />
-                        ) : item.icon === "quote" ? (
-                          <CircleDollarSign size={18} />
-                        ) : (
-                          <BellRing size={18} />
-                        )}
-                      </span>
-                      <div className={styles.actionQueueBody}>
-                        <small>{item.kicker}</small>
-                        <strong>{item.label}</strong>
-                        <span>{item.detail}</span>
-                      </div>
-                      <span className={styles.actionQueueArrow}>
-                        <ChevronRight size={16} />
-                      </span>
-                    </Link>
-                  ))}
-                </div>
+              priorityItems.length > 0 ? (
+                <UnifiedSpotlightList items={priorityItems} />
               ) : (
                 <DashboardEmptyState title="Rien d'urgent" copy="Votre tableau est à jour pour le moment." />
               ),
@@ -670,20 +666,28 @@ export default function OwnerDashboardPage() {
             subtitle: "Les repères voyageurs de la semaine.",
             content: (
               <>
-                <div className={styles.travelerSummaryGrid}>
-                  <article className={styles.summaryStatCard}>
-                    <span>Arrivées aujourd'hui</span>
-                    <strong>{arrivalsTodayCount}</strong>
-                  </article>
-                  <article className={styles.summaryStatCard}>
-                    <span>Cette semaine</span>
-                    <strong>{arrivalsWeekCount}</strong>
-                  </article>
-                  <article className={styles.summaryStatCard}>
-                    <span>Départs</span>
-                    <strong>{departuresWeekCount}</strong>
-                  </article>
-                </div>
+                <UnifiedStatStack
+                  items={[
+                    {
+                      label: "Arrivées aujourd'hui",
+                      value: String(arrivalsTodayCount),
+                      detail: "Les voyageurs attendus ce jour.",
+                      tone: arrivalsTodayCount > 0 ? "accent" : "neutral",
+                    },
+                    {
+                      label: "Cette semaine",
+                      value: String(arrivalsWeekCount),
+                      detail: "Arrivées planifiées sur 7 jours.",
+                      tone: arrivalsWeekCount > 0 ? "soft" : "neutral",
+                    },
+                    {
+                      label: "Départs",
+                      value: String(departuresWeekCount),
+                      detail: "Départs à coordonner cette semaine.",
+                      tone: departuresWeekCount > 0 ? "accent" : "neutral",
+                    },
+                  ]}
+                />
                 {travelerRows.length > 0 ? (
                   <div className={styles.miniList}>
                     {travelerRows.slice(0, 3).map((traveler) => (

@@ -1,0 +1,272 @@
+.shell,
+.overviewGrid,
+.statsGrid,
+.controls,
+.filterRow,
+.workspace,
+.promptList,
+.detailGrid,
+.diagnosticList,
+.contextGrid,
+.variableGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+.overviewGrid,
+.workspace,
+.detailGrid,
+.contextGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.statsGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.statCard,
+.diagnosticCard,
+.promptCard,
+.detailHeader,
+.emptyState,
+.preview,
+.fallback {
+  border: 1px solid rgba(138, 109, 74, 0.15);
+  border-radius: 1.2rem;
+  background:
+    radial-gradient(circle at top right, rgba(212, 167, 74, 0.1), transparent 32%),
+    linear-gradient(135deg, rgba(255, 251, 243, 0.98), rgba(255, 255, 255, 0.98) 60%),
+    #fff;
+  box-shadow: 0 16px 32px rgba(61, 44, 25, 0.06);
+}
+
+.statCard,
+.diagnosticCard {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem;
+}
+
+.statCard span,
+.eyebrow,
+.listHeader span,
+.variableField span,
+.promptMeta span {
+  color: #8a641a;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.statCard strong,
+.diagnosticCard strong,
+.detailHeader h3,
+.listHeader h3,
+.promptCard strong {
+  color: #2f261d;
+}
+
+.controls {
+  align-items: start;
+}
+
+.searchBar {
+  width: 100%;
+}
+
+.filterRow {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: end;
+}
+
+.filterRow label,
+.variableField {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.filterRow select,
+.variableField textarea,
+.favoriteToggle,
+.copyButton {
+  border: 1px solid rgba(138, 109, 74, 0.18);
+  border-radius: 0.95rem;
+  background: rgba(255, 255, 255, 0.94);
+  color: #2f261d;
+  font: inherit;
+}
+
+.filterRow select,
+.favoriteToggle {
+  min-height: 2.8rem;
+  padding: 0.7rem 0.85rem;
+}
+
+.favoriteToggle,
+.copyButton,
+.promptCard,
+.favoriteButton {
+  cursor: pointer;
+}
+
+.favoriteToggle,
+.copyButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  font-weight: 700;
+}
+
+.listPane,
+.detailPane {
+  display: grid;
+  gap: 1rem;
+}
+
+.listHeader,
+.detailHeader {
+  display: grid;
+  gap: 0.65rem;
+  padding: 1rem 1.1rem;
+}
+
+.promptCard {
+  display: grid;
+  gap: 0.8rem;
+  text-align: left;
+  padding: 1rem;
+}
+
+.promptCard[data-selected="true"] {
+  border-color: rgba(49, 91, 67, 0.45);
+  box-shadow: 0 18px 36px rgba(49, 91, 67, 0.14);
+}
+
+.promptCardHeader,
+.badgeRow,
+.promptMeta,
+.previewHeader,
+.emptyState,
+.fallback {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.promptCardHeader p,
+.detailHeader p,
+.statCard p,
+.diagnosticCard p,
+.emptyState p,
+.fallback p {
+  margin: 0.15rem 0 0;
+  color: rgba(47, 38, 29, 0.76);
+  line-height: 1.55;
+}
+
+.favoriteButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #8a641a;
+}
+
+.promptMeta {
+  color: rgba(47, 38, 29, 0.7);
+  font-size: 0.86rem;
+}
+
+.emptyState,
+.fallback {
+  padding: 1rem 1.1rem;
+}
+
+.bulletList {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding-left: 1.2rem;
+  color: rgba(47, 38, 29, 0.82);
+}
+
+.contextGrid strong,
+.previewHeader strong {
+  color: #2f261d;
+}
+
+.variableField textarea {
+  resize: vertical;
+  min-height: 7rem;
+  padding: 0.8rem 0.9rem;
+}
+
+.variableField small,
+.previewHeader p,
+.emptyInline {
+  color: rgba(47, 38, 29, 0.7);
+}
+
+.previewHeader {
+  margin-top: 0.25rem;
+}
+
+.copyButton {
+  min-height: 2.8rem;
+  padding: 0.7rem 1rem;
+  color: #315b43;
+}
+
+.preview {
+  margin: 0;
+  padding: 1rem;
+  white-space: pre-wrap;
+  line-height: 1.55;
+  overflow-x: auto;
+}
+
+.emptyInline {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+@media (max-width: 1180px) {
+  .overviewGrid,
+  .workspace,
+  .detailGrid,
+  .contextGrid,
+  .statsGrid,
+  .filterRow {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .overviewGrid,
+  .workspace,
+  .detailGrid,
+  .contextGrid,
+  .statsGrid,
+  .filterRow {
+    grid-template-columns: 1fr;
+  }
+
+  .promptCardHeader,
+  .badgeRow,
+  .promptMeta,
+  .previewHeader,
+  .emptyState,
+  .fallback {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

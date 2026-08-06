@@ -1,191 +1,121 @@
-.headerShell,
-.overviewGrid,
+.page,
+.grid,
+.highlightGrid,
 .metricGrid,
-.heroMeta,
-.priorityGrid,
-.actionList,
-.alertList,
-.summaryStack,
-.roadmapGrid {
+.summaryList,
+.roadmapList,
+.decisionList,
+.tabsWrap,
+.comparisonChart {
   display: grid;
   gap: 1rem;
 }
 
-.headerShell {
-  gap: 1.15rem;
+.page {
+  gap: 1.2rem;
 }
 
 .hero,
-.priorityStrip,
 .warningBanner,
-.tabsWrap,
-.metricCard,
-.alertCard,
-.actionCard,
+.highlightCard,
+.heroCard,
 .summaryCard,
+.metricCard,
+.offerCard,
 .roadmapCard,
-.metaCard,
-.priorityCard,
-.notesPanel {
-  border: 1px solid rgba(138, 109, 74, 0.15);
-  border-radius: 1.35rem;
+.decisionCard {
+  border: 1px solid rgba(120, 91, 46, 0.14);
+  border-radius: 1.4rem;
   background:
-    radial-gradient(circle at top right, rgba(212, 167, 74, 0.12), transparent 32%),
-    linear-gradient(135deg, rgba(255, 251, 243, 0.98), rgba(255, 255, 255, 0.98) 60%),
+    radial-gradient(circle at top right, rgba(195, 153, 66, 0.12), transparent 32%),
+    linear-gradient(145deg, rgba(255, 250, 241, 0.98), rgba(255, 255, 255, 0.98) 62%),
     #fff;
-  box-shadow: 0 18px 42px rgba(61, 44, 25, 0.07);
+  box-shadow: 0 18px 44px rgba(56, 39, 18, 0.08);
 }
 
 .hero {
   display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.8fr);
   gap: 1rem;
-  padding: clamp(1.15rem, 2.2vw, 1.7rem);
+  padding: clamp(1.2rem, 2.4vw, 1.8rem);
 }
 
-.heroCopy {
+.heroContent,
+.heroAside,
+.offerPoints,
+.barChart,
+.tableWrap,
+.inlineLinks,
+.comparisonMeta {
   display: grid;
-  gap: 0.7rem;
+  gap: 0.9rem;
+}
+
+.heroContent {
+  align-content: start;
 }
 
 .eyebrow,
-.priorityLevel,
-.metaCard span,
+.highlightCard span,
+.heroCard span,
 .metricCard span,
-.roadmapCard span,
-.summaryCard span {
-  color: #8a641a;
-  font-size: 0.74rem;
+.barMeta span {
+  color: #8b631a;
+  font-size: 0.75rem;
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.heroCopy h2,
-.priorityHeader h3,
-.metaCard strong,
-.metricCard strong,
-.priorityCard strong,
+.heroContent h2,
+.highlightCard strong,
+.heroCard strong,
 .summaryCard strong,
+.metricCard strong,
+.offerHeader h3,
 .roadmapCard strong,
-.notesPanel p,
-.tabTrigger span {
-  color: #2f261d;
+.decisionCard strong {
+  color: #2d261d;
 }
 
-.heroCopy h2 {
-  margin: 0;
-  font-size: clamp(1.55rem, 2.6vw, 2.6rem);
-  line-height: 1.08;
-  max-width: 18ch;
+.heroContent h2 {
+  margin: 0.2rem 0 0;
+  font-size: clamp(1.9rem, 3vw, 3rem);
+  line-height: 1.02;
+  max-width: 12ch;
 }
 
-.heroCopy p,
-.metaCard p,
-.metricCard p,
-.priorityCard p,
-.warningBanner p,
-.alertCard p,
+.heroContent p,
+.heroCard p,
+.highlightCard p,
 .summaryCard p,
-.roadmapCard strong,
-.notes p,
-.notesPanel p {
+.metricCard p,
+.sectionNote,
+.offerPoints p,
+.roadmapCard p,
+.decisionCard p {
   margin: 0;
-  color: rgba(47, 38, 29, 0.75);
-  line-height: 1.6;
+  color: rgba(45, 38, 29, 0.78);
+  line-height: 1.62;
 }
 
-.heroMeta {
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+.heroAside {
+  align-content: start;
 }
 
-.metaCard {
-  display: grid;
-  gap: 0.42rem;
+.heroCard,
+.highlightCard,
+.summaryCard,
+.metricCard,
+.offerCard,
+.roadmapCard,
+.decisionCard {
   padding: 1rem 1.05rem;
 }
 
-.metaCard strong {
+.heroCard strong {
   font-size: 1.08rem;
-}
-
-.priorityStrip {
-  display: grid;
-  gap: 1rem;
-  padding: clamp(1rem, 2vw, 1.4rem);
-}
-
-.priorityHeader {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: flex-start;
-  flex-wrap: wrap;
-}
-
-.priorityHeader h3 {
-  margin: 0.28rem 0 0;
-  font-size: 1.18rem;
-}
-
-.quickActions {
-  display: flex;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-
-.quickAction {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.7rem 0.95rem;
-  border-radius: 999px;
-  border: 1px solid rgba(138, 109, 74, 0.16);
-  background: rgba(255, 255, 255, 0.88);
-  color: #315b43;
-  font-weight: 800;
-  text-decoration: none;
-}
-
-.priorityGrid {
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-}
-
-.priorityCard {
-  display: grid;
-  gap: 0.72rem;
-  padding: 1rem;
-}
-
-.priorityCard[data-level="Critique"] {
-  border-left: 4px solid #b83232;
-}
-
-.priorityCard[data-level="Important"] {
-  border-left: 4px solid #b7791f;
-}
-
-.priorityCard[data-level="À planifier"] {
-  border-left: 4px solid #315b43;
-}
-
-.priorityFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.8rem;
-  flex-wrap: wrap;
-  color: rgba(47, 38, 29, 0.7);
-  font-size: 0.86rem;
-  font-weight: 700;
-}
-
-.priorityLink,
-.inlineLinkCard {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  color: #315b43;
-  font-weight: 800;
-  text-decoration: none;
+  line-height: 1.25;
 }
 
 .warningBanner {
@@ -197,24 +127,291 @@
   color: #6c4b12;
 }
 
-.warningBanner strong,
-.alertCard strong,
-.actionCard strong {
-  color: #2f261d;
+.warningBanner strong {
+  display: block;
+  margin-bottom: 0.18rem;
+  color: #2d261d;
+}
+
+.highlightGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.highlightCard {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.highlightCard strong {
+  font-size: 1.22rem;
+  line-height: 1.15;
+}
+
+.grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.summaryList {
+  gap: 0.85rem;
+}
+
+.summaryCard,
+.roadmapCard {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.8rem;
+  align-items: start;
+}
+
+.metricGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.metricCard {
+  display: grid;
+  gap: 0.38rem;
+}
+
+.metricCard strong {
+  font-size: clamp(1.3rem, 2vw, 1.7rem);
+  line-height: 1.05;
+}
+
+.barChart {
+  gap: 0.85rem;
+}
+
+.barRow,
+.comparisonRow {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.barMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: baseline;
+}
+
+.barMeta strong {
+  color: #2d261d;
+  font-size: 1rem;
+}
+
+.barTrack {
+  width: 100%;
+  height: 0.8rem;
+  border-radius: 999px;
+  background: rgba(116, 95, 62, 0.12);
+  overflow: hidden;
+}
+
+.comparisonTrack {
+  width: 100%;
+  height: 0.95rem;
+  border-radius: 999px;
+  background: rgba(116, 95, 62, 0.12);
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #b9872f, #d9b36a);
+}
+
+.barFill[data-color="sage"] {
+  background: linear-gradient(90deg, #4e7058, #7da284);
+}
+
+.barFill[data-color="ink"] {
+  background: linear-gradient(90deg, #314a62, #597695);
+}
+
+.barFill[data-color="sand"] {
+  background: linear-gradient(90deg, #8b6c4a, #c09b73);
+}
+
+.comparisonFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #8b6c4a, #c09b73);
+}
+
+.comparisonFill[data-tone="direct"] {
+  background: linear-gradient(90deg, #b9872f, #dfbf83);
+}
+
+.comparisonFill[data-tone="indirect"] {
+  background: linear-gradient(90deg, #64748b, #93a3b8);
+}
+
+.comparisonFill[data-tone="planetls"] {
+  background: linear-gradient(90deg, #315b43, #76a07f);
+}
+
+.comparisonMeta {
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.comparisonMeta strong {
+  color: #2d261d;
+  font-size: 1rem;
+}
+
+.comparisonRow p {
+  margin: 0;
+  color: rgba(45, 38, 29, 0.72);
+  line-height: 1.55;
+}
+
+.offerCard {
+  gap: 1rem;
+}
+
+.offerHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+  flex-wrap: wrap;
+}
+
+.offerHeader h3 {
+  margin: 0.3rem 0 0;
+  font-size: 1.5rem;
+}
+
+.priceBlock {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 132px;
+  text-align: right;
+}
+
+.priceBlock strong {
+  color: #315b43;
+  font-size: 1.6rem;
+  line-height: 1.05;
+}
+
+.priceBlock span {
+  color: rgba(45, 38, 29, 0.68);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.offerPoints {
+  gap: 0.75rem;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 620px;
+}
+
+.dataTable th,
+.dataTable td {
+  padding: 0.82rem 0.72rem;
+  border-bottom: 1px solid rgba(116, 95, 62, 0.12);
+  text-align: left;
+  vertical-align: top;
+}
+
+.dataTable th {
+  color: #6f532b;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.dataTable td {
+  color: rgba(45, 38, 29, 0.86);
+  line-height: 1.5;
+}
+
+.scorePill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+  background: rgba(116, 95, 62, 0.09);
+  color: #5d4c36;
+}
+
+.scorePill[data-tone="strong"] {
+  background: rgba(49, 91, 67, 0.14);
+  color: #315b43;
+}
+
+.scorePill[data-tone="good"] {
+  background: rgba(185, 135, 47, 0.14);
+  color: #875d18;
+}
+
+.scorePill[data-tone="mid"] {
+  background: rgba(100, 116, 139, 0.14);
+  color: #465468;
+}
+
+.scorePill[data-tone="weak"] {
+  background: rgba(177, 61, 61, 0.11);
+  color: #8e3535;
+}
+
+.sectionNote {
+  margin-top: 0.85rem;
+}
+
+.roadmapList,
+.decisionList {
+  gap: 0.85rem;
+}
+
+.inlineLinks {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-top: 0.8rem;
+}
+
+.inlineLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  border: 1px dashed rgba(49, 91, 67, 0.26);
+  border-radius: 1rem;
+  background: rgba(240, 249, 243, 0.9);
+  color: #315b43;
+  font-weight: 800;
+  text-decoration: none;
 }
 
 .tabsWrap {
-  position: sticky;
-  top: 0.8rem;
-  z-index: 5;
-  padding: 0.35rem;
-  backdrop-filter: blur(12px);
+  margin-top: 0.35rem;
 }
 
 .tabsList {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 0.55rem;
+  padding: 0.45rem;
   overflow-x: auto;
   flex-wrap: nowrap;
-  padding: 0.45rem;
   scrollbar-width: thin;
 }
 
@@ -223,167 +420,49 @@
   min-width: 150px;
 }
 
-.tabBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.4rem;
-  height: 1.4rem;
-  padding: 0 0.35rem;
-  border-radius: 999px;
-  background: rgba(49, 91, 67, 0.12);
-  color: #315b43;
-  font-size: 0.72rem;
-  font-weight: 900;
-}
-
 .tabContent {
   margin-top: 1rem;
 }
 
-.overviewGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
+@media (max-width: 1120px) {
+  .hero,
+  .grid,
+  .highlightGrid {
+    grid-template-columns: 1fr;
+  }
 
-.metricGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.metricCard,
-.summaryCard,
-.roadmapCard,
-.notesPanel {
-  display: grid;
-  gap: 0.42rem;
-  padding: 1rem;
-}
-
-.metricCard strong {
-  font-size: clamp(1.08rem, 1.8vw, 1.5rem);
-  line-height: 1.08;
-}
-
-.summaryStack {
-  gap: 0.85rem;
-}
-
-.summaryCard {
-  grid-template-columns: auto 1fr;
-  align-items: start;
-  gap: 0.8rem;
-}
-
-.summaryCard strong {
-  display: block;
-  font-size: 1rem;
-}
-
-.inlineLinkCard {
-  padding: 0.85rem 1rem;
-  border: 1px dashed rgba(49, 91, 67, 0.24);
-  border-radius: 1rem;
-  background: rgba(240, 249, 243, 0.88);
-}
-
-.alertList,
-.actionList {
-  gap: 0.85rem;
-}
-
-.alertCard {
-  display: grid;
-  gap: 0.35rem;
-  padding: 1rem;
-}
-
-.alertCard[data-tone="warning"] {
-  background: rgba(255, 248, 230, 0.92);
-}
-
-.alertCard[data-tone="positive"] {
-  background: rgba(240, 249, 243, 0.92);
-}
-
-.actionCard {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 0.85rem;
-  align-items: center;
-  padding: 1rem;
-  color: inherit;
-  text-decoration: none;
-}
-
-.actionCard p {
-  margin-top: 0.16rem;
-}
-
-.notes {
-  display: grid;
-  gap: 0.9rem;
-}
-
-.roadmapGrid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.roadmapCard strong {
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-@media (max-width: 1080px) {
-  .overviewGrid,
-  .metricGrid,
-  .roadmapGrid {
+  .metricGrid {
     grid-template-columns: 1fr 1fr;
   }
 }
 
 @media (max-width: 760px) {
-  .heroCopy h2 {
+  .heroContent h2 {
     max-width: none;
   }
 
-  .priorityHeader {
+  .warningBanner,
+  .summaryCard,
+  .roadmapCard,
+  .offerHeader,
+  .metricGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .barMeta {
+    align-items: start;
     flex-direction: column;
   }
 
-  .quickActions {
-    width: 100%;
+  .priceBlock {
+    text-align: left;
   }
 
-  .quickAction {
-    flex: 1 1 100%;
-    justify-content: center;
-  }
-
-  .warningBanner {
-    grid-template-columns: 1fr;
-  }
-
-  .overviewGrid,
-  .metricGrid,
-  .heroMeta,
-  .priorityGrid,
-  .roadmapGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .tabsWrap {
-    top: 0.4rem;
-  }
-
-  .tabsList {
-    padding: 0.35rem;
+  .dataTable {
+    min-width: 560px;
   }
 
   .tabTrigger {
     min-width: 132px;
-  }
-
-  .summaryCard,
-  .actionCard {
-    grid-template-columns: 1fr;
   }
 }

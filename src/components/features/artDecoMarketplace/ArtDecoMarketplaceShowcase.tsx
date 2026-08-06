@@ -19,23 +19,23 @@ import {
 import styles from "./ArtDecoMarketplaceShowcase.module.scss";
 
 const trustSignals = [
-  { label: "Profils verifies", value: "1 240" },
-  { label: "Temps de reponse moyen", value: "18 min" },
-  { label: "Missions tracees", value: "98%" },
+  { label: "Profils vérifiés", value: "1 240" },
+  { label: "Temps de réponse moyen", value: "18 min" },
+  { label: "Missions tracées", value: "98%" },
 ];
 
 const journeys = [
   {
     icon: Home,
-    title: "Proprietaire",
+    title: "Propriétaire",
     text: "Comparer les conciergeries, demander un devis et suivre revenus, missions et preuves sans charge mentale.",
-    next: "Voir les partenaires recommandes",
+    next: "Voir les partenaires recommandés",
   },
   {
     icon: UsersRound,
     title: "Conciergerie",
-    text: "Piloter les demandes, equipes, artisans, packs et tournees depuis un centre de controle clair.",
-    next: "Organiser la journee",
+    text: "Piloter les demandes, équipes, artisans, packs et tournées depuis un centre de contrôle clair.",
+    next: "Organiser la journée",
   },
   {
     icon: Wrench,
@@ -46,21 +46,21 @@ const journeys = [
 ];
 
 const conciergeProfiles = [
-  { name: "Maison Riviera", area: "Nice, Villefranche, Eze", score: "4.9", sla: "Reponse 12 min", price: "18% gestion" },
-  { name: "Atelier Sejour", area: "Cannes, Antibes", score: "4.8", sla: "SLA premium", price: "Pack a partir de 390 EUR" },
-  { name: "Cle d'Azur", area: "Menton, Monaco", score: "4.7", sla: "Urgences 24/7", price: "Sur devis" },
+  { name: "Maison Riviera", area: "Nice, Villefranche, Eze", score: "4.9", sla: "Réponse 12 min", price: "18% gestion" },
+  { name: "Atelier Séjour", area: "Cannes, Antibes", score: "4.8", sla: "SLA premium", price: "Pack à partir de 390 EUR" },
+  { name: "Clé d'Azur", area: "Menton, Monaco", score: "4.7", sla: "Urgences 24/7", price: "Sur devis" },
 ];
 
 const missions = [
   { time: "09:10", label: "Check-out Villa Matisse", status: "En cours", tone: "owner" },
-  { time: "11:30", label: "Linge et controle qualite", status: "Equipe assignee", tone: "concierge" },
-  { time: "14:45", label: "Depannage serrure", status: "Artisan confirme", tone: "artisan" },
+  { time: "11:30", label: "Linge et contrôle qualité", status: "Équipe assignée", tone: "concierge" },
+  { time: "14:45", label: "Dépannage serrure", status: "Artisan confirmé", tone: "artisan" },
 ];
 
 const servicePacks = [
   { title: "Essentiel", price: "12%", items: ["Check-in/out", "Messagerie voyageurs", "Reporting mensuel"] },
-  { title: "Signature", price: "18%", items: ["Optimisation revenus", "Equipe dediee", "Qualite controlee"] },
-  { title: "Sur-mesure", price: "Devis", items: ["Multibiens", "Maintenance", "Prestataires certifies"] },
+  { title: "Signature", price: "18%", items: ["Optimisation revenus", "Équipe dédiée", "Qualité contrôlée"] },
+  { title: "Sur-mesure", price: "Devis", items: ["Multibiens", "Maintenance", "Prestataires certifiés"] },
 ];
 
 export function ArtDecoMarketplaceShowcase() {
@@ -69,10 +69,10 @@ export function ArtDecoMarketplaceShowcase() {
       <section className={styles.hero} aria-labelledby="showcase-title">
         <div className={styles.heroContent}>
           <span className={styles.eyebrow}>Planet LS Experience System</span>
-          <h1 id="showcase-title">Une plateforme premium pour orchestrer la location saisonniere</h1>
+          <h1 id="showcase-title">Une plateforme premium pour orchestrer la location saisonnière</h1>
           <p>
-            Une interface Art Deco moderne, rassurante et operationnelle pour relier proprietaires,
-            conciergeries et artisans avec clarte, preuves et efficacite.
+            Une interface Art Deco moderne, rassurante et opérationnelle pour relier propriétaires,
+            conciergeries et artisans avec clarté, preuves et efficacité.
           </p>
           <div className={styles.searchBar} role="search">
             <Search size={20} aria-hidden />
@@ -88,7 +88,7 @@ export function ArtDecoMarketplaceShowcase() {
             ))}
           </div>
         </div>
-        <div className={styles.commandCenter} aria-label="Apercu du pilotage operationnel">
+        <div className={styles.commandCenter} aria-label="Aperçu du pilotage opérationnel">
           <div className={styles.commandHeader}>
             <span>Tableau de bord live</span>
             <BadgeCheck size={18} aria-hidden />
@@ -102,7 +102,7 @@ export function ArtDecoMarketplaceShowcase() {
             <div>
               <CalendarCheck size={18} aria-hidden />
               <strong>36</strong>
-              <span>Missions planifiees</span>
+              <span>Missions planifiées</span>
             </div>
           </div>
           <div className={styles.routePanel}>
@@ -113,8 +113,8 @@ export function ArtDecoMarketplaceShowcase() {
             </div>
             <div>
               <Route size={20} aria-hidden />
-              <strong>Tournee optimisee</strong>
-              <span>23 min gagnees aujourd&apos;hui</span>
+              <strong>Tournée optimisée</strong>
+              <span>23 min gagnées aujourd&apos;hui</span>
             </div>
           </div>
         </div>
@@ -155,17 +155,17 @@ export function ArtDecoMarketplaceShowcase() {
             <label>
               Besoin principal
               <select defaultValue="gestion">
-                <option value="gestion">Gestion complete</option>
+                <option value="gestion">Gestion complète</option>
                 <option value="maintenance">Maintenance</option>
-                <option value="menage">Menage et linge</option>
+                <option value="menage">Ménage et linge</option>
               </select>
             </label>
             <label>
               Niveau de service
               <select defaultValue="premium">
-                <option value="premium">Premium verifie</option>
+                <option value="premium">Premium vérifié</option>
                 <option value="fast">Intervention rapide</option>
-                <option value="local">Reseau local</option>
+                <option value="local">Réseau local</option>
               </select>
             </label>
           </aside>
@@ -245,8 +245,8 @@ export function ArtDecoMarketplaceShowcase() {
           <ShieldCheck size={24} aria-hidden />
           <h2>Confiance par la preuve</h2>
           <p>
-            Chaque action importante expose un statut, une personne responsable, une preuve ou un delai.
-            L&apos;utilisateur garde le controle sans devoir chercher l&apos;information.
+            Chaque action importante expose un statut, une personne responsable, une preuve ou un délai.
+            L&apos;utilisateur garde le contrôle sans devoir chercher l&apos;information.
           </p>
           <div>
             <span>Contrats</span>
@@ -258,8 +258,8 @@ export function ArtDecoMarketplaceShowcase() {
 
         <article className={styles.messagePanel}>
           <MessageSquareText size={24} aria-hidden />
-          <h2>Messagerie contextualisee</h2>
-          <p>Conversations reliees aux missions, devis et logements pour eviter les pertes d&apos;information.</p>
+          <h2>Messagerie contextualisée</h2>
+          <p>Conversations reliées aux missions, devis et logements pour éviter les pertes d&apos;information.</p>
         </article>
       </section>
     </main>

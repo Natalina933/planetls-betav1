@@ -93,6 +93,22 @@
   --theme-glow: rgba(21, 128, 93, 0.14);
 }
 
+:global(.theme-admin) .dashboardRoot {
+  --theme-accent: #125c5b;
+  --theme-accent-strong: #0f3f46;
+  --theme-secondary: #d4a74a;
+  --theme-secondary-strong: #b7831f;
+  --theme-soft: #667085;
+  --theme-soft-surface: #ffffff;
+  --theme-muted-surface: #f7f8fa;
+  --theme-badge-surface: rgba(18, 92, 91, 0.1);
+  --theme-text: #111827;
+  --theme-text-soft: #667085;
+  --theme-border: rgba(17, 24, 39, 0.1);
+  --theme-shadow: rgba(15, 23, 42, 0.06);
+  --theme-glow: rgba(18, 92, 91, 0.12);
+}
+
 .heroCard,
 .embeddedModule,
 .disclosureCard {
@@ -134,6 +150,7 @@
 .heroCopy,
 .heroHeadline,
 .heroTitleWrap,
+.heroSupplement,
 .heroActions,
 .kpiContent,
 .panelBody,
@@ -500,6 +517,10 @@
 
 .heroLead {
   max-width: 78ch;
+}
+
+.heroSupplement {
+  grid-column: 1 / -1;
 }
 
 .heroBadges {

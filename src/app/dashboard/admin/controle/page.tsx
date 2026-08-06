@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
 import {
   AdminEmptyState,
   AdminStatusBadge,
@@ -102,6 +103,7 @@ type ControlPayload = {
 };
 
 type TabKey = "inscriptions" | "missions" | "messages";
+type ControlWorkspaceTab = "health" | TabKey;
 type PanelKey = "health" | "filters" | "details";
 
 const TAB_LABELS: Record<TabKey, string> = {
@@ -275,9 +277,11 @@ function resolveHealthTone(status: ControlPayload["health"]["status"] | undefine
 
 function AdminControlPageContent() {
   const searchParams = useSearchParams();
+  const workspaceAnchorRef = useRef<HTMLElement | null>(null);
   const [payload, setPayload] = useState<ControlPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<TabKey>("inscriptions");
+  const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<ControlWorkspaceTab>("health");
   const [search, setSearch] = useState("");
   const [severity, setSeverity] = useState<"all" | AdminTone>("all");
   const [reloadKey, setReloadKey] = useState(0);
@@ -293,6 +297,7 @@ function AdminControlPageContent() {
 
     if (nextTab === "inscriptions" || nextTab === "missions" || nextTab === "messages") {
       setTab(nextTab);
+      setActiveWorkspaceTab(nextTab);
     }
 
     if (
@@ -425,6 +430,18 @@ function AdminControlPageContent() {
     setPanelOpen((current) => ({ ...current, [panel]: !current[panel] }));
   }
 
+  function openWorkspaceTab(value: ControlWorkspaceTab) {
+    setActiveWorkspaceTab(value);
+    if (value !== "health") {
+      setTab(value);
+    }
+    if (typeof window !== "undefined") {
+      window.requestAnimationFrame(() => {
+        workspaceAnchorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }
+
   if (loading) {
     return <div className="center">Chargement du contrôle détaillé...</div>;
   }
@@ -538,198 +555,170 @@ function AdminControlPageContent() {
         ) : null}
       </section>
 
-      <section className={styles.foldablePanel}>
-        <FoldableSectionHeader
-          title="État général"
-          summary={renderHealthSummary(payload)}
-          isOpen={panelOpen.health}
-          onToggle={() => togglePanel("health")}
-          controlsId="admin-control-health"
-        />
-        {panelOpen.health ? (
-          <div id="admin-control-health" className={styles.foldableContent}>
-            {payload ? (
-              <section className={`${styles.healthBanner} ${styles[`health_${payload.health.status}`]}`}>
-                <div className={styles.healthSummary}>
-                  <span className={styles.healthEyebrow}>État général</span>
-                  <h2>{payload.health.label}</h2>
-                  <p>
-                    {payload.health.fullyVerifiable
-                      ? `${payload.health.checkedSourceCount} sources sur ${payload.health.totalSourceCount} ont été contrôlées.`
-                      : `${payload.health.checkedSourceCount} sources sur ${payload.health.totalSourceCount} seulement sont vérifiables.`}
-                  </p>
-                  <small>Dernier contrôle : {formatAdminDate(payload.health.checkedAt)}</small>
-                </div>
-                <div className={styles.healthCounters} aria-label="Résultat du contrôle global">
-                  <div>
-                    <strong>{payload.health.dangerCount}</strong>
-                    <span>critiques</span>
-                  </div>
-                  <div>
-                    <strong>{payload.health.warningCount}</strong>
-                    <span>à surveiller</span>
-                  </div>
-                  <div>
-                    <strong>{payload.health.unavailableSources.length}</strong>
-                    <span>non vérifiables</span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className={styles.refreshButton}
-                  onClick={() => setReloadKey((value) => value + 1)}
-                >
-                  Relancer le contrôle
-                </button>
-                {payload.health.unavailableSources.length > 0 ? (
-                  <div className={styles.unavailableSources} role="alert">
-                    <strong>Contrôles impossibles à confirmer</strong>
-                    <ul>
-                      {payload.health.unavailableSources.map((source) => (
-                        <li key={source.key}>
-                          <span>{source.label}</span>
-                          <small>{source.reason}</small>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
-              </section>
-            ) : (
-              <section className={`${styles.healthBanner} ${styles.health_unverifiable}`} role="alert">
-                <div className={styles.healthSummary}>
-                  <span className={styles.healthEyebrow}>État général</span>
-                  <h2>Contrôle indisponible</h2>
-                  <p>L'état de la plateforme ne peut pas être confirmé pour le moment.</p>
-                </div>
-                <button
-                  type="button"
-                  className={styles.refreshButton}
-                  onClick={() => setReloadKey((value) => value + 1)}
-                >
-                  Réessayer
-                </button>
-              </section>
-            )}
-          </div>
-        ) : null}
-      </section>
+      <Tabs value={activeWorkspaceTab} onValueChange={(value) => openWorkspaceTab(value as ControlWorkspaceTab)}>
+        <section ref={workspaceAnchorRef} className={styles.workspaceTabsBlock} aria-label="Navigation par onglets du contrôle détaillé">
+          <TabsList className={styles.workspaceTabsList}>
+            <TabsTrigger value="health" className={styles.workspaceTabTrigger}>
+              <span>Santé globale</span>
+              <small>{payload?.health.label ?? "Vue synthèse"}</small>
+            </TabsTrigger>
+            {(["inscriptions", "missions", "messages"] as TabKey[]).map((item) => (
+              <TabsTrigger key={item} value={item} className={styles.workspaceTabTrigger}>
+                <span>{TAB_LABELS[item]}</span>
+                <small>
+                  {item === "inscriptions"
+                    ? `${tabCards?.inscriptions.danger ?? 0} critique(s)`
+                    : item === "missions"
+                      ? `${tabCards?.missions.danger ?? 0} critique(s)`
+                      : `${tabCards?.messages.warning ?? 0} à suivre`}
+                </small>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </section>
 
-      <section className={styles.foldablePanel}>
-        <FoldableSectionHeader
-          title="Onglets de contrôle"
-          summary={filterSummary}
-          isOpen={panelOpen.filters}
-          onToggle={() => togglePanel("filters")}
-          controlsId="admin-control-filters"
-        />
-        {panelOpen.filters ? (
-          <div id="admin-control-filters" className={styles.foldableContent}>
-            <DashboardPanel title="Onglets de contrôle">
-              <div className={styles.tabRow}>
-                {(["inscriptions", "missions", "messages"] as TabKey[]).map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() => setTab(item)}
-                    className={`${styles.tabButton} ${tab === item ? styles.tabButtonActive : ""}`}
-                    data-tone={
-                      !tabCards
-                        ? "warning"
-                        : item === "inscriptions"
-                          ? resolveHealthTone(
-                              tabCards.inscriptions.danger > 0
-                                ? "danger"
-                                : tabCards.inscriptions.warning > 0
-                                  ? "warning"
-                                  : "healthy",
-                            )
-                          : item === "missions"
-                            ? resolveHealthTone(
-                                tabCards.missions.danger > 0
-                                  ? "danger"
-                                  : tabCards.missions.warning > 0
-                                    ? "warning"
-                                    : "healthy",
-                              )
-                            : resolveHealthTone(
-                                tabCards.messages.danger > 0
-                                  ? "danger"
-                                  : tabCards.messages.warning > 0
-                                    ? "warning"
-                                    : "healthy",
-                              )
-                    }
-                  >
-                    <span>{TAB_LABELS[item]}</span>
-                    <strong>
-                      {item === "inscriptions"
-                        ? (tabCards?.inscriptions.total ?? 0)
-                        : item === "missions"
-                          ? (tabCards?.missions.total ?? 0)
-                          : (tabCards?.messages.total ?? 0)}
-                    </strong>
-                    <small>
-                      {item === "inscriptions"
-                        ? `${tabCards?.inscriptions.danger ?? 0} critique(s)`
-                        : item === "missions"
-                          ? `${tabCards?.missions.danger ?? 0} critique(s)`
-                          : `${tabCards?.messages.warning ?? 0} à suivre`}
-                    </small>
-                  </button>
-                ))}
+        <TabsContent value="health" className={styles.workspaceTabContent}>
+          <section className={styles.foldablePanel}>
+            <FoldableSectionHeader
+              title="État général"
+              summary={renderHealthSummary(payload)}
+              isOpen={panelOpen.health}
+              onToggle={() => togglePanel("health")}
+              controlsId="admin-control-health"
+            />
+            {panelOpen.health ? (
+              <div id="admin-control-health" className={styles.foldableContent}>
+                {payload ? (
+                  <section className={`${styles.healthBanner} ${styles[`health_${payload.health.status}`]}`}>
+                    <div className={styles.healthSummary}>
+                      <span className={styles.healthEyebrow}>État général</span>
+                      <h2>{payload.health.label}</h2>
+                      <p>
+                        {payload.health.fullyVerifiable
+                          ? `${payload.health.checkedSourceCount} sources sur ${payload.health.totalSourceCount} ont été contrôlées.`
+                          : `${payload.health.checkedSourceCount} sources sur ${payload.health.totalSourceCount} seulement sont vérifiables.`}
+                      </p>
+                      <small>Dernier contrôle : {formatAdminDate(payload.health.checkedAt)}</small>
+                    </div>
+                    <div className={styles.healthCounters} aria-label="Résultat du contrôle global">
+                      <div>
+                        <strong>{payload.health.dangerCount}</strong>
+                        <span>critiques</span>
+                      </div>
+                      <div>
+                        <strong>{payload.health.warningCount}</strong>
+                        <span>à surveiller</span>
+                      </div>
+                      <div>
+                        <strong>{payload.health.unavailableSources.length}</strong>
+                        <span>non vérifiables</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.refreshButton}
+                      onClick={() => setReloadKey((value) => value + 1)}
+                    >
+                      Relancer le contrôle
+                    </button>
+                    {payload.health.unavailableSources.length > 0 ? (
+                      <div className={styles.unavailableSources} role="alert">
+                        <strong>Contrôles impossibles à confirmer</strong>
+                        <ul>
+                          {payload.health.unavailableSources.map((source) => (
+                            <li key={source.key}>
+                              <span>{source.label}</span>
+                              <small>{source.reason}</small>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                  </section>
+                ) : (
+                  <section className={`${styles.healthBanner} ${styles.health_unverifiable}`} role="alert">
+                    <div className={styles.healthSummary}>
+                      <span className={styles.healthEyebrow}>État général</span>
+                      <h2>Contrôle indisponible</h2>
+                      <p>L'état de la plateforme ne peut pas être confirmé pour le moment.</p>
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.refreshButton}
+                      onClick={() => setReloadKey((value) => value + 1)}
+                    >
+                      Réessayer
+                    </button>
+                  </section>
+                )}
               </div>
+            ) : null}
+          </section>
+        </TabsContent>
 
-              <div className={styles.filterRow}>
-                <label className={styles.field}>
-                  <span>Recherche</span>
-                  <input
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Nom, sujet, mission..."
-                  />
-                </label>
-                <label className={styles.field}>
-                  <span>Couleur</span>
-                  <select
-                    value={severity}
-                    onChange={(event) => setSeverity(event.target.value as "all" | AdminTone)}
-                  >
-                    <option value="all">Toutes</option>
-                    <option value="danger">Rouge</option>
-                    <option value="warning">Orange</option>
-                    <option value="positive">Vert</option>
-                  </select>
-                </label>
-                <div className={styles.filterSummary} aria-live="polite">
-                  <span>{TAB_LABELS[tab]}</span>
-                  <strong>{filteredItems.length} résultat(s)</strong>
-                  <p>{currentItems.length} élément(s) dans cet onglet avant filtres.</p>
+        {(["inscriptions", "missions", "messages"] as TabKey[]).map((item) => (
+          <TabsContent key={item} value={item} className={styles.workspaceTabContent}>
+            <section className={styles.foldablePanel}>
+              <FoldableSectionHeader
+                title={`Filtres ${TAB_LABELS[item].toLowerCase()}`}
+                summary={filterSummary}
+                isOpen={panelOpen.filters}
+                onToggle={() => togglePanel("filters")}
+                controlsId={`admin-control-filters-${item}`}
+              />
+              {panelOpen.filters ? (
+                <div id={`admin-control-filters-${item}`} className={styles.foldableContent}>
+                  <DashboardPanel title={`Filtres ${TAB_LABELS[item].toLowerCase()}`}>
+                    <div className={styles.filterRow}>
+                      <label className={styles.field}>
+                        <span>Recherche</span>
+                        <input
+                          value={search}
+                          onChange={(event) => setSearch(event.target.value)}
+                          placeholder="Nom, sujet, mission..."
+                        />
+                      </label>
+                      <label className={styles.field}>
+                        <span>Couleur</span>
+                        <select
+                          value={severity}
+                          onChange={(event) => setSeverity(event.target.value as "all" | AdminTone)}
+                        >
+                          <option value="all">Toutes</option>
+                          <option value="danger">Rouge</option>
+                          <option value="warning">Orange</option>
+                          <option value="positive">Vert</option>
+                        </select>
+                      </label>
+                      <div className={styles.filterSummary} aria-live="polite">
+                        <span>{TAB_LABELS[tab]}</span>
+                        <strong>{filteredItems.length} résultat(s)</strong>
+                        <p>{currentItems.length} élément(s) dans cet onglet avant filtres.</p>
+                      </div>
+                    </div>
+                  </DashboardPanel>
                 </div>
-              </div>
-            </DashboardPanel>
-          </div>
-        ) : null}
-      </section>
+              ) : null}
+            </section>
 
-      <section className={styles.foldablePanel}>
-        <FoldableSectionHeader
-          title={`Détail ${TAB_LABELS[tab].toLowerCase()}`}
-          summary={detailSummary}
-          isOpen={panelOpen.details}
-          onToggle={() => togglePanel("details")}
-          controlsId="admin-control-details"
-        />
-        {panelOpen.details ? (
-          <div id="admin-control-details" className={styles.foldableContent}>
-            <DashboardPanel title={`Détail ${TAB_LABELS[tab].toLowerCase()}`}>
-              {filteredItems.length === 0 ? (
-                <AdminEmptyState
-                  title="Aucun élément pour ce filtre"
-                  description="Ajustez la recherche ou la couleur pour afficher les étapes à contrôler."
-                />
-              ) : (
-                <div className={styles.cardList}>
+            <section className={styles.foldablePanel}>
+              <FoldableSectionHeader
+                title={`Détail ${TAB_LABELS[item].toLowerCase()}`}
+                summary={detailSummary}
+                isOpen={panelOpen.details}
+                onToggle={() => togglePanel("details")}
+                controlsId={`admin-control-details-${item}`}
+              />
+              {panelOpen.details ? (
+                <div id={`admin-control-details-${item}`} className={styles.foldableContent}>
+                  <DashboardPanel title={`Détail ${TAB_LABELS[item].toLowerCase()}`}>
+                    {filteredItems.length === 0 ? (
+                      <AdminEmptyState
+                        title="Aucun élément pour ce filtre"
+                        description="Ajustez la recherche ou la couleur pour afficher les étapes à contrôler."
+                      />
+                    ) : (
+                      <div className={styles.cardList}>
                   {tab === "inscriptions" &&
                     (filteredItems as OnboardingItem[]).map((item) => (
                       <article key={item.id} className={styles.card}>
@@ -881,19 +870,22 @@ function AdminControlPageContent() {
                         </div>
                       </article>
                     ))}
+                      </div>
+                    )}
+                  </DashboardPanel>
                 </div>
-              )}
-            </DashboardPanel>
-          </div>
-        ) : null}
-      </section>
+              ) : null}
+            </section>
+          </TabsContent>
+        ))}
+      </Tabs>
     </DashboardLayout>
   );
 }
 
 export default function AdminControlPage() {
   return (
-    <Suspense fallback={<div className="center">Chargement du controle detaille...</div>}>
+    <Suspense fallback={<div className="center">Chargement du contrôle détaillé...</div>}>
       <AdminControlPageContent />
     </Suspense>
   );

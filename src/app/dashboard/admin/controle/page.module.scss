@@ -147,6 +147,44 @@
   gap: 0.8rem;
 }
 
+.workspaceTabsBlock {
+  margin-top: 1rem;
+}
+
+.workspaceTabsList {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+  width: 100%;
+}
+
+.workspaceTabTrigger {
+  display: grid;
+  justify-items: start;
+  gap: 0.18rem;
+  min-height: 100%;
+  padding: 1rem 1.05rem;
+  border-radius: 1.2rem;
+  text-align: left;
+}
+
+.workspaceTabTrigger span {
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.workspaceTabTrigger small {
+  color: rgba(79, 60, 38, 0.74);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.workspaceTabContent {
+  margin-top: 1rem;
+}
+
 .foldableContent {
   display: grid;
   gap: 0.8rem;
@@ -443,7 +481,8 @@
 @media (max-width: 980px) {
   .heroTop,
   .heroStoryGrid,
-  .tabRow {
+  .tabRow,
+  .workspaceTabsList {
     grid-template-columns: 1fr;
   }
 

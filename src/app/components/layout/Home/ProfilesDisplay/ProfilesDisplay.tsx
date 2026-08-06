@@ -25,8 +25,8 @@ interface ProfilesDisplayProps {
 
 const categoriesMap: Record<string, { label: string; description: string }> = {
   proprietaire: {
-    label: "Proprietaire",
-    description: "Proprietaires locaux, engages et a l'ecoute",
+    label: "Propriétaire",
+    description: "Propriétaires locaux, engagés et à l'écoute",
   },
   concierge: {
     label: "Conciergerie",
@@ -34,7 +34,7 @@ const categoriesMap: Record<string, { label: string; description: string }> = {
   },
   artisan: {
     label: "Artisan",
-    description: "Artisans passionnes, savoir-faire local",
+    description: "Artisans passionnés, savoir-faire local",
   },
 };
 
@@ -52,7 +52,7 @@ export default function ProfilesDisplay({
 }: ProfilesDisplayProps) {
   const searchParams = useSearchParams();
   const category = searchParams.get("filter") ?? "concierge";
-  const location = searchParams.get("location") ?? "non precisee";
+  const location = searchParams.get("location") ?? "non précisée";
 
   return (
     <div className={styles.profilesDisplay}>
@@ -107,12 +107,12 @@ export default function ProfilesDisplay({
           description="Élargissez la recherche ou connectez-vous pour créer une alerte pertinente."
           primaryAction={
             <ButtonLink href="/map-list?filter=concierge" variant="secondary" size="sm">
-              Elargir la recherche
+              Élargir la recherche
             </ButtonLink>
           }
           secondaryAction={
             <ButtonLink href="/login" variant="primary" size="sm">
-              Se connecter pour creer une alerte
+              Se connecter pour créer une alerte
             </ButtonLink>
           }
         />

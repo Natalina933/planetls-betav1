@@ -1,7 +1,7 @@
 "use client";
 
-import { useSearchParams } from 'next/navigation';
-import MapWithList from './MapWithList';
+import { useSearchParams } from "next/navigation";
+import MapWithList from "./MapWithList";
 
 const categoryTitleMap: Record<string, string> = {
   proprietaire: "Trouvez le propriétaire idéal pour vos besoins",

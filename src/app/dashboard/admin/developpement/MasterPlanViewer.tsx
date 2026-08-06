@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState, type ChangeEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import Link from "next/link";
 import {
   Activity,
@@ -14,7 +14,6 @@ import {
   Cloud,
   GitBranch,
   Github,
-  FileText,
   Filter,
   FolderKanban,
   GitPullRequest,
@@ -44,6 +43,10 @@ import {
   StatsCard,
   Tag,
   Textarea,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
 } from "@/components/ui";
 import { focusFirstModalElement, trapFocusInModal } from "@/app/dashboard/owner/modalAccessibility";
 import { FilterChipGroup } from "@/features/shared/components/FilterChipGroup";
@@ -58,7 +61,6 @@ import {
   type DeveloperLogPriority,
   type DeveloperLogView,
 } from "./developerLog";
-import { type ProjectAdvisorAnswer, type ProjectAdvisorView } from "./projectAdvisor";
 import {
   type MissionControlHealthStatus,
   type MissionControlView,
@@ -79,12 +81,17 @@ type MasterPlanViewerProps = {
   missionControl: MissionControlView;
   roadmap: RoadmapView;
   technicalMemory: TechnicalMemoryView;
-  advisor: ProjectAdvisorView;
   defaultAuthor: string;
   projectVersion: string;
 };
 
 type JournalTimeframe = "all" | "today" | "week" | "month";
+type DevelopmentWorkspaceTab =
+  | "masterPlan"
+  | "missionControl"
+  | "roadmap"
+  | "technicalMemory"
+  | "journal";
 
 type ManualEntryDraft = Omit<DeveloperLogEntry, "features" | "links"> & {
   featuresText: string;
@@ -481,10 +488,9 @@ function SectionCard({ section, childSections, isOpen, onToggle }: {
       {section.priorities.map((priority) => <span key={priority}>{priority}</span>)}
     </div>
     {isOpen ? <div id={contentId} className={styles.markdown}>
-      {section.content ? <MarkdownContent content={section.content} /> : childSections.length ? <div className={styles.childSectionIndex}>
-        <p>Cette partie est organisée en {childSections.length} sous-section{childSections.length > 1 ? "s" : ""} :</p>
-        <nav aria-label={`Sous-sections de ${section.title}`}>{childSections.map((child) => <a href={`#${child.id}`} key={child.id}>{child.title}</a>)}</nav>
-      </div> : <p className={styles.emptySection}>Aucun contenu n’est encore renseigné pour cette section.</p>}
+      {section.content ? <MarkdownContent content={section.content} /> : childSections.length ? <p className={styles.emptySection}>
+        Cette section sert surtout de regroupement. Ouvrez les sous-sections concernées pour lire les tableaux et le détail utile.
+      </p> : <p className={styles.emptySection}>Aucun contenu n’est encore renseigné pour cette section.</p>}
     </div> : null}
   </article>;
 }
@@ -557,13 +563,14 @@ function FoldableSectionHeader({
   );
 }
 
-export function MasterPlanViewer({ plan, journal, missionControl, roadmap, technicalMemory, advisor, defaultAuthor, projectVersion }: MasterPlanViewerProps) {
+export function MasterPlanViewer({ plan, journal, missionControl, roadmap, technicalMemory, defaultAuthor, projectVersion }: MasterPlanViewerProps) {
   const blockedMasterPlanStatus = "⚠️ Bloqué";
+  const workspaceAnchorRef = useRef<HTMLDivElement | null>(null);
   const [masterPlanQuery, setMasterPlanQuery] = useState("");
   const [masterPlanStatus, setMasterPlanStatus] = useState("");
   const [masterPlanPriority, setMasterPlanPriority] = useState("");
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    () => new Set(plan.sections.map((section) => section.id)),
+    () => new Set(),
   );
 
   const [journalQuery, setJournalQuery] = useState("");
@@ -588,7 +595,6 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   const [isManualEntryModalOpen, setIsManualEntryModalOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState({
     missionControl: true,
-    advisor: true,
     technicalMemory: false,
     roadmap: true,
     journal: false,
@@ -599,6 +605,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
     return { ...seed, featuresText: "", linksText: "" };
   });
   const [pendingMasterPlanAnchor, setPendingMasterPlanAnchor] = useState<string | null>(null);
+  const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<DevelopmentWorkspaceTab>("masterPlan");
 
   useEffect(() => {
     setFavoriteIds(readStorage<string[]>(FAVORITES_STORAGE_KEY, []));
@@ -782,10 +789,9 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   const canonicalMemoryCount = technicalMemory.entries.filter((entry) => entry.source === "canonique").length;
   const missionControlSummary = `${missionControl.progressionPct}% d'avancement, ${missionControl.inProgressFeatures} actif(s), ${missionControl.blockedFeatures} bloqué(s)`;
   const memorySummary = `${technicalMemory.entries.length} décisions indexées, filtres et recherche instantanée`;
-  const advisorSummary = `${advisor.answers.length} réponses calculées, preuves et niveaux de confiance visibles`;
   const roadmapSummary = `${roadmapReadyCount} prête(s), ${roadmapBlockedCount} dépendance(s), recalcul automatique`;
   const journalSummary = `${filteredEntries.length} entrée(s), ${favoriteCount} favori(s), ${commentCount} commentaire(s)`;
-  const masterPlanSummary = `${visibleSections.length} section(s) visibles, ${expandedSections.size} ouverte(s), filtres et sommaire inclus`;
+  const masterPlanSummary = `${visibleSections.length} section(s) et tableaux visibles`;
   const executiveHealth = summarizeHealthStatus(missionControl.healthCards);
   const healthDangerCount = missionControl.healthCards.filter((card) => card.status === "danger").length;
   const healthWarningCount = missionControl.healthCards.filter((card) => card.status === "warning").length;
@@ -1056,6 +1062,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
 
   const openBlockedMasterPlanItems = () => {
     const blockedSections = plan.sections.filter((section) => section.statuses.includes(blockedMasterPlanStatus));
+    setActiveWorkspaceTab("masterPlan");
     setMasterPlanQuery("");
     setMasterPlanPriority("");
     setMasterPlanStatus(blockedMasterPlanStatus);
@@ -1064,7 +1071,17 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
     setPendingMasterPlanAnchor(blockedSections[0]?.id ?? "master-plan-detail-panel");
   };
 
+  const handleWorkspaceTabChange = (value: string) => {
+    setActiveWorkspaceTab(value as DevelopmentWorkspaceTab);
+    if (typeof window !== "undefined") {
+      window.requestAnimationFrame(() => {
+        workspaceAnchorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  };
+
   return <div className={styles.page}>
+    <Tabs value={activeWorkspaceTab} onValueChange={handleWorkspaceTabChange}>
     <header className={styles.executiveHero}>
       <div className={styles.executiveHeroMain}>
         <div className={styles.executiveHeroTopline}>
@@ -1082,28 +1099,35 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
           </div>
           <Link href="/dashboard/admin" className={styles.backLink}>Retour au cockpit admin</Link>
         </div>
-        <nav className={styles.pageSummary} aria-label="Sommaire de la page Développement">
+        <div className={styles.pageSummary} aria-label="Navigation principale de la page Développement">
           <div className={styles.pageSummaryIntro}>
-            <span>Sommaire</span>
-            <strong>Accéder directement à l’essentiel</strong>
-            <p>Les sections sont regroupées selon l’action à mener.</p>
+            <span>Navigation</span>
+            <strong>Ouvrir une vue claire plutôt qu’une longue page continue</strong>
+            <p>Le tableau fonctionnel du Master Plan passe d’abord, puis les vues d’exécution, de feuille de route, de mémoire technique et de journal.</p>
           </div>
-          <div className={styles.pageSummaryGroup}>
-            <span>01 · Agir maintenant</span>
-            <a href="#mission-control"><strong>Mission Control</strong><small>État, alertes et priorités</small></a>
-            <a href="#roadmap-intelligente"><strong>Roadmap intelligente</strong><small>Prochaine action exécutable</small></a>
-          </div>
-          <div className={styles.pageSummaryGroup}>
-            <span>02 · Décider</span>
-            <a href="#conseiller-projet"><strong>Conseiller projet</strong><small>Réponses et arbitrages guidés</small></a>
-            <a href="#memoire-technique"><strong>Mémoire technique</strong><small>Décisions de référence</small></a>
-          </div>
-          <div className={styles.pageSummaryGroup}>
-            <span>03 · Documenter</span>
-            <a href="#journal-de-bord"><strong>Journal de bord</strong><small>Activité et décisions récentes</small></a>
-            <a href="#master-plan"><strong>Master Plan détaillé</strong><small>Source complète du pilotage</small></a>
-          </div>
-        </nav>
+          <TabsList className={styles.workspaceTabsList}>
+            <TabsTrigger value="masterPlan" className={styles.workspaceTabTrigger}>
+              <span>Tableau fonctionnel</span>
+              <small>Master Plan au début</small>
+            </TabsTrigger>
+            <TabsTrigger value="missionControl" className={styles.workspaceTabTrigger}>
+              <span>Mission Control</span>
+              <small>État, alertes, priorités</small>
+            </TabsTrigger>
+            <TabsTrigger value="roadmap" className={styles.workspaceTabTrigger}>
+              <span>Roadmap</span>
+              <small>Prochaine action logique</small>
+            </TabsTrigger>
+            <TabsTrigger value="technicalMemory" className={styles.workspaceTabTrigger}>
+              <span>Mémoire</span>
+              <small>Décisions de référence</small>
+            </TabsTrigger>
+            <TabsTrigger value="journal" className={styles.workspaceTabTrigger}>
+              <span>Journal</span>
+              <small>Activité et suivi</small>
+            </TabsTrigger>
+          </TabsList>
+        </div>
         <div className={styles.executiveSignalGrid}>
           <Card className={styles.executiveLeadCard}>
             <CardBody className={styles.executiveLeadBody}>
@@ -1327,6 +1351,34 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       </div>
     </header>
 
+      <div ref={workspaceAnchorRef} />
+      <TabsContent value="masterPlan" className={styles.workspaceTabContent}>
+    <section id="master-plan" className={`${styles.journalShell} ${styles.sectionMasterPlan}`} aria-labelledby="master-plan-detail-title">
+      <FoldableSectionHeader
+        title="Tableaux du Master Plan"
+        summary={masterPlanSummary}
+        isOpen={panelOpen.masterPlan}
+        onToggle={() => togglePanel("masterPlan")}
+        controlsId="master-plan-detail-panel"
+      />
+      {panelOpen.masterPlan ? <div id="master-plan-detail-panel" className={styles.foldableContent}>
+    <section className={styles.filters} aria-label="Filtres du Master Plan">
+      <label className={styles.search}><Search size={18} /><input value={masterPlanQuery} onChange={(event) => setMasterPlanQuery(event.target.value)} placeholder="Rechercher une fonctionnalité, une décision, une limite…" /></label>
+      <select value={masterPlanStatus} onChange={(event) => setMasterPlanStatus(event.target.value)} aria-label="Filtrer par statut"><option value="">Tous les statuts</option>{MASTER_PLAN_STATUSES.map((item) => <option value={item} key={item}>{item} ({plan.statusCounts[item] ?? 0})</option>)}</select>
+      <select value={masterPlanPriority} onChange={(event) => setMasterPlanPriority(event.target.value)} aria-label="Filtrer par priorité"><option value="">Toutes les priorités</option>{MASTER_PLAN_PRIORITIES.map((item) => <option value={item} key={item}>{item} ({plan.remainingPriorityCounts[item] ?? 0} restant)</option>)}</select>
+      {(masterPlanQuery || masterPlanStatus || masterPlanPriority) && <button type="button" onClick={() => { setMasterPlanQuery(""); setMasterPlanStatus(""); setMasterPlanPriority(""); }}><X size={16} /> Effacer</button>}
+    </section>
+
+    <section className={styles.content} aria-label="Contenu du Master Plan">
+        {visibleSections.length
+          ? visibleSections.map((section) => <SectionCard section={section} childSections={childrenBySection.get(section.id) ?? []} isOpen={expandedSections.has(section.id)} onToggle={() => toggleSection(section.id)} key={section.id} />)
+          : <div className={styles.empty}><Search size={28} /><h2>Aucun résultat</h2><p>Essayez un autre terme ou retirez un filtre.</p></div>}
+      </section>
+      </div> : null}
+    </section>
+      </TabsContent>
+
+      <TabsContent value="missionControl" className={styles.workspaceTabContent}>
     <section id="mission-control" className={`${styles.missionControlShell} ${styles.sectionMissionControl}`} aria-labelledby="mission-control-title">
       <FoldableSectionHeader
         title="Mission Control"
@@ -1342,7 +1394,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
         align="left"
         eyebrow={<><Radar size={16} /> Poste de contrôle</>}
         subtitle="Le niveau exécution regroupe l'avancement, la santé technique et les décisions qui influencent la suite."
-        description="Cette zone sert à lire rapidement ce qui est sous contrôle, ce qui dérive et ce qui nécessite un arbitrage produit, technique ou opérationnel."
+        description="Cette zone sert à lire rapidement ce qui est sous contrôle, ce qui dérive et ce qui nécessite un arbitrage technique ou opérationnel."
       />
 
       <div className={styles.missionGrid}>
@@ -1470,78 +1522,9 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       </div>
       </div> : null}
     </section>
+      </TabsContent>
 
-    <section id="conseiller-projet" className={`${styles.advisorShell} ${styles.sectionAdvisor}`} aria-labelledby="advisor-title">
-      <FoldableSectionHeader
-        title="Conseiller projet"
-        summary={advisorSummary}
-        isOpen={panelOpen.advisor}
-        onToggle={() => togglePanel("advisor")}
-        controlsId="project-advisor-panel"
-      />
-      {panelOpen.advisor ? <div id="project-advisor-panel" className={styles.foldableContent}>
-      <SectionIntro
-        title="Conseiller IA du projet"
-        titleId="advisor-title"
-        align="left"
-        eyebrow={<><Sparkles size={16} /> Coach technique</>}
-        subtitle="Ce n'est pas un chat libre : c'est un conseiller qui répond à des questions précises à partir de l'état réel de PlanetLS."
-        description="Chaque réponse s'appuie sur le Master Plan, la roadmap, Mission Control, la mémoire technique et quelques scans heuristiques du repo. Le niveau de confiance te dit immédiatement s'il s'agit d'un fait, d'un croisement ou d'un signal à confirmer."
-      />
-
-      <div className={styles.advisorMetrics}>
-        <StatsCard label="Questions couvertes" value={String(advisor.answers.length)} hint="Réponses calculées" visual={<MessageSquareText size={18} />} visualLabel="Questions" />
-        <StatsCard label="Factuelles" value={String(advisor.answers.filter((answer) => answer.confidence === "Factuel").length)} hint="Source directe" visual={<ShieldCheck size={18} />} visualLabel="Factuel" />
-        <StatsCard label="Croisées" value={String(advisor.answers.filter((answer) => answer.confidence === "Croisé").length)} hint="Plusieurs signaux" visual={<Radar size={18} />} visualLabel="Croisé" />
-        <StatsCard label="Heuristiques" value={String(advisor.answers.filter((answer) => answer.confidence === "Heuristique").length)} hint="À confirmer humainement" visual={<AlertTriangle size={18} />} visualLabel="Heuristique" />
-      </div>
-
-      <div className={styles.advisorGrid}>
-        {advisor.answers.map((answer: ProjectAdvisorAnswer) => (
-          <Card key={answer.id} className={styles.advisorCard}>
-            <CardHeader className={styles.advisorHeader}>
-              <div>
-                <p className={styles.categoryLabel}>Question prioritaire</p>
-                <h3>{answer.question}</h3>
-              </div>
-              <Tag
-                tone="neutral"
-                className={
-                  answer.confidence === "Factuel"
-                    ? styles.advisorConfidenceFact
-                    : answer.confidence === "Croisé"
-                      ? styles.advisorConfidenceCross
-                      : styles.advisorConfidenceHeuristic
-                }
-              >
-                {answer.confidence}
-              </Tag>
-            </CardHeader>
-            <CardBody className={styles.advisorBody}>
-              <article className={`${styles.advisorLead} ${answer.tone === "success" ? styles.advisorToneSuccess : answer.tone === "warning" ? styles.advisorToneWarning : styles.advisorToneNeutral}`}>
-                <strong>{answer.answer}</strong>
-                <p>{answer.detail}</p>
-              </article>
-              <div className={styles.featureRow}>
-                {answer.tags.map((tag) => <Tag key={`${answer.id}-${tag}`} tone="category">{tag}</Tag>)}
-              </div>
-              <article className={styles.advisorEvidence}>
-                <strong>Preuves et signaux utilisés</strong>
-                {answer.evidence.length ? (
-                  <ul className={styles.auditList}>
-                    {answer.evidence.map((item) => <li key={`${answer.id}-${item}`}>{item}</li>)}
-                  </ul>
-                ) : (
-                  <p>Aucune preuve complémentaire listée.</p>
-                )}
-              </article>
-            </CardBody>
-          </Card>
-        ))}
-      </div>
-      </div> : null}
-    </section>
-
+      <TabsContent value="technicalMemory" className={styles.workspaceTabContent}>
     <section id="memoire-technique" className={`${styles.memoryShell} ${styles.sectionMemory}`} aria-labelledby="memory-title">
       <FoldableSectionHeader
         title="Mémoire technique"
@@ -1557,7 +1540,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
         align="left"
         eyebrow={<><BookOpen size={16} /> Référentiel interne</>}
         subtitle="Les décisions qui structurent le produit, la stack et les workflows restent consultables en lecture rapide."
-        description="Cette base concentre les choix de référence afin d'éviter les re-débats inutiles et de raccourcir les arbitrages de design, de produit et d'architecture."
+        description="Cette base concentre les choix de référence afin d'éviter les re-débats inutiles et de raccourcir les arbitrages de design, d'architecture et de workflow."
       />
 
       <div className={styles.memoryMetrics}>
@@ -1636,7 +1619,9 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       </div>
       </div> : null}
     </section>
+      </TabsContent>
 
+      <TabsContent value="roadmap" className={styles.workspaceTabContent}>
     <section id="roadmap-intelligente" className={`${styles.roadmapShell} ${styles.sectionRoadmap}`} aria-labelledby="roadmap-title">
       <FoldableSectionHeader
         title="Roadmap intelligente"
@@ -1650,7 +1635,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
         title="Roadmap dynamique"
         titleId="roadmap-title"
         align="left"
-        eyebrow={<><Sparkles size={16} /> Orchestration produit</>}
+        eyebrow={<><Sparkles size={16} /> Orchestration technique</>}
         subtitle="Chaque chantier conserve son contexte métier, ses dépendances actives et la meilleure action suivante."
         description="Quand une fonctionnalité passe en terminé, la feuille de route recalcule automatiquement ce qui se débloque, ce qui remonte en priorité et ce qu'il faut lancer ensuite."
       />
@@ -1716,7 +1701,6 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                 <div className={styles.roadmapFacts}>
                   <div><strong>Estimation</strong><span>{item.estimation}</span></div>
                   <div><strong>Gain utilisateur</strong><span>{item.userGain}</span></div>
-                  <div><strong>Gain business</strong><span>{item.businessGain}</span></div>
                   <div><strong>Dette technique</strong><span>{item.technicalDebt}</span></div>
                   <div><strong>Date prévue</strong><span>{formatRoadmapDate(item.targetDate)}</span></div>
                   <div><strong>Audience</strong><span>{item.audience || "Tous"}</span></div>
@@ -1767,7 +1751,6 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                 <div className={styles.roadmapFacts}>
                   <div><strong>Estimation</strong><span>{item.estimation}</span></div>
                   <div><strong>Gain utilisateur</strong><span>{item.userGain}</span></div>
-                  <div><strong>Gain business</strong><span>{item.businessGain}</span></div>
                   <div><strong>Dette technique</strong><span>{item.technicalDebt}</span></div>
                   <div><strong>Date prévue</strong><span>{formatRoadmapDate(item.targetDate)}</span></div>
                   <div><strong>Statut</strong><span>{item.blockedBy.length} dépendance(s)</span></div>
@@ -1813,7 +1796,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                   <div><strong>Priorité initiale</strong><span>{item.priority}</span></div>
                   <div><strong>Responsable</strong><span>{item.owner}</span></div>
                   <div><strong>Date prévue</strong><span>{formatRoadmapDate(item.targetDate)}</span></div>
-                  <div><strong>Impact</strong><span>{item.userGain} / {item.businessGain}</span></div>
+                  <div><strong>Impact utilisateur</strong><span>{item.userGain}</span></div>
                 </div>
                 <div className={styles.roadmapCardFooter}>
                   <span>Cette clôture est mémorisée dans le navigateur pour le pilotage quotidien.</span>
@@ -1831,7 +1814,9 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       </div>
       </div> : null}
     </section>
+      </TabsContent>
 
+      <TabsContent value="journal" className={styles.workspaceTabContent}>
     <section id="journal-de-bord" className={`${styles.journalShell} ${styles.sectionJournal}`} aria-labelledby="journal-title">
       <FoldableSectionHeader
         title="Journal de bord"
@@ -2186,58 +2171,8 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       </div> : null}
       </div> : null}
     </section>
-
-    <section id="master-plan" className={`${styles.journalShell} ${styles.sectionMasterPlan}`} aria-labelledby="master-plan-detail-title">
-      <FoldableSectionHeader
-        title="Sommaire et détail du Master Plan"
-        summary={masterPlanSummary}
-        isOpen={panelOpen.masterPlan}
-        onToggle={() => togglePanel("masterPlan")}
-        controlsId="master-plan-detail-panel"
-      />
-      {panelOpen.masterPlan ? <div id="master-plan-detail-panel" className={styles.foldableContent}>
-    <section className={styles.metrics} aria-label="Synthèse du Master Plan">
-      <article><FileText /><strong>{plan.sections.length}</strong><span>sections indexées</span></article>
-      <article><BookOpen /><strong>{plan.lineCount}</strong><span>lignes dans la source</span></article>
-      <article><CalendarClock /><strong>{new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(plan.updatedAt))}</strong><span>dernière modification</span></article>
-    </section>
-
-    <section className={styles.breakdown} aria-label="Raccourcis de pilotage">
-      <div><h2>Statuts</h2><div className={styles.breakdownGrid}>
-        {MASTER_PLAN_STATUSES.map((item) => <button type="button" key={item} aria-pressed={masterPlanStatus === item} onClick={() => setMasterPlanStatus((current) => current === item ? "" : item)}><strong>{plan.statusCounts[item] ?? 0}</strong><span>{item}</span></button>)}
-      </div></div>
-      <div><h2>Priorités</h2><div className={styles.breakdownGrid}>
-        {MASTER_PLAN_PRIORITIES.map((item) => <button type="button" key={item} aria-pressed={masterPlanPriority === item} onClick={() => setMasterPlanPriority((current) => current === item ? "" : item)}><strong>{plan.remainingPriorityCounts[item] ?? 0} / {plan.registryPriorityCounts[item] ?? 0}</strong><span>{item} restant / total</span></button>)}
-      </div></div>
-    </section>
-
-    <section className={styles.filters} aria-label="Filtres du Master Plan">
-      <label className={styles.search}><Search size={18} /><input value={masterPlanQuery} onChange={(event) => setMasterPlanQuery(event.target.value)} placeholder="Rechercher une fonctionnalité, une décision, une limite…" /></label>
-      <select value={masterPlanStatus} onChange={(event) => setMasterPlanStatus(event.target.value)} aria-label="Filtrer par statut"><option value="">Tous les statuts</option>{MASTER_PLAN_STATUSES.map((item) => <option value={item} key={item}>{item} ({plan.statusCounts[item] ?? 0})</option>)}</select>
-      <select value={masterPlanPriority} onChange={(event) => setMasterPlanPriority(event.target.value)} aria-label="Filtrer par priorité"><option value="">Toutes les priorités</option>{MASTER_PLAN_PRIORITIES.map((item) => <option value={item} key={item}>{item} ({plan.remainingPriorityCounts[item] ?? 0} restant)</option>)}</select>
-      {(masterPlanQuery || masterPlanStatus || masterPlanPriority) && <button type="button" onClick={() => { setMasterPlanQuery(""); setMasterPlanStatus(""); setMasterPlanPriority(""); }}><X size={16} /> Effacer</button>}
-    </section>
-
-    <div className={styles.readingControls} aria-label="Contrôles de lecture">
-      <span>{expandedSections.size} section{expandedSections.size > 1 ? "s" : ""} dépliée{expandedSections.size > 1 ? "s" : ""}</span>
-      <button type="button" onClick={() => setExpandedSections(new Set())}>Tout replier</button>
-      <button type="button" onClick={() => setExpandedSections(new Set(visibleSections.map((section) => section.id)))}>Tout déplier</button>
-    </div>
-
-    <div className={styles.workspace}>
-      <aside className={styles.toc}>
-        <strong>Sommaire</strong>
-        <span>{visibleSections.length} résultat{visibleSections.length > 1 ? "s" : ""}</span>
-        <nav aria-label="Sommaire du Master Plan">{visibleSections.map((section) => <a key={section.id} href={`#${section.id}`} className={section.level > 2 ? styles.nested : undefined}>{section.title}</a>)}</nav>
-      </aside>
-      <section className={styles.content} aria-label="Contenu du Master Plan">
-        {visibleSections.length
-          ? visibleSections.map((section) => <SectionCard section={section} childSections={childrenBySection.get(section.id) ?? []} isOpen={expandedSections.has(section.id)} onToggle={() => toggleSection(section.id)} key={section.id} />)
-          : <div className={styles.empty}><Search size={28} /><h2>Aucun résultat</h2><p>Essayez un autre terme ou retirez un filtre.</p></div>}
-      </section>
-    </div>
-      </div> : null}
-    </section>
+      </TabsContent>
+    </Tabs>
   </div>;
 }
 

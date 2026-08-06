@@ -9,8 +9,7 @@ import { buildDeveloperLogView, type DeveloperLogCommit } from "./developerLog";
 import { MasterPlanViewer } from "./MasterPlanViewer";
 import { parseMasterPlan } from "./masterPlan";
 import { buildMissionControlView, type MissionControlHealthCard } from "./missionControl";
-import { buildProjectAdvisorView } from "./projectAdvisor";
-import { buildRoadmapView, projectRoadmap } from "./roadmap";
+import { buildRoadmapView } from "./roadmap";
 import { buildTechnicalMemoryView } from "./technicalMemory";
 
 export const dynamic = "force-dynamic";
@@ -346,32 +345,5 @@ export default async function DevelopmentPage() {
     projectVersion,
     workflowExists,
   });
-  const advisorSignals = await collectProjectAdvisorSignals();
-  const roadmapProjection = projectRoadmap(roadmap, []);
-  const missingTestCandidates = roadmapProjection.items
-    .filter((item) => !item.isCompleted && (item.priority === "P0 Critique" || item.priority === "P1 Prioritaire"))
-    .filter((item) => {
-      const evidence = `${item.evidence} ${item.nextAction}`.toLowerCase();
-      return !evidence.includes("test") && !evidence.includes("e2e") && !evidence.includes("playwright") && !evidence.includes("build");
-    })
-    .slice(0, 8)
-    .map((item) => ({
-      title: item.title,
-      priority: item.priority,
-      nextAction: item.nextAction,
-      evidence: item.evidence,
-    }));
-  const advisor = buildProjectAdvisorView({
-    checkedAt: new Date().toISOString(),
-    plan,
-    missionControl,
-    roadmap: roadmapProjection,
-    technicalMemory,
-    codeInsights: {
-      ...advisorSignals,
-      missingTestCandidates,
-    },
-  });
-
-  return <MasterPlanViewer plan={plan} journal={journal} missionControl={missionControl} roadmap={roadmap} technicalMemory={technicalMemory} advisor={advisor} defaultAuthor={defaultAuthor} projectVersion={projectVersion} />;
+  return <MasterPlanViewer plan={plan} journal={journal} missionControl={missionControl} roadmap={roadmap} technicalMemory={technicalMemory} defaultAuthor={defaultAuthor} projectVersion={projectVersion} />;
 }

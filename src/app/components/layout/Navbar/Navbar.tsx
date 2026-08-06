@@ -49,7 +49,7 @@ function getWorkspaceFromRole(role: string | null | undefined): WorkspaceOption[
 const fallbackWorkspaces: Record<WorkspaceOption["id"], WorkspaceOption> = {
   owner: {
     id: "owner",
-    label: "Proprietaire",
+    label: "Propriétaire",
     href: "/dashboard/owner",
     description: "Logements, demandes et missions.",
   },
@@ -69,7 +69,7 @@ const fallbackWorkspaces: Record<WorkspaceOption["id"], WorkspaceOption> = {
     id: "admin",
     label: "Administrateur",
     href: "/dashboard/admin",
-    description: "Controle global de la plateforme.",
+    description: "Contrôle global de la plateforme.",
   },
 };
 

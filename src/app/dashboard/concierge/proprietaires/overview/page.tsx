@@ -15,18 +15,18 @@ export default function ConciergeOwnersOverviewPage() {
   return (
     <SimpleOverviewWorkspace
       tone="concierge"
-      eyebrow="Relations proprietaires"
-      title="Vue d'ensemble des proprietaires"
-      description="Cette vue rassemble uniquement l'etat de vos relations proprietaires. Les sous-rubriques servent ensuite a suivre vos contacts, votre prospection et vos echanges, sans redondance."
+      eyebrow="Relations propriétaires"
+      title="Vue d'ensemble des propriétaires"
+      description="Cette vue rassemble uniquement l'état de vos relations propriétaires. Les sous-rubriques servent ensuite à suivre vos contacts, votre prospection et vos échanges, sans redondance."
       chips={["Vue synthese", "Demandes a traiter", "Points en attente"]}
       actions={[
         { label: "Voir les contacts", href: "/dashboard/concierge/contacts", variant: "primary" },
         { label: "Voir les messages", href: "/dashboard/concierge/messages", variant: "secondary" },
       ]}
       completion={{
-        title: "Proprietaires",
+        title: "Propriétaires",
         description:
-          "Completez cette categorie pour structurer vos relations, votre prospection et vos echanges commerciaux.",
+          "Complétez cette catégorie pour structurer vos relations, votre prospection et vos échanges commerciaux.",
         percentage: completion.percentage,
         completedCount: completion.completedCount,
         totalCount: completion.totalCount,

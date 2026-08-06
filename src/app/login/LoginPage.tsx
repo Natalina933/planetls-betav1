@@ -82,12 +82,12 @@ export default function LoginPage() {
       setFormData({ email: payload.email, password: payload.password });
       setErrors({});
       setQuickLoginMessage(
-        `Identifiants ${payload.label ?? workspace} proposes. Vous pouvez maintenant vous connecter.`,
+        `Identifiants ${payload.label ?? workspace} proposés. Vous pouvez maintenant vous connecter.`,
       );
       window.history.replaceState(null, "", `/login?workspace=${workspace}`);
     } catch {
       setQuickLoginMessage(
-        "Impossible de preparer ce compte. Verifiez la configuration Supabase locale.",
+        "Impossible de préparer ce compte. Vérifiez la configuration Supabase locale.",
       );
     } finally {
       setPreparingWorkspace(null);
@@ -105,7 +105,7 @@ export default function LoginPage() {
       setErrors((prev) => ({
         ...prev,
         email: email ? (validateEmail(email) ? "" : "Email invalide") : prev.email,
-        password: password ? (password.length >= 8 ? "" : "Minimum 8 caracteres") : prev.password,
+        password: password ? (password.length >= 8 ? "" : "Minimum 8 caractères") : prev.password,
       }));
     };
 
@@ -190,7 +190,7 @@ export default function LoginPage() {
       setErrors((prev) => ({ ...prev, email: validateEmail(value) ? "" : "Email invalide" }));
     }
     if (name === "password") {
-      setErrors((prev) => ({ ...prev, password: value.length >= 8 ? "" : "Minimum 8 caracteres" }));
+      setErrors((prev) => ({ ...prev, password: value.length >= 8 ? "" : "Minimum 8 caractères" }));
     }
   };
 
@@ -204,7 +204,7 @@ export default function LoginPage() {
     const password = passwordRef.current?.value ?? formData.password;
     const nextErrors = {
       email: validateEmail(email) ? "" : "Email invalide",
-      password: password.length >= 8 ? "" : "Minimum 8 caracteres",
+      password: password.length >= 8 ? "" : "Minimum 8 caractères",
     };
 
     setFormData({ email, password });
@@ -266,7 +266,7 @@ export default function LoginPage() {
   return (
     <main className={styles.pageShell}>
       <section className={styles.authLayout} aria-label="Connexion Planet LS">
-        <aside className={styles.visualPanel} aria-label="Apercu Planet LS">
+        <aside className={styles.visualPanel} aria-label="Aperçu Planet LS">
           <Image
             src="/images/hero-warmv2.jpg"
             alt=""
@@ -287,10 +287,10 @@ export default function LoginPage() {
               priority
             />
             <div className={styles.visualText}>
-              <span className={styles.visualEyebrow}>Tableau de bord prive</span>
+              <span className={styles.visualEyebrow}>Tableau de bord privé</span>
               <h2>Reprenez le fil de vos biens, missions et partenaires.</h2>
               <p>
-                Un acces unique pour proprietaires, conciergeries et artisans, avec les actions
+                Un accès unique pour propriétaires, conciergeries et artisans, avec les actions
                 importantes au bon endroit.
               </p>
             </div>
@@ -319,7 +319,7 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className={styles.visualStats} aria-label="Reperes de connexion">
+            <div className={styles.visualStats} aria-label="Repères de connexion">
               <span>Demandes</span>
               <span>Missions</span>
               <span>Factures</span>
@@ -329,17 +329,17 @@ export default function LoginPage() {
 
         <div className={styles.pageContainer}>
           <div className={styles.headerBlock}>
-            <span className={styles.eyebrow}>Espace securise</span>
+            <span className={styles.eyebrow}>Espace sécurisé</span>
             <h1 className={styles.title}>Connexion</h1>
             <p className={styles.subtitle}>
-              Accedez a votre espace pour gerer vos demandes, vos missions et votre activite.
+              Accédez à votre espace pour gérer vos demandes, vos missions et votre activité.
             </p>
           </div>
           <form onSubmit={handleSubmit} className={styles.form} noValidate>
             {quickWorkspaces.length > 0 ? (
               <section className={styles.quickAccess} aria-labelledby="quick-access-title">
                 <div>
-                  <strong id="quick-access-title">Acces rapide de travail</strong>
+                  <strong id="quick-access-title">Accès rapide de travail</strong>
                   <p>Choisissez un espace pour proposer un compte existant dans Supabase.</p>
                 </div>
                 <div className={styles.quickAccessButtons}>
@@ -354,7 +354,7 @@ export default function LoginPage() {
                       onClick={() => void prepareWorkspaceCredentials(workspace.key)}
                     >
                       {preparingWorkspace === workspace.key
-                        ? "Preparation..."
+                        ? "Préparation..."
                         : workspace.label}
                     </Button>
                   ))}

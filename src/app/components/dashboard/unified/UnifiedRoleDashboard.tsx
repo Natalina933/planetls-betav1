@@ -19,7 +19,7 @@ import {
 } from "@/app/components/dashboard/saas";
 import styles from "./UnifiedRoleDashboard.module.scss";
 
-type DashboardRole = "owner" | "concierge" | "artisan";
+type DashboardRole = "owner" | "concierge" | "artisan" | "admin";
 
 interface DashboardKpi {
   id: string;
@@ -62,9 +62,12 @@ interface UnifiedRoleDashboardProps {
   title: string;
   subtitle: string;
   experienceBadge: string;
+  experienceBadgeTone?: DashboardStatusTone;
   statusLabel: string;
+  statusTone?: DashboardStatusTone;
   kpis: DashboardKpi[];
   actions: DashboardAction[];
+  heroSupplement?: ReactNode;
   leftPrimary: ReactNode;
   leftSecondary?: ReactNode;
   mapModule?: ReactNode;
@@ -98,6 +101,11 @@ const ROLE_META: Record<
     eyebrow: "Espace savoir-faire",
     lead: "Un poste de travail précis pour suivre les demandes, les zones et la disponibilité terrain.",
     quickNote: "L'interface valorise la matière, le geste métier et la lisibilité technique.",
+  },
+  admin: {
+    eyebrow: "Centre de pilotage",
+    lead: "Un cockpit transverse pour repérer les tensions, absorber les blocages et garder les parcours métier sous contrôle.",
+    quickNote: "La lecture met d'abord en avant les signaux à traiter, puis les flux et les zones de friction.",
   },
 };
 
@@ -142,9 +150,12 @@ export default function UnifiedRoleDashboard({
   title,
   subtitle,
   experienceBadge,
+  experienceBadgeTone = "info",
   statusLabel,
+  statusTone = "primary",
   kpis,
   actions,
+  heroSupplement,
   leftPrimary,
   leftSecondary,
   mapModule,
@@ -173,14 +184,15 @@ export default function UnifiedRoleDashboard({
             <div className={styles.heroBadges}>
               <DashboardStatusBadge
                 label={experienceBadge}
-                tone="info"
+                tone={experienceBadgeTone}
                 icon={<Sparkles size={14} />}
                 className={styles.experienceBadge}
               />
-              <DashboardStatusBadge label={statusLabel} tone="primary" className={styles.statusBadge} />
+              <DashboardStatusBadge label={statusLabel} tone={statusTone} className={styles.statusBadge} />
             </div>
           </div>
           <p className={styles.heroLead}>{roleMeta.lead}</p>
+          {heroSupplement ? <div className={styles.heroSupplement}>{heroSupplement}</div> : null}
         </div>
 
         <div className={styles.heroActions}>
