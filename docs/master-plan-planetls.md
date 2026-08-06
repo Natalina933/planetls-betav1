@@ -970,3 +970,118 @@ La prochaine mise à jour de ce document doit intervenir après le lot de stabil
 Ajout du jeudi 6 aoÃ»t 2026 : la page a ensuite Ã©tÃ© poussÃ©e vers une lecture plus `investor deck / board-level`, avec une narration plus concise pour comitÃ© de direction, une table `TAM / SAM / SOM` qualitative, un plan d'exÃ©cution `12 mois` et des `conditions avant accÃ©lÃ©ration`. Cette surcouche reste volontairement prudente : elle professionnalise le storytelling business sans prÃ©tendre produire un vrai modÃ¨le financier canonique ni des donnÃ©es de marchÃ© live.
 Ajout du jeudi 6 aoÃ»t 2026 : la page `Pilotage` a aussi Ã©tÃ© rÃ©organisÃ©e en `4 onglets` `Vue d'ensemble / MarchÃ© & offre / Finance / ExÃ©cution & risques`. Le contenu reste orientÃ© business plan et investor deck, mais il n'est plus prÃ©sentÃ© comme une longue suite de blocs verticaux ; la hiÃ©rarchie devient plus digeste et plus exploitable pour une lecture direction.
 Ajout du jeudi 6 aoÃ»t 2026 : l'onglet `MarchÃ© & offre` intÃ¨gre maintenant l'Ã©tude concurrentielle PlanetLS sous une forme visuelle et pilotable `tarifs du marchÃ©`, `benchmark concurrentiel intÃ©grÃ©`, `tableau comparatif synthÃ©tique`, `enseignements du benchmark`. Les tarifs d'Easy Concierge, Turno, Breezeway, Guesty, Airbnb co-hÃ´tes, AlloVoisins / marketplaces locales et PlanetLS servent de repÃ¨res de positionnement, pas de vÃ©ritÃ© financiÃ¨re canonique ni de comparatif contractuel vivant.
+Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark vers une lecture plus `board-level`, avec un graphe de positionnement `prix vs profondeur fonctionnelle`, un tableau `stratÃ©gie ocÃ©an bleu` et un bloc `lecture comitÃ© de direction`. La page assume ainsi davantage son rÃ´le de support d'arbitrage et de narration stratÃ©gique, tout en restant distincte d'un reporting financier canonique.
+
+### Mise à jour ciblée — Onglet Modèle économique du jeudi 6 août 2026
+
+- Statut : `🟠 Partiel`
+- Priorité : `P1 Prioritaire`
+- Périmètre mis à jour : `src/app/dashboard/admin/pilotage/page.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `src/app/dashboard/admin/pilotage/economic-model/types.ts`, `src/app/dashboard/admin/pilotage/economic-model/data.ts`, `docs/master-plan-planetls.md`
+- Réalité produit : la page `/dashboard/admin/pilotage` expose désormais un cinquième onglet `Modèle économique` dans la navigation principale du business plan. Cette première étape pose la structure du futur module sans créer de seconde page ni casser les onglets existants.
+- Réalité produit : un socle dédié `economic-model` formalise maintenant les types métier de pricing `PricingStrategyType`, `PricingStrategyStatus`, `PricingOfferStatus`, `PricingOffer`, `PricingScenario`, `PricingDecisionLogEntry`, ainsi qu'un inventaire initial des 10 stratégies tarifaires à comparer et des profils tarifaires de référence.
+- Décision de pilotage : le module sépare explicitement `réel`, `hypothèse` et `simulation` avant d'ajouter des calculateurs plus poussés. Il documente d'abord la gouvernance, les stratégies, les profils et un journal initial des décisions, afin d'éviter toute confusion entre aide à la décision et offre publiée.
+- Décision de pilotage : un bloc protégé `Conciergerie Pro existante` rend visible dans le cockpit business l'offre réelle déjà reliée à Stripe via le plan `concierge_pro_monthly`, avec prix mensuel affiché `29 €`, statut de production et interdiction explicite de modification depuis ce module.
+- Limites connues : l'éditeur d'offres simulées, la matrice de fonctionnalités, le scoring pondéré, les scénarios `prudent / réaliste / ambitieux` et le comparateur visuel multi-stratégies ne sont pas encore branchés dans cet onglet. Le lot pose le socle de types et de structure UI pour les étapes suivantes.
+- Vérification : `npm run build` PASS après intégration de l'onglet `Modèle économique` et du bloc protégé `Conciergerie Pro existante`.
+- Prochaine étape recommandée : brancher l'éditeur d'offres simulées sur ce socle, puis raccorder les futures simulations financières et la matrice de fonctionnalités sans toucher à Stripe.
+
+### Mise a jour ciblee - Extension du module Modele economique du jeudi 6 aout 2026
+
+- Statut : `?? Partiel`
+- Priorite : `P1 Prioritaire`
+- Perimetre mis a jour : `src/app/dashboard/admin/pilotage/page.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/economic-model/data.ts`, `docs/master-plan-planetls.md`
+- Realite produit : l'onglet principal `Modele economique` du business plan admin expose maintenant une navigation interne en `7 sous-onglets` `Vue d'ensemble / Strategies / Offres & profils / Simulations / Comparaison / Tests tarifaires / Decisions`, pour eviter une longue pile verticale et rendre la lecture de pilotage plus canonique.
+- Realite produit : le module affiche des cartes de strategies, un bloc protege `Conciergerie Pro existante`, un tableau de scenarios financiers compares, une grille de comparaison ponderee, un backlog de tests tarifaires et un journal initial des decisions. Le tout reste dans une logique d'aide a la decision et non de publication commerciale.
+- Decision de pilotage : la separation `reel / hypothese / simulation` reste stricte. L'offre `Conciergerie Pro` a `29 EUR` reliee au plan `concierge_pro_monthly` reste visible mais non modifiable depuis ce cockpit.
+- Decision de pilotage : la page conserve sa vocation `business plan` et n'ouvre pas une seconde surface admin. Le module de pricing s'integre dans le meme dashboard et reutilise le design system dashboard deja en place.
+- Limites connues : les simulations sont encore statiques, les ponderations ne sont pas editables, l'editeur d'offres simulees et la matrice de fonctionnalites ne sont pas encore branches, et aucun reporting business canonique persiste n'a ete ajoute dans ce lot.
+- Contradiction detectee : le contenu courant du Master Plan contient encore plusieurs anciennes entrees avec encodage historique degrade `mojibake`. Ce lot met a jour la realite produit mais ne nettoie pas encore tout le document.
+- Verification : `npm run build` PASS le jeudi 6 aout 2026 apres reecriture du module `economic-model`.
+- Prochaine etape recommandee : brancher ensuite l'editeur d'offres simulees sur ce socle, puis ajouter une matrice de fonctionnalites et des hypotheses financieres modifiables sans toucher a Stripe.
+
+### Mise a jour ciblee - Refonte UX du module Modele economique du jeudi 6 aout 2026
+
+- Statut : `?? Partiel`
+- Priorite : `P1 Prioritaire`
+- Perimetre mis a jour : `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
+- Realite produit : le module `Modele economique` n'utilise plus de sous-onglets internes. La lecture est maintenant structuree en une seule page continue avec un hero de cadrage, une rangee de cartes de reperes, puis 7 sections editoriales `Vue d'ensemble`, `Strategies`, `Offres & profils`, `Simulations`, `Comparaison`, `Tests tarifaires`, `Decisions`.
+- Decision de pilotage : ce choix UX reduit l'effet `onglet dans l'onglet` dans la page `Pilotage` et rend le parcours plus clair pour une lecture direction, sans changer le perimetre fonctionnel du module.
+- Decision de pilotage : les strategies restent visibles d'un seul coup d'oeil et les tableaux importants restent dans le flux de lecture, plutot que caches derriere des changements d'etat internes.
+- Limites connues : les simulations, la comparaison et les tests restent encore des blocs statiques de pilotage ; le gain de ce lot est surtout la clarte d'interface, pas une nouvelle profondeur metier ou data.
+- Contradiction detectee : le Master Plan contient toujours des entrees plus anciennes avec encodage degrade ; cette mise a jour ajoute l'etat reel du module sans nettoyer tout l'historique du document.
+- Verification : `npm run build` PASS le jeudi 6 aout 2026 apres refonte UX du module.
+- Prochaine etape recommandee : pousser la meme logique de clarte visuelle dans les futurs blocs `editeur d'offres simulees` et `matrice de fonctionnalites`, en evitant de recreer de nouveaux sous-onglets.
+
+### Mise a jour ciblee - Renforcement board executive des blocs Strategies et Comparaison du jeudi 6 aout 2026
+
+- Statut : `?? Partiel`
+- Priorite : `P1 Prioritaire`
+- Perimetre mis a jour : `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
+- Realite produit : la section `Strategies` affiche maintenant un niveau de lecture direction supplementaire avec trois cartes executive mises en avant `option prioritaire / option simple / option risquee`, en plus de la grille complete des dix strategies.
+- Realite produit : la section `Comparaison` commence desormais par une synthese visuelle board-level avec cartes de score, barres de lecture rapide et classement relatif des modeles `par niveau / hybride / par profil / abonnement + commission`, avant la grille detaillee.
+- Decision de pilotage : le module ne se contente plus d'enumerer les options ; il met en scene les arbitrages pour permettre une lecture plus immediate des compromis `vitesse / clarte / potentiel MRR / maintenance`.
+- Limites connues : les scores restent des hypotheses editoriales statiques et non un moteur de calcul dynamique branche sur des ponderations editables. Cette couche sert la lisibilite executive, pas encore une verite analytique canonique.
+- Contradiction detectee : le Master Plan conserve toujours des entrees historiques avec encodage degrade ; cette entree de suivi ajoute l'etat reel du lot sans corriger tout le document.
+- Verification : `npm run build` PASS le jeudi 6 aout 2026 apres renforcement visuel board-level du module `Modele economique`.
+- Prochaine etape recommandee : appliquer la meme logique de lecture executive aux futures briques `editeur d'offres simulees`, `matrice de fonctionnalites` et `simulations modifiables`, avec un vrai systeme de score ensuite si le socle data est confirme.
+
+### Mise a jour ciblee - Mise en gamme visuelle du bloc Simulations du jeudi 6 aout 2026
+
+- Statut : `?? Partiel`
+- Priorite : `P1 Prioritaire`
+- Perimetre mis a jour : `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
+- Realite produit : la section `Simulations` n'est plus seulement un tableau et trois cartes de lecture. Elle ajoute maintenant une premiere couche `KPI`, une couche `cartes scenario premium` et une couche `projection investisseur` afin de rendre la trajectoire plus lisible pour un usage board-level.
+- Decision de pilotage : les hypotheses de simulation sont desormais mises en scene comme une histoire financiere a comparer `MRR / ARR / prix moyen / marge / run rate / lecture 12-24-36 mois`, sans les presenter comme des donnees reelles acquises.
+- Limites connues : les scenarios restent statiques, sans edition ni recalcul dynamique, et la projection investisseur reste editoriale. Cette brique professionnalise la lecture mais ne constitue pas encore un reporting financier canonique.
+- Contradiction detectee : le Master Plan contient encore des entrees anciennes avec encodage degrade ; cette entree met a jour l'etat reel du lot sans corriger tout l'historique documentaire.
+- Verification : `npm run build` PASS le jeudi 6 aout 2026 apres transformation premium du bloc `Simulations`.
+- Prochaine etape recommandee : faire du bloc `Offres & profils` la prochaine zone premium, avec editeur visuel d'offres simulees, paliers, badges, limites et matrice de fonctionnalites lisible en lecture board.
+
+### Mise a jour ciblee - Simplification du module et score moyen dans les cartes Strategies du jeudi 6 aout 2026
+
+- Statut : `?? Partiel`
+- Priorite : `P1 Prioritaire`
+- Perimetre mis a jour : `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
+- Realite produit : la page `Modele economique` a ete simplifiee pour reduire les doublons de lecture. La rangee de cartes de reperes a ete retiree, le bloc `Strategies` repose maintenant sur une seule grille principale, et la partie `Comparaison` a ete reduite a une lecture executive plus concise.
+- Realite produit : chaque carte de strategie affiche maintenant un `score moyen` visible directement dans la carte, afin de rendre le niveau d'interet plus lisible sans ouvrir d'autre vue ni lire tout le detail.
+- Decision de pilotage : la page privilegie desormais une lecture plus directe `synthese -> gouvernance -> strategies -> simulations -> comparaison -> tests -> decisions`, avec moins de couches paralleles et moins de repetition visuelle.
+- Limites connues : le score moyen reste un repere editorial calcule a partir d'un bar�me interne statique, pas un moteur de scoring dynamique editable. La simplification ameliore la clarte mais ne change pas encore la profondeur fonctionnelle du module.
+- Contradiction detectee : le Master Plan conserve encore des entrees historiques avec encodage degrade ; cette mise a jour ajoute l'etat reel du lot sans nettoyer tout le document.
+- Verification : `npm run build` PASS le jeudi 6 aout 2026 apres simplification de la page et ajout du score moyen dans les cartes `Strategies`.
+- Prochaine etape recommandee : simplifier de la meme maniere `Offres & profils`, puis transformer cette zone en veritable bloc premium avec offres simulees, badges, limites et matrice de fonctionnalites plus executive.
+
+### Mise a jour ciblee - Refonte premium du bloc Offres et profils du jeudi 6 aout 2026
+
+- Statut : `?? Partiel`
+- Priorite : `P1 Prioritaire`
+- Perimetre mis a jour : `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
+- Realite produit : la section `Offres & profils` ne se limite plus a un tableau de prochaine etape. Elle expose maintenant des cartes d'offres simulees, une lecture plus claire des profils cibles et un cadre produit simplifie pour le futur pricing `socle / modules / limites`.
+- Decision de pilotage : cette zone devient un bloc plus direction et plus visuel, utile pour arbitrer la forme de l'offre avant de construire un veritable editeur ou une matrice fonctionnelle complete.
+- Limites connues : les offres restent encore des hypotheses editoriales statiques ; il n'y a pas encore d'edition admin, pas de comparaison de fonctionnalites ligne a ligne et pas de liaison a un moteur de pricing ou a Stripe.
+- Contradiction detectee : le Master Plan conserve toujours des entrees historiques avec encodage degrade ; cette entree ajoute l'etat reel du lot sans nettoyer tout l'historique du document.
+- Verification : `npm run build` PASS le jeudi 6 aout 2026 apres refonte premium du bloc `Offres & profils`.
+- Prochaine etape recommandee : poursuivre sur une matrice de fonctionnalites executive et compacte, afin de comparer clairement ce qui est inclus, limite, optionnel ou reserve a des modules futurs.
+
+### Mise a jour ciblee - Matrice de fonctionnalites executive du jeudi 6 aout 2026
+
+- Statut : `?? Partiel`
+- Priorite : `P1 Prioritaire`
+- Perimetre mis a jour : `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
+- Realite produit : la section `Offres & profils` integre maintenant une matrice de fonctionnalites executive et compacte comparant les offres simulees `Essentiel / Pro / Portefeuille` sur une lecture `Inclus / Limite / Option / Futur`.
+- Decision de pilotage : cette matrice sert a rendre la promesse commerciale et les limites de chaque hypothese beaucoup plus lisibles pour un arbitrage direction, sans attendre un futur editeur complet ou une vraie persistance admin.
+- Limites connues : la matrice reste statique, sans edition, sans liaison a des droits, sans moteur de pricing et sans source canonique de fonctionnalites. Elle clarifie la lecture mais ne constitue pas encore une verite produit executable.
+- Contradiction detectee : le Master Plan conserve toujours des entrees historiques avec encodage degrade ; cette entree ajoute l'etat reel du lot sans corriger tout le document.
+- Verification : `npm run build` PASS le jeudi 6 aout 2026 apres ajout de la matrice de fonctionnalites executive.
+- Prochaine etape recommandee : soit basculer vers un mini editeur visuel des offres simulees, soit poursuivre le nettoyage editorial global de la page `Pilotage` pour harmoniser encore la densite des sections restantes.
+
+### Mise a jour ciblee - Mini editeur visuel des offres simulees du jeudi 6 aout 2026
+
+- Statut : `?? Partiel`
+- Priorite : `P1 Prioritaire`
+- Perimetre mis a jour : `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
+- Realite produit : la section `Offres & profils` integre maintenant un mini editeur visuel non editable dans les cartes d'offres simulees, avec badges, volume de biens, volume d'utilisateurs, niveau de support, modules visibles et nombre de limites clefs.
+- Decision de pilotage : cette surcouche ne cherche pas encore a devenir un vrai formulaire admin ; elle sert a rendre les hypotheses d'offres beaucoup plus tangibles et discutables en reunion, sans rajouter de complexite technique ou de risque Stripe.
+- Limites connues : les valeurs restent statiques et editoriales, sans edition ni persistence. Ce mini editeur est une projection UX de la future brique `offer editor`, pas encore une implementation metier complete.
+- Contradiction detectee : le Master Plan contient toujours des entrees historiques avec encodage degrade ; cette entree ajoute l'etat reel du lot sans corriger tout le document.
+- Verification : `npm run build` PASS le jeudi 6 aout 2026 apres ajout du mini editeur visuel des offres simulees.
+- Prochaine etape recommandee : poursuivre soit par un nettoyage editorial global de la page `Pilotage`, soit par une couche de priorisation plus nette sur `Tests tarifaires` et `Decisions` pour terminer l'harmonisation executive du module.

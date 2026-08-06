@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -21,6 +21,7 @@ import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
 import type { KpiOverviewPayload } from "@/app/api/kpis/overview/shared";
 import type { AdminMissionRow, AdminRequestRow } from "../AdminOperations";
+import { EconomicModelTab } from "./economic-model/EconomicModelTab";
 import { prioritizedHypotheses, validationTests } from "./market-validation/validationData";
 import { businessRisks } from "./risk-register/riskData";
 import styles from "./page.module.scss";
@@ -109,7 +110,7 @@ type MonthlyPlanRow = {
   expected: string;
 };
 
-type BusinessPlanTab = "overview" | "market" | "finance" | "execution";
+type BusinessPlanTab = "overview" | "market" | "finance" | "economic" | "execution";
 
 const SCENARIOS: Scenario[] = [
   { name: "Pilote local", subscribers: 15, price: 99, commissionVolume: 12000, commissionPct: 8 },
@@ -713,6 +714,7 @@ export default function AdminBusinessPage() {
               <TabsTrigger value="overview" className={styles.tabTrigger}>Vue d&apos;ensemble</TabsTrigger>
               <TabsTrigger value="market" className={styles.tabTrigger}>Marché & offre</TabsTrigger>
               <TabsTrigger value="finance" className={styles.tabTrigger}>Finance</TabsTrigger>
+              <TabsTrigger value="economic" className={styles.tabTrigger}>Modèle économique</TabsTrigger>
               <TabsTrigger value="execution" className={styles.tabTrigger}>Exécution & risques</TabsTrigger>
             </TabsList>
           </div>
@@ -1046,6 +1048,10 @@ export default function AdminBusinessPage() {
                 </div>
               </DashboardPanel>
             </section>
+          </TabsContent>
+
+          <TabsContent value="economic" className={styles.tabContent}>
+            <EconomicModelTab />
           </TabsContent>
 
           <TabsContent value="execution" className={styles.tabContent}>

@@ -6,7 +6,8 @@
 .roadmapList,
 .decisionList,
 .tabsWrap,
-.comparisonChart {
+.comparisonChart,
+.scatterCard {
   display: grid;
   gap: 1rem;
 }
@@ -268,7 +269,147 @@
   line-height: 1.55;
 }
 
+.scatterFrame {
+  position: relative;
+  min-height: 360px;
+  padding: 2.5rem 1rem 2rem 3.2rem;
+  border-radius: 1.2rem;
+  border: 1px dashed rgba(116, 95, 62, 0.18);
+  background:
+    linear-gradient(to top, rgba(116, 95, 62, 0.08) 1px, transparent 1px),
+    linear-gradient(to right, rgba(116, 95, 62, 0.08) 1px, transparent 1px),
+    linear-gradient(145deg, rgba(255, 251, 244, 0.96), rgba(255, 255, 255, 0.96));
+  background-size: 20% 20%, 20% 20%, auto;
+  overflow: hidden;
+}
+
+.scatterAxisX,
+.scatterAxisY {
+  position: absolute;
+  color: rgba(45, 38, 29, 0.66);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.scatterAxisX {
+  right: 1rem;
+  bottom: 0.65rem;
+}
+
+.scatterAxisY {
+  left: -0.25rem;
+  top: 50%;
+  transform: rotate(-90deg) translateY(-50%);
+  transform-origin: left top;
+}
+
+.scatterPoint {
+  position: absolute;
+  transform: translate(-50%, 50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0.95rem;
+  min-height: 0.95rem;
+  border-radius: 999px;
+  background: #8b6c4a;
+  box-shadow: 0 0 0 6px rgba(139, 108, 74, 0.12);
+}
+
+.scatterPoint::after {
+  content: "";
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.scatterPoint span {
+  position: absolute;
+  top: -1.8rem;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #2d261d;
+}
+
+.scatterPoint[data-tone="direct"] {
+  background: #b9872f;
+  box-shadow: 0 0 0 6px rgba(185, 135, 47, 0.16);
+}
+
+.scatterPoint[data-tone="indirect"] {
+  background: #64748b;
+  box-shadow: 0 0 0 6px rgba(100, 116, 139, 0.14);
+}
+
+.scatterPoint[data-tone="planetls"] {
+  background: #315b43;
+  box-shadow: 0 0 0 6px rgba(49, 91, 67, 0.16);
+}
+
 .offerCard {
+  gap: 1rem;
+}
+
+.protectedOfferCard,
+.strategyCard,
+.strategyMetaGrid,
+.strategyColumnGrid,
+.protectedOfferMeta {
+  display: grid;
+  gap: 1rem;
+}
+
+.economicModelPage,
+.economicHero,
+.economicHeroContent,
+.economicHeroAside,
+.sectionCardGrid,
+.sectionCard,
+.economicSectionStack,
+.economicSectionBlock,
+.economicSectionHeading,
+.sectionCardIcon,
+.executiveStrategyShowcase,
+.executiveStrategyCard,
+.executiveStrategyTop,
+.executiveMetricRow,
+.executiveMetricCard,
+.executiveSignalGrid,
+.executiveSignalCard,
+.executiveComparisonGrid,
+.executiveComparisonCard,
+.executiveComparisonHeader,
+.executiveScoreBadge,
+.executiveBars,
+.simulationKpiGrid,
+.simulationKpiCard,
+.simulationExecutiveGrid,
+.simulationExecutiveCard,
+.simulationExecutiveHeader,
+.simulationExecutiveMetrics,
+.simulationExecutiveMetric,
+.simulationInvestorStrip,
+.simulationInvestorChip,
+.simulationProjectionPanel,
+.simulationProjectionIntro {
+  display: grid;
+  gap: 1rem;
+}
+
+.offerExecutiveGrid,
+.offerExecutiveCard,
+.offerExecutiveHeader,
+.offerExecutivePrice,
+.offerExecutiveColumns,
+.profileInsightGrid,
+.profileInsightCard,
+.offerBuilderGrid,
+.offerBuilderCard,
+.featureLegend {
+  display: grid;
   gap: 1rem;
 }
 
@@ -278,6 +419,575 @@
   gap: 1rem;
   align-items: start;
   flex-wrap: wrap;
+}
+
+.economicModelPage {
+  gap: 1.25rem;
+}
+
+.economicHero {
+  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+  padding: clamp(1.2rem, 2.3vw, 1.8rem);
+  border: 1px solid rgba(120, 91, 46, 0.14);
+  border-radius: 1.6rem;
+  background:
+    radial-gradient(circle at top left, rgba(195, 153, 66, 0.18), transparent 30%),
+    linear-gradient(135deg, rgba(44, 61, 50, 0.95), rgba(77, 97, 69, 0.96) 60%, rgba(176, 140, 79, 0.92)),
+    #314132;
+  box-shadow: 0 24px 54px rgba(33, 27, 20, 0.18);
+}
+
+.economicHeroContent {
+  align-content: start;
+}
+
+.economicHeroContent h3 {
+  margin: 0;
+  color: #fff9ef;
+  font-size: clamp(1.7rem, 2.4vw, 2.5rem);
+  line-height: 1.08;
+  max-width: 14ch;
+}
+
+.economicHeroContent p,
+.economicHeroNote p {
+  margin: 0;
+  color: rgba(255, 249, 239, 0.84);
+  line-height: 1.65;
+}
+
+.economicHeroAside {
+  align-content: start;
+}
+
+.economicHeroNote,
+.sectionCard {
+  padding: 1rem 1.05rem;
+  border-radius: 1.3rem;
+}
+
+.economicHeroNote {
+  border: 1px solid rgba(255, 244, 224, 0.16);
+  background: rgba(255, 252, 247, 0.08);
+  backdrop-filter: blur(6px);
+}
+
+.economicHeroNote strong {
+  color: #fff9ef;
+}
+
+.sectionCardGrid {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.sectionCard {
+  align-content: start;
+  border: 1px solid rgba(120, 91, 46, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 248, 0.98), rgba(249, 244, 235, 0.98)),
+    #fff;
+  box-shadow: 0 16px 34px rgba(56, 39, 18, 0.07);
+}
+
+.sectionCard span {
+  color: #8b631a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sectionCard strong {
+  color: #2d261d;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.sectionCard p {
+  margin: 0;
+  color: rgba(45, 38, 29, 0.74);
+  line-height: 1.55;
+  font-size: 0.92rem;
+}
+
+.sectionCardIcon {
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.95rem;
+  background: linear-gradient(135deg, rgba(185, 135, 47, 0.15), rgba(49, 91, 67, 0.14));
+  color: #315b43;
+}
+
+.economicSectionStack {
+  gap: 1.5rem;
+}
+
+.economicSectionBlock {
+  gap: 1rem;
+}
+
+.economicSectionHeading {
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 0.9rem;
+  padding: 0 0.1rem;
+}
+
+.economicSectionHeading h3 {
+  margin: 0;
+  color: #2d261d;
+  font-size: 1.45rem;
+}
+
+.economicSectionHeading p {
+  margin: 0.25rem 0 0;
+  color: rgba(45, 38, 29, 0.72);
+  line-height: 1.6;
+}
+
+.sectionIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #315b43, #6f8f73);
+  color: #fdf9f2;
+  font-size: 0.86rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  box-shadow: 0 10px 22px rgba(49, 91, 67, 0.18);
+}
+
+.executiveStrategyShowcase {
+  grid-template-columns: 1.25fr 1fr 1fr;
+}
+
+.executiveStrategyCard,
+.executiveComparisonCard {
+  padding: 1.15rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(120, 91, 46, 0.14);
+  box-shadow: 0 14px 30px rgba(56, 39, 18, 0.07);
+}
+
+.executiveStrategyCard {
+  background:
+    radial-gradient(circle at top right, rgba(195, 153, 66, 0.18), transparent 34%),
+    linear-gradient(145deg, rgba(255, 251, 245, 0.98), rgba(255, 255, 255, 0.98) 62%),
+    #fff;
+}
+
+.executiveStrategyCard[data-featured="true"] {
+  background:
+    radial-gradient(circle at top right, rgba(195, 153, 66, 0.26), transparent 34%),
+    linear-gradient(145deg, rgba(253, 249, 238, 0.99), rgba(249, 255, 251, 0.98) 68%),
+    #fff;
+  border-color: rgba(118, 94, 44, 0.2);
+}
+
+.executiveStrategyTop,
+.executiveComparisonHeader {
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 0.9rem;
+}
+
+.executiveStrategyTop h4,
+.executiveComparisonHeader h4 {
+  margin: 0.3rem 0 0;
+  color: #2d261d;
+  font-size: 1.12rem;
+  line-height: 1.2;
+}
+
+.executiveStrategyCard > p,
+.executiveComparisonCard > p {
+  margin: 0;
+  color: rgba(45, 38, 29, 0.76);
+  line-height: 1.48;
+  font-size: 0.93rem;
+}
+
+.executiveMetricRow {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.executiveMetricCard,
+.executiveSignalCard {
+  padding: 0.9rem;
+  border-radius: 1.1rem;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(120, 91, 46, 0.08);
+}
+
+.executiveMetricCard span {
+  color: #8b631a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.executiveMetricCard strong,
+.executiveSignalCard strong,
+.executiveScoreBadge strong {
+  color: #2d261d;
+}
+
+.executiveMetricCard strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.executiveSignalGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.executiveSignalCard p {
+  margin: 0.35rem 0 0;
+  color: rgba(45, 38, 29, 0.74);
+  line-height: 1.55;
+}
+
+.executiveComparisonGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.executiveComparisonCard {
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(255, 255, 255, 0.98)),
+    #fff;
+}
+
+.executiveComparisonCard[data-rank="top"] {
+  border-color: rgba(49, 91, 67, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(49, 91, 67, 0.12), transparent 36%),
+    linear-gradient(180deg, rgba(246, 252, 248, 0.99), rgba(255, 255, 255, 0.98)),
+    #fff;
+}
+
+.executiveComparisonCard[data-rank="low"] {
+  background:
+    radial-gradient(circle at top right, rgba(177, 61, 61, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(255, 250, 248, 0.98), rgba(255, 255, 255, 0.98)),
+    #fff;
+}
+
+.executiveScoreBadge {
+  gap: 0.2rem;
+  justify-items: end;
+}
+
+.executiveScoreBadge strong {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.executiveScoreBadge span {
+  color: rgba(45, 38, 29, 0.62);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.executiveBars {
+  gap: 0.5rem;
+}
+
+.executiveBarRow {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.executiveBarRow span,
+.executiveBarRow strong {
+  color: #2d261d;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.executiveBarTrack {
+  width: 100%;
+  height: 0.58rem;
+  border-radius: 999px;
+  background: rgba(116, 95, 62, 0.12);
+  overflow: hidden;
+}
+
+.executiveBarFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #315b43, #80a287);
+}
+
+.strategyScoreStack {
+  display: grid;
+  justify-items: end;
+  gap: 0.45rem;
+}
+
+.simulationKpiGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.simulationKpiCard,
+.simulationExecutiveMetric,
+.simulationInvestorChip {
+  padding: 0.8rem;
+  border-radius: 1rem;
+}
+
+.simulationKpiCard {
+  border: 1px solid rgba(120, 91, 46, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(255, 255, 255, 0.98)),
+    #fff;
+  box-shadow: 0 12px 26px rgba(56, 39, 18, 0.06);
+}
+
+.simulationKpiCard span,
+.simulationExecutiveMetric span,
+.simulationInvestorChip span {
+  color: #8b631a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.simulationKpiCard strong,
+.simulationExecutiveMetric strong,
+.simulationInvestorChip strong {
+  color: #2d261d;
+}
+
+.simulationKpiCard strong {
+  font-size: 1.08rem;
+  line-height: 1.1;
+}
+
+.simulationKpiCard p,
+.simulationProjectionIntro p {
+  margin: 0;
+  color: rgba(45, 38, 29, 0.72);
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
+.simulationExecutiveGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.simulationExecutiveCard {
+  padding: 0.95rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(120, 91, 46, 0.14);
+  background:
+    radial-gradient(circle at top right, rgba(195, 153, 66, 0.18), transparent 36%),
+    linear-gradient(145deg, rgba(255, 251, 245, 0.98), rgba(255, 255, 255, 0.98) 62%),
+    #fff;
+  box-shadow: 0 14px 30px rgba(56, 39, 18, 0.07);
+}
+
+.simulationExecutiveCard[data-featured="true"] {
+  border-color: rgba(49, 91, 67, 0.2);
+  background:
+    radial-gradient(circle at top right, rgba(49, 91, 67, 0.12), transparent 36%),
+    linear-gradient(145deg, rgba(246, 252, 248, 0.99), rgba(255, 255, 255, 0.98) 65%),
+    #fff;
+}
+
+.simulationExecutiveHeader {
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 0.9rem;
+}
+
+.simulationExecutiveHeader h4,
+.simulationProjectionIntro h4 {
+  margin: 0.3rem 0 0;
+  color: #2d261d;
+  font-size: 1.14rem;
+  line-height: 1.15;
+}
+
+.simulationExecutiveMetrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.simulationExecutiveMetric {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(120, 91, 46, 0.08);
+}
+
+.simulationExecutiveMetric strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.92rem;
+  line-height: 1.2;
+}
+
+.simulationInvestorStrip {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.simulationInvestorChip {
+  background: linear-gradient(135deg, rgba(49, 91, 67, 0.08), rgba(185, 135, 47, 0.08));
+  border: 1px solid rgba(49, 91, 67, 0.1);
+}
+
+.simulationInvestorChip strong {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.9rem;
+}
+
+.simulationExecutiveCard > p {
+  margin: 0;
+  color: rgba(45, 38, 29, 0.76);
+  line-height: 1.46;
+  font-size: 0.92rem;
+}
+
+.simulationProjectionPanel {
+  padding: 0.95rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(120, 91, 46, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(255, 255, 255, 0.98)),
+    #fff;
+  box-shadow: 0 14px 30px rgba(56, 39, 18, 0.07);
+}
+
+.simulationProjectionIntro {
+  gap: 0.5rem;
+}
+
+.offerExecutiveGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.offerExecutiveCard,
+.profileInsightCard,
+.offerBuilderCard {
+  padding: 0.9rem;
+  border-radius: 1.15rem;
+  border: 1px solid rgba(120, 91, 46, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(255, 255, 255, 0.98)),
+    #fff;
+  box-shadow: 0 14px 30px rgba(56, 39, 18, 0.06);
+}
+
+.offerExecutiveHeader {
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 0.9rem;
+}
+
+.offerExecutiveHeader h4 {
+  margin: 0.3rem 0 0;
+  color: #2d261d;
+  font-size: 1.12rem;
+  line-height: 1.18;
+}
+
+.offerExecutivePrice {
+  justify-items: end;
+  gap: 0.2rem;
+}
+
+.offerExecutivePrice strong {
+  color: #315b43;
+  font-size: 1.04rem;
+  line-height: 1.05;
+}
+
+.offerExecutivePrice span {
+  color: rgba(45, 38, 29, 0.62);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.offerExecutiveCard > p,
+.profileInsightCard p,
+.offerBuilderCard p {
+  margin: 0;
+  color: rgba(45, 38, 29, 0.75);
+  line-height: 1.48;
+  font-size: 0.93rem;
+}
+
+.offerBadgeRow,
+.offerModuleRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.offerMiniEditorGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.offerMiniEditorCard {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.75rem;
+  border-radius: 0.95rem;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(120, 91, 46, 0.08);
+}
+
+.offerMiniEditorCard span {
+  color: #8b631a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.offerMiniEditorCard strong {
+  color: #2d261d;
+  font-size: 0.92rem;
+  line-height: 1.2;
+}
+
+.offerExecutiveColumns,
+.profileInsightGrid,
+.offerBuilderGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.profileInsightCard span {
+  color: #8b631a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profileInsightCard strong,
+.offerBuilderCard strong {
+  color: #2d261d;
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.featureLegend {
+  grid-template-columns: repeat(4, max-content);
+  gap: 0.65rem;
+  align-items: center;
+  margin-bottom: 0.9rem;
 }
 
 .offerHeader h3 {
@@ -424,6 +1134,89 @@
   margin-top: 1rem;
 }
 
+.protectedOfferCard {
+  gap: 1.1rem;
+}
+
+.protectedOfferHeader,
+.strategyCardHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+  flex-wrap: wrap;
+}
+
+.protectedOfferHeader h3,
+.strategyCardHeader h3 {
+  margin: 0.3rem 0 0;
+  color: #2d261d;
+  font-size: 1.35rem;
+}
+
+.protectedOfferMeta {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.strategyCardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.strategyCard {
+  padding: 0.85rem 0.9rem;
+  border: 1px solid rgba(120, 91, 46, 0.14);
+  border-radius: 1.15rem;
+  background:
+    radial-gradient(circle at top right, rgba(195, 153, 66, 0.12), transparent 32%),
+    linear-gradient(145deg, rgba(255, 250, 241, 0.98), rgba(255, 255, 255, 0.98) 62%),
+    #fff;
+  box-shadow: 0 14px 30px rgba(56, 39, 18, 0.07);
+}
+
+.strategyCard > p {
+  margin: 0;
+  color: rgba(45, 38, 29, 0.78);
+  line-height: 1.5;
+  font-size: 0.94rem;
+}
+
+.strategyMetaGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.strategyMetaGrid span,
+.strategyListTitle {
+  color: #8b631a;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.strategyMetaGrid strong {
+  color: #2d261d;
+  font-size: 0.92rem;
+}
+
+.strategyColumnGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.plainList {
+  margin: 0.3rem 0 0;
+  padding-left: 1.1rem;
+  color: rgba(45, 38, 29, 0.82);
+  font-size: 0.92rem;
+}
+
+.plainList li + li {
+  margin-top: 0.25rem;
+}
+
 @media (max-width: 1120px) {
   .hero,
   .grid,
@@ -431,8 +1224,37 @@
     grid-template-columns: 1fr;
   }
 
+  .economicHero,
+  .sectionCardGrid,
+  .executiveStrategyShowcase,
+  .executiveComparisonGrid,
+  .simulationKpiGrid,
+  .simulationExecutiveGrid,
+  .offerExecutiveGrid {
+    grid-template-columns: 1fr;
+  }
+
   .metricGrid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .strategyCardGrid,
+  .protectedOfferMeta,
+  .strategyMetaGrid,
+  .strategyColumnGrid,
+  .executiveMetricRow,
+  .executiveSignalGrid,
+  .simulationExecutiveMetrics,
+  .simulationInvestorStrip,
+  .offerExecutiveColumns,
+  .profileInsightGrid,
+  .offerBuilderGrid,
+  .offerMiniEditorGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .featureLegend {
+    grid-template-columns: repeat(2, max-content);
   }
 }
 
@@ -464,5 +1286,38 @@
 
   .tabTrigger {
     min-width: 132px;
+  }
+
+  .economicSectionHeading {
+    grid-template-columns: 1fr;
+  }
+
+  .economicHeroContent h3 {
+    max-width: none;
+  }
+
+  .executiveStrategyTop,
+  .executiveComparisonHeader,
+  .executiveBarRow,
+  .simulationExecutiveHeader,
+  .offerExecutiveHeader {
+    grid-template-columns: 1fr;
+  }
+
+  .offerExecutivePrice {
+    justify-items: start;
+  }
+
+  .featureLegend {
+    grid-template-columns: 1fr;
+  }
+
+  .strategyCardHeader,
+  .protectedOfferHeader {
+    flex-direction: column;
+  }
+
+  .strategyScoreStack {
+    justify-items: start;
   }
 }
