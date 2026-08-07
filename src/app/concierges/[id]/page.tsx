@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   BadgeCheck,
   Euro,
+  ExternalLink,
   MapPin,
   MessageCircle,
   Navigation,
@@ -14,7 +15,13 @@ import {
   Star,
 } from "lucide-react";
 import { ButtonLink } from "@/components/ui";
+import SocialLinks from "@/app/components/ui/SocialLinks/SocialLinks";
 import { ConciergePreviewCard } from "@/features/public-concierges";
+import {
+  getPublicProfileCtas,
+  type PublicProfileCtaKey,
+} from "@/features/public-concierges/publicProfileCtas";
+import { normalizePublicProfileUrl } from "@/features/public-concierges/publicProfileLinks";
 import styles from "./page.module.scss";
 
 type PublicReview = {
@@ -40,6 +47,10 @@ type PublicProfilePayload = {
     hourly_rate: number | null;
     monthly_rate: number | null;
     role: string | null;
+    website: string | null;
+    linkedin: string | null;
+    instagram: string | null;
+    facebook: string | null;
     services: string[];
   };
   reviews: PublicReview[];
@@ -81,6 +92,30 @@ function formatExperienceLevelLabel(value: string | null) {
   };
 
   return value ? labels[value] ?? value : "Non renseigné";
+}
+
+async function trackPublicProfileCta(
+  profileId: string,
+  ctaKey: PublicProfileCtaKey,
+  href: string,
+  source: string,
+) {
+  try {
+    await fetch(`/api/profiles/public/${encodeURIComponent(profileId)}/track`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ctaKey,
+        href,
+        source,
+      }),
+      keepalive: true,
+    });
+  } catch (err) {
+    console.warn("[public-profile] CTA tracking failed", err);
+  }
 }
 
 export default function PublicConciergeProfilePage({
@@ -136,6 +171,20 @@ export default function PublicConciergeProfilePage({
   const profile = data?.profile;
   const services = useMemo(() => profile?.services.filter(Boolean) ?? [], [profile?.services]);
   const isPro = profile?.role === "concierge_pro";
+  const websiteUrl = normalizePublicProfileUrl(profile?.website);
+  const ctas = useMemo(
+    () =>
+      profile
+        ? getPublicProfileCtas({
+            contactHref: "/login",
+            website: profile.website,
+            linkedin: profile.linkedin,
+            instagram: profile.instagram,
+            facebook: profile.facebook,
+          })
+        : [],
+    [profile],
+  );
 
   return (
     <main className={styles.page}>
@@ -164,6 +213,26 @@ export default function PublicConciergeProfilePage({
               <ButtonLink href="/home#concierges-recommandes" variant="secondary">
                 Explorer les profils
               </ButtonLink>
+              {websiteUrl ? (
+                <a
+                  href={websiteUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={styles.externalAction}
+                  onClick={() => {
+                    if (!profile) return;
+                    void trackPublicProfileCta(
+                      profile.id,
+                      "visit_website",
+                      websiteUrl,
+                      "hero_button",
+                    );
+                  }}
+                >
+                  Visiter le site
+                  <ExternalLink size={16} aria-hidden />
+                </a>
+              ) : null}
             </div>
           </div>
 
@@ -295,6 +364,85 @@ export default function PublicConciergeProfilePage({
               ) : (
                 <p className={styles.muted}>Services non renseignés pour le moment.</p>
               )}
+            </section>
+
+            <section className={styles.linksSection}>
+              <div className={styles.sectionTitle}>
+                <ExternalLink size={20} aria-hidden />
+                <h2>Liens utiles</h2>
+              </div>
+              <p className={styles.linksIntro}>
+                Cette mini-page publique regroupe les points d’entrée utiles pour découvrir
+                la conciergerie, la suivre et poursuivre la prise de contact.
+              </p>
+              <SocialLinks
+                website={profile.website}
+                linkedin={profile.linkedin}
+                instagram={profile.instagram}
+                facebook={profile.facebook}
+                onLinkClick={({ key, href }) => {
+                  if (!profile) return;
+                  const ctaKeyByLink = {
+                    website: "visit_website",
+                    linkedin: "view_linkedin",
+                    instagram: "view_instagram",
+                    facebook: "view_facebook",
+                  } satisfies Record<string, PublicProfileCtaKey>;
+                  const ctaKey = ctaKeyByLink[key];
+                  if (!ctaKey) return;
+                  void trackPublicProfileCta(profile.id, ctaKey, href, "links_section");
+                }}
+              />
+            </section>
+
+            <section className={styles.ctaSection}>
+              <div className={styles.sectionTitle}>
+                <MessageCircle size={20} aria-hidden />
+                <h2>Actions recommandées</h2>
+              </div>
+              <p className={styles.linksIntro}>
+                Les CTA ci-dessous priorisent les prochaines actions les plus utiles selon les
+                informations déjà publiées par la conciergerie.
+              </p>
+              <div className={styles.ctaGrid}>
+                {ctas.map((cta) => {
+                  const content = (
+                    <>
+                      <strong>{cta.label}</strong>
+                      <span>{cta.description}</span>
+                    </>
+                  );
+
+                  const commonProps = {
+                    className:
+                      cta.variant === "primary" ? styles.ctaCardPrimary : styles.ctaCardSecondary,
+                    onClick: () => {
+                      if (!profile) return;
+                      void trackPublicProfileCta(profile.id, cta.key, cta.href, "cta_section");
+                    },
+                  };
+
+                  if (cta.external) {
+                    return (
+                      <a
+                        key={cta.key}
+                        href={cta.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        {...commonProps}
+                      >
+                        {content}
+                      </a>
+                    );
+                  }
+
+                  return (
+                    <Link key={cta.key} href={cta.href} {...commonProps}>
+                      {content}
+                    </Link>
+                  );
+                })}
+              </div>
             </section>
 
             <section className={styles.reviewsSection}>

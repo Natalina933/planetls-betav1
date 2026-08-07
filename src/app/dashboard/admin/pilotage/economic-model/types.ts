@@ -31,6 +31,8 @@ export type PricingOfferStatus =
 export type PricingScenarioType = "cautious" | "realistic" | "ambitious";
 export type PricingAssumptionSource = "real" | "hypothesis" | "simulation";
 
+export type CandidatePricingTierId = "free" | "essential" | "pro" | "business";
+
 export type PricingProfile = {
   id: string;
   label: string;
@@ -108,4 +110,31 @@ export type PricingStrategy = {
   risks: string[];
   offers: PricingOffer[];
   scenarios: PricingScenario[];
+};
+
+export type PricingRevenueTier = {
+  id: CandidatePricingTierId;
+  workingName: string;
+  currentReferenceName?: string | null;
+  nameStatus: "working" | "existing_reference";
+  targetProfiles: string[];
+  monthlyPrice: number;
+  annualDiscountRate: number;
+  features: string[];
+  limits: string[];
+  commissionRate: number;
+  estimatedMonthlyCost: number;
+  estimatedConversionRatePct: number;
+  source: PricingAssumptionSource;
+  notes?: string;
+};
+
+export type PricingRevenueScenario = {
+  id: PricingScenarioType;
+  label: string;
+  subscribersByTier: Record<CandidatePricingTierId, number>;
+  annualPlanMixPct: number;
+  marketplaceGmvMonthly: number;
+  notes: string;
+  source: PricingAssumptionSource;
 };

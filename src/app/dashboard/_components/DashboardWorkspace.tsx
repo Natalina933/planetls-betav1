@@ -259,7 +259,7 @@ export default function DashboardWorkspace({
               {actions.length > 0 ? (
                 <div className={styles.heroBlock}>
                   {showHeroRailLabels ? (
-                    <span className={styles.heroBlockLabel}>Actions rapides</span>
+                    <span className={styles.heroBlockLabel}>Actions</span>
                   ) : null}
                   <div className={styles.actions}>
                     {actions.map((action, index) => (

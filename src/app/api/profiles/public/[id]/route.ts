@@ -22,6 +22,10 @@ type PublicProfileRow = {
   option: string | null;
   availability_hours: string | null;
   role: string | null;
+  website: string | null;
+  linkedin: string | null;
+  instagram: string | null;
+  facebook: string | null;
 };
 
 export async function GET(
@@ -34,7 +38,7 @@ export async function GET(
     const { data: profile, error: profileError } = await db
       .from("profiles")
       .select(
-        "id, first_name, last_name, username, avatar_url, image, company_name, city, country, service_area, service_radius_km, experience_level, years_experience, hourly_rate, monthly_rate, option, availability_hours, role",
+        "id, first_name, last_name, username, avatar_url, image, company_name, city, country, service_area, service_radius_km, experience_level, years_experience, hourly_rate, monthly_rate, option, availability_hours, role, website, linkedin, instagram, facebook",
       )
       .eq("id", id)
       .maybeSingle<PublicProfileRow>();
@@ -99,6 +103,10 @@ export async function GET(
         hourly_rate: profile.hourly_rate,
         monthly_rate: profile.monthly_rate,
         role: profile.role,
+        website: profile.website,
+        linkedin: profile.linkedin,
+        instagram: profile.instagram,
+        facebook: profile.facebook,
         services: parsePublicConciergeServices(profile.option, profile.availability_hours),
       },
       reviews: reviews ?? [],

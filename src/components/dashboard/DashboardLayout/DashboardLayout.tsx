@@ -97,6 +97,7 @@ export function DashboardLayout({
   children,
 }: DashboardLayoutProps) {
   const PersonaIcon = getPersonaIcon(persona);
+  const shouldShowBottomNav = showBottomNav && persona !== "admin";
 
   return (
     <div className={styles.page}>
@@ -192,7 +193,7 @@ export function DashboardLayout({
         </aside>
       </div>
 
-      {showBottomNav ? (
+      {shouldShowBottomNav ? (
         <DashboardBottomNav
           items={shortcuts}
           ariaLabel={`Navigation ${getPersonaLabel(persona).toLowerCase()}`}

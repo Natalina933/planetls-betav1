@@ -396,8 +396,7 @@ export function LeanValidationDashboard() {
           <div>
             <h3 id="actions-title">10. Actions immédiates</h3>
             <p className={styles.panelIntro}>
-              Ce qu&apos;il faut faire maintenant, ce qu&apos;il ne faut pas lancer, et quelle preuve chercher
-              en premier.
+              Les priorités à retenir, les initiatives à différer et la première preuve à rechercher.
             </p>
           </div>
         </div>

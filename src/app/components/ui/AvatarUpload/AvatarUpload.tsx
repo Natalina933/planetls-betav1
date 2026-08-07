@@ -30,6 +30,33 @@ interface AvatarUploadProps {
   size?: "default" | "large";
 }
 
+function normalizeImageSrc(src?: string | null) {
+  if (!src) return null;
+
+  if (
+    src.startsWith("/") ||
+    src.startsWith("blob:") ||
+    src.startsWith("data:") ||
+    src.startsWith("http://") ||
+    src.startsWith("https://")
+  ) {
+    return src;
+  }
+
+  if (src.startsWith("\\")) {
+    return src.replace(/\\/g, "/");
+  }
+
+  const normalizedPath = src.replace(/\\/g, "/");
+  const publicIndex = normalizedPath.toLowerCase().lastIndexOf("/public/");
+
+  if (publicIndex >= 0) {
+    return normalizedPath.slice(publicIndex + "/public".length);
+  }
+
+  return normalizedPath.startsWith("/") ? normalizedPath : `/${normalizedPath}`;
+}
+
 export default function AvatarUpload({
   value,
   existingUrl,
@@ -46,7 +73,8 @@ export default function AvatarUpload({
   alt = "Avatar",
   size = "default",
 }: AvatarUploadProps) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(existingUrl || null);
+  const normalizedExistingUrl = normalizeImageSrc(existingUrl);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(normalizedExistingUrl);
   const [scale, setScale] = useState(existingScale);
   const [offsetX, setOffsetX] = useState(existingOffsetX);
   const [offsetY, setOffsetY] = useState(existingOffsetY);
@@ -64,11 +92,11 @@ export default function AvatarUpload({
 
   useEffect(() => {
     return () => {
-      if (previewUrlRef.current && previewUrlRef.current !== existingUrl) {
+      if (previewUrlRef.current && previewUrlRef.current !== normalizedExistingUrl) {
         URL.revokeObjectURL(previewUrlRef.current);
       }
     };
-  }, [existingUrl]);
+  }, [normalizedExistingUrl]);
 
   useEffect(() => {
     if (value) {
@@ -76,10 +104,10 @@ export default function AvatarUpload({
       previewUrlRef.current = url;
       setPreviewUrl(url);
     } else {
-      setPreviewUrl(existingUrl || null);
-      previewUrlRef.current = existingUrl || null;
+      setPreviewUrl(normalizedExistingUrl);
+      previewUrlRef.current = normalizedExistingUrl;
     }
-  }, [value, existingUrl]);
+  }, [normalizedExistingUrl, value]);
 
   useEffect(() => {
     setScale(existingScale);

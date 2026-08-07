@@ -1,0 +1,3 @@
+{
+  "/api/concierge/maintenance/[id]/media/route": "app/api/concierge/maintenance/[id]/media/route.js"
+}

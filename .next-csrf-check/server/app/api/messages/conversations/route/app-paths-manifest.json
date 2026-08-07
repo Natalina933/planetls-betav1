@@ -1,0 +1,3 @@
+{
+  "/api/messages/conversations/route": "app/api/messages/conversations/route.js"
+}

@@ -191,6 +191,12 @@
 .aside {
   display: grid;
   gap: var(--dash-space-4, var(--ds-space-4));
+  min-width: 0;
+  align-content: start;
+}
+
+.aside > * {
+  min-width: 0;
 }
 
 .panel {
@@ -416,9 +422,29 @@
   }
 }
 
-@media (min-width: 1040px) {
+@media (min-width: 1040px) and (max-width: 1339px) {
   .grid {
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
+    grid-template-columns: 1fr;
+  }
+
+  .aside {
+    position: static;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .aside > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  .bottomNav {
+    display: none;
+  }
+}
+
+@media (min-width: 1340px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
     align-items: start;
   }
 

@@ -2,6 +2,10 @@
 
 import React from "react";
 import { FiGlobe, FiLinkedin, FiInstagram, FiFacebook } from "react-icons/fi";
+import {
+    getPublicProfileLinks,
+    type PublicProfileLinkItem,
+} from "@/features/public-concierges/publicProfileLinks";
 import styles from "./SocialLinks.module.scss";
 
 interface SocialLinksProps {
@@ -9,48 +13,31 @@ interface SocialLinksProps {
     linkedin?: string | null;
     instagram?: string | null;
     facebook?: string | null;
+    onLinkClick?: (payload: { key: PublicProfileLinkItem["key"]; href: string }) => void;
 }
-
-const normalizeUrl = (url?: string | null) => {
-    if (!url) return "";
-    const trimmed = url.trim();
-    if (!trimmed) return "";
-    if (/^https?:\/\//i.test(trimmed)) return trimmed;
-    return `https://${trimmed}`;
-};
 
 const SocialLinks: React.FC<SocialLinksProps> = ({
     website,
     linkedin,
     instagram,
     facebook,
+    onLinkClick,
 }) => {
-    const links = [
-        {
-            key: "website",
-            label: "Site web",
-            icon: <FiGlobe />,
-            href: normalizeUrl(website),
-        },
-        {
-            key: "linkedin",
-            label: "LinkedIn",
-            icon: <FiLinkedin />,
-            href: normalizeUrl(linkedin),
-        },
-        {
-            key: "instagram",
-            label: "Instagram",
-            icon: <FiInstagram />,
-            href: normalizeUrl(instagram),
-        },
-        {
-            key: "facebook",
-            label: "Facebook",
-            icon: <FiFacebook />,
-            href: normalizeUrl(facebook),
-        },
-    ].filter((l) => !!l.href);
+    const iconByKey = {
+        website: <FiGlobe />,
+        linkedin: <FiLinkedin />,
+        instagram: <FiInstagram />,
+        facebook: <FiFacebook />,
+    };
+    const links = getPublicProfileLinks({
+        website,
+        linkedin,
+        instagram,
+        facebook,
+    }).map((link) => ({
+        ...link,
+        icon: iconByKey[link.key],
+    }));
 
     const hasAnyLink = links.length > 0;
 
@@ -67,6 +54,7 @@ const SocialLinks: React.FC<SocialLinksProps> = ({
                             target="_blank"
                             rel="noreferrer"
                             className={styles.chip}
+                            onClick={() => onLinkClick?.({ key: link.key, href: link.href })}
                         >
                             <span className={styles.icon}>{link.icon}</span>
                             <span>{link.label}</span>

@@ -1,0 +1,3 @@
+{
+  "/api/pricing/property-rules/[id]/route": "app/api/pricing/property-rules/[id]/route.js"
+}

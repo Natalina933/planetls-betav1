@@ -1,0 +1,3 @@
+module.exports=[77269,a=>{"use strict";var b=a.i(187924),c=a.i(572131),d=a.i(50944),e=a.i(385883);function f(){let a=(0,d.useRouter)(),{user:f,loading:g}=(0,e.useCurrentUser)();return(0,c.useEffect)(()=>{if(!g){var b;a.replace("owner"===(b=f?.role)||"owner_pro"===b?"/dashboard/owner/alertes":"concierge"===b||"concierge_pro"===b?"/dashboard/concierge/alertes":"provider"===b||"provider_pro"===b||"artisan"===b||"artisan_pro"===b?"/dashboard/provider/alertes":"/dashboard")}},[g,a,f?.role]),(0,b.jsx)("section",{className:"dashboard-grid",children:"Redirection vers vos notifications..."})}a.s(["default",()=>f])}];
+
+//# sourceMappingURL=src_app_dashboard_notifications_page_tsx_88a5e108._.js.map

@@ -93,6 +93,9 @@ type DevelopmentWorkspaceTab =
   | "technicalMemory"
   | "journal";
 
+type MasterPlanDisplayMode = "focus" | "all";
+type MasterPlanPreset = "blocked" | "p1" | "recent-decisions" | "roadmap-ready" | "critical-bugs";
+
 type ManualEntryDraft = Omit<DeveloperLogEntry, "features" | "links"> & {
   featuresText: string;
   linksText: string;
@@ -569,6 +572,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   const [masterPlanQuery, setMasterPlanQuery] = useState("");
   const [masterPlanStatus, setMasterPlanStatus] = useState("");
   const [masterPlanPriority, setMasterPlanPriority] = useState("");
+  const [masterPlanDisplayMode, setMasterPlanDisplayMode] = useState<MasterPlanDisplayMode>("focus");
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     () => new Set(),
   );
@@ -689,7 +693,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
     [journal.entries, manualEntries],
   );
 
-  const visibleSections = useMemo(() => {
+  const filteredMasterPlanSections = useMemo(() => {
     const normalizedQuery = masterPlanQuery.trim().toLocaleLowerCase("fr");
     return plan.sections.filter((section) => {
       const matchesQuery = !normalizedQuery || `${section.title} ${section.content}`.toLocaleLowerCase("fr").includes(normalizedQuery);
@@ -698,6 +702,31 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
         && (!masterPlanPriority || section.priorities.includes(masterPlanPriority));
     });
   }, [masterPlanPriority, masterPlanQuery, masterPlanStatus, plan.sections]);
+
+  const hasMasterPlanFilters = Boolean(masterPlanQuery || masterPlanStatus || masterPlanPriority);
+
+  const focusedMasterPlanSections = useMemo(() => {
+    const seen = new Set<string>();
+    const prioritized = filteredMasterPlanSections.filter((section) => (
+      section.priorities.includes("P0 Critique")
+      || section.priorities.includes("P1 Prioritaire")
+      || section.statuses.includes("⚠️ Bloqué")
+      || section.statuses.includes("🟡 En cours")
+      || section.statuses.includes("🟠 Partiel")
+    ));
+    const structural = filteredMasterPlanSections.filter((section) => section.level <= 2).slice(0, 10);
+
+    return [...prioritized, ...structural].filter((section) => {
+      if (seen.has(section.id)) return false;
+      seen.add(section.id);
+      return true;
+    });
+  }, [filteredMasterPlanSections]);
+
+  const visibleSections = useMemo(() => {
+    if (hasMasterPlanFilters || masterPlanDisplayMode === "all") return filteredMasterPlanSections;
+    return focusedMasterPlanSections;
+  }, [filteredMasterPlanSections, focusedMasterPlanSections, hasMasterPlanFilters, masterPlanDisplayMode]);
 
   const roadmapProjection = useMemo(
     () => projectRoadmap(roadmap, roadmapCompletedIds),
@@ -791,7 +820,15 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   const memorySummary = `${technicalMemory.entries.length} décisions indexées, filtres et recherche instantanée`;
   const roadmapSummary = `${roadmapReadyCount} prête(s), ${roadmapBlockedCount} dépendance(s), recalcul automatique`;
   const journalSummary = `${filteredEntries.length} entrée(s), ${favoriteCount} favori(s), ${commentCount} commentaire(s)`;
-  const masterPlanSummary = `${visibleSections.length} section(s) et tableaux visibles`;
+  const hiddenMasterPlanCount = Math.max(filteredMasterPlanSections.length - visibleSections.length, 0);
+  const masterPlanSummary = hasMasterPlanFilters
+    ? `${visibleSections.length} section(s) correspondent aux filtres actifs`
+    : masterPlanDisplayMode === "focus"
+      ? `${visibleSections.length} section(s) utiles en lecture guidée${hiddenMasterPlanCount > 0 ? `, ${hiddenMasterPlanCount} masquée(s)` : ""}`
+      : `${visibleSections.length} section(s) et tableaux visibles`;
+  const masterPlanPriorityReads = plan.planning
+    .filter((item) => item.priority === "P0 Critique" || item.priority === "P1 Prioritaire")
+    .slice(0, 4);
   const executiveHealth = summarizeHealthStatus(missionControl.healthCards);
   const healthDangerCount = missionControl.healthCards.filter((card) => card.status === "danger").length;
   const healthWarningCount = missionControl.healthCards.filter((card) => card.status === "warning").length;
@@ -1063,12 +1100,66 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   const openBlockedMasterPlanItems = () => {
     const blockedSections = plan.sections.filter((section) => section.statuses.includes(blockedMasterPlanStatus));
     setActiveWorkspaceTab("masterPlan");
+    setMasterPlanDisplayMode("focus");
     setMasterPlanQuery("");
     setMasterPlanPriority("");
     setMasterPlanStatus(blockedMasterPlanStatus);
     setExpandedSections(new Set(blockedSections.map((section) => section.id)));
     setPanelOpen((current) => ({ ...current, masterPlan: true }));
     setPendingMasterPlanAnchor(blockedSections[0]?.id ?? "master-plan-detail-panel");
+  };
+
+  const applyMasterPlanPreset = (preset: MasterPlanPreset) => {
+    if (preset === "roadmap-ready") {
+      setActiveWorkspaceTab("roadmap");
+      setPanelOpen((current) => ({ ...current, roadmap: true }));
+      setExpandedRoadmapLanes((current) => (
+        current.includes("ready") ? current : [...current, "ready"]
+      ));
+      setPendingMasterPlanAnchor(null);
+      return;
+    }
+
+    if (preset === "critical-bugs") {
+      setActiveWorkspaceTab("missionControl");
+      setPanelOpen((current) => ({ ...current, missionControl: true }));
+      setPendingMasterPlanAnchor(null);
+      return;
+    }
+
+    setActiveWorkspaceTab("masterPlan");
+    setPanelOpen((current) => ({ ...current, masterPlan: true }));
+    setMasterPlanDisplayMode("focus");
+    setExpandedSections(new Set());
+
+    if (preset === "blocked") {
+      const blockedSections = plan.sections.filter((section) => section.statuses.includes(blockedMasterPlanStatus));
+      setMasterPlanQuery("");
+      setMasterPlanPriority("");
+      setMasterPlanStatus(blockedMasterPlanStatus);
+      setExpandedSections(new Set(blockedSections.map((section) => section.id)));
+      setPendingMasterPlanAnchor(blockedSections[0]?.id ?? "master-plan-detail-panel");
+      return;
+    }
+
+    if (preset === "p1") {
+      const p1Sections = plan.sections.filter((section) => section.priorities.includes("P1 Prioritaire"));
+      setMasterPlanQuery("");
+      setMasterPlanStatus("");
+      setMasterPlanPriority("P1 Prioritaire");
+      setExpandedSections(new Set(p1Sections.slice(0, 6).map((section) => section.id)));
+      setPendingMasterPlanAnchor(p1Sections[0]?.id ?? "master-plan-detail-panel");
+      return;
+    }
+
+    const recentDecisionSections = plan.sections.filter((section) => (
+      section.title.includes("Mise à jour ciblée") || section.content.includes("Ajout du")
+    ));
+    setMasterPlanQuery("Mise à jour ciblée");
+    setMasterPlanStatus("");
+    setMasterPlanPriority("");
+    setExpandedSections(new Set(recentDecisionSections.slice(0, 6).map((section) => section.id)));
+    setPendingMasterPlanAnchor(recentDecisionSections[0]?.id ?? "master-plan-detail-panel");
   };
 
   const handleWorkspaceTabChange = (value: string) => {
@@ -1362,6 +1453,82 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
         controlsId="master-plan-detail-panel"
       />
       {panelOpen.masterPlan ? <div id="master-plan-detail-panel" className={styles.foldableContent}>
+    <section className={styles.masterPlanGuide} aria-label="Lecture guidée du Master Plan">
+      <div className={styles.masterPlanGuideHeader}>
+        <div>
+          <span>Lecture recommandée</span>
+          <strong>Commencer par les zones actives, puis élargir seulement si nécessaire</strong>
+          <p>
+            La lecture guidée réduit la masse initiale et met en avant les sections encore vivantes du plan.
+          </p>
+        </div>
+        <div className={styles.masterPlanGuideActions}>
+          <button
+            type="button"
+            className={masterPlanDisplayMode === "focus" ? styles.masterPlanGuideButtonActive : styles.masterPlanGuideButton}
+            onClick={() => setMasterPlanDisplayMode("focus")}
+            disabled={hasMasterPlanFilters}
+          >
+            Lecture guidée
+          </button>
+          <button
+            type="button"
+            className={masterPlanDisplayMode === "all" ? styles.masterPlanGuideButtonActive : styles.masterPlanGuideButton}
+            onClick={() => setMasterPlanDisplayMode("all")}
+            disabled={hasMasterPlanFilters}
+          >
+            Tout afficher
+          </button>
+        </div>
+      </div>
+      <div className={styles.masterPlanGuideBody}>
+        <article className={styles.masterPlanGuideCard}>
+          <span>Mode actuel</span>
+          <strong>{hasMasterPlanFilters ? "Filtres actifs" : masterPlanDisplayMode === "focus" ? "Lecture guidée" : "Vue complète"}</strong>
+          <p>
+            {hasMasterPlanFilters
+              ? "Les filtres prennent la main pour montrer uniquement les sections qui correspondent."
+              : masterPlanDisplayMode === "focus"
+                ? `${hiddenMasterPlanCount} section(s) secondaires restent masquées tant que tu ne demandes pas la vue complète.`
+                : "La totalité du Master Plan est affichée, y compris les zones moins actives."}
+          </p>
+        </article>
+        <article className={styles.masterPlanGuideCard}>
+          <span>À lire d’abord</span>
+          <strong>{masterPlanPriorityReads.length} priorité(s) remontée(s)</strong>
+          <ul className={styles.masterPlanGuideList}>
+            {masterPlanPriorityReads.length ? masterPlanPriorityReads.map((item) => (
+              <li key={item.id}>
+                <strong>{item.feature}</strong>
+                <span>{item.nextAction || item.domain}</span>
+              </li>
+            )) : (
+              <li>
+                <strong>Aucune priorité P0/P1</strong>
+                <span>Le registre ne remonte pas de priorité critique immédiate.</span>
+              </li>
+            )}
+          </ul>
+        </article>
+      </div>
+      <div className={styles.masterPlanPresetRow}>
+        <button type="button" className={styles.masterPlanPresetButton} onClick={() => applyMasterPlanPreset("blocked")}>
+          Blocages
+        </button>
+        <button type="button" className={styles.masterPlanPresetButton} onClick={() => applyMasterPlanPreset("p1")}>
+          P1
+        </button>
+        <button type="button" className={styles.masterPlanPresetButton} onClick={() => applyMasterPlanPreset("recent-decisions")}>
+          Décisions récentes
+        </button>
+        <button type="button" className={styles.masterPlanPresetButton} onClick={() => applyMasterPlanPreset("roadmap-ready")}>
+          Roadmap prête
+        </button>
+        <button type="button" className={styles.masterPlanPresetButton} onClick={() => applyMasterPlanPreset("critical-bugs")}>
+          Bugs critiques
+        </button>
+      </div>
+    </section>
     <section className={styles.filters} aria-label="Filtres du Master Plan">
       <label className={styles.search}><Search size={18} /><input value={masterPlanQuery} onChange={(event) => setMasterPlanQuery(event.target.value)} placeholder="Rechercher une fonctionnalité, une décision, une limite…" /></label>
       <select value={masterPlanStatus} onChange={(event) => setMasterPlanStatus(event.target.value)} aria-label="Filtrer par statut"><option value="">Tous les statuts</option>{MASTER_PLAN_STATUSES.map((item) => <option value={item} key={item}>{item} ({plan.statusCounts[item] ?? 0})</option>)}</select>

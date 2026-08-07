@@ -1,0 +1,273 @@
+.canvasShell {
+  display: grid;
+  gap: 1rem;
+}
+
+.topPanel,
+.statsGrid,
+.blocksGrid,
+.connectionGrid,
+.connectionHeader,
+.expandedContent,
+.detailBlock,
+.metaStack {
+  display: grid;
+  gap: 1rem;
+}
+
+.topPanel {
+  padding: 1rem 1.05rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(120, 91, 46, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(195, 153, 66, 0.1), transparent 32%),
+    linear-gradient(145deg, rgba(255, 251, 244, 0.98), rgba(255, 255, 255, 0.98) 64%),
+    #fff;
+}
+
+.topCopy {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.eyebrow,
+.blockLabel,
+.detailTitle,
+.connectionCard span {
+  color: #8b631a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.topCopy h3,
+.connectionHeader strong {
+  margin: 0;
+  color: #2d261d;
+  font-size: clamp(1.2rem, 1.6vw, 1.55rem);
+  line-height: 1.1;
+}
+
+.topCopy p,
+.connectionHeader p,
+.metaStack p,
+.summaryList p {
+  margin: 0;
+  color: rgba(45, 38, 29, 0.72);
+  line-height: 1.55;
+}
+
+.modeSwitch {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.modeButton,
+.toggleButton,
+.linkChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 999px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.modeButton {
+  padding: 0.65rem 0.9rem;
+  border: 1px solid rgba(120, 91, 46, 0.14);
+  background: rgba(255, 255, 255, 0.86);
+  color: #4d4032;
+}
+
+.modeButton[data-active="true"] {
+  background: rgba(49, 91, 67, 0.1);
+  color: #315b43;
+  border-color: rgba(49, 91, 67, 0.18);
+}
+
+.statsGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.statCard,
+.blockCard,
+.connectionCard {
+  min-width: 0;
+  padding: 1rem;
+  border-radius: 1.15rem;
+  border: 1px solid rgba(120, 91, 46, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(255, 255, 255, 0.98)),
+    #fff;
+  box-shadow: 0 14px 30px rgba(56, 39, 18, 0.06);
+}
+
+.statCard {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.statCard svg,
+.blockHeader strong,
+.connectionHeader strong {
+  color: #2d261d;
+}
+
+.statCard span,
+.metricsRow,
+.statusBadge,
+.scoreBadge,
+.emptyNote {
+  color: rgba(45, 38, 29, 0.68);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.statCard strong {
+  color: #2d261d;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.statCard p {
+  margin: 0;
+  color: rgba(45, 38, 29, 0.72);
+  line-height: 1.5;
+}
+
+.blocksGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.blockCard {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.blockHeader {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.blockHeading {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.blockHeading strong {
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.blockMeta,
+.metricsRow,
+.actionRow,
+.linkChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.statusBadge,
+.scoreBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.34rem 0.66rem;
+  border-radius: 999px;
+  background: rgba(49, 91, 67, 0.08);
+}
+
+.scoreBadge {
+  background: rgba(185, 135, 47, 0.1);
+  color: #8b631a;
+}
+
+.toggleButton {
+  padding: 0.55rem 0.85rem;
+  border: 1px solid rgba(120, 91, 46, 0.14);
+  background: rgba(255, 255, 255, 0.88);
+  color: #2d261d;
+}
+
+.expandedContent {
+  padding-top: 0.2rem;
+  border-top: 1px solid rgba(120, 91, 46, 0.12);
+}
+
+.detailBlock {
+  gap: 0.5rem;
+}
+
+.list {
+  margin: 0;
+  padding-left: 1rem;
+  color: rgba(45, 38, 29, 0.8);
+  line-height: 1.55;
+}
+
+.list li + li {
+  margin-top: 0.3rem;
+}
+
+.list strong {
+  color: #2d261d;
+}
+
+.metaStack {
+  gap: 0.35rem;
+}
+
+.linkChip {
+  padding: 0.45rem 0.7rem;
+  border: 1px solid rgba(49, 91, 67, 0.14);
+  background: rgba(49, 91, 67, 0.06);
+  color: #315b43;
+}
+
+.connectionPanel {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem 1.05rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(120, 91, 46, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.connectionGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.connectionCard {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (max-width: 1120px) {
+  .statsGrid,
+  .blocksGrid,
+  .connectionGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .topPanel,
+  .connectionPanel,
+  .statCard,
+  .blockCard,
+  .connectionCard {
+    padding: 0.9rem;
+  }
+
+  .modeSwitch {
+    width: 100%;
+  }
+
+  .modeButton {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}

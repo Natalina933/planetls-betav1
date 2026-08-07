@@ -1,0 +1,3 @@
+{
+  "/api/concierge/team/[id]/route": "app/api/concierge/team/[id]/route.js"
+}

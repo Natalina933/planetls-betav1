@@ -132,31 +132,31 @@ const SIMULATION_ROWS: SimulationRow[] = [
     strategyId: "strategy-b",
     scenario: "Prudent",
     clients: 18,
-    averagePrice: 39,
-    mrr: 702,
-    arr: 8424,
-    margin: "58 %",
-    treasury: "Besoin limité, onboarding léger",
+    averagePrice: 29,
+    mrr: 522,
+    arr: 6264,
+    margin: "56 %",
+    treasury: "Entrée très accessible, besoin d'onboarding contenu",
   },
   {
-    strategyId: "strategy-c",
+    strategyId: "strategy-b",
     scenario: "Réaliste",
     clients: 32,
-    averagePrice: 79,
-    mrr: 2528,
-    arr: 30336,
-    margin: "67 %",
-    treasury: "Effort produit et support maîtrisé",
+    averagePrice: 49,
+    mrr: 1568,
+    arr: 18816,
+    margin: "64 %",
+    treasury: "Bon équilibre entre lisibilité commerciale et valeur perçue",
   },
   {
-    strategyId: "strategy-d",
+    strategyId: "strategy-j",
     scenario: "Ambitieux",
-    clients: 45,
-    averagePrice: 69,
-    mrr: 3105,
-    arr: 37260,
-    margin: "61 %",
-    treasury: "Pilotage plus lourd côté flux et conformité",
+    clients: 14,
+    averagePrice: 95,
+    mrr: 1330,
+    arr: 15960,
+    margin: "62 %",
+    treasury: "Moins de volume, mais davantage d'accompagnement et de vente consultative",
   },
 ];
 
@@ -186,7 +186,7 @@ const SIMULATED_OFFER_CARDS: SimulatedOfferCard[] = [
     id: "offer-1",
     name: "Conciergerie Essentiel",
     profile: "Concierges et conciergeries",
-    monthlyPrice: "49 € HT",
+    monthlyPrice: "29 € HT",
     positioning: "Entrée claire pour piloter demandes, missions et coordination locale.",
     includes: ["Demandes et missions", "Planning opérationnel", "Preuves d'intervention"],
     limits: ["1 équipe cœur", "Reporting simple", "Pas d'addons avancés"],
@@ -201,11 +201,11 @@ const SIMULATED_OFFER_CARDS: SimulatedOfferCard[] = [
     id: "offer-2",
     name: "Conciergerie Pro",
     profile: "Concierges et conciergeries",
-    monthlyPrice: "79 € HT",
-    positioning: "Offre cible pour un cockpit métier plus central dans l'exploitation quotidienne.",
+    monthlyPrice: "49 € HT",
+    positioning: "Palier cible pour un cockpit métier plus central dans l'exploitation quotidienne.",
     includes: ["Coordination multi-acteurs", "Suivi propriétaire", "Base de reporting renforcée"],
     limits: ["Modules premium séparés", "Pas de commission intégrée par défaut", "Périmètre encore simulé"],
-    status: "Hypothèse prioritaire",
+    status: "Palier cible",
     badge: "Palier cible",
     properties: "5 à 20 biens",
     users: "3 à 8 utilisateurs",
@@ -214,18 +214,18 @@ const SIMULATED_OFFER_CARDS: SimulatedOfferCard[] = [
   },
   {
     id: "offer-3",
-    name: "Portefeuille Logements",
+    name: "Conciergerie sur devis",
     profile: "Conciergeries multi-biens",
-    monthlyPrice: "Sur paliers",
-    positioning: "Lecture plus scalable pour les structures qui raisonnent par parc géré.",
-    includes: ["Tarification progressive", "Adaptation au volume", "Narration croissance plus forte"],
-    limits: ["Effet de seuil à surveiller", "Besoin de comptage fiable", "Lisibilité commerciale à tester"],
+    monthlyPrice: "Sur devis",
+    positioning: "Réservé aux structures qui demandent plus de parc, plus d'accompagnement ou un périmètre spécifique.",
+    includes: ["Accompagnement renforcé", "Cadrage sur mesure", "Lecture plus réaliste des besoins complexes"],
+    limits: ["Vente plus longue", "Nécessite un périmètre clair", "Peu adapté à une entrée de gamme"],
     status: "Option à tester",
-    badge: "Scalable",
+    badge: "Sur mesure",
     properties: "20+ biens",
     users: "Équipe étendue",
     support: "Accompagnement renforcé",
-    modules: ["Paliers parc", "Reporting avancé", "Vue portefeuille"],
+    modules: ["Cadrage parc", "Reporting avancé", "Accompagnement"],
   },
 ];
 
@@ -287,7 +287,7 @@ const PRICING_TEST_ROWS: PricingTestRow[] = [
     label: "Entretien tarifaire conciergerie",
     segment: "Petites conciergeries structurées",
     offer: "Conciergerie Pro",
-    testedPrice: "29 € / 49 € / 79 €",
+    testedPrice: "29 € / 49 € / sur devis",
     participants: "8 à 12",
     result: "À préparer",
     nextAction: "Valider les objections au prix d'entrée et à la valeur perçue.",
@@ -355,11 +355,11 @@ export function EconomicModelTab() {
       value: String(PRICING_STRATEGIES.length),
       hint: "Inventaire initial du module de pricing",
     },
-    {
-      label: "Hypothèse prioritaire",
-      value: "Hybride profil + niveau",
-      hint: "Option à comparer avant toute décision",
-    },
+      {
+        label: "Hypothèse prioritaire",
+        value: "Stratégie B par niveau",
+        hint: "La plus simple à expliquer avec 29 € / 49 € / sur devis",
+      },
     {
       label: "Offres de production",
       value: String(EXISTING_PRODUCTION_OFFERS.length),
@@ -1058,8 +1058,8 @@ export function EconomicModelTab() {
           </section>
 
           <p className={styles.sectionNote}>
-            Lecture simplifiée : le modèle par niveau reste le plus simple à lancer, le modèle hybride conserve le meilleur potentiel
-            et l&apos;abonnement + commission reste le plus exigeant à exécuter.
+            Lecture simplifiée : le modèle par niveau est désormais la direction la plus lisible pour tester
+            `29 / 49 / sur devis`, tandis que l&apos;hybride et l&apos;abonnement + commission restent plus exigeants à exécuter.
           </p>
         </div>
 

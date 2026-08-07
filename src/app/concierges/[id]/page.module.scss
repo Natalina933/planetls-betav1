@@ -82,6 +82,32 @@
   margin-top: 0.25rem;
 }
 
+.externalAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 46px;
+  padding: 0.78rem 1rem;
+  border: 1px solid rgba(83, 112, 124, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #263540;
+  font-size: 0.94rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.externalAction:hover,
+.externalAction:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(139, 102, 48, 0.34);
+  box-shadow: 0 12px 24px rgba(32, 47, 56, 0.08);
+}
+
 .profileCard {
   min-width: 0;
 }
@@ -142,6 +168,8 @@
 
 .panel,
 .servicesSection,
+.linksSection,
+.ctaSection,
 .reviewsSection {
   min-width: 0;
   padding: clamp(1rem, 2vw, 1.35rem);
@@ -220,6 +248,65 @@
 .muted {
   margin: 0;
   color: rgba(38, 53, 64, 0.68);
+}
+
+.linksIntro {
+  margin: 0 0 0.95rem;
+  color: rgba(38, 53, 64, 0.78);
+  line-height: 1.6;
+}
+
+.ctaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.85rem;
+}
+
+.ctaCardPrimary,
+.ctaCardSecondary {
+  display: grid;
+  gap: 0.45rem;
+  min-height: 132px;
+  padding: 1rem;
+  border-radius: 8px;
+  text-decoration: none;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.ctaCardPrimary {
+  border: 1px solid rgba(139, 102, 48, 0.24);
+  background:
+    linear-gradient(135deg, rgba(142, 108, 52, 0.12), rgba(255, 252, 245, 0.94)),
+    rgba(255, 255, 255, 0.92);
+  color: #1f180f;
+}
+
+.ctaCardSecondary {
+  border: 1px solid rgba(83, 112, 124, 0.18);
+  background: rgba(247, 251, 252, 0.9);
+  color: #263540;
+}
+
+.ctaCardPrimary:hover,
+.ctaCardPrimary:focus-visible,
+.ctaCardSecondary:hover,
+.ctaCardSecondary:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 30px rgba(32, 47, 56, 0.08);
+}
+
+.ctaCardPrimary strong,
+.ctaCardSecondary strong {
+  font-size: 1rem;
+}
+
+.ctaCardPrimary span,
+.ctaCardSecondary span {
+  color: rgba(38, 53, 64, 0.8);
+  line-height: 1.55;
 }
 
 .reviewGrid {

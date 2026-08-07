@@ -7,7 +7,10 @@
 .decisionList,
 .tabsWrap,
 .comparisonChart,
-.scatterCard {
+.scatterCard,
+.marketInsightGrid,
+.marketLegendGrid,
+.marketFieldList {
   display: grid;
   gap: 1rem;
 }
@@ -47,7 +50,9 @@
 .barChart,
 .tableWrap,
 .inlineLinks,
-.comparisonMeta {
+.comparisonMeta,
+.marketHeader,
+.marketMetaRow {
   display: grid;
   gap: 0.9rem;
 }
@@ -150,13 +155,14 @@
 }
 
 .highlightGrid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
   gap: 0.9rem;
 }
 
 .highlightCard {
   display: grid;
   gap: 0.48rem;
+  min-width: 0;
 }
 
 .highlightCard > svg,
@@ -171,10 +177,19 @@
 }
 
 .grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(320px, 1fr));
+  align-items: start;
+}
+
+.financeGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  align-items: start;
 }
 
 .summaryList {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.85rem;
 }
 
@@ -184,6 +199,7 @@
   grid-template-columns: auto 1fr;
   gap: 0.8rem;
   align-items: start;
+  min-width: 0;
 }
 
 .metricGrid {
@@ -193,6 +209,7 @@
 .metricCard {
   display: grid;
   gap: 0.38rem;
+  min-width: 0;
 }
 
 .metricCard strong {
@@ -280,6 +297,16 @@
   gap: 0.6rem;
 }
 
+.marketHeader {
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 0.75rem;
+}
+
+.marketMetaRow {
+  gap: 0.45rem;
+}
+
 .comparisonMeta strong {
   color: #2d261d;
   font-size: 1rem;
@@ -289,6 +316,35 @@
   margin: 0;
   color: rgba(45, 38, 29, 0.72);
   line-height: 1.55;
+}
+
+.highlightCard strong,
+.summaryCard strong,
+.metricCard strong,
+.offerHeader h3,
+.roadmapCard strong,
+.decisionCard strong,
+.protectedOfferHeader h3,
+.strategyCardHeader h3,
+.executiveComparisonHeader h4,
+.simulationExecutiveHeader h4,
+.offerExecutiveHeader h4,
+.ninetyDayIntro h3,
+.ninetyDayCard strong {
+  overflow-wrap: anywhere;
+}
+
+.highlightCard p,
+.summaryCard p,
+.metricCard p,
+.offerPoints p,
+.roadmapCard p,
+.decisionCard p,
+.strategyCard > p,
+.sectionNote,
+.ninetyDayIntro p,
+.ninetyDayCard p {
+  overflow-wrap: anywhere;
 }
 
 .scatterFrame {
@@ -444,6 +500,10 @@
   flex-wrap: wrap;
 }
 
+.roadmapList {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .economicModelPage {
   gap: 1.45rem;
 }
@@ -508,7 +568,7 @@
 }
 
 .sectionCardGrid {
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .sectionCard {
@@ -693,7 +753,7 @@
 }
 
 .executiveComparisonGrid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .executiveComparisonCard {
@@ -772,7 +832,7 @@
 }
 
 .simulationKpiGrid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .simulationKpiCard,
@@ -820,7 +880,7 @@
 }
 
 .simulationExecutiveGrid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .simulationExecutiveCard {
@@ -909,12 +969,15 @@
 }
 
 .offerExecutiveGrid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .offerExecutiveCard,
 .profileInsightCard,
-.offerBuilderCard {
+.offerBuilderCard,
+.marketInsightCard,
+.marketLegendCard,
+.marketFieldItem {
   padding: 0.95rem;
   border-radius: 1.15rem;
   border: 1px solid rgba(120, 91, 46, 0.12);
@@ -957,11 +1020,53 @@
 
 .offerExecutiveCard > p,
 .profileInsightCard p,
-.offerBuilderCard p {
+.offerBuilderCard p,
+.marketInsightCard p,
+.marketLegendCard p {
   margin: 0;
   color: rgba(45, 38, 29, 0.75);
   line-height: 1.48;
   font-size: 0.93rem;
+}
+
+.marketInsightGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.marketFieldList {
+  grid-template-columns: 1fr;
+}
+
+.marketFieldItem {
+  gap: 0.45rem;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.marketFieldItem span {
+  color: #8b631a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.marketFieldItem strong,
+.marketInsightCard strong,
+.marketLegendCard strong {
+  color: #2d261d;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.marketMetaRow small,
+.sourceLine {
+  color: rgba(45, 38, 29, 0.64);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.marketLegendGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .offerBadgeRow,
@@ -1000,10 +1105,26 @@
   line-height: 1.2;
 }
 
+.offerMiniEditorCard input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.65rem 0.72rem;
+  border: 1px solid rgba(120, 91, 46, 0.16);
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.92);
+  color: #2d261d;
+  font: inherit;
+}
+
+.offerMiniEditorCard input:focus-visible {
+  outline: 2px solid rgba(49, 91, 67, 0.22);
+  outline-offset: 1px;
+}
+
 .offerExecutiveColumns,
 .profileInsightGrid,
 .offerBuilderGrid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .profileInsightCard span {
@@ -1198,8 +1319,75 @@
   margin-top: 1.15rem;
 }
 
+.ninetyDayFocus,
+.ninetyDayIntro,
+.ninetyDayCardGrid,
+.ninetyDayCard {
+  display: grid;
+  gap: 1rem;
+}
+
+.ninetyDayFocus {
+  gap: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.ninetyDayIntro {
+  padding: 1rem 1.1rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(120, 91, 46, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(195, 153, 66, 0.14), transparent 34%),
+    linear-gradient(145deg, rgba(255, 252, 246, 0.98), rgba(255, 255, 255, 0.98) 62%),
+    #fff;
+}
+
+.ninetyDayIntro h3 {
+  margin: 0;
+  color: #2d261d;
+  font-size: 1.28rem;
+  line-height: 1.18;
+}
+
+.ninetyDayIntro p,
+.ninetyDayCard p {
+  margin: 0;
+  color: rgba(45, 38, 29, 0.76);
+  line-height: 1.58;
+}
+
+.ninetyDayCardGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ninetyDayCard {
+  min-width: 0;
+  padding: 0.95rem 1rem;
+  border-radius: 1.15rem;
+  border: 1px solid rgba(120, 91, 46, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(255, 255, 255, 0.98)),
+    #fff;
+  box-shadow: 0 14px 30px rgba(56, 39, 18, 0.06);
+}
+
+.ninetyDayCard span {
+  color: #8b631a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ninetyDayCard strong {
+  color: #2d261d;
+  font-size: 1rem;
+  line-height: 1.34;
+}
+
 .protectedOfferCard {
   gap: 1.1rem;
+  min-width: 0;
 }
 
 .protectedOfferHeader,
@@ -1224,7 +1412,7 @@
 
 .strategyCardGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 0.8rem;
 }
 
@@ -1238,6 +1426,7 @@
     #fff;
   box-shadow: 0 18px 34px rgba(56, 39, 18, 0.08);
   gap: 0.9rem;
+  min-width: 0;
 }
 
 .strategyCard > p {
@@ -1368,13 +1557,50 @@
   .simulationInvestorStrip,
   .offerExecutiveColumns,
   .profileInsightGrid,
+  .marketInsightGrid,
+  .marketLegendGrid,
   .offerBuilderGrid,
-  .offerMiniEditorGrid {
+  .offerMiniEditorGrid,
+  .summaryList,
+  .roadmapList,
+  .ninetyDayCardGrid {
     grid-template-columns: 1fr;
   }
 
   .featureLegend {
     grid-template-columns: repeat(2, max-content);
+  }
+}
+
+@media (min-width: 1121px) {
+  .tabsList {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    overflow-x: visible;
+  }
+
+  .tabTrigger {
+    width: 100%;
+    min-width: 0;
+    text-align: center;
+  }
+}
+
+@media (min-width: 1480px) {
+  .sectionCardGrid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .strategyCardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .offerExecutiveGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .executiveComparisonGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -1432,6 +1658,10 @@
     grid-template-columns: 1fr;
   }
 
+  .ninetyDayCardGrid {
+    grid-template-columns: 1fr;
+  }
+
   .strategyCardHeader,
   .protectedOfferHeader {
     flex-direction: column;
@@ -1445,5 +1675,314 @@
 
   .strategyScoreBadge {
     justify-items: start;
+  }
+}
+
+.progressShell,
+.progressHeader,
+.progressMeta,
+.heroScoreGrid,
+.heroScoreCard,
+.kpiHeroGrid,
+.kpiHeroCard,
+.sectionTabHeader,
+.sectionNav,
+.sectionNavButton,
+.accordionStack,
+.sectionStack,
+.sectionPanelGrid,
+.statusMatrix,
+.statusCard,
+.canvasGrid,
+.canvasCard,
+.swotGrid,
+.swotCard,
+.appendixGrid,
+.appendixCard {
+  display: grid;
+  gap: 1rem;
+}
+
+.progressShell {
+  padding: 1rem 1.05rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(120, 91, 46, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(195, 153, 66, 0.12), transparent 34%),
+    linear-gradient(145deg, rgba(255, 252, 246, 0.98), rgba(255, 255, 255, 0.98) 62%),
+    #fff;
+}
+
+.heroScoreGrid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.heroScoreCard,
+.kpiHeroCard {
+  min-width: 0;
+  padding: 0.95rem 1rem;
+  border-radius: 1.15rem;
+  border: 1px solid rgba(120, 91, 46, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(255, 255, 255, 0.98)),
+    #fff;
+  box-shadow: 0 14px 30px rgba(56, 39, 18, 0.06);
+}
+
+.heroScoreCard {
+  align-content: start;
+  gap: 0.65rem;
+}
+
+.heroScoreCard > svg {
+  color: #315b43;
+}
+
+.heroScoreCard span,
+.kpiHeroCard span {
+  color: #8b631a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.heroScoreCard strong,
+.kpiHeroCard strong {
+  color: #2d261d;
+}
+
+.heroScoreCard strong {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.heroScoreCard p,
+.kpiHeroCard p {
+  margin: 0;
+  color: rgba(45, 38, 29, 0.74);
+  line-height: 1.55;
+  font-size: 0.92rem;
+}
+
+.kpiHeroGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.kpiHeroCard {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.kpiHeroCard strong {
+  font-size: 1.2rem;
+  line-height: 1.08;
+}
+
+.progressHeader {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.progressHeader strong {
+  color: #2d261d;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.progressBar {
+  width: 100%;
+  height: 0.9rem;
+  border-radius: 999px;
+  background: rgba(116, 95, 62, 0.12);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #315b43, #b9872f);
+}
+
+.progressMeta {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.progressMeta span {
+  color: rgba(45, 38, 29, 0.68);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.topTabsList {
+  width: 100%;
+  display: flex;
+  gap: 0.55rem;
+  padding: 0.2rem;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: thin;
+}
+
+.sectionTabHeader {
+  margin-bottom: 1rem;
+}
+
+.sectionTabHeader h3 {
+  margin: 0.25rem 0 0;
+  color: #2d261d;
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  line-height: 1.08;
+}
+
+.sectionNav {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.sectionNavButton {
+  padding: 0.8rem 0.9rem;
+  border: 1px solid rgba(120, 91, 46, 0.12);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.88);
+  text-align: left;
+  cursor: pointer;
+}
+
+.sectionNavButton span {
+  display: block;
+  color: #2d261d;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.sectionNavButton small {
+  color: rgba(45, 38, 29, 0.62);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.sectionNavButton:focus-visible {
+  outline: 2px solid rgba(212, 167, 74, 0.42);
+  outline-offset: 1px;
+}
+
+.accordionStack {
+  gap: 1.1rem;
+}
+
+.sectionStack {
+  gap: 1.1rem;
+}
+
+.sectionPanelGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.statusMatrix {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.statusCard,
+.canvasCard,
+.swotCard,
+.appendixCard {
+  min-width: 0;
+  padding: 0.95rem 1rem;
+  border-radius: 1.15rem;
+  border: 1px solid rgba(120, 91, 46, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(255, 255, 255, 0.98)),
+    #fff;
+  box-shadow: 0 14px 30px rgba(56, 39, 18, 0.06);
+}
+
+.statusLabel,
+.canvasCard span,
+.swotCard span,
+.appendixCard span {
+  color: #8b631a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.statusCard strong,
+.appendixCard strong {
+  color: #2d261d;
+}
+
+.statusCard strong {
+  font-size: 1.15rem;
+  line-height: 1.08;
+}
+
+.statusCard p,
+.appendixCard code {
+  margin: 0.25rem 0 0;
+  color: rgba(45, 38, 29, 0.72);
+  line-height: 1.5;
+}
+
+.canvasGrid,
+.swotGrid,
+.appendixGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.canvasCard strong,
+.swotCard strong {
+  color: #2d261d;
+}
+
+.appendixCard {
+  gap: 0.8rem;
+}
+
+.appendixCard code {
+  display: inline-block;
+  padding: 0.35rem 0.55rem;
+  border-radius: 0.7rem;
+  background: rgba(116, 95, 62, 0.08);
+  font-size: 0.8rem;
+}
+
+@media (min-width: 1121px) {
+  .topTabsList {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    overflow-x: visible;
+  }
+}
+
+@media (max-width: 1120px) {
+  .progressMeta,
+  .heroScoreGrid,
+  .kpiHeroGrid,
+  .sectionPanelGrid,
+  .statusMatrix,
+  .canvasGrid,
+  .swotGrid,
+  .appendixGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .progressHeader,
+  .sectionTabHeader {
+    grid-template-columns: 1fr;
+  }
+
+  .progressMeta {
+    grid-template-columns: 1fr;
+  }
+
+  .topTabsList {
+    grid-template-columns: none;
   }
 }

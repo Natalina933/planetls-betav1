@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { logProxyDebug } from "@/server/logging/authDebug";
+import { checkApiMutationCsrf } from "@/server/security/csrf";
 
 const ROLE_FOLDER_MAP: Record<string, string> = {
   admin: "admin",
@@ -57,6 +58,19 @@ async function getProxyToken(req: NextRequest) {
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  if (pathname.startsWith("/api")) {
+    const csrfResult = checkApiMutationCsrf(req);
+    if (!csrfResult.ok) {
+      return NextResponse.json(
+        {
+          error: "Requete refusee par la protection CSRF.",
+          reason: csrfResult.reason,
+        },
+        { status: 403, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+  }
+
   if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
     return NextResponse.next();
   }
@@ -101,5 +115,5 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/api/:path*"],
 };

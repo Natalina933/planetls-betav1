@@ -2443,6 +2443,152 @@
   margin-bottom: 0.8rem;
 }
 
+.masterPlanGuide,
+.masterPlanGuideHeader,
+.masterPlanGuideBody,
+.masterPlanGuideActions,
+.masterPlanGuideCard,
+.masterPlanGuideList,
+.masterPlanPresetRow {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.masterPlanGuide {
+  padding: 1rem;
+  border: 1px solid #e3ddd2;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #fffdf9, #f7f2e9);
+}
+
+.masterPlanGuideHeader {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.masterPlanGuideHeader span,
+.masterPlanGuideCard span {
+  color: #9a6a20;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.masterPlanGuideHeader strong,
+.masterPlanGuideCard strong {
+  color: #183f36;
+}
+
+.masterPlanGuideHeader strong {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 1.02rem;
+  line-height: 1.35;
+}
+
+.masterPlanGuideHeader p,
+.masterPlanGuideCard p {
+  margin: 0;
+  color: #5f6965;
+  line-height: 1.55;
+}
+
+.masterPlanGuideActions {
+  grid-auto-flow: column;
+  align-content: start;
+  gap: 0.55rem;
+}
+
+.masterPlanGuideButton,
+.masterPlanGuideButtonActive {
+  min-height: 2.5rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.masterPlanGuideButton {
+  border: 1px solid #ddd4c5;
+  background: #fff;
+  color: #52605b;
+}
+
+.masterPlanGuideButtonActive {
+  border: 1px solid rgba(173, 122, 45, 0.4);
+  background: #f5ecdc;
+  color: #183f36;
+}
+
+.masterPlanGuideButton:disabled,
+.masterPlanGuideButtonActive:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.masterPlanGuideBody {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.masterPlanGuideCard {
+  padding: 0.95rem 1rem;
+  border: 1px solid #e7dfd0;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.masterPlanGuideList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.masterPlanGuideList li {
+  display: grid;
+  gap: 0.16rem;
+  padding: 0.7rem 0.75rem;
+  border-radius: 12px;
+  background: #faf7f0;
+}
+
+.masterPlanGuideList li + li {
+  margin-top: 0.2rem;
+}
+
+.masterPlanGuideList li span {
+  color: #5f6965;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.masterPlanPresetRow {
+  grid-template-columns: repeat(auto-fit, minmax(140px, max-content));
+  gap: 0.6rem;
+}
+
+.masterPlanPresetButton {
+  min-height: 2.35rem;
+  padding: 0.6rem 0.82rem;
+  border: 1px solid #ddd4c5;
+  border-radius: 999px;
+  background: #fff;
+  color: #244b43;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.masterPlanPresetButton:hover {
+  border-color: #ad7a2d;
+  background: #f5ecdc;
+}
+
 .search {
   flex: 1;
   display: flex;
@@ -2838,6 +2984,8 @@
   }
 
   .filterChipsRow,
+  .masterPlanGuideHeader,
+  .masterPlanGuideBody,
   .pageSummary,
   .executiveSignalGrid,
   .executiveMetrics,
@@ -2872,6 +3020,14 @@
   .filters {
     position: static;
     flex-direction: column;
+  }
+
+  .masterPlanGuideActions {
+    grid-auto-flow: row;
+  }
+
+  .masterPlanPresetRow {
+    grid-template-columns: 1fr;
   }
 
   .search {
