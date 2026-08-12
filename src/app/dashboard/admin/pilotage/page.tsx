@@ -7,17 +7,12 @@ import {
   ArrowRight,
   BadgeCheck,
   Banknote,
-  Bot,
-  BrainCircuit,
   BriefcaseBusiness,
   Building2,
-  CheckCircle2,
   Compass,
   Gauge,
-  Goal,
   Layers3,
   LineChart,
-  Radar,
   RefreshCw,
   ShieldAlert,
   Sparkles,
@@ -49,13 +44,11 @@ import {
   BUSINESS_PLAN_STATUS_LABELS,
   BUSINESS_PLAN_STATUS_SCORES,
   BUSINESS_PLAN_TAB_DEFINITIONS,
-  CAPABILITY_ROWS,
   MARKET_SCOPE_ROWS,
   MONTHLY_PLAN_ROWS,
   NINETY_DAY_PRIORITIES,
   PERSONA_SEGMENTS,
   PRICING_GUIDANCE_ROWS,
-  PRICING_ROWS,
   SOLUTION_PILLARS,
   SWOT_BLOCKS,
   VALUE_PROPOSITIONS,
@@ -65,7 +58,7 @@ import {
   type BusinessPlanStatus,
   type BusinessPlanTabId,
 } from "./businessPlanData";
-import { PRICING_DECISION_LOG, PRICING_PROFILES, PRICING_STRATEGIES, EXISTING_PRODUCTION_OFFERS } from "./economic-model/data";
+import { PRICING_DECISION_LOG,  PRICING_STRATEGIES, EXISTING_PRODUCTION_OFFERS } from "./economic-model/data";
 import { EconomicModelTab } from "./economic-model/EconomicModelTab";
 import { FinancialForecastModel } from "./economic-model/FinancialForecastModel";
 import { DEFAULT_FINANCIAL_SCENARIOS, computeFinancialScenario } from "./economic-model/financialModel";
@@ -121,18 +114,7 @@ type AdminOperationsPayload = {
   invoiceCount: number;
 };
 
-function formatDateTime(value: string | null | undefined) {
-  if (!value) return "Non disponible";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
+
 
 function formatMoney(value: number) {
   return new Intl.NumberFormat("fr-FR", {
@@ -179,12 +161,7 @@ function average(values: Array<number | null | undefined>) {
   return defined.reduce((sum, value) => sum + value, 0) / defined.length;
 }
 
-function getScoreTone(value: number) {
-  if (value >= 80) return "strong";
-  if (value >= 65) return "good";
-  if (value >= 45) return "mid";
-  return "weak";
-}
+
 
 function daysSince(value: string) {
   const date = new Date(value);
@@ -240,7 +217,7 @@ export default function AdminBusinessPage() {
   const [overview, setOverview] = useState<AdminOverviewPayload | null>(null);
   const [operations, setOperations] = useState<AdminOperationsPayload | null>(null);
   const [kpis, setKpis] = useState<KpiOverviewPayload | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<BusinessPlanTabId>("synthesis");
   const [openSections, setOpenSections] = useState<Record<BusinessPlanSectionId, boolean>>(
@@ -294,8 +271,8 @@ export default function AdminBusinessPage() {
     };
   }, []);
 
-  const requests = operations?.requests ?? [];
-  const missions = operations?.missions ?? [];
+  const requests = useMemo(() => operations?.requests ?? [], [operations?.requests]);
+  const missions = useMemo(() => operations?.missions ?? [], [operations?.missions]);
 
   const blockedRequests = useMemo(
     () =>
@@ -335,20 +312,6 @@ export default function AdminBusinessPage() {
     ]),
   );
 
-  const lastUpdated = useMemo(() => {
-    const dates = [
-      overview?.health?.updatedAt,
-      operations?.health?.updatedAt,
-      kpis?.health?.updated_at,
-    ].filter((item): item is string => Boolean(item));
-    if (dates.length === 0) return null;
-    return dates
-      .map((value) => new Date(value))
-      .filter((date) => !Number.isNaN(date.getTime()))
-      .sort((left, right) => right.getTime() - left.getTime())[0]
-      ?.toISOString();
-  }, [kpis, operations, overview]);
-
   const tractionBars = useMemo(() => {
     const summary = overview?.summary;
     if (!summary) return [];
@@ -366,14 +329,6 @@ export default function AdminBusinessPage() {
       ratio: Math.max(8, Math.round((item.value / max) * 100)),
     }));
   }, [overview]);
-
-  const pricingRows = useMemo(() => {
-    const max = Math.max(...PRICING_ROWS.map((item) => item.amount), 1);
-    return PRICING_ROWS.map((item) => ({
-      ...item,
-      ratio: Math.max(14, Math.round((item.amount / max) * 100)),
-    }));
-  }, []);
 
   const topRisks = useMemo(() => businessRisks.slice(0, 4), []);
   const aiRiskCount = useMemo(
@@ -396,10 +351,7 @@ export default function AdminBusinessPage() {
     [],
   );
 
-  const activeTabDefinition = useMemo(
-    () => sectionsByTab.find((tab) => tab.id === activeTab) ?? sectionsByTab[0],
-    [activeTab, sectionsByTab],
-  );
+
 
   const statusCounts = useMemo(
     () =>

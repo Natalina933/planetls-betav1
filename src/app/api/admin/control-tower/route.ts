@@ -242,9 +242,18 @@ type OnboardingEventRow = {
   created_at: string | null;
 };
 
+type UntypedQueryBuilder = PromiseLike<unknown> & {
+  select: (columns: string) => UntypedQueryBuilder;
+  order: (column: string, options?: { ascending?: boolean }) => UntypedQueryBuilder;
+  limit: (count: number) => UntypedQueryBuilder;
+  in: (column: string, values: string[]) => UntypedQueryBuilder;
+  insert: (payload: Record<string, unknown>) => UntypedQueryBuilder;
+  single: () => PromiseLike<unknown>;
+};
+
 function queryTable(table: string) {
   const untypedDb = db as unknown as {
-    from: (relation: string) => any;
+    from: (relation: string) => UntypedQueryBuilder;
   };
 
   return untypedDb.from(table);
@@ -840,10 +849,20 @@ export async function POST(req: NextRequest) {
     };
 
     try {
-      const { data, error } = await queryTable("workflow_events")
+      const { data, error } = await (queryTable("workflow_events")
         .insert(payload)
         .select("id,actor_profile_id,event_type,body,metadata,created_at")
-        .single();
+        .single() as PromiseLike<{
+        data: {
+          id: string;
+          actor_profile_id: string | null;
+          event_type: string;
+          body: string | null;
+          metadata: Record<string, unknown> | null;
+          created_at: string;
+        };
+        error: { code?: string; message?: string } | null;
+      }>);
 
       if (error) {
         if (!isTransportError(error)) {

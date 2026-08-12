@@ -120,7 +120,7 @@ export function PromptLibraryCenter({ payload, loading }: PromptLibraryCenterPro
     setPreparations(readStoredJson<PreparationStore>(PREPARATIONS_STORAGE_KEY, {}));
   }, []);
 
-  const prompts = payload?.prompts ?? [];
+  const prompts = useMemo(() => payload?.prompts ?? [], [payload?.prompts]);
 
   const filteredPrompts = useMemo(() => {
     return prompts.filter((prompt) => {

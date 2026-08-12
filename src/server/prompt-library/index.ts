@@ -275,7 +275,7 @@ async function readRunSummaries(): Promise<PromptRunSummary[]> {
   return runs.filter((run) => run !== null) as PromptRunSummary[];
 }
 
-function buildDiagnostic(promptFiles: string[]): PromptLibraryDiagnostic {
+function buildDiagnostic(_promptFiles: string[]): PromptLibraryDiagnostic {
   return {
     existingPromptSources: [
       "docs/prompt-13-module-voyageurs-sejours-2026-07-12.md",

@@ -36,10 +36,6 @@ function slugify(value: string) {
     .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
-function countOccurrences(source: string, token: string) {
-  return source.split(token).length - 1;
-}
-
 function countSectionsWithToken(sections: Array<{ statuses: string[]; priorities: string[] }>, token: string, kind: "status" | "priority") {
   return sections.filter((section) => (
     kind === "status" ? section.statuses.includes(token) : section.priorities.includes(token)

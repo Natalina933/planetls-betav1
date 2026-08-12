@@ -174,7 +174,7 @@ function slugTokens(value: string) {
     .filter((token) => token.length >= 4);
 }
 
-async function collectProjectAdvisorSignals(): Promise<{
+async function _collectProjectAdvisorSignals(): Promise<{
   designSystemDriftPages: Array<{
     route: string;
     file: string;

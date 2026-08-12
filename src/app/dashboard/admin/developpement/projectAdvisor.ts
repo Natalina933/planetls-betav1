@@ -66,7 +66,7 @@ function formatList(items: string[], fallback: string, limit = 3) {
   return items.slice(0, limit).join(", ");
 }
 
-function normalize(value: string) {
+function _normalize(value: string) {
   return value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")

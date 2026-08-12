@@ -2,12 +2,9 @@
 
 import { useMemo } from "react";
 import {
-  BarChart3,
-  CheckCircle2,
   CircleDollarSign,
   LockKeyhole,
   TestTube2,
-  TrendingUp,
   Users,
 } from "lucide-react";
 import { DashboardPanel } from "@/components/dashboard";

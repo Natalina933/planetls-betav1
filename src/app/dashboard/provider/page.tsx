@@ -168,7 +168,7 @@ function getQuoteClientLabel(quote: ProviderQuoteItem) {
 }
 
 export default function ProviderDashboardPage() {
-  const { workspace, dashboard, error, isLoading, displayName, locationLabel } = useProviderDashboardData();
+  const { workspace, dashboard, error, isLoading, displayName } = useProviderDashboardData();
 
   const interventions = useMemo(() => dashboard?.interventions ?? [], [dashboard?.interventions]);
   const clients = useMemo(() => dashboard?.clients ?? [], [dashboard?.clients]);
