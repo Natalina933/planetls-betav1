@@ -1455,7 +1455,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 - Realite produit : les cards personas sont maintenant construites comme de vraies cartes rectangulaires a retournement. Le recto montre l'image, la punchline, quelques informations importantes et la valeur commerciale ; le verso affiche les details complets `contexte, besoins, frustrations, priorites`. La grille reste volontairement sur `2 cartes par ligne` en desktop puis passe a `1 par ligne` sur mobile pour garder une lecture propre.
 - Decision UX : l'effet de retournement 3D a ensuite ete simplifie en interaction plus robuste. Toute la face avant de la card est maintenant cliquable et ouvre les informations detaillees dans la meme carte, sous le visuel principal, avec un bouton de fermeture explicite. L'objectif est de garder le look `carte profil` tout en rendant l'ouverture des details immediate et evidente.
 - Limites connues : le persona `voyageur` n'est pas encore un vrai persona complet dans la source canonique ; il est volontairement presente comme piste a cadrer plus tard, pas comme cible deja maturee.
-- Verification : `npm run check:encoding` PASS. `npm run build` avait passe plus tot dans la mission puis a depasse le temps alloue lors de la reverification finale, sans erreur remontee avant timeout.
+- Verification : `npm run check:encoding` PASS. `npm test` PASS `241/241` le jeudi 13 aout 2026 apres realignement des contrats de libelles UTF-8. `npm run build` PASS le jeudi 13 aout 2026 lors de la reverification finale.
 
 ### Mise a jour ciblee - Page admin Modele financier du jeudi 13 aout 2026
 
@@ -1469,5 +1469,17 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 - Decision de pilotage : la source de verite du cadrage financier doit etre mutualisee plutot que recopier des constantes dans plusieurs pages admin. Le referentiel partage devient la couche intermediaire entre lecture strategique et atelier de simulation.
 - Limites connues : les chiffres affiches restent des hypotheses et une synthese de benchmark, pas des valeurs branchees sur Stripe, la comptabilite ou un MRR reel. L'offre de production existante et les simulations avancees du module economique restent ailleurs et ne sont pas encore reunies dans une meme gouvernance outillee.
 - Contradictions detectees : le cockpit admin disposait deja de briques `business strategy` et `economic-model`, mais sans point d'entree explicite `modele financier` dans la navigation principale ni referentiel partage entre lecture strategique et simulation. Le lot corrige la lisibilite et une premiere partie de cette duplication, sans fusionner encore tous les objets financiers avancÃ©s.
-- Verification : `npx eslint src/app/dashboard/admin/modele-financier/page.tsx src/app/dashboard/admin/pilotage/economic-model/sharedFinancialReference.ts src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx` PASS. `npm run check:encoding` PASS. `npm run build` non relance avec succes car un autre processus Next occupait deja `.next/lock` au moment de la verification.
+- Verification : `npx eslint src/app/dashboard/admin/modele-financier/page.tsx src/app/dashboard/admin/pilotage/economic-model/sharedFinancialReference.ts src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx` PASS. `npm run check:encoding` PASS. `npm test` PASS `241/241` le jeudi 13 aout 2026 apres realignement des contrats UTF-8. `npm run build` PASS le jeudi 13 aout 2026 apres liberation du verrou `.next`.
 - Prochaine etape recommandee : etendre ensuite le meme socle partage aux autres briques finance `PricingRevenueSimulator`, `FinancialForecastModel` et, si besoin, ajouter une persistance admin des hypotheses pour sortir d'un referentiel purement code.
+
+### Mise a jour ciblee - Revalidation finale du lot admin du jeudi 13 aout 2026
+
+- Statut : `✅ Terminé`
+- Priorite : `P1 Prioritaire`
+- Perimetre mis a jour : `src/app/dashboard/admin/page.tsx`, `src/tests/create-logement-helpers.test.mts`, `src/tests/developer-log.test.mts`, `src/tests/kpis-overview-contract.test.mts`, `docs/master-plan-planetls.md`
+- Realite produit : le tableau `D. Priorites` reste coherent avec les sujets remontes pendant la journee, notamment la couverture `P0/P1` deja visible dans la page `Developpement` et l'action `P2-016` sur les reliquats ASCII / labels historiques.
+- Realite produit : la contradiction de verification ouverte en fin de lot est maintenant levee. Les contrats de tests impactes par la francisation ont ete realignes, et le libelle admin visible `Mode dégradé` est de nouveau coherent entre interface et tests.
+- Decision de pilotage : les lots du jeudi 13 aout 2026 ne doivent plus etre presentes comme simplement "verifies plus tot dans la mission" ou "bloques par lock" alors qu'une reverification finale complete existe. La preuve de validation finale devient la reference documentaire.
+- Contradictions detectees : aucune contradiction ouverte restante sur l'etat de verification du lot admin du 13 aout 2026 apres relance complete des controles locaux.
+- Verification : `npm test` PASS `241/241`, `npm run check:encoding` PASS, `npm run build` PASS le jeudi 13 aout 2026.
+- Prochaine etape recommandee : reprendre ensuite la priorisation produit sur le contenu des lignes `P0/P1/P2` plutot que sur l'hygiene de verification de ce lot.

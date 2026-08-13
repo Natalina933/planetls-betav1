@@ -1014,7 +1014,7 @@ export default function AdminDashboard() {
 
               {sourceWarnings.length ? (
                 <div className={styles.warningBanner} role="status" aria-live="polite">
-                  <strong>Mode degrade :</strong>
+                  <strong>Mode dégradé :</strong>
                   <span>{sourceWarnings.join(" ")}</span>
                 </div>
               ) : null}

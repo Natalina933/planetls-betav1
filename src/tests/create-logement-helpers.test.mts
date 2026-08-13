@@ -110,7 +110,7 @@ test("buildCreateLogementSummary exposes the premium guided preview", () => {
 
   assert.deepEqual(buildCreateLogementSummary(form), [
     { label: "Logement", value: "Appart Montmartre" },
-    { label: "Proprietaire", value: "Jean Dupont" },
+    { label: "Propriétaire", value: "Jean Dupont" },
     { label: "Adresse", value: "12 rue des Abbesses" },
     { label: "Ville", value: "Paris" },
     { label: "Type", value: "Appartement" },

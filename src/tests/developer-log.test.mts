@@ -45,7 +45,7 @@ test("buildDeveloperLogView combine commits et planning avec metadata exploitabl
   assert.equal(view.entries[2]?.priority, "P1 Prioritaire");
   assert.equal(view.entries[2]?.links[0]?.href.includes("/commit/14031c7512c9b9436fe3703ae88f42ae8faf060a"), true);
   assert.equal(view.features.includes("Checkout Stripe"), true);
-  assert.equal(view.features.includes("Espace Developpement"), true);
+  assert.equal(view.features.includes("Espace Développement"), true);
   assert.equal(view.authors.includes("NathHome"), true);
   assert.equal(view.dailySummaries.length > 0, true);
   assert.equal(view.dailySummaries[0]?.modifiedFilesCount, 4);
