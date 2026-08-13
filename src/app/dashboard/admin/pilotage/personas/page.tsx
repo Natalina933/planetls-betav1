@@ -1,14 +1,9 @@
-import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth/authOptions";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = {
-  title: "Personas produit | PlanetLS",
-  description: "Référentiel interne des utilisateurs cibles et de leurs parcours PlanetLS.",
-};
 
-export default async function PersonasPage() {
+export default async function AdminBusinessPersonasPage() {
   const session = await auth();
   const role = session?.user?.role;
 

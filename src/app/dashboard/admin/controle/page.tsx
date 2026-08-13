@@ -454,6 +454,8 @@ function AdminControlPageContent() {
       navTitle="Pilotage admin"
       navItems={[
         { label: "Vue d'ensemble", href: "/dashboard/admin" },
+        { label: "Pilotage business", href: "/dashboard/admin/pilotage" },
+        { label: "Modèle financier", href: "/dashboard/admin/modele-financier" },
         { label: "Contrôle détaillé", href: "/dashboard/admin/controle" },
         { label: "Utilisateurs", href: "/dashboard/admin/utilisateurs" },
         { label: "Demandes", href: "/dashboard/admin/demandes" },
@@ -512,6 +514,7 @@ function AdminControlPageContent() {
       ]}
       shortcuts={[
         { label: "Cockpit", href: "/dashboard/admin" },
+        { label: "Modèle financier", href: "/dashboard/admin/modele-financier" },
         { label: "Demandes", href: "/dashboard/admin/demandes" },
         { label: "Missions", href: "/dashboard/admin/missions" },
       ]}

@@ -214,7 +214,7 @@ export function BusinessModelCanvas({ onNavigateToSection }: BusinessModelCanvas
                         <strong>Source :</strong> {block.source.label}
                       </p>
                       <p>
-                        <strong>Proprietaire :</strong> {block.owner ?? "A definir"}
+                        <strong>Propriétaire :</strong> {block.owner ?? "À définir"}
                       </p>
                     </div>
                   </section>

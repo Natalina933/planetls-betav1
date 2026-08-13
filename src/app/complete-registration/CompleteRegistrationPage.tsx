@@ -638,7 +638,7 @@ export default function CompleteRegistrationPage() {
         <small className={styles.errorMsg}><FaTimesCircle /> {errors.password}</small>
       )}
       {!errors.password && form.password && (
-        <small className={styles.successMsg}><FaCheckCircle /> Mot de passe assez sÃ©curisÃ©</small>
+        <small className={styles.successMsg}><FaCheckCircle /> Mot de passe assez sécurisé</small>
       )}
 
       <div className={styles.passwordWrapper}>

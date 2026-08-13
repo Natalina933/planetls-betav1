@@ -2384,25 +2384,25 @@ function OwnerTravelerMissionsContent() {
                 {focusedReservationLoading ? <p className={styles.meta}>Chargement du suivi collaboratif...</p> : null}
                 {focusedReservationError ? <p className={styles.meta}>{focusedReservationError}</p> : null}
                 <div className={styles.editorialCardBlock}>
-                  <strong>Acces et consignes</strong>
+                  <strong>Accès et consignes</strong>
                   <Textarea
                     rows={3}
                     value={focusedReservationDraft.accessInstructions}
                     onChange={(event) =>
                       setFocusedReservationDraft((current) => ({ ...current, accessInstructions: event.target.value }))
                     }
-                    placeholder="Acces, codes, parking, instructions d'arrivee..."
+                    placeholder="Accès, codes, parking, instructions d'arrivée..."
                   />
                 </div>
                 <div className={styles.editorialCardBlock}>
-                  <strong>Note proprietaire</strong>
+                  <strong>Note propriétaire</strong>
                   <Textarea
                     rows={3}
                     value={focusedReservationDraft.ownerNotes}
                     onChange={(event) =>
                       setFocusedReservationDraft((current) => ({ ...current, ownerNotes: event.target.value }))
                     }
-                    placeholder="Contexte voyageur, priorites, demandes editoriales pour la conciergerie..."
+                    placeholder="Contexte voyageur, priorités, demandes éditoriales pour la conciergerie..."
                   />
                 </div>
                 {focusedReservationDetail?.reservation?.concierge_notes ? (

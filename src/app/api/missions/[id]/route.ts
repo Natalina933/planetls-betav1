@@ -164,7 +164,7 @@ function getMissionStatusWorkflowCopy(status: MissionStatus) {
     case "validated":
       return {
         title: "Mission validee",
-        message: "Le proprietaire a valide la realisation de la mission.",
+        message: "Le propriétaire a validé la réalisation de la mission.",
       };
     case "closed":
       return {

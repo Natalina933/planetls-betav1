@@ -175,10 +175,10 @@ function inferFileInsight(path: string): FileInsight {
 
   if (haystack.includes("dashboard/admin/developpement")) {
     return {
-      feature: "Espace Developpement",
+      feature: "Espace Développement",
       category: "Pilotage automatique",
-      dependencyUpdate: "La vue Developpement reste synchronisee avec le Master Plan, la roadmap et les tests E2E.",
-      regression: "Verifier les etats replies/deplies, les filtres et la lisibilite mobile de la page Developpement.",
+      dependencyUpdate: "La vue Développement reste synchronisée avec le Master Plan, la roadmap et les tests E2E.",
+      regression: "Vérifier les états repliés/dépliés, les filtres et la lisibilité mobile de la page Développement.",
       impact: "Le cockpit Developer reflète mieux le code reel et les decisions recentes.",
       keywordHints: ["developpement", "journal", "roadmap", "memoire", "mission control", "pilotage"],
     };
@@ -188,7 +188,7 @@ function inferFileInsight(path: string): FileInsight {
     return {
       feature: "Master Plan",
       category: "Pilotage automatique",
-      dependencyUpdate: "Le Master Plan reste la source de verite des statuts, priorites et prochaines actions.",
+      dependencyUpdate: "Le Master Plan reste la source de vérité des statuts, priorités et prochaines actions.",
       regression: "Verifier la coherence entre le document, la timeline automatique et la roadmap projetee.",
       impact: "Le pilotage quotidien et la documentation produit restent alignes sur le code.",
       keywordHints: ["master plan", "pilotage", "roadmap", "journal"],

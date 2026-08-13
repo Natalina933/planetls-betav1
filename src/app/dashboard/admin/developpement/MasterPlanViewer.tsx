@@ -87,6 +87,7 @@ type MasterPlanViewerProps = {
 
 type JournalTimeframe = "all" | "today" | "week" | "month";
 type DevelopmentWorkspaceTab =
+  | "execution"
   | "masterPlan"
   | "missionControl"
   | "roadmap"
@@ -117,11 +118,441 @@ type ExecutiveAlertItem = {
   cta?: "blocked-master-plan";
 };
 
+type PriorityTableLevel = "P0" | "P1" | "P2" | "P3";
+type PriorityDifficulty = "Faible" | "Moyenne" | "Élevée";
+type PriorityImpact = "⭐⭐" | "⭐⭐⭐" | "⭐⭐⭐⭐" | "⭐⭐⭐⭐⭐";
+
+type PriorityTableRow = {
+  id: string;
+  level: PriorityTableLevel;
+  title: string;
+  category: string;
+  difficulty: PriorityDifficulty;
+  impact: PriorityImpact;
+  zones: string;
+};
+
 const FAVORITES_STORAGE_KEY = "planetls:developer-log:favorites";
 const COMMENTS_STORAGE_KEY = "planetls:developer-log:comments";
 const MANUAL_ENTRIES_STORAGE_KEY = "planetls:developer-log:manual-entries";
 const ROADMAP_COMPLETIONS_STORAGE_KEY = "planetls:developer-roadmap:completions";
 const REFERENCE_NOW = new Date("2026-07-27T12:00:00+02:00");
+const PRIORITY_TABLE_ROWS: PriorityTableRow[] = [
+  {
+    id: "P0-001",
+    level: "P0",
+    title: "Supprimer le fallback de SUPABASE_SERVICE_ROLE_KEY",
+    category: "Sécurité",
+    difficulty: "Faible",
+    impact: "⭐⭐⭐⭐⭐",
+    zones: "src/server/auth/authOptions.ts, src/server/db/dbServer.ts",
+  },
+  {
+    id: "P0-002",
+    level: "P0",
+    title: "Durcir la protection CSRF des webhooks Stripe",
+    category: "Sécurité",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐⭐⭐",
+    zones: "src/proxy.ts, src/server/security/csrf.ts, src/app/api/billing/webhook",
+  },
+  {
+    id: "P0-003",
+    level: "P0",
+    title: "Centraliser les migrations dans supabase/migrations/",
+    category: "Base de données",
+    difficulty: "Faible",
+    impact: "⭐⭐⭐⭐",
+    zones: "database/migrations/, supabase/migrations/",
+  },
+  {
+    id: "P0-004",
+    level: "P0",
+    title: "Réduire la durée des sessions à 2-4h",
+    category: "Sécurité",
+    difficulty: "Faible",
+    impact: "⭐⭐⭐⭐",
+    zones: "src/server/auth/authOptions.ts",
+  },
+  {
+    id: "P0-005",
+    level: "P0",
+    title: "Corriger la double source housing/properties",
+    category: "Architecture",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐⭐⭐",
+    zones: "src/types/supabase.ts, src/types/supabase.generated.ts, migrations",
+  },
+  {
+    id: "P1-001",
+    level: "P1",
+    title: "Finaliser le workflow E2E demande→paiement→facture",
+    category: "Métier",
+    difficulty: "Élevée",
+    impact: "⭐⭐⭐⭐⭐",
+    zones: "src/app/api/missions/, src/app/api/billing/",
+  },
+  {
+    id: "P1-002",
+    level: "P1",
+    title: "Migrer les données critiques de metadata vers des colonnes",
+    category: "Base de données",
+    difficulty: "Élevée",
+    impact: "⭐⭐⭐⭐⭐",
+    zones: "Migrations, src/types/supabase.ts",
+  },
+  {
+    id: "P1-003",
+    level: "P1",
+    title: "Valider la couverture E2E Stripe en CI",
+    category: "Tests",
+    difficulty: "Faible",
+    impact: "⭐⭐⭐⭐",
+    zones: ".github/workflows/, playwright.config.ts",
+  },
+  {
+    id: "P1-004",
+    level: "P1",
+    title: "Rendre les tableaux admin/concierge responsive",
+    category: "UX/UI",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐⭐",
+    zones: "src/app/dashboard/admin/, src/app/dashboard/concierge/",
+  },
+  {
+    id: "P1-005",
+    level: "P1",
+    title: "Finaliser la vérification email",
+    category: "Authentification",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐⭐",
+    zones: "src/server/auth/authOptions.ts, Supabase",
+  },
+  {
+    id: "P1-006",
+    level: "P1",
+    title: "Finaliser la réinitialisation mot de passe",
+    category: "Authentification",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐⭐",
+    zones: "src/app/api/auth/, Supabase",
+  },
+  {
+    id: "P1-007",
+    level: "P1",
+    title: "Ajouter des index sur les colonnes fréquemment interrogées",
+    category: "Performance",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐",
+    zones: "Migrations Supabase",
+  },
+  {
+    id: "P1-008",
+    level: "P1",
+    title: "Centraliser les logs avec Sentry",
+    category: "Observabilité",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐",
+    zones: "src/server/logging/, src/proxy.ts",
+  },
+  {
+    id: "P1-009",
+    level: "P1",
+    title: "Maintenir l'accès rapide aux espaces de travail",
+    category: "Authentification",
+    difficulty: "Faible",
+    impact: "⭐⭐⭐",
+    zones: "src/app/login/, src/app/api/auth/dev-workspace-login/",
+  },
+  {
+    id: "P1-010",
+    level: "P1",
+    title: "Finaliser le cockpit entrepreneurial privé",
+    category: "Pilotage",
+    difficulty: "Élevée",
+    impact: "⭐⭐⭐⭐",
+    zones: "src/app/dashboard/admin/pilotage/, src/app/api/admin/",
+  },
+  {
+    id: "P2-001",
+    level: "P2",
+    title: "Factoriser la logique des dashboards (UnifiedRoleDashboard)",
+    category: "Architecture",
+    difficulty: "Élevée",
+    impact: "⭐⭐⭐",
+    zones: "src/app/dashboard/_components/, src/components/dashboard/unified/",
+  },
+  {
+    id: "P2-002",
+    level: "P2",
+    title: "Implémenter l'historique des devis",
+    category: "Métier",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐",
+    zones: "src/app/api/quotes/, src/types/supabase.ts",
+  },
+  {
+    id: "P2-003",
+    level: "P2",
+    title: "Implémenter les modèles de devis",
+    category: "Métier",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐",
+    zones: "src/app/api/quotes/, src/features/",
+  },
+  {
+    id: "P2-004",
+    level: "P2",
+    title: "Implémenter la timeline unifiée CRM",
+    category: "CRM",
+    difficulty: "Élevée",
+    impact: "⭐⭐⭐",
+    zones: "src/app/dashboard/concierge/contacts/",
+  },
+  {
+    id: "P2-005",
+    level: "P2",
+    title: "Implémenter le drag-and-drop dans le planning",
+    category: "UX/UI",
+    difficulty: "Élevée",
+    impact: "⭐⭐⭐",
+    zones: "src/app/dashboard/*/planning/",
+  },
+  {
+    id: "P2-006",
+    level: "P2",
+    title: "Implémenter les notifications push",
+    category: "Notifications",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐",
+    zones: "src/app/api/notifications/, service worker",
+  },
+  {
+    id: "P2-007",
+    level: "P2",
+    title: "Implémenter les notifications email",
+    category: "Notifications",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐",
+    zones: "src/server/notifications/, Supabase",
+  },
+  {
+    id: "P2-008",
+    level: "P2",
+    title: "Implémenter le suivi SLA",
+    category: "Maintenance",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐",
+    zones: "src/app/dashboard/admin/controle/",
+  },
+  {
+    id: "P2-009",
+    level: "P2",
+    title: "Implémenter le ticketing support",
+    category: "Support",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐",
+    zones: "src/app/dashboard/admin/",
+  },
+  {
+    id: "P2-010",
+    level: "P2",
+    title: "Finaliser l'assistant décoration IA",
+    category: "IA",
+    difficulty: "Élevée",
+    impact: "⭐⭐⭐",
+    zones: "src/app/dashboard/concierge/decoration-ai/",
+  },
+  {
+    id: "P2-011",
+    level: "P2",
+    title: "Standardiser sur Tailwind ou SCSS",
+    category: "Design System",
+    difficulty: "Moyenne",
+    impact: "⭐⭐",
+    zones: "src/styles/, src/components/ui/",
+  },
+  {
+    id: "P2-012",
+    level: "P2",
+    title: "Ajouter les métadonnées SEO complètes",
+    category: "SEO",
+    difficulty: "Faible",
+    impact: "⭐⭐",
+    zones: "src/app/layout.tsx, pages publiques",
+  },
+  {
+    id: "P2-013",
+    level: "P2",
+    title: "Implémenter l'internationalisation (i18n)",
+    category: "UX",
+    difficulty: "Élevée",
+    impact: "⭐⭐⭐",
+    zones: "src/config/i18n/, next.config.mjs",
+  },
+  {
+    id: "P2-014",
+    level: "P2",
+    title: "Valider le référentiel Personas sur le terrain",
+    category: "Produit",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐",
+    zones: "src/app/dashboard/admin/developpement/personas/, src/components/development/",
+  },
+  {
+    id: "P2-015",
+    level: "P2",
+    title: "Créer un référentiel IA et une bibliothèque de prompts versionnée",
+    category: "IA",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐",
+    zones: "docs/, src/server/prompt-library/, src/app/dashboard/admin/",
+  },
+  {
+    id: "P2-016",
+    level: "P2",
+    title: "Normaliser les reliquats ASCII/labels historiques du dépôt",
+    category: "Qualité / UX",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐",
+    zones: "Référentiels admin, helpers métier, messages API visibles, quick login dev",
+  },
+  {
+    id: "P3-001",
+    level: "P3",
+    title: "Implémenter la carte interactive réseau",
+    category: "UX",
+    difficulty: "Élevée",
+    impact: "⭐⭐",
+    zones: "src/app/dashboard/shared/",
+  },
+  {
+    id: "P3-002",
+    level: "P3",
+    title: "Implémenter le fil d'actualité professionnel",
+    category: "Réseau",
+    difficulty: "Élevée",
+    impact: "⭐⭐",
+    zones: "src/app/dashboard/",
+  },
+  {
+    id: "P3-003",
+    level: "P3",
+    title: "Implémenter le mur des missions",
+    category: "Marketplace",
+    difficulty: "Élevée",
+    impact: "⭐⭐⭐",
+    zones: "src/app/dashboard/shared/",
+  },
+  {
+    id: "P3-004",
+    level: "P3",
+    title: "Implémenter les avis et réputation",
+    category: "Confiance",
+    difficulty: "Élevée",
+    impact: "⭐⭐⭐",
+    zones: "src/app/api/reviews/, src/types/supabase.ts",
+  },
+  {
+    id: "P3-005",
+    level: "P3",
+    title: "Implémenter les abonnements Stripe",
+    category: "Billing",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐",
+    zones: "src/app/api/billing/, src/server/billing/",
+  },
+  {
+    id: "P3-006",
+    level: "P3",
+    title: "Implémenter les factures récurrentes",
+    category: "Billing",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐",
+    zones: "src/app/api/billing/, src/server/billing/",
+  },
+  {
+    id: "P3-007",
+    level: "P3",
+    title: "Implémenter le chat temps réel",
+    category: "Messagerie",
+    difficulty: "Élevée",
+    impact: "⭐⭐",
+    zones: "src/app/dashboard/*/messages/",
+  },
+  {
+    id: "P3-008",
+    level: "P3",
+    title: "Implémenter la PWA",
+    category: "Mobile",
+    difficulty: "Moyenne",
+    impact: "⭐⭐",
+    zones: "next.config.mjs, public/manifest.json",
+  },
+  {
+    id: "P3-009",
+    level: "P3",
+    title: "Implémenter les push notifications mobile",
+    category: "Mobile",
+    difficulty: "Moyenne",
+    impact: "⭐⭐",
+    zones: "Service worker, src/app/api/notifications/",
+  },
+  {
+    id: "P3-010",
+    level: "P3",
+    title: "Implémenter le mode hors ligne",
+    category: "Mobile",
+    difficulty: "Élevée",
+    impact: "⭐⭐",
+    zones: "Service worker, cache API",
+  },
+  {
+    id: "P3-011",
+    level: "P3",
+    title: "Intégrer Airbnb/Booking.com",
+    category: "Intégrations",
+    difficulty: "Élevée",
+    impact: "⭐⭐⭐",
+    zones: "src/server/integrations/",
+  },
+  {
+    id: "P3-012",
+    level: "P3",
+    title: "Implémenter les recommandations IA",
+    category: "IA",
+    difficulty: "Élevée",
+    impact: "⭐⭐⭐",
+    zones: "src/server/prompt-library/, src/app/api/ai/",
+  },
+  {
+    id: "P3-013",
+    level: "P3",
+    title: "Maintenir l'accès direct au référentiel UI",
+    category: "Design System",
+    difficulty: "Faible",
+    impact: "⭐⭐",
+    zones: "src/app/dashboard/admin/developpement/, src/design-system/",
+  },
+  {
+    id: "P3-014",
+    level: "P3",
+    title: "Ajouter une vraie génération visuelle avant/après décoration",
+    category: "IA",
+    difficulty: "Élevée",
+    impact: "⭐⭐",
+    zones: "src/app/dashboard/concierge/decoration-ai/, src/app/api/concierge/decoration-assistant",
+  },
+  {
+    id: "P3-015",
+    level: "P3",
+    title: "Structurer un programme d'impact solidaire local",
+    category: "Marque",
+    difficulty: "Élevée",
+    impact: "⭐⭐",
+    zones: "Pages publiques, pilotage admin, futur modèle métier",
+  },
+];
 
 function stripMarkdown(value: string) {
   return value.replace(/[`*_]/g, "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
@@ -598,6 +1029,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   const [expandedRoadmapLanes, setExpandedRoadmapLanes] = useState<string[]>(["ready", "blocked"]);
   const [isManualEntryModalOpen, setIsManualEntryModalOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState({
+    execution: true,
     missionControl: true,
     technicalMemory: false,
     roadmap: true,
@@ -609,7 +1041,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
     return { ...seed, featuresText: "", linksText: "" };
   });
   const [pendingMasterPlanAnchor, setPendingMasterPlanAnchor] = useState<string | null>(null);
-  const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<DevelopmentWorkspaceTab>("masterPlan");
+  const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<DevelopmentWorkspaceTab>("execution");
 
   useEffect(() => {
     setFavoriteIds(readStorage<string[]>(FAVORITES_STORAGE_KEY, []));
@@ -821,6 +1253,13 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   const roadmapSummary = `${roadmapReadyCount} prête(s), ${roadmapBlockedCount} dépendance(s), recalcul automatique`;
   const journalSummary = `${filteredEntries.length} entrée(s), ${favoriteCount} favori(s), ${commentCount} commentaire(s)`;
   const hiddenMasterPlanCount = Math.max(filteredMasterPlanSections.length - visibleSections.length, 0);
+  const executionRowsByPriority = useMemo(() => ({
+    p0: PRIORITY_TABLE_ROWS.filter((row) => row.level === "P0"),
+    p1: PRIORITY_TABLE_ROWS.filter((row) => row.level === "P1"),
+    p2: PRIORITY_TABLE_ROWS.filter((row) => row.level === "P2"),
+    p3: PRIORITY_TABLE_ROWS.filter((row) => row.level === "P3"),
+  }), []);
+  const executionSummary = `${PRIORITY_TABLE_ROWS.length} priorités structurées par niveau critique, lancement, amélioration et évolution`;
   const masterPlanSummary = hasMasterPlanFilters
     ? `${visibleSections.length} section(s) correspondent aux filtres actifs`
     : masterPlanDisplayMode === "focus"
@@ -995,6 +1434,316 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       ? "Release envisageable avec séquencement serré et surveillance active."
       : "Release compatible avec la trajectoire actuelle du projet.";
   const escalationHeadline = priorityActions[0]?.title || topBlockedItems[0]?.title || missionControl.weeklyGoal;
+  const currentWork = useMemo(
+    () => plan.planning.filter((item) => item.status === "🟡 En cours" || item.status === "🟠 Partiel").slice(0, 6),
+    [plan.planning],
+  );
+  const blockedWork = useMemo(
+    () => plan.planning.filter((item) => item.status === "⚠️ Bloqué").slice(0, 6),
+    [plan.planning],
+  );
+  const readyWork = useMemo(
+    () => roadmapProjection.readyItems.slice(0, 6),
+    [roadmapProjection.readyItems],
+  );
+  const completedWork = useMemo(
+    () => roadmapProjection.completedItems.slice(0, 6),
+    [roadmapProjection.completedItems],
+  );
+  const conciseHealthCards = useMemo(
+    () => missionControl.healthCards.slice(0, 3),
+    [missionControl.healthCards],
+  );
+
+  return (
+    <div className={styles.page}>
+      <section className={styles.compactShell}>
+        <div className={styles.compactHero}>
+          <div className={styles.compactHeroTop}>
+            <span className={styles.eyebrow}><Radar size={16} /> Développement</span>
+            <Tag tone="neutral" className={executiveHealth.className}>{executiveHealth.label}</Tag>
+          </div>
+          <div className={styles.compactHeroMain}>
+            <div>
+              <h1 className={styles.compactTitle}>Où j&apos;en suis et quoi faire ensuite</h1>
+              <p className={styles.compactLead}>
+                Vue courte pour reprendre vite : progression, blocages, chantiers en cours, éléments terminés
+                et meilleure prochaine action. Le reste du détail documentaire n&apos;est plus la lecture principale.
+              </p>
+            </div>
+            <Link href="/dashboard/admin" className={styles.backLink}>Retour au cockpit admin</Link>
+          </div>
+        </div>
+
+        <div className={styles.compactStats}>
+          <StatsCard label="Progression" value={`${missionControl.progressionPct}%`} hint="Avancement global" visual={<Target size={18} />} visualLabel="Progression" />
+          <StatsCard label="En cours" value={String(missionControl.inProgressFeatures)} hint="À poursuivre" visual={<Activity size={18} />} visualLabel="En cours" />
+          <StatsCard label="Bloqués" value={String(missionControl.blockedFeatures)} hint="À débloquer" visual={<AlertTriangle size={18} />} visualLabel="Bloqués" />
+          <StatsCard label="Terminés" value={String(missionControl.completedFeatures)} hint="Déjà faits" visual={<CheckCheck size={18} />} visualLabel="Terminés" />
+        </div>
+
+        <div className={styles.compactGrid}>
+          <Card className={styles.compactPrimaryCard}>
+            <CardHeader className={styles.panelHeader}>
+              <div>
+                <strong>Prochaine action</strong>
+                <p className={styles.sidebarIntro}>Le meilleur prochain sujet à lancer ou débloquer maintenant.</p>
+              </div>
+            </CardHeader>
+            <CardBody className={styles.compactBody}>
+              <div className={styles.compactFocusCard}>
+                <span>{nextSuggestion?.isReady ? "Maintenant" : "Sous dépendances"}</span>
+                <strong>{nextSuggestion?.title || "Aucune action prioritaire détectée"}</strong>
+                <p>{nextSuggestion?.nextAction || missionControl.weeklyGoal}</p>
+              </div>
+              <div className={styles.compactMetaRow}>
+                <div><strong>Tension</strong><span>{operationalTension.label}</span></div>
+                <div><strong>Release</strong><span>{releaseReadiness}</span></div>
+                <div><strong>Rythme</strong><span>{missionControl.weeklyDevelopmentLabel}</span></div>
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader className={styles.panelHeader}>
+              <div>
+                <strong>Vérifications rapides</strong>
+                <p className={styles.sidebarIntro}>Trois signaux pour savoir si la base technique tient.</p>
+              </div>
+            </CardHeader>
+            <CardBody className={styles.compactChecklist}>
+              {conciseHealthCards.map((card) => (
+                <article key={card.label} className={styles.auditCard}>
+                  <strong>{card.label}</strong>
+                  <p>{card.detail}</p>
+                </article>
+              ))}
+            </CardBody>
+          </Card>
+        </div>
+
+        <div className={styles.compactColumns}>
+          <Card>
+            <CardHeader className={styles.panelHeader}>
+              <div>
+                <strong>À débloquer</strong>
+                <p className={styles.sidebarIntro}>Ce qui empêche d&apos;avancer maintenant.</p>
+              </div>
+            </CardHeader>
+            <CardBody className={styles.compactList}>
+              {blockedWork.length ? blockedWork.map((item) => (
+                <article key={item.id} className={styles.compactListItem}>
+                  <div className={styles.compactListTop}>
+                    <p className={styles.categoryLabel}>{item.priority}</p>
+                    <Tag tone="neutral">Bloqué</Tag>
+                  </div>
+                  <strong>{item.feature}</strong>
+                  <p>{item.nextAction || item.evidence}</p>
+                </article>
+              )) : <p className={styles.executiveEmpty}>Aucun blocage ouvert.</p>}
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader className={styles.panelHeader}>
+              <div>
+                <strong>En cours</strong>
+                <p className={styles.sidebarIntro}>Ce qui mérite de continuer sans repartir dans tous les sens.</p>
+              </div>
+            </CardHeader>
+            <CardBody className={styles.compactList}>
+              {currentWork.length ? currentWork.map((item) => (
+                <article key={item.id} className={styles.compactListItem}>
+                  <div className={styles.compactListTop}>
+                    <p className={styles.categoryLabel}>{item.priority}</p>
+                    <Tag tone="status">{item.status}</Tag>
+                  </div>
+                  <strong>{item.feature}</strong>
+                  <p>{item.nextAction || item.evidence}</p>
+                </article>
+              )) : <p className={styles.executiveEmpty}>Aucun chantier actif détecté.</p>}
+            </CardBody>
+          </Card>
+        </div>
+
+        <div className={styles.compactColumns}>
+          <Card>
+            <CardHeader className={styles.panelHeader}>
+              <div>
+                <strong>Prêt à faire</strong>
+                <p className={styles.sidebarIntro}>Les sujets qui peuvent avancer sans dépendance forte.</p>
+              </div>
+            </CardHeader>
+            <CardBody className={styles.compactList}>
+              {readyWork.length ? readyWork.map((item) => (
+                <article key={item.id} className={styles.compactListItem}>
+                  <div className={styles.compactListTop}>
+                    <p className={styles.categoryLabel}>{item.priority}</p>
+                    <Tag tone="gold">{item.estimation}</Tag>
+                  </div>
+                  <strong>{item.title}</strong>
+                  <p>{item.nextAction || item.evidence}</p>
+                </article>
+              )) : <p className={styles.executiveEmpty}>Aucun sujet prêt immédiat détecté.</p>}
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader className={styles.panelHeader}>
+              <div>
+                <strong>Terminé</strong>
+                <p className={styles.sidebarIntro}>Les derniers éléments déjà stabilisés pour éviter les redites.</p>
+              </div>
+            </CardHeader>
+            <CardBody className={styles.compactList}>
+              {completedWork.length ? completedWork.map((item) => (
+                <article key={item.id} className={styles.compactListItem}>
+                  <div className={styles.compactListTop}>
+                    <p className={styles.categoryLabel}>{item.priority}</p>
+                    <Tag tone="status">Terminé</Tag>
+                  </div>
+                  <strong>{item.title}</strong>
+                  <p>{item.evidence || item.domain}</p>
+                </article>
+              )) : <p className={styles.executiveEmpty}>Aucun repère terminé remonté dans cette vue.</p>}
+            </CardBody>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader className={styles.panelHeader}>
+            <div>
+              <strong>D. Priorités</strong>
+              <p className={styles.sidebarIntro}>Lecture de pilotage par niveau d'urgence, avec le format tableau demandé.</p>
+            </div>
+          </CardHeader>
+          <CardBody>
+            <div className={styles.prioritySection}>
+              <div className={styles.priorityHeader}>
+                <strong>🔴 P0 - Critique / Sécurité / Blocage</strong>
+              </div>
+              <div className={styles.tableScroll}>
+                <table aria-label="Priorités P0">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Titre</th>
+                      <th>Catégorie</th>
+                      <th>Difficulté</th>
+                      <th>Impact</th>
+                      <th>Zones Concernées</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {executionRowsByPriority.p0.map((row) => (
+                      <tr key={row.id}>
+                        <td>{row.id}</td>
+                        <td>{row.title}</td>
+                        <td>{row.category}</td>
+                        <td>{row.difficulty}</td>
+                        <td>{row.impact}</td>
+                        <td>{row.zones}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className={styles.priorityHeader}>
+                <strong>🟠 P1 - Nécessaire avant lancement</strong>
+              </div>
+              <div className={styles.tableScroll}>
+                <table aria-label="Priorités P1">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Titre</th>
+                      <th>Catégorie</th>
+                      <th>Difficulté</th>
+                      <th>Impact</th>
+                      <th>Zones Concernées</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {executionRowsByPriority.p1.map((row) => (
+                      <tr key={row.id}>
+                        <td>{row.id}</td>
+                        <td>{row.title}</td>
+                        <td>{row.category}</td>
+                        <td>{row.difficulty}</td>
+                        <td>{row.impact}</td>
+                        <td>{row.zones}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className={styles.priorityHeader}>
+                <strong>🟡 P2 - Amélioration importante</strong>
+              </div>
+              <div className={styles.tableScroll}>
+                <table aria-label="Priorités P2">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Titre</th>
+                      <th>Catégorie</th>
+                      <th>Difficulté</th>
+                      <th>Impact</th>
+                      <th>Zones Concernées</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {executionRowsByPriority.p2.map((row) => (
+                      <tr key={row.id}>
+                        <td>{row.id}</td>
+                        <td>{row.title}</td>
+                        <td>{row.category}</td>
+                        <td>{row.difficulty}</td>
+                        <td>{row.impact}</td>
+                        <td>{row.zones}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className={styles.priorityHeader}>
+                <strong>🟢 P3 - Évolution future</strong>
+              </div>
+              <div className={styles.tableScroll}>
+                <table aria-label="Priorités P3">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Titre</th>
+                      <th>Catégorie</th>
+                      <th>Difficulté</th>
+                      <th>Impact</th>
+                      <th>Zones Concernées</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {executionRowsByPriority.p3.map((row) => (
+                      <tr key={row.id}>
+                        <td>{row.id}</td>
+                        <td>{row.title}</td>
+                        <td>{row.category}</td>
+                        <td>{row.difficulty}</td>
+                        <td>{row.impact}</td>
+                        <td>{row.zones}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+      </section>
+    </div>
+  );
 
   const toggleSection = (sectionId: string) => {
     setExpandedSections((current) => {
@@ -1194,9 +1943,13 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
           <div className={styles.pageSummaryIntro}>
             <span>Navigation</span>
             <strong>Ouvrir une vue claire plutôt qu’une longue page continue</strong>
-            <p>Le tableau fonctionnel du Master Plan passe d’abord, puis les vues d’exécution, de feuille de route, de mémoire technique et de journal.</p>
+            <p>Commencer par le plan d'action court, puis ouvrir le détail seulement quand une décision ou une preuve manque.</p>
           </div>
           <TabsList className={styles.workspaceTabsList}>
+            <TabsTrigger value="execution" className={styles.workspaceTabTrigger}>
+              <span>Plan d'action</span>
+              <small>Quoi faire maintenant</small>
+            </TabsTrigger>
             <TabsTrigger value="masterPlan" className={styles.workspaceTabTrigger}>
               <span>Tableau fonctionnel</span>
               <small>Master Plan au début</small>
@@ -1253,12 +2006,12 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
             <CardBody className={styles.executiveSummaryBody}>
               {nextSuggestion ? (
                 <>
-                  <h2>{nextSuggestion.title}</h2>
-                  <p>{nextSuggestion.nextAction || "Aucune prochaine action détaillée pour ce chantier."}</p>
+                  <h2>{nextSuggestion?.title}</h2>
+                  <p>{nextSuggestion?.nextAction || "Aucune prochaine action détaillée pour ce chantier."}</p>
                   <div className={styles.executiveMetaRow}>
-                    <span><Target size={14} /> {nextSuggestion.priority}</span>
-                    <span><TimerReset size={14} /> {nextSuggestion.estimation}</span>
-                    <span><LockKeyhole size={14} /> {nextSuggestion.isReady ? "Sans dépendance active" : `${nextSuggestion.blockedBy.length} dépendance(s)`}</span>
+                    <span><Target size={14} /> {nextSuggestion?.priority}</span>
+                    <span><TimerReset size={14} /> {nextSuggestion?.estimation}</span>
+                    <span><LockKeyhole size={14} /> {nextSuggestion?.isReady ? "Sans dépendance active" : `${nextSuggestion?.blockedBy.length ?? 0} dépendance(s)`}</span>
                   </div>
                 </>
               ) : (
@@ -1283,7 +2036,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
               </div>
               <div className={styles.executiveSidebarList}>
                 <span><AlertTriangle size={14} /> {missionControl.blockedFeatures} blocage(s) et {missionControl.criticalBugs} bug(s) critique(s)</span>
-                <span><CalendarClock size={14} /> {missionControl.lastBackupAt ? formatEntryDate(missionControl.lastBackupAt) : "Aucune sauvegarde détectée"}</span>
+                <span><CalendarClock size={14} /> {missionControl.lastBackupAt ? formatEntryDate(String(missionControl.lastBackupAt)) : "Aucune sauvegarde détectée"}</span>
                 <span><Activity size={14} /> {missionControl.weeklyDevelopmentLabel} de rythme estimé cette semaine</span>
               </div>
             </CardBody>
@@ -1443,6 +2196,73 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
     </header>
 
       <div ref={workspaceAnchorRef} />
+      <TabsContent value="execution" className={styles.workspaceTabContent}>
+    <section id="plan-action" className={`${styles.journalShell} ${styles.sectionMasterPlan}`} aria-labelledby="execution-title">
+      <FoldableSectionHeader
+        title="Plan d'action concis"
+        summary={executionSummary}
+        isOpen={panelOpen.execution}
+        onToggle={() => togglePanel("execution")}
+        controlsId="execution-panel"
+      />
+      {panelOpen.execution ? <div id="execution-panel" className={styles.foldableContent}>
+        <SectionIntro
+          title="Ce qu'il faut faire ensuite"
+          titleId="execution-title"
+          align="left"
+          eyebrow={<><Target size={16} /> Reprise utile</>}
+          subtitle="Synthèse courte issue du dépôt, enrichie par l'audit externe seulement quand il apporte un angle utile."
+          description="Les points contradictoires ou déjà couverts ont été écartés. L'objectif est d'avoir une liste actionnable, pas une nouvelle couche d'audit verbeuse."
+        />
+
+        <div className={styles.auditGrid}>
+          <article className={styles.auditCard}>
+            <strong>P0 immédiat</strong>
+            <p>{executionRowsByPriority.p0.length} sujet(s) sécurité / auth à trancher avant d'élargir le périmètre.</p>
+          </article>
+          <article className={styles.auditCard}>
+            <strong>P1 lancement</strong>
+            <p>{executionRowsByPriority.p1.length} sujet(s) de données, E2E et observabilité à fermer pour stabiliser le produit.</p>
+          </article>
+          <article className={styles.auditCard}>
+            <strong>P2 structure</strong>
+            <p>{executionRowsByPriority.p2.length} chantier(s) d'allègement et de convergence à traiter ensuite, sans urgence immédiate.</p>
+          </article>
+          <article className={styles.auditCard}>
+            <strong>Filtre appliqué</strong>
+            <p>Les éléments déjà présents, faux ou trop spéculatifs dans l'audit externe n'ont pas été repris ici.</p>
+          </article>
+        </div>
+
+        <div className={styles.tableScroll}>
+          <table aria-label="Tableau d'action priorisé développement">
+            <thead>
+              <tr>
+                <th>Priorité</th>
+                <th>Sujet</th>
+                <th>Pourquoi maintenant</th>
+                <th>Prochaine action</th>
+                <th>Preuve / zone</th>
+                <th>Source</th>
+              </tr>
+            </thead>
+            <tbody>
+              {PRIORITY_TABLE_ROWS.map((row) => (
+                <tr key={row.id}>
+                  <td>{row.level}</td>
+                  <td>{row.title}</td>
+                  <td>{row.impact}</td>
+                  <td>{row.category}</td>
+                  <td>{row.zones}</td>
+                  <td>{row.difficulty}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div> : null}
+    </section>
+      </TabsContent>
       <TabsContent value="masterPlan" className={styles.workspaceTabContent}>
     <section id="master-plan" className={`${styles.journalShell} ${styles.sectionMasterPlan}`} aria-labelledby="master-plan-detail-title">
       <FoldableSectionHeader
@@ -1622,7 +2442,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
               <p>{missionControl.currentEnvironment}</p>
               <div className={styles.environmentMeta}>
                 <span><GitBranch size={14} /> v{missionControl.projectVersion}</span>
-                <span><CalendarClock size={14} /> {missionControl.lastBackupAt ? formatEntryDate(missionControl.lastBackupAt) : "Aucune sauvegarde détectée"}</span>
+                <span><CalendarClock size={14} /> {missionControl.lastBackupAt ? formatEntryDate(String(missionControl.lastBackupAt)) : "Aucune sauvegarde détectée"}</span>
                 <span><TimerReset size={14} /> {missionControl.weeklyDevelopmentLabel} cette semaine</span>
               </div>
             </CardBody>
@@ -1819,14 +2639,14 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
           <CardBody className={styles.roadmapSpotlightBody}>
             {roadmapProjection.nextSuggestion ? <>
               <div className={styles.roadmapSpotlightTitle}>
-                <span>{roadmapProjection.nextSuggestion.domain}</span>
-                <h3 data-testid="roadmap-next-title">{roadmapProjection.nextSuggestion.title}</h3>
+                <span>{roadmapProjection.nextSuggestion?.domain}</span>
+                <h3 data-testid="roadmap-next-title">{roadmapProjection.nextSuggestion?.title}</h3>
               </div>
-              <p>{roadmapProjection.nextSuggestion.nextAction || "Aucune prochaine action détaillée dans le registre."}</p>
+              <p>{roadmapProjection.nextSuggestion?.nextAction || "Aucune prochaine action détaillée dans le registre."}</p>
               <div className={styles.roadmapSpotlightMeta}>
-                <span><Target size={14} /> {roadmapProjection.nextSuggestion.priority}</span>
-                <span><TimerReset size={14} /> {roadmapProjection.nextSuggestion.estimation}</span>
-                <span><ArrowRight size={14} /> {roadmapProjection.nextSuggestion.isReady ? "Prête à lancer" : `${roadmapProjection.nextSuggestion.blockedBy.length} dépendance(s) à lever`}</span>
+                <span><Target size={14} /> {roadmapProjection.nextSuggestion?.priority}</span>
+                <span><TimerReset size={14} /> {roadmapProjection.nextSuggestion?.estimation}</span>
+                <span><ArrowRight size={14} /> {roadmapProjection.nextSuggestion?.isReady ? "Prête à lancer" : `${roadmapProjection.nextSuggestion?.blockedBy.length ?? 0} dépendance(s) à lever`}</span>
               </div>
             </> : <p>Aucune fonctionnalité ouverte n'est actuellement suivie dans la roadmap.</p>}
           </CardBody>

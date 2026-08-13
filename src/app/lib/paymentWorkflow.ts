@@ -110,7 +110,7 @@ export function getPaymentPlanLabel(plan?: string | null) {
   const labels: Record<PaymentPlanType, string> = {
     full_before_mission: "Paiement complet avant mission",
     deposit_then_balance: "Acompte puis solde",
-    after_completion: "Paiement apres realisation",
+    after_completion: "Paiement après réalisation",
     monthly: "Accompagnement mensuel",
   };
   return labels[normalizePaymentPlanType(plan)];

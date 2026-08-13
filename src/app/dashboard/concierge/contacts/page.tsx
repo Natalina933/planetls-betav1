@@ -171,7 +171,7 @@ function OwnerCrmPanel({ records, loading, error }: { records: OwnerCrmRecord[];
           <div className={crmStyles.moduleHeader}><MessageSquareText size={18} aria-hidden="true" /><h3>Conversations</h3></div>
           <div className={crmStyles.moduleStats}>
             <div><span>Fils</span><strong>{totals.conversations}</strong></div>
-            <div><span>Proprietaires</span><strong>{records.length}</strong></div>
+            <div><span>Propriétaires</span><strong>{records.length}</strong></div>
           </div>
           <p>Suivi commercial et operationnel depuis la messagerie concierge.</p>
         </article>

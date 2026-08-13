@@ -204,18 +204,12 @@ function buildMissionChecklist(detail: MissionDetail) {
 }
 
 function cleanFrenchText(value: string) {
-  return value
-    .replaceAll("Ã€", "À")
-    .replaceAll("Ã‚", "Â")
-    .replaceAll("Ã©", "é")
-    .replaceAll("Ã¨", "è")
-    .replaceAll("Ãª", "ê")
-    .replaceAll("Ã¢", "â")
-    .replaceAll("Ã´", "ô")
-    .replaceAll("Ã®", "î")
-    .replaceAll("Ã¯", "ï")
-    .replaceAll("Ã§", "ç")
-    .replaceAll("Â·", "·");
+  try {
+    const bytes = Uint8Array.from(value, (character) => character.charCodeAt(0));
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return value;
+  }
 }
 
 function ServiceIcon({ label }: { label: string }) {
@@ -856,7 +850,7 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
       [
         profileName(detail.participants.concierge),
         ...detail.providers.map((provider) => profileName(provider)),
-      ].filter((name) => name && name !== "Non renseignÃ©" && name !== "Contact"),
+      ].filter((name) => name && name !== "Non renseigné" && name !== "Contact"),
     ),
   );
   const missionCenter = buildMissionObjectCenter(detail);
@@ -1259,7 +1253,7 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
           ) : null}
           {canShowOwnerValidate ? (
             <Button disabled={saving} onClick={() => patchMission({ action: "validate_completion" }, "Mission validee.")}>
-              <CheckCircle2 size={16} aria-hidden="true" /> Confirmer la realisation
+              <CheckCircle2 size={16} aria-hidden="true" /> Confirmer la réalisation
             </Button>
           ) : null}
           {canShowCancel ? (
@@ -1334,7 +1328,7 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
                 <h3>Checklist terrain</h3>
               </div>
               <div className={styles.objectProgressLine}>
-                <span>{missionCenter.counts.checklistDone} controles faits sur {missionCenter.counts.checklistTotal}</span>
+                <span>{missionCenter.counts.checklistDone} contrôles faits sur {missionCenter.counts.checklistTotal}</span>
                 <progress value={missionCenter.checklistRate} max={100} />
               </div>
               <div className={styles.objectMiniList}>
@@ -1403,7 +1397,7 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
                     <strong>{cleanFrenchText(comment.subject)}</strong>
                     {cleanFrenchText(comment.preview)}
                   </span>
-                )) : <span className={styles.empty}>Aucun commentaire recent.</span>}
+                )) : <span className={styles.empty}>Aucun commentaire récent.</span>}
               </div>
             </article>
 
@@ -1415,7 +1409,7 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
               <div className={styles.objectMiniList}>
                 {missionCenter.signatures.length > 0 ? missionCenter.signatures.map((signature) => (
                   <span key={`${signature.role}-${signature.name}`}>
-                    <strong>{signature.role === "owner" ? "Proprietaire" : signature.role === "concierge" ? "Conciergerie" : "Mission"}</strong>
+                    <strong>{signature.role === "owner" ? "Propriétaire" : signature.role === "concierge" ? "Conciergerie" : "Mission"}</strong>
                     {cleanFrenchText(signature.name)}
                   </span>
                 )) : <span className={styles.empty}>Aucune signature.</span>}

@@ -35,17 +35,10 @@ const CHECKLIST_KEY = "planetls.mobile.fieldChecklist";
 const SIGNATURE_KEY = "planetls.mobile.signature";
 
 const DEFAULT_CHECKLIST: ChecklistItem[] = [
-  { id: "access", label: "Acces et cles verifies", done: false },
+  { id: "access", label: "Accès et clés vérifiés", done: false },
   { id: "photos", label: "Photos terrain prises", done: false },
-  { id: "checklist", label: "Checklist mission terminee", done: false },
-  { id: "owner", label: "Proprietaire informe", done: false },
-];
-
-const ADMIN_CHECKLIST: ChecklistItem[] = [
-  { id: "business", label: "Pilotage business relu", done: false },
-  { id: "control", label: "Controle detaille verifie", done: false },
-  { id: "product", label: "Priorites produit clarifiees", done: false },
-  { id: "team", label: "Decisions partagees a l equipe", done: false },
+  { id: "checklist", label: "Checklist mission terminée", done: false },
+  { id: "owner", label: "Propriétaire informé", done: false },
 ];
 
 function normalizeRole(role?: string | null): MobileRole {
@@ -68,10 +61,6 @@ function safeChecklist(value: string | null) {
   } catch {
     return DEFAULT_CHECKLIST;
   }
-}
-
-function getDefaultChecklist(role: MobileRole) {
-  return role === "admin" ? ADMIN_CHECKLIST : DEFAULT_CHECKLIST;
 }
 
 function getRoleHome(role: MobileRole) {
@@ -105,6 +94,7 @@ function getRoleMissionHub(role: MobileRole) {
 export function DashboardMobileExperience({ role, pathname }: Props) {
   const router = useRouter();
   const roleKey = normalizeRole(role);
+  const isAdmin = roleKey === "admin";
   const [open, setOpen] = useState(false);
   const [checklist, setChecklist] = useState<ChecklistItem[]>(DEFAULT_CHECKLIST);
   const [photoName, setPhotoName] = useState<string | null>(null);
@@ -114,8 +104,6 @@ export function DashboardMobileExperience({ role, pathname }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const drawingRef = useRef(false);
   const lastPointRef = useRef<{ x: number; y: number } | null>(null);
-  const defaultChecklist = useMemo(() => getDefaultChecklist(roleKey), [roleKey]);
-
   const progress = useMemo(() => {
     const done = checklist.filter((item) => item.done).length + (validated ? 1 : 0) + (signatureSaved ? 1 : 0);
     return Math.round((done / (checklist.length + 2)) * 100);
@@ -127,8 +115,9 @@ export function DashboardMobileExperience({ role, pathname }: Props) {
         ? [
             { label: "Vue plateforme", href: getRoleHome(roleKey), icon: Home },
             { label: "Pilotage business", href: "/dashboard/admin/pilotage", icon: Route },
-            { label: "Controle detaille", href: "/dashboard/admin/controle", icon: ClipboardCheck },
-            { label: "Developpement", href: "/dashboard/admin/developpement", icon: MessageSquareText },
+            { label: "Contrôle détaillé", href: "/dashboard/admin/controle", icon: ClipboardCheck },
+            { label: "Développement", href: "/dashboard/admin/developpement", icon: MessageSquareText },
+            { label: "Missions", href: getRoleMissionHub(roleKey), icon: MapPinned },
           ]
         : [
             { label: "Accueil", href: getRoleHome(roleKey), icon: Home },
@@ -142,13 +131,13 @@ export function DashboardMobileExperience({ role, pathname }: Props) {
   useEffect(() => {
     const storedChecklist = safeChecklist(localStorage.getItem(CHECKLIST_KEY));
     setChecklist(
-      defaultChecklist.map((item) => ({
+      DEFAULT_CHECKLIST.map((item) => ({
         ...item,
         done: Boolean(storedChecklist.find((entry) => entry.id === item.id)?.done),
       })),
     );
     setSignatureSaved(Boolean(localStorage.getItem(SIGNATURE_KEY)));
-  }, [defaultChecklist]);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(CHECKLIST_KEY, JSON.stringify(checklist));
@@ -250,7 +239,6 @@ export function DashboardMobileExperience({ role, pathname }: Props) {
   }, []);
 
   const isConcierge = roleKey === "concierge";
-  const isAdmin = roleKey === "admin";
 
   return (
     <>
@@ -270,25 +258,27 @@ export function DashboardMobileExperience({ role, pathname }: Props) {
             </button>
           );
         })}
-        <button type="button" className={styles.primaryDockAction} onClick={() => setOpen(true)}>
-          <Plus size={24} aria-hidden="true" />
-          <span>{isAdmin ? "Actions" : "Terrain"}</span>
-        </button>
+        {!isAdmin ? (
+          <button type="button" className={styles.primaryDockAction} onClick={() => setOpen(true)}>
+            <Plus size={24} aria-hidden="true" />
+            <span>Terrain</span>
+          </button>
+        ) : null}
       </nav>
 
-      {open ? (
+      {!isAdmin && open ? (
         <div className={styles.sheetOverlay} role="presentation" onMouseDown={() => setOpen(false)}>
           <section
             className={styles.sheet}
             role="dialog"
             aria-modal="true"
-            aria-label={isAdmin ? "Actions mobiles administration" : "Actions mobiles terrain"}
+            aria-label="Actions mobiles terrain"
             onMouseDown={(event) => event.stopPropagation()}
           >
             <header className={styles.sheetHeader}>
               <div>
-                <p>{isAdmin ? "Mode administration mobile" : isConcierge ? "Mode concierge mobile" : "Mode mobile"}</p>
-                <h2>{isAdmin ? "Action admin" : "Action terrain"}</h2>
+                <p>{isConcierge ? "Mode concierge mobile" : "Mode mobile"}</p>
+                <h2>Action terrain</h2>
               </div>
               <button type="button" onClick={() => setOpen(false)} aria-label="Fermer">
                 <X size={20} aria-hidden="true" />
@@ -298,33 +288,29 @@ export function DashboardMobileExperience({ role, pathname }: Props) {
             <div className={styles.progressCard}>
               <span>{progress}%</span>
               <div>
-                <strong>{isAdmin ? "Pilotage pret" : "Tournee prete"}</strong>
-                <p>
-                  {isAdmin
-                    ? "Verification rapide du pilotage, du controle et des priorites depuis le mobile."
-                    : "Checklist, preuve, validation et signature depuis le telephone."}
-                </p>
+                <strong>Tournée prête</strong>
+                <p>Checklist, preuve, validation et signature depuis le téléphone.</p>
               </div>
             </div>
 
             <div className={styles.bigActions}>
               <label className={styles.cameraButton}>
                 <Camera size={24} aria-hidden="true" />
-                <span>{isAdmin ? "Ajouter une capture" : "Prendre une photo"}</span>
+                <span>Prendre une photo</span>
                 <input type="file" accept="image/*" capture="environment" onChange={handlePhotoChange} />
               </label>
               <button type="button" onClick={() => setValidated(true)} className={validated ? styles.doneAction : ""}>
                 <Check size={24} aria-hidden="true" />
-                <span>{validated ? "Valide" : isAdmin ? "Valider la revue" : "Valider en 1 clic"}</span>
+                <span>{validated ? "Valide" : "Valider en 1 clic"}</span>
               </button>
             </div>
 
             {photoPreview ? (
               <div className={styles.photoPreview}>
                 <span className={styles.photoPreviewImage}>
-                  <Image src={photoPreview} alt={photoName || (isAdmin ? "Capture admin" : "Photo terrain")} fill sizes="82px" unoptimized />
+                  <Image src={photoPreview} alt={photoName || "Photo terrain"} fill sizes="82px" unoptimized />
                 </span>
-                <span>{photoName || (isAdmin ? "Capture prete a joindre" : "Photo prete a joindre")}</span>
+                <span>{photoName || "Photo prête à joindre"}</span>
               </div>
             ) : null}
 
@@ -367,19 +353,19 @@ export function DashboardMobileExperience({ role, pathname }: Props) {
               <div className={styles.signatureActions}>
                 <button type="button" onClick={clearSignature}>Effacer</button>
                 <button type="button" onClick={saveSignature} className={signatureSaved ? styles.doneAction : ""}>
-                  {signatureSaved ? "Signature prete" : "Enregistrer"}
+                  {signatureSaved ? "Signature prête" : "Enregistrer"}
                 </button>
               </div>
             </section>
 
             <div className={styles.sheetShortcuts}>
-              <button type="button" onClick={() => navigate(isAdmin ? "/dashboard/admin/pilotage" : getRolePlanning(roleKey))}>
+              <button type="button" onClick={() => navigate(getRolePlanning(roleKey))}>
                 <MapPinned size={18} aria-hidden="true" />
-                {isAdmin ? "Pilotage business" : "Planning"}
+                Planning
               </button>
-              <button type="button" onClick={() => navigate(isAdmin ? "/dashboard/admin/controle" : getRoleMissionHub(roleKey))}>
+              <button type="button" onClick={() => navigate(getRoleMissionHub(roleKey))}>
                 <Sparkles size={18} aria-hidden="true" />
-                {isAdmin ? "Controle detaille" : "Ouvrir mission"}
+                Ouvrir mission
               </button>
             </div>
           </section>

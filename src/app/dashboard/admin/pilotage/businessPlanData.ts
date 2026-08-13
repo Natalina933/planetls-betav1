@@ -178,7 +178,7 @@ export const BUSINESS_PLAN_SECTIONS: BusinessPlanSectionDefinition[] = [
     order: 1,
     title: "Synthese",
     eyebrow: "1. Synthese",
-    summary: "Vue directionnelle du business plan, de la traction reelle et des priorites immediates.",
+    summary: "Vue directionnelle du business plan, de la traction réelle et des priorités immédiates.",
     status: toLegacyStatus(SECTION_STATUS.summary),
     evidence: "Referentiel business plan centralise + KPI admin + Master Plan.",
   },
@@ -378,7 +378,7 @@ export const BUSINESS_PLAN_SECTIONS: BusinessPlanSectionDefinition[] = [
     order: 21,
     title: "Plan d'action",
     eyebrow: "21. Plan d'action",
-    summary: "Actions court terme et priorites de structuration documentees dans une source unique.",
+    summary: "Actions court terme et priorités de structuration documentées dans une source unique.",
     status: toLegacyStatus(SECTION_STATUS.actionPlan),
     evidence: "Referentiel business plan + registre de risques.",
   },
@@ -553,7 +553,7 @@ export const ANNEX_LINKS = [
   {
     title: "Audit Business Plan",
     href: "/docs/business-plan-audit.md",
-    note: "Photographie detaillee des donnees, doublons, manques et priorites.",
+    note: "Photographie détaillée des données, doublons, manques et priorités.",
   },
   {
     title: "Modele de donnees Business Plan",

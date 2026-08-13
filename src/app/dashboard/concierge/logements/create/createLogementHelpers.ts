@@ -145,7 +145,7 @@ function toManualFormState(
     owner: {
       ...createEmptyOwner(managerProfileId),
       profileId: managerProfileId ?? null,
-      fullName: "Proprietaire a confirmer",
+      fullName: "Propriétaire à confirmer",
       email: managerProfileId ? `${managerProfileId}@pending.local` : "",
       source: "manual",
     },
@@ -303,7 +303,7 @@ export function buildCreateLogementSummary(form: ManualCreateFormState | FormSta
   const manualForm = toManualFormState(form);
   return [
     { label: "Logement", value: manualForm.housingName.trim() || "A renseigner" },
-    { label: "Proprietaire", value: manualForm.owner.fullName.trim() || "A renseigner" },
+    { label: "Propriétaire", value: manualForm.owner.fullName.trim() || "À renseigner" },
     { label: "Adresse", value: manualForm.addressLine1.trim() || "A renseigner" },
     { label: "Ville", value: manualForm.city.trim() || "A renseigner" },
     { label: "Type", value: manualForm.propertyType.trim() || "A renseigner" },
@@ -360,7 +360,7 @@ export function buildHousingDraftFromQuote(preview: QuotePreview): ConciergeHous
         date: preview.acceptedAt || new Date().toISOString(),
         type: "quote",
         status: "done",
-        actor: preview.owner.fullName || "Proprietaire",
+        actor: preview.owner.fullName || "Propriétaire",
         source: "quote",
       },
     ],

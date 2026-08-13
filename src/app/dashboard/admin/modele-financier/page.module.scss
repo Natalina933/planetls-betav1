@@ -1,0 +1,288 @@
+.page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.hero {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  background:
+    radial-gradient(circle at top right, rgba(212, 167, 74, 0.18), transparent 34%),
+    linear-gradient(135deg, rgba(18, 92, 91, 0.96), rgba(8, 38, 52, 0.98));
+  color: #f8f1e5;
+}
+
+.heroCopy {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.heroCopy h2 {
+  margin: 0;
+  font-size: clamp(1.8rem, 2vw, 2.5rem);
+}
+
+.heroCopy p {
+  margin: 0;
+  max-width: 72ch;
+  color: rgba(248, 241, 229, 0.88);
+}
+
+.eyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(248, 241, 229, 0.72);
+}
+
+.heroStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.85rem;
+}
+
+.heroStats article {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem;
+  border: 1px solid rgba(248, 241, 229, 0.14);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.heroStats strong,
+.heroStats span {
+  color: #fff8ee;
+}
+
+.sectionStack {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.sectionHeader {
+  display: grid;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+
+.sectionHeader h3,
+.sectionHeader p {
+  margin: 0;
+}
+
+.grid,
+.planGrid,
+.twoColumn,
+.nextActions {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.planGrid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.twoColumn {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.card,
+.planCard,
+.metricCard,
+.nextActionCard,
+.callout {
+  border-radius: 1.25rem;
+}
+
+.cardHeader,
+.planHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.cardHeader span:first-child,
+.planHeader span:first-child {
+  color: #6a6a62;
+  font-size: 0.85rem;
+}
+
+.cardIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 0.9rem;
+  background: rgba(18, 92, 91, 0.12);
+  color: #125c5b;
+}
+
+.cardBody,
+.planBody {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.priceRange,
+.planPrice,
+.metricValue {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #125c5b;
+}
+
+.planScope,
+.metricReason {
+  margin: 0;
+  color: #7a6f63;
+  font-weight: 600;
+}
+
+.bulletList {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.callout {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  padding: 1.1rem 1.2rem;
+  background: linear-gradient(135deg, rgba(212, 167, 74, 0.12), rgba(18, 92, 91, 0.08));
+  border: 1px solid rgba(18, 92, 91, 0.12);
+}
+
+.callout strong,
+.callout p {
+  margin: 0;
+}
+
+.callout p {
+  margin-top: 0.35rem;
+}
+
+.calloutIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  background: #125c5b;
+  color: #fff;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.dataTable th,
+.dataTable td {
+  padding: 0.9rem 0.85rem;
+  border-bottom: 1px solid rgba(18, 92, 91, 0.1);
+  text-align: left;
+  vertical-align: top;
+}
+
+.dataTable th {
+  color: #125c5b;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.metricList {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.metricCard {
+  display: grid;
+  gap: 0.55rem;
+  padding: 1rem;
+  border: 1px solid rgba(18, 92, 91, 0.1);
+  background: rgba(252, 249, 242, 0.9);
+}
+
+.metricTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #125c5b;
+}
+
+.nextActions {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.nextActionCard {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem;
+  border: 1px solid rgba(18, 92, 91, 0.1);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.nextActionCard p {
+  margin: 0;
+}
+
+.stepPill {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(212, 167, 74, 0.18);
+  color: #8c6414;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.inlineLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.inlineLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #125c5b;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.inlineLink:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .hero,
+  .callout {
+    padding: 1.1rem;
+  }
+
+  .dataTable {
+    min-width: 640px;
+  }
+}

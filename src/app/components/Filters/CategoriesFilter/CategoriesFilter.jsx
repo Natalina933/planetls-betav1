@@ -5,7 +5,7 @@ import styles from "./CategoriesFilter.module.scss";
 const FILTERS = [
   {
     key: "proprietaire",
-    label: "Proprietaires",
+    label: "Propriétaires",
     icon: "/icons/home-icon.svg",
   },
   {

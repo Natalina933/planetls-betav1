@@ -162,7 +162,7 @@ function getOperationalRisks(
     {
       label: "Valides",
       value: `${completion.completedCount}/${completion.totalCount}`,
-      hint: "Controles passes",
+      hint: "Contrôles passés",
       icon: CheckCircle2,
       tone: completion.completedCount > 0 ? "success" : "info",
       detailSectionId: "completion",
@@ -177,7 +177,7 @@ function getOperationalRisks(
     },
     {
       label: "Pilotage",
-      value: completion.percentage >= 100 ? "OK" : "Priorite",
+      value: completion.percentage >= 100 ? "OK" : "Priorité",
       hint: completion.title,
       icon: ClipboardCheck,
       tone: completion.percentage >= 100 ? "success" : "info",
@@ -200,7 +200,7 @@ function getCadence(
       label: "Maintenant",
       text: firstMissingItem
         ? `Finaliser : ${firstMissingItem}.`
-        : `${completion.title} est pret pour une lecture rapide.`,
+        : `${completion.title} est prêt pour une lecture rapide.`,
       icon: AlertTriangle,
     },
     {

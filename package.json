@@ -17,7 +17,8 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:install": "playwright install chromium",
-    "check:migrations": "node scripts/check-migration-governance.mjs"
+    "check:migrations": "node scripts/check-migration-governance.mjs",
+    "check:encoding": "node scripts/check-encoding.mjs"
   },
   "dependencies": {
     "@radix-ui/react-tabs": "^1.1.13",

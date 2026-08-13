@@ -643,7 +643,7 @@ export async function GET(req: NextRequest) {
           title: getMissionLabel(mission),
           status: mission.status,
           priority: mission.priority,
-          ownerName: mission.owner_profile_id ? formatDisplayName(profileById.get(mission.owner_profile_id)) : "Proprietaire manquant",
+          ownerName: mission.owner_profile_id ? formatDisplayName(profileById.get(mission.owner_profile_id)) : "Propriétaire manquant",
           conciergeName: mission.concierge_profile_id ? formatDisplayName(profileById.get(mission.concierge_profile_id)) : "Conciergerie manquante",
           createdAt: mission.created_at,
           updatedAt: mission.updated_at,

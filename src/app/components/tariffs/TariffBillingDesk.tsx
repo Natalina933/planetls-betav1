@@ -129,22 +129,22 @@ const paymentPlanOptions: Array<{ value: PaymentPlanType; label: string; hint: s
   {
     value: "full_before_mission",
     label: getPaymentPlanLabel("full_before_mission"),
-    hint: "Le proprietaire regle la totalite avant la mission.",
+    hint: "Le propriétaire règle la totalité avant la mission.",
   },
   {
     value: "deposit_then_balance",
     label: getPaymentPlanLabel("deposit_then_balance"),
-    hint: "Un acompte debloque la planification, le solde suit la validation.",
+    hint: "Un acompte débloque la planification, le solde suit la validation.",
   },
   {
     value: "after_completion",
     label: getPaymentPlanLabel("after_completion"),
-    hint: "Le paiement est demande apres realisation et validation.",
+    hint: "Le paiement est demandé après réalisation et validation.",
   },
   {
     value: "monthly",
     label: getPaymentPlanLabel("monthly"),
-    hint: "Le devis sert de base a un accompagnement mensuel.",
+    hint: "Le devis sert de base à un accompagnement mensuel.",
   },
 ];
 

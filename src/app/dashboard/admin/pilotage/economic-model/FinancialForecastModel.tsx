@@ -165,7 +165,7 @@ const ASSUMPTION_GROUPS: Array<{ title: string; icon: typeof TrendingUp; fields:
     title: "Couts",
     icon: Coins,
     fields: [
-      { key: "developmentMonthly", label: "Developpement", helper: "Charge mensuelle de build produit.", suffix: "EUR" },
+      { key: "developmentMonthly", label: "Développement", helper: "Charge mensuelle de build produit.", suffix: "EUR" },
       { key: "hostingMonthly", label: "Hebergement", helper: "Infra hors base et hors Vercel.", suffix: "EUR" },
       { key: "supabaseMonthly", label: "Supabase", helper: "Base de donnees et backend.", suffix: "EUR" },
       { key: "vercelMonthly", label: "Vercel", helper: "Hosting frontend et fonctions associees.", suffix: "EUR" },

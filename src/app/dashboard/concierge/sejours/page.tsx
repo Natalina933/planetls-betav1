@@ -523,7 +523,7 @@ export default function ConciergeTravelerStaysPage() {
                 </div>
                 <div className={styles.editorialFacts}>
                   <div>
-                    <span>Proprietaire</span>
+                    <span>Propriétaire</span>
                     <strong>{selectedDetail?.reservation?.owner_name || selectedStay.ownerName || "A confirmer"}</strong>
                   </div>
                   <div>

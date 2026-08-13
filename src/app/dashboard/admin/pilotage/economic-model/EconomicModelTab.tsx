@@ -14,6 +14,14 @@ import {
   PRICING_PROFILES,
   PRICING_STRATEGIES,
 } from "./data";
+import {
+  FINANCIAL_NEXT_ACTIONS,
+  FINANCIAL_REFERENCE_NOTE,
+  LOCKED_PRODUCTION_OFFER,
+  PRIMARY_PRICING_STRATEGY,
+  SCENARIO_DIRECTOR,
+  TARGET_PRICING_PLANS,
+} from "./sharedFinancialReference";
 import type { PricingStrategyStatus, PricingStrategyType } from "./types";
 import styles from "../page.module.scss";
 
@@ -352,11 +360,11 @@ export function EconomicModelTab() {
       value: String(PRICING_STRATEGIES.length),
       hint: "Inventaire initial du module de pricing",
     },
-      {
-        label: "Hypothèse prioritaire",
-        value: "Stratégie B par niveau",
-        hint: "La plus simple à expliquer avec 29 € / 49 € / sur devis",
-      },
+    {
+      label: "Hypothèse prioritaire",
+      value: PRIMARY_PRICING_STRATEGY.name,
+      hint: PRIMARY_PRICING_STRATEGY.priorityLabel,
+    },
     {
       label: "Offres de production",
       value: String(EXISTING_PRODUCTION_OFFERS.length),
@@ -464,7 +472,7 @@ export function EconomicModelTab() {
     [],
   );
 
-  const protectedOffer = EXISTING_PRODUCTION_OFFERS[0];
+  const protectedOffer = LOCKED_PRODUCTION_OFFER;
 
   return (
     <section className={styles.economicModelPage}>
@@ -492,15 +500,26 @@ export function EconomicModelTab() {
             La page suit désormais l&apos;ordre naturel d&apos;une décision business :
             gouvernance, stratégies, architecture des offres, simulations, comparaison, tests puis décisions.
           </p>
+          <p className={styles.sectionNote}>{FINANCIAL_REFERENCE_NOTE}</p>
         </div>
         <div className={styles.economicHeroAside}>
           <article className={styles.economicHeroNote}>
             <strong>Décision tarifaire à préparer</strong>
-            <p>Confirmer un SaaS lisible au lancement, puis complexifier l&apos;offre seulement après preuve terrain.</p>
+            <p>
+              Confirmer la lecture {TARGET_PRICING_PLANS.map((plan) => plan.price).join(" / ")}
+              , puis complexifier l&apos;offre seulement après preuve terrain.
+            </p>
           </article>
           <article className={styles.economicHeroNote}>
             <strong>Règle non négociable</strong>
             <p>Aucune simulation ne modifie l&apos;offre réelle Stripe ni le parcours de production actuel.</p>
+          </article>
+          <article className={styles.economicHeroNote}>
+            <strong>Scénario directeur</strong>
+            <p>
+              {SCENARIO_DIRECTOR.label} · mix annuel {SCENARIO_DIRECTOR.annualPlanMixPct}% · GMV
+              {" "}{SCENARIO_DIRECTOR.marketplaceGmvMonthly} € / mois.
+            </p>
           </article>
         </div>
       </section>
@@ -530,6 +549,12 @@ export function EconomicModelTab() {
                   <strong>3. Les données réelles sont identifiées</strong>
                   <p>Les offres existantes portent une source réelle et un verrou de production.</p>
                 </article>
+                {FINANCIAL_NEXT_ACTIONS.slice(0, 1).map((action) => (
+                  <article key={action} className={styles.decisionCard}>
+                    <strong>4. Lecture direction</strong>
+                    <p>{action}</p>
+                  </article>
+                ))}
               </div>
             </DashboardPanel>
 

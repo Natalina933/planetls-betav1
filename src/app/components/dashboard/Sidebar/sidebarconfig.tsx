@@ -7,8 +7,8 @@ import {
   FiClipboard,
   FiCreditCard,
   FiFileText,
-  FiMessageSquare,
   FiImage,
+  FiMessageSquare,
   FiPackage,
   FiSearch,
   FiSettings,
@@ -33,12 +33,10 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
   admin: [
     { label: "Vue plateforme", path: "/dashboard/admin", icon: DashboardGaugeIcon },
     { label: "Pilotage business", path: "/dashboard/admin/pilotage", icon: FiCreditCard },
+    { label: "Modèle financier", path: "/dashboard/admin/modele-financier", icon: FiClipboard },
+    { label: "Personas", path: "/dashboard/admin/personas", icon: FiUsers },
     { label: "Contrôle détaillé", path: "/dashboard/admin/controle", icon: FiBell },
-    { label: "Utilisateurs", path: "/dashboard/admin/utilisateurs", icon: FiUser },
-    { label: "Propriétaires", path: "/dashboard/admin/proprietaires", icon: FiUsers },
-    { label: "Conciergeries", path: "/dashboard/admin/conciergeries", icon: FiClipboard },
-    { label: "Artisans", path: "/dashboard/admin/artisans", icon: FiTool },
-    { label: "D\u00e9veloppement", path: "/dashboard/admin/developpement", icon: FiBookOpen },
+    { label: "Développement", path: "/dashboard/admin/developpement", icon: FiBookOpen },
   ],
 
   owner: [
@@ -226,4 +224,3 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
     },
   ],
 };
-

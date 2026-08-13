@@ -110,14 +110,14 @@ export default function LogementCreateManual({ onCreated }: Props) {
       });
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload?.error || "Creation proprietaire impossible.");
+        throw new Error(payload?.error || "Création propriétaire impossible.");
       }
 
       setForm((current) => ({ ...current, owner: payload }));
       setOwnerCreate(emptyOwnerCreateState);
-      setSuccess("Proprietaire cree et associe au logement.");
+      setSuccess("Propriétaire créé et associé au logement.");
     } catch (createError) {
-      setError(createError instanceof Error ? createError.message : "Creation proprietaire impossible.");
+      setError(createError instanceof Error ? createError.message : "Création propriétaire impossible.");
     } finally {
       setOwnerBusy(false);
     }
@@ -154,16 +154,16 @@ export default function LogementCreateManual({ onCreated }: Props) {
       });
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload?.error || "Creation logement impossible.");
+        throw new Error(payload?.error || "Création logement impossible.");
       }
 
-      setSuccess("Logement manuel cree avec succes.");
+      setSuccess("Logement manuel créé avec succès.");
       onCreated?.(typeof payload?.id === "number" ? payload.id : undefined);
       setForm(createInitialManualForm(managerProfileId));
       setOwnerResults([]);
       setOwnerQuery("");
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Creation logement impossible.");
+      setError(saveError instanceof Error ? saveError.message : "Création logement impossible.");
     } finally {
       setSaving(false);
     }
@@ -231,7 +231,7 @@ export default function LogementCreateManual({ onCreated }: Props) {
                   }))
                 }
               >
-                <strong>{owner.fullName || owner.companyName || "Proprietaire"}</strong>
+                <strong>{owner.fullName || owner.companyName || "Propriétaire"}</strong>
                 <span className={styles.helper}>
                   {owner.email || "Sans email"}{owner.city ? ` | ${owner.city}` : ""}
                 </span>
@@ -260,7 +260,7 @@ export default function LogementCreateManual({ onCreated }: Props) {
             />
           </label>
           <label className={styles.label}>
-            Telephone
+            Téléphone
             <input
               className={styles.field}
               value={form.owner.phone}
@@ -422,7 +422,7 @@ export default function LogementCreateManual({ onCreated }: Props) {
         </div>
         <div className={styles.toolbar}>
           <button className={styles.actionPrimary} type="button" onClick={saveManualHousing} disabled={saving}>
-            {saving ? "Creation..." : "Creer le logement"}
+            {saving ? "Création..." : "Créer le logement"}
           </button>
         </div>
         {success ? <p className={styles.messageSuccess}>{success}</p> : null}

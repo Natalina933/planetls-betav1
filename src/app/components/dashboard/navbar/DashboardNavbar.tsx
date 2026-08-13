@@ -374,7 +374,7 @@ export default function DashboardNavbar({
                 return {
                   id: item.id,
                   title: repliedRecipient?.concierge_name || item.title || "Réponse concierge",
-                  description: `${responseLabel}${item.city ? ` â€¢ ${item.city}` : ""}`,
+                  description: `${responseLabel}${item.city ? ` · ${item.city}` : ""}`,
                   href: "/dashboard/owner/demandes",
                   count: 1,
                   kind: repliedRecipient?.status === "quoted" ? "quote" : "request",

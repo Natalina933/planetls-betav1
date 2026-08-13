@@ -280,7 +280,7 @@ const GOAL_GUIDANCE: Record<OwnerRequestGoal, ServiceRequestBriefFormGuidance> =
     titlePlaceholder: "Ex : deleguer menage et linge uniquement",
     detailsLabel: "Perimetre delegue",
     detailsPlaceholder:
-      "Listez les taches que vous deleguez, celles que vous gardez et les priorites operationnelles.",
+      "Listez les tâches que vous déléguez, celles que vous gardez et les priorités opérationnelles.",
     frequencyHelper: "La frequence distingue une aide ponctuelle d'une gestion partielle.",
     durationPlaceholder: "Ex : a chaque reservation, tous les mois, saison ete",
     responsibilityHelper: "Le concierge doit savoir si son role est execution ou pilotage partiel.",
