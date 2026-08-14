@@ -745,10 +745,10 @@ export const PLANETLS_BUSINESS_PLAN_REPOSITORY: BusinessPlanRepository = {
     createEntity(
       "launch",
       {
-        name: "PlanetLS lancement",
-        price: "29 EUR HT / mois",
-        target: "Conciergerie solo ou duo",
-        note: "Point d'entree le plus defensible pour tester la volonte de payer.",
+        name: "PlanetLS Owner Pro",
+        price: "19,90 EUR HT / mois",
+        target: "Proprietaire multi-biens structure",
+        note: "Premier palier payant defendable pour tester la centralisation et l'automatisation legere.",
       },
       {
         source: ECONOMIC_MODEL_SOURCE,
@@ -777,10 +777,10 @@ export const PLANETLS_BUSINESS_PLAN_REPOSITORY: BusinessPlanRepository = {
     createEntity(
       "custom",
       {
-        name: "PlanetLS sur devis",
-        price: "Sur devis",
-        target: "Portefeuille plus dense ou besoin specifique",
-        note: "A reserver aux cas complexes et multi-sites.",
+        name: "PlanetLS Business",
+        price: "149 EUR HT / mois",
+        target: "Conciergerie multi-biens ou equipe dense",
+        note: "Palier structure a vendre sur la coordination, le reporting et le support prioritaire.",
       },
       {
         source: ECONOMIC_MODEL_SOURCE,
@@ -815,17 +815,17 @@ export const PLANETLS_BUSINESS_PLAN_REPOSITORY: BusinessPlanRepository = {
       ),
       createEntity(
         "planetls-launch",
-        { actor: "PlanetLS lancement", amount: 29, label: "29 EUR HT", note: "Point d'entree plus credible pour tester la volonte de payer", tone: "planetls" },
+        { actor: "PlanetLS Owner Pro", amount: 19.9, label: "19,90 EUR HT", note: "Premier palier payant lie a la centralisation de plusieurs logements", tone: "planetls" },
         { source: ECONOMIC_MODEL_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "medium", status: "to_validate", owner: "Pricing" },
       ),
       createEntity(
         "planetls-pro",
-        { actor: "PlanetLS Pro", amount: 49, label: "49 EUR HT", note: "Palier cible simple a defendre si l'usage hebdomadaire tient", tone: "planetls" },
+        { actor: "PlanetLS Concierge Pro", amount: 49, label: "49 EUR HT", note: "Palier cible simple a defendre si l'usage hebdomadaire tient", tone: "planetls" },
         { source: ECONOMIC_MODEL_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "medium", status: "to_validate", owner: "Pricing" },
       ),
       createEntity(
         "planetls-custom",
-        { actor: "PlanetLS sur devis", amount: 95, label: "Sur devis", note: "Reserve aux besoins multi-biens ou accompagnement renforce", tone: "planetls" },
+        { actor: "PlanetLS Business", amount: 149, label: "149 EUR HT", note: "Palier structure pour multi-biens, multi-utilisateurs et support prioritaire", tone: "planetls" },
         { source: ECONOMIC_MODEL_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "medium", status: "to_validate", owner: "Pricing" },
       ),
     ],
@@ -833,12 +833,12 @@ export const PLANETLS_BUSINESS_PLAN_REPOSITORY: BusinessPlanRepository = {
       createEntity(
         "guidance-solo",
         {
-          profile: "Conciergerie solo ou duo",
-          properties: "1 a 5 biens",
+          profile: "Proprietaire multi-biens structure",
+          properties: "2 a 5 biens",
           supportLevel: "Standard",
-          monthlyPrice: "29 EUR HT / mois",
-          whoPays: "La conciergerie",
-          note: "Bon point d'entree si le besoin principal est de piloter demandes, missions et planning.",
+          monthlyPrice: "19,90 EUR HT / mois",
+          whoPays: "Le proprietaire",
+          note: "Bon point d'entree si le besoin principal est de centraliser et automatiser sans changer d'outil principal.",
         },
         { source: ECONOMIC_MODEL_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "medium", status: "to_validate", owner: "Pricing" },
       ),
@@ -846,7 +846,7 @@ export const PLANETLS_BUSINESS_PLAN_REPOSITORY: BusinessPlanRepository = {
         "guidance-structured",
         {
           profile: "Conciergerie structuree",
-          properties: "5 a 20 biens",
+          properties: "3 a 15 biens",
           supportLevel: "Priorise",
           monthlyPrice: "49 EUR HT / mois",
           whoPays: "La conciergerie",
@@ -857,18 +857,18 @@ export const PLANETLS_BUSINESS_PLAN_REPOSITORY: BusinessPlanRepository = {
       createEntity(
         "guidance-custom",
         {
-          profile: "Portefeuille plus dense ou besoin specifique",
-          properties: "20+ biens ou cas atypique",
-          supportLevel: "Accompagnement renforce",
-          monthlyPrice: "Sur devis",
+          profile: "Conciergerie multi-biens ou equipe dense",
+          properties: "15 a 40 biens",
+          supportLevel: "Prioritaire",
+          monthlyPrice: "149 EUR HT / mois",
           whoPays: "La conciergerie ou la structure gestionnaire",
-          note: "A reserver aux demandes complexes.",
+          note: "Palier structure a vendre sur la valeur de coordination, de reporting et de productivite equipe.",
         },
         { source: ECONOMIC_MODEL_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "medium", status: "to_validate", owner: "Pricing" },
       ),
     ],
     revenueStreams: createField(
-      ["Abonnement mensuel", "Upsell sur devis", "Commission en hypothese secondaire seulement"],
+      ["Abonnement mensuel", "Montee en gamme par valeur creee", "Commission en hypothese secondaire seulement"],
       {
         source: ECONOMIC_MODEL_SOURCE,
         lastUpdatedAt: "2026-08-07",
@@ -883,7 +883,7 @@ export const PLANETLS_BUSINESS_PLAN_REPOSITORY: BusinessPlanRepository = {
     createEntity("value", { title: "Proposition de valeur", items: ["Coordination plus claire", "Tracabilite terrain", "Reseau local qualifie", "Execution reliee au commercial"] }, { source: MASTER_PLAN_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "medium", status: "to_validate", owner: "Produit" }),
     createEntity("channels", { title: "Canaux", items: ["Prospection directe", "Entretiens terrain", "Landing pages de validation", "Reseau local metier"] }, { source: VALIDATION_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "medium", status: "to_validate", owner: "GTM" }),
     createEntity("relationships", { title: "Relations clients", items: ["Pilotes accompagnes", "Onboarding fondateur", "Support direct", "Preuves d'usage et retours structures"] }, { source: VALIDATION_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "medium", status: "to_validate", owner: "GTM" }),
-    createEntity("revenue", { title: "Revenus", items: ["Abonnement 29 EUR", "Palier Pro 49 EUR", "Sur devis", "Commission seulement en hypothese secondaire"] }, { source: ECONOMIC_MODEL_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "medium", status: "to_validate", owner: "Finance" }),
+    createEntity("revenue", { title: "Revenus", items: ["Abonnement Owner Pro 19,90 EUR", "Palier Concierge Pro 49 EUR", "Palier Business 149 EUR", "Commission seulement en hypothese secondaire"] }, { source: ECONOMIC_MODEL_SOURCE, lastUpdatedAt: "2026-08-14", confidence: "medium", status: "to_validate", owner: "Finance" }),
     createEntity("resources", { title: "Ressources clefs", items: ["Produit Next.js / Supabase", "Offre Concierge Pro existante", "Base locale d'acteurs", "Temps de la fondatrice"] }, { source: MASTER_PLAN_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "medium", status: "to_validate", owner: "Produit" }),
     createEntity("activities", { title: "Activites clefs", items: ["Validation terrain", "Onboarding pilotes", "Amelioration du cockpit", "Support et arbitrage business"] }, { source: VALIDATION_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "medium", status: "to_validate", owner: "Produit / GTM" }),
     createEntity("partners", { title: "Partenaires clefs", items: ["Stripe", "Conciergeries pilotes", "Prestataires locaux", "Apports reseau locaux"] }, { source: ECONOMIC_MODEL_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "medium", status: "to_validate", owner: "Partenariats" }),
@@ -918,9 +918,9 @@ export const PLANETLS_BUSINESS_PLAN_REPOSITORY: BusinessPlanRepository = {
       createEntity("m10-m12", { month: "M10-M12", objective: "Etendre selectivement et arbitrer le poids du sur devis ou d'une commission", metric: "MRR, activation multi-zones, comptes sur devis et volume mission intermedie", expected: "Decision claire entre gamme simple et surcouche transactionnelle" }, { source: VALIDATION_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "medium", status: "to_validate", owner: "Finance / GTM" }),
     ],
     next90Days: [
-      createEntity("d1-30", { phase: "Jours 1-30", target: "Qualifier les objections prix et clarifier la promesse d'entree a 29 EUR.", owner: "Fondatrice / produit", proof: "Entretiens notes, objections regroupees, wording stabilise" }, { source: VALIDATION_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "medium", status: "to_validate", owner: "Fondatrice / Produit" }),
+      createEntity("d1-30", { phase: "Jours 1-30", target: "Qualifier les objections prix et clarifier la promesse d'entree Free / Owner Pro.", owner: "Fondatrice / produit", proof: "Entretiens notes, objections regroupees, wording stabilise" }, { source: VALIDATION_SOURCE, lastUpdatedAt: "2026-08-14", confidence: "medium", status: "to_validate", owner: "Fondatrice / Produit" }),
       createEntity("d31-60", { phase: "Jours 31-60", target: "Signer quelques pilotes actifs sur l'offre la plus comprehensible.", owner: "Fondatrice / vente", proof: "Comptes actives, premieres routines visibles, premiers retours de paiement" }, { source: VALIDATION_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "medium", status: "to_validate", owner: "Fondatrice / Vente" }),
-      createEntity("d61-90", { phase: "Jours 61-90", target: "Verifier si 49 EUR devient un palier naturel et si le sur devis est percu comme juste.", owner: "Fondatrice / finance", proof: "Retours tarifaires consolides, usage hebdomadaire, premiers signaux de retention" }, { source: VALIDATION_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "medium", status: "to_validate", owner: "Fondatrice / Finance" }),
+      createEntity("d61-90", { phase: "Jours 61-90", target: "Verifier si 49 EUR puis 149 EUR deviennent des paliers naturels et defendables.", owner: "Fondatrice / finance", proof: "Retours tarifaires consolides, usage hebdomadaire, premiers signaux de retention" }, { source: VALIDATION_SOURCE, lastUpdatedAt: "2026-08-14", confidence: "medium", status: "to_validate", owner: "Fondatrice / Finance" }),
     ],
   },
   aiStrategy: [
@@ -980,7 +980,7 @@ export const PLANETLS_BUSINESS_PLAN_REPOSITORY: BusinessPlanRepository = {
   financialForecasts: [
     createEntity("pilot", { name: "Pilote local", subscribers: 15, price: 29, commissionVolume: 12000, commissionPct: 0 }, { source: ECONOMIC_MODEL_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "low", status: "draft", comment: "Scenario de simulation, non modele financier canonique.", owner: "Finance" }),
     createEntity("regional", { name: "Traction regionale", subscribers: 35, price: 49, commissionVolume: 22000, commissionPct: 0 }, { source: ECONOMIC_MODEL_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "low", status: "draft", comment: "Scenario de simulation, non modele financier canonique.", owner: "Finance" }),
-    createEntity("custom", { name: "Portefeuille sur devis", subscribers: 12, price: 95, commissionVolume: 40000, commissionPct: 8 }, { source: ECONOMIC_MODEL_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "low", status: "draft", comment: "Scenario de simulation, non modele financier canonique.", owner: "Finance" }),
+    createEntity("custom", { name: "Business", subscribers: 12, price: 149, commissionVolume: 40000, commissionPct: 8 }, { source: ECONOMIC_MODEL_SOURCE, lastUpdatedAt: "2026-08-14", confidence: "low", status: "draft", comment: "Scenario de simulation, non modele financier canonique.", owner: "Finance" }),
   ],
   actionPlan: [
     createEntity("focus-offer", { title: "Focaliser l'offre testee", details: ["Geler une offre principale pendant 60 jours.", "Mesurer activation, conversion et retention sur cette seule base."] }, { source: RISK_SOURCE, lastUpdatedAt: "2026-08-07", confidence: "high", status: "to_validate", owner: "Pricing / GTM" }),
@@ -1538,7 +1538,7 @@ export const PLANETLS_COMPETITION_MATRIX: CompetitionMatrixEntry[] = [
     id: "planetls",
     competitor: "PlanetLS",
     target: "Conciergeries, concierges, proprietaires, prestataires",
-    price: "29 EUR HT / mois reelle pour Concierge Pro ; 49 EUR et sur devis = hypotheses de travail",
+    price: "29 EUR HT / mois reelle pour Concierge Pro ; 19,90 EUR / 49 EUR / 149 EUR = gamme de travail admin",
     marketplace: "Visible",
     missionManagement: "Visible",
     quotes: "Visible",
@@ -1764,10 +1764,10 @@ export const PLANETLS_BUSINESS_MODEL_CANVAS: BusinessModelCanvasBlock[] = [
   {
     id: "revenue-streams",
     title: "Sources de revenus",
-    shortSummary: "Abonnement mensuel d'abord, sur devis ensuite, commission seulement en hypothese secondaire.",
+    shortSummary: "Abonnement mensuel d'abord, montee en gamme par valeur ensuite, commission seulement en hypothese secondaire.",
     details: [
       "Offre reelle existante : Conciergerie Pro avec abonnement Stripe deja branche.",
-      "Gamme de travail actuelle : 29 EUR / 49 EUR / sur devis.",
+      "Gamme de travail actuelle : Free / Owner Pro 19,90 EUR / Concierge Pro 49 EUR / Business 149 EUR.",
       "Commission : conservee comme hypothese secondaire, non comme moteur principal valide.",
     ],
     status: PLANETLS_BUSINESS_PLAN_REPOSITORY.sectionStatuses.pricing,

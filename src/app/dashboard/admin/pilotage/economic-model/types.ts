@@ -31,7 +31,7 @@ export type PricingOfferStatus =
 export type PricingScenarioType = "cautious" | "realistic" | "ambitious";
 export type PricingAssumptionSource = "real" | "hypothesis" | "simulation";
 
-export type CandidatePricingTierId = "free" | "essential" | "pro" | "business";
+export type CandidatePricingTierId = "free" | "owner_pro" | "concierge_pro" | "business";
 
 export type PricingProfile = {
   id: string;

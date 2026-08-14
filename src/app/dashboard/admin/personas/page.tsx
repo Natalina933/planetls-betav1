@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth/authOptions";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
@@ -41,6 +41,7 @@ type PersonaFamily = {
 };
 
 type PersonaInsight = {
+  id: string;
   title: string;
   dashboards: string;
   need: string;
@@ -48,6 +49,17 @@ type PersonaInsight = {
   kpi: string;
   hypothesis: string;
   risk: string;
+};
+
+type PersonaReferenceRow = {
+  personaId: string;
+  familyId: string;
+  persona: string;
+  profile: string;
+  mainNeed: string;
+  valueAdd: string;
+  potential: string;
+  potentialLabel: string;
 };
 
 type PersonaVisualMeta = {
@@ -114,6 +126,7 @@ const PERSONA_FAMILIES: PersonaFamily[] = [
 
 const PERSONA_INSIGHTS: PersonaInsight[] = [
   {
+    id: "clients",
     title: "Clients",
     dashboards: "Vue propriétaire rassurante ou cockpit conciergerie selon le niveau d'opérations.",
     need:
@@ -124,6 +137,7 @@ const PERSONA_INSIGHTS: PersonaInsight[] = [
     risk: "Un même écran pour tous finit par ne vraiment aider personne.",
   },
   {
+    id: "providers",
     title: "Prestataires",
     dashboards: "Interface mobile d'exécution, checklists, preuves et paiements.",
     need: "Consignes nettes, contexte local, changements visibles tout de suite.",
@@ -133,6 +147,7 @@ const PERSONA_INSIGHTS: PersonaInsight[] = [
     risk: "Si l'interface ressemble à un back-office, l'usage s'effondre.",
   },
   {
+    id: "ecosystem",
     title: "Écosystème",
     dashboards: "Espace léger de visibilité et de commandes, activé seulement quand le cœur métier est stable.",
     need: "Visibilité ciblée, opportunités qualifiées, logique de partenariat plus que simple vitrine.",
@@ -142,6 +157,7 @@ const PERSONA_INSIGHTS: PersonaInsight[] = [
     risk: "Lancer trop tôt ces rôles peut disperser le produit.",
   },
   {
+    id: "platform",
     title: "Plateforme",
     dashboards: "Cockpit admin relié au business plan, au contrôle détaillé et au développement.",
     need: "Voir les vrais blocages, arbitrer vite et relier produit, business et exécution.",
@@ -149,6 +165,89 @@ const PERSONA_INSIGHTS: PersonaInsight[] = [
     kpi: "Temps de reprise projet, sujets critiques visibles, rythme de fermeture P0/P1, cohérence roadmap.",
     hypothesis: "Un référentiel personas par famille améliore la priorisation et la lecture des arbitrages.",
     risk: "Des personas décoratifs sans effet sur les décisions alourdissent le cockpit.",
+  },
+];
+
+const PERSONA_REFERENCE_ROWS: PersonaReferenceRow[] = [
+  {
+    personaId: "owner-individual",
+    familyId: "clients",
+    persona: "🏠 Propriétaire autonome",
+    profile: "1 à 2 logements",
+    mainNeed: "Gérer simplement ses locations",
+    valueAdd: "Planning, missions, prestataires, documents, dépenses",
+    potential: "⭐⭐⭐",
+    potentialLabel: "Bon potentiel",
+  },
+  {
+    personaId: "owner-professional",
+    familyId: "clients",
+    persona: "🏘️ Propriétaire multi-biens",
+    profile: "Plusieurs locations saisonnières",
+    mainNeed: "Centraliser et automatiser",
+    valueAdd: "Multi-logements, reporting, automatisations, IA",
+    potential: "⭐⭐⭐⭐⭐",
+    potentialLabel: "Très fort potentiel",
+  },
+  {
+    personaId: "concierge-independent",
+    familyId: "clients",
+    persona: "🔑 Concierge indépendante",
+    profile: "Travaille seule, souvent en co-hôte",
+    mainNeed: "Organiser ses logements et interventions",
+    valueAdd: "Planning, missions, propriétaires, voyageurs, facturation",
+    potential: "⭐⭐⭐⭐",
+    potentialLabel: "Fort potentiel",
+  },
+  {
+    personaId: "concierge-manager",
+    familyId: "clients",
+    persona: "🏢 Conciergerie professionnelle",
+    profile: "Équipe + nombreux logements",
+    mainNeed: "Piloter toute l'activité",
+    valueAdd: "Équipe, planning, missions, KPI, automatisations, facturation",
+    potential: "⭐⭐⭐⭐⭐",
+    potentialLabel: "Très fort potentiel",
+  },
+  {
+    personaId: "provider",
+    familyId: "providers",
+    persona: "🔧 Artisan / prestataire",
+    profile: "Plombier, électricien, ménage, jardinier…",
+    mainNeed: "Trouver et gérer des missions",
+    valueAdd: "Demandes, devis, planning, preuves, facturation",
+    potential: "⭐⭐⭐",
+    potentialLabel: "Bon potentiel",
+  },
+  {
+    personaId: "team-member",
+    familyId: "providers",
+    persona: "🧹 Prestataire récurrent",
+    profile: "Ménage, linge, maintenance…",
+    mainNeed: "Organiser des interventions régulières",
+    valueAdd: "Planning récurrent, checklists, notifications, suivi",
+    potential: "⭐⭐⭐⭐",
+    potentialLabel: "Fort potentiel",
+  },
+  {
+    personaId: "local-merchant",
+    familyId: "ecosystem",
+    persona: "🛍️ Partenaire / fournisseur",
+    profile: "Linge, équipements, déco, consommables…",
+    mainNeed: "Vendre aux professionnels du secteur",
+    valueAdd: "Marketplace et visibilité ciblée",
+    potential: "⭐⭐⭐⭐",
+    potentialLabel: "Fort potentiel",
+  },
+  {
+    personaId: "admin",
+    familyId: "platform",
+    persona: "🛡️ Administrateur PlanetLS",
+    profile: "Toi puis ton équipe",
+    mainNeed: "Piloter la plateforme",
+    valueAdd: "Utilisateurs, abonnements, litiges, paiements, KPI",
+    potential: "Interne",
+    potentialLabel: "Usage interne",
   },
 ];
 
@@ -207,6 +306,10 @@ function getPersonasByIds(ids: string[]) {
   return ids
     .map((id) => productPersonas.find((persona) => persona.id === id))
     .filter(Boolean) as ProductPersona[];
+}
+
+function getPersonaReference(personaId: string) {
+  return PERSONA_REFERENCE_ROWS.find((row) => row.personaId === personaId);
 }
 
 function getPersonaFocus(persona: ProductPersona) {
@@ -339,108 +442,122 @@ function PersonaFamilyPanel({ family }: { family: PersonaFamily }) {
   const personas = getPersonasByIds(family.personas);
 
   return (
-    <Card tone="outlined" className={styles.familyPanel}>
-      <CardHeader className={styles.familyHeader}>
-        <div className={styles.familyHeaderRow}>
-          <div>
-            <span className={styles.familyEyebrow}>{family.title}</span>
-            <strong>{family.description}</strong>
-          </div>
+    <details className={styles.foldSection} open>
+      <summary className={styles.foldSummary}>
+        <div className={styles.foldSummaryCopy}>
+          <span className={styles.familyEyebrow}>{family.title}</span>
+          <strong>{family.description}</strong>
+        </div>
+        <div className={styles.foldSummaryMeta}>
           <span className={styles.familyBadge}>{family.badge}</span>
+          <span className={styles.foldChevron} aria-hidden="true">
+            <ChevronDown size={18} />
+          </span>
         </div>
-      </CardHeader>
-      <CardBody className={styles.familyBody}>
-        <div className={styles.familyMeta}>
-          <article className={styles.familyMetaCard}>
-            <span>Dashboard type</span>
-            <p>{family.dashboard}</p>
-          </article>
-          <article className={styles.familyMetaCard}>
-            <span>Logique d'offre</span>
-            <p>{family.offering}</p>
-          </article>
-          <article className={styles.familyMetaCard}>
-            <span>Objectif produit</span>
-            <p>{family.objective}</p>
-          </article>
-        </div>
+      </summary>
 
-        <div className={styles.familyPersonas}>
-          {personas.map((persona) => {
-            const visualMeta = getPersonaVisualMeta(persona);
+      <Card tone="outlined" className={styles.familyPanel}>
+        <CardBody className={styles.familyBody}>
+          <div className={styles.familyMeta}>
+            <article className={styles.familyMetaCard}>
+              <span>Dashboard type</span>
+              <p>{family.dashboard}</p>
+            </article>
+            <article className={styles.familyMetaCard}>
+              <span>Logique d'offre</span>
+              <p>{family.offering}</p>
+            </article>
+            <article className={styles.familyMetaCard}>
+              <span>Objectif produit</span>
+              <p>{family.objective}</p>
+            </article>
+          </div>
 
-            return (
+          <div className={styles.familyPersonas}>
+            {personas.map((persona) => {
+              const visualMeta = getPersonaVisualMeta(persona);
+              const reference = getPersonaReference(persona.id);
+
+              return (
+                <PersonaFlipCard
+                  key={persona.id}
+                  name={persona.name}
+                  role={persona.role}
+                  image={persona.image}
+                  imageAlt={`Portrait de ${persona.name}`}
+                  segment={persona.segment}
+                  primaryDevice={persona.primaryDevice}
+                  digitalLevel={persona.digitalLevel}
+                  status={persona.status}
+                  dashboardType={getDashboardType(persona)}
+                  focus={getPersonaFocus(persona)}
+                  punchline={visualMeta.punchline}
+                  quote={persona.quote}
+                  visualBadge={visualMeta.visualBadge}
+                  commercialOffer={visualMeta.commercialOffer}
+                  potential={reference?.potential ?? visualMeta.potential}
+                  context={persona.context}
+                  needs={getPersonaNeeds(persona)}
+                  goals={persona.goals}
+                  frustrations={persona.frustrations}
+                  priorityFeatures={persona.priorityFeatures}
+                  firstValue={persona.firstValue}
+                  tone={visualMeta.tone}
+                  icon={visualMeta.icon}
+                  profileLabel={reference?.profile ?? persona.segment}
+                  mainNeed={reference?.mainNeed ?? getPersonaNeeds(persona)[0]}
+                  platformValue={reference?.valueAdd ?? persona.firstValue}
+                  potentialLabel={reference?.potentialLabel ?? visualMeta.commercialOffer}
+                />
+              );
+            })}
+
+            {family.id === "ecosystem" ? (
               <PersonaFlipCard
-                key={persona.id}
-                name={persona.name}
-                role={persona.role}
-                image={persona.image}
-                imageAlt={`Portrait de ${persona.name}`}
-                segment={persona.segment}
-                primaryDevice={persona.primaryDevice}
-                digitalLevel={persona.digitalLevel}
-                status={persona.status}
-                dashboardType={getDashboardType(persona)}
-                focus={getPersonaFocus(persona)}
-                punchline={visualMeta.punchline}
-                quote={persona.quote}
-                visualBadge={visualMeta.visualBadge}
-                commercialOffer={visualMeta.commercialOffer}
-                potential={visualMeta.potential}
-                context={persona.context}
-                needs={getPersonaNeeds(persona)}
-                goals={persona.goals}
-                frustrations={persona.frustrations}
-                priorityFeatures={persona.priorityFeatures}
-                firstValue={persona.firstValue}
-                tone={visualMeta.tone}
-                icon={visualMeta.icon}
+                name="Voyageur"
+                role="Persona optionnel"
+                image="/avatars/marie.png"
+                imageAlt="Illustration du persona voyageur"
+                segment="Roadmap future"
+                primaryDevice="Mobile"
+                digitalLevel="Intermédiaire"
+                status="À cadrer"
+                dashboardType="Espace séjour léger"
+                focus="Arrivée, support, incidents"
+                punchline="Je veux arriver, comprendre et signaler un problème sans friction."
+                visualBadge="Roadmap future"
+                commercialOffer="Espace séjour"
+                potential="Optionnel"
+                context="Le voyageur existe déjà comme bénéficiaire opérationnel du séjour, mais il n'a pas encore de persona dédié assez mature pour piloter une roadmap autonome."
+                needs={["Messages automatisés", "Support rapide", "Check-in / out simple"]}
+                goals={["Check-in fluide", "Communication claire", "Séjour sans incident"]}
+                frustrations={["Instructions confuses", "Problèmes non résolus", "Manque de réactivité"]}
+                priorityFeatures={["Parcours d'arrivée", "Support incident", "Informations de séjour"]}
+                firstValue="Comprendre immédiatement comment arriver et quoi faire en cas de problème."
+                tone="ecosystem"
+                icon="traveler"
+                backTitle="Persona futur"
+                profileLabel="Utilisateur final du séjour"
+                mainNeed="Comprendre vite son arrivée et être aidé en cas d'incident"
+                platformValue="Messages d'arrivée, support, informations de séjour"
+                potentialLabel="Piste future"
               />
-            );
-          })}
+            ) : null}
+          </div>
 
-          {family.id === "ecosystem" ? (
-            <PersonaFlipCard
-              name="Voyageur"
-              role="Persona optionnel"
-              image="/avatars/marie.png"
-              imageAlt="Illustration du persona voyageur"
-              segment="Roadmap future"
-              primaryDevice="Mobile"
-              digitalLevel="Intermédiaire"
-              status="À cadrer"
-              dashboardType="Espace séjour léger"
-              focus="Arrivée, support, incidents"
-              punchline="Je veux arriver, comprendre et signaler un problème sans friction."
-              visualBadge="Roadmap future"
-              commercialOffer="Espace séjour"
-              potential="Optionnel"
-              context="Le voyageur existe déjà comme bénéficiaire opérationnel du séjour, mais il n'a pas encore de persona dédié assez mature pour piloter une roadmap autonome."
-              needs={["Messages automatisés", "Support rapide", "Check-in / out simple"]}
-              goals={["Check-in fluide", "Communication claire", "Séjour sans incident"]}
-              frustrations={["Instructions confuses", "Problèmes non résolus", "Manque de réactivité"]}
-              priorityFeatures={["Parcours d'arrivée", "Support incident", "Informations de séjour"]}
-              firstValue="Comprendre immédiatement comment arriver et quoi faire en cas de problème."
-              tone="ecosystem"
-              icon="traveler"
-              backTitle="Persona futur"
-            />
-          ) : null}
-        </div>
-
-        {family.note ? <p className={styles.familyNote}>{family.note}</p> : null}
-      </CardBody>
-    </Card>
+          {family.note ? <p className={styles.familyNote}>{family.note}</p> : null}
+        </CardBody>
+      </Card>
+    </details>
   );
 }
 
 type CompactAdminRailProps = {
   navItems: Array<{ label: string; href: string }>;
-  activity: Array<{ id: string; title: string; description: string; href: string }>;
   notifications: Array<{ id: string; title: string; href?: string }>;
 };
 
-function CompactAdminRail({ navItems, activity, notifications }: CompactAdminRailProps) {
+function CompactAdminRail({ navItems, notifications }: CompactAdminRailProps) {
   return (
     <section className={styles.compactAdminRail} aria-label="Contexte admin compact">
       <Card tone="soft" className={styles.compactAdminCard}>
@@ -456,36 +573,6 @@ function CompactAdminRail({ navItems, activity, notifications }: CompactAdminRai
           ))}
         </CardBody>
       </Card>
-
-      <Card tone="soft" className={styles.compactAdminCard}>
-        <CardHeader>
-          <h3>Profil</h3>
-        </CardHeader>
-        <CardBody className={styles.compactProfileBody}>
-          <strong>DP</strong>
-          <span>Direction PlanetLS</span>
-          <p>Référentiel personas</p>
-          <small>Stratégique</small>
-        </CardBody>
-      </Card>
-
-      <Card tone="soft" className={styles.compactAdminCard}>
-        <CardHeader>
-          <h3>Activité récente</h3>
-        </CardHeader>
-        <CardBody className={styles.compactListBody}>
-          {activity.map((item) => (
-            <article key={item.id} className={styles.compactListItem}>
-              <strong>{item.title}</strong>
-              <p>{item.description}</p>
-              <Link href={item.href}>
-                Ouvrir <ArrowRight size={15} />
-              </Link>
-            </article>
-          ))}
-        </CardBody>
-      </Card>
-
       <Card tone="soft" className={styles.compactAdminCard}>
         <CardHeader>
           <h3>Notifications</h3>
@@ -526,26 +613,6 @@ export default async function AdminPersonasPage() {
     { label: "Contrôle détaillé", href: "/dashboard/admin/controle" },
     { label: "Développement", href: "/dashboard/admin/developpement" },
   ] as const;
-  const activity = [
-    {
-      id: "persona-business",
-      title: "Pilotage business",
-      description: "Les familles de personas servent de guide stratégique et de lecture de segment.",
-      href: "/dashboard/admin/personas",
-    },
-    {
-      id: "persona-control",
-      title: "Contrôle détaillé",
-      description: "Chaque famille doit se traduire en besoins, KPI, hypothèses et points de friction.",
-      href: "/dashboard/admin/controle",
-    },
-    {
-      id: "persona-dev",
-      title: "Développement",
-      description: "Les priorités produit gagnent un filtre d'impact persona plus concret.",
-      href: "/dashboard/admin/developpement",
-    },
-  ] as const;
   const notifications = [
     {
       id: "persona-note",
@@ -569,7 +636,7 @@ export default async function AdminPersonasPage() {
       ]}
       actions={[]}
       hideQuickActions
-      activity={activity.map((item) => ({ ...item }))}
+      activity={[]}
       notifications={notifications.map((item) => ({ ...item, level: "info" as const }))}
       shortcuts={[
         { label: "Pilotage", href: "/dashboard/admin/pilotage" },
@@ -584,43 +651,77 @@ export default async function AdminPersonasPage() {
         <section className={styles.hero}>
           <div className={styles.heroCopy}>
             <span className={styles.eyebrow}>Admin → Personas</span>
-            <h2>Des cartes personas à retourner, 2 par ligne, pensées pour être scannées vite</h2>
+            <h2>Des cartes personas plus longues, rectangulaires et lisibles des deux côtés</h2>
             <p>
-              Chaque persona apparaît d'abord comme une carte rectangulaire visuelle avec image,
-              punchline, offre, étoiles et éléments clés. Un clic retourne la carte pour afficher
-              le détail complet sans surcharger la page.
+              Chaque persona apparaît maintenant comme une vraie carte desktop en format rectangle,
+              alignée par deux, avec plus d'informations visibles au recto comme au verso, une
+              bordure plus nette et un état retourné mieux signalé.
             </p>
           </div>
           <div className={styles.heroStats}>
             <article>
               <strong>Recto</strong>
-              <span>Image, punchline, potentiel, offre, focus</span>
+              <span>Profil, besoin, valeur PlanetLS, étoiles, dashboard et focus</span>
             </article>
             <article>
               <strong>Verso</strong>
-              <span>Contexte, besoins, frustrations, fonctionnalités</span>
+              <span>Contexte, objectifs, frustrations, besoins et fonctionnalités prioritaires</span>
             </article>
             <article>
               <strong>Grille</strong>
-              <span>2 cartes par ligne en desktop, 1 en mobile</span>
+              <span>2 cartes par ligne en desktop, 1 en mobile, hauteur allongée</span>
             </article>
             <article>
               <strong>Usage</strong>
-              <span>Lecture plus légère, présentation plus claire</span>
+              <span>Familles et insights repliables pour une lecture plus claire</span>
             </article>
           </div>
         </section>
 
-        <CompactAdminRail navItems={[...navItems]} activity={[...activity]} notifications={[...notifications]} />
+        <CompactAdminRail navItems={[...navItems]} notifications={[...notifications]} />
 
         <section className={styles.sectionStack}>
+          <DashboardPanel title="Référentiel des profils cibles">
+            <div className={styles.sectionHeader}>
+              <h3>Tableau de lecture rapide des personas payants et stratégiques</h3>
+              <p>
+                Ce tableau reprend les profils, besoins, apports PlanetLS et potentiel de monétisation
+                que tu veux voir clairement avant les cartes détaillées.
+              </p>
+            </div>
+            <div className={styles.tableWrap}>
+              <table className={styles.dataTable}>
+                <thead>
+                  <tr>
+                    <th>Persona</th>
+                    <th>Profil</th>
+                    <th>Besoin principal</th>
+                    <th>Ce que PlanetLS lui apporte</th>
+                    <th>Potentiel payant</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {PERSONA_REFERENCE_ROWS.map((row) => (
+                    <tr key={row.personaId}>
+                      <td>{row.persona}</td>
+                      <td>{row.profile}</td>
+                      <td>{row.mainNeed}</td>
+                      <td>{row.valueAdd}</td>
+                      <td>{row.potential}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </DashboardPanel>
+
           <DashboardPanel title="Architecture des personas">
             <div className={styles.sectionHeader}>
               <h3>Quatre familles, plusieurs dashboards, une seule logique produit</h3>
               <p>
                 PlanetLS doit parler différemment aux clients, aux prestataires, à l'écosystème et
-                à la plateforme. Les cartes ci-dessous sont pensées comme des fiches profils
-                visuelles, pas comme un simple tableau administratif.
+                à la plateforme. Chaque famille peut maintenant se plier ou se déplier avec une
+                flèche pour garder une vue desktop plus propre.
               </p>
             </div>
             <div className={styles.familyGrid}>
@@ -633,33 +734,44 @@ export default async function AdminPersonasPage() {
           <DashboardPanel title="Insights par famille">
             <div className={styles.sectionHeader}>
               <h3>Ce qui doit alimenter le contrôle détaillé</h3>
-              <p>Besoins, dashboards, KPI, hypothèses à tester et risques par grande famille.</p>
+              <p>
+                Besoins, dashboards, KPI, hypothèses à tester et risques par grande famille, avec
+                repli par section pour éviter une lecture trop longue.
+              </p>
             </div>
             <div className={styles.insightGrid}>
               {PERSONA_INSIGHTS.map((item) => (
-                <Card key={item.title} tone="soft" className={styles.insightCard}>
-                  <CardHeader>
-                    <strong>{item.title}</strong>
-                  </CardHeader>
-                  <CardBody className={styles.insightBody}>
-                    <p><span>Dashboard</span>{item.dashboards}</p>
-                    <p><span>Besoin</span>{item.need}</p>
-                    <p><span>Friction</span>{item.friction}</p>
-                    <p><span>KPI</span>{item.kpi}</p>
-                    <p><span>Hypothèse</span>{item.hypothesis}</p>
-                    <p><span>Risque</span>{item.risk}</p>
-                  </CardBody>
-                </Card>
+                <details key={item.id} className={styles.foldSection} open>
+                  <summary className={styles.foldSummary}>
+                    <div className={styles.foldSummaryCopy}>
+                      <span className={styles.familyEyebrow}>Insights</span>
+                      <strong>{item.title}</strong>
+                    </div>
+                    <span className={styles.foldChevron} aria-hidden="true">
+                      <ChevronDown size={18} />
+                    </span>
+                  </summary>
+                  <Card tone="soft" className={styles.insightCard}>
+                    <CardBody className={styles.insightBody}>
+                      <p><span>Dashboard</span>{item.dashboards}</p>
+                      <p><span>Besoin</span>{item.need}</p>
+                      <p><span>Friction</span>{item.friction}</p>
+                      <p><span>KPI</span>{item.kpi}</p>
+                      <p><span>Hypothèse</span>{item.hypothesis}</p>
+                      <p><span>Risque</span>{item.risk}</p>
+                    </CardBody>
+                  </Card>
+                </details>
               ))}
             </div>
           </DashboardPanel>
 
-          <DashboardPanel title="Impact persona sur les priorités">
+          <DashboardPanel title="Chantiers structurants par persona">
             <div className={styles.sectionHeader}>
-              <h3>Lecture utile pour la page Développement</h3>
+              <h3>Lecture complémentaire pour arbitrer la roadmap</h3>
               <p>
-                Chaque feature importante peut être relue par famille de personas, urgence, valeur
-                business et complexité.
+                Ce tableau ne reprend pas le référentiel de profils ci-dessus. Il ajoute une lecture
+                plus produit pour relier familles, urgence, valeur business et complexité.
               </p>
             </div>
             <div className={styles.tableWrap}>

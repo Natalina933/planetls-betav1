@@ -92,6 +92,61 @@
   gap: 1rem;
 }
 
+.foldSection {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.foldSection[open] .foldChevron {
+  transform: rotate(180deg);
+}
+
+.foldSummary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(24, 63, 54, 0.12);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 244, 235, 0.92));
+  cursor: pointer;
+  list-style: none;
+}
+
+.foldSummary::-webkit-details-marker {
+  display: none;
+}
+
+.foldSummaryCopy {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.foldSummaryCopy strong {
+  color: #173f38;
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.foldSummaryMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.foldChevron {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid rgba(24, 63, 54, 0.1);
+  border-radius: 14px;
+  color: #17695c;
+  background: rgba(255, 255, 255, 0.9);
+  transition: transform 0.2s ease;
+}
+
 .familyPanel {
   overflow: hidden;
 }
@@ -151,10 +206,11 @@
 .familyMetaCard {
   display: grid;
   gap: 0.35rem;
-  padding: 0.95rem 1rem;
-  border: 1px solid rgba(24, 63, 54, 0.1);
-  border-radius: 18px;
-  background: rgba(248, 244, 235, 0.56);
+  min-height: 9.5rem;
+  padding: 1.05rem 1.1rem;
+  border: 1px solid rgba(24, 63, 54, 0.16);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 244, 235, 0.82));
 }
 
 .familyMetaCard span {
@@ -194,7 +250,7 @@
 
 .personaFlipShell {
   position: relative;
-  min-height: 34rem;
+  min-height: 42rem;
 }
 
 .personaFlipShell[data-tone="owners"] {
@@ -229,7 +285,7 @@
 
 .personaFlipInner {
   position: relative;
-  min-height: 34rem;
+  min-height: 42rem;
   transform-style: preserve-3d;
   transition: transform 0.72s ease;
 }
@@ -241,11 +297,12 @@
   gap: 1rem;
   align-content: start;
   padding: 1rem;
-  border: 1px solid rgba(24, 63, 54, 0.08);
+  border: 2px solid rgba(24, 63, 54, 0.1);
   border-radius: 24px;
   box-shadow: 0 14px 30px rgba(18, 42, 38, 0.08);
   backface-visibility: hidden;
   overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .personaFaceFront {
@@ -258,11 +315,22 @@
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.99), var(--persona-soft-2) 100%);
   transform: rotateY(180deg);
+  border-color: color-mix(in srgb, var(--persona-accent) 55%, rgba(24, 63, 54, 0.28));
+  box-shadow:
+    0 18px 36px rgba(18, 42, 38, 0.12),
+    0 0 0 3px color-mix(in srgb, var(--persona-accent) 16%, transparent);
+}
+
+.personaFlipCardButtonFlipped .personaFaceBack {
+  border-color: color-mix(in srgb, var(--persona-accent) 82%, rgba(24, 63, 54, 0.3));
+  box-shadow:
+    0 22px 42px rgba(18, 42, 38, 0.14),
+    0 0 0 4px color-mix(in srgb, var(--persona-accent) 22%, transparent);
 }
 
 .personaPoster {
   position: relative;
-  min-height: 16rem;
+  min-height: 17.5rem;
   overflow: hidden;
   border-radius: 22px;
   background: #e9ecef;
@@ -339,7 +407,7 @@
 
 .personaPosterBody p {
   margin: 0;
-  max-width: 28ch;
+  max-width: 32ch;
   color: rgba(255, 255, 255, 0.94);
   font-size: 0.95rem;
   line-height: 1.5;
@@ -371,16 +439,17 @@
 .personaCardInfoGrid {
   display: grid;
   gap: 0.7rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .personaInfoPill {
   display: grid;
   gap: 0.25rem;
-  padding: 0.85rem 0.9rem;
-  border-radius: 18px;
+  min-height: 5.65rem;
+  padding: 0.9rem 0.95rem;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(24, 63, 54, 0.08);
+  border: 1px solid rgba(24, 63, 54, 0.14);
 }
 
 .personaInfoPill strong {
@@ -393,6 +462,12 @@
   color: #5d6c67;
   font-size: 0.88rem;
   line-height: 1.45;
+}
+
+.personaBackMetaGrid {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .personaCardTags {
@@ -885,8 +960,7 @@
 }
 
 .compactNavBody,
-.compactListBody,
-.compactProfileBody {
+.compactListBody {
   display: grid;
   gap: 0.75rem;
 }
@@ -907,28 +981,6 @@
   border: 1px solid rgba(24, 63, 54, 0.08);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.78);
-}
-
-.compactProfileBody {
-  strong {
-    color: #173f38;
-    font-size: 1.1rem;
-  }
-
-  span,
-  p,
-  small {
-    margin: 0;
-    color: #5d6c67;
-  }
-
-  small {
-    color: #8e6425;
-    font-size: 0.75rem;
-    font-weight: 800;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
 }
 
 .compactListItem {
@@ -968,9 +1020,8 @@
 @media (max-width: 1180px) {
   .hero,
   .familyMeta,
-  .personaHero,
-  .personaPreviewGrid,
   .personaCardInfoGrid,
+  .personaBackMetaGrid,
   .personaTriptych,
   .compactAdminRail {
     grid-template-columns: 1fr;

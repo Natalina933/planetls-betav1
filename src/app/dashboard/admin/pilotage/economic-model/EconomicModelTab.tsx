@@ -189,22 +189,22 @@ const SIMULATION_PROJECTION_ROWS: SimulationProjectionRow[] = [
 const SIMULATED_OFFER_CARDS: SimulatedOfferCard[] = [
   {
     id: "offer-1",
-    name: "Conciergerie Essentiel",
-    profile: "Concierges et conciergeries",
-    monthlyPrice: "29 € HT",
-    positioning: "Entrée claire pour piloter demandes, missions et coordination locale.",
-    includes: ["Demandes et missions", "Planning opérationnel", "Preuves d'intervention"],
-    limits: ["1 équipe cœur", "Reporting simple", "Pas d'addons avancés"],
-    status: "Hypothèse simple",
-    badge: "Entrée claire",
-    properties: "1 à 5 biens",
-    users: "1 à 2 utilisateurs",
+    name: "Owner Pro",
+    profile: "Proprietaires structures",
+    monthlyPrice: "19,90 € HT",
+    positioning: "Premier palier payant pour centraliser plusieurs logements sans friction equipe.",
+    includes: ["Suivi portefeuille", "Automatisations simples", "Historique illimité"],
+    limits: ["Pas de logique équipe avancée", "IA sous quota", "Périmètre propriétaire d'abord"],
+    status: "Hypothèse prioritaire",
+    badge: "Entrée payante",
+    properties: "2 à 5 biens",
+    users: "1 utilisateur",
     support: "Standard",
-    modules: ["Planning", "Demandes", "Missions"],
+    modules: ["Portefeuille", "Automatisations", "Historique"],
   },
   {
     id: "offer-2",
-    name: "Conciergerie Pro",
+    name: "Concierge Pro",
     profile: "Concierges et conciergeries",
     monthlyPrice: "49 € HT",
     positioning: "Palier cible pour un cockpit métier plus central dans l'exploitation quotidienne.",
@@ -219,18 +219,18 @@ const SIMULATED_OFFER_CARDS: SimulatedOfferCard[] = [
   },
   {
     id: "offer-3",
-    name: "Conciergerie sur devis",
+    name: "Business",
     profile: "Conciergeries multi-biens",
-    monthlyPrice: "Sur devis",
-    positioning: "Réservé aux structures qui demandent plus de parc, plus d'accompagnement ou un périmètre spécifique.",
-    includes: ["Accompagnement renforcé", "Cadrage sur mesure", "Lecture plus réaliste des besoins complexes"],
-    limits: ["Vente plus longue", "Nécessite un périmètre clair", "Peu adapté à une entrée de gamme"],
-    status: "Option à tester",
-    badge: "Sur mesure",
-    properties: "20+ biens",
+    monthlyPrice: "149 € HT",
+    positioning: "Palier structure pour les equipes multi-logements qui ont besoin de volume, de reporting et d'appui prioritaire.",
+    includes: ["Multi-utilisateurs", "Reporting avancé", "Support prioritaire"],
+    limits: ["Vente plus exigeante", "Périmètre à clarifier avant industrialisation", "Toujours distinct de l'offre Stripe actuelle"],
+    status: "Évolution structurée",
+    badge: "Scale",
+    properties: "15 à 40 biens",
     users: "Équipe étendue",
-    support: "Accompagnement renforcé",
-    modules: ["Cadrage parc", "Reporting avancé", "Accompagnement"],
+    support: "Prioritaire",
+    modules: ["Coordination", "Reporting", "Support"],
   },
 ];
 
@@ -291,8 +291,8 @@ const PRICING_TEST_ROWS: PricingTestRow[] = [
     id: "test-1",
     label: "Entretien tarifaire conciergerie",
     segment: "Petites conciergeries structurées",
-    offer: "Conciergerie Pro",
-    testedPrice: "29 € / 49 € / sur devis",
+    offer: "Owner Pro / Concierge Pro / Business",
+    testedPrice: "19,90 € / 49 € / 149 €",
     participants: "8 à 12",
     result: "À préparer",
     nextAction: "Valider les objections au prix d'entrée et à la valeur perçue.",
@@ -1081,7 +1081,7 @@ export function EconomicModelTab() {
 
           <p className={styles.sectionNote}>
             Lecture simplifiée : le modèle par niveau est désormais la direction la plus lisible pour tester
-            `29 / 49 / sur devis`, tandis que l&apos;hybride et l&apos;abonnement + commission restent plus exigeants à exécuter.
+            `0 / 19,90 / 49 / 149`, tandis que l&apos;hybride et l&apos;abonnement + commission restent plus exigeants à exécuter.
           </p>
         </div>
 

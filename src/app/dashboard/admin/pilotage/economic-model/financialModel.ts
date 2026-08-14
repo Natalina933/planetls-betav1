@@ -123,15 +123,16 @@ function getEffectiveMonthlySubscriptionPrice(
   assumptions: FinancialAssumptions,
 ) {
   const annualMix = annualPlanMixPct / 100;
-  const essentialPrice =
-    tierPrices.essential * (1 - annualMix * (annualDiscounts.essential / 100));
-  const proPrice = tierPrices.pro * (1 - annualMix * (annualDiscounts.pro / 100));
+  const ownerProPrice =
+    tierPrices.owner_pro * (1 - annualMix * (annualDiscounts.owner_pro / 100));
+  const conciergeProPrice =
+    tierPrices.concierge_pro * (1 - annualMix * (annualDiscounts.concierge_pro / 100));
   const businessPrice =
     tierPrices.business * (1 - annualMix * (annualDiscounts.business / 100));
 
   return (
-    essentialPrice * (assumptions.tierMixEssentialPct / 100) +
-    proPrice * (assumptions.tierMixProPct / 100) +
+    ownerProPrice * (assumptions.tierMixEssentialPct / 100) +
+    conciergeProPrice * (assumptions.tierMixProPct / 100) +
     businessPrice * (assumptions.tierMixBusinessPct / 100)
   );
 }

@@ -43,6 +43,10 @@ type PersonaFlipCardProps = {
   tone: PersonaTone;
   icon: "owner" | "concierge" | "provider" | "team" | "merchant" | "admin" | "traveler";
   backTitle?: string;
+  profileLabel: string;
+  mainNeed: string;
+  platformValue: string;
+  potentialLabel: string;
 };
 
 function PersonaIcon({ icon }: { icon: PersonaFlipCardProps["icon"] }) {
@@ -98,6 +102,10 @@ export function PersonaFlipCard({
   tone,
   icon,
   backTitle = "Détails",
+  profileLabel,
+  mainNeed,
+  platformValue,
+  potentialLabel,
 }: PersonaFlipCardProps) {
   const [flipped, setFlipped] = useState(false);
 
@@ -134,10 +142,18 @@ export function PersonaFlipCard({
               <div className={styles.personaCardMeta}>
                 <span>{visualBadge}</span>
                 <span>{commercialOffer}</span>
-                <span>{potential}</span>
+                <span>{potentialLabel}</span>
               </div>
 
               <div className={styles.personaCardInfoGrid}>
+                <div className={styles.personaInfoPill}>
+                  <strong>Profil</strong>
+                  <p>{profileLabel}</p>
+                </div>
+                <div className={styles.personaInfoPill}>
+                  <strong>Besoin principal</strong>
+                  <p>{mainNeed}</p>
+                </div>
                 <div className={styles.personaInfoPill}>
                   <strong>Dashboard</strong>
                   <p>{dashboardType}</p>
@@ -147,12 +163,17 @@ export function PersonaFlipCard({
                   <p>{focus}</p>
                 </div>
                 <div className={styles.personaInfoPill}>
-                  <strong>Usage</strong>
-                  <p>{segment}</p>
+                  <strong>Apport PlanetLS</strong>
+                  <p>{platformValue}</p>
+                </div>
+                <div className={styles.personaInfoPill}>
+                  <strong>Potentiel</strong>
+                  <p>{potential}</p>
                 </div>
               </div>
 
               <div className={styles.personaCardTags}>
+                <span>{segment}</span>
                 <span>{primaryDevice}</span>
                 <span>{digitalLevel}</span>
                 <span>{needs[0]}</span>
@@ -209,6 +230,25 @@ export function PersonaFlipCard({
               <div className={styles.dashboardChip}>
                 <span>Dashboard conseillé</span>
                 <strong>{dashboardType}</strong>
+              </div>
+
+              <div className={styles.personaBackMetaGrid}>
+                <div className={styles.personaInfoPill}>
+                  <strong>Profil</strong>
+                  <p>{profileLabel}</p>
+                </div>
+                <div className={styles.personaInfoPill}>
+                  <strong>Besoin principal</strong>
+                  <p>{mainNeed}</p>
+                </div>
+                <div className={styles.personaInfoPill}>
+                  <strong>Apport PlanetLS</strong>
+                  <p>{platformValue}</p>
+                </div>
+                <div className={styles.personaInfoPill}>
+                  <strong>Potentiel payant</strong>
+                  <p>{potential}</p>
+                </div>
               </div>
 
               <div className={styles.personaBlock}>

@@ -278,7 +278,7 @@ export const BUSINESS_PLAN_SECTIONS: BusinessPlanSectionDefinition[] = [
     order: 11,
     title: "Tarification et abonnements",
     eyebrow: "11. Tarification et abonnements",
-    summary: "Gamme 29 / 49 / sur devis, offre Stripe reelle et scenarios compares sans dispersion.",
+    summary: "Gamme Free / Owner Pro / Concierge Pro / Business, offre Stripe reelle et scenarios compares sans dispersion.",
     status: toLegacyStatus(SECTION_STATUS.pricing),
     evidence: "Modele economique + offre Stripe existante.",
   },

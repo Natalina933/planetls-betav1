@@ -1,47 +1,47 @@
 # Master Plan PlanetLS
 
-> Document officiel de pilotage produit, métier et technique  
-> Version initiale consolidée : 18 juillet 2026  
-> Source de vérité : code du dépôt, schémas/migrations, tests, puis documentation historique  
-> Propriétaire du document : direction produit PlanetLS  
-> Prochaine revue : à chaque fin de lot ou au minimum toutes les deux semaines
+> Document officiel de pilotage produit, mÃƒÂ©tier et technique  
+> Version initiale consolidÃƒÂ©e : 18 juillet 2026  
+> Source de vÃƒÂ©ritÃƒÂ© : code du dÃƒÂ©pÃƒÂ´t, schÃƒÂ©mas/migrations, tests, puis documentation historique  
+> PropriÃƒÂ©taire du document : direction produit PlanetLS  
+> Prochaine revue : ÃƒÂ  chaque fin de lot ou au minimum toutes les deux semaines
 
 > Encodage du document normalise en UTF-8 le 6 aout 2026 pour supprimer les entrees hybrides UTF-8 / Windows-1252.
 
 ## 0. Mode d'emploi et gouvernance
 
-Ce document remplace les nouveaux audits transverses comme support de pilotage. Les documents historiques de `docs/` restent conservés comme preuves, spécifications détaillées et archives de décisions ; ils ne doivent plus être utilisés seuls pour déterminer l'état courant du produit.
+Ce document remplace les nouveaux audits transverses comme support de pilotage. Les documents historiques de `docs/` restent conservÃƒÂ©s comme preuves, spÃƒÂ©cifications dÃƒÂ©taillÃƒÂ©es et archives de dÃƒÂ©cisions ; ils ne doivent plus ÃƒÂªtre utilisÃƒÂ©s seuls pour dÃƒÂ©terminer l'ÃƒÂ©tat courant du produit.
 
-### Règles de mise à jour
+### RÃƒÂ¨gles de mise ÃƒÂ  jour
 
-1. Le code, les migrations réellement appliquées et les tests exécutés priment sur les affirmations historiques.
-2. Une page ou une route présente ne suffit pas à déclarer une fonctionnalité terminée.
-3. Une fonctionnalité est `✅ Terminée` seulement si son parcours principal est branché, persistant, autorisé côté serveur et validé.
-4. Une fonctionnalité est `🟡 En cours` si une surface existe mais qu'il manque persistance, couverture de bout en bout, homogénéité ou validation réelle.
-5. Une fonctionnalité est `🔴 Non commencée` si elle n'existe qu'en idée ou en spécification.
-6. Toute nouvelle idée va d'abord en section 7. Toute décision prise va dans le journal, puis met à jour la roadmap et la checklist si nécessaire.
-7. Ne pas créer un nouvel audit global : mettre à jour ce document et lier, si indispensable, une spécification spécialisée.
+1. Le code, les migrations rÃƒÂ©ellement appliquÃƒÂ©es et les tests exÃƒÂ©cutÃƒÂ©s priment sur les affirmations historiques.
+2. Une page ou une route prÃƒÂ©sente ne suffit pas ÃƒÂ  dÃƒÂ©clarer une fonctionnalitÃƒÂ© terminÃƒÂ©e.
+3. Une fonctionnalite est `Terminee` seulement si son parcours principal est branche, persistant, autorise cote serveur et valide.
+4. Une fonctionnalite est `En cours` si une surface existe mais qu'il manque persistance, couverture de bout en bout, homogeneite ou validation reelle.
+5. Une fonctionnalite est `A faire` si elle n'existe qu'en idee ou en specification.
+6. Toute nouvelle idÃƒÂ©e va d'abord en section 7. Toute dÃƒÂ©cision prise va dans le journal, puis met ÃƒÂ  jour la roadmap et la checklist si nÃƒÂ©cessaire.
+7. Ne pas crÃƒÂ©er un nouvel audit global : mettre ÃƒÂ  jour ce document et lier, si indispensable, une spÃƒÂ©cification spÃƒÂ©cialisÃƒÂ©e.
 8. Toute evolution importante susceptible d'affecter le Business Plan doit declencher un `Business Impact Check` selon `docs/business-plan-maintenance.md`, meme si aucune hypothese strategique n'est modifiee dans la meme mission.
 
-### Niveaux de maturité
+### Niveaux de maturitÃƒÂ©
 
-| Niveau | Définition |
+| Niveau | DÃƒÂ©finition |
 |---|---|
-| N0 — Idée | Intention sans conception validée |
-| N1 — Spécifié | Parcours/règles documentés, pas de réalisation exploitable |
-| N2 — Socle | UI, helper ou API partielle ; données parfois locales ou en `metadata` |
-| N3 — Fonctionnel | Parcours principal persistant et utilisable, finitions ou E2E manquants |
-| N4 — Validé | Parcours complet, permissions, erreurs, tests et QA réels validés |
-| N5 — Piloté | N4 + métriques, alertes et amélioration continue |
+| N0 Ã¢â‚¬â€ IdÃƒÂ©e | Intention sans conception validÃƒÂ©e |
+| N1 Ã¢â‚¬â€ SpÃƒÂ©cifiÃƒÂ© | Parcours/rÃƒÂ¨gles documentÃƒÂ©s, pas de rÃƒÂ©alisation exploitable |
+| N2 Ã¢â‚¬â€ Socle | UI, helper ou API partielle ; donnÃƒÂ©es parfois locales ou en `metadata` |
+| N3 Ã¢â‚¬â€ Fonctionnel | Parcours principal persistant et utilisable, finitions ou E2E manquants |
+| N4 Ã¢â‚¬â€ ValidÃƒÂ© | Parcours complet, permissions, erreurs, tests et QA rÃƒÂ©els validÃƒÂ©s |
+| N5 Ã¢â‚¬â€ PilotÃƒÂ© | N4 + mÃƒÂ©triques, alertes et amÃƒÂ©lioration continue |
 
-### Critère de priorité
+### CritÃƒÂ¨re de prioritÃƒÂ©
 
-| Priorité | Sens |
+| PrioritÃƒÂ© | Sens |
 |---|---|
-| Critique | Bloque la fiabilité, la sécurité, la donnée, le lancement ou un parcours de valeur principal |
-| Importante | Augmente fortement conversion, rétention ou efficacité opérationnelle |
-| Confort | Améliore cohérence, lisibilité ou productivité sans bloquer l'usage |
-| Évolution future | Pari stratégique à valider avant industrialisation |
+| Critique | Bloque la fiabilitÃƒÂ©, la sÃƒÂ©curitÃƒÂ©, la donnÃƒÂ©e, le lancement ou un parcours de valeur principal |
+| Importante | Augmente fortement conversion, rÃƒÂ©tention ou efficacitÃƒÂ© opÃƒÂ©rationnelle |
+| Confort | AmÃƒÂ©liore cohÃƒÂ©rence, lisibilitÃƒÂ© ou productivitÃƒÂ© sans bloquer l'usage |
+| Ãƒâ€°volution future | Pari stratÃƒÂ©gique ÃƒÂ  valider avant industrialisation |
 
 ---
 
@@ -49,489 +49,489 @@ Ce document remplace les nouveaux audits transverses comme support de pilotage. 
 
 ### Mission
 
-PlanetLS aide les professionnels de la location saisonnière à se trouver, se faire confiance et travailler ensemble dans un même environnement : de l'identité professionnelle et la mise en relation jusqu'à la demande, au devis, à la mission, au séjour, au paiement et au suivi opérationnel.
+PlanetLS aide les professionnels de la location saisonniÃƒÂ¨re ÃƒÂ  se trouver, se faire confiance et travailler ensemble dans un mÃƒÂªme environnement : de l'identitÃƒÂ© professionnelle et la mise en relation jusqu'ÃƒÂ  la demande, au devis, ÃƒÂ  la mission, au sÃƒÂ©jour, au paiement et au suivi opÃƒÂ©rationnel.
 
 ### Ambition
 
-Devenir le réseau professionnel opérationnel de référence de la location saisonnière en France : un réseau vivant, local et vérifiable, doublé d'un cockpit métier pour exécuter le travail quotidien.
+Devenir le rÃƒÂ©seau professionnel opÃƒÂ©rationnel de rÃƒÂ©fÃƒÂ©rence de la location saisonniÃƒÂ¨re en France : un rÃƒÂ©seau vivant, local et vÃƒÂ©rifiable, doublÃƒÂ© d'un cockpit mÃƒÂ©tier pour exÃƒÂ©cuter le travail quotidien.
 
 ### Valeurs
 
-- **Confiance prouvée** : identité, certifications, assurance, avis, historique, preuves et statuts explicites.
-- **Clarté** : une prochaine action compréhensible, des règles métier stables, aucun statut ambigu.
-- **Utilité terrain** : mobile, rapidité, disponibilité, zones et contraintes réelles avant sophistication décorative.
-- **Coopération** : faire circuler demandes, missions, informations et responsabilités entre acteurs.
-- **Professionnalisme humain** : automatiser la charge administrative sans déshumaniser la relation locale.
-- **Traçabilité** : conserver décisions, événements, documents et arbitrages.
-- **Accessibilité** : servir aussi bien un utilisateur peu technophile qu'une structure experte en croissance.
+- **Confiance prouvÃƒÂ©e** : identitÃƒÂ©, certifications, assurance, avis, historique, preuves et statuts explicites.
+- **ClartÃƒÂ©** : une prochaine action comprÃƒÂ©hensible, des rÃƒÂ¨gles mÃƒÂ©tier stables, aucun statut ambigu.
+- **UtilitÃƒÂ© terrain** : mobile, rapiditÃƒÂ©, disponibilitÃƒÂ©, zones et contraintes rÃƒÂ©elles avant sophistication dÃƒÂ©corative.
+- **CoopÃƒÂ©ration** : faire circuler demandes, missions, informations et responsabilitÃƒÂ©s entre acteurs.
+- **Professionnalisme humain** : automatiser la charge administrative sans dÃƒÂ©shumaniser la relation locale.
+- **TraÃƒÂ§abilitÃƒÂ©** : conserver dÃƒÂ©cisions, ÃƒÂ©vÃƒÂ©nements, documents et arbitrages.
+- **AccessibilitÃƒÂ©** : servir aussi bien un utilisateur peu technophile qu'une structure experte en croissance.
 
 ### Objectifs
 
-1. Réduire le temps entre inscription et première valeur : profil utile, demande reçue ou mission trouvée.
-2. Fluidifier le cycle `recherche → demande → devis → mission → paiement → avis`.
-3. Donner aux conciergeries un cockpit complet : logements, propriétaires, réservations, équipe, maintenance, finance et prestataires.
-4. Donner aux propriétaires visibilité, contrôle et confiance sans complexité opérationnelle.
-5. Donner aux artisans un canal qualifié de missions locales et un outil de suivi mobile.
-6. Créer une densité locale visible pour résoudre le démarrage du réseau.
-7. Piloter activation, conversion, qualité et liquidité locale par des KPI fiables.
+1. RÃƒÂ©duire le temps entre inscription et premiÃƒÂ¨re valeur : profil utile, demande reÃƒÂ§ue ou mission trouvÃƒÂ©e.
+2. Fluidifier le cycle `recherche Ã¢â€ â€™ demande Ã¢â€ â€™ devis Ã¢â€ â€™ mission Ã¢â€ â€™ paiement Ã¢â€ â€™ avis`.
+3. Donner aux conciergeries un cockpit complet : logements, propriÃƒÂ©taires, rÃƒÂ©servations, ÃƒÂ©quipe, maintenance, finance et prestataires.
+4. Donner aux propriÃƒÂ©taires visibilitÃƒÂ©, contrÃƒÂ´le et confiance sans complexitÃƒÂ© opÃƒÂ©rationnelle.
+5. Donner aux artisans un canal qualifiÃƒÂ© de missions locales et un outil de suivi mobile.
+6. CrÃƒÂ©er une densitÃƒÂ© locale visible pour rÃƒÂ©soudre le dÃƒÂ©marrage du rÃƒÂ©seau.
+7. Piloter activation, conversion, qualitÃƒÂ© et liquiditÃƒÂ© locale par des KPI fiables.
 
 ### Positionnement
 
 PlanetLS n'est ni un simple annuaire, ni uniquement une marketplace, ni seulement un logiciel de conciergerie. Son positionnement cible combine :
 
-- un **réseau professionnel vertical** centré sur la location saisonnière ;
+- un **rÃƒÂ©seau professionnel vertical** centrÃƒÂ© sur la location saisonniÃƒÂ¨re ;
 - une **marketplace locale de besoins et de missions** ;
-- un **système opérationnel partagé** pour réaliser, documenter et payer le travail.
+- un **systÃƒÂ¨me opÃƒÂ©rationnel partagÃƒÂ©** pour rÃƒÂ©aliser, documenter et payer le travail.
 
-Le point d'entrée peut varier par acteur, mais le produit doit converger vers un graphe commun : personnes, entreprises, logements, zones, services, demandes, missions, séjours et preuves.
+Le point d'entrÃƒÂ©e peut varier par acteur, mais le produit doit converger vers un graphe commun : personnes, entreprises, logements, zones, services, demandes, missions, sÃƒÂ©jours et preuves.
 
-### Différenciation
+### DiffÃƒÂ©renciation
 
-- Réseau spécialisé plutôt que plateforme généraliste de services.
-- Continuité entre découverte et exécution, là où les annuaires s'arrêtent au contact.
-- Données métier propres à la location saisonnière : check-in/out, ménage, linge, maintenance, voyageurs, planning, SLA et urgence.
-- Profils orientés preuves et capacité réelle, pas seulement présentation.
-- Expérience adaptée à chaque rôle, avec permissions et données partagées maîtrisées.
-- Densité locale rendue visible par le fil, la carte et le mur des missions.
+- RÃƒÂ©seau spÃƒÂ©cialisÃƒÂ© plutÃƒÂ´t que plateforme gÃƒÂ©nÃƒÂ©raliste de services.
+- ContinuitÃƒÂ© entre dÃƒÂ©couverte et exÃƒÂ©cution, lÃƒÂ  oÃƒÂ¹ les annuaires s'arrÃƒÂªtent au contact.
+- DonnÃƒÂ©es mÃƒÂ©tier propres ÃƒÂ  la location saisonniÃƒÂ¨re : check-in/out, mÃƒÂ©nage, linge, maintenance, voyageurs, planning, SLA et urgence.
+- Profils orientÃƒÂ©s preuves et capacitÃƒÂ© rÃƒÂ©elle, pas seulement prÃƒÂ©sentation.
+- ExpÃƒÂ©rience adaptÃƒÂ©e ÃƒÂ  chaque rÃƒÂ´le, avec permissions et donnÃƒÂ©es partagÃƒÂ©es maÃƒÂ®trisÃƒÂ©es.
+- DensitÃƒÂ© locale rendue visible par le fil, la carte et le mur des missions.
 
 ### Proposition de valeur par cible
 
-- **Propriétaire** : trouver les bons professionnels, comparer clairement et suivre son logement sans perdre le contrôle.
-- **Concierge** : gagner des mandats, organiser l'exploitation, coordonner équipes et artisans, maîtriser marge et qualité.
-- **Artisan / commerçant** : recevoir des missions locales qualifiées, prouver son sérieux et simplifier intervention, devis et facturation.
-- **Équipe** : savoir quoi faire, où, quand et avec quelles consignes, puis laisser une preuve exploitable.
-- **Administrateur** : garantir sécurité, qualité du réseau, résolution des blocages et pilotage de la croissance.
+- **PropriÃƒÂ©taire** : trouver les bons professionnels, comparer clairement et suivre son logement sans perdre le contrÃƒÂ´le.
+- **Concierge** : gagner des mandats, organiser l'exploitation, coordonner ÃƒÂ©quipes et artisans, maÃƒÂ®triser marge et qualitÃƒÂ©.
+- **Artisan / commerÃƒÂ§ant** : recevoir des missions locales qualifiÃƒÂ©es, prouver son sÃƒÂ©rieux et simplifier intervention, devis et facturation.
+- **Ãƒâ€°quipe** : savoir quoi faire, oÃƒÂ¹, quand et avec quelles consignes, puis laisser une preuve exploitable.
+- **Administrateur** : garantir sÃƒÂ©curitÃƒÂ©, qualitÃƒÂ© du rÃƒÂ©seau, rÃƒÂ©solution des blocages et pilotage de la croissance.
 
 ---
 
 ## 2. Acteurs et objectifs
 
-| Acteur | Objectifs principaux | Première valeur attendue | Critère de réussite |
+| Acteur | Objectifs principaux | PremiÃƒÂ¨re valeur attendue | CritÃƒÂ¨re de rÃƒÂ©ussite |
 |---|---|---|---|
-| Propriétaire | Trouver une concierge ou un prestataire fiable, formuler son besoin, comparer, suivre missions, paiements et documents | Obtenir une première réponse qualifiée | Demande transformée en collaboration puis mission réussie |
-| Propriétaire professionnel | Piloter plusieurs biens, partenaires, revenus, incidents et niveaux de service | Importer/créer ses biens et identifier les responsables | Portefeuille suivi sans outils parallèles |
-| Concierge / conciergerie | Trouver des propriétaires, recevoir des demandes, vendre des packs, gérer logements, séjours, planning, équipe, artisans et finances | Recevoir une demande ou intégrer un premier logement | Activité quotidienne pilotée dans PlanetLS |
-| Artisan / prestataire | Afficher métiers, zone, disponibilité et preuves ; accepter des interventions ; échanger, deviser et facturer | Voir ou recevoir une mission pertinente à proximité | Intervention réalisée, prouvée et payée |
-| Commerçant | Proposer produits ou services locaux récurrents aux logements/conciergeries | Être découvert sur une zone et un besoin précis | Commande ou partenariat récurrent ; rôle encore à spécifier séparément de l'artisan |
-| Équipe de conciergerie | Recevoir les affectations, exécuter checklists, signaler blocages, ajouter photos/signature | Voir le planning et la mission du jour | Mission clôturée avec preuve, sans ressaisie |
-| Administrateur | Gérer utilisateurs, rôles, conformité, opérations, qualité, KPI et incidents | Identifier un compte ou workflow bloqué | Réseau sain, support rapide et métriques fiables |
-| Voyageur | Recevoir des informations de séjour et signaler un besoin, sans être évalué ni surprofilé | Accéder aux informations utiles de son séjour | Arrivée/départ fluide ; rôle externe prévu, pas encore un espace utilisateur autonome |
+| PropriÃƒÂ©taire | Trouver une concierge ou un prestataire fiable, formuler son besoin, comparer, suivre missions, paiements et documents | Obtenir une premiÃƒÂ¨re rÃƒÂ©ponse qualifiÃƒÂ©e | Demande transformÃƒÂ©e en collaboration puis mission rÃƒÂ©ussie |
+| PropriÃƒÂ©taire professionnel | Piloter plusieurs biens, partenaires, revenus, incidents et niveaux de service | Importer/crÃƒÂ©er ses biens et identifier les responsables | Portefeuille suivi sans outils parallÃƒÂ¨les |
+| Concierge / conciergerie | Trouver des propriÃƒÂ©taires, recevoir des demandes, vendre des packs, gÃƒÂ©rer logements, sÃƒÂ©jours, planning, ÃƒÂ©quipe, artisans et finances | Recevoir une demande ou intÃƒÂ©grer un premier logement | ActivitÃƒÂ© quotidienne pilotÃƒÂ©e dans PlanetLS |
+| Artisan / prestataire | Afficher mÃƒÂ©tiers, zone, disponibilitÃƒÂ© et preuves ; accepter des interventions ; ÃƒÂ©changer, deviser et facturer | Voir ou recevoir une mission pertinente ÃƒÂ  proximitÃƒÂ© | Intervention rÃƒÂ©alisÃƒÂ©e, prouvÃƒÂ©e et payÃƒÂ©e |
+| CommerÃƒÂ§ant | Proposer produits ou services locaux rÃƒÂ©currents aux logements/conciergeries | ÃƒÅ tre dÃƒÂ©couvert sur une zone et un besoin prÃƒÂ©cis | Commande ou partenariat rÃƒÂ©current ; rÃƒÂ´le encore ÃƒÂ  spÃƒÂ©cifier sÃƒÂ©parÃƒÂ©ment de l'artisan |
+| Ãƒâ€°quipe de conciergerie | Recevoir les affectations, exÃƒÂ©cuter checklists, signaler blocages, ajouter photos/signature | Voir le planning et la mission du jour | Mission clÃƒÂ´turÃƒÂ©e avec preuve, sans ressaisie |
+| Administrateur | GÃƒÂ©rer utilisateurs, rÃƒÂ´les, conformitÃƒÂ©, opÃƒÂ©rations, qualitÃƒÂ©, KPI et incidents | Identifier un compte ou workflow bloquÃƒÂ© | RÃƒÂ©seau sain, support rapide et mÃƒÂ©triques fiables |
+| Voyageur | Recevoir des informations de sÃƒÂ©jour et signaler un besoin, sans ÃƒÂªtre ÃƒÂ©valuÃƒÂ© ni surprofilÃƒÂ© | AccÃƒÂ©der aux informations utiles de son sÃƒÂ©jour | ArrivÃƒÂ©e/dÃƒÂ©part fluide ; rÃƒÂ´le externe prÃƒÂ©vu, pas encore un espace utilisateur autonome |
 
-### Principes de responsabilité
+### Principes de responsabilitÃƒÂ©
 
-- Le propriétaire décide du besoin, du devis et du paiement.
-- La conciergerie orchestre l'exploitation et les intervenants autorisés.
-- L'artisan exécute son périmètre et fournit les preuves nécessaires.
-- L'équipe n'accède qu'aux logements, missions et données utiles à son affectation.
-- L'administrateur supervise mais les actions sensibles doivent rester tracées.
-- Le voyageur reste un bénéficiaire opérationnel ; aucun scoring sensible ou profil commercial implicite.
+- Le propriÃƒÂ©taire dÃƒÂ©cide du besoin, du devis et du paiement.
+- La conciergerie orchestre l'exploitation et les intervenants autorisÃƒÂ©s.
+- L'artisan exÃƒÂ©cute son pÃƒÂ©rimÃƒÂ¨tre et fournit les preuves nÃƒÂ©cessaires.
+- L'ÃƒÂ©quipe n'accÃƒÂ¨de qu'aux logements, missions et donnÃƒÂ©es utiles ÃƒÂ  son affectation.
+- L'administrateur supervise mais les actions sensibles doivent rester tracÃƒÂ©es.
+- Le voyageur reste un bÃƒÂ©nÃƒÂ©ficiaire opÃƒÂ©rationnel ; aucun scoring sensible ou profil commercial implicite.
 
 ---
 
-## 3. État actuel du projet au 18 juillet 2026
+## 3. Ãƒâ€°tat actuel du projet au 18 juillet 2026
 
-### Photographie technique vérifiée
+### Photographie technique vÃƒÂ©rifiÃƒÂ©e
 
 - Next.js App Router 16.1.6, React 19, TypeScript, Supabase, NextAuth, SCSS et Vercel.
 - 118 pages App Router, 103 routes API, 42 fichiers de tests et 76 composants TSX/JSX sous `src/components` et `src/features`.
-- 158 tests exécutés le 18/07/2026 : 158 réussis, aucun échec.
-- Les migrations sont réparties entre `supabase/migrations` et `database/migrations` : cette double source reste une dette de gouvernance.
-- Les rôles owner, concierge, provider/artisan et admin disposent de surfaces dédiées.
+- 158 tests exÃƒÂ©cutÃƒÂ©s le 18/07/2026 : 158 rÃƒÂ©ussis, aucun ÃƒÂ©chec.
+- Les migrations sont rÃƒÂ©parties entre `supabase/migrations` et `database/migrations` : cette double source reste une dette de gouvernance.
+- Les rÃƒÂ´les owner, concierge, provider/artisan et admin disposent de surfaces dÃƒÂ©diÃƒÂ©es.
 
 ### Tableau fonctionnel construit depuis le code
 
-| Fonctionnalité | État | Niveau | Observations factuelles |
+| FonctionnalitÃƒÂ© | Ãƒâ€°tat | Niveau | Observations factuelles |
 |---|---|---:|---|
-| Authentification, inscription, rôles | 🟡 En cours | N3 | Login/register, NextAuth, proxy et guards API présents ; un garde CSRF central bloque désormais les mutations `/api` hors mêmes origines autorisées avec exemptions explicites pour `/api/auth`, webhook Stripe et appels serveur-à-serveur signés ; onboarding et catégories legacy restent complexes ; E2E absent |
-| Onboarding multi-profils | 🟡 En cours | N3 | Tunnel multi-étapes et événements présents ; personnalisation concierge plus mûre que owner/provider ; cohérence et instrumentation à finir |
-| Dashboard propriétaire | 🟡 En cours | N3 | Cockpit riche et données réelles ; la vue d'ensemble `/dashboard/owner` s'appuie maintenant sur un socle partagé `UnifiedRoleDashboard` avec listes spotlight et piles de stats réutilisables pour priorités, missions et séjours ; quelques strates historiques et états UX restent à harmoniser sur les pages secondaires |
-| Dashboard concierge | 🟡 En cours | N3 | Surface la plus avancée : cockpit, modes, objectifs, alertes, finance, CRM, maintenance ; la vue d'ensemble `/dashboard/concierge` utilise déjà le même socle UI partagé `UnifiedRoleDashboard` et conserve ses widgets, modes d'exploitation et agrégations métier propres ; plusieurs fonctions récentes restent partiellement locales/`metadata` |
-| Dashboard artisan/provider | 🟡 En cours | N3 | E2E mission → intervention → preuve média privée → facture liée validé ; la vue d'ensemble `/dashboard/provider` converge maintenant elle aussi vers le socle UI partagé `UnifiedRoleDashboard`, avec priorités, planning, devis, activité et rails latéraux homogénéisés sans fusionner la logique provider ; profil métier éditable et persistant (activité, zone, disponibilité, tarifs, expérience, identité légale, assurance, certifications) ; paiement et preuves documentaires restent incomplets |
-| Dashboard administrateur | 🟡 En cours | N3 | Mission Control admin recentré sur priorités, activité, tables métier, graphiques d'activation, donuts de répartition/contrôle, cartes de santé visuelles par section, hero éditorial premium et filtres segment/période ; la page `controle` suit maintenant le même niveau premium avec hero santé, onglets de premier niveau `Santé globale / Inscriptions / Missions / Messages` et surfaces de pilotage plus lisibles ; la vue d'ensemble `/dashboard/admin` converge désormais aussi vers le socle partagé `UnifiedRoleDashboard`, ce qui aligne le hero, les KPI et les rails latéraux avec l'espace propriétaire tout en conservant les agrégations admin existantes ; le parseur d'actions admin accepte aussi des identifiants système stables non UUID pour préparer le suivi d'incidents transverses sans casser les cibles métier existantes ; la page `developpement` est maintenant recentrée sur l'exécution technique `Master Plan, Mission Control, Roadmap, Mémoire, Journal`, avec le `Tableau fonctionnel / Master Plan` placé en premier et sans le `Conseiller projet` ; la page `/dashboard/admin/pilotage` synthétise désormais acquisition, activation, pipeline missions, conversion de facturation, tensions business et actions recommandées à partir des endpoints admin existants, affiche une lecture financière plus directive `prix, abonnement, commission, réserve solidaire`, conserve un bloc `Due diligence investisseur` avec verdict, scores, questions critiques, red flags et conditions avant levée, et récupère maintenant les arbitrages utiles issus du développement via une route admin dédiée `/api/admin/project-advisor` ; lecture dégradée maintenue quand certaines sources sont indisponibles ; responsive mobile des tableaux et accessibilité clavier/lecteur d'écran renforcées ; overview, contrôle, pilotage, utilisateurs et vues par rôle reliés ; validations connectées et navigation E2E encore à renforcer |
-| Profils professionnels | 🟡 En cours | N3 | Profil concierge riche, owner preferences persistées ; profil artisan enrichi et persistant avec complétude métier ; la page publique concierge `/concierges/[id]` expose maintenant aussi une mini-surface type Linktree avec liens utiles `site web, LinkedIn, Instagram, Facebook`, une section `Actions recommandées` et un tracking léger des CTA issus du profil existant, sans nouveau modèle de données ; l'ouverture aux profils provider est volontairement reportée tant que leurs signaux publics de confiance et leurs CTA métier ne sont pas mieux stabilisés ; portfolio, pièces justificatives vérifiées, avis et historique complet non aboutis |
-| Recherche et matching de concierges | 🟡 En cours | N3 | Recherche, filtres, cartes publiques, alertes et sélection multi-destinataires ; qualité dépend de la densité et de champs legacy |
-| Demandes de service | 🟡 En cours | N3 | E2E demande → devis accepté → mission → facture payée par webhook Stripe signé validé ; création de la session Checkout hébergée reste à couvrir avec une clé test |
-| Devis | 🟡 En cours | N3 | Création, documents, consultation, comparaison, acceptation/refus et lien demande présents ; parcours complet à valider |
-| Missions | 🟡 En cours | N3 | CRUD, permissions, statuts, détails riches, fichiers, événements et affectations ; plusieurs données riches sont en `metadata` |
-| Missions urgentes | 🟡 En cours | N3 | Publication/acceptation et surfaces owner/concierge présentes ; liquidité réelle et règles d'attribution à éprouver |
-| Planning | 🟡 En cours | N3 | Pages owner/concierge/provider, calendrier et statuts ; planification après paiement validée E2E owner/concierge ; garde anti-chevauchement actif ; charge quotidienne visible ; table équipe, RLS et API ajoutées avec repli local ; migration Supabase à appliquer avant persistance réelle, puis drag-and-drop et temps de trajet à consolider |
-| Logements | 🟡 En cours | N3 | Création, édition, photos, vues owner/concierge et collaborations ; coexistence `housing`/`properties` à normaliser |
-| Messagerie owner/concierge | 🟡 En cours | N3 | Conversations/messages et UI des deux rôles ; temps réel, notifications et parcours E2E à confirmer |
-| Messagerie provider | 🟡 En cours | N3 | API et UI présentes, synchronisation du dernier message durcie ; QA fermeture/réouverture et chaîne client-intervention incomplètes |
-| Notifications et alertes | 🟡 En cours | N2 | Centre de notifications, alertes concierge/provider et événements existent ; distribution uniforme, push et préférences manquent |
-| Factures et paiements | 🟡 En cours | N3 | Factures, documents, checkout/sync/webhook, acompte/solde modélisés ; webhook de paiement signé validé E2E, Checkout hébergé et échecs visibles restent partiels |
-| Tarification, packs et contrats | 🟡 En cours | N3 | Pricing, segments, règles, scénarios, packs et modèles de contrat ; complexité élevée et validation métier de bout en bout à faire |
-| CRM propriétaires | 🟡 En cours | N2 | Helper et page contacts enrichie ; consolidation utile, mais persistance dédiée et timeline unifiée non finalisées |
-| Équipe et affectations | 🟡 En cours | N2 | Modèle métier, page et action d'affectation ; tables spécialisées, permissions fines et persistance complète manquent |
-| Réservations et séjours voyageurs | 🟡 En cours | N2 | Moteur, API réservations, API séjours, page concierge et tests ; données principalement via missions/`metadata`, pas d'espace voyageur ; la route `/api/reservations/[id]` s'aligne maintenant sur le type partagé `TravelerStayMissionRow` au lieu d'un cast générique ; clarification métier formalisée le mercredi 29 juillet 2026 : la réservation ou le séjour doit devenir l'objet canonique partagé entre propriétaire et conciergerie, les missions restant des actions d'exécution liées, avec interventions artisans en troisième niveau |
-| Maintenance et artisans | 🟡 En cours | N3 | Affectation, exécution, preuve média privée avec empreinte SHA-256 et facture provider liée validées E2E ; paiement reste à couvrir |
-| Litiges et preuves | 🟡 En cours | N2 | Migrations inspections/litiges, routes API et page owner existent ; l'export HTML de dossier litige ne diffuse plus d'URLs publiques Storage et génère désormais des liens signés temporaires pour les preuves ; parcours obligatoire post-checkout et validation E2E non prouvés |
-| Carte interactive réseau | 🔴 Non commencée | N1 | Bibliothèques carte et prototypes de recherche existent, mais pas de carte unifiée acteurs + missions + recherches |
-| Fil d'actualité professionnel | 🔴 Non commencée | N0 | Aucun modèle ni flux réseau professionnel canonique |
-| Mur des missions | 🔴 Non commencée | N1 | Les missions urgentes fournissent un socle, sans marketplace géolocalisée ouverte et filtrable |
-| Avis, réputation et certifications | 🟡 En cours | N2 | API reviews et champs de profil existent ; expérience complète, modération et preuves vérifiées non abouties |
-| KPI produit | 🟡 En cours | N3 | Endpoint overview et affichage admin ; activation J+7, temps de première valeur, conversion et séries fiables disponibles ; en local, `/api/kpis/overview` injecte désormais des cohortes workspace crédibles quand Supabase est inaccessible ou quand aucune cohorte mature n'existe encore ; en connecté, un seed persistant `scripts/seed-admin-workspace-kpis.mjs` peuple désormais Supabase en profils/workflows KPI rattachés à l'e-mail admin cible, et l'endpoint KPI retombe proprement sur `provider_interventions` quand la base distante ne publie pas encore `provider_profile_id` sur `missions`, `quotes` ou `invoices` ; inspection distante du mercredi 29 juillet 2026 : `missions` existe mais n'expose pas `title`, `request_id` ni `provider_profile_id`, alors que `quotes.service_request_id`, `invoices.quote_id` et `provider_interventions.provider_profile_id` sont bien présents |
-| Tests E2E navigateur | 🟠 Partiel | N3 | Parcours critiques et transactionnels passent ; branche owner Checkout hébergée prête avec carte Stripe test, retour et synchronisation ; exécution réelle bloquée par l’absence de E2E_STRIPE_SECRET_KEY |
-| Responsive et accessibilité | 🟡 En cours | N3 | Socle, checklists et composants accessibles ; audit systématique clavier/mobile et tests automatisés manquent |
-| Design system | 🟡 En cours | N3 | Primitives, tokens, route showcase et direction Art Déco ; double strate UI, snapshot portable et tests au vert |
-| SEO et acquisition publique | 🟡 En cours | N2 | Pages publiques et profils publics présents ; la home expose désormais aussi une intention éditoriale sur l'impact solidaire/humanitaire du réseau, sans mécanique métier ni paiement associatif branchés à ce stade ; les profils concierges publics disposent maintenant d'un bloc `Liens utiles` type Linktree, d'une section `Actions recommandées` et d'une instrumentation légère de clics CTA branchée sur les champs déjà persistés, ce qui améliore l'actionnabilité sans ouvrir encore un vrai cockpit acquisition ni des CTA provider ; metadata, Open Graph, JSON-LD, pages locales et mesure acquisition restent à faire |
-| PWA / push / hors ligne | 🔴 Non commencée | N1 | Intentions mobile documentées ; checklist/signature actuellement locales, pas de PWA terrain industrialisée |
-| Assistant décoration | 🟠 Partiel | N2 | Page/API, moteur, migration/RLS et tests présents ; E2E lecture passe mais la table n'est pas appliquée sur la base connectée ; image, partage owner et validation terrain restent à finaliser |
+| Authentification, inscription, rÃƒÂ´les | En cours | N3 | Login/register, NextAuth, proxy et guards API prÃƒÂ©sents ; un garde CSRF central bloque dÃƒÂ©sormais les mutations `/api` hors mÃƒÂªmes origines autorisÃƒÂ©es avec exemptions explicites pour `/api/auth`, webhook Stripe et appels serveur-ÃƒÂ -serveur signÃƒÂ©s ; onboarding et catÃƒÂ©gories legacy restent complexes ; E2E absent |
+| Onboarding multi-profils | En cours | N3 | Tunnel multi-ÃƒÂ©tapes et ÃƒÂ©vÃƒÂ©nements prÃƒÂ©sents ; personnalisation concierge plus mÃƒÂ»re que owner/provider ; cohÃƒÂ©rence et instrumentation ÃƒÂ  finir |
+| Dashboard propriÃƒÂ©taire | En cours | N3 | Cockpit riche et donnÃƒÂ©es rÃƒÂ©elles ; la vue d'ensemble `/dashboard/owner` s'appuie maintenant sur un socle partagÃƒÂ© `UnifiedRoleDashboard` avec listes spotlight et piles de stats rÃƒÂ©utilisables pour prioritÃƒÂ©s, missions et sÃƒÂ©jours ; quelques strates historiques et ÃƒÂ©tats UX restent ÃƒÂ  harmoniser sur les pages secondaires |
+| Dashboard concierge | En cours | N3 | Surface la plus avancÃƒÂ©e : cockpit, modes, objectifs, alertes, finance, CRM, maintenance ; la vue d'ensemble `/dashboard/concierge` utilise dÃƒÂ©jÃƒÂ  le mÃƒÂªme socle UI partagÃƒÂ© `UnifiedRoleDashboard` et conserve ses widgets, modes d'exploitation et agrÃƒÂ©gations mÃƒÂ©tier propres ; plusieurs fonctions rÃƒÂ©centes restent partiellement locales/`metadata` |
+| Dashboard artisan/provider | En cours | N3 | E2E mission Ã¢â€ â€™ intervention Ã¢â€ â€™ preuve mÃƒÂ©dia privÃƒÂ©e Ã¢â€ â€™ facture liÃƒÂ©e validÃƒÂ© ; la vue d'ensemble `/dashboard/provider` converge maintenant elle aussi vers le socle UI partagÃƒÂ© `UnifiedRoleDashboard`, avec prioritÃƒÂ©s, planning, devis, activitÃƒÂ© et rails latÃƒÂ©raux homogÃƒÂ©nÃƒÂ©isÃƒÂ©s sans fusionner la logique provider ; profil mÃƒÂ©tier ÃƒÂ©ditable et persistant (activitÃƒÂ©, zone, disponibilitÃƒÂ©, tarifs, expÃƒÂ©rience, identitÃƒÂ© lÃƒÂ©gale, assurance, certifications) ; paiement et preuves documentaires restent incomplets |
+| Dashboard administrateur | En cours | N3 | Mission Control admin recentrÃƒÂ© sur prioritÃƒÂ©s, activitÃƒÂ©, tables mÃƒÂ©tier, graphiques d'activation, donuts de rÃƒÂ©partition/contrÃƒÂ´le, cartes de santÃƒÂ© visuelles par section, hero ÃƒÂ©ditorial premium et filtres segment/pÃƒÂ©riode ; la page `controle` suit maintenant le mÃƒÂªme niveau premium avec hero santÃƒÂ©, onglets de premier niveau `SantÃƒÂ© globale / Inscriptions / Missions / Messages` et surfaces de pilotage plus lisibles ; la vue d'ensemble `/dashboard/admin` converge dÃƒÂ©sormais aussi vers le socle partagÃƒÂ© `UnifiedRoleDashboard`, ce qui aligne le hero, les KPI et les rails latÃƒÂ©raux avec l'espace propriÃƒÂ©taire tout en conservant les agrÃƒÂ©gations admin existantes ; le parseur d'actions admin accepte aussi des identifiants systÃƒÂ¨me stables non UUID pour prÃƒÂ©parer le suivi d'incidents transverses sans casser les cibles mÃƒÂ©tier existantes ; la page `developpement` est maintenant recentrÃƒÂ©e sur l'exÃƒÂ©cution technique `Master Plan, Mission Control, Roadmap, MÃƒÂ©moire, Journal`, avec le `Tableau fonctionnel / Master Plan` placÃƒÂ© en premier et sans le `Conseiller projet` ; la page `/dashboard/admin/pilotage` synthÃƒÂ©tise dÃƒÂ©sormais acquisition, activation, pipeline missions, conversion de facturation, tensions business et actions recommandÃƒÂ©es ÃƒÂ  partir des endpoints admin existants, affiche une lecture financiÃƒÂ¨re plus directive `prix, abonnement, commission, rÃƒÂ©serve solidaire`, conserve un bloc `Due diligence investisseur` avec verdict, scores, questions critiques, red flags et conditions avant levÃƒÂ©e, et rÃƒÂ©cupÃƒÂ¨re maintenant les arbitrages utiles issus du dÃƒÂ©veloppement via une route admin dÃƒÂ©diÃƒÂ©e `/api/admin/project-advisor` ; lecture dÃƒÂ©gradÃƒÂ©e maintenue quand certaines sources sont indisponibles ; responsive mobile des tableaux et accessibilitÃƒÂ© clavier/lecteur d'ÃƒÂ©cran renforcÃƒÂ©es ; overview, contrÃƒÂ´le, pilotage, utilisateurs et vues par rÃƒÂ´le reliÃƒÂ©s ; validations connectÃƒÂ©es et navigation E2E encore ÃƒÂ  renforcer |
+| Profils professionnels | En cours | N3 | Profil concierge riche, owner preferences persistÃƒÂ©es ; profil artisan enrichi et persistant avec complÃƒÂ©tude mÃƒÂ©tier ; la page publique concierge `/concierges/[id]` expose maintenant aussi une mini-surface type Linktree avec liens utiles `site web, LinkedIn, Instagram, Facebook`, une section `Actions recommandÃƒÂ©es` et un tracking lÃƒÂ©ger des CTA issus du profil existant, sans nouveau modÃƒÂ¨le de donnÃƒÂ©es ; l'ouverture aux profils provider est volontairement reportÃƒÂ©e tant que leurs signaux publics de confiance et leurs CTA mÃƒÂ©tier ne sont pas mieux stabilisÃƒÂ©s ; portfolio, piÃƒÂ¨ces justificatives vÃƒÂ©rifiÃƒÂ©es, avis et historique complet non aboutis |
+| Recherche et matching de concierges | En cours | N3 | Recherche, filtres, cartes publiques, alertes et sÃƒÂ©lection multi-destinataires ; qualitÃƒÂ© dÃƒÂ©pend de la densitÃƒÂ© et de champs legacy |
+| Demandes de service | En cours | N3 | E2E demande Ã¢â€ â€™ devis acceptÃƒÂ© Ã¢â€ â€™ mission Ã¢â€ â€™ facture payÃƒÂ©e par webhook Stripe signÃƒÂ© validÃƒÂ© ; crÃƒÂ©ation de la session Checkout hÃƒÂ©bergÃƒÂ©e reste ÃƒÂ  couvrir avec une clÃƒÂ© test |
+| Devis | En cours | N3 | CrÃƒÂ©ation, documents, consultation, comparaison, acceptation/refus et lien demande prÃƒÂ©sents ; parcours complet ÃƒÂ  valider |
+| Missions | En cours | N3 | CRUD, permissions, statuts, dÃƒÂ©tails riches, fichiers, ÃƒÂ©vÃƒÂ©nements et affectations ; plusieurs donnÃƒÂ©es riches sont en `metadata` |
+| Missions urgentes | En cours | N3 | Publication/acceptation et surfaces owner/concierge prÃƒÂ©sentes ; liquiditÃƒÂ© rÃƒÂ©elle et rÃƒÂ¨gles d'attribution ÃƒÂ  ÃƒÂ©prouver |
+| Planning | En cours | N3 | Pages owner/concierge/provider, calendrier et statuts ; planification aprÃƒÂ¨s paiement validÃƒÂ©e E2E owner/concierge ; garde anti-chevauchement actif ; charge quotidienne visible ; table ÃƒÂ©quipe, RLS et API ajoutÃƒÂ©es avec repli local ; migration Supabase ÃƒÂ  appliquer avant persistance rÃƒÂ©elle, puis drag-and-drop et temps de trajet ÃƒÂ  consolider |
+| Logements | En cours | N3 | CrÃƒÂ©ation, ÃƒÂ©dition, photos, vues owner/concierge et collaborations ; coexistence `housing`/`properties` ÃƒÂ  normaliser |
+| Messagerie owner/concierge | En cours | N3 | Conversations/messages et UI des deux rÃƒÂ´les ; temps rÃƒÂ©el, notifications et parcours E2E ÃƒÂ  confirmer |
+| Messagerie provider | En cours | N3 | API et UI prÃƒÂ©sentes, synchronisation du dernier message durcie ; QA fermeture/rÃƒÂ©ouverture et chaÃƒÂ®ne client-intervention incomplÃƒÂ¨tes |
+| Notifications et alertes | En cours | N2 | Centre de notifications, alertes concierge/provider et ÃƒÂ©vÃƒÂ©nements existent ; distribution uniforme, push et prÃƒÂ©fÃƒÂ©rences manquent |
+| Factures et paiements | En cours | N3 | Factures, documents, checkout/sync/webhook, acompte/solde modÃƒÂ©lisÃƒÂ©s ; webhook de paiement signÃƒÂ© validÃƒÂ© E2E, Checkout hÃƒÂ©bergÃƒÂ© et ÃƒÂ©checs visibles restent partiels |
+| Tarification, packs et contrats | En cours | N3 | Pricing, segments, rÃƒÂ¨gles, scÃƒÂ©narios, packs et modÃƒÂ¨les de contrat ; complexitÃƒÂ© ÃƒÂ©levÃƒÂ©e et validation mÃƒÂ©tier de bout en bout ÃƒÂ  faire |
+| CRM propriÃƒÂ©taires | En cours | N2 | Helper et page contacts enrichie ; consolidation utile, mais persistance dÃƒÂ©diÃƒÂ©e et timeline unifiÃƒÂ©e non finalisÃƒÂ©es |
+| Ãƒâ€°quipe et affectations | En cours | N2 | ModÃƒÂ¨le mÃƒÂ©tier, page et action d'affectation ; tables spÃƒÂ©cialisÃƒÂ©es, permissions fines et persistance complÃƒÂ¨te manquent |
+| RÃƒÂ©servations et sÃƒÂ©jours voyageurs | En cours | N2 | Moteur, API rÃƒÂ©servations, API sÃƒÂ©jours, page concierge et tests ; donnÃƒÂ©es principalement via missions/`metadata`, pas d'espace voyageur ; la route `/api/reservations/[id]` s'aligne maintenant sur le type partagÃƒÂ© `TravelerStayMissionRow` au lieu d'un cast gÃƒÂ©nÃƒÂ©rique ; clarification mÃƒÂ©tier formalisÃƒÂ©e le mercredi 29 juillet 2026 : la rÃƒÂ©servation ou le sÃƒÂ©jour doit devenir l'objet canonique partagÃƒÂ© entre propriÃƒÂ©taire et conciergerie, les missions restant des actions d'exÃƒÂ©cution liÃƒÂ©es, avec interventions artisans en troisiÃƒÂ¨me niveau |
+| Maintenance et artisans | En cours | N3 | Affectation, exÃƒÂ©cution, preuve mÃƒÂ©dia privÃƒÂ©e avec empreinte SHA-256 et facture provider liÃƒÂ©e validÃƒÂ©es E2E ; paiement reste ÃƒÂ  couvrir |
+| Litiges et preuves | En cours | N2 | Migrations inspections/litiges, routes API et page owner existent ; l'export HTML de dossier litige ne diffuse plus d'URLs publiques Storage et gÃƒÂ©nÃƒÂ¨re dÃƒÂ©sormais des liens signÃƒÂ©s temporaires pour les preuves ; parcours obligatoire post-checkout et validation E2E non prouvÃƒÂ©s |
+| Carte interactive rÃƒÂ©seau | Ã°Å¸â€Â´ Non commencÃƒÂ©e | N1 | BibliothÃƒÂ¨ques carte et prototypes de recherche existent, mais pas de carte unifiÃƒÂ©e acteurs + missions + recherches |
+| Fil d'actualitÃƒÂ© professionnel | Ã°Å¸â€Â´ Non commencÃƒÂ©e | N0 | Aucun modÃƒÂ¨le ni flux rÃƒÂ©seau professionnel canonique |
+| Mur des missions | Ã°Å¸â€Â´ Non commencÃƒÂ©e | N1 | Les missions urgentes fournissent un socle, sans marketplace gÃƒÂ©olocalisÃƒÂ©e ouverte et filtrable |
+| Avis, rÃƒÂ©putation et certifications | En cours | N2 | API reviews et champs de profil existent ; expÃƒÂ©rience complÃƒÂ¨te, modÃƒÂ©ration et preuves vÃƒÂ©rifiÃƒÂ©es non abouties |
+| KPI produit | En cours | N3 | Endpoint overview et affichage admin ; activation J+7, temps de premiÃƒÂ¨re valeur, conversion et sÃƒÂ©ries fiables disponibles ; en local, `/api/kpis/overview` injecte dÃƒÂ©sormais des cohortes workspace crÃƒÂ©dibles quand Supabase est inaccessible ou quand aucune cohorte mature n'existe encore ; en connectÃƒÂ©, un seed persistant `scripts/seed-admin-workspace-kpis.mjs` peuple dÃƒÂ©sormais Supabase en profils/workflows KPI rattachÃƒÂ©s ÃƒÂ  l'e-mail admin cible, et l'endpoint KPI retombe proprement sur `provider_interventions` quand la base distante ne publie pas encore `provider_profile_id` sur `missions`, `quotes` ou `invoices` ; inspection distante du mercredi 29 juillet 2026 : `missions` existe mais n'expose pas `title`, `request_id` ni `provider_profile_id`, alors que `quotes.service_request_id`, `invoices.quote_id` et `provider_interventions.provider_profile_id` sont bien prÃƒÂ©sents |
+| Tests E2E navigateur | Partiel | N3 | Parcours critiques et transactionnels passent ; branche owner Checkout hÃƒÂ©bergÃƒÂ©e prÃƒÂªte avec carte Stripe test, retour et synchronisation ; exÃƒÂ©cution rÃƒÂ©elle bloquÃƒÂ©e par lÃ¢â‚¬â„¢absence de E2E_STRIPE_SECRET_KEY |
+| Responsive et accessibilitÃƒÂ© | En cours | N3 | Socle, checklists et composants accessibles ; audit systÃƒÂ©matique clavier/mobile et tests automatisÃƒÂ©s manquent |
+| Design system | En cours | N3 | Primitives, tokens, route showcase et direction Art DÃƒÂ©co ; double strate UI, snapshot portable et tests au vert |
+| SEO et acquisition publique | En cours | N2 | Pages publiques et profils publics prÃƒÂ©sents ; la home expose dÃƒÂ©sormais aussi une intention ÃƒÂ©ditoriale sur l'impact solidaire/humanitaire du rÃƒÂ©seau, sans mÃƒÂ©canique mÃƒÂ©tier ni paiement associatif branchÃƒÂ©s ÃƒÂ  ce stade ; les profils concierges publics disposent maintenant d'un bloc `Liens utiles` type Linktree, d'une section `Actions recommandÃƒÂ©es` et d'une instrumentation lÃƒÂ©gÃƒÂ¨re de clics CTA branchÃƒÂ©e sur les champs dÃƒÂ©jÃƒÂ  persistÃƒÂ©s, ce qui amÃƒÂ©liore l'actionnabilitÃƒÂ© sans ouvrir encore un vrai cockpit acquisition ni des CTA provider ; metadata, Open Graph, JSON-LD, pages locales et mesure acquisition restent ÃƒÂ  faire |
+| PWA / push / hors ligne | Ã°Å¸â€Â´ Non commencÃƒÂ©e | N1 | Intentions mobile documentÃƒÂ©es ; checklist/signature actuellement locales, pas de PWA terrain industrialisÃƒÂ©e |
+| Assistant dÃƒÂ©coration | Partiel | N2 | Page/API, moteur, migration/RLS et tests prÃƒÂ©sents ; E2E lecture passe mais la table n'est pas appliquÃƒÂ©e sur la base connectÃƒÂ©e ; image, partage owner et validation terrain restent ÃƒÂ  finaliser |
 
-### Lecture synthétique
+### Lecture synthÃƒÂ©tique
 
-Le produit est **fonctionnellement large mais pas encore validé comme un tout**. Le meilleur qualificatif global est `N3 — Fonctionnel en consolidation`. Le risque principal n'est pas l'absence de pages ; c'est l'écart entre richesse apparente, persistance réelle, cohérence des modèles et preuve E2E.
+Le produit est **fonctionnellement large mais pas encore validÃƒÂ© comme un tout**. Le meilleur qualificatif global est `N3 Ã¢â‚¬â€ Fonctionnel en consolidation`. Le risque principal n'est pas l'absence de pages ; c'est l'ÃƒÂ©cart entre richesse apparente, persistance rÃƒÂ©elle, cohÃƒÂ©rence des modÃƒÂ¨les et preuve E2E.
 
 ---
 
-## 4. Audit documentaire consolidé
+## 4. Audit documentaire consolidÃƒÂ©
 
-### Enseignements conservés
+### Enseignements conservÃƒÂ©s
 
-- Réutiliser les composants et helpers existants avant de créer une nouvelle strate.
-- Concevoir chaque profil selon son persona et sa première valeur, avec un socle commun limité.
+- RÃƒÂ©utiliser les composants et helpers existants avant de crÃƒÂ©er une nouvelle strate.
+- Concevoir chaque profil selon son persona et sa premiÃƒÂ¨re valeur, avec un socle commun limitÃƒÂ©.
 - Garder une distinction nette entre demande, devis, mission et paiement.
-- Centraliser statuts et transitions dans les helpers métier partagés.
-- Faire du mobile terrain une priorité pour équipes et artisans.
-- Exposer confiance, zone, disponibilité, services et preuve près de chaque décision.
-- Harmoniser loading, vide, erreur, succès, focus et prochaine action.
-- Piloter activation, délai de première valeur, conversion, qualité et liquidité.
-- Conserver l'Art Déco comme accent structurel sobre, jamais au détriment de la lecture.
+- Centraliser statuts et transitions dans les helpers mÃƒÂ©tier partagÃƒÂ©s.
+- Faire du mobile terrain une prioritÃƒÂ© pour ÃƒÂ©quipes et artisans.
+- Exposer confiance, zone, disponibilitÃƒÂ©, services et preuve prÃƒÂ¨s de chaque dÃƒÂ©cision.
+- Harmoniser loading, vide, erreur, succÃƒÂ¨s, focus et prochaine action.
+- Piloter activation, dÃƒÂ©lai de premiÃƒÂ¨re valeur, conversion, qualitÃƒÂ© et liquiditÃƒÂ©.
+- Conserver l'Art DÃƒÂ©co comme accent structurel sobre, jamais au dÃƒÂ©triment de la lecture.
 
-### Familles de doublons fusionnées
+### Familles de doublons fusionnÃƒÂ©es
 
-| Famille documentaire | Documents concernés | Décision canonique |
+| Famille documentaire | Documents concernÃƒÂ©s | DÃƒÂ©cision canonique |
 |---|---|---|
-| Onboarding/personas | audits concierge des 25–26/04, gap analysis 29/04, reprise UX 29/04 | Conserver les personas simplicité/expert ; statut courant dans ce Master Plan |
-| Audit global par rôles | audit approfondi 18/05, audit code/permissions 18/06, audits Sprint 1 des 07 et 12/07 | Le présent tableau fonctionnel devient la vue officielle |
-| Demande → devis → mission → paiement | trois audits des 05–06/06 + architecture composants | Un workflow partagé, statuts centralisés, pas de composants parallèles |
-| Profils utilisateurs | audit 18/06, cartographie, matrice, spec cible, tickets/issues, reprise owner du 19/06 | La spec persona reste détaillée ; roadmap/checklist ici fait foi |
-| UX/UI | guide UX, blueprint premium, design system, handoff Figma, audit UI, checklist responsive | Un seul principe : cockpit calme, preuve visible, primitives partagées, mobile et a11y obligatoires |
-| QA/KPI | checklist P0, runbook E2E, cadrage KPI | Les scénarios restent des annexes d'exécution ; leur statut est suivi ici |
+| Onboarding/personas | audits concierge des 25Ã¢â‚¬â€œ26/04, gap analysis 29/04, reprise UX 29/04 | Conserver les personas simplicitÃƒÂ©/expert ; statut courant dans ce Master Plan |
+| Audit global par rÃƒÂ´les | audit approfondi 18/05, audit code/permissions 18/06, audits Sprint 1 des 07 et 12/07 | Le prÃƒÂ©sent tableau fonctionnel devient la vue officielle |
+| Demande Ã¢â€ â€™ devis Ã¢â€ â€™ mission Ã¢â€ â€™ paiement | trois audits des 05Ã¢â‚¬â€œ06/06 + architecture composants | Un workflow partagÃƒÂ©, statuts centralisÃƒÂ©s, pas de composants parallÃƒÂ¨les |
+| Profils utilisateurs | audit 18/06, cartographie, matrice, spec cible, tickets/issues, reprise owner du 19/06 | La spec persona reste dÃƒÂ©taillÃƒÂ©e ; roadmap/checklist ici fait foi |
+| UX/UI | guide UX, blueprint premium, design system, handoff Figma, audit UI, checklist responsive | Un seul principe : cockpit calme, preuve visible, primitives partagÃƒÂ©es, mobile et a11y obligatoires |
+| QA/KPI | checklist P0, runbook E2E, cadrage KPI | Les scÃƒÂ©narios restent des annexes d'exÃƒÂ©cution ; leur statut est suivi ici |
 
-### Contradictions et écarts détectés
+### Contradictions et ÃƒÂ©carts dÃƒÂ©tectÃƒÂ©s
 
-1. **“Socle exploitable en production” contre absence de validation E2E.** Les audits de mai qualifient les trois espaces d'exploitables, mais le runbook ne prouve aucun parcours complet ; l'unique essai owner est `FAIL partiel`. Statut officiel : N3, pas N4.
-2. **“Build et validations au vert” contre baseline UI datée.** L'audit du 12/07 rapportait un build valide, mais le snapshot UI n'avait pas été actualisé après les évolutions des primitives et dépendait des fins de ligne du système. Le test a été rendu portable et la baseline doit rester une décision de revue explicite.
-3. **Fonctionnalité créée contre fonctionnalité persistée.** CRM, équipe, maintenance, mobile et une partie des réservations disposent de helpers/UI/tests, mais les documents récents reconnaissent l'usage de `metadata` ou du stockage local en attente de tables dédiées. Ils restent N2.
-4. **Profil artisan “workspace complet” contre audit profils.** Le workspace existe, mais le profil métier, les métiers/spécialités, preuves, disponibilités, avis et complétude ne forment pas encore une identité professionnelle complète.
-5. **Voyageur “module livré” contre acteur autonome.** Le centre séjours est bien livré pour la concierge ; le voyageur n'a pas d'espace ou d'identité autonome. Il reste acteur externe prévu.
-6. **Source de schéma ambiguë.** Deux dossiers de migrations coexistent et les types Supabase ne couvrent pas toutes les tables ; il faut choisir `supabase/migrations` comme source canonique et régénérer les types.
-7. **Design system stabilisé contre double strate UI.** Les primitives sont solides, mais `src/components/ui` et `src/app/components/ui` coexistent et de nombreux SCSS locaux divergent encore.
-8. **React/Next alignement.** Next est en 16.1.6, tandis que `react` et `react-dom` sont déclarés `^19.0.0`; une vérification de version résolue et des correctifs de sécurité doit être intégrée au lot de stabilisation.
+1. **Ã¢â‚¬Å“Socle exploitable en productionÃ¢â‚¬Â contre absence de validation E2E.** Les audits de mai qualifient les trois espaces d'exploitables, mais le runbook ne prouve aucun parcours complet ; l'unique essai owner est `FAIL partiel`. Statut officiel : N3, pas N4.
+2. **Ã¢â‚¬Å“Build et validations au vertÃ¢â‚¬Â contre baseline UI datÃƒÂ©e.** L'audit du 12/07 rapportait un build valide, mais le snapshot UI n'avait pas ÃƒÂ©tÃƒÂ© actualisÃƒÂ© aprÃƒÂ¨s les ÃƒÂ©volutions des primitives et dÃƒÂ©pendait des fins de ligne du systÃƒÂ¨me. Le test a ÃƒÂ©tÃƒÂ© rendu portable et la baseline doit rester une dÃƒÂ©cision de revue explicite.
+3. **FonctionnalitÃƒÂ© crÃƒÂ©ÃƒÂ©e contre fonctionnalitÃƒÂ© persistÃƒÂ©e.** CRM, ÃƒÂ©quipe, maintenance, mobile et une partie des rÃƒÂ©servations disposent de helpers/UI/tests, mais les documents rÃƒÂ©cents reconnaissent l'usage de `metadata` ou du stockage local en attente de tables dÃƒÂ©diÃƒÂ©es. Ils restent N2.
+4. **Profil artisan Ã¢â‚¬Å“workspace completÃ¢â‚¬Â contre audit profils.** Le workspace existe, mais le profil mÃƒÂ©tier, les mÃƒÂ©tiers/spÃƒÂ©cialitÃƒÂ©s, preuves, disponibilitÃƒÂ©s, avis et complÃƒÂ©tude ne forment pas encore une identitÃƒÂ© professionnelle complÃƒÂ¨te.
+5. **Voyageur Ã¢â‚¬Å“module livrÃƒÂ©Ã¢â‚¬Â contre acteur autonome.** Le centre sÃƒÂ©jours est bien livrÃƒÂ© pour la concierge ; le voyageur n'a pas d'espace ou d'identitÃƒÂ© autonome. Il reste acteur externe prÃƒÂ©vu.
+6. **Source de schÃƒÂ©ma ambiguÃƒÂ«.** Deux dossiers de migrations coexistent et les types Supabase ne couvrent pas toutes les tables ; il faut choisir `supabase/migrations` comme source canonique et rÃƒÂ©gÃƒÂ©nÃƒÂ©rer les types.
+7. **Design system stabilisÃƒÂ© contre double strate UI.** Les primitives sont solides, mais `src/components/ui` et `src/app/components/ui` coexistent et de nombreux SCSS locaux divergent encore.
+8. **React/Next alignement.** Next est en 16.1.6, tandis que `react` et `react-dom` sont dÃƒÂ©clarÃƒÂ©s `^19.0.0`; une vÃƒÂ©rification de version rÃƒÂ©solue et des correctifs de sÃƒÂ©curitÃƒÂ© doit ÃƒÂªtre intÃƒÂ©grÃƒÂ©e au lot de stabilisation.
 
-### Informations devenues obsolètes
+### Informations devenues obsolÃƒÂ¨tes
 
-- Le conflit Git historique de l'API register signalé en avril n'est plus présent.
-- L'absence d'espace artisan décrite dans les premiers audits est dépassée : un workspace provider existe.
-- L'absence de preferences owner est dépassée : page, politique de patch et tests existent depuis juin.
-- L'absence de séjours voyageurs côté concierge est dépassée depuis le 12/07.
-- Les feuilles de route datées d'avril à juin ne doivent plus être exécutées dans leur ordre initial ; leurs éléments non réalisés sont repris dans la roadmap ci-dessous.
-- Les nombres de pages/routes cités dans les anciens audits sont des instantanés et ne doivent plus être recopiés comme état courant.
+- Le conflit Git historique de l'API register signalÃƒÂ© en avril n'est plus prÃƒÂ©sent.
+- L'absence d'espace artisan dÃƒÂ©crite dans les premiers audits est dÃƒÂ©passÃƒÂ©e : un workspace provider existe.
+- L'absence de preferences owner est dÃƒÂ©passÃƒÂ©e : page, politique de patch et tests existent depuis juin.
+- L'absence de sÃƒÂ©jours voyageurs cÃƒÂ´tÃƒÂ© concierge est dÃƒÂ©passÃƒÂ©e depuis le 12/07.
+- Les feuilles de route datÃƒÂ©es d'avril ÃƒÂ  juin ne doivent plus ÃƒÂªtre exÃƒÂ©cutÃƒÂ©es dans leur ordre initial ; leurs ÃƒÂ©lÃƒÂ©ments non rÃƒÂ©alisÃƒÂ©s sont repris dans la roadmap ci-dessous.
+- Les nombres de pages/routes citÃƒÂ©s dans les anciens audits sont des instantanÃƒÂ©s et ne doivent plus ÃƒÂªtre recopiÃƒÂ©s comme ÃƒÂ©tat courant.
 
-### Rôle futur des documents existants
+### RÃƒÂ´le futur des documents existants
 
-Les spécifications détaillées restent valables lorsqu'elles décrivent des règles métier non reproduites ici : tarification, litiges, profils, accessibilité et scénarios E2E. Elles sont des **annexes**, pas des tableaux de bord concurrents. Aucun document n'est supprimé.
+Les spÃƒÂ©cifications dÃƒÂ©taillÃƒÂ©es restent valables lorsqu'elles dÃƒÂ©crivent des rÃƒÂ¨gles mÃƒÂ©tier non reproduites ici : tarification, litiges, profils, accessibilitÃƒÂ© et scÃƒÂ©narios E2E. Elles sont des **annexes**, pas des tableaux de bord concurrents. Aucun document n'est supprimÃƒÂ©.
 
 ---
 
-## 5. Audit des fonctionnalités et priorités
+## 5. Audit des fonctionnalitÃƒÂ©s et prioritÃƒÂ©s
 
-### Terminées au sens “socle livré”, à préserver
+### TerminÃƒÂ©es au sens Ã¢â‚¬Å“socle livrÃƒÂ©Ã¢â‚¬Â, ÃƒÂ  prÃƒÂ©server
 
-- Architecture App Router et espaces séparés owner/concierge/provider/admin.
-- Guards d'autorisation métier côté API et tests de permissions principaux.
-- Workflow partagé demande/devis/mission et helpers de statuts.
-- Création/édition de logements et recherche publique de concierges.
+- Architecture App Router et espaces sÃƒÂ©parÃƒÂ©s owner/concierge/provider/admin.
+- Guards d'autorisation mÃƒÂ©tier cÃƒÂ´tÃƒÂ© API et tests de permissions principaux.
+- Workflow partagÃƒÂ© demande/devis/mission et helpers de statuts.
+- CrÃƒÂ©ation/ÃƒÂ©dition de logements et recherche publique de concierges.
 - APIs de facturation, documents, checkout et synchronisation.
-- Design tokens, primitives UI et composants opérationnels réutilisables.
-- Tests unitaires/contrats métier étendus.
+- Design tokens, primitives UI et composants opÃƒÂ©rationnels rÃƒÂ©utilisables.
+- Tests unitaires/contrats mÃƒÂ©tier ÃƒÂ©tendus.
 
-Ces éléments ne sont pas tous N4 ; “terminés” signifie ici qu'ils ne doivent pas être recréés, mais consolidés.
+Ces ÃƒÂ©lÃƒÂ©ments ne sont pas tous N4 ; Ã¢â‚¬Å“terminÃƒÂ©sÃ¢â‚¬Â signifie ici qu'ils ne doivent pas ÃƒÂªtre recrÃƒÂ©ÃƒÂ©s, mais consolidÃƒÂ©s.
 
-### Incomplètes — priorité critique
+### IncomplÃƒÂ¨tes Ã¢â‚¬â€ prioritÃƒÂ© critique
 
-| Fonctionnalité | Manque principal | Sortie attendue |
+| FonctionnalitÃƒÂ© | Manque principal | Sortie attendue |
 |---|---|---|
-| Parcours E2E par rôle | Aucun scénario automatisé complet | Owner et concierge : inscription/connexion → demande → devis → mission → paiement ; provider : mission → intervention → preuve → facture |
-| Sécurité CSRF en environnement réel | La défense centrale existe côté proxy, mais la validation E2E multi-origines et le contrôle des exemptions signées restent à confirmer en conditions proches production | Vérifications navigateur/API sur mutations protégées, exemptions Stripe et appels serveur-à-serveur documentées et rejouées |
-| Persistance des modules récents | `metadata` et local storage pour équipe, maintenance, mobile, réservations | Tables, RLS, Storage, types générés, migration et tests d'intégration |
-| Gouvernance Supabase | Deux sources de migrations, types incomplets | Source canonique, inventaire appliqué, types régénérés, suppression progressive des casts loose |
-| Qualité CI | Baseline UI à maintenir après revue | Snapshot portable LF/CRLF, mise à jour volontaire après évolution acceptée |
-| Observabilité produit | KPI de conversion/activation incomplets | Événements fiables et dashboard funnel par rôle/zone |
-| Profil artisan | Identité métier et confiance incomplètes | Métiers, spécialités, zone, disponibilité, documents, portfolio, complétude |
+| Parcours E2E par rÃƒÂ´le | Aucun scÃƒÂ©nario automatisÃƒÂ© complet | Owner et concierge : inscription/connexion Ã¢â€ â€™ demande Ã¢â€ â€™ devis Ã¢â€ â€™ mission Ã¢â€ â€™ paiement ; provider : mission Ã¢â€ â€™ intervention Ã¢â€ â€™ preuve Ã¢â€ â€™ facture |
+| SÃƒÂ©curitÃƒÂ© CSRF en environnement rÃƒÂ©el | La dÃƒÂ©fense centrale existe cÃƒÂ´tÃƒÂ© proxy, mais la validation E2E multi-origines et le contrÃƒÂ´le des exemptions signÃƒÂ©es restent ÃƒÂ  confirmer en conditions proches production | VÃƒÂ©rifications navigateur/API sur mutations protÃƒÂ©gÃƒÂ©es, exemptions Stripe et appels serveur-ÃƒÂ -serveur documentÃƒÂ©es et rejouÃƒÂ©es |
+| Persistance des modules rÃƒÂ©cents | `metadata` et local storage pour ÃƒÂ©quipe, maintenance, mobile, rÃƒÂ©servations | Tables, RLS, Storage, types gÃƒÂ©nÃƒÂ©rÃƒÂ©s, migration et tests d'intÃƒÂ©gration |
+| Gouvernance Supabase | Deux sources de migrations, types incomplets | Source canonique, inventaire appliquÃƒÂ©, types rÃƒÂ©gÃƒÂ©nÃƒÂ©rÃƒÂ©s, suppression progressive des casts loose |
+| QualitÃƒÂ© CI | Baseline UI ÃƒÂ  maintenir aprÃƒÂ¨s revue | Snapshot portable LF/CRLF, mise ÃƒÂ  jour volontaire aprÃƒÂ¨s ÃƒÂ©volution acceptÃƒÂ©e |
+| ObservabilitÃƒÂ© produit | KPI de conversion/activation incomplets | Ãƒâ€°vÃƒÂ©nements fiables et dashboard funnel par rÃƒÂ´le/zone |
+| Profil artisan | IdentitÃƒÂ© mÃƒÂ©tier et confiance incomplÃƒÂ¨tes | MÃƒÂ©tiers, spÃƒÂ©cialitÃƒÂ©s, zone, disponibilitÃƒÂ©, documents, portfolio, complÃƒÂ©tude |
 
-### Incomplètes — priorité importante
+### IncomplÃƒÂ¨tes Ã¢â‚¬â€ prioritÃƒÂ© importante
 
-- Statuts et prochaines actions homogènes sur demandes, devis, missions, factures et paiements.
-- Notifications structurées, préférences et relances ; push plus tard.
-- Temps réel et robustesse de messagerie sur les trois rôles.
-- Planning avec conflits, capacité, affectation et distances.
-- Paiement consolidé au niveau mission, traitement visible des échecs et relances.
-- Litiges/preuves obligatoires selon règles de checkout.
-- Profil owner/concierge/provider unifié sans conteneur polymorphe `availability_hours`.
-- Lecture acquisition publique des CTA réellement cliqués, avec agrégation exploitable côté admin.
-- Accessibilité clavier, focus trap et responsive vérifiés sur les parcours critiques.
-- Encodage français résiduel et cohérence UI.
+- Statuts et prochaines actions homogÃƒÂ¨nes sur demandes, devis, missions, factures et paiements.
+- Notifications structurÃƒÂ©es, prÃƒÂ©fÃƒÂ©rences et relances ; push plus tard.
+- Temps rÃƒÂ©el et robustesse de messagerie sur les trois rÃƒÂ´les.
+- Planning avec conflits, capacitÃƒÂ©, affectation et distances.
+- Paiement consolidÃƒÂ© au niveau mission, traitement visible des ÃƒÂ©checs et relances.
+- Litiges/preuves obligatoires selon rÃƒÂ¨gles de checkout.
+- Profil owner/concierge/provider unifiÃƒÂ© sans conteneur polymorphe `availability_hours`.
+- Lecture acquisition publique des CTA rÃƒÂ©ellement cliquÃƒÂ©s, avec agrÃƒÂ©gation exploitable cÃƒÂ´tÃƒÂ© admin.
+- AccessibilitÃƒÂ© clavier, focus trap et responsive vÃƒÂ©rifiÃƒÂ©s sur les parcours critiques.
+- Encodage franÃƒÂ§ais rÃƒÂ©siduel et cohÃƒÂ©rence UI.
 
-### Manquantes — priorité stratégique importante
+### Manquantes Ã¢â‚¬â€ prioritÃƒÂ© stratÃƒÂ©gique importante
 
-- Carte réseau unifiée.
-- Mur des missions local et mécanisme de candidature/attribution.
-- Fil d'actualité professionnel utile et modéré.
-- Programme d'amorçage local et outils d'invitation/parrainage mesurés.
-- Pages d'acquisition par zone et par besoin avec profils vérifiés.
-- Mini-pages profils plus actionnables avec CTA métier et mesure de clics, après la V1 de liens utiles publics.
+- Carte rÃƒÂ©seau unifiÃƒÂ©e.
+- Mur des missions local et mÃƒÂ©canisme de candidature/attribution.
+- Fil d'actualitÃƒÂ© professionnel utile et modÃƒÂ©rÃƒÂ©.
+- Programme d'amorÃƒÂ§age local et outils d'invitation/parrainage mesurÃƒÂ©s.
+- Pages d'acquisition par zone et par besoin avec profils vÃƒÂ©rifiÃƒÂ©s.
+- Mini-pages profils plus actionnables avec CTA mÃƒÂ©tier et mesure de clics, aprÃƒÂ¨s la V1 de liens utiles publics.
 
 ### Confort
 
-- Widgets configurables, recherche globale serveur et favoris synchronisés.
-- Exports finance/comptabilité.
-- Drag-and-drop avancé et optimisation des tournées.
+- Widgets configurables, recherche globale serveur et favoris synchronisÃƒÂ©s.
+- Exports finance/comptabilitÃƒÂ©.
+- Drag-and-drop avancÃƒÂ© et optimisation des tournÃƒÂ©es.
 - Consolidation progressive des deux strates UI et des SCSS locaux.
-- Tests visuels ciblés et analyse de bundle par dashboard.
+- Tests visuels ciblÃƒÂ©s et analyse de bundle par dashboard.
 
-### Évolutions futures
+### Ãƒâ€°volutions futures
 
-- PWA hors ligne, push et géolocalisation de preuve consentie.
-- Recommandation/matching assisté, après disponibilité de données fiables.
-- Automatisation des relances et affectations, toujours explicable et réversible.
-- Offre commerçants et achats récurrents, après validation du besoin terrain.
-- Espace voyageur limité et sécurisé, uniquement si sa valeur dépasse le coût et le risque données.
+- PWA hors ligne, push et gÃƒÂ©olocalisation de preuve consentie.
+- Recommandation/matching assistÃƒÂ©, aprÃƒÂ¨s disponibilitÃƒÂ© de donnÃƒÂ©es fiables.
+- Automatisation des relances et affectations, toujours explicable et rÃƒÂ©versible.
+- Offre commerÃƒÂ§ants et achats rÃƒÂ©currents, aprÃƒÂ¨s validation du besoin terrain.
+- Espace voyageur limitÃƒÂ© et sÃƒÂ©curisÃƒÂ©, uniquement si sa valeur dÃƒÂ©passe le coÃƒÂ»t et le risque donnÃƒÂ©es.
 
 ---
 
-## 6. Roadmap priorisée valeur / effort
+## 6. Roadmap priorisÃƒÂ©e valeur / effort
 
-### Court terme — stabiliser et prouver (0 à 8 semaines)
+### Court terme Ã¢â‚¬â€ stabiliser et prouver (0 ÃƒÂ  8 semaines)
 
-| Ordre | Lot | Valeur | Effort | Résultat mesurable |
+| Ordre | Lot | Valeur | Effort | RÃƒÂ©sultat mesurable |
 |---:|---|---|---|---|
-| 1 | Remettre CI au vert et figer une baseline | Haute | Faible | Tests, lint, build et snapshot acceptés |
-| 2 | Automatiser deux parcours E2E critiques + un provider | Très haute | Moyen | 3 scénarios exécutables en CI, preuves et données de test maîtrisées |
-| 3 | Canoniser migrations/types Supabase | Très haute | Moyen | Une source, types alignés, inventaire des tables/RLS |
-| 4 | Persister maintenance, équipe, réservations et rapports terrain | Très haute | Élevé | Plus de donnée critique uniquement locale/`metadata` |
-| 5 | Finaliser profil artisan et confiance | Très haute | Moyen | Profil publiable et filtrable, complétude mesurée |
-| 6 | Instrumenter activation et funnel | Très haute | Moyen | Inscription → profil → demande/mission → paiement par rôle et zone |
-| 7 | Pilote d'acquisition dans une zone | Très haute | Moyen | Premier noyau local actif et missions réelles |
+| 1 | Remettre CI au vert et figer une baseline | Haute | Faible | Tests, lint, build et snapshot acceptÃƒÂ©s |
+| 2 | Automatiser deux parcours E2E critiques + un provider | TrÃƒÂ¨s haute | Moyen | 3 scÃƒÂ©narios exÃƒÂ©cutables en CI, preuves et donnÃƒÂ©es de test maÃƒÂ®trisÃƒÂ©es |
+| 3 | Canoniser migrations/types Supabase | TrÃƒÂ¨s haute | Moyen | Une source, types alignÃƒÂ©s, inventaire des tables/RLS |
+| 4 | Persister maintenance, ÃƒÂ©quipe, rÃƒÂ©servations et rapports terrain | TrÃƒÂ¨s haute | Ãƒâ€°levÃƒÂ© | Plus de donnÃƒÂ©e critique uniquement locale/`metadata` |
+| 5 | Finaliser profil artisan et confiance | TrÃƒÂ¨s haute | Moyen | Profil publiable et filtrable, complÃƒÂ©tude mesurÃƒÂ©e |
+| 6 | Instrumenter activation et funnel | TrÃƒÂ¨s haute | Moyen | Inscription Ã¢â€ â€™ profil Ã¢â€ â€™ demande/mission Ã¢â€ â€™ paiement par rÃƒÂ´le et zone |
+| 7 | Pilote d'acquisition dans une zone | TrÃƒÂ¨s haute | Moyen | Premier noyau local actif et missions rÃƒÂ©elles |
 
-### Moyen terme — créer la liquidité et la rétention (2 à 6 mois)
+### Moyen terme Ã¢â‚¬â€ crÃƒÂ©er la liquiditÃƒÂ© et la rÃƒÂ©tention (2 ÃƒÂ  6 mois)
 
-1. Lancer le mur des missions géolocalisé à partir des missions urgentes et demandes existantes.
-2. Déployer la carte réseau unifiée, d'abord sur la zone pilote.
-3. Introduire un fil professionnel limité à des objets structurés : recherche, disponibilité, mission, logement, prestation.
-4. Unifier réputation, certifications, portfolio, avis et statistiques vérifiables.
-5. Renforcer planning, capacité équipe, conflits, attribution et tournées.
+1. Lancer le mur des missions gÃƒÂ©olocalisÃƒÂ© ÃƒÂ  partir des missions urgentes et demandes existantes.
+2. DÃƒÂ©ployer la carte rÃƒÂ©seau unifiÃƒÂ©e, d'abord sur la zone pilote.
+3. Introduire un fil professionnel limitÃƒÂ© ÃƒÂ  des objets structurÃƒÂ©s : recherche, disponibilitÃƒÂ©, mission, logement, prestation.
+4. Unifier rÃƒÂ©putation, certifications, portfolio, avis et statistiques vÃƒÂ©rifiables.
+5. Renforcer planning, capacitÃƒÂ© ÃƒÂ©quipe, conflits, attribution et tournÃƒÂ©es.
 6. Consolider CRM, finance, relances et paiement au niveau mission.
-7. Produire pages locales, SEO structuré et boucles d'invitation/parrainage.
-8. Étendre la mini-page publique type Linktree aux CTA métier, au tracking de clics et aux profils providers après validation d'usage côté concierge.
+7. Produire pages locales, SEO structurÃƒÂ© et boucles d'invitation/parrainage.
+8. Ãƒâ€°tendre la mini-page publique type Linktree aux CTA mÃƒÂ©tier, au tracking de clics et aux profils providers aprÃƒÂ¨s validation d'usage cÃƒÂ´tÃƒÂ© concierge.
 
-### Long terme — devenir le réseau professionnel de référence (6 à 18 mois)
+### Long terme Ã¢â‚¬â€ devenir le rÃƒÂ©seau professionnel de rÃƒÂ©fÃƒÂ©rence (6 ÃƒÂ  18 mois)
 
-1. Étendre ville par ville avec seuils de densité avant ouverture large.
-2. Déployer PWA terrain, push, offline léger et preuves synchronisées.
-3. Ajouter recommandations explicables basées sur zone, disponibilité, qualité et historique.
-4. Ouvrir l'écosystème commerçants/partenaires après validation du modèle récurrent.
-5. Créer benchmarks anonymisés de performance pour les professionnels.
-6. Étudier un espace voyageur minimal, sans scoring ni collecte excessive.
+1. Ãƒâ€°tendre ville par ville avec seuils de densitÃƒÂ© avant ouverture large.
+2. DÃƒÂ©ployer PWA terrain, push, offline lÃƒÂ©ger et preuves synchronisÃƒÂ©es.
+3. Ajouter recommandations explicables basÃƒÂ©es sur zone, disponibilitÃƒÂ©, qualitÃƒÂ© et historique.
+4. Ouvrir l'ÃƒÂ©cosystÃƒÂ¨me commerÃƒÂ§ants/partenaires aprÃƒÂ¨s validation du modÃƒÂ¨le rÃƒÂ©current.
+5. CrÃƒÂ©er benchmarks anonymisÃƒÂ©s de performance pour les professionnels.
+6. Ãƒâ€°tudier un espace voyageur minimal, sans scoring ni collecte excessive.
 
 ### Ce qui n'est pas prioritaire maintenant
 
 - Ajouter de nouveaux dashboards sans fermer les parcours existants.
-- Créer une nouvelle bibliothèque UI ou un store global.
-- Industrialiser une IA de matching avant d'avoir densité, données et métriques fiables.
-- Étendre nationalement avant d'obtenir une liquidité démontrée dans une zone pilote.
+- CrÃƒÂ©er une nouvelle bibliothÃƒÂ¨que UI ou un store global.
+- Industrialiser une IA de matching avant d'avoir densitÃƒÂ©, donnÃƒÂ©es et mÃƒÂ©triques fiables.
+- Ãƒâ€°tendre nationalement avant d'obtenir une liquiditÃƒÂ© dÃƒÂ©montrÃƒÂ©e dans une zone pilote.
 
 ---
 
-## 7. Idées stratégiques — registre vivant
+## 7. IdÃƒÂ©es stratÃƒÂ©giques Ã¢â‚¬â€ registre vivant
 
-### 7.1 PlanetLS comme réseau professionnel
+### 7.1 PlanetLS comme rÃƒÂ©seau professionnel
 
-Le changement de cap est officiel : PlanetLS doit être conçu comme le réseau professionnel de la location saisonnière. La marketplace et le cockpit sont ses moteurs transactionnel et opérationnel, pas sa définition complète.
+Le changement de cap est officiel : PlanetLS doit ÃƒÂªtre conÃƒÂ§u comme le rÃƒÂ©seau professionnel de la location saisonniÃƒÂ¨re. La marketplace et le cockpit sont ses moteurs transactionnel et opÃƒÂ©rationnel, pas sa dÃƒÂ©finition complÃƒÂ¨te.
 
-Le graphe réseau cible relie :
+Le graphe rÃƒÂ©seau cible relie :
 
-`Professionnel ↔ entreprise ↔ zone ↔ compétence ↔ logement ↔ besoin ↔ mission ↔ preuve ↔ avis`
+`Professionnel Ã¢â€ â€ entreprise Ã¢â€ â€ zone Ã¢â€ â€ compÃƒÂ©tence Ã¢â€ â€ logement Ã¢â€ â€ besoin Ã¢â€ â€ mission Ã¢â€ â€ preuve Ã¢â€ â€ avis`
 
-Chaque nouvelle fonction doit renforcer au moins une boucle : découverte, confiance, collaboration, exécution ou réputation.
+Chaque nouvelle fonction doit renforcer au moins une boucle : dÃƒÂ©couverte, confiance, collaboration, exÃƒÂ©cution ou rÃƒÂ©putation.
 
-### 7.2 Profils professionnels évolués
+### 7.2 Profils professionnels ÃƒÂ©voluÃƒÂ©s
 
-Le profil cible contient : identité, entreprise, compétences, disponibilités, zones, services, certifications, assurance, portfolio, avis, expérience, statistiques, historique et capacité opérationnelle.
+Le profil cible contient : identitÃƒÂ©, entreprise, compÃƒÂ©tences, disponibilitÃƒÂ©s, zones, services, certifications, assurance, portfolio, avis, expÃƒÂ©rience, statistiques, historique et capacitÃƒÂ© opÃƒÂ©rationnelle.
 
-Ajout du vendredi 7 août 2026 : une V1 légère de mini-page publique type Linktree est désormais considérée comme une extension naturelle du profil public, pas comme un module autonome. La règle produit retenue est de réutiliser les champs déjà persistés `website`, `linkedin`, `instagram`, `facebook` pour améliorer l'actionnabilité publique sans ouvrir immédiatement de nouveaux champs, ni de slug secondaire, ni d'analytics.
+Ajout du vendredi 7 aoÃƒÂ»t 2026 : une V1 lÃƒÂ©gÃƒÂ¨re de mini-page publique type Linktree est dÃƒÂ©sormais considÃƒÂ©rÃƒÂ©e comme une extension naturelle du profil public, pas comme un module autonome. La rÃƒÂ¨gle produit retenue est de rÃƒÂ©utiliser les champs dÃƒÂ©jÃƒÂ  persistÃƒÂ©s `website`, `linkedin`, `instagram`, `facebook` pour amÃƒÂ©liorer l'actionnabilitÃƒÂ© publique sans ouvrir immÃƒÂ©diatement de nouveaux champs, ni de slug secondaire, ni d'analytics.
 
-Ajout du vendredi 7 août 2026 : l'étape suivante retenue pour cette surface publique est un couple `CTA métier structurés + tracking léger`, toujours limité aux profils concierges. Décision de séquencement : l'ouverture aux profils provider est reportée à plus tard, car leurs besoins publics `urgence, disponibilité, devis, spécialités, preuves` et leurs signaux de confiance ne sont pas encore assez stabilisés pour mutualiser proprement la même page.
+Ajout du vendredi 7 aoÃƒÂ»t 2026 : l'ÃƒÂ©tape suivante retenue pour cette surface publique est un couple `CTA mÃƒÂ©tier structurÃƒÂ©s + tracking lÃƒÂ©ger`, toujours limitÃƒÂ© aux profils concierges. DÃƒÂ©cision de sÃƒÂ©quencement : l'ouverture aux profils provider est reportÃƒÂ©e ÃƒÂ  plus tard, car leurs besoins publics `urgence, disponibilitÃƒÂ©, devis, spÃƒÂ©cialitÃƒÂ©s, preuves` et leurs signaux de confiance ne sont pas encore assez stabilisÃƒÂ©s pour mutualiser proprement la mÃƒÂªme page.
 
-Règles :
+RÃƒÂ¨gles :
 
-- distinguer données déclarées, vérifiées et calculées ;
-- ne montrer publiquement que ce qui aide une décision professionnelle ;
-- rattacher les statistiques à des événements réels ;
-- ne pas créer de score opaque unique ;
-- permettre à chaque rôle de comprendre et améliorer sa complétude.
+- distinguer donnÃƒÂ©es dÃƒÂ©clarÃƒÂ©es, vÃƒÂ©rifiÃƒÂ©es et calculÃƒÂ©es ;
+- ne montrer publiquement que ce qui aide une dÃƒÂ©cision professionnelle ;
+- rattacher les statistiques ÃƒÂ  des ÃƒÂ©vÃƒÂ©nements rÃƒÂ©els ;
+- ne pas crÃƒÂ©er de score opaque unique ;
+- permettre ÃƒÂ  chaque rÃƒÂ´le de comprendre et amÃƒÂ©liorer sa complÃƒÂ©tude.
 
-### 7.3 Fil d'actualité professionnel
+### 7.3 Fil d'actualitÃƒÂ© professionnel
 
-Le fil ne doit pas devenir un réseau social générique. La V1 doit publier des cartes structurées :
+Le fil ne doit pas devenir un rÃƒÂ©seau social gÃƒÂ©nÃƒÂ©rique. La V1 doit publier des cartes structurÃƒÂ©es :
 
-- « Je recherche une concierge » ;
-- « Je suis disponible » ;
-- « Je cherche un artisan » ;
+- Ã‚Â« Je recherche une concierge Ã‚Â» ;
+- Ã‚Â« Je suis disponible Ã‚Â» ;
+- Ã‚Â« Je cherche un artisan Ã‚Â» ;
 - nouvelle mission ;
 - nouvelle prestation ;
 - nouveau logement.
 
-Chaque publication possède zone, durée de validité, auteur vérifié, catégorie, CTA et modération. Le fil est filtré par pertinence locale ; les contenus expirés disparaissent. Une activité système utile peut animer le réseau sans inventer de faux utilisateurs : nouvelles zones couvertes, missions pourvues, profils vérifiés, tendances agrégées.
+Chaque publication possÃƒÂ¨de zone, durÃƒÂ©e de validitÃƒÂ©, auteur vÃƒÂ©rifiÃƒÂ©, catÃƒÂ©gorie, CTA et modÃƒÂ©ration. Le fil est filtrÃƒÂ© par pertinence locale ; les contenus expirÃƒÂ©s disparaissent. Une activitÃƒÂ© systÃƒÂ¨me utile peut animer le rÃƒÂ©seau sans inventer de faux utilisateurs : nouvelles zones couvertes, missions pourvues, profils vÃƒÂ©rifiÃƒÂ©s, tendances agrÃƒÂ©gÃƒÂ©es.
 
 ### 7.4 Carte interactive
 
-La carte doit afficher par couches : concierges, propriétaires ayant choisi d'être visibles, artisans, missions et recherches. Les adresses privées et logements ne sont jamais exposés précisément sans autorisation. V1 : agrégation par ville/rayon, liste synchronisée, filtres et CTA. Le prototype carte/recherche actuel sert de socle visuel, pas de module final.
+La carte doit afficher par couches : concierges, propriÃƒÂ©taires ayant choisi d'ÃƒÂªtre visibles, artisans, missions et recherches. Les adresses privÃƒÂ©es et logements ne sont jamais exposÃƒÂ©s prÃƒÂ©cisÃƒÂ©ment sans autorisation. V1 : agrÃƒÂ©gation par ville/rayon, liste synchronisÃƒÂ©e, filtres et CTA. Le prototype carte/recherche actuel sert de socle visuel, pas de module final.
 
 ### 7.5 Mur des missions
 
-Le mur inverse la recherche : les concierges et artisans voient les opportunités proches d'eux. Une carte mission montre service, zone approximative, délai, urgence, budget éventuel, preuves requises et donneur d'ordre vérifié. La candidature doit être simple ; l'accès aux coordonnées intervient après acceptation selon les règles métier.
+Le mur inverse la recherche : les concierges et artisans voient les opportunitÃƒÂ©s proches d'eux. Une carte mission montre service, zone approximative, dÃƒÂ©lai, urgence, budget ÃƒÂ©ventuel, preuves requises et donneur d'ordre vÃƒÂ©rifiÃƒÂ©. La candidature doit ÃƒÂªtre simple ; l'accÃƒÂ¨s aux coordonnÃƒÂ©es intervient aprÃƒÂ¨s acceptation selon les rÃƒÂ¨gles mÃƒÂ©tier.
 
-### 7.6 Registre d'idées à évaluer
+### 7.6 Registre d'idÃƒÂ©es ÃƒÂ  ÃƒÂ©valuer
 
-| Idée | Hypothèse | Signal de validation | Statut |
+| IdÃƒÂ©e | HypothÃƒÂ¨se | Signal de validation | Statut |
 |---|---|---|---|
-| Disponibilité en un clic | Rend immédiatement les profils actionnables | Plus de mises en relation dans les 7 jours | À cadrer |
-| Parrainage par professionnel | Le réseau existant recrute mieux qu'une publicité froide | Invitations activées et première action utile | À tester |
-| Badge “répond rapidement” | Réduit l'incertitude | Hausse du taux de contact et de réponse | Données requises |
-| Packs locaux récurrents | Les conciergeries veulent des partenaires récurrents | Réachat mensuel | À explorer |
-| Pages de tension locale | Montrer besoins réels attire l'offre | Inscriptions qualifiées par zone | À tester |
+| DisponibilitÃƒÂ© en un clic | Rend immÃƒÂ©diatement les profils actionnables | Plus de mises en relation dans les 7 jours | Ãƒâ‚¬ cadrer |
+| Parrainage par professionnel | Le rÃƒÂ©seau existant recrute mieux qu'une publicitÃƒÂ© froide | Invitations activÃƒÂ©es et premiÃƒÂ¨re action utile | Ãƒâ‚¬ tester |
+| Badge Ã¢â‚¬Å“rÃƒÂ©pond rapidementÃ¢â‚¬Â | RÃƒÂ©duit l'incertitude | Hausse du taux de contact et de rÃƒÂ©ponse | DonnÃƒÂ©es requises |
+| Packs locaux rÃƒÂ©currents | Les conciergeries veulent des partenaires rÃƒÂ©currents | RÃƒÂ©achat mensuel | Ãƒâ‚¬ explorer |
+| Pages de tension locale | Montrer besoins rÃƒÂ©els attire l'offre | Inscriptions qualifiÃƒÂ©es par zone | Ãƒâ‚¬ tester |
 
 ---
 
-## 8. Acquisition des premiers utilisateurs — priorité stratégique
+## 8. Acquisition des premiers utilisateurs Ã¢â‚¬â€ prioritÃƒÂ© stratÃƒÂ©gique
 
-### Le vrai problème
+### Le vrai problÃƒÂ¨me
 
-PlanetLS est un réseau multi-faces. Une plateforme vide n'est pas seulement visuellement pauvre : elle ne fournit aucune première valeur. Une expansion nationale prématurée disperse propriétaires, concierges et artisans, réduit les probabilités de réponse et rend les KPI trompeurs.
+PlanetLS est un rÃƒÂ©seau multi-faces. Une plateforme vide n'est pas seulement visuellement pauvre : elle ne fournit aucune premiÃƒÂ¨re valeur. Une expansion nationale prÃƒÂ©maturÃƒÂ©e disperse propriÃƒÂ©taires, concierges et artisans, rÃƒÂ©duit les probabilitÃƒÂ©s de rÃƒÂ©ponse et rend les KPI trompeurs.
 
-La stratégie recommandée est donc **locale, opérée manuellement au début et centrée sur des missions réelles**.
+La stratÃƒÂ©gie recommandÃƒÂ©e est donc **locale, opÃƒÂ©rÃƒÂ©e manuellement au dÃƒÂ©but et centrÃƒÂ©e sur des missions rÃƒÂ©elles**.
 
-### Comparaison des stratégies
+### Comparaison des stratÃƒÂ©gies
 
-| Stratégie | Avantage | Risque | Adaptation PlanetLS |
+| StratÃƒÂ©gie | Avantage | Risque | Adaptation PlanetLS |
 |---|---|---|---|
-| Publicité nationale | Volume rapide | Trafic froid, réseau dispersé, coût élevé | Faible avant preuve locale |
-| SEO national | Actif durable | Lent et concurrence élevée | À préparer, pas moteur initial |
-| Ville pilote | Densité et apprentissage | Croissance géographique plus lente | Meilleure option |
-| Partenariats locaux | Confiance et accès à des communautés | Temps commercial | Très adapté |
-| Concierge comme tête de réseau | Apporte propriétaires, logements et artisans | Dépendance à quelques comptes | Très adapté avec diversification |
-| Missions réelles “concierge blanc” | Valeur immédiate malgré peu d'utilisateurs | Opérations manuelles coûteuses | Recommandé au lancement |
-| Freemium large | Réduit la friction | Comptes inactifs et support | À limiter à une activation guidée |
-| Parrainage | Coût maîtrisé, confiance | Ne marche qu'après première valeur | À activer dans la zone pilote |
+| PublicitÃƒÂ© nationale | Volume rapide | Trafic froid, rÃƒÂ©seau dispersÃƒÂ©, coÃƒÂ»t ÃƒÂ©levÃƒÂ© | Faible avant preuve locale |
+| SEO national | Actif durable | Lent et concurrence ÃƒÂ©levÃƒÂ©e | Ãƒâ‚¬ prÃƒÂ©parer, pas moteur initial |
+| Ville pilote | DensitÃƒÂ© et apprentissage | Croissance gÃƒÂ©ographique plus lente | Meilleure option |
+| Partenariats locaux | Confiance et accÃƒÂ¨s ÃƒÂ  des communautÃƒÂ©s | Temps commercial | TrÃƒÂ¨s adaptÃƒÂ© |
+| Concierge comme tÃƒÂªte de rÃƒÂ©seau | Apporte propriÃƒÂ©taires, logements et artisans | DÃƒÂ©pendance ÃƒÂ  quelques comptes | TrÃƒÂ¨s adaptÃƒÂ© avec diversification |
+| Missions rÃƒÂ©elles Ã¢â‚¬Å“concierge blancÃ¢â‚¬Â | Valeur immÃƒÂ©diate malgrÃƒÂ© peu d'utilisateurs | OpÃƒÂ©rations manuelles coÃƒÂ»teuses | RecommandÃƒÂ© au lancement |
+| Freemium large | RÃƒÂ©duit la friction | Comptes inactifs et support | Ãƒâ‚¬ limiter ÃƒÂ  une activation guidÃƒÂ©e |
+| Parrainage | CoÃƒÂ»t maÃƒÂ®trisÃƒÂ©, confiance | Ne marche qu'aprÃƒÂ¨s premiÃƒÂ¨re valeur | Ãƒâ‚¬ activer dans la zone pilote |
 
-### Stratégie progressive recommandée
+### StratÃƒÂ©gie progressive recommandÃƒÂ©e
 
-#### Phase A — préparer une zone (2 semaines)
+#### Phase A Ã¢â‚¬â€ prÃƒÂ©parer une zone (2 semaines)
 
-Choisir une zone à forte densité de locations, accessible à l'équipe et avec quelques contacts existants. Définir un seuil minimal avant communication publique : par exemple 5 conciergeries actives, 15 artisans/prestataires vérifiés, 20 propriétaires/logements qualifiés et 10 besoins réels.
+Choisir une zone ÃƒÂ  forte densitÃƒÂ© de locations, accessible ÃƒÂ  l'ÃƒÂ©quipe et avec quelques contacts existants. DÃƒÂ©finir un seuil minimal avant communication publique : par exemple 5 conciergeries actives, 15 artisans/prestataires vÃƒÂ©rifiÃƒÂ©s, 20 propriÃƒÂ©taires/logements qualifiÃƒÂ©s et 10 besoins rÃƒÂ©els.
 
-Créer manuellement les profils avec les professionnels, vérifier leurs données, services et zones, et recueillir leur disponibilité. Importer uniquement avec consentement ; aucun faux profil.
+CrÃƒÂ©er manuellement les profils avec les professionnels, vÃƒÂ©rifier leurs donnÃƒÂ©es, services et zones, et recueillir leur disponibilitÃƒÂ©. Importer uniquement avec consentement ; aucun faux profil.
 
-#### Phase B — garantir la première valeur (semaines 3 à 6)
+#### Phase B Ã¢â‚¬â€ garantir la premiÃƒÂ¨re valeur (semaines 3 ÃƒÂ  6)
 
-- Recruter d'abord 3 à 5 conciergeries “ancres”.
-- Leur offrir une mise en place accompagnée : profil, logements, packs, planning et besoins artisans.
-- Transformer leurs besoins réels en premières missions du mur.
-- Recruter ensuite les artisans demandés, métier par métier.
-- Inviter les propriétaires déjà liés via le flux d'invitations existant.
-- Faire le matching manuellement lorsque nécessaire et documenter chaque friction.
+- Recruter d'abord 3 ÃƒÂ  5 conciergeries Ã¢â‚¬Å“ancresÃ¢â‚¬Â.
+- Leur offrir une mise en place accompagnÃƒÂ©e : profil, logements, packs, planning et besoins artisans.
+- Transformer leurs besoins rÃƒÂ©els en premiÃƒÂ¨res missions du mur.
+- Recruter ensuite les artisans demandÃƒÂ©s, mÃƒÂ©tier par mÃƒÂ©tier.
+- Inviter les propriÃƒÂ©taires dÃƒÂ©jÃƒÂ  liÃƒÂ©s via le flux d'invitations existant.
+- Faire le matching manuellement lorsque nÃƒÂ©cessaire et documenter chaque friction.
 
-La plateforme peut paraître vivante grâce à de vrais événements structurés : disponibilités déclarées, nouvelles missions, profils vérifiés et logements ajoutés. Il ne faut jamais simuler une activité inexistante.
+La plateforme peut paraÃƒÂ®tre vivante grÃƒÂ¢ce ÃƒÂ  de vrais ÃƒÂ©vÃƒÂ©nements structurÃƒÂ©s : disponibilitÃƒÂ©s dÃƒÂ©clarÃƒÂ©es, nouvelles missions, profils vÃƒÂ©rifiÃƒÂ©s et logements ajoutÃƒÂ©s. Il ne faut jamais simuler une activitÃƒÂ© inexistante.
 
-#### Phase C — rendre la boucle reproductible (mois 2–3)
+#### Phase C Ã¢â‚¬â€ rendre la boucle reproductible (mois 2Ã¢â‚¬â€œ3)
 
 - Lancer mur des missions et carte sur la zone uniquement.
-- Ajouter parrainage professionnel et invitation propriétaire.
-- Publier des études/cas locaux et pages “missions à pourvoir à [ville]”.
-- Nouer des partenariats avec offices de tourisme, réseaux de propriétaires, agences, organismes de formation, fournisseurs de linge et collectifs d'artisans.
-- Mesurer acquisition → activation → première réponse → mission → rétention.
+- Ajouter parrainage professionnel et invitation propriÃƒÂ©taire.
+- Publier des ÃƒÂ©tudes/cas locaux et pages Ã¢â‚¬Å“missions ÃƒÂ  pourvoir ÃƒÂ  [ville]Ã¢â‚¬Â.
+- Nouer des partenariats avec offices de tourisme, rÃƒÂ©seaux de propriÃƒÂ©taires, agences, organismes de formation, fournisseurs de linge et collectifs d'artisans.
+- Mesurer acquisition Ã¢â€ â€™ activation Ã¢â€ â€™ premiÃƒÂ¨re rÃƒÂ©ponse Ã¢â€ â€™ mission Ã¢â€ â€™ rÃƒÂ©tention.
 
-#### Phase D — étendre par grappes (après preuve)
+#### Phase D Ã¢â‚¬â€ ÃƒÂ©tendre par grappes (aprÃƒÂ¨s preuve)
 
-Ouvrir une nouvelle zone seulement lorsque la précédente atteint des seuils : réponse médiane < 24 h, au moins 60 % des demandes avec réponse, 30 % transformées en échange qualifié, missions récurrentes et rétention à 30 jours. Répliquer le playbook, adapter les métiers dominants et nommer un ambassadeur local.
+Ouvrir une nouvelle zone seulement lorsque la prÃƒÂ©cÃƒÂ©dente atteint des seuils : rÃƒÂ©ponse mÃƒÂ©diane < 24 h, au moins 60 % des demandes avec rÃƒÂ©ponse, 30 % transformÃƒÂ©es en ÃƒÂ©change qualifiÃƒÂ©, missions rÃƒÂ©currentes et rÃƒÂ©tention ÃƒÂ  30 jours. RÃƒÂ©pliquer le playbook, adapter les mÃƒÂ©tiers dominants et nommer un ambassadeur local.
 
 ### Offre de lancement
 
-- Conciergerie ancre : onboarding assisté, import accompagné, visibilité locale prioritaire contre retours hebdomadaires.
-- Artisan fondateur : profil vérifié gratuit pendant la phase pilote et accès prioritaire aux missions, sans promesse artificielle de volume.
-- Propriétaire : demande accompagnée et réponse humaine garantie dans la zone pilote.
-- Ambassadeur : reconnaissance visible et avantages limités dans le temps, liés à des utilisateurs réellement activés.
+- Conciergerie ancre : onboarding assistÃƒÂ©, import accompagnÃƒÂ©, visibilitÃƒÂ© locale prioritaire contre retours hebdomadaires.
+- Artisan fondateur : profil vÃƒÂ©rifiÃƒÂ© gratuit pendant la phase pilote et accÃƒÂ¨s prioritaire aux missions, sans promesse artificielle de volume.
+- PropriÃƒÂ©taire : demande accompagnÃƒÂ©e et rÃƒÂ©ponse humaine garantie dans la zone pilote.
+- Ambassadeur : reconnaissance visible et avantages limitÃƒÂ©s dans le temps, liÃƒÂ©s ÃƒÂ  des utilisateurs rÃƒÂ©ellement activÃƒÂ©s.
 
 ### KPI de lancement
 
-| KPI | Définition | Cible pilote initiale |
+| KPI | DÃƒÂ©finition | Cible pilote initiale |
 |---|---|---:|
-| Densité d'offre | Pros actifs et vérifiés par métier/zone | ≥ 3 options sur chaque besoin prioritaire |
-| Taux d'activation | Inscrits accomplissant la première action utile en 7 jours | ≥ 60 % accompagnés |
-| Temps de première valeur | Inscription → profil publiable, demande ou mission | < 48 h |
-| Taux de réponse | Demandes avec réponse qualifiée | ≥ 60 % |
-| Délai de réponse | Médiane première réponse | < 24 h |
-| Conversion en mission | Demandes devenues missions | À baseliner, puis améliorer par groupe |
-| Liquidité du mur | Missions avec au moins une candidature adaptée | ≥ 70 % dans la zone pilote |
-| Rétention 30 jours | Pros ayant une nouvelle action utile | ≥ 40 % |
-| Part organique | Activés venant d'une invitation/parrainage | Croissante mois après mois |
+| DensitÃƒÂ© d'offre | Pros actifs et vÃƒÂ©rifiÃƒÂ©s par mÃƒÂ©tier/zone | Ã¢â€°Â¥ 3 options sur chaque besoin prioritaire |
+| Taux d'activation | Inscrits accomplissant la premiÃƒÂ¨re action utile en 7 jours | Ã¢â€°Â¥ 60 % accompagnÃƒÂ©s |
+| Temps de premiÃƒÂ¨re valeur | Inscription Ã¢â€ â€™ profil publiable, demande ou mission | < 48 h |
+| Taux de rÃƒÂ©ponse | Demandes avec rÃƒÂ©ponse qualifiÃƒÂ©e | Ã¢â€°Â¥ 60 % |
+| DÃƒÂ©lai de rÃƒÂ©ponse | MÃƒÂ©diane premiÃƒÂ¨re rÃƒÂ©ponse | < 24 h |
+| Conversion en mission | Demandes devenues missions | Ãƒâ‚¬ baseliner, puis amÃƒÂ©liorer par groupe |
+| LiquiditÃƒÂ© du mur | Missions avec au moins une candidature adaptÃƒÂ©e | Ã¢â€°Â¥ 70 % dans la zone pilote |
+| RÃƒÂ©tention 30 jours | Pros ayant une nouvelle action utile | Ã¢â€°Â¥ 40 % |
+| Part organique | ActivÃƒÂ©s venant d'une invitation/parrainage | Croissante mois aprÃƒÂ¨s mois |
 
-### Expériences prioritaires
+### ExpÃƒÂ©riences prioritaires
 
-1. Tester deux messages : « réseau professionnel local » contre « cockpit de gestion » selon la cible.
-2. Comparer onboarding autonome et onboarding accompagné sur activation à J+7.
-3. Tester l'alerte disponibilité et le mur des missions avant un fil complet.
-4. Tester une page locale avec besoins réels et profils vérifiés.
-5. Interviewer systématiquement les non-répondants et missions non pourvues.
+1. Tester deux messages : Ã‚Â« rÃƒÂ©seau professionnel local Ã‚Â» contre Ã‚Â« cockpit de gestion Ã‚Â» selon la cible.
+2. Comparer onboarding autonome et onboarding accompagnÃƒÂ© sur activation ÃƒÂ  J+7.
+3. Tester l'alerte disponibilitÃƒÂ© et le mur des missions avant un fil complet.
+4. Tester une page locale avec besoins rÃƒÂ©els et profils vÃƒÂ©rifiÃƒÂ©s.
+5. Interviewer systÃƒÂ©matiquement les non-rÃƒÂ©pondants et missions non pourvues.
 
 ---
 
 ## 9. Checklist permanente
 
-Dates : `—` signifie non planifié. Le responsable est un rôle, à remplacer par un nom lors de l'engagement du lot.
+Dates : `Ã¢â‚¬â€` signifie non planifiÃƒÂ©. Le responsable est un rÃƒÂ´le, ÃƒÂ  remplacer par un nom lors de l'engagement du lot.
 
-| Fonctionnalité / action | Statut | Priorité | Date cible | Responsable | Commentaires / preuve attendue |
+| FonctionnalitÃƒÂ© / action | Statut | PrioritÃƒÂ© | Date cible | Responsable | Commentaires / preuve attendue |
 |---|---|---|---|---|---|
-| Baseline tests/lint/build/snapshot | ✅ Terminé | P0 Critique | 2026-07-19 | Tech lead | 202/202 tests, lint ciblé et build Next.js de 168 pages au vert |
-| E2E owner complet | ⏸️ Reporté | P0 Critique | À reprendre avec clé Stripe test | QA + Produit | Demande → devis → mission → facture payée par webhook signé PASS ; scénario Checkout hébergé, carte test, retour owner et sync prêt ; aucune E2E_STRIPE_SECRET_KEY locale disponible pour la preuve finale |
-| E2E concierge complet | 🟠 | P0 Critique | Court terme | QA + Produit | Réception → devis envoyé → mission → facture payée → créneau planifié et relu owner PASS ; Checkout hébergé reste à valider |
-| E2E provider complet | ✅ | P0 Critique | 2026-07-18 | QA + Provider | Mission → intervention → preuve média privée → facture liée PASS ; prochaine évolution : paiement Stripe test |
-| Source canonique migrations | 🟠 | Critique | Court terme | Backend | supabase/migrations canonique ; 20 fichiers historiques figés dans database/migrations ; contrôle CI ajouté ; inventaire distant bloqué sans token |
-| Types Supabase régénérés | 🟡 | Critique | Court terme | Backend | Tables actives entièrement typées ; le build du 2026-07-28 a nécessité un helper non typé temporaire dans `/api/admin/control-tower` car `onboarding_events`, `service_requests` et `workflow_events` ne sont pas encore couverts par les types générés |
-| Persistance maintenance | 🟠 Partiel | P0 Critique | Court terme | Backend + Concierge | Incidents et médias/RLS, API CRUD partiel, transitions, affectation, preuves privées SHA-256 et URL signées, contrat 6/6 ; migrations distantes et E2E restent à faire |
-| Persistance équipe/affectations | 🟡 | Critique | Court terme | Backend + Concierge | Permissions fines incluses |
-| Persistance réservations/terrain | 🟡 | Critique | Court terme | Backend + Mobile | Photos/signatures/checklists Storage |
-| Profil artisan complet | 🟠 Partiel | P0 Critique | Court terme | Produit + Provider | Édition métier persistante et complétude dédiées ; justificatifs privés PDF/images avec SHA-256, statuts de vérification et liens signés livrés ; migration distante, validation admin, avis et vue publique détaillée restent à finaliser |
-| KPI activation/funnel | ✅ Terminé | P0 Critique | Court terme | Data + Produit | Définitions J+7, groupes, séries et zones validés sur l’API connectée ; seuils par rôle, alerte faible échantillon, baisse de groupe et actions admin visibles |
-| Paiement consolidé mission | 🟡 | Importante | Moyen terme | Backend + Produit | Acompte, solde, échec, relance visibles |
-| Notifications structurées | 🟡 | Importante | Moyen terme | Produit + Backend | Préférences et événements utiles |
-| Litiges/preuves E2E | 🟡 | Importante | Moyen terme | Produit + QA | Parcours post-checkout validé |
-| Accessibilité parcours critiques | 🟡 | Importante | Court terme | Front + QA | Clavier, focus, contraste, 360/768/1280 |
-| Pilote acquisition local | 🔴 | Critique | Court terme | Growth + Direction | Zone, ancres, offre, seuils et suivi hebdo |
-| Mur des missions V1 | 🔴 | Importante | Moyen terme | Produit + Tech | Géolocalisé, expirant, candidature simple |
-| Carte réseau V1 | 🔴 | Importante | Moyen terme | Produit + Front | Confidentialité et liste synchronisée |
-| Fil professionnel V1 | 🔴 | Importante | Moyen terme | Produit | Objets structurés, modération, expiration |
-| Réputation/certifications | 🟡 | Importante | Moyen terme | Produit + Admin | Déclaré/vérifié/calculé distingués |
-| SEO local et données structurées | 🟡 | Importante | Moyen terme | Growth + Front | Pages zone, OG, JSON-LD, conversion |
-| PWA/push/offline | 🔴 | Évolution future | Long terme | Mobile + Backend | Après persistance et E2E |
-| Assistant décoration : partage owner et image | 🟠 | P2 Important | Moyen terme | Produit + Concierge | Confirmer valeur terrain, envoi traçable et génération d'image réelle |
+| Baseline tests/lint/build/snapshot | Ã¢Å“â€¦ TerminÃƒÂ© | P0 Critique | 2026-07-19 | Tech lead | 202/202 tests, lint ciblÃƒÂ© et build Next.js de 168 pages au vert |
+| E2E owner complet | Ã¢ÂÂ¸Ã¯Â¸Â ReportÃƒÂ© | P0 Critique | Ãƒâ‚¬ reprendre avec clÃƒÂ© Stripe test | QA + Produit | Demande Ã¢â€ â€™ devis Ã¢â€ â€™ mission Ã¢â€ â€™ facture payÃƒÂ©e par webhook signÃƒÂ© PASS ; scÃƒÂ©nario Checkout hÃƒÂ©bergÃƒÂ©, carte test, retour owner et sync prÃƒÂªt ; aucune E2E_STRIPE_SECRET_KEY locale disponible pour la preuve finale |
+| E2E concierge complet | Ã°Å¸Å¸Â  | P0 Critique | Court terme | QA + Produit | RÃƒÂ©ception Ã¢â€ â€™ devis envoyÃƒÂ© Ã¢â€ â€™ mission Ã¢â€ â€™ facture payÃƒÂ©e Ã¢â€ â€™ crÃƒÂ©neau planifiÃƒÂ© et relu owner PASS ; Checkout hÃƒÂ©bergÃƒÂ© reste ÃƒÂ  valider |
+| E2E provider complet | Ã¢Å“â€¦ | P0 Critique | 2026-07-18 | QA + Provider | Mission Ã¢â€ â€™ intervention Ã¢â€ â€™ preuve mÃƒÂ©dia privÃƒÂ©e Ã¢â€ â€™ facture liÃƒÂ©e PASS ; prochaine ÃƒÂ©volution : paiement Stripe test |
+| Source canonique migrations | Ã°Å¸Å¸Â  | Critique | Court terme | Backend | supabase/migrations canonique ; 20 fichiers historiques figÃƒÂ©s dans database/migrations ; contrÃƒÂ´le CI ajoutÃƒÂ© ; inventaire distant bloquÃƒÂ© sans token |
+| Types Supabase rÃƒÂ©gÃƒÂ©nÃƒÂ©rÃƒÂ©s | Ã°Å¸Å¸Â¡ | Critique | Court terme | Backend | Tables actives entiÃƒÂ¨rement typÃƒÂ©es ; le build du 2026-07-28 a nÃƒÂ©cessitÃƒÂ© un helper non typÃƒÂ© temporaire dans `/api/admin/control-tower` car `onboarding_events`, `service_requests` et `workflow_events` ne sont pas encore couverts par les types gÃƒÂ©nÃƒÂ©rÃƒÂ©s |
+| Persistance maintenance | Partiel | P0 Critique | Court terme | Backend + Concierge | Incidents et mÃƒÂ©dias/RLS, API CRUD partiel, transitions, affectation, preuves privÃƒÂ©es SHA-256 et URL signÃƒÂ©es, contrat 6/6 ; migrations distantes et E2E restent ÃƒÂ  faire |
+| Persistance ÃƒÂ©quipe/affectations | Ã°Å¸Å¸Â¡ | Critique | Court terme | Backend + Concierge | Permissions fines incluses |
+| Persistance rÃƒÂ©servations/terrain | Ã°Å¸Å¸Â¡ | Critique | Court terme | Backend + Mobile | Photos/signatures/checklists Storage |
+| Profil artisan complet | Partiel | P0 Critique | Court terme | Produit + Provider | Ãƒâ€°dition mÃƒÂ©tier persistante et complÃƒÂ©tude dÃƒÂ©diÃƒÂ©es ; justificatifs privÃƒÂ©s PDF/images avec SHA-256, statuts de vÃƒÂ©rification et liens signÃƒÂ©s livrÃƒÂ©s ; migration distante, validation admin, avis et vue publique dÃƒÂ©taillÃƒÂ©e restent ÃƒÂ  finaliser |
+| KPI activation/funnel | Ã¢Å“â€¦ TerminÃƒÂ© | P0 Critique | Court terme | Data + Produit | DÃƒÂ©finitions J+7, groupes, sÃƒÂ©ries et zones validÃƒÂ©s sur lÃ¢â‚¬â„¢API connectÃƒÂ©e ; seuils par rÃƒÂ´le, alerte faible ÃƒÂ©chantillon, baisse de groupe et actions admin visibles |
+| Paiement consolidÃƒÂ© mission | Ã°Å¸Å¸Â¡ | Importante | Moyen terme | Backend + Produit | Acompte, solde, ÃƒÂ©chec, relance visibles |
+| Notifications structurÃƒÂ©es | Ã°Å¸Å¸Â¡ | Importante | Moyen terme | Produit + Backend | PrÃƒÂ©fÃƒÂ©rences et ÃƒÂ©vÃƒÂ©nements utiles |
+| Litiges/preuves E2E | Ã°Å¸Å¸Â¡ | Importante | Moyen terme | Produit + QA | Parcours post-checkout validÃƒÂ© |
+| AccessibilitÃƒÂ© parcours critiques | Ã°Å¸Å¸Â¡ | Importante | Court terme | Front + QA | Clavier, focus, contraste, 360/768/1280 |
+| Pilote acquisition local | Ã°Å¸â€Â´ | Critique | Court terme | Growth + Direction | Zone, ancres, offre, seuils et suivi hebdo |
+| Mur des missions V1 | Ã°Å¸â€Â´ | Importante | Moyen terme | Produit + Tech | GÃƒÂ©olocalisÃƒÂ©, expirant, candidature simple |
+| Carte rÃƒÂ©seau V1 | Ã°Å¸â€Â´ | Importante | Moyen terme | Produit + Front | ConfidentialitÃƒÂ© et liste synchronisÃƒÂ©e |
+| Fil professionnel V1 | Ã°Å¸â€Â´ | Importante | Moyen terme | Produit | Objets structurÃƒÂ©s, modÃƒÂ©ration, expiration |
+| RÃƒÂ©putation/certifications | Ã°Å¸Å¸Â¡ | Importante | Moyen terme | Produit + Admin | DÃƒÂ©clarÃƒÂ©/vÃƒÂ©rifiÃƒÂ©/calculÃƒÂ© distinguÃƒÂ©s |
+| SEO local et donnÃƒÂ©es structurÃƒÂ©es | Ã°Å¸Å¸Â¡ | Importante | Moyen terme | Growth + Front | Pages zone, OG, JSON-LD, conversion |
+| PWA/push/offline | Ã°Å¸â€Â´ | Ãƒâ€°volution future | Long terme | Mobile + Backend | AprÃƒÂ¨s persistance et E2E |
+| Assistant dÃƒÂ©coration : partage owner et image | Ã°Å¸Å¸Â  | P2 Important | Moyen terme | Produit + Concierge | Confirmer valeur terrain, envoi traÃƒÂ§able et gÃƒÂ©nÃƒÂ©ration d'image rÃƒÂ©elle |
 
-| Achats et renouvellements logement | 🟠 Partiel | P1 Prioritaire | Court terme | Produit + Owner + Concierge | Besoin structuré persistant dans la fiche logement partagée : article, dimensions, quantité, motif, photo/lien marchand, budget/plafond, règle contractuelle, livraison, décision owner, facture, preuve et statuts signalé → installé. Garde contrat/plafond/preuve testé ; upload privé, notifications et E2E multi-rôles restent à faire. |
+| Achats et renouvellements logement | Partiel | P1 Prioritaire | Court terme | Produit + Owner + Concierge | Besoin structurÃƒÂ© persistant dans la fiche logement partagÃƒÂ©e : article, dimensions, quantitÃƒÂ©, motif, photo/lien marchand, budget/plafond, rÃƒÂ¨gle contractuelle, livraison, dÃƒÂ©cision owner, facture, preuve et statuts signalÃƒÂ© Ã¢â€ â€™ installÃƒÂ©. Garde contrat/plafond/preuve testÃƒÂ© ; upload privÃƒÂ©, notifications et E2E multi-rÃƒÂ´les restent ÃƒÂ  faire. |
 
 ### Definition of Done commune
 
-Une ligne ne passe à `✅` que si :
+Une ligne ne passe ÃƒÂ  `Ã¢Å“â€¦` que si :
 
-- règles métier et propriétaire de la donnée identifiés ;
-- schéma/migration/RLS et types alignés si nécessaire ;
-- permissions contrôlées côté serveur ;
-- loading, vide, erreur, succès et retry traités ;
-- responsive 360/768/1280 et clavier vérifiés ;
+- rÃƒÂ¨gles mÃƒÂ©tier et propriÃƒÂ©taire de la donnÃƒÂ©e identifiÃƒÂ©s ;
+- schÃƒÂ©ma/migration/RLS et types alignÃƒÂ©s si nÃƒÂ©cessaire ;
+- permissions contrÃƒÂ´lÃƒÂ©es cÃƒÂ´tÃƒÂ© serveur ;
+- loading, vide, erreur, succÃƒÂ¨s et retry traitÃƒÂ©s ;
+- responsive 360/768/1280 et clavier vÃƒÂ©rifiÃƒÂ©s ;
 - tests unitaires/contrats et au moins une preuve de parcours ;
-- événements KPI ajoutés si la fonction influence le funnel ;
-- documentation et journal mis à jour dans le même lot.
+- ÃƒÂ©vÃƒÂ©nements KPI ajoutÃƒÂ©s si la fonction influence le funnel ;
+- documentation et journal mis ÃƒÂ  jour dans le mÃƒÂªme lot.
 
 ---
 
@@ -539,473 +539,473 @@ Une ligne ne passe à `✅` que si :
 
 ### Format obligatoire
 
-| Date | Type | Décision / évolution | Motif | Impact | Responsable |
+| Date | Type | DÃƒÂ©cision / ÃƒÂ©volution | Motif | Impact | Responsable |
 |---|---|---|---|---|---|
-| AAAA-MM-JJ | Produit / Technique / UX / Go-to-market | Formulation courte | Données ou arbitrage | Code, données, roadmap, utilisateurs | Nom/rôle |
+| AAAA-MM-JJ | Produit / Technique / UX / Go-to-market | Formulation courte | DonnÃƒÂ©es ou arbitrage | Code, donnÃƒÂ©es, roadmap, utilisateurs | Nom/rÃƒÂ´le |
 
-### Journal consolidé
+### Journal consolidÃƒÂ©
 
-| Date | Type | Décision / évolution | Motif | Impact | Responsable |
+| Date | Type | DÃƒÂ©cision / ÃƒÂ©volution | Motif | Impact | Responsable |
 |---|---|---|---|---|---|
-| 2026-08-07 | Technique/Sécurité | Centraliser la défense CSRF sur les mutations API via le proxy applicatif | Les cookies Auth.js en `SameSite=Lax` réduisaient le risque, mais les routes métier `POST/PATCH/PUT/DELETE` n'avaient pas encore de garde CSRF explicite ni de politique d'exemption centralisée | Nouveau helper `src/server/security/csrf.ts`, contrôle `Origin` puis repli `Referer` contre l'origine courante/configurée, blocage JSON `403` pour les mutations `/api` non fiables, exemptions explicites pour `/api/auth`, `/api/billing/webhook` et appels serveur-à-serveur porteurs d'en-têtes de confiance, tests dédiés `src/tests/csrf-protection.test.mts` `6/6 PASS`; build alternatif `.next-csrf-check` bloqué par un problème TypeScript préexistant hors lot dans `src/app/dashboard/admin/pilotage/page.tsx` | Tech/Sécurité/QA |
-| 2026-08-07 | Produit/Acquisition | Étendre le profil public concierge avec une mini-surface type Linktree plutôt que créer un produit séparé | Le besoin réel est d'augmenter l'actionnabilité publique des profils partagés via réseaux, bouche-à-oreille ou QR code, sans ouvrir une nouvelle dette produit ou data | `/api/profiles/public/[id]` expose désormais aussi `website`, `linkedin`, `instagram`, `facebook` ; `/concierges/[id]` affiche un bloc `Liens utiles`, un CTA `Visiter le site`, une section `Actions recommandées` et poste maintenant les clics vers `/api/profiles/public/[id]/track` pour journaliser des événements `public_profile_cta_clicked` ; helpers purs de normalisation / structuration des liens et CTA + tests dédiés ; cadrage produit consigné dans `docs/spec-profils-publics-linktree-2026-08-07.md` ; décision explicite de ne pas ouvrir encore cette mécanique aux profils provider | Produit/Tech |
-| 2026-07-29 | Tech/Admin | Diagnostiquer puis rendre l'admin compatible avec le schéma distant `missions` réellement exposé | Le seed KPI connecté a réussi, mais la base distante cassait encore certaines lectures admin car `missions.title`, `missions.request_id` et `missions.provider_profile_id` ne sont pas publiés par PostgREST alors que le repo les attend | Nouveau script `npm run inspect:remote:admin-schema` / `scripts/inspect-remote-admin-schema.mjs` pour sonder le schéma REST distant ; constat vérifié le mercredi 29 juillet 2026 : `missions` expose `id, owner_profile_id, concierge_profile_id, status, created_at`, mais pas `title`, `request_id` ni `provider_profile_id` ; correctifs admin branchés : `/api/admin/control-tower` retente désormais une lecture `missions` compatible sans `title` et reconstruit un libellé via `metadata.mission_title/service_label/property_label`, `/api/admin/operations` affiche aussi un titre déduit au lieu de laisser `null`, `npm run build` PASS après ces ajustements ; correctif structurel préparé ensuite dans `docs/sql/2026-07-29-align-remote-missions-schema.sql` avec note d'application `docs/remote-missions-schema-realignment-2026-07-29.md` pour réaligner la base distante sans casser les données existantes | Admin/Tech |
-| 2026-07-29 | Produit/Architecture | Clarifier le modèle métier contrat -> réservation -> tâches -> intervention | Le flux cible propriétaire/conciergerie risquait de confondre réservation voyageur, mission opérationnelle et intervention artisan, ce qui aurait fragilisé planning, statuts, facturation et UX | Nouvelle spécification `docs/spec-reservations-sejours-operations-2026-07-29.md` : un devis ou contrat signé ouvre la collaboration, la réservation ou le séjour devient l'objet canonique partagé dans les deux plannings, les consignes et besoins se rattachent au séjour, les tâches concierge en dérivent, et les artisans interviennent via des interventions liées plutôt que via une confusion générale autour de `missions` | Produit/Tech |
-| 2026-07-29 | Produit/Tech | Transformer la clarification métier en plan technique de migration progressive | Après avoir clarifié que la réservation n'est pas une mission, il fallait éviter une refonte théorique et définir une trajectoire compatible avec les routes déjà présentes (`concierge/reservations`, `concierge/stays`, owner `voyageurs`) | Nouveau plan `docs/plan-technique-reservations-sejours-mvp-2026-07-29.md` : introduction recommandée d'une table canonique `reservations`, liens progressifs vers `missions`, `provider_interventions` et `workflow_events`, APIs MVP 1 owner/concierge/planning, RLS cible, stratégie de migration par phases A/B/C/D et définition de done ; orientation retenue : réutiliser les surfaces existantes mais sortir le séjour de `mission.metadata` ; phase A matérialisée par la migration `supabase/migrations/20260729153000_reservations_core.sql`, les types Supabase mis à jour et un test contractuel dédié `src/tests/reservations-core-contract.test.mts` ; phase B engagée ensuite avec un CRUD minimal owner/participants (`/api/owner/reservations`, `/api/reservations/[id]`), un helper partagé `src/app/api/_shared/reservations.ts` et la route `/api/concierge/stays` branchée sur `reservations` en source primaire avec fallback legacy `missions` ; phase C est désormais terminée : `src/app/dashboard/owner/missions/voyageurs/page.tsx` lit/crée les séjours via `reservations`, `src/app/dashboard/owner/planning/page.tsx` calcule son planning depuis `/api/owner/reservations`, et `GET /api/concierge/reservations` prend désormais `reservations` comme objet racine tout en réattachant les missions opérationnelles liées pour préserver la lecture workflow ; phase D est désormais appliquée à distance sur les trois maillons principaux et nettoyée sur les parcours secondaires : migration `supabase/migrations/20260729190000_link_missions_to_reservations.sql` appliquée sur la base Supabase distante le mercredi 29 juillet 2026, ajout de `missions.reservation_id` dans les types locaux, insert mission compatible avec fallback si la colonne n'est pas encore exposée à distance, `POST /api/concierge/reservations` garantit désormais l'existence de la réservation canonique avant création des missions liées, routes `concierge/reservations`, `concierge/stays` et `reservations/[id]` capables d'utiliser `reservation_id` avant de retomber sur `metadata.reservation_id/reservation_workflow_id`, extension explicite vers les artisans avec migration `supabase/migrations/20260729193000_link_provider_interventions_to_reservations.sql` elle aussi appliquée à distance le mercredi 29 juillet 2026, création de `provider_interventions.reservation_id` et lecture/écriture des interventions branchées d'abord sur cette liaison avant fallback metadata, puis extension explicite de la timeline avec migration `supabase/migrations/20260729194500_link_workflow_events_to_reservations.sql` appliquée à distance le mercredi 29 juillet 2026, helper `recordWorkflowEvent` compatible `reservation_id`, API `/api/workflow-events` filtrable par `reservationId`, et écritures mission/facture/devis capables d'alimenter cette relation directe ; le nettoyage secondaire est aussi livré : agrégation des séjours priorisant `reservation_id`, événements concierge enrichis en `reservation_id`, annulation de facture de workflow pilotée par `mission_id` plutôt que par le seul metadata workflow, moteur de planning aligné sur l'identifiant canonique de réservation, puis nouvelle couche de cycle de vie partagé directement sur la réservation canonique avec timeline unifiée `workflow_events + événements synthétiques`, traçage des créations owner/concierge et journalisation des mises à jour de statuts, notes et consignes dans `PATCH /api/reservations/[id]` | Produit/Tech |
-| 2026-07-29 | Produit/UX | Rendre la lecture du séjour réellement collaborative dans les cockpits owner et concierge | La réservation canonique exposait déjà ses champs éditoriaux et sa timeline, mais les écrans métier lisaient encore surtout des cartes statiques ou dérivées de `missions`, sans narration partagée du séjour | `/dashboard/concierge/sejours` charge maintenant `/api/reservations/[id]` sur le séjour sélectionné et affiche une section `Lecture collaborative` avec propriétaire, dernière mise à jour, consignes d'accès, notes owner/conciergerie et une timeline récente ; `/dashboard/owner/missions/voyageurs` récupère aussi le détail canonique de la réservation focalisée, ajoute un bouton `Suivi`, un `Brief collaboratif` et une `Timeline récente` dans l'aside, avec états loading/erreur/empty ; preuves : contrat `src/tests/reservations-api-contract.test.mts` enrichi, suite Node ciblée `19/19 PASS` et `npm run build` PASS le mercredi 29 juillet 2026 | Produit/UX/Tech |
-| 2026-07-29 | Produit/UX | Ouvrir l'écriture collaborative du séjour depuis les cockpits owner/concierge et prolonger ce récit dans le planning owner | La lecture canonique était branchée, mais l'utilisateur devait encore sortir des écrans métier pour enrichir le brief ou faire avancer le cycle de vie partagé du séjour | `PATCH /api/reservations/[id]` accepte désormais aussi les effacements volontaires de `access_instructions`, `owner_notes` et `concierge_notes`, tout en journalisant ces mises à jour comme `Brief collaboratif mis a jour` ; `/dashboard/concierge/sejours` permet maintenant d'éditer les consignes d'accès et les notes conciergerie, puis d'exécuter directement des actions de timeline `Accuser reception`, `Marquer en sejour` et `Cloturer` ; `/dashboard/owner/missions/voyageurs` permet désormais au propriétaire d'éditer ses consignes d'accès et notes owner dans l'aside focalisée, puis d'annuler le séjour depuis le cockpit avec traçage canonique ; `/dashboard/owner/planning` réinjecte aussi le voyageur, les notes owner/concierge, les consignes d'accès et la conciergerie dans ses cartes et pastilles pour rendre le planning plus éditorial ; preuves : contrat `src/tests/reservations-api-contract.test.mts` enrichi, suite Node ciblée `19/19 PASS`, `npm run build` PASS le mercredi 29 juillet 2026 | Produit/UX/Tech |
-| 2026-07-29 | Data/Tech | Semer un jeu KPI persistant rattaché aux workspaces admin | Le fallback local gardait l'UI lisible, mais ne créait aucune donnée réelle dans Supabase pour valider les KPI connectés | Nouveau script `scripts/seed-admin-workspace-kpis.mjs` + commande `npm run seed:admin:kpis` : création idempotente de 18 profils KPI liés à `admin@planetls.fr` (6 owner, 6 concierge, 6 provider), événements d'onboarding, demandes, destinataires, devis, factures, conversations, messages, `workflow_events`, `provider_clients` et `provider_interventions` ; exécution réelle réussie le mercredi 29 juillet 2026 avec IDs persistés en base ; `/api/kpis/overview` tolère aussi les schémas distants incomplets en réessayant sans `provider_profile_id` et en calculant l'activation provider via `provider_interventions` si `missions` n'expose pas encore cette relation | Admin/Data/Tech |
-| 2026-07-28 | Produit/UX | Basculer le dashboard administrateur en Mission Control orienté action | La page admin restait lisible comme audit interne mais pas encore comme cockpit quotidien de décision | `/dashboard/admin` adopte un bandeau de synthèse, un filtre 7/30/90 jours, un filtre segment `Propriétaires/Conciergeries/Artisans`, des cartes KPI, une liste de priorités actionnables, une activité récente, trois tables métier compactes, deux lectures graphiques issues des vraies données (`activation_series`, `activation_by_zone`), deux donuts supplémentaires pour la répartition des rôles et les feux de contrôle, trois cartes de santé visuelles pour `Inscriptions`, `Missions` et `Messages`, ainsi qu’un hero premium de type `data story` avec tension du jour, actions chaudes et résumés éditoriaux ; les libellés `n/a` sont remplacés par `Donnée insuffisante` / `Non disponible` ; la page `/dashboard/admin/controle` est aussi remontée au même niveau visuel avec hero santé éditorial, cartes de synthèse, onglets plus décisionnels et surfaces de pilotage plus lisibles ; la page couvre aussi une phase 6 d’états UX complets et une phase 7 responsive/a11y : boutons de filtre avec état clavier explicite, focus visible, tableaux annotés (`caption`, `scope`) et repli mobile en cartes lisibles via libellés de colonnes ; `DashboardLayout` peut masquer ses blocs secondaires pour laisser cette composition respirer ; la page reste désormais lisible en mode dégradé si `overview`, `operations`, `control-tower` ou `kpis` sont indisponibles et affiche un bandeau d’état explicite ; `/api/admin/overview`, `/api/admin/operations` et `/api/kpis/overview` renvoient aussi un payload `health` plutôt qu’un `500` quand Supabase est inaccessible, ce qui garde le cockpit exploitable en sandbox ; en complément, `/api/kpis/overview` injecte maintenant en local des cohortes workspace déterministes et des zones/series non nulles quand Supabase tombe ou quand aucune cohorte mature n'est encore disponible, afin d'éviter des visuels durablement vides pendant l'amorçage ; phase 8 validée avec `npm run build` PASS, Playwright `e2e/admin-dashboard.spec.ts` PASS, Playwright `e2e/admin-kpi-activation.spec.ts` PASS, Playwright `e2e/admin-control-actions.spec.ts` PASS et contrat `src/tests/kpis-overview-contract.test.mts` PASS ; revalidation complémentaire du 2026-07-28 : contrat `src/tests/kpis-overview-contract.test.mts` `5/5 PASS`, `npm run build` PASS | Admin/Produit/Tech |
-| 2026-07-29 | Produit/Finance | Ajouter un cockpit admin dédié au pilotage entrepreneurial et financier | Le cockpit admin principal pilotait bien l'activité et les risques, mais il manquait une lecture plus directement business sur la croissance, le pipeline et la tension de trésorerie | Nouvelle route `/dashboard/admin/pilotage` branchée à la navigation admin, au centre de commandes global et au shell dashboard ; la page agrège `/api/admin/overview`, `/api/admin/operations`, `/api/admin/control-tower` et `/api/kpis/overview` pour afficher une synthèse acquisition/activation, des estimations de pipeline missions, de valeur planifiée, de valeur facturée visible, un taux de monétisation, une lecture d'encaissement final, des alertes de friction commerciale et des actions recommandées ; la page reste lisible en mode dégradé quand certaines sources remontent un `health` incomplet ; vérification : `npm run build` PASS le mercredi 29 juillet 2026, route statique `/dashboard/admin/pilotage` générée dans le build | Admin/Produit/Finance |
-| 2026-08-03 | Produit/Finance | Remplacer le comparateur d'offre Pro par un cadrage financier plus direct | La fondatrice ne veut plus d'un comparateur de scénarios ; elle a besoin d'une première proposition de prix, d'une estimation selon le nombre d'abonnés et d'une hypothèse de commission | Le `Business Strategy Center` de `/dashboard/admin/pilotage` abandonne le comparatif A/B/C et affiche désormais une recommandation simple : `Conciergerie Pro` à `99 € HT / mois` en lancement puis `149 € HT / mois` en cible, avec tableau d'estimation MRR/ARR par volume d'abonnés, hypothèse alternative de commission à `8 %` avec projection mensuelle selon le nombre de missions, et note explicite indiquant que l'idée de commission solidaire associations est conservée mais reportée tant que le choix financier principal n'est pas arrêté ; vérification : `npm run build` PASS le lundi 3 août 2026 | Admin/Produit/Finance |
-| 2026-08-03 | Produit/Finance | Conserver une due diligence investisseur dans le cockpit de pilotage | La réflexion due diligence produite en session risquait de rester hors du produit, donc difficilement réutilisable dans le pilotage global | La page `/dashboard/admin/pilotage` embarque désormais un bloc `Due diligence investisseur` avec verdict `Attendre`, scoring investisseur, top questions critiques, red flags majeurs et conditions minimales avant réexamen d'un dossier de levée ; le Master Plan conserve aussi une synthèse durable de cette lecture pour éviter de la perdre hors conversation ; vérification : `npm run build` PASS le lundi 3 août 2026 | Admin/Produit/Finance |
-| 2026-08-03 | Documentation/IA | Conserver durablement le cadrage du futur système de prompts PlanetLS | La spécification IA détaillée était présente dans une pièce jointe Codex, donc facile à perdre et difficile à retrouver dans le dépôt | Création du dossier `docs/ai/` avec un index dédié et une fiche `systeme-gestion-prompts-planetls-2026-08-03.md` résumant l'objectif, l'architecture en 3 niveaux, les contraintes et la séquence de travail recommandée pour un futur centre de prompts ; aucun développement produit lancé à ce stade | Produit/Tech/Documentation |
-| 2026-08-03 | Technique/Sécurité | Préserver la confidentialité des preuves litige et réintégrer seulement les récupérations locales à faible risque | Le poste fixe contenait des changements non poussés alors que `master` avait déjà divergé ; il fallait récupérer uniquement les morceaux encore pertinents sans réintroduire l'ancienne direction UI | Conservation ciblée de trois apports : export litige via liens signés temporaires au lieu d'URLs publiques Storage, typage explicite `TravelerStayMissionRow` dans `/api/reservations/[id]`, et ouverture du parseur `admin/control-tower` aux cibles système non UUID avec tests associés ; les écrans locaux de pilotage plus anciens ne sont pas réinjectés car `master` suit déjà une autre trajectoire fonctionnelle | Tech/Sécurité/QA |
-| 2026-07-28 | Technique | Tolérer temporairement les tables Supabase non régénérées dans la tour de contrôle admin | Le build Vercel échouait sur `onboarding_events`, puis `service_requests`, car les migrations existent mais les types générés ne couvrent pas encore toutes les tables actives | `/api/admin/control-tower` passe par un helper local non typé pour préserver le build et le diagnostic admin ; `npm run build` repasse au vert ; la régénération complète des types Supabase reste prioritaire pour supprimer ce contournement | Tech |
-| 2026-07-19 | Produit/Technique | Faire de l'état non vérifiable un statut explicite de la tour de contrôle | Une table ou colonne absente ne doit jamais produire un faux état sain | API trace 9 sources, santé globale horodatée, bandeau admin et recontrôle manuel ; 181/181 tests et build au vert | Produit/Tech/QA |
-| 2026-04-25 | UX | Conserver deux modes d'accompagnement concierge : simplicité et expert | Besoins et aisance numérique très différents | Onboarding et densité UI adaptatifs | Produit |
-| 2026-05-18 | Technique | Durcir la messagerie provider et synchroniser le dernier message | Fiabilité des conversations | Routes provider messages | Tech |
-| 2026-05-18 | Produit | Introduire KPI partagés owner/concierge/provider | Mesurer activation et conversion | Endpoint KPI + admin, encore incomplet | Produit/Data |
-| 2026-05-25 | UX | Adopter une checklist responsive/a11y permanente | Hétérogénéité des dashboards | Critère de sortie de chaque lot UI | Front/QA |
-| 2026-06-05 | Métier | Centraliser demande → devis → mission et séparer leurs statuts | Éviter transitions contradictoires | Helpers et événements de workflow | Produit/Tech |
-| 2026-06-06 | Architecture | Réutiliser/améliorer avant de créer un composant | Réduire duplication et strates concurrentes | Pages comme assembleurs, helpers partagés | Tech lead |
-| 2026-06-06 | Paiement | Supporter paiement complet ou acompte/solde et consolider au niveau mission | Clarté owner/concierge | Workflow paiement à finaliser | Produit/Backend |
-| 2026-06-18 | Sécurité | Contrôler les autorisations dans les APIs, jamais uniquement dans le proxy | Défense en profondeur | Guards métier et tests de permissions | Backend |
-| 2026-06-19 | Produit | Concevoir les profils par persona et isoler les préférences owner | Le profil polymorphe ne supporte pas les métiers | Spec cible, policy de patch, owner preferences | Produit/Backend |
-| 2026-07-07 | Architecture | Geler les conventions du Sprint 1 avant nouvelles grandes évolutions | Base riche mais fragmentée | UI, types, Supabase et workflows à consolider | Tech lead |
-| 2026-07-12 | Produit | Enrichir le cockpit concierge : CRM, équipe, maintenance, réservations, mobile | Faire de PlanetLS un outil quotidien | Socles livrés, persistance spécialisée attendue | Produit/Tech |
-| 2026-07-12 | Produit | Créer le centre séjours sans scoring voyageur | Besoin opérationnel et minimisation des données | API/page concierge, voyageur non autonome | Produit |
-| 2026-07-18 | Stratégie | Positionner PlanetLS comme réseau professionnel de la location saisonnière | Résoudre découverte, confiance, liquidité et rétention | Fil, carte, mur des missions et profils évolués entrent dans la cible | Direction produit |
-| 2026-07-18 | Gouvernance | Faire du présent Master Plan la référence officielle | Éviter la multiplication des audits | Les documents existants deviennent des annexes historiques/spécialisées | Direction produit |
-| 2026-07-18 | QA | Qualifier le produit global N3 et non “terminé” | Baseline initiale 153/154, puis 157/157 après correction du snapshot ; pas d'E2E complet et modules récents partiellement persistés | Priorité à la preuve et à la consolidation | QA/Tech |
-| 2026-07-18 | Produit | Ajouter un assistant décoration au cockpit concierge | Aider la concierge à préparer une recommandation budgétée pour un propriétaire | Page/API/helper, table `decoration_ai_reports`, navigation et tests ; partage et génération visuelle restent partiels | Produit/Tech |
-| 2026-07-18 | QA | Rendre le snapshot UI indépendant des fins de ligne | Éviter les échecs globaux LF/CRLF sans changement logique | Hash normalisé et baseline UI régénérée ; 157/157 tests validés | Tech |
-| 2026-07-18 | QA | Valider la baseline de production | Fermer le lot de stabilisation avant les E2E | Lint sans erreur et build Next.js réussi avec 164 pages ; l'échec `spawn EPERM` initial était lié à la sandbox Windows | Tech |
-| 2026-07-18 | QA | Automatiser les smoke tests des trois espaces | Remplacer les runbooks sans preuve par une validation navigateur reproductible | Playwright, comptes workspace locaux, serveur `.next-e2e`, 3/3 scénarios PASS et workflow GitHub ajouté | QA/Tech |
-| 2026-07-18 | Architecture | Utiliser Webpack pour le serveur E2E | Turbopack a paniqué en développement parallèle ; Webpack a révélé un sélecteur CSS Module invalide | `NEXT_DIST_DIR` isole le runner ; correction SCSS compatible avec les deux bundlers | Tech |
-| 2026-07-18 | QA | Valider le flux commercial multi-rôles | Prouver la chaîne navigateur → API → données → restitution, au-delà des smoke tests | Demande, devis accepté, mission générée et facture émise/visible owner ; 1/1 PASS | QA/Tech |
-| 2026-07-18 | Paiement | Reporter le paiement réel jusqu'a la configuration Stripe test | `STRIPE_SECRET_KEY` absente ; le checkout répond proprement `503` sans transaction | Configurer uniquement des clés test puis valider checkout et synchronisation | Tech/Produit |
-| 2026-07-18 | Architecture | Rendre la création de mission compatible avec le schéma connecté | L'E2E a révélé l'absence de `missions.title` et l'obligation de `service_id` | Repli contrôlé vers `service_label`, service catalogue conservé dans le devis puis la mission, test unitaire dédié | Tech |
-| 2026-07-18 | QA | Valider le flux opérationnel provider | Prouver l'affectation multi-rôles, la restitution terrain et la facturation | Mission → intervention → preuve → `completed` → facture liée de 90 €, 1/1 PASS | QA/Tech |
-| 2026-07-18 | Architecture | Réutiliser le moteur de facturation pour les providers | Éviter un second système tout en empêchant la facturation de missions arbitraires | Route intervention-scopée, contrôle d'appartenance/statut, création idempotente et filtre `providerInterventionId` | Tech |
-| 2026-07-18 | Architecture | Corriger la route mission/provider pour le schéma connecté | UUID valides rejetés et lecture dépendante de `missions.title` | Validateur UUID restauré, résolution par chemin et normalisation `title`/`service_label` | Tech |
-| 2026-07-18 | Architecture | Ouvrir les preuves média aux artisans affectés uniquement | Permettre la restitution terrain sans exposer les fichiers des autres missions | Bucket privé existant réutilisé, contrôle par `provider_interventions.metadata.mission_id`, SHA-256 et URL signée ; E2E 1/1 PASS | Tech/QA |
-| 2026-07-18 | Paiement | Valider la synchronisation Stripe sans transaction réelle | Fermer le risque webhook avant disponibilité des clés test | Signature HMAC avec fenêtre anti-rejeu de 5 minutes ; facture réelle passée à `paid` par webhook E2E signé, 1/1 PASS | Tech/QA |
-| 2026-07-18 | CI | Étendre le workflow critique à toute la quality gate | Empêcher un E2E vert de masquer une régression unitaire, lint ou build | Vérification des secrets, `npm test`, lint, build puis Playwright ; timeout porté à 30 minutes et `.env.example` ajouté sans valeur sensible | Tech/QA |
-| 2026-07-18 | QA | Valider la planification après paiement | Prouver que le garde paiement et le calendrier partagent un état persistant multi-rôles | Concierge planifie une mission payée, statut et créneau relus owner ; E2E 1/1 PASS en 3,3 min | QA/Tech |
-| 2026-07-18 | Planning | Bloquer les chevauchements attribuables | Éviter la double réservation d’un logement ou d’un membre sans bloquer les ressources distinctes | Validation des dates, détection d’intersection stricte, réponse 409 avec conflits ; tests unitaires et E2E de non-régression verts | Tech/QA |
-| 2026-07-18 | Planning | Exposer la capacité quotidienne de l’équipe | Donner un signal de surcharge sans inventer des horaires contractuels absents du modèle | Durée planifiée du jour, plafond configurable, taux de charge, état occupé et compteur de surcharges dans l’espace Équipe ; test dédié vert | Produit/Tech |
-| 2026-07-18 | Architecture | Préparer la persistance de l’équipe concierge | Remplacer progressivement les membres locaux sans casser la base connectée actuelle | Migration concierge_team_members avec RLS, API GET/POST et UI branchée avec fallback ; smoke 3/3 PASS, migration distante non appliquée | Tech/DBA |
-| 2026-07-18 | Architecture | Sécuriser le cycle de vie des membres d’équipe | Éviter les modifications transverses et conserver l’historique d’affectation | API membre PATCH/DELETE scoping propriétaire/admin, validation métier et désactivation logique ; contrat 2/2 PASS | Tech/QA |
-| 2026-07-18 | Produit | Brancher la gestion persistante d’équipe dans le cockpit concierge | Remplacer les membres de démonstration dès que le schéma est disponible sans masquer une équipe réellement vide | Formulaire de création, disponibilité et désactivation connectés aux API ; fallback migration explicite ; contrat 3/3 PASS | Produit/Tech |
-| 2026-07-18 | Architecture | Canoniser les nouvelles migrations Supabase | Empêcher la dette des deux dossiers de continuer sans déplacer à l’aveugle 20 migrations historiques | supabase/migrations devient canonique, archive legacy figée par check:migrations, contrôle ajouté à la CI ; inventaire distant en attente du token Supabase | Tech/DBA |
-| 2026-07-19 | Architecture | Créer le dossier maintenance canonique | Sortir les incidents de missions.metadata sans casser l’historique existant | Table maintenance_incidents et RLS participants, API GET/POST, fusion UI dédupliquée et formulaire ; 167/167 tests, build 166 pages ; migration distante non appliquée | Tech/QA |
-| 2026-07-19 | Métier | Encadrer le cycle de vie des incidents maintenance | Empêcher les clôtures arbitraires et tracer une progression opérationnelle cohérente | API PATCH scopée, transitions signalé → qualifié → affecté → devis → validé → planifié → en cours → résolu → clôturé, action UI ; contrat 4/4, 168/168 tests, build 166 pages | Produit/Tech |
-| 2026-07-19 | Sécurité | Restreindre et valider l’affectation artisan | Permettre le dispatch sans exposer les coordonnées privées ni accepter un profil arbitraire | Annuaire provider dédié limité aux champs professionnels, contrôle du rôle à l’écriture, sélection cockpit ; contrat 5/5, 169/169 tests, build 167 pages | Tech/Produit |
-| 2026-07-19 | Sécurité | Rendre les preuves maintenance privées et vérifiables | Conserver les photos terrain sans URL publique ni fichier non tracé | Table média/RLS, bucket privé mission-evidence réutilisé, contrôle MIME/25 Mo, SHA-256, URL signée 10 min et upload cockpit ; contrat 6/6, 170/170 tests, build 167 pages | Tech/QA |
-| 2026-07-19 | Data | Stabiliser la définition de l’activation J+7 | L’ancien calcul comptait trois activités arbitraires et incluait des comptes trop récents | Cohorte limitée aux comptes ayant atteint J+7, événement dans la fenêtre individuelle : demande owner, devis concierge, mission provider ; éligibles/activés exposés ; 172/172 tests, build 167 pages | Data/Produit |
-| 2026-07-19 | Data | Ajouter les séries hebdomadaires d’activation | Un taux global masque les variations de qualité d’acquisition et d’onboarding | Cohortes d’inscription hebdomadaires matures, éligibles/activés/taux par rôle, même moteur J+7 que la synthèse ; 173/173 tests, build 167 pages | Data/Produit |
-| 2026-07-19 | Data | Segmenter l’activation J+7 par ville | Identifier les zones où l’acquisition ou l’onboarding fonctionne sans masquer la taille d’échantillon | Top 20 zones par rôle avec éligibles, activés et taux ; groupes immatures exclus ; 174/174 tests, build 167 pages | Data/Growth |
-| 2026-07-19 | Produit/Data | Exposer activation J+7 dans le cockpit admin | Rendre les groupes actionnables sans consulter directement API | Cartes owner/concierge/provider, activés/éligibles, tendance sur quatre groupes et zone principale ; erreur locale non bloquante ; 175/175 tests, build 167 pages | Admin/Data |
-| 2026-07-19 | Produit | Enrichir le profil professionnel artisan sans nouveau modèle concurrent | Le workspace provider ne permettait d'éditer que l'identité générique malgré les colonnes métier existantes | Policy de patch étendue et section persistante activité/zone/disponibilité/tarifs/expérience/légal/assurance/certifications avec complétude dédiée ; 175/175 tests, lint et build 167 pages | Produit/Tech |
-| 2026-07-19 | Sécurité | Conserver les justificatifs artisan privés jusqu'à vérification | Une certification déclarée ne doit pas être confondue avec une preuve validée ni exposer un document sensible | Table/RLS dédiée, bucket privé réutilisé, PDF/images 10 Mo, SHA-256, statuts pending/verified/rejected, liens signés 10 min et panneau profil ; migration distante non appliquée ; 178/178 tests, build 168 pages | Tech/Produit |
-| 2026-07-19 | Administration | Étendre le centre de santé aux contradictions opérationnelles | Un simple comptage des objets liés ne détecte ni mission sans affectation, ni planning incohérent, ni paiement ou maintenance bloquants | 11 sources tracées, moteur métier isolé et testé, contrôles affectation/planning/facture/paiement/maintenance exposés dans le cockpit ; 191/191 tests, lint ciblé et build 168 pages | Admin/Tech/QA |
-| 2026-07-19 | Sécurité/Produit | Faire décider les justificatifs artisan par un administrateur sans publier les fichiers | Une déclaration fournisseur ne doit devenir un signal de confiance qu’après décision tracée, sans fuite de document, empreinte ou chemin Storage | Route admin verified/rejected avec acteur/date/motif, panneau privé dans la fiche artisan et agrégats vérifiés non expirés dans l’annuaire de dispatch ; 192/192 tests, lint et build 168 pages | Admin/Produit/Tech |
-| 2026-07-19 | Pilotage | Générer le planning de développement depuis le registre de maintenance | Donner un ordre de travail lisible sans créer une seconde roadmap divergente | Chantiers non terminés groupés par horizon calculé depuis P0–P4, prochaine action et preuves visibles dans `/dashboard/admin/developpement` ; 193/193 tests, lint et build 168 pages | Produit/Tech |
-| 2026-07-27 | Pilotage/UX | Transformer la page Developer en journal de bord opérationnel | La vue développement exposait déjà le Master Plan, mais ne permettait ni mémoire quotidienne, ni favoris, ni commentaires, ni saisie manuelle d’événements de développement | Section `Journal de bord` ajoutée dans `/dashboard/admin/developpement` : timeline verticale responsive, événements auto depuis Git et planning, formulaire manuel local, recherche instantanée, filtres période/fonctionnalité/priorité/auteur, favoris, commentaires et liens GitHub ; tests `203/203 PASS`, ESLint ciblé `PASS`, build Next `PASS` après exclusion des fichiers E2E du `tsconfig` applicatif | Produit/Tech/QA |
-| 2026-07-27 | Pilotage/UX | Créer une Mission Control développeur lisible en 30 secondes | Le journal de bord documente l’activité, mais il manquait un cockpit de décision immédiate sur la progression produit, la charge de dev et la santé des dépendances clés | Bloc `Mission Control` ajouté dans `/dashboard/admin/developpement` : progression globale, fonctionnalités terminées/en cours/bloquées, bugs critiques/mineurs, décisions et commits récents, temps de dev hebdomadaire estimé, objectifs semaine/suivant, dernière sauvegarde, environnement courant et cartes de santé Supabase/Vercel/GitHub ; tests `204/204 PASS`, ESLint ciblé `PASS`, build Next `PASS` | Produit/Tech/QA |
-| 2026-07-27 | Pilotage/UX | Transformer le planning en roadmap intelligente vivante | Le cockpit dev montrait l’état du projet, mais ne proposait pas encore de séquencement dynamique quand un chantier se termine ou se débloque | Bloc `Roadmap intelligente` ajouté dans `/dashboard/admin/developpement` : priorités, difficulté, dépendances, estimation, gains utilisateur/business, dette technique, responsable, date prévue, suggestion de prochaine fonctionnalité logique et clôture locale avec recalcul immédiat ; tests `205/205 PASS`, ESLint ciblé `PASS`, build Next `PASS`, spec Playwright enrichie mais non exécutable localement car la commande `playwright` est absente du shell | Produit/Tech/QA |
-| 2026-07-27 | Pilotage/Tech | Créer une mémoire technique consultable en quelques secondes | Les arbitrages de stack, d’architecture et de workflow existaient dans le code et le Master Plan, mais restaient trop lents à retrouver lors d’un nouveau chantier | Bloc `Mémoire technique` ajouté dans `/dashboard/admin/developpement` : décisions canoniques `Pourquoi Supabase`, `Pourquoi Next.js`, `Pourquoi Vercel`, architecture, composants et workflow, complétées par les décisions extraites du Master Plan avec recherche instantanée ; tests `206/206 PASS`, ESLint ciblé `PASS`, build Next `PASS`, spec Playwright enrichie mais bloquée localement par `/api/auth/dev-workspace-login` | Produit/Tech/QA |
-| 2026-07-19 | Correctif responsive | Conserver les légendes des graphiques admin dans leurs cartes | Le seuil global à 760 px imposait simultanément trois cartes et une légende latérale, coupée par le conteneur | Légende empilée, grille 2 colonnes puis 3 à 1200 px, retour à la ligne des libellés et mesure Playwright des trois camemberts `1/1 PASS` ; 193/193 tests, lint et build 168 pages | UI/QA |
-| 2026-07-19 | Pilotage/UX | Rendre visibles les contenus rattachés aux titres parents du Master Plan | Les H2 suivis immédiatement de H3 semblaient vides alors que leur contenu était réparti dans les sous-sections | Index cliquable des enfants directs avec état vide explicite en dernier recours ; contrôle Playwright sur `1. Vision du projet` `1/1 PASS`, lint et build 168 pages | Produit/UI |
-| 2026-07-19 | Maintenance | Supprimer uniquement les redondances prouvées hors graphe actif | Alléger le dépôt sans casser les nombreux replis legacy encore utilisés | Retrait de 10 dépendances directes sans import et de 4 fichiers sans consommateur ; les compatibilités legacy actives sont conservées ; 193/193 tests, lint et build 168 pages | Tech/QA |
-| 2026-07-19 | Data/Produit | Clôturer le P0 activation par des seuils explicites et des alertes actionnables | Un taux brut sans taille de groupe, seuil ni tendance ne permettait pas à l’admin de décider | Cibles owner 30 %, concierge 25 %, provider 35 % ; seuils critiques 15/12/18 %, minimum 5 profils éligibles et baisse de 10 points ; repli connecté contact_messages, Playwright 1/1 PASS, contrat 5/5, suite 195/195 et build 168 pages | Data/Produit/Tech |
-| 2026-07-19 | Administration | Clôturer le centre de santé avec des interventions humaines auditables | Le diagnostic automatique détectait les anomalies mais ne permettait ni prise en charge ni transmission persistée | Cycle enregistré dans workflow_events avec acteur, date, cible et motif : prise en charge, transmission au responsable puis clôture avec compte rendu sans masquer l’anomalie ; E2E connecté 1/1, contrat 10/10, suite 199/199, lint et build 168 pages | Admin/Tech/QA |
-| 2026-07-19 | Paiement/QA | Préparer le P0 owner pour un vrai Checkout Stripe sans accepter de clé live | Le scénario attendait toujours un 503 et ne pouvait donc jamais valider Checkout après configuration | Branche sk_test_ ouvrant Checkout hébergé, carte test 4242, retour factures et synchronisation ; garde CI refusant clé absente ou non-test, contrat 2/2, fallback signé 1/1, suite 201/201 et build 168 pages ; preuve finale bloquée sans secret | Produit/Tech/QA |
-| 2026-08-02 | Pilotage/UX | Reporter l'E2E Stripe et ne plus le proposer comme meilleure action tant que sa clé de test est indisponible | Garder une action matériellement impossible en tête masquait les chantiers exécutables | Les statuts Reporté et Abandonné sont exclus des listes prête/bloquée de la roadmap ; le sommaire de Développement est remonté en tête et regroupé en Agir, Décider, Documenter | Produit/Tech/QA |
-| 2026-08-02 | Pilotage/UX | Rendre la page Développement responsive selon sa largeur réellement disponible | Les media queries suivaient la largeur de l'écran sans déduire la sidebar de 280 px, laissant des grilles trop larges et une partie droite coupée | Conteneur responsive local, protections anti-débordement, sommaire supérieur hiérarchisé avec repères verticaux, passages 4/3 → 2 → 1 colonnes selon l'espace réel | Produit/Tech/QA |
-| 2026-08-02 | Pilotage/UX | Afficher le Sommaire et détail du Master Plan comme première section de travail | Le référentiel complet restait relégué après les outils dérivés alors qu'il constitue leur source de vérité | Bloc placé juste après l'en-tête, ouvert par défaut ; roadmap, Mission Control, conseiller, journal et mémoire suivent dans cet ordre | Produit/Tech/QA |
-| 2026-07-19 | Équipe/QA | Clôturer le cycle de vie persistant des membres concierge | Le Master Plan supposait encore la migration distante absente alors que le schéma connecté est désormais disponible | CRUD connecté validé : création, modification de disponibilité, rendu UI, désactivation logique et refus owner ; Playwright 1/1, contrat 3/3, suite 201/201, lint et build 168 pages | Concierge/Tech/QA |
-| 2026-07-19 | Pilotage/UX | Séparer les P0 restants des mentions historiques de priorité | Le compteur global affichait 17 occurrences de P0, y compris les éléments terminés, doublons et entrées du journal | Compteurs restant/total calculés uniquement depuis le registre officiel : 3 P0 restants sur 10 ; synthèse et filtres alignés, parseur 4/4, Playwright desktop/mobile 1/1, suite 202/202 et build 168 pages | Produit/Tech/QA |
+| 2026-08-07 | Technique/SÃƒÂ©curitÃƒÂ© | Centraliser la dÃƒÂ©fense CSRF sur les mutations API via le proxy applicatif | Les cookies Auth.js en `SameSite=Lax` rÃƒÂ©duisaient le risque, mais les routes mÃƒÂ©tier `POST/PATCH/PUT/DELETE` n'avaient pas encore de garde CSRF explicite ni de politique d'exemption centralisÃƒÂ©e | Nouveau helper `src/server/security/csrf.ts`, contrÃƒÂ´le `Origin` puis repli `Referer` contre l'origine courante/configurÃƒÂ©e, blocage JSON `403` pour les mutations `/api` non fiables, exemptions explicites pour `/api/auth`, `/api/billing/webhook` et appels serveur-ÃƒÂ -serveur porteurs d'en-tÃƒÂªtes de confiance, tests dÃƒÂ©diÃƒÂ©s `src/tests/csrf-protection.test.mts` `6/6 PASS`; build alternatif `.next-csrf-check` bloquÃƒÂ© par un problÃƒÂ¨me TypeScript prÃƒÂ©existant hors lot dans `src/app/dashboard/admin/pilotage/page.tsx` | Tech/SÃƒÂ©curitÃƒÂ©/QA |
+| 2026-08-07 | Produit/Acquisition | Ãƒâ€°tendre le profil public concierge avec une mini-surface type Linktree plutÃƒÂ´t que crÃƒÂ©er un produit sÃƒÂ©parÃƒÂ© | Le besoin rÃƒÂ©el est d'augmenter l'actionnabilitÃƒÂ© publique des profils partagÃƒÂ©s via rÃƒÂ©seaux, bouche-ÃƒÂ -oreille ou QR code, sans ouvrir une nouvelle dette produit ou data | `/api/profiles/public/[id]` expose dÃƒÂ©sormais aussi `website`, `linkedin`, `instagram`, `facebook` ; `/concierges/[id]` affiche un bloc `Liens utiles`, un CTA `Visiter le site`, une section `Actions recommandÃƒÂ©es` et poste maintenant les clics vers `/api/profiles/public/[id]/track` pour journaliser des ÃƒÂ©vÃƒÂ©nements `public_profile_cta_clicked` ; helpers purs de normalisation / structuration des liens et CTA + tests dÃƒÂ©diÃƒÂ©s ; cadrage produit consignÃƒÂ© dans `docs/spec-profils-publics-linktree-2026-08-07.md` ; dÃƒÂ©cision explicite de ne pas ouvrir encore cette mÃƒÂ©canique aux profils provider | Produit/Tech |
+| 2026-07-29 | Tech/Admin | Diagnostiquer puis rendre l'admin compatible avec le schÃƒÂ©ma distant `missions` rÃƒÂ©ellement exposÃƒÂ© | Le seed KPI connectÃƒÂ© a rÃƒÂ©ussi, mais la base distante cassait encore certaines lectures admin car `missions.title`, `missions.request_id` et `missions.provider_profile_id` ne sont pas publiÃƒÂ©s par PostgREST alors que le repo les attend | Nouveau script `npm run inspect:remote:admin-schema` / `scripts/inspect-remote-admin-schema.mjs` pour sonder le schÃƒÂ©ma REST distant ; constat vÃƒÂ©rifiÃƒÂ© le mercredi 29 juillet 2026 : `missions` expose `id, owner_profile_id, concierge_profile_id, status, created_at`, mais pas `title`, `request_id` ni `provider_profile_id` ; correctifs admin branchÃƒÂ©s : `/api/admin/control-tower` retente dÃƒÂ©sormais une lecture `missions` compatible sans `title` et reconstruit un libellÃƒÂ© via `metadata.mission_title/service_label/property_label`, `/api/admin/operations` affiche aussi un titre dÃƒÂ©duit au lieu de laisser `null`, `npm run build` PASS aprÃƒÂ¨s ces ajustements ; correctif structurel prÃƒÂ©parÃƒÂ© ensuite dans `docs/sql/2026-07-29-align-remote-missions-schema.sql` avec note d'application `docs/remote-missions-schema-realignment-2026-07-29.md` pour rÃƒÂ©aligner la base distante sans casser les donnÃƒÂ©es existantes | Admin/Tech |
+| 2026-07-29 | Produit/Architecture | Clarifier le modÃƒÂ¨le mÃƒÂ©tier contrat -> rÃƒÂ©servation -> tÃƒÂ¢ches -> intervention | Le flux cible propriÃƒÂ©taire/conciergerie risquait de confondre rÃƒÂ©servation voyageur, mission opÃƒÂ©rationnelle et intervention artisan, ce qui aurait fragilisÃƒÂ© planning, statuts, facturation et UX | Nouvelle spÃƒÂ©cification `docs/spec-reservations-sejours-operations-2026-07-29.md` : un devis ou contrat signÃƒÂ© ouvre la collaboration, la rÃƒÂ©servation ou le sÃƒÂ©jour devient l'objet canonique partagÃƒÂ© dans les deux plannings, les consignes et besoins se rattachent au sÃƒÂ©jour, les tÃƒÂ¢ches concierge en dÃƒÂ©rivent, et les artisans interviennent via des interventions liÃƒÂ©es plutÃƒÂ´t que via une confusion gÃƒÂ©nÃƒÂ©rale autour de `missions` | Produit/Tech |
+| 2026-07-29 | Produit/Tech | Transformer la clarification mÃƒÂ©tier en plan technique de migration progressive | AprÃƒÂ¨s avoir clarifiÃƒÂ© que la rÃƒÂ©servation n'est pas une mission, il fallait ÃƒÂ©viter une refonte thÃƒÂ©orique et dÃƒÂ©finir une trajectoire compatible avec les routes dÃƒÂ©jÃƒÂ  prÃƒÂ©sentes (`concierge/reservations`, `concierge/stays`, owner `voyageurs`) | Nouveau plan `docs/plan-technique-reservations-sejours-mvp-2026-07-29.md` : introduction recommandÃƒÂ©e d'une table canonique `reservations`, liens progressifs vers `missions`, `provider_interventions` et `workflow_events`, APIs MVP 1 owner/concierge/planning, RLS cible, stratÃƒÂ©gie de migration par phases A/B/C/D et dÃƒÂ©finition de done ; orientation retenue : rÃƒÂ©utiliser les surfaces existantes mais sortir le sÃƒÂ©jour de `mission.metadata` ; phase A matÃƒÂ©rialisÃƒÂ©e par la migration `supabase/migrations/20260729153000_reservations_core.sql`, les types Supabase mis ÃƒÂ  jour et un test contractuel dÃƒÂ©diÃƒÂ© `src/tests/reservations-core-contract.test.mts` ; phase B engagÃƒÂ©e ensuite avec un CRUD minimal owner/participants (`/api/owner/reservations`, `/api/reservations/[id]`), un helper partagÃƒÂ© `src/app/api/_shared/reservations.ts` et la route `/api/concierge/stays` branchÃƒÂ©e sur `reservations` en source primaire avec fallback legacy `missions` ; phase C est dÃƒÂ©sormais terminÃƒÂ©e : `src/app/dashboard/owner/missions/voyageurs/page.tsx` lit/crÃƒÂ©e les sÃƒÂ©jours via `reservations`, `src/app/dashboard/owner/planning/page.tsx` calcule son planning depuis `/api/owner/reservations`, et `GET /api/concierge/reservations` prend dÃƒÂ©sormais `reservations` comme objet racine tout en rÃƒÂ©attachant les missions opÃƒÂ©rationnelles liÃƒÂ©es pour prÃƒÂ©server la lecture workflow ; phase D est dÃƒÂ©sormais appliquÃƒÂ©e ÃƒÂ  distance sur les trois maillons principaux et nettoyÃƒÂ©e sur les parcours secondaires : migration `supabase/migrations/20260729190000_link_missions_to_reservations.sql` appliquÃƒÂ©e sur la base Supabase distante le mercredi 29 juillet 2026, ajout de `missions.reservation_id` dans les types locaux, insert mission compatible avec fallback si la colonne n'est pas encore exposÃƒÂ©e ÃƒÂ  distance, `POST /api/concierge/reservations` garantit dÃƒÂ©sormais l'existence de la rÃƒÂ©servation canonique avant crÃƒÂ©ation des missions liÃƒÂ©es, routes `concierge/reservations`, `concierge/stays` et `reservations/[id]` capables d'utiliser `reservation_id` avant de retomber sur `metadata.reservation_id/reservation_workflow_id`, extension explicite vers les artisans avec migration `supabase/migrations/20260729193000_link_provider_interventions_to_reservations.sql` elle aussi appliquÃƒÂ©e ÃƒÂ  distance le mercredi 29 juillet 2026, crÃƒÂ©ation de `provider_interventions.reservation_id` et lecture/ÃƒÂ©criture des interventions branchÃƒÂ©es d'abord sur cette liaison avant fallback metadata, puis extension explicite de la timeline avec migration `supabase/migrations/20260729194500_link_workflow_events_to_reservations.sql` appliquÃƒÂ©e ÃƒÂ  distance le mercredi 29 juillet 2026, helper `recordWorkflowEvent` compatible `reservation_id`, API `/api/workflow-events` filtrable par `reservationId`, et ÃƒÂ©critures mission/facture/devis capables d'alimenter cette relation directe ; le nettoyage secondaire est aussi livrÃƒÂ© : agrÃƒÂ©gation des sÃƒÂ©jours priorisant `reservation_id`, ÃƒÂ©vÃƒÂ©nements concierge enrichis en `reservation_id`, annulation de facture de workflow pilotÃƒÂ©e par `mission_id` plutÃƒÂ´t que par le seul metadata workflow, moteur de planning alignÃƒÂ© sur l'identifiant canonique de rÃƒÂ©servation, puis nouvelle couche de cycle de vie partagÃƒÂ© directement sur la rÃƒÂ©servation canonique avec timeline unifiÃƒÂ©e `workflow_events + ÃƒÂ©vÃƒÂ©nements synthÃƒÂ©tiques`, traÃƒÂ§age des crÃƒÂ©ations owner/concierge et journalisation des mises ÃƒÂ  jour de statuts, notes et consignes dans `PATCH /api/reservations/[id]` | Produit/Tech |
+| 2026-07-29 | Produit/UX | Rendre la lecture du sÃƒÂ©jour rÃƒÂ©ellement collaborative dans les cockpits owner et concierge | La rÃƒÂ©servation canonique exposait dÃƒÂ©jÃƒÂ  ses champs ÃƒÂ©ditoriaux et sa timeline, mais les ÃƒÂ©crans mÃƒÂ©tier lisaient encore surtout des cartes statiques ou dÃƒÂ©rivÃƒÂ©es de `missions`, sans narration partagÃƒÂ©e du sÃƒÂ©jour | `/dashboard/concierge/sejours` charge maintenant `/api/reservations/[id]` sur le sÃƒÂ©jour sÃƒÂ©lectionnÃƒÂ© et affiche une section `Lecture collaborative` avec propriÃƒÂ©taire, derniÃƒÂ¨re mise ÃƒÂ  jour, consignes d'accÃƒÂ¨s, notes owner/conciergerie et une timeline rÃƒÂ©cente ; `/dashboard/owner/missions/voyageurs` rÃƒÂ©cupÃƒÂ¨re aussi le dÃƒÂ©tail canonique de la rÃƒÂ©servation focalisÃƒÂ©e, ajoute un bouton `Suivi`, un `Brief collaboratif` et une `Timeline rÃƒÂ©cente` dans l'aside, avec ÃƒÂ©tats loading/erreur/empty ; preuves : contrat `src/tests/reservations-api-contract.test.mts` enrichi, suite Node ciblÃƒÂ©e `19/19 PASS` et `npm run build` PASS le mercredi 29 juillet 2026 | Produit/UX/Tech |
+| 2026-07-29 | Produit/UX | Ouvrir l'ÃƒÂ©criture collaborative du sÃƒÂ©jour depuis les cockpits owner/concierge et prolonger ce rÃƒÂ©cit dans le planning owner | La lecture canonique ÃƒÂ©tait branchÃƒÂ©e, mais l'utilisateur devait encore sortir des ÃƒÂ©crans mÃƒÂ©tier pour enrichir le brief ou faire avancer le cycle de vie partagÃƒÂ© du sÃƒÂ©jour | `PATCH /api/reservations/[id]` accepte dÃƒÂ©sormais aussi les effacements volontaires de `access_instructions`, `owner_notes` et `concierge_notes`, tout en journalisant ces mises ÃƒÂ  jour comme `Brief collaboratif mis a jour` ; `/dashboard/concierge/sejours` permet maintenant d'ÃƒÂ©diter les consignes d'accÃƒÂ¨s et les notes conciergerie, puis d'exÃƒÂ©cuter directement des actions de timeline `Accuser reception`, `Marquer en sejour` et `Cloturer` ; `/dashboard/owner/missions/voyageurs` permet dÃƒÂ©sormais au propriÃƒÂ©taire d'ÃƒÂ©diter ses consignes d'accÃƒÂ¨s et notes owner dans l'aside focalisÃƒÂ©e, puis d'annuler le sÃƒÂ©jour depuis le cockpit avec traÃƒÂ§age canonique ; `/dashboard/owner/planning` rÃƒÂ©injecte aussi le voyageur, les notes owner/concierge, les consignes d'accÃƒÂ¨s et la conciergerie dans ses cartes et pastilles pour rendre le planning plus ÃƒÂ©ditorial ; preuves : contrat `src/tests/reservations-api-contract.test.mts` enrichi, suite Node ciblÃƒÂ©e `19/19 PASS`, `npm run build` PASS le mercredi 29 juillet 2026 | Produit/UX/Tech |
+| 2026-07-29 | Data/Tech | Semer un jeu KPI persistant rattachÃƒÂ© aux workspaces admin | Le fallback local gardait l'UI lisible, mais ne crÃƒÂ©ait aucune donnÃƒÂ©e rÃƒÂ©elle dans Supabase pour valider les KPI connectÃƒÂ©s | Nouveau script `scripts/seed-admin-workspace-kpis.mjs` + commande `npm run seed:admin:kpis` : crÃƒÂ©ation idempotente de 18 profils KPI liÃƒÂ©s ÃƒÂ  `admin@planetls.fr` (6 owner, 6 concierge, 6 provider), ÃƒÂ©vÃƒÂ©nements d'onboarding, demandes, destinataires, devis, factures, conversations, messages, `workflow_events`, `provider_clients` et `provider_interventions` ; exÃƒÂ©cution rÃƒÂ©elle rÃƒÂ©ussie le mercredi 29 juillet 2026 avec IDs persistÃƒÂ©s en base ; `/api/kpis/overview` tolÃƒÂ¨re aussi les schÃƒÂ©mas distants incomplets en rÃƒÂ©essayant sans `provider_profile_id` et en calculant l'activation provider via `provider_interventions` si `missions` n'expose pas encore cette relation | Admin/Data/Tech |
+| 2026-07-28 | Produit/UX | Basculer le dashboard administrateur en Mission Control orientÃƒÂ© action | La page admin restait lisible comme audit interne mais pas encore comme cockpit quotidien de dÃƒÂ©cision | `/dashboard/admin` adopte un bandeau de synthÃƒÂ¨se, un filtre 7/30/90 jours, un filtre segment `PropriÃƒÂ©taires/Conciergeries/Artisans`, des cartes KPI, une liste de prioritÃƒÂ©s actionnables, une activitÃƒÂ© rÃƒÂ©cente, trois tables mÃƒÂ©tier compactes, deux lectures graphiques issues des vraies donnÃƒÂ©es (`activation_series`, `activation_by_zone`), deux donuts supplÃƒÂ©mentaires pour la rÃƒÂ©partition des rÃƒÂ´les et les feux de contrÃƒÂ´le, trois cartes de santÃƒÂ© visuelles pour `Inscriptions`, `Missions` et `Messages`, ainsi quÃ¢â‚¬â„¢un hero premium de type `data story` avec tension du jour, actions chaudes et rÃƒÂ©sumÃƒÂ©s ÃƒÂ©ditoriaux ; les libellÃƒÂ©s `n/a` sont remplacÃƒÂ©s par `DonnÃƒÂ©e insuffisante` / `Non disponible` ; la page `/dashboard/admin/controle` est aussi remontÃƒÂ©e au mÃƒÂªme niveau visuel avec hero santÃƒÂ© ÃƒÂ©ditorial, cartes de synthÃƒÂ¨se, onglets plus dÃƒÂ©cisionnels et surfaces de pilotage plus lisibles ; la page couvre aussi une phase 6 dÃ¢â‚¬â„¢ÃƒÂ©tats UX complets et une phase 7 responsive/a11y : boutons de filtre avec ÃƒÂ©tat clavier explicite, focus visible, tableaux annotÃƒÂ©s (`caption`, `scope`) et repli mobile en cartes lisibles via libellÃƒÂ©s de colonnes ; `DashboardLayout` peut masquer ses blocs secondaires pour laisser cette composition respirer ; la page reste dÃƒÂ©sormais lisible en mode dÃƒÂ©gradÃƒÂ© si `overview`, `operations`, `control-tower` ou `kpis` sont indisponibles et affiche un bandeau dÃ¢â‚¬â„¢ÃƒÂ©tat explicite ; `/api/admin/overview`, `/api/admin/operations` et `/api/kpis/overview` renvoient aussi un payload `health` plutÃƒÂ´t quÃ¢â‚¬â„¢un `500` quand Supabase est inaccessible, ce qui garde le cockpit exploitable en sandbox ; en complÃƒÂ©ment, `/api/kpis/overview` injecte maintenant en local des cohortes workspace dÃƒÂ©terministes et des zones/series non nulles quand Supabase tombe ou quand aucune cohorte mature n'est encore disponible, afin d'ÃƒÂ©viter des visuels durablement vides pendant l'amorÃƒÂ§age ; phase 8 validÃƒÂ©e avec `npm run build` PASS, Playwright `e2e/admin-dashboard.spec.ts` PASS, Playwright `e2e/admin-kpi-activation.spec.ts` PASS, Playwright `e2e/admin-control-actions.spec.ts` PASS et contrat `src/tests/kpis-overview-contract.test.mts` PASS ; revalidation complÃƒÂ©mentaire du 2026-07-28 : contrat `src/tests/kpis-overview-contract.test.mts` `5/5 PASS`, `npm run build` PASS | Admin/Produit/Tech |
+| 2026-07-29 | Produit/Finance | Ajouter un cockpit admin dÃƒÂ©diÃƒÂ© au pilotage entrepreneurial et financier | Le cockpit admin principal pilotait bien l'activitÃƒÂ© et les risques, mais il manquait une lecture plus directement business sur la croissance, le pipeline et la tension de trÃƒÂ©sorerie | Nouvelle route `/dashboard/admin/pilotage` branchÃƒÂ©e ÃƒÂ  la navigation admin, au centre de commandes global et au shell dashboard ; la page agrÃƒÂ¨ge `/api/admin/overview`, `/api/admin/operations`, `/api/admin/control-tower` et `/api/kpis/overview` pour afficher une synthÃƒÂ¨se acquisition/activation, des estimations de pipeline missions, de valeur planifiÃƒÂ©e, de valeur facturÃƒÂ©e visible, un taux de monÃƒÂ©tisation, une lecture d'encaissement final, des alertes de friction commerciale et des actions recommandÃƒÂ©es ; la page reste lisible en mode dÃƒÂ©gradÃƒÂ© quand certaines sources remontent un `health` incomplet ; vÃƒÂ©rification : `npm run build` PASS le mercredi 29 juillet 2026, route statique `/dashboard/admin/pilotage` gÃƒÂ©nÃƒÂ©rÃƒÂ©e dans le build | Admin/Produit/Finance |
+| 2026-08-03 | Produit/Finance | Remplacer le comparateur d'offre Pro par un cadrage financier plus direct | La fondatrice ne veut plus d'un comparateur de scÃƒÂ©narios ; elle a besoin d'une premiÃƒÂ¨re proposition de prix, d'une estimation selon le nombre d'abonnÃƒÂ©s et d'une hypothÃƒÂ¨se de commission | Le `Business Strategy Center` de `/dashboard/admin/pilotage` abandonne le comparatif A/B/C et affiche dÃƒÂ©sormais une recommandation simple : `Conciergerie Pro` ÃƒÂ  `99 Ã¢â€šÂ¬ HT / mois` en lancement puis `149 Ã¢â€šÂ¬ HT / mois` en cible, avec tableau d'estimation MRR/ARR par volume d'abonnÃƒÂ©s, hypothÃƒÂ¨se alternative de commission ÃƒÂ  `8 %` avec projection mensuelle selon le nombre de missions, et note explicite indiquant que l'idÃƒÂ©e de commission solidaire associations est conservÃƒÂ©e mais reportÃƒÂ©e tant que le choix financier principal n'est pas arrÃƒÂªtÃƒÂ© ; vÃƒÂ©rification : `npm run build` PASS le lundi 3 aoÃƒÂ»t 2026 | Admin/Produit/Finance |
+| 2026-08-03 | Produit/Finance | Conserver une due diligence investisseur dans le cockpit de pilotage | La rÃƒÂ©flexion due diligence produite en session risquait de rester hors du produit, donc difficilement rÃƒÂ©utilisable dans le pilotage global | La page `/dashboard/admin/pilotage` embarque dÃƒÂ©sormais un bloc `Due diligence investisseur` avec verdict `Attendre`, scoring investisseur, top questions critiques, red flags majeurs et conditions minimales avant rÃƒÂ©examen d'un dossier de levÃƒÂ©e ; le Master Plan conserve aussi une synthÃƒÂ¨se durable de cette lecture pour ÃƒÂ©viter de la perdre hors conversation ; vÃƒÂ©rification : `npm run build` PASS le lundi 3 aoÃƒÂ»t 2026 | Admin/Produit/Finance |
+| 2026-08-03 | Documentation/IA | Conserver durablement le cadrage du futur systÃƒÂ¨me de prompts PlanetLS | La spÃƒÂ©cification IA dÃƒÂ©taillÃƒÂ©e ÃƒÂ©tait prÃƒÂ©sente dans une piÃƒÂ¨ce jointe Codex, donc facile ÃƒÂ  perdre et difficile ÃƒÂ  retrouver dans le dÃƒÂ©pÃƒÂ´t | CrÃƒÂ©ation du dossier `docs/ai/` avec un index dÃƒÂ©diÃƒÂ© et une fiche `systeme-gestion-prompts-planetls-2026-08-03.md` rÃƒÂ©sumant l'objectif, l'architecture en 3 niveaux, les contraintes et la sÃƒÂ©quence de travail recommandÃƒÂ©e pour un futur centre de prompts ; aucun dÃƒÂ©veloppement produit lancÃƒÂ© ÃƒÂ  ce stade | Produit/Tech/Documentation |
+| 2026-08-03 | Technique/SÃƒÂ©curitÃƒÂ© | PrÃƒÂ©server la confidentialitÃƒÂ© des preuves litige et rÃƒÂ©intÃƒÂ©grer seulement les rÃƒÂ©cupÃƒÂ©rations locales ÃƒÂ  faible risque | Le poste fixe contenait des changements non poussÃƒÂ©s alors que `master` avait dÃƒÂ©jÃƒÂ  divergÃƒÂ© ; il fallait rÃƒÂ©cupÃƒÂ©rer uniquement les morceaux encore pertinents sans rÃƒÂ©introduire l'ancienne direction UI | Conservation ciblÃƒÂ©e de trois apports : export litige via liens signÃƒÂ©s temporaires au lieu d'URLs publiques Storage, typage explicite `TravelerStayMissionRow` dans `/api/reservations/[id]`, et ouverture du parseur `admin/control-tower` aux cibles systÃƒÂ¨me non UUID avec tests associÃƒÂ©s ; les ÃƒÂ©crans locaux de pilotage plus anciens ne sont pas rÃƒÂ©injectÃƒÂ©s car `master` suit dÃƒÂ©jÃƒÂ  une autre trajectoire fonctionnelle | Tech/SÃƒÂ©curitÃƒÂ©/QA |
+| 2026-07-28 | Technique | TolÃƒÂ©rer temporairement les tables Supabase non rÃƒÂ©gÃƒÂ©nÃƒÂ©rÃƒÂ©es dans la tour de contrÃƒÂ´le admin | Le build Vercel ÃƒÂ©chouait sur `onboarding_events`, puis `service_requests`, car les migrations existent mais les types gÃƒÂ©nÃƒÂ©rÃƒÂ©s ne couvrent pas encore toutes les tables actives | `/api/admin/control-tower` passe par un helper local non typÃƒÂ© pour prÃƒÂ©server le build et le diagnostic admin ; `npm run build` repasse au vert ; la rÃƒÂ©gÃƒÂ©nÃƒÂ©ration complÃƒÂ¨te des types Supabase reste prioritaire pour supprimer ce contournement | Tech |
+| 2026-07-19 | Produit/Technique | Faire de l'ÃƒÂ©tat non vÃƒÂ©rifiable un statut explicite de la tour de contrÃƒÂ´le | Une table ou colonne absente ne doit jamais produire un faux ÃƒÂ©tat sain | API trace 9 sources, santÃƒÂ© globale horodatÃƒÂ©e, bandeau admin et recontrÃƒÂ´le manuel ; 181/181 tests et build au vert | Produit/Tech/QA |
+| 2026-04-25 | UX | Conserver deux modes d'accompagnement concierge : simplicitÃƒÂ© et expert | Besoins et aisance numÃƒÂ©rique trÃƒÂ¨s diffÃƒÂ©rents | Onboarding et densitÃƒÂ© UI adaptatifs | Produit |
+| 2026-05-18 | Technique | Durcir la messagerie provider et synchroniser le dernier message | FiabilitÃƒÂ© des conversations | Routes provider messages | Tech |
+| 2026-05-18 | Produit | Introduire KPI partagÃƒÂ©s owner/concierge/provider | Mesurer activation et conversion | Endpoint KPI + admin, encore incomplet | Produit/Data |
+| 2026-05-25 | UX | Adopter une checklist responsive/a11y permanente | HÃƒÂ©tÃƒÂ©rogÃƒÂ©nÃƒÂ©itÃƒÂ© des dashboards | CritÃƒÂ¨re de sortie de chaque lot UI | Front/QA |
+| 2026-06-05 | MÃƒÂ©tier | Centraliser demande Ã¢â€ â€™ devis Ã¢â€ â€™ mission et sÃƒÂ©parer leurs statuts | Ãƒâ€°viter transitions contradictoires | Helpers et ÃƒÂ©vÃƒÂ©nements de workflow | Produit/Tech |
+| 2026-06-06 | Architecture | RÃƒÂ©utiliser/amÃƒÂ©liorer avant de crÃƒÂ©er un composant | RÃƒÂ©duire duplication et strates concurrentes | Pages comme assembleurs, helpers partagÃƒÂ©s | Tech lead |
+| 2026-06-06 | Paiement | Supporter paiement complet ou acompte/solde et consolider au niveau mission | ClartÃƒÂ© owner/concierge | Workflow paiement ÃƒÂ  finaliser | Produit/Backend |
+| 2026-06-18 | SÃƒÂ©curitÃƒÂ© | ContrÃƒÂ´ler les autorisations dans les APIs, jamais uniquement dans le proxy | DÃƒÂ©fense en profondeur | Guards mÃƒÂ©tier et tests de permissions | Backend |
+| 2026-06-19 | Produit | Concevoir les profils par persona et isoler les prÃƒÂ©fÃƒÂ©rences owner | Le profil polymorphe ne supporte pas les mÃƒÂ©tiers | Spec cible, policy de patch, owner preferences | Produit/Backend |
+| 2026-07-07 | Architecture | Geler les conventions du Sprint 1 avant nouvelles grandes ÃƒÂ©volutions | Base riche mais fragmentÃƒÂ©e | UI, types, Supabase et workflows ÃƒÂ  consolider | Tech lead |
+| 2026-07-12 | Produit | Enrichir le cockpit concierge : CRM, ÃƒÂ©quipe, maintenance, rÃƒÂ©servations, mobile | Faire de PlanetLS un outil quotidien | Socles livrÃƒÂ©s, persistance spÃƒÂ©cialisÃƒÂ©e attendue | Produit/Tech |
+| 2026-07-12 | Produit | CrÃƒÂ©er le centre sÃƒÂ©jours sans scoring voyageur | Besoin opÃƒÂ©rationnel et minimisation des donnÃƒÂ©es | API/page concierge, voyageur non autonome | Produit |
+| 2026-07-18 | StratÃƒÂ©gie | Positionner PlanetLS comme rÃƒÂ©seau professionnel de la location saisonniÃƒÂ¨re | RÃƒÂ©soudre dÃƒÂ©couverte, confiance, liquiditÃƒÂ© et rÃƒÂ©tention | Fil, carte, mur des missions et profils ÃƒÂ©voluÃƒÂ©s entrent dans la cible | Direction produit |
+| 2026-07-18 | Gouvernance | Faire du prÃƒÂ©sent Master Plan la rÃƒÂ©fÃƒÂ©rence officielle | Ãƒâ€°viter la multiplication des audits | Les documents existants deviennent des annexes historiques/spÃƒÂ©cialisÃƒÂ©es | Direction produit |
+| 2026-07-18 | QA | Qualifier le produit global N3 et non Ã¢â‚¬Å“terminÃƒÂ©Ã¢â‚¬Â | Baseline initiale 153/154, puis 157/157 aprÃƒÂ¨s correction du snapshot ; pas d'E2E complet et modules rÃƒÂ©cents partiellement persistÃƒÂ©s | PrioritÃƒÂ© ÃƒÂ  la preuve et ÃƒÂ  la consolidation | QA/Tech |
+| 2026-07-18 | Produit | Ajouter un assistant dÃƒÂ©coration au cockpit concierge | Aider la concierge ÃƒÂ  prÃƒÂ©parer une recommandation budgÃƒÂ©tÃƒÂ©e pour un propriÃƒÂ©taire | Page/API/helper, table `decoration_ai_reports`, navigation et tests ; partage et gÃƒÂ©nÃƒÂ©ration visuelle restent partiels | Produit/Tech |
+| 2026-07-18 | QA | Rendre le snapshot UI indÃƒÂ©pendant des fins de ligne | Ãƒâ€°viter les ÃƒÂ©checs globaux LF/CRLF sans changement logique | Hash normalisÃƒÂ© et baseline UI rÃƒÂ©gÃƒÂ©nÃƒÂ©rÃƒÂ©e ; 157/157 tests validÃƒÂ©s | Tech |
+| 2026-07-18 | QA | Valider la baseline de production | Fermer le lot de stabilisation avant les E2E | Lint sans erreur et build Next.js rÃƒÂ©ussi avec 164 pages ; l'ÃƒÂ©chec `spawn EPERM` initial ÃƒÂ©tait liÃƒÂ© ÃƒÂ  la sandbox Windows | Tech |
+| 2026-07-18 | QA | Automatiser les smoke tests des trois espaces | Remplacer les runbooks sans preuve par une validation navigateur reproductible | Playwright, comptes workspace locaux, serveur `.next-e2e`, 3/3 scÃƒÂ©narios PASS et workflow GitHub ajoutÃƒÂ© | QA/Tech |
+| 2026-07-18 | Architecture | Utiliser Webpack pour le serveur E2E | Turbopack a paniquÃƒÂ© en dÃƒÂ©veloppement parallÃƒÂ¨le ; Webpack a rÃƒÂ©vÃƒÂ©lÃƒÂ© un sÃƒÂ©lecteur CSS Module invalide | `NEXT_DIST_DIR` isole le runner ; correction SCSS compatible avec les deux bundlers | Tech |
+| 2026-07-18 | QA | Valider le flux commercial multi-rÃƒÂ´les | Prouver la chaÃƒÂ®ne navigateur Ã¢â€ â€™ API Ã¢â€ â€™ donnÃƒÂ©es Ã¢â€ â€™ restitution, au-delÃƒÂ  des smoke tests | Demande, devis acceptÃƒÂ©, mission gÃƒÂ©nÃƒÂ©rÃƒÂ©e et facture ÃƒÂ©mise/visible owner ; 1/1 PASS | QA/Tech |
+| 2026-07-18 | Paiement | Reporter le paiement rÃƒÂ©el jusqu'a la configuration Stripe test | `STRIPE_SECRET_KEY` absente ; le checkout rÃƒÂ©pond proprement `503` sans transaction | Configurer uniquement des clÃƒÂ©s test puis valider checkout et synchronisation | Tech/Produit |
+| 2026-07-18 | Architecture | Rendre la crÃƒÂ©ation de mission compatible avec le schÃƒÂ©ma connectÃƒÂ© | L'E2E a rÃƒÂ©vÃƒÂ©lÃƒÂ© l'absence de `missions.title` et l'obligation de `service_id` | Repli contrÃƒÂ´lÃƒÂ© vers `service_label`, service catalogue conservÃƒÂ© dans le devis puis la mission, test unitaire dÃƒÂ©diÃƒÂ© | Tech |
+| 2026-07-18 | QA | Valider le flux opÃƒÂ©rationnel provider | Prouver l'affectation multi-rÃƒÂ´les, la restitution terrain et la facturation | Mission Ã¢â€ â€™ intervention Ã¢â€ â€™ preuve Ã¢â€ â€™ `completed` Ã¢â€ â€™ facture liÃƒÂ©e de 90 Ã¢â€šÂ¬, 1/1 PASS | QA/Tech |
+| 2026-07-18 | Architecture | RÃƒÂ©utiliser le moteur de facturation pour les providers | Ãƒâ€°viter un second systÃƒÂ¨me tout en empÃƒÂªchant la facturation de missions arbitraires | Route intervention-scopÃƒÂ©e, contrÃƒÂ´le d'appartenance/statut, crÃƒÂ©ation idempotente et filtre `providerInterventionId` | Tech |
+| 2026-07-18 | Architecture | Corriger la route mission/provider pour le schÃƒÂ©ma connectÃƒÂ© | UUID valides rejetÃƒÂ©s et lecture dÃƒÂ©pendante de `missions.title` | Validateur UUID restaurÃƒÂ©, rÃƒÂ©solution par chemin et normalisation `title`/`service_label` | Tech |
+| 2026-07-18 | Architecture | Ouvrir les preuves mÃƒÂ©dia aux artisans affectÃƒÂ©s uniquement | Permettre la restitution terrain sans exposer les fichiers des autres missions | Bucket privÃƒÂ© existant rÃƒÂ©utilisÃƒÂ©, contrÃƒÂ´le par `provider_interventions.metadata.mission_id`, SHA-256 et URL signÃƒÂ©e ; E2E 1/1 PASS | Tech/QA |
+| 2026-07-18 | Paiement | Valider la synchronisation Stripe sans transaction rÃƒÂ©elle | Fermer le risque webhook avant disponibilitÃƒÂ© des clÃƒÂ©s test | Signature HMAC avec fenÃƒÂªtre anti-rejeu de 5 minutes ; facture rÃƒÂ©elle passÃƒÂ©e ÃƒÂ  `paid` par webhook E2E signÃƒÂ©, 1/1 PASS | Tech/QA |
+| 2026-07-18 | CI | Ãƒâ€°tendre le workflow critique ÃƒÂ  toute la quality gate | EmpÃƒÂªcher un E2E vert de masquer une rÃƒÂ©gression unitaire, lint ou build | VÃƒÂ©rification des secrets, `npm test`, lint, build puis Playwright ; timeout portÃƒÂ© ÃƒÂ  30 minutes et `.env.example` ajoutÃƒÂ© sans valeur sensible | Tech/QA |
+| 2026-07-18 | QA | Valider la planification aprÃƒÂ¨s paiement | Prouver que le garde paiement et le calendrier partagent un ÃƒÂ©tat persistant multi-rÃƒÂ´les | Concierge planifie une mission payÃƒÂ©e, statut et crÃƒÂ©neau relus owner ; E2E 1/1 PASS en 3,3 min | QA/Tech |
+| 2026-07-18 | Planning | Bloquer les chevauchements attribuables | Ãƒâ€°viter la double rÃƒÂ©servation dÃ¢â‚¬â„¢un logement ou dÃ¢â‚¬â„¢un membre sans bloquer les ressources distinctes | Validation des dates, dÃƒÂ©tection dÃ¢â‚¬â„¢intersection stricte, rÃƒÂ©ponse 409 avec conflits ; tests unitaires et E2E de non-rÃƒÂ©gression verts | Tech/QA |
+| 2026-07-18 | Planning | Exposer la capacitÃƒÂ© quotidienne de lÃ¢â‚¬â„¢ÃƒÂ©quipe | Donner un signal de surcharge sans inventer des horaires contractuels absents du modÃƒÂ¨le | DurÃƒÂ©e planifiÃƒÂ©e du jour, plafond configurable, taux de charge, ÃƒÂ©tat occupÃƒÂ© et compteur de surcharges dans lÃ¢â‚¬â„¢espace Ãƒâ€°quipe ; test dÃƒÂ©diÃƒÂ© vert | Produit/Tech |
+| 2026-07-18 | Architecture | PrÃƒÂ©parer la persistance de lÃ¢â‚¬â„¢ÃƒÂ©quipe concierge | Remplacer progressivement les membres locaux sans casser la base connectÃƒÂ©e actuelle | Migration concierge_team_members avec RLS, API GET/POST et UI branchÃƒÂ©e avec fallback ; smoke 3/3 PASS, migration distante non appliquÃƒÂ©e | Tech/DBA |
+| 2026-07-18 | Architecture | SÃƒÂ©curiser le cycle de vie des membres dÃ¢â‚¬â„¢ÃƒÂ©quipe | Ãƒâ€°viter les modifications transverses et conserver lÃ¢â‚¬â„¢historique dÃ¢â‚¬â„¢affectation | API membre PATCH/DELETE scoping propriÃƒÂ©taire/admin, validation mÃƒÂ©tier et dÃƒÂ©sactivation logique ; contrat 2/2 PASS | Tech/QA |
+| 2026-07-18 | Produit | Brancher la gestion persistante dÃ¢â‚¬â„¢ÃƒÂ©quipe dans le cockpit concierge | Remplacer les membres de dÃƒÂ©monstration dÃƒÂ¨s que le schÃƒÂ©ma est disponible sans masquer une ÃƒÂ©quipe rÃƒÂ©ellement vide | Formulaire de crÃƒÂ©ation, disponibilitÃƒÂ© et dÃƒÂ©sactivation connectÃƒÂ©s aux API ; fallback migration explicite ; contrat 3/3 PASS | Produit/Tech |
+| 2026-07-18 | Architecture | Canoniser les nouvelles migrations Supabase | EmpÃƒÂªcher la dette des deux dossiers de continuer sans dÃƒÂ©placer ÃƒÂ  lÃ¢â‚¬â„¢aveugle 20 migrations historiques | supabase/migrations devient canonique, archive legacy figÃƒÂ©e par check:migrations, contrÃƒÂ´le ajoutÃƒÂ© ÃƒÂ  la CI ; inventaire distant en attente du token Supabase | Tech/DBA |
+| 2026-07-19 | Architecture | CrÃƒÂ©er le dossier maintenance canonique | Sortir les incidents de missions.metadata sans casser lÃ¢â‚¬â„¢historique existant | Table maintenance_incidents et RLS participants, API GET/POST, fusion UI dÃƒÂ©dupliquÃƒÂ©e et formulaire ; 167/167 tests, build 166 pages ; migration distante non appliquÃƒÂ©e | Tech/QA |
+| 2026-07-19 | MÃƒÂ©tier | Encadrer le cycle de vie des incidents maintenance | EmpÃƒÂªcher les clÃƒÂ´tures arbitraires et tracer une progression opÃƒÂ©rationnelle cohÃƒÂ©rente | API PATCH scopÃƒÂ©e, transitions signalÃƒÂ© Ã¢â€ â€™ qualifiÃƒÂ© Ã¢â€ â€™ affectÃƒÂ© Ã¢â€ â€™ devis Ã¢â€ â€™ validÃƒÂ© Ã¢â€ â€™ planifiÃƒÂ© Ã¢â€ â€™ en cours Ã¢â€ â€™ rÃƒÂ©solu Ã¢â€ â€™ clÃƒÂ´turÃƒÂ©, action UI ; contrat 4/4, 168/168 tests, build 166 pages | Produit/Tech |
+| 2026-07-19 | SÃƒÂ©curitÃƒÂ© | Restreindre et valider lÃ¢â‚¬â„¢affectation artisan | Permettre le dispatch sans exposer les coordonnÃƒÂ©es privÃƒÂ©es ni accepter un profil arbitraire | Annuaire provider dÃƒÂ©diÃƒÂ© limitÃƒÂ© aux champs professionnels, contrÃƒÂ´le du rÃƒÂ´le ÃƒÂ  lÃ¢â‚¬â„¢ÃƒÂ©criture, sÃƒÂ©lection cockpit ; contrat 5/5, 169/169 tests, build 167 pages | Tech/Produit |
+| 2026-07-19 | SÃƒÂ©curitÃƒÂ© | Rendre les preuves maintenance privÃƒÂ©es et vÃƒÂ©rifiables | Conserver les photos terrain sans URL publique ni fichier non tracÃƒÂ© | Table mÃƒÂ©dia/RLS, bucket privÃƒÂ© mission-evidence rÃƒÂ©utilisÃƒÂ©, contrÃƒÂ´le MIME/25 Mo, SHA-256, URL signÃƒÂ©e 10 min et upload cockpit ; contrat 6/6, 170/170 tests, build 167 pages | Tech/QA |
+| 2026-07-19 | Data | Stabiliser la dÃƒÂ©finition de lÃ¢â‚¬â„¢activation J+7 | LÃ¢â‚¬â„¢ancien calcul comptait trois activitÃƒÂ©s arbitraires et incluait des comptes trop rÃƒÂ©cents | Cohorte limitÃƒÂ©e aux comptes ayant atteint J+7, ÃƒÂ©vÃƒÂ©nement dans la fenÃƒÂªtre individuelle : demande owner, devis concierge, mission provider ; ÃƒÂ©ligibles/activÃƒÂ©s exposÃƒÂ©s ; 172/172 tests, build 167 pages | Data/Produit |
+| 2026-07-19 | Data | Ajouter les sÃƒÂ©ries hebdomadaires dÃ¢â‚¬â„¢activation | Un taux global masque les variations de qualitÃƒÂ© dÃ¢â‚¬â„¢acquisition et dÃ¢â‚¬â„¢onboarding | Cohortes dÃ¢â‚¬â„¢inscription hebdomadaires matures, ÃƒÂ©ligibles/activÃƒÂ©s/taux par rÃƒÂ´le, mÃƒÂªme moteur J+7 que la synthÃƒÂ¨se ; 173/173 tests, build 167 pages | Data/Produit |
+| 2026-07-19 | Data | Segmenter lÃ¢â‚¬â„¢activation J+7 par ville | Identifier les zones oÃƒÂ¹ lÃ¢â‚¬â„¢acquisition ou lÃ¢â‚¬â„¢onboarding fonctionne sans masquer la taille dÃ¢â‚¬â„¢ÃƒÂ©chantillon | Top 20 zones par rÃƒÂ´le avec ÃƒÂ©ligibles, activÃƒÂ©s et taux ; groupes immatures exclus ; 174/174 tests, build 167 pages | Data/Growth |
+| 2026-07-19 | Produit/Data | Exposer activation J+7 dans le cockpit admin | Rendre les groupes actionnables sans consulter directement API | Cartes owner/concierge/provider, activÃƒÂ©s/ÃƒÂ©ligibles, tendance sur quatre groupes et zone principale ; erreur locale non bloquante ; 175/175 tests, build 167 pages | Admin/Data |
+| 2026-07-19 | Produit | Enrichir le profil professionnel artisan sans nouveau modÃƒÂ¨le concurrent | Le workspace provider ne permettait d'ÃƒÂ©diter que l'identitÃƒÂ© gÃƒÂ©nÃƒÂ©rique malgrÃƒÂ© les colonnes mÃƒÂ©tier existantes | Policy de patch ÃƒÂ©tendue et section persistante activitÃƒÂ©/zone/disponibilitÃƒÂ©/tarifs/expÃƒÂ©rience/lÃƒÂ©gal/assurance/certifications avec complÃƒÂ©tude dÃƒÂ©diÃƒÂ©e ; 175/175 tests, lint et build 167 pages | Produit/Tech |
+| 2026-07-19 | SÃƒÂ©curitÃƒÂ© | Conserver les justificatifs artisan privÃƒÂ©s jusqu'ÃƒÂ  vÃƒÂ©rification | Une certification dÃƒÂ©clarÃƒÂ©e ne doit pas ÃƒÂªtre confondue avec une preuve validÃƒÂ©e ni exposer un document sensible | Table/RLS dÃƒÂ©diÃƒÂ©e, bucket privÃƒÂ© rÃƒÂ©utilisÃƒÂ©, PDF/images 10 Mo, SHA-256, statuts pending/verified/rejected, liens signÃƒÂ©s 10 min et panneau profil ; migration distante non appliquÃƒÂ©e ; 178/178 tests, build 168 pages | Tech/Produit |
+| 2026-07-19 | Administration | Ãƒâ€°tendre le centre de santÃƒÂ© aux contradictions opÃƒÂ©rationnelles | Un simple comptage des objets liÃƒÂ©s ne dÃƒÂ©tecte ni mission sans affectation, ni planning incohÃƒÂ©rent, ni paiement ou maintenance bloquants | 11 sources tracÃƒÂ©es, moteur mÃƒÂ©tier isolÃƒÂ© et testÃƒÂ©, contrÃƒÂ´les affectation/planning/facture/paiement/maintenance exposÃƒÂ©s dans le cockpit ; 191/191 tests, lint ciblÃƒÂ© et build 168 pages | Admin/Tech/QA |
+| 2026-07-19 | SÃƒÂ©curitÃƒÂ©/Produit | Faire dÃƒÂ©cider les justificatifs artisan par un administrateur sans publier les fichiers | Une dÃƒÂ©claration fournisseur ne doit devenir un signal de confiance quÃ¢â‚¬â„¢aprÃƒÂ¨s dÃƒÂ©cision tracÃƒÂ©e, sans fuite de document, empreinte ou chemin Storage | Route admin verified/rejected avec acteur/date/motif, panneau privÃƒÂ© dans la fiche artisan et agrÃƒÂ©gats vÃƒÂ©rifiÃƒÂ©s non expirÃƒÂ©s dans lÃ¢â‚¬â„¢annuaire de dispatch ; 192/192 tests, lint et build 168 pages | Admin/Produit/Tech |
+| 2026-07-19 | Pilotage | GÃƒÂ©nÃƒÂ©rer le planning de dÃƒÂ©veloppement depuis le registre de maintenance | Donner un ordre de travail lisible sans crÃƒÂ©er une seconde roadmap divergente | Chantiers non terminÃƒÂ©s groupÃƒÂ©s par horizon calculÃƒÂ© depuis P0Ã¢â‚¬â€œP4, prochaine action et preuves visibles dans `/dashboard/admin/developpement` ; 193/193 tests, lint et build 168 pages | Produit/Tech |
+| 2026-07-27 | Pilotage/UX | Transformer la page Developer en journal de bord opÃƒÂ©rationnel | La vue dÃƒÂ©veloppement exposait dÃƒÂ©jÃƒÂ  le Master Plan, mais ne permettait ni mÃƒÂ©moire quotidienne, ni favoris, ni commentaires, ni saisie manuelle dÃ¢â‚¬â„¢ÃƒÂ©vÃƒÂ©nements de dÃƒÂ©veloppement | Section `Journal de bord` ajoutÃƒÂ©e dans `/dashboard/admin/developpement` : timeline verticale responsive, ÃƒÂ©vÃƒÂ©nements auto depuis Git et planning, formulaire manuel local, recherche instantanÃƒÂ©e, filtres pÃƒÂ©riode/fonctionnalitÃƒÂ©/prioritÃƒÂ©/auteur, favoris, commentaires et liens GitHub ; tests `203/203 PASS`, ESLint ciblÃƒÂ© `PASS`, build Next `PASS` aprÃƒÂ¨s exclusion des fichiers E2E du `tsconfig` applicatif | Produit/Tech/QA |
+| 2026-07-27 | Pilotage/UX | CrÃƒÂ©er une Mission Control dÃƒÂ©veloppeur lisible en 30 secondes | Le journal de bord documente lÃ¢â‚¬â„¢activitÃƒÂ©, mais il manquait un cockpit de dÃƒÂ©cision immÃƒÂ©diate sur la progression produit, la charge de dev et la santÃƒÂ© des dÃƒÂ©pendances clÃƒÂ©s | Bloc `Mission Control` ajoutÃƒÂ© dans `/dashboard/admin/developpement` : progression globale, fonctionnalitÃƒÂ©s terminÃƒÂ©es/en cours/bloquÃƒÂ©es, bugs critiques/mineurs, dÃƒÂ©cisions et commits rÃƒÂ©cents, temps de dev hebdomadaire estimÃƒÂ©, objectifs semaine/suivant, derniÃƒÂ¨re sauvegarde, environnement courant et cartes de santÃƒÂ© Supabase/Vercel/GitHub ; tests `204/204 PASS`, ESLint ciblÃƒÂ© `PASS`, build Next `PASS` | Produit/Tech/QA |
+| 2026-07-27 | Pilotage/UX | Transformer le planning en roadmap intelligente vivante | Le cockpit dev montrait lÃ¢â‚¬â„¢ÃƒÂ©tat du projet, mais ne proposait pas encore de sÃƒÂ©quencement dynamique quand un chantier se termine ou se dÃƒÂ©bloque | Bloc `Roadmap intelligente` ajoutÃƒÂ© dans `/dashboard/admin/developpement` : prioritÃƒÂ©s, difficultÃƒÂ©, dÃƒÂ©pendances, estimation, gains utilisateur/business, dette technique, responsable, date prÃƒÂ©vue, suggestion de prochaine fonctionnalitÃƒÂ© logique et clÃƒÂ´ture locale avec recalcul immÃƒÂ©diat ; tests `205/205 PASS`, ESLint ciblÃƒÂ© `PASS`, build Next `PASS`, spec Playwright enrichie mais non exÃƒÂ©cutable localement car la commande `playwright` est absente du shell | Produit/Tech/QA |
+| 2026-07-27 | Pilotage/Tech | CrÃƒÂ©er une mÃƒÂ©moire technique consultable en quelques secondes | Les arbitrages de stack, dÃ¢â‚¬â„¢architecture et de workflow existaient dans le code et le Master Plan, mais restaient trop lents ÃƒÂ  retrouver lors dÃ¢â‚¬â„¢un nouveau chantier | Bloc `MÃƒÂ©moire technique` ajoutÃƒÂ© dans `/dashboard/admin/developpement` : dÃƒÂ©cisions canoniques `Pourquoi Supabase`, `Pourquoi Next.js`, `Pourquoi Vercel`, architecture, composants et workflow, complÃƒÂ©tÃƒÂ©es par les dÃƒÂ©cisions extraites du Master Plan avec recherche instantanÃƒÂ©e ; tests `206/206 PASS`, ESLint ciblÃƒÂ© `PASS`, build Next `PASS`, spec Playwright enrichie mais bloquÃƒÂ©e localement par `/api/auth/dev-workspace-login` | Produit/Tech/QA |
+| 2026-07-19 | Correctif responsive | Conserver les lÃƒÂ©gendes des graphiques admin dans leurs cartes | Le seuil global ÃƒÂ  760 px imposait simultanÃƒÂ©ment trois cartes et une lÃƒÂ©gende latÃƒÂ©rale, coupÃƒÂ©e par le conteneur | LÃƒÂ©gende empilÃƒÂ©e, grille 2 colonnes puis 3 ÃƒÂ  1200 px, retour ÃƒÂ  la ligne des libellÃƒÂ©s et mesure Playwright des trois camemberts `1/1 PASS` ; 193/193 tests, lint et build 168 pages | UI/QA |
+| 2026-07-19 | Pilotage/UX | Rendre visibles les contenus rattachÃƒÂ©s aux titres parents du Master Plan | Les H2 suivis immÃƒÂ©diatement de H3 semblaient vides alors que leur contenu ÃƒÂ©tait rÃƒÂ©parti dans les sous-sections | Index cliquable des enfants directs avec ÃƒÂ©tat vide explicite en dernier recours ; contrÃƒÂ´le Playwright sur `1. Vision du projet` `1/1 PASS`, lint et build 168 pages | Produit/UI |
+| 2026-07-19 | Maintenance | Supprimer uniquement les redondances prouvÃƒÂ©es hors graphe actif | AllÃƒÂ©ger le dÃƒÂ©pÃƒÂ´t sans casser les nombreux replis legacy encore utilisÃƒÂ©s | Retrait de 10 dÃƒÂ©pendances directes sans import et de 4 fichiers sans consommateur ; les compatibilitÃƒÂ©s legacy actives sont conservÃƒÂ©es ; 193/193 tests, lint et build 168 pages | Tech/QA |
+| 2026-07-19 | Data/Produit | ClÃƒÂ´turer le P0 activation par des seuils explicites et des alertes actionnables | Un taux brut sans taille de groupe, seuil ni tendance ne permettait pas ÃƒÂ  lÃ¢â‚¬â„¢admin de dÃƒÂ©cider | Cibles owner 30 %, concierge 25 %, provider 35 % ; seuils critiques 15/12/18 %, minimum 5 profils ÃƒÂ©ligibles et baisse de 10 points ; repli connectÃƒÂ© contact_messages, Playwright 1/1 PASS, contrat 5/5, suite 195/195 et build 168 pages | Data/Produit/Tech |
+| 2026-07-19 | Administration | ClÃƒÂ´turer le centre de santÃƒÂ© avec des interventions humaines auditables | Le diagnostic automatique dÃƒÂ©tectait les anomalies mais ne permettait ni prise en charge ni transmission persistÃƒÂ©e | Cycle enregistrÃƒÂ© dans workflow_events avec acteur, date, cible et motif : prise en charge, transmission au responsable puis clÃƒÂ´ture avec compte rendu sans masquer lÃ¢â‚¬â„¢anomalie ; E2E connectÃƒÂ© 1/1, contrat 10/10, suite 199/199, lint et build 168 pages | Admin/Tech/QA |
+| 2026-07-19 | Paiement/QA | PrÃƒÂ©parer le P0 owner pour un vrai Checkout Stripe sans accepter de clÃƒÂ© live | Le scÃƒÂ©nario attendait toujours un 503 et ne pouvait donc jamais valider Checkout aprÃƒÂ¨s configuration | Branche sk_test_ ouvrant Checkout hÃƒÂ©bergÃƒÂ©, carte test 4242, retour factures et synchronisation ; garde CI refusant clÃƒÂ© absente ou non-test, contrat 2/2, fallback signÃƒÂ© 1/1, suite 201/201 et build 168 pages ; preuve finale bloquÃƒÂ©e sans secret | Produit/Tech/QA |
+| 2026-08-02 | Pilotage/UX | Reporter l'E2E Stripe et ne plus le proposer comme meilleure action tant que sa clÃƒÂ© de test est indisponible | Garder une action matÃƒÂ©riellement impossible en tÃƒÂªte masquait les chantiers exÃƒÂ©cutables | Les statuts ReportÃƒÂ© et AbandonnÃƒÂ© sont exclus des listes prÃƒÂªte/bloquÃƒÂ©e de la roadmap ; le sommaire de DÃƒÂ©veloppement est remontÃƒÂ© en tÃƒÂªte et regroupÃƒÂ© en Agir, DÃƒÂ©cider, Documenter | Produit/Tech/QA |
+| 2026-08-02 | Pilotage/UX | Rendre la page DÃƒÂ©veloppement responsive selon sa largeur rÃƒÂ©ellement disponible | Les media queries suivaient la largeur de l'ÃƒÂ©cran sans dÃƒÂ©duire la sidebar de 280 px, laissant des grilles trop larges et une partie droite coupÃƒÂ©e | Conteneur responsive local, protections anti-dÃƒÂ©bordement, sommaire supÃƒÂ©rieur hiÃƒÂ©rarchisÃƒÂ© avec repÃƒÂ¨res verticaux, passages 4/3 Ã¢â€ â€™ 2 Ã¢â€ â€™ 1 colonnes selon l'espace rÃƒÂ©el | Produit/Tech/QA |
+| 2026-08-02 | Pilotage/UX | Afficher le Sommaire et dÃƒÂ©tail du Master Plan comme premiÃƒÂ¨re section de travail | Le rÃƒÂ©fÃƒÂ©rentiel complet restait relÃƒÂ©guÃƒÂ© aprÃƒÂ¨s les outils dÃƒÂ©rivÃƒÂ©s alors qu'il constitue leur source de vÃƒÂ©ritÃƒÂ© | Bloc placÃƒÂ© juste aprÃƒÂ¨s l'en-tÃƒÂªte, ouvert par dÃƒÂ©faut ; roadmap, Mission Control, conseiller, journal et mÃƒÂ©moire suivent dans cet ordre | Produit/Tech/QA |
+| 2026-07-19 | Ãƒâ€°quipe/QA | ClÃƒÂ´turer le cycle de vie persistant des membres concierge | Le Master Plan supposait encore la migration distante absente alors que le schÃƒÂ©ma connectÃƒÂ© est dÃƒÂ©sormais disponible | CRUD connectÃƒÂ© validÃƒÂ© : crÃƒÂ©ation, modification de disponibilitÃƒÂ©, rendu UI, dÃƒÂ©sactivation logique et refus owner ; Playwright 1/1, contrat 3/3, suite 201/201, lint et build 168 pages | Concierge/Tech/QA |
+| 2026-07-19 | Pilotage/UX | SÃƒÂ©parer les P0 restants des mentions historiques de prioritÃƒÂ© | Le compteur global affichait 17 occurrences de P0, y compris les ÃƒÂ©lÃƒÂ©ments terminÃƒÂ©s, doublons et entrÃƒÂ©es du journal | Compteurs restant/total calculÃƒÂ©s uniquement depuis le registre officiel : 3 P0 restants sur 10 ; synthÃƒÂ¨se et filtres alignÃƒÂ©s, parseur 4/4, Playwright desktop/mobile 1/1, suite 202/202 et build 168 pages | Produit/Tech/QA |
 
 ---
 
-| 2026-07-19 | Métier | Séparer information permanente, besoin d’achat et exécution | Une dimension d’équipement doit rester liée au logement tandis que la commande suit une décision contractuelle traçable | purchaseNeeds persiste dans stockManagement partagé ; garde contrat, plafond et photo finale ; surfaces owner et concierge ; 3 tests métier ajoutés | Produit/Tech |
+| 2026-07-19 | MÃƒÂ©tier | SÃƒÂ©parer information permanente, besoin dÃ¢â‚¬â„¢achat et exÃƒÂ©cution | Une dimension dÃ¢â‚¬â„¢ÃƒÂ©quipement doit rester liÃƒÂ©e au logement tandis que la commande suit une dÃƒÂ©cision contractuelle traÃƒÂ§able | purchaseNeeds persiste dans stockManagement partagÃƒÂ© ; garde contrat, plafond et photo finale ; surfaces owner et concierge ; 3 tests mÃƒÂ©tier ajoutÃƒÂ©s | Produit/Tech |
 
-**2026-07-19 - Produit/UX.** La page admin `/dashboard/admin/developpement` devient la vue de lecture du Master Plan. Elle lit directement le Markdown afin de conserver une seule source de vérité et ajoute synthèse, recherche, filtres et sommaire.
+**2026-07-19 - Produit/UX.** La page admin `/dashboard/admin/developpement` devient la vue de lecture du Master Plan. Elle lit directement le Markdown afin de conserver une seule source de vÃƒÂ©ritÃƒÂ© et ajoute synthÃƒÂ¨se, recherche, filtres et sommaire.
 
-**2026-07-27 - Produit/UX.** La page admin `/dashboard/admin/developpement` devient aussi un journal de bord du développeur. Les événements automatiques sont dérivés des commits récents et du registre de maintenance ; les ajouts manuels, favoris et commentaires restent stockés localement dans le navigateur pour un pilotage quotidien sans créer une nouvelle source métier concurrente au Master Plan.
+**2026-07-27 - Produit/UX.** La page admin `/dashboard/admin/developpement` devient aussi un journal de bord du dÃƒÂ©veloppeur. Les ÃƒÂ©vÃƒÂ©nements automatiques sont dÃƒÂ©rivÃƒÂ©s des commits rÃƒÂ©cents et du registre de maintenance ; les ajouts manuels, favoris et commentaires restent stockÃƒÂ©s localement dans le navigateur pour un pilotage quotidien sans crÃƒÂ©er une nouvelle source mÃƒÂ©tier concurrente au Master Plan.
 
-**2026-07-27 - Produit/UX.** La même page devient une `Mission Control` premium inspirée des cockpits produit. Les métriques de synthèse proviennent du registre officiel, de Git et de l’environnement réel ; les statuts Vercel et GitHub restent des signaux de configuration locale tant qu’aucun connecteur live n’est branché dans cette vue.
+**2026-07-27 - Produit/UX.** La mÃƒÂªme page devient une `Mission Control` premium inspirÃƒÂ©e des cockpits produit. Les mÃƒÂ©triques de synthÃƒÂ¨se proviennent du registre officiel, de Git et de lÃ¢â‚¬â„¢environnement rÃƒÂ©el ; les statuts Vercel et GitHub restent des signaux de configuration locale tant quÃ¢â‚¬â„¢aucun connecteur live nÃ¢â‚¬â„¢est branchÃƒÂ© dans cette vue.
 
-**2026-07-27 - Produit/UX.** La vue de développement reçoit une `Roadmap intelligente` dérivée du registre officiel. Les dépendances, dates prévues, gains et dette sont inférés depuis le Master Plan, puis recalculés localement quand un chantier est marqué terminé afin de proposer automatiquement la prochaine fonctionnalité logique sans ouvrir une seconde source de vérité.
+**2026-07-27 - Produit/UX.** La vue de dÃƒÂ©veloppement reÃƒÂ§oit une `Roadmap intelligente` dÃƒÂ©rivÃƒÂ©e du registre officiel. Les dÃƒÂ©pendances, dates prÃƒÂ©vues, gains et dette sont infÃƒÂ©rÃƒÂ©s depuis le Master Plan, puis recalculÃƒÂ©s localement quand un chantier est marquÃƒÂ© terminÃƒÂ© afin de proposer automatiquement la prochaine fonctionnalitÃƒÂ© logique sans ouvrir une seconde source de vÃƒÂ©ritÃƒÂ©.
 
-**2026-07-27 - Pilotage/Tech.** La vue de développement reçoit une `Mémoire technique` qui consolide les décisions canoniques de stack, d’architecture, de composants et de workflow, puis les mélange aux décisions formalisées dans le Master Plan. L’objectif est de retrouver un “pourquoi” technique en quelques secondes sans repartir d’une lecture intégrale de la documentation.
+**2026-07-27 - Pilotage/Tech.** La vue de dÃƒÂ©veloppement reÃƒÂ§oit une `MÃƒÂ©moire technique` qui consolide les dÃƒÂ©cisions canoniques de stack, dÃ¢â‚¬â„¢architecture, de composants et de workflow, puis les mÃƒÂ©lange aux dÃƒÂ©cisions formalisÃƒÂ©es dans le Master Plan. LÃ¢â‚¬â„¢objectif est de retrouver un Ã¢â‚¬Å“pourquoiÃ¢â‚¬Â technique en quelques secondes sans repartir dÃ¢â‚¬â„¢une lecture intÃƒÂ©grale de la documentation.
 
-**2026-07-27 - Tech/Build.** Les fichiers `e2e/` et `playwright.config.ts` sont exclus du `tsconfig` applicatif afin que `next build` ne tente plus de typer les helpers Playwright hors bundle. Les tests E2E restent exécutables via Playwright ; seul le périmètre de vérification du build Next est recentré sur l’application.
+**2026-07-27 - Tech/Build.** Les fichiers `e2e/` et `playwright.config.ts` sont exclus du `tsconfig` applicatif afin que `next build` ne tente plus de typer les helpers Playwright hors bundle. Les tests E2E restent exÃƒÂ©cutables via Playwright ; seul le pÃƒÂ©rimÃƒÂ¨tre de vÃƒÂ©rification du build Next est recentrÃƒÂ© sur lÃ¢â‚¬â„¢application.
 
-**2026-07-19 - Correctif React/mobile.** La navigation mobile admin conserve deux actions vers `/dashboard/admin/controle`, mais leur clé React combine désormais libellé et URL. Le warning de clé dupliquée est couvert par un contrat `2/2 PASS` et une assertion console Playwright `1/1 PASS`.
+**2026-07-19 - Correctif React/mobile.** La navigation mobile admin conserve deux actions vers `/dashboard/admin/controle`, mais leur clÃƒÂ© React combine dÃƒÂ©sormais libellÃƒÂ© et URL. Le warning de clÃƒÂ© dupliquÃƒÂ©e est couvert par un contrat `2/2 PASS` et une assertion console Playwright `1/1 PASS`.
 
-**2026-08-03 - Pilotage/UX mobile admin.** La barre mobile du rÃ´le admin n'utilise plus une logique terrain gÃ©nÃ©rique `Accueil / Planning / Missions / Messages / Terrain`. Elle renvoie maintenant vers `Vue plateforme`, `Pilotage business`, `Controle detaille` et `Developpement`, avec une feuille d'actions mobile alignÃ©e sur la revue admin plutÃ´t que sur l'exÃ©cution terrain. Preuves : `src/app/components/dashboard/mobile/DashboardMobileExperience.tsx`. VÃ©rification : `next build` relancÃ© aprÃ¨s libÃ©ration du verrou `.next/lock`.
+**2026-08-03 - Pilotage/UX mobile admin.** La barre mobile du rÃƒÆ’Ã‚Â´le admin n'utilise plus une logique terrain gÃƒÆ’Ã‚Â©nÃƒÆ’Ã‚Â©rique `Accueil / Planning / Missions / Messages / Terrain`. Elle renvoie maintenant vers `Vue plateforme`, `Pilotage business`, `Controle detaille` et `Developpement`, avec une feuille d'actions mobile alignÃƒÆ’Ã‚Â©e sur la revue admin plutÃƒÆ’Ã‚Â´t que sur l'exÃƒÆ’Ã‚Â©cution terrain. Preuves : `src/app/components/dashboard/mobile/DashboardMobileExperience.tsx`. VÃƒÆ’Ã‚Â©rification : `next build` relancÃƒÆ’Ã‚Â© aprÃƒÆ’Ã‚Â¨s libÃƒÆ’Ã‚Â©ration du verrou `.next/lock`.
 
-**2026-08-13 - Pilotage/UX mobile admin.** La feuille `Action admin` a finalement Ã©tÃ© retirÃ©e de la barre mobile admin. Elle restait purement locale `checklist, capture, signature`, sans persistance serveur ni impact direct sur les vraies vues `Pilotage business`, `ContrÃ´le dÃ©taillÃ©` ou `DÃ©veloppement`, et ajoutait une couche de revue redondante. La barre admin conserve un accÃ¨s direct aux pages utiles `Vue plateforme`, `Pilotage business`, `ContrÃ´le dÃ©taillÃ©`, `DÃ©veloppement` et `Missions`. Preuves : `src/app/components/dashboard/mobile/DashboardMobileExperience.tsx`. VÃ©rification restante : relancer `next build`.
+**2026-08-13 - Pilotage/UX mobile admin.** La feuille `Action admin` a finalement ÃƒÆ’Ã‚Â©tÃƒÆ’Ã‚Â© retirÃƒÆ’Ã‚Â©e de la barre mobile admin. Elle restait purement locale `checklist, capture, signature`, sans persistance serveur ni impact direct sur les vraies vues `Pilotage business`, `ContrÃƒÆ’Ã‚Â´le dÃƒÆ’Ã‚Â©taillÃƒÆ’Ã‚Â©` ou `DÃƒÆ’Ã‚Â©veloppement`, et ajoutait une couche de revue redondante. La barre admin conserve un accÃƒÆ’Ã‚Â¨s direct aux pages utiles `Vue plateforme`, `Pilotage business`, `ContrÃƒÆ’Ã‚Â´le dÃƒÆ’Ã‚Â©taillÃƒÆ’Ã‚Â©`, `DÃƒÆ’Ã‚Â©veloppement` et `Missions`. Preuves : `src/app/components/dashboard/mobile/DashboardMobileExperience.tsx`. VÃƒÆ’Ã‚Â©rification restante : relancer `next build`.
 
 ## 11. Index documentaire et destination
 
-Tous les documents présents lors de la consolidation ont été pris en compte. Leur destination évite de perdre les détails utiles.
+Tous les documents prÃƒÂ©sents lors de la consolidation ont ÃƒÂ©tÃƒÂ© pris en compte. Leur destination ÃƒÂ©vite de perdre les dÃƒÂ©tails utiles.
 
-| Document | Apport conservé | Statut après Master Plan |
+| Document | Apport conservÃƒÂ© | Statut aprÃƒÂ¨s Master Plan |
 |---|---|---|
-| `admin-supabase-audit-2026-06-16.md` | Tables et métriques admin | Annexe technique à revalider avec la base |
-| `art-deco-design-system.md` | Direction visuelle et tokens | Référence design spécialisée |
-| `audit-approfondi-proprietaire-concierge-artisan-2026-05-18.md` | Vue par rôle et priorités historiques | Archive, statuts remplacés ici |
-| `audit-architecture-composants-workflow-2026-06-06.md` | Réutilisation et architecture workflow | Référence d'architecture |
-| `audit-complet-code-routes-permissions-2026-06-18.md` | Auth, routes et permissions | Archive technique datée |
-| `audit-complet-parcours-metier-proprietaire-concierge-2026-06-06.md` | Parcours métier détaillé | Spécification métier annexe |
+| `admin-supabase-audit-2026-06-16.md` | Tables et mÃƒÂ©triques admin | Annexe technique ÃƒÂ  revalider avec la base |
+| `art-deco-design-system.md` | Direction visuelle et tokens | RÃƒÂ©fÃƒÂ©rence design spÃƒÂ©cialisÃƒÂ©e |
+| `audit-approfondi-proprietaire-concierge-artisan-2026-05-18.md` | Vue par rÃƒÂ´le et prioritÃƒÂ©s historiques | Archive, statuts remplacÃƒÂ©s ici |
+| `audit-architecture-composants-workflow-2026-06-06.md` | RÃƒÂ©utilisation et architecture workflow | RÃƒÂ©fÃƒÂ©rence d'architecture |
+| `audit-complet-code-routes-permissions-2026-06-18.md` | Auth, routes et permissions | Archive technique datÃƒÂ©e |
+| `audit-complet-parcours-metier-proprietaire-concierge-2026-06-06.md` | Parcours mÃƒÂ©tier dÃƒÂ©taillÃƒÂ© | SpÃƒÂ©cification mÃƒÂ©tier annexe |
 | `audit-final-sprint-planetls-2026-07-12.md` | Bilan Sprint 1 et risques | Archive de livraison |
-| `audit-parcours-demande-devis-mission-2026-06-05.md` | Workflow commercial détaillé | Spécification annexe |
-| `audit-parcours-paiement-devis-mission-2026-06-06.md` | Règles paiement | Spécification annexe |
-| `audit-utilisateurs-gestion-complete-profils-2026-06-18.md` | Écarts profils par rôle | Archive, backlog repris ici |
-| `cartographie-champs-profils-2026-06-19.md` | Champs et dette polymorphe | Référence migration profils |
-| `concierge-signup-ux-audit-lynda-christa-2026-04-25.md` | Persona simplicité/expert | Recherche UX historique |
-| `concierge-signup-ux-audit-lynda-christa-suite-2026-04-26.md` | Expériences et KPI onboarding | Banque d'expériences |
+| `audit-parcours-demande-devis-mission-2026-06-05.md` | Workflow commercial dÃƒÂ©taillÃƒÂ© | SpÃƒÂ©cification annexe |
+| `audit-parcours-paiement-devis-mission-2026-06-06.md` | RÃƒÂ¨gles paiement | SpÃƒÂ©cification annexe |
+| `audit-utilisateurs-gestion-complete-profils-2026-06-18.md` | Ãƒâ€°carts profils par rÃƒÂ´le | Archive, backlog repris ici |
+| `cartographie-champs-profils-2026-06-19.md` | Champs et dette polymorphe | RÃƒÂ©fÃƒÂ©rence migration profils |
+| `concierge-signup-ux-audit-lynda-christa-2026-04-25.md` | Persona simplicitÃƒÂ©/expert | Recherche UX historique |
+| `concierge-signup-ux-audit-lynda-christa-suite-2026-04-26.md` | ExpÃƒÂ©riences et KPI onboarding | Banque d'expÃƒÂ©riences |
 | `concierge-ux-personas-analysis-2026-04-25.md` | Parcours et KPI persona | Recherche UX historique |
-| `dashboard-figma-handoff.md` | Grilles et états responsive | Référence handoff UI |
-| `docs/ai/README.md` | Point d'entrée du référentiel IA et prompts | Index documentaire actif pour retrouver les idées IA durables |
-| `docs/ai/systeme-gestion-prompts-planetls-2026-08-03.md` | Vision du système de gestion des prompts Codex | Spécification IA active à réévaluer avant implémentation |
-| `github-issues-profils-utilisateurs-2026-06-19.md` | Formulation de 25 issues | Backlog détaillé à rapprocher des issues réelles |
-| `guide-audit-ux-plateforme-mise-en-relation.md` | Checklist exhaustive de parcours | Guide méthodologique, pas état courant |
-| `matrice-validation-profils-par-role-2026-06-19.md` | Champs autorisés/interdits | Référence sécurité profils |
-| `module-litiges-preuves-spec.md` | UX, schéma et règles litiges | Spécification métier active |
-| `onboarding-gap-analysis-all-categories-2026-04-29.md` | Gaps initiaux par rôle | Archive, plusieurs points dépassés |
-| `p1-e2e-runbook-parcours-critiques-2026-05-18.md` | Scénarios manuels | Runbook QA actif |
-| `p1-kpi-pilotage-partage-2026-05-18.md` | Définitions KPI initiales | Référence Data à enrichir |
-| `plan-implementation-profils-utilisateurs-tickets-2026-06-19.md` | Découpage technique profils | Backlog spécialisé |
-| `premium-ux-ui-platform-blueprint.md` | Vision cockpit premium | Référence UX spécialisée |
-| `pricing-grid-business-spec.md` | Calcul et fallback tarifaire | Spécification métier active |
-| `prompt-13-module-voyageurs-sejours-2026-07-12.md` | Bilan module séjours | Archive de livraison + limites |
-| `qa-checklist-p0-profils-2026-05-18.md` | Preuves QA par rôle | Checklist d'exécution annexe |
-| `reprise-profils-owner-preferences-2026-06-19.md` | État de reprise owner | Archive de chantier |
-| `responsive-a11y-dashboard-checklist-2026-05-25.md` | Critères responsive/a11y | Checklist QA active |
-| `spec-cible-profils-personas-2026-06-19.md` | Cible détaillée des profils | Spécification produit active |
-| `sprint-1-audit-complet-planetls-2026-07-07.md` | Cartographie architecture | Archive d'audit, conventions conservées |
-| `ui-harmonization-audit.md` | Tokens et règles UI | Référence UI spécialisée |
-| `ux-onboarding-audit-reprise-2026-04-29.md` | État du tunnel en avril | Archive historique |
+| `dashboard-figma-handoff.md` | Grilles et ÃƒÂ©tats responsive | RÃƒÂ©fÃƒÂ©rence handoff UI |
+| `docs/ai/README.md` | Point d'entrÃƒÂ©e du rÃƒÂ©fÃƒÂ©rentiel IA et prompts | Index documentaire actif pour retrouver les idÃƒÂ©es IA durables |
+| `docs/ai/systeme-gestion-prompts-planetls-2026-08-03.md` | Vision du systÃƒÂ¨me de gestion des prompts Codex | SpÃƒÂ©cification IA active ÃƒÂ  rÃƒÂ©ÃƒÂ©valuer avant implÃƒÂ©mentation |
+| `github-issues-profils-utilisateurs-2026-06-19.md` | Formulation de 25 issues | Backlog dÃƒÂ©taillÃƒÂ© ÃƒÂ  rapprocher des issues rÃƒÂ©elles |
+| `guide-audit-ux-plateforme-mise-en-relation.md` | Checklist exhaustive de parcours | Guide mÃƒÂ©thodologique, pas ÃƒÂ©tat courant |
+| `matrice-validation-profils-par-role-2026-06-19.md` | Champs autorisÃƒÂ©s/interdits | RÃƒÂ©fÃƒÂ©rence sÃƒÂ©curitÃƒÂ© profils |
+| `module-litiges-preuves-spec.md` | UX, schÃƒÂ©ma et rÃƒÂ¨gles litiges | SpÃƒÂ©cification mÃƒÂ©tier active |
+| `onboarding-gap-analysis-all-categories-2026-04-29.md` | Gaps initiaux par rÃƒÂ´le | Archive, plusieurs points dÃƒÂ©passÃƒÂ©s |
+| `p1-e2e-runbook-parcours-critiques-2026-05-18.md` | ScÃƒÂ©narios manuels | Runbook QA actif |
+| `p1-kpi-pilotage-partage-2026-05-18.md` | DÃƒÂ©finitions KPI initiales | RÃƒÂ©fÃƒÂ©rence Data ÃƒÂ  enrichir |
+| `plan-implementation-profils-utilisateurs-tickets-2026-06-19.md` | DÃƒÂ©coupage technique profils | Backlog spÃƒÂ©cialisÃƒÂ© |
+| `premium-ux-ui-platform-blueprint.md` | Vision cockpit premium | RÃƒÂ©fÃƒÂ©rence UX spÃƒÂ©cialisÃƒÂ©e |
+| `pricing-grid-business-spec.md` | Calcul et fallback tarifaire | SpÃƒÂ©cification mÃƒÂ©tier active |
+| `prompt-13-module-voyageurs-sejours-2026-07-12.md` | Bilan module sÃƒÂ©jours | Archive de livraison + limites |
+| `qa-checklist-p0-profils-2026-05-18.md` | Preuves QA par rÃƒÂ´le | Checklist d'exÃƒÂ©cution annexe |
+| `reprise-profils-owner-preferences-2026-06-19.md` | Ãƒâ€°tat de reprise owner | Archive de chantier |
+| `responsive-a11y-dashboard-checklist-2026-05-25.md` | CritÃƒÂ¨res responsive/a11y | Checklist QA active |
+| `spec-cible-profils-personas-2026-06-19.md` | Cible dÃƒÂ©taillÃƒÂ©e des profils | SpÃƒÂ©cification produit active |
+| `sprint-1-audit-complet-planetls-2026-07-07.md` | Cartographie architecture | Archive d'audit, conventions conservÃƒÂ©es |
+| `ui-harmonization-audit.md` | Tokens et rÃƒÂ¨gles UI | RÃƒÂ©fÃƒÂ©rence UI spÃƒÂ©cialisÃƒÂ©e |
+| `ux-onboarding-audit-reprise-2026-04-29.md` | Ãƒâ€°tat du tunnel en avril | Archive historique |
 
 ---
 
 ## 12. Maintenance continue
 
-### Tableau de suivi à mettre à jour après chaque évolution importante
+### Tableau de suivi ÃƒÂ  mettre ÃƒÂ  jour aprÃƒÂ¨s chaque ÃƒÂ©volution importante
 
-Ce tableau est le registre de maintenance courant. La photographie détaillée de la section 3 reste l'inventaire initial ; toute évolution ultérieure doit être enregistrée ici avec une preuve courte et une prochaine action.
+Ce tableau est le registre de maintenance courant. La photographie dÃƒÂ©taillÃƒÂ©e de la section 3 reste l'inventaire initial ; toute ÃƒÂ©volution ultÃƒÂ©rieure doit ÃƒÂªtre enregistrÃƒÂ©e ici avec une preuve courte et une prochaine action.
 
 Pour les evolutions importantes touchant offre, marche, revenus, couts, IA, architecture ou segmentation, la mise a jour doit aussi indiquer si un `Business Impact Check` a ete realise et quelles sections du Business Plan sont potentiellement `A actualiser` ou `A valider`.
 
-| Domaine | Fonctionnalité | Profil concerné | Statut | Priorité | Dernière évolution | Preuves dans le code | Prochaine action |
+| Domaine | FonctionnalitÃƒÂ© | Profil concernÃƒÂ© | Statut | PrioritÃƒÂ© | DerniÃƒÂ¨re ÃƒÂ©volution | Preuves dans le code | Prochaine action |
 |---|---|---|---|---|---|---|---|
-| Qualité | Baseline tests, lint, build et snapshot | Tous | ✅ Terminé | P0 Critique | 2026-07-19 | 202/202 tests, ESLint ciblé, build Next.js 168 pages, snapshot UI portable | Maintenir la baseline |
-| Maintenance | Allègement du code et des dépendances mortes | Tous | ✅ Terminé | P2 Important | 2026-07-19 | 10 dépendances directes inutilisées retirées (36 paquets transitifs), 2 composants TSX et 2 fichiers de support sans consommateur supprimés ; 193/193 tests, lint et build 168 pages | Poursuivre par petits lots prouvés, sans supprimer les compatibilités legacy encore actives |
-| Qualité | Smoke E2E des espaces critiques | Owner, concierge, provider | ✅ Terminé | P0 Critique | 2026-07-18 | Playwright Chromium : 3/3 PASS ; workflow GitHub contrôle secrets, tests, lint, build puis tous les E2E | Configurer les secrets GitHub et lancer la première exécution distante |
-| Qualité | E2E transactionnel commercial | Owner, concierge | ⏸️ Reporté | P0 Critique | 2026-08-02 | Parcours métier et webhook signé 1/1 PASS ; branche Checkout Stripe hébergée prête avec garde sk_test_, carte de test, retour facture et synchronisation ; clé de test indisponible pour le moment | Reprendre le scénario Checkout dès qu'une E2E_STRIPE_SECRET_KEY de test sera disponible ; ne pas le proposer comme prochaine meilleure action d'ici là |
-| Qualité | E2E transactionnel provider | Concierge, provider | ✅ Terminé | P0 Critique | 2026-07-18 | Mission, intervention, preuve média privée, clôture et facture liée de 90 €, 1/1 PASS | Configurer Stripe test et valider le paiement |
-| Outils métier | Assistant décoration | Concierge, propriétaire | 🟠 Partiel | P2 Important | 2026-07-18 | page `/dashboard/concierge/decoration-ai`, API dédiée, `decorationAssistant.ts`, migration `decoration_ai_reports`, tests | Valider l'usage terrain, tracer l'envoi owner et brancher une génération d'image réelle |
-| Maintenance | Incidents persistants | Concierge, owner, provider | 🟠 Partiel | P0 Critique | 2026-07-19 | incidents+médias/RLS, API GET/POST/PATCH, cycle, affectation, upload privé et liens signés, contrat 6/6 PASS | Appliquer les migrations puis valider le parcours E2E persistant |
-| Data | Activation et funnel par rôle | Admin, direction | ✅ Terminé | P0 Critique | 2026-07-19 | API connectée et cockpit validés : taux/volumes par rôle, 4 groupes, zones, seuils visibles, faible échantillon, baisse et actions ciblées ; repli contact_messages si messages absent ; contrat 5/5, Playwright 1/1, suite 195/195 et build 168 pages | Surveiller les groupes et recalibrer les seuils lorsque le volume réel devient statistiquement représentatif |
-| Profils | Identité professionnelle artisan | Provider/artisan | 🟠 Partiel | P0 Critique | 2026-07-19 | Profil métier persistant ; justificatifs privés PDF/images et SHA-256 ; décision admin tracée avec motif de rejet ; annuaire de dispatch limité aux compteurs/types vérifiés actifs, sans donnée fichier ; contrat 4/4, 192/192 tests, lint et build 168 pages | Appliquer la migration distante, valider le cycle upload → décision → signal sur données connectées, puis concevoir la fiche publique artisan détaillée |
-| Équipe | Cycle de vie des membres concierge | Concierge, admin | ✅ Terminé | P0 Critique | 2026-07-19 | Migration/RLS disponible sur la base connectée ; API GET/POST/PATCH/DELETE, scoping concierge/admin, UI création/disponibilité/désactivation ; contrat 3/3, Playwright connecté 1/1, suite 201/201 et build 168 pages | Surveiller l’usage terrain et ajouter l’historique détaillé seulement si le besoin est confirmé |
-| Pilotage | Maintenance automatique du Master Plan | Équipe projet | ✅ Terminé | P0 Critique | 2026-07-29 | `AGENTS.md`, présente section, journal Developer + Mission Control + Roadmap intelligente + Mémoire technique synchronisés avec le Master Plan, Git et l’environnement ; dédoublonnage de la vue développement en retirant le planning parallèle ; la vue ajoute maintenant un `Conseiller projet` avec réponses calculées sur prochaine fonctionnalité rentable, blocages, composants sous-utilisés, modules terminés, dérives design system, pages proches production, gros fichiers et manques de tests ; `224/224` tests et build Next PASS le mercredi 29 juillet 2026 | Observer l’usage réel du conseiller puis décider s’il faut une persistance serveur, des questions personnalisables ou un branchement LLM temps réel |
-| Administration | Centre de santé opérationnelle | Admin | ✅ Terminé | P0 Critique | 2026-07-29 | État global sur 12 sources, sources non vérifiables explicites et cycle persistant : prise en charge, transmission au responsable et clôture avec compte rendu, sans masquer l'anomalie ; la page `/dashboard/admin/controle` suit désormais le même niveau premium que le cockpit principal : hero santé éditorial, cartes de synthèse, onglets plus décisionnels, surfaces de pilotage plus lisibles et cartes détaillées toujours compatibles avec la prise en charge persistée ; la route `/api/admin/control-tower` tolère désormais l'indisponibilité transport de Supabase via un mode dégradé traçable, garde 12 sources lisibles, injecte une anomalie de repli si tout le diagnostic distant est hors ligne et persiste localement les actions admin pour ne plus renvoyer `500` dans cet environnement ; la page `/dashboard/admin` passe en phase 8 avec un `Mission Control` premium branché sur les données réelles : hero éditorial `data story`, bandeau de synthèse, filtre 7/30/90 jours, filtre segment, KPIs de volume et complétude, liste de priorités actionnables, activité récente, tables compactes utilisateurs/demandes/missions, deux graphiques alimentés par `activation_series` et `activation_by_zone`, deux donuts visuels pour la répartition des rôles et les feux de contrôle, trois cartes de santé premium dédiées à `Inscriptions`, `Missions` et `Messages`, skeleton de chargement, états vides explicites, relance d’erreur locale, focus visible clavier et tableaux mobiles plus lisibles grâce aux libellés de colonnes et `caption/scope` ; les libellés ambigus `n/a` sont remplacés par `Donnée insuffisante` ou `Non disponible` selon le contexte ; le shell `DashboardLayout` peut désormais masquer ses blocs secondaires pour laisser chaque cockpit composer sa surface ; la page reste aussi exploitable en mode dégradé quand les endpoints admin connectés sont indisponibles et affiche alors un bandeau explicite plutôt qu’un écran vide ; `/api/admin/overview`, `/api/admin/operations` et `/api/kpis/overview` renvoient désormais un `health` explicite avec raisons et sources indisponibles au lieu de tomber en `500` lors d’une coupure Supabase ; en local avec `WORKSPACE_QUICK_LOGIN_ENABLED=true`, `/api/kpis/overview` injecte des cohortes workspace déterministes, mais la base connectée peut désormais aussi être semée pour de vrai via `npm run seed:admin:kpis` ; l’endpoint KPI retombe sur des sélections compatibles sans `provider_profile_id` et calcule l’activation provider via `provider_interventions` quand la base distante n’expose pas encore la relation provider sur `missions`, `quotes` ou `invoices` ; l’admin lit aussi désormais les missions distantes sans dépendre de `missions.title` : `control-tower` retente une sélection compatible et reconstruit un libellé via `metadata`, `operations` affiche le même fallback de titre ; le correctif structurel est maintenant prêt : `docs/sql/2026-07-29-align-remote-missions-schema.sql` ajoute et backfill `title`, `request_id` et `provider_profile_id`, avec note d'application dédiée ; vérifications : `npm run build` PASS le mercredi 29 juillet 2026, `npm run inspect:remote:admin-schema` PASS avec diagnostic précis du schéma REST distant, exécution distante `npm run seed:admin:kpis` PASS avec 18 profils seedés et 6 lots opérationnels persistés ; limite connue : la base distante n’expose toujours pas `missions.title`, `missions.request_id` ni `missions.provider_profile_id` tant que le SQL d’alignement n’a pas été exécuté sur Supabase, donc le dataset connecté reste partiellement basé sur `provider_interventions`, devis, factures, onboarding et messages pour la lecture provider | Exécuter le SQL de réalignement sur la base Supabase distante, relancer `npm run inspect:remote:admin-schema`, puis réduire progressivement les compatibilités transitoires |
+| QualitÃƒÂ© | Baseline tests, lint, build et snapshot | Tous | Ã¢Å“â€¦ TerminÃƒÂ© | P0 Critique | 2026-07-19 | 202/202 tests, ESLint ciblÃƒÂ©, build Next.js 168 pages, snapshot UI portable | Maintenir la baseline |
+| Maintenance | AllÃƒÂ¨gement du code et des dÃƒÂ©pendances mortes | Tous | Ã¢Å“â€¦ TerminÃƒÂ© | P2 Important | 2026-07-19 | 10 dÃƒÂ©pendances directes inutilisÃƒÂ©es retirÃƒÂ©es (36 paquets transitifs), 2 composants TSX et 2 fichiers de support sans consommateur supprimÃƒÂ©s ; 193/193 tests, lint et build 168 pages | Poursuivre par petits lots prouvÃƒÂ©s, sans supprimer les compatibilitÃƒÂ©s legacy encore actives |
+| QualitÃƒÂ© | Smoke E2E des espaces critiques | Owner, concierge, provider | Ã¢Å“â€¦ TerminÃƒÂ© | P0 Critique | 2026-07-18 | Playwright Chromium : 3/3 PASS ; workflow GitHub contrÃƒÂ´le secrets, tests, lint, build puis tous les E2E | Configurer les secrets GitHub et lancer la premiÃƒÂ¨re exÃƒÂ©cution distante |
+| QualitÃƒÂ© | E2E transactionnel commercial | Owner, concierge | Ã¢ÂÂ¸Ã¯Â¸Â ReportÃƒÂ© | P0 Critique | 2026-08-02 | Parcours mÃƒÂ©tier et webhook signÃƒÂ© 1/1 PASS ; branche Checkout Stripe hÃƒÂ©bergÃƒÂ©e prÃƒÂªte avec garde sk_test_, carte de test, retour facture et synchronisation ; clÃƒÂ© de test indisponible pour le moment | Reprendre le scÃƒÂ©nario Checkout dÃƒÂ¨s qu'une E2E_STRIPE_SECRET_KEY de test sera disponible ; ne pas le proposer comme prochaine meilleure action d'ici lÃƒÂ  |
+| QualitÃƒÂ© | E2E transactionnel provider | Concierge, provider | Ã¢Å“â€¦ TerminÃƒÂ© | P0 Critique | 2026-07-18 | Mission, intervention, preuve mÃƒÂ©dia privÃƒÂ©e, clÃƒÂ´ture et facture liÃƒÂ©e de 90 Ã¢â€šÂ¬, 1/1 PASS | Configurer Stripe test et valider le paiement |
+| Outils mÃƒÂ©tier | Assistant dÃƒÂ©coration | Concierge, propriÃƒÂ©taire | Partiel | P2 Important | 2026-07-18 | page `/dashboard/concierge/decoration-ai`, API dÃƒÂ©diÃƒÂ©e, `decorationAssistant.ts`, migration `decoration_ai_reports`, tests | Valider l'usage terrain, tracer l'envoi owner et brancher une gÃƒÂ©nÃƒÂ©ration d'image rÃƒÂ©elle |
+| Maintenance | Incidents persistants | Concierge, owner, provider | Partiel | P0 Critique | 2026-07-19 | incidents+mÃƒÂ©dias/RLS, API GET/POST/PATCH, cycle, affectation, upload privÃƒÂ© et liens signÃƒÂ©s, contrat 6/6 PASS | Appliquer les migrations puis valider le parcours E2E persistant |
+| Data | Activation et funnel par rÃƒÂ´le | Admin, direction | Ã¢Å“â€¦ TerminÃƒÂ© | P0 Critique | 2026-07-19 | API connectÃƒÂ©e et cockpit validÃƒÂ©s : taux/volumes par rÃƒÂ´le, 4 groupes, zones, seuils visibles, faible ÃƒÂ©chantillon, baisse et actions ciblÃƒÂ©es ; repli contact_messages si messages absent ; contrat 5/5, Playwright 1/1, suite 195/195 et build 168 pages | Surveiller les groupes et recalibrer les seuils lorsque le volume rÃƒÂ©el devient statistiquement reprÃƒÂ©sentatif |
+| Profils | IdentitÃƒÂ© professionnelle artisan | Provider/artisan | Partiel | P0 Critique | 2026-07-19 | Profil mÃƒÂ©tier persistant ; justificatifs privÃƒÂ©s PDF/images et SHA-256 ; dÃƒÂ©cision admin tracÃƒÂ©e avec motif de rejet ; annuaire de dispatch limitÃƒÂ© aux compteurs/types vÃƒÂ©rifiÃƒÂ©s actifs, sans donnÃƒÂ©e fichier ; contrat 4/4, 192/192 tests, lint et build 168 pages | Appliquer la migration distante, valider le cycle upload Ã¢â€ â€™ dÃƒÂ©cision Ã¢â€ â€™ signal sur donnÃƒÂ©es connectÃƒÂ©es, puis concevoir la fiche publique artisan dÃƒÂ©taillÃƒÂ©e |
+| Ãƒâ€°quipe | Cycle de vie des membres concierge | Concierge, admin | Ã¢Å“â€¦ TerminÃƒÂ© | P0 Critique | 2026-07-19 | Migration/RLS disponible sur la base connectÃƒÂ©e ; API GET/POST/PATCH/DELETE, scoping concierge/admin, UI crÃƒÂ©ation/disponibilitÃƒÂ©/dÃƒÂ©sactivation ; contrat 3/3, Playwright connectÃƒÂ© 1/1, suite 201/201 et build 168 pages | Surveiller lÃ¢â‚¬â„¢usage terrain et ajouter lÃ¢â‚¬â„¢historique dÃƒÂ©taillÃƒÂ© seulement si le besoin est confirmÃƒÂ© |
+| Pilotage | Maintenance automatique du Master Plan | Ãƒâ€°quipe projet | Ã¢Å“â€¦ TerminÃƒÂ© | P0 Critique | 2026-07-29 | `AGENTS.md`, prÃƒÂ©sente section, journal Developer + Mission Control + Roadmap intelligente + MÃƒÂ©moire technique synchronisÃƒÂ©s avec le Master Plan, Git et lÃ¢â‚¬â„¢environnement ; dÃƒÂ©doublonnage de la vue dÃƒÂ©veloppement en retirant le planning parallÃƒÂ¨le ; la vue ajoute maintenant un `Conseiller projet` avec rÃƒÂ©ponses calculÃƒÂ©es sur prochaine fonctionnalitÃƒÂ© rentable, blocages, composants sous-utilisÃƒÂ©s, modules terminÃƒÂ©s, dÃƒÂ©rives design system, pages proches production, gros fichiers et manques de tests ; `224/224` tests et build Next PASS le mercredi 29 juillet 2026 | Observer lÃ¢â‚¬â„¢usage rÃƒÂ©el du conseiller puis dÃƒÂ©cider sÃ¢â‚¬â„¢il faut une persistance serveur, des questions personnalisables ou un branchement LLM temps rÃƒÂ©el |
+| Administration | Centre de santÃƒÂ© opÃƒÂ©rationnelle | Admin | Ã¢Å“â€¦ TerminÃƒÂ© | P0 Critique | 2026-07-29 | Ãƒâ€°tat global sur 12 sources, sources non vÃƒÂ©rifiables explicites et cycle persistant : prise en charge, transmission au responsable et clÃƒÂ´ture avec compte rendu, sans masquer l'anomalie ; la page `/dashboard/admin/controle` suit dÃƒÂ©sormais le mÃƒÂªme niveau premium que le cockpit principal : hero santÃƒÂ© ÃƒÂ©ditorial, cartes de synthÃƒÂ¨se, onglets plus dÃƒÂ©cisionnels, surfaces de pilotage plus lisibles et cartes dÃƒÂ©taillÃƒÂ©es toujours compatibles avec la prise en charge persistÃƒÂ©e ; la route `/api/admin/control-tower` tolÃƒÂ¨re dÃƒÂ©sormais l'indisponibilitÃƒÂ© transport de Supabase via un mode dÃƒÂ©gradÃƒÂ© traÃƒÂ§able, garde 12 sources lisibles, injecte une anomalie de repli si tout le diagnostic distant est hors ligne et persiste localement les actions admin pour ne plus renvoyer `500` dans cet environnement ; la page `/dashboard/admin` passe en phase 8 avec un `Mission Control` premium branchÃƒÂ© sur les donnÃƒÂ©es rÃƒÂ©elles : hero ÃƒÂ©ditorial `data story`, bandeau de synthÃƒÂ¨se, filtre 7/30/90 jours, filtre segment, KPIs de volume et complÃƒÂ©tude, liste de prioritÃƒÂ©s actionnables, activitÃƒÂ© rÃƒÂ©cente, tables compactes utilisateurs/demandes/missions, deux graphiques alimentÃƒÂ©s par `activation_series` et `activation_by_zone`, deux donuts visuels pour la rÃƒÂ©partition des rÃƒÂ´les et les feux de contrÃƒÂ´le, trois cartes de santÃƒÂ© premium dÃƒÂ©diÃƒÂ©es ÃƒÂ  `Inscriptions`, `Missions` et `Messages`, skeleton de chargement, ÃƒÂ©tats vides explicites, relance dÃ¢â‚¬â„¢erreur locale, focus visible clavier et tableaux mobiles plus lisibles grÃƒÂ¢ce aux libellÃƒÂ©s de colonnes et `caption/scope` ; les libellÃƒÂ©s ambigus `n/a` sont remplacÃƒÂ©s par `DonnÃƒÂ©e insuffisante` ou `Non disponible` selon le contexte ; le shell `DashboardLayout` peut dÃƒÂ©sormais masquer ses blocs secondaires pour laisser chaque cockpit composer sa surface ; la page reste aussi exploitable en mode dÃƒÂ©gradÃƒÂ© quand les endpoints admin connectÃƒÂ©s sont indisponibles et affiche alors un bandeau explicite plutÃƒÂ´t quÃ¢â‚¬â„¢un ÃƒÂ©cran vide ; `/api/admin/overview`, `/api/admin/operations` et `/api/kpis/overview` renvoient dÃƒÂ©sormais un `health` explicite avec raisons et sources indisponibles au lieu de tomber en `500` lors dÃ¢â‚¬â„¢une coupure Supabase ; en local avec `WORKSPACE_QUICK_LOGIN_ENABLED=true`, `/api/kpis/overview` injecte des cohortes workspace dÃƒÂ©terministes, mais la base connectÃƒÂ©e peut dÃƒÂ©sormais aussi ÃƒÂªtre semÃƒÂ©e pour de vrai via `npm run seed:admin:kpis` ; lÃ¢â‚¬â„¢endpoint KPI retombe sur des sÃƒÂ©lections compatibles sans `provider_profile_id` et calcule lÃ¢â‚¬â„¢activation provider via `provider_interventions` quand la base distante nÃ¢â‚¬â„¢expose pas encore la relation provider sur `missions`, `quotes` ou `invoices` ; lÃ¢â‚¬â„¢admin lit aussi dÃƒÂ©sormais les missions distantes sans dÃƒÂ©pendre de `missions.title` : `control-tower` retente une sÃƒÂ©lection compatible et reconstruit un libellÃƒÂ© via `metadata`, `operations` affiche le mÃƒÂªme fallback de titre ; le correctif structurel est maintenant prÃƒÂªt : `docs/sql/2026-07-29-align-remote-missions-schema.sql` ajoute et backfill `title`, `request_id` et `provider_profile_id`, avec note d'application dÃƒÂ©diÃƒÂ©e ; vÃƒÂ©rifications : `npm run build` PASS le mercredi 29 juillet 2026, `npm run inspect:remote:admin-schema` PASS avec diagnostic prÃƒÂ©cis du schÃƒÂ©ma REST distant, exÃƒÂ©cution distante `npm run seed:admin:kpis` PASS avec 18 profils seedÃƒÂ©s et 6 lots opÃƒÂ©rationnels persistÃƒÂ©s ; limite connue : la base distante nÃ¢â‚¬â„¢expose toujours pas `missions.title`, `missions.request_id` ni `missions.provider_profile_id` tant que le SQL dÃ¢â‚¬â„¢alignement nÃ¢â‚¬â„¢a pas ÃƒÂ©tÃƒÂ© exÃƒÂ©cutÃƒÂ© sur Supabase, donc le dataset connectÃƒÂ© reste partiellement basÃƒÂ© sur `provider_interventions`, devis, factures, onboarding et messages pour la lecture provider | ExÃƒÂ©cuter le SQL de rÃƒÂ©alignement sur la base Supabase distante, relancer `npm run inspect:remote:admin-schema`, puis rÃƒÂ©duire progressivement les compatibilitÃƒÂ©s transitoires |
 
-| Authentification | Acces rapide aux espaces de travail | Owner, concierge, provider, admin | ✅ Terminé | P1 Prioritaire | 2026-07-19 | `/login` propose les quatre comptes Supabase de travail et preremplit email/mot de passe ; selection directe par `workspace=` ; route strictement locale et hors production | Conserver les secrets uniquement dans `.env.local` et valider periodiquement les quatre comptes |
+| Authentification | Acces rapide aux espaces de travail | Owner, concierge, provider, admin | Ã¢Å“â€¦ TerminÃƒÂ© | P1 Prioritaire | 2026-07-19 | `/login` propose les quatre comptes Supabase de travail et preremplit email/mot de passe ; selection directe par `workspace=` ; route strictement locale et hors production | Conserver les secrets uniquement dans `.env.local` et valider periodiquement les quatre comptes |
 
-- **Vue de développement du Master Plan** — `✅ Terminé`, `P1 Prioritaire` au 2026-07-27. Preuve : route admin sécurisée `/dashboard/admin/developpement`, lecture serveur du fichier, synthèse, recherche, filtres statut/priorité, sommaire, journal de bord, Mission Control, Mémoire technique, Roadmap intelligente, génération automatique depuis Git + registre de maintenance, saisie manuelle locale, favoris, commentaires et tests dédiés. La page a été resserrée pour éviter les doublons entre pilotage quotidien et séquencement produit. Prochaine action : observer l’usage réel avant d’ajouter une persistance serveur ou des connecteurs live.
-  - Conseiller projet : la vue `/dashboard/admin/developpement` embarque désormais un bloc `Conseiller projet` qui ne se comporte pas comme un simple chat, mais comme un coach technique à questions fixes. Il calcule ses réponses à partir du Master Plan, de Mission Control, de la roadmap, de la mémoire technique et de scans repo côté serveur `taille de fichiers, imports UI, pages testées, signaux de dérive design system`, avec affichage explicite du niveau de confiance `Factuel / Croisé / Heuristique`. Preuves : `projectAdvisor.ts`, enrichissement serveur `page.tsx`, rendu `MasterPlanViewer.tsx`, styles `page.module.scss`, test `project-advisor.test.mts`, suite `224/224 PASS`, `npm run build` PASS le mercredi 29 juillet 2026. Limite : il n’interprète pas encore les diffs ligne à ligne, les tickets externes ni les métriques d’usage réelles, et ses audits de design system / sous-utilisation restent volontairement heuristiques.
-  - Accès au référentiel UI : l’en-tête de `/dashboard/admin/developpement` propose désormais une navigation d’espace compacte entre le `Pilotage` courant et la page `/design-system`, afin de retrouver le référentiel visuel en un clic sans l’imbriquer dans le cockpit déjà dense. Statut : `✅ Terminé`. Priorité : `P3 Confort`. Preuves : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/app/dashboard/admin/developpement/page.module.scss`. Vérification restante : contrôle visuel desktop/mobile authentifié.
-  - Référentiel Personas : le socle de données personas et l'atelier d'édition locale ont d'abord été construits sous `/dashboard/admin/developpement/personas`, avec huit profils cibles, portraits `public/avatars`, contexte, objectifs, frustrations, première valeur, fonctionnalités prioritaires, parcours, critères de confiance, appareil, niveau numérique, source et statut de validation. Les changements restent versionnés dans le `localStorage` via `PersonaCard`, `PersonaEditorModal`, `usePersonasStorage` et `PersonasWorkspace`, avec restauration individuelle ou globale. La clé et le schéma `planetls:product-personas:v1` sont conservés pour ne pas perdre les informations déjà modifiées. Statut : `🟠 Partiel`, car un persona est validé par l’usage et sept restent à confronter au terrain. Priorité : `P2 Important`. Preuves : `src/app/dashboard/admin/developpement/personas/`, `src/components/development/DevelopmentSectionNav.tsx`. Limite : les précisions locales ne sont ni partagées entre appareils ni persistées en base. Prochaine action : conduire des entretiens avec propriétaires, conciergeries, équipes et prestataires, puis décider si une persistance Supabase administrateur est nécessaire.
-  - Validation navigateur : Playwright Chromium `1/1 PASS` sur connexion admin, lecture desktop, recherche, remise à zéro, filtre P0 et viewport mobile 390 px. Limite : inspection visuelle automatisée de la capture indisponible à cause du sandbox Windows.
-  - Évolution de lecture : cartes cliquables pour chaque statut et priorité, état actif accessible avec `aria-pressed`, synchronisation avec les listes de filtres et adaptation mobile. Preuves : parseur `2/2 PASS`, ESLint ciblé et Playwright `1/1 PASS`.
-  - Navigation de déblocage : dans `Mission Control`, la carte `Bloquées` ouvre désormais automatiquement `Sommaire et détail du Master Plan`, applique le filtre `⚠️ Bloqué` et scrolle vers le premier blocage visible, pour éviter une recherche manuelle dans la page de développement. Preuves : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `page.module.scss`, `src/tests/mission-control.test.mts` `1/1 PASS`, `npm run build` PASS le mercredi 29 juillet 2026.
-  - Refonte cockpit premium : la page `/dashboard/admin/developpement` adopte désormais une vraie structure de pilotage haut de gamme avec hero exécutif compact, résumé du projet, métriques de maîtrise, prochaine meilleure action, dépendances dominantes, signaux récents, actions prioritaires, puis sections recontextualisées `Vue d'exécution`, `Décisions canoniques`, `Roadmap dynamique`, `Décisions et activité` et `Sommaire et détail du Master Plan`. Le fond métier est conservé mais présenté comme un dashboard produit interne plutôt qu'une documentation étendue. Preuves : `MasterPlanViewer.tsx`, `page.module.scss`, `src/tests/mission-control.test.mts` `1/1 PASS`, `npm run build` PASS le mercredi 29 juillet 2026.
-  - Variante `product cockpit` orientée alertes : le hero de `/dashboard/admin/developpement` lit maintenant d'abord la tension opérationnelle avec score sur 100, jauge de pression, colonne de tension dédiée, alertes hiérarchisées, release readiness et lien direct vers le blocage prioritaire. La page donne une lecture plus immédiate de ce qui chauffe, de ce qui bloque et de ce qui demande un arbitrage avant de descendre dans les détails de roadmap et de journal. Preuves : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/app/dashboard/admin/developpement/page.module.scss`, `src/tests/mission-control.test.mts` `1/1 PASS`, `npm run build` PASS le mercredi 29 juillet 2026.
-  - Allègement de la page complète : la lecture a été réordonnée pour faire remonter `Roadmap intelligente` juste après le hero, laisser `Mission Control` en poste de surveillance détaillée et supprimer les redondances visuelles de progression, métriques, objectifs et signaux déjà présents en tête de page. La surface est plus dense en information utile dès l'ouverture, tout en gardant les données métier existantes intactes. Preuves : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/app/dashboard/admin/developpement/page.module.scss`, `src/tests/mission-control.test.mts` `1/1 PASS`, `npm run build` PASS le mercredi 29 juillet 2026.
-  - Tension plus live : la colonne de tension intègre maintenant aussi un signal de fraîcheur d’exécution basé sur le dernier repère Git disponible et le volume hebdomadaire estimé, afin de distinguer un cockpit réellement actif d’un cockpit sans mouvement récent même quand les autres alertes restent stables. Preuves : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/tests/mission-control.test.mts` `1/1 PASS`, `npm run build` PASS le mercredi 29 juillet 2026.
-  - Correction desktop du cockpit admin : la zone `Activité récente` de `/dashboard/admin` ne doit plus chevaucher `Priorités immédiates` sur grand écran. La grille principale, les panneaux et les cartes d’activité/priorité imposent désormais mieux leurs largeurs minimales, leur comportement de flex et le retour à la ligne des contenus longs. Preuves : `src/app/dashboard/admin/AdminDashboard.module.scss`, `npm run build` PASS le mercredi 29 juillet 2026.
-  - Repli interne des éléments longs : la timeline du `Journal de bord` dans `/dashboard/admin/developpement` ajoute maintenant un bouton à chevron `Voir l'entrée complète / Replier l'entrée` directement dans chaque carte, afin de garder une lecture scannable avant d’ouvrir les détails, audits, liens et commentaires. Preuves : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/app/dashboard/admin/developpement/page.module.scss`, `src/tests/mission-control.test.mts` `1/1 PASS`, `npm run build` PASS le mercredi 29 juillet 2026.
-  - Repli éditorial généralisé et colonne d’outils : la page `/dashboard/admin/developpement` permet maintenant d’ouvrir ou refermer depuis leur en-tête les blocs `Priorités immédiates`, `Dépendances et blocages`, `Signaux récents`, `Colonne de tension`, les cartes de `Mémoire technique`, les colonnes de la `Roadmap intelligente`, les `Résumés quotidiens` et les entrées de timeline du `Journal de bord`. Les contrôles `Rechercher une décision...` et les filtres du journal passent dans une colonne latérale droite plus discrète en desktop, tandis que la saisie `Entrée manuelle` se fait désormais via une modale dédiée pour alléger la page. La carte `Environnement actuel` est aussi recentrée visuellement sur grand écran. Preuves : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/app/dashboard/admin/developpement/page.module.scss`, `src/tests/mission-control.test.mts` `1/1 PASS`, `npm run build` PASS le mercredi 29 juillet 2026.
-  - Résumé quotidien relégué en rail de contexte : dans le `Journal de bord` de `/dashboard/admin/developpement`, les `Résumés quotidiens` ne s’étalent plus au-dessus de la timeline. Ils vivent désormais dans la colonne droite comme un rail secondaire sticky sur desktop, avec cartes plus compactes et retour sous le flux principal en mobile, afin de préserver la lecture de la timeline quand la page est déjà dense. Preuves : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/app/dashboard/admin/developpement/page.module.scss`, `npm run build` PASS le mercredi 29 juillet 2026.
-  - Cohérence filtre/compteur du Master Plan : les compteurs de statuts et priorités de `/dashboard/admin/developpement` sont désormais calculés sur les sections réellement filtrables du Master Plan, et non plus sur de simples occurrences textuelles dans tout le markdown. Le filtre `⚠️ Bloqué (3)` doit donc maintenant correspondre aux `3` sections affichées. Preuves : `src/app/dashboard/admin/developpement/masterPlan.ts`, `src/tests/mission-control.test.mts` `1/1 PASS`, `npm run build` PASS le mercredi 29 juillet 2026.
-  - Navigation longue : sections repliables individuellement, commandes Tout replier/Tout déplier, compteur de sections ouvertes, chevrons et états `aria-expanded`/`aria-controls`. Preuves : ESLint ciblé, parseur `2/2 PASS` et Playwright Chromium `1/1 PASS` desktop/mobile.
-  - Robustesse des panneaux repliés : les en-têtes repliés restent lisibles comme vrais titres accessibles sans dupliquer les `heading` quand le contenu est déjà ouvert. La spec Playwright a été réalignée sur le comportement attendu des panneaux `Mémoire technique` et `Sommaire et détail du Master Plan` en ouvrant explicitement les contenus internes avant d'assert leurs filtres et leur navigation. Preuves : `MasterPlanViewer.tsx`, `page.module.scss`, `e2e/admin-development.spec.ts`, Playwright Chromium `1/1 PASS`.
-  - Dédoublonnage du pilotage : le bloc `Planning opérationnel` a été retiré pour éviter une seconde lecture du même séquencement que la `Roadmap intelligente`. La roadmap reste l’unique vue de priorisation dynamique ; la synthèse du Master Plan conserve uniquement les métriques documentaires utiles. Preuves : vue `MasterPlanViewer.tsx`, spec `e2e/admin-development.spec.ts`, lint et build à revalider après simplification.
-  - Allègement de lecture : `Mission Control`, `Mémoire technique`, `Roadmap intelligente`, `Journal de bord`, puis le bloc `Sommaire et détail du Master Plan` disposent maintenant de flèches de repli avec résumé compact afin de réduire la charge visuelle sans retirer d’information. Les espacements, contrastes et états fermés ont été harmonisés pour une lecture plus calme sur desktop comme mobile. Preuves : `MasterPlanViewer.tsx`, `page.module.scss`, `npm run lint` PASS.
-  - Stabilisation E2E locale : la route `/api/auth/dev-workspace-login` ne renvoie plus `500` quand la préparation distante Supabase échoue ; elle retourne désormais un workspace local de repli. `NextAuth` accepte aussi un fallback strictement local pour ces workspaces de développement lorsque `WORKSPACE_QUICK_LOGIN_ENABLED=true` et que Supabase Auth est inaccessible, ce qui rétablit la chaîne `/login -> /dashboard/admin` en environnement sandbox. Preuves : `src/app/api/auth/dev-workspace-login/route.ts`, `src/server/auth/devWorkspace.ts`, `src/server/auth/authOptions.ts`, Playwright Chromium `1/1 PASS` sur `e2e/admin-development.spec.ts`. Limite restante : la santé Supabase connectée reste en `danger` dans Mission Control tant que cet environnement sandbox ne peut pas joindre Supabase Auth à distance.
-  - Hiérarchie documentaire : les titres parents H2 sans texte direct affichent désormais un index explicite et cliquable de leurs sous-sections H3 au lieu d’une carte visuellement vide. Validation : `1. Vision du projet` expose notamment Mission, Ambition, Valeurs et Objectifs ; Playwright desktop/mobile `1/1 PASS`, lint et build 168 pages.
-  - Journal de bord du développeur : timeline verticale Art Déco légère avec couleurs par catégorie, filtres `Aujourd'hui`, `Cette semaine`, `Ce mois`, fonctionnalité, priorité et auteur, recherche instantanée, favoris, commentaires et formulaire manuel. Preuves : helper `developerLog.ts`, vue `MasterPlanViewer.tsx`, test `developer-log.test.mts`, suite `203/203 PASS`, ESLint ciblé `PASS`, build Next `PASS`.
-  - Journal automatique Codex : après chaque lot local significatif, une entrée `Codex` est désormais générée automatiquement depuis les fichiers modifiés du workspace, avec résumé des changements, raisons, fichiers touchés, impacts transverses, mises à jour de roadmap, dépendances, tâches restantes, régressions potentielles et résumé quotidien agrégé. Preuves : `developerLog.ts`, `page.tsx`, `MasterPlanViewer.tsx`, test `developer-log.test.mts` `PASS`, Playwright Chromium `1/1 PASS`. Limite : la documentation reste déduite heuristiquement depuis Git, le Master Plan et les zones de code modifiées ; elle n'interprète pas encore les diffs ligne par ligne ni les PR distantes.
-  - Mission Control développeur : cockpit premium de lecture rapide avec progression globale, charge hebdomadaire estimée, objectifs, dernière sauvegarde, décisions/commits récents et santé Supabase/Vercel/GitHub. Preuves : helper `missionControl.ts`, intégration serveur `page.tsx`, vue `MasterPlanViewer.tsx`, test `mission-control.test.mts`, suite `204/204 PASS`, ESLint ciblé `PASS`, build Next `PASS`.
-  - Mémoire technique : base de connaissances interne avec décisions canoniques de stack/architecture/workflow et décisions extraites du Master Plan, filtres catégorie/tag et recherche instantanée “Pourquoi Supabase, Next.js, Vercel…”. Preuves : helper `technicalMemory.ts`, intégration serveur `page.tsx`, vue `MasterPlanViewer.tsx`, test `technical-memory.test.mts`, suite `206/206 PASS`, ESLint ciblé `PASS`, build Next `PASS`. Vérification navigateur : spec `e2e/admin-development.spec.ts` enrichie, mais exécution locale actuellement bloquée par la route `/api/auth/dev-workspace-login` qui ne prépare pas le compte workspace dans cet environnement.
-  - Centre de décisions : nouvelle page admin `/dashboard/admin/decisions-architecture` dédiée aux arbitrages d'architecture, avec moteur de recherche, filtres par catégorie/tag, fiches complètes `contexte / problème / options / avantages / inconvénients / choix / justification / conséquences / date / auteur` et affichage des décisions liées entre elles. Preuves : `decisions-architecture/architectureDecisions.ts`, `DecisionCenterPage.tsx`, `page.tsx`, test `architecture-decisions.test.mts` `PASS`, ESLint ciblé `PASS`, build Next `PASS`. Limite : les décisions dérivées du Master Plan restent enrichies heuristiquement tant qu'une persistance ADR dédiée n'est pas branchée.
-  - Roadmap intelligente : vue vivante en trois colonnes avec priorités, difficulté, dépendances, estimation, gains, dette technique, responsable, date prévue et recommandation automatique de la prochaine fonctionnalité logique ; les clôtures locales recalculent immédiatement la feuille de route. Preuves : helper `roadmap.ts`, intégration serveur `page.tsx`, vue `MasterPlanViewer.tsx`, test `roadmap.test.mts`, suite `205/205 PASS`, ESLint ciblé `PASS`, build Next `PASS`. Vérification navigateur : spec `e2e/admin-development.spec.ts` enrichie pour couvrir la roadmap, non exécutée localement car la commande `playwright` n’est pas disponible dans ce shell Windows.
+- **Vue de dÃƒÂ©veloppement du Master Plan** Ã¢â‚¬â€ `Ã¢Å“â€¦ TerminÃƒÂ©`, `P1 Prioritaire` au 2026-07-27. Preuve : route admin sÃƒÂ©curisÃƒÂ©e `/dashboard/admin/developpement`, lecture serveur du fichier, synthÃƒÂ¨se, recherche, filtres statut/prioritÃƒÂ©, sommaire, journal de bord, Mission Control, MÃƒÂ©moire technique, Roadmap intelligente, gÃƒÂ©nÃƒÂ©ration automatique depuis Git + registre de maintenance, saisie manuelle locale, favoris, commentaires et tests dÃƒÂ©diÃƒÂ©s. La page a ÃƒÂ©tÃƒÂ© resserrÃƒÂ©e pour ÃƒÂ©viter les doublons entre pilotage quotidien et sÃƒÂ©quencement produit. Prochaine action : observer lÃ¢â‚¬â„¢usage rÃƒÂ©el avant dÃ¢â‚¬â„¢ajouter une persistance serveur ou des connecteurs live.
+  - Conseiller projet : la vue `/dashboard/admin/developpement` embarque dÃƒÂ©sormais un bloc `Conseiller projet` qui ne se comporte pas comme un simple chat, mais comme un coach technique ÃƒÂ  questions fixes. Il calcule ses rÃƒÂ©ponses ÃƒÂ  partir du Master Plan, de Mission Control, de la roadmap, de la mÃƒÂ©moire technique et de scans repo cÃƒÂ´tÃƒÂ© serveur `taille de fichiers, imports UI, pages testÃƒÂ©es, signaux de dÃƒÂ©rive design system`, avec affichage explicite du niveau de confiance `Factuel / CroisÃƒÂ© / Heuristique`. Preuves : `projectAdvisor.ts`, enrichissement serveur `page.tsx`, rendu `MasterPlanViewer.tsx`, styles `page.module.scss`, test `project-advisor.test.mts`, suite `224/224 PASS`, `npm run build` PASS le mercredi 29 juillet 2026. Limite : il nÃ¢â‚¬â„¢interprÃƒÂ¨te pas encore les diffs ligne ÃƒÂ  ligne, les tickets externes ni les mÃƒÂ©triques dÃ¢â‚¬â„¢usage rÃƒÂ©elles, et ses audits de design system / sous-utilisation restent volontairement heuristiques.
+  - AccÃƒÂ¨s au rÃƒÂ©fÃƒÂ©rentiel UI : lÃ¢â‚¬â„¢en-tÃƒÂªte de `/dashboard/admin/developpement` propose dÃƒÂ©sormais une navigation dÃ¢â‚¬â„¢espace compacte entre le `Pilotage` courant et la page `/design-system`, afin de retrouver le rÃƒÂ©fÃƒÂ©rentiel visuel en un clic sans lÃ¢â‚¬â„¢imbriquer dans le cockpit dÃƒÂ©jÃƒÂ  dense. Statut : `Termine`. PrioritÃƒÂ© : `P3 Confort`. Preuves : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/app/dashboard/admin/developpement/page.module.scss`. VÃƒÂ©rification restante : contrÃƒÂ´le visuel desktop/mobile authentifiÃƒÂ©.
+  - RÃƒÂ©fÃƒÂ©rentiel Personas : le socle de donnÃƒÂ©es personas et l'atelier d'ÃƒÂ©dition locale ont d'abord ÃƒÂ©tÃƒÂ© construits sous `/dashboard/admin/developpement/personas`, avec huit profils cibles, portraits `public/avatars`, contexte, objectifs, frustrations, premiÃƒÂ¨re valeur, fonctionnalitÃƒÂ©s prioritaires, parcours, critÃƒÂ¨res de confiance, appareil, niveau numÃƒÂ©rique, source et statut de validation. Les changements restent versionnÃƒÂ©s dans le `localStorage` via `PersonaCard`, `PersonaEditorModal`, `usePersonasStorage` et `PersonasWorkspace`, avec restauration individuelle ou globale. La clÃƒÂ© et le schÃƒÂ©ma `planetls:product-personas:v1` sont conservÃƒÂ©s pour ne pas perdre les informations dÃƒÂ©jÃƒÂ  modifiÃƒÂ©es. Statut : `Partiel`, car un persona est validÃƒÂ© par lÃ¢â‚¬â„¢usage et sept restent ÃƒÂ  confronter au terrain. PrioritÃƒÂ© : `P2 Important`. Preuves : `src/app/dashboard/admin/developpement/personas/`, `src/components/development/DevelopmentSectionNav.tsx`. Limite : les prÃƒÂ©cisions locales ne sont ni partagÃƒÂ©es entre appareils ni persistÃƒÂ©es en base. Prochaine action : conduire des entretiens avec propriÃƒÂ©taires, conciergeries, ÃƒÂ©quipes et prestataires, puis dÃƒÂ©cider si une persistance Supabase administrateur est nÃƒÂ©cessaire.
+  - Validation navigateur : Playwright Chromium `1/1 PASS` sur connexion admin, lecture desktop, recherche, remise ÃƒÂ  zÃƒÂ©ro, filtre P0 et viewport mobile 390 px. Limite : inspection visuelle automatisÃƒÂ©e de la capture indisponible ÃƒÂ  cause du sandbox Windows.
+  - Ãƒâ€°volution de lecture : cartes cliquables pour chaque statut et prioritÃƒÂ©, ÃƒÂ©tat actif accessible avec `aria-pressed`, synchronisation avec les listes de filtres et adaptation mobile. Preuves : parseur `2/2 PASS`, ESLint ciblÃƒÂ© et Playwright `1/1 PASS`.
+  - Navigation de dÃƒÂ©blocage : dans `Mission Control`, la carte `BloquÃƒÂ©es` ouvre dÃƒÂ©sormais automatiquement `Sommaire et dÃƒÂ©tail du Master Plan`, applique le filtre `Ã¢Å¡Â Ã¯Â¸Â BloquÃƒÂ©` et scrolle vers le premier blocage visible, pour ÃƒÂ©viter une recherche manuelle dans la page de dÃƒÂ©veloppement. Preuves : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `page.module.scss`, `src/tests/mission-control.test.mts` `1/1 PASS`, `npm run build` PASS le mercredi 29 juillet 2026.
+  - Refonte cockpit premium : la page `/dashboard/admin/developpement` adopte dÃƒÂ©sormais une vraie structure de pilotage haut de gamme avec hero exÃƒÂ©cutif compact, rÃƒÂ©sumÃƒÂ© du projet, mÃƒÂ©triques de maÃƒÂ®trise, prochaine meilleure action, dÃƒÂ©pendances dominantes, signaux rÃƒÂ©cents, actions prioritaires, puis sections recontextualisÃƒÂ©es `Vue d'exÃƒÂ©cution`, `DÃƒÂ©cisions canoniques`, `Roadmap dynamique`, `DÃƒÂ©cisions et activitÃƒÂ©` et `Sommaire et dÃƒÂ©tail du Master Plan`. Le fond mÃƒÂ©tier est conservÃƒÂ© mais prÃƒÂ©sentÃƒÂ© comme un dashboard produit interne plutÃƒÂ´t qu'une documentation ÃƒÂ©tendue. Preuves : `MasterPlanViewer.tsx`, `page.module.scss`, `src/tests/mission-control.test.mts` `1/1 PASS`, `npm run build` PASS le mercredi 29 juillet 2026.
+  - Variante `product cockpit` orientÃƒÂ©e alertes : le hero de `/dashboard/admin/developpement` lit maintenant d'abord la tension opÃƒÂ©rationnelle avec score sur 100, jauge de pression, colonne de tension dÃƒÂ©diÃƒÂ©e, alertes hiÃƒÂ©rarchisÃƒÂ©es, release readiness et lien direct vers le blocage prioritaire. La page donne une lecture plus immÃƒÂ©diate de ce qui chauffe, de ce qui bloque et de ce qui demande un arbitrage avant de descendre dans les dÃƒÂ©tails de roadmap et de journal. Preuves : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/app/dashboard/admin/developpement/page.module.scss`, `src/tests/mission-control.test.mts` `1/1 PASS`, `npm run build` PASS le mercredi 29 juillet 2026.
+  - AllÃƒÂ¨gement de la page complÃƒÂ¨te : la lecture a ÃƒÂ©tÃƒÂ© rÃƒÂ©ordonnÃƒÂ©e pour faire remonter `Roadmap intelligente` juste aprÃƒÂ¨s le hero, laisser `Mission Control` en poste de surveillance dÃƒÂ©taillÃƒÂ©e et supprimer les redondances visuelles de progression, mÃƒÂ©triques, objectifs et signaux dÃƒÂ©jÃƒÂ  prÃƒÂ©sents en tÃƒÂªte de page. La surface est plus dense en information utile dÃƒÂ¨s l'ouverture, tout en gardant les donnÃƒÂ©es mÃƒÂ©tier existantes intactes. Preuves : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/app/dashboard/admin/developpement/page.module.scss`, `src/tests/mission-control.test.mts` `1/1 PASS`, `npm run build` PASS le mercredi 29 juillet 2026.
+  - Tension plus live : la colonne de tension intÃƒÂ¨gre maintenant aussi un signal de fraÃƒÂ®cheur dÃ¢â‚¬â„¢exÃƒÂ©cution basÃƒÂ© sur le dernier repÃƒÂ¨re Git disponible et le volume hebdomadaire estimÃƒÂ©, afin de distinguer un cockpit rÃƒÂ©ellement actif dÃ¢â‚¬â„¢un cockpit sans mouvement rÃƒÂ©cent mÃƒÂªme quand les autres alertes restent stables. Preuves : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/tests/mission-control.test.mts` `1/1 PASS`, `npm run build` PASS le mercredi 29 juillet 2026.
+  - Correction desktop du cockpit admin : la zone `ActivitÃƒÂ© rÃƒÂ©cente` de `/dashboard/admin` ne doit plus chevaucher `PrioritÃƒÂ©s immÃƒÂ©diates` sur grand ÃƒÂ©cran. La grille principale, les panneaux et les cartes dÃ¢â‚¬â„¢activitÃƒÂ©/prioritÃƒÂ© imposent dÃƒÂ©sormais mieux leurs largeurs minimales, leur comportement de flex et le retour ÃƒÂ  la ligne des contenus longs. Preuves : `src/app/dashboard/admin/AdminDashboard.module.scss`, `npm run build` PASS le mercredi 29 juillet 2026.
+  - Repli interne des ÃƒÂ©lÃƒÂ©ments longs : la timeline du `Journal de bord` dans `/dashboard/admin/developpement` ajoute maintenant un bouton ÃƒÂ  chevron `Voir l'entrÃƒÂ©e complÃƒÂ¨te / Replier l'entrÃƒÂ©e` directement dans chaque carte, afin de garder une lecture scannable avant dÃ¢â‚¬â„¢ouvrir les dÃƒÂ©tails, audits, liens et commentaires. Preuves : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/app/dashboard/admin/developpement/page.module.scss`, `src/tests/mission-control.test.mts` `1/1 PASS`, `npm run build` PASS le mercredi 29 juillet 2026.
+  - Repli ÃƒÂ©ditorial gÃƒÂ©nÃƒÂ©ralisÃƒÂ© et colonne dÃ¢â‚¬â„¢outils : la page `/dashboard/admin/developpement` permet maintenant dÃ¢â‚¬â„¢ouvrir ou refermer depuis leur en-tÃƒÂªte les blocs `PrioritÃƒÂ©s immÃƒÂ©diates`, `DÃƒÂ©pendances et blocages`, `Signaux rÃƒÂ©cents`, `Colonne de tension`, les cartes de `MÃƒÂ©moire technique`, les colonnes de la `Roadmap intelligente`, les `RÃƒÂ©sumÃƒÂ©s quotidiens` et les entrÃƒÂ©es de timeline du `Journal de bord`. Les contrÃƒÂ´les `Rechercher une dÃƒÂ©cision...` et les filtres du journal passent dans une colonne latÃƒÂ©rale droite plus discrÃƒÂ¨te en desktop, tandis que la saisie `EntrÃƒÂ©e manuelle` se fait dÃƒÂ©sormais via une modale dÃƒÂ©diÃƒÂ©e pour allÃƒÂ©ger la page. La carte `Environnement actuel` est aussi recentrÃƒÂ©e visuellement sur grand ÃƒÂ©cran. Preuves : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/app/dashboard/admin/developpement/page.module.scss`, `src/tests/mission-control.test.mts` `1/1 PASS`, `npm run build` PASS le mercredi 29 juillet 2026.
+  - RÃƒÂ©sumÃƒÂ© quotidien relÃƒÂ©guÃƒÂ© en rail de contexte : dans le `Journal de bord` de `/dashboard/admin/developpement`, les `RÃƒÂ©sumÃƒÂ©s quotidiens` ne sÃ¢â‚¬â„¢ÃƒÂ©talent plus au-dessus de la timeline. Ils vivent dÃƒÂ©sormais dans la colonne droite comme un rail secondaire sticky sur desktop, avec cartes plus compactes et retour sous le flux principal en mobile, afin de prÃƒÂ©server la lecture de la timeline quand la page est dÃƒÂ©jÃƒÂ  dense. Preuves : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/app/dashboard/admin/developpement/page.module.scss`, `npm run build` PASS le mercredi 29 juillet 2026.
+  - CohÃƒÂ©rence filtre/compteur du Master Plan : les compteurs de statuts et prioritÃƒÂ©s de `/dashboard/admin/developpement` sont dÃƒÂ©sormais calculÃƒÂ©s sur les sections rÃƒÂ©ellement filtrables du Master Plan, et non plus sur de simples occurrences textuelles dans tout le markdown. Le filtre `Ã¢Å¡Â Ã¯Â¸Â BloquÃƒÂ© (3)` doit donc maintenant correspondre aux `3` sections affichÃƒÂ©es. Preuves : `src/app/dashboard/admin/developpement/masterPlan.ts`, `src/tests/mission-control.test.mts` `1/1 PASS`, `npm run build` PASS le mercredi 29 juillet 2026.
+  - Navigation longue : sections repliables individuellement, commandes Tout replier/Tout dÃƒÂ©plier, compteur de sections ouvertes, chevrons et ÃƒÂ©tats `aria-expanded`/`aria-controls`. Preuves : ESLint ciblÃƒÂ©, parseur `2/2 PASS` et Playwright Chromium `1/1 PASS` desktop/mobile.
+  - Robustesse des panneaux repliÃƒÂ©s : les en-tÃƒÂªtes repliÃƒÂ©s restent lisibles comme vrais titres accessibles sans dupliquer les `heading` quand le contenu est dÃƒÂ©jÃƒÂ  ouvert. La spec Playwright a ÃƒÂ©tÃƒÂ© rÃƒÂ©alignÃƒÂ©e sur le comportement attendu des panneaux `MÃƒÂ©moire technique` et `Sommaire et dÃƒÂ©tail du Master Plan` en ouvrant explicitement les contenus internes avant d'assert leurs filtres et leur navigation. Preuves : `MasterPlanViewer.tsx`, `page.module.scss`, `e2e/admin-development.spec.ts`, Playwright Chromium `1/1 PASS`.
+  - DÃƒÂ©doublonnage du pilotage : le bloc `Planning opÃƒÂ©rationnel` a ÃƒÂ©tÃƒÂ© retirÃƒÂ© pour ÃƒÂ©viter une seconde lecture du mÃƒÂªme sÃƒÂ©quencement que la `Roadmap intelligente`. La roadmap reste lÃ¢â‚¬â„¢unique vue de priorisation dynamique ; la synthÃƒÂ¨se du Master Plan conserve uniquement les mÃƒÂ©triques documentaires utiles. Preuves : vue `MasterPlanViewer.tsx`, spec `e2e/admin-development.spec.ts`, lint et build ÃƒÂ  revalider aprÃƒÂ¨s simplification.
+  - AllÃƒÂ¨gement de lecture : `Mission Control`, `MÃƒÂ©moire technique`, `Roadmap intelligente`, `Journal de bord`, puis le bloc `Sommaire et dÃƒÂ©tail du Master Plan` disposent maintenant de flÃƒÂ¨ches de repli avec rÃƒÂ©sumÃƒÂ© compact afin de rÃƒÂ©duire la charge visuelle sans retirer dÃ¢â‚¬â„¢information. Les espacements, contrastes et ÃƒÂ©tats fermÃƒÂ©s ont ÃƒÂ©tÃƒÂ© harmonisÃƒÂ©s pour une lecture plus calme sur desktop comme mobile. Preuves : `MasterPlanViewer.tsx`, `page.module.scss`, `npm run lint` PASS.
+  - Stabilisation E2E locale : la route `/api/auth/dev-workspace-login` ne renvoie plus `500` quand la prÃƒÂ©paration distante Supabase ÃƒÂ©choue ; elle retourne dÃƒÂ©sormais un workspace local de repli. `NextAuth` accepte aussi un fallback strictement local pour ces workspaces de dÃƒÂ©veloppement lorsque `WORKSPACE_QUICK_LOGIN_ENABLED=true` et que Supabase Auth est inaccessible, ce qui rÃƒÂ©tablit la chaÃƒÂ®ne `/login -> /dashboard/admin` en environnement sandbox. Preuves : `src/app/api/auth/dev-workspace-login/route.ts`, `src/server/auth/devWorkspace.ts`, `src/server/auth/authOptions.ts`, Playwright Chromium `1/1 PASS` sur `e2e/admin-development.spec.ts`. Limite restante : la santÃƒÂ© Supabase connectÃƒÂ©e reste en `danger` dans Mission Control tant que cet environnement sandbox ne peut pas joindre Supabase Auth ÃƒÂ  distance.
+  - HiÃƒÂ©rarchie documentaire : les titres parents H2 sans texte direct affichent dÃƒÂ©sormais un index explicite et cliquable de leurs sous-sections H3 au lieu dÃ¢â‚¬â„¢une carte visuellement vide. Validation : `1. Vision du projet` expose notamment Mission, Ambition, Valeurs et Objectifs ; Playwright desktop/mobile `1/1 PASS`, lint et build 168 pages.
+  - Journal de bord du dÃƒÂ©veloppeur : timeline verticale Art DÃƒÂ©co lÃƒÂ©gÃƒÂ¨re avec couleurs par catÃƒÂ©gorie, filtres `Aujourd'hui`, `Cette semaine`, `Ce mois`, fonctionnalitÃƒÂ©, prioritÃƒÂ© et auteur, recherche instantanÃƒÂ©e, favoris, commentaires et formulaire manuel. Preuves : helper `developerLog.ts`, vue `MasterPlanViewer.tsx`, test `developer-log.test.mts`, suite `203/203 PASS`, ESLint ciblÃƒÂ© `PASS`, build Next `PASS`.
+  - Journal automatique Codex : aprÃƒÂ¨s chaque lot local significatif, une entrÃƒÂ©e `Codex` est dÃƒÂ©sormais gÃƒÂ©nÃƒÂ©rÃƒÂ©e automatiquement depuis les fichiers modifiÃƒÂ©s du workspace, avec rÃƒÂ©sumÃƒÂ© des changements, raisons, fichiers touchÃƒÂ©s, impacts transverses, mises ÃƒÂ  jour de roadmap, dÃƒÂ©pendances, tÃƒÂ¢ches restantes, rÃƒÂ©gressions potentielles et rÃƒÂ©sumÃƒÂ© quotidien agrÃƒÂ©gÃƒÂ©. Preuves : `developerLog.ts`, `page.tsx`, `MasterPlanViewer.tsx`, test `developer-log.test.mts` `PASS`, Playwright Chromium `1/1 PASS`. Limite : la documentation reste dÃƒÂ©duite heuristiquement depuis Git, le Master Plan et les zones de code modifiÃƒÂ©es ; elle n'interprÃƒÂ¨te pas encore les diffs ligne par ligne ni les PR distantes.
+  - Mission Control dÃƒÂ©veloppeur : cockpit premium de lecture rapide avec progression globale, charge hebdomadaire estimÃƒÂ©e, objectifs, derniÃƒÂ¨re sauvegarde, dÃƒÂ©cisions/commits rÃƒÂ©cents et santÃƒÂ© Supabase/Vercel/GitHub. Preuves : helper `missionControl.ts`, intÃƒÂ©gration serveur `page.tsx`, vue `MasterPlanViewer.tsx`, test `mission-control.test.mts`, suite `204/204 PASS`, ESLint ciblÃƒÂ© `PASS`, build Next `PASS`.
+  - MÃƒÂ©moire technique : base de connaissances interne avec dÃƒÂ©cisions canoniques de stack/architecture/workflow et dÃƒÂ©cisions extraites du Master Plan, filtres catÃƒÂ©gorie/tag et recherche instantanÃƒÂ©e Ã¢â‚¬Å“Pourquoi Supabase, Next.js, VercelÃ¢â‚¬Â¦Ã¢â‚¬Â. Preuves : helper `technicalMemory.ts`, intÃƒÂ©gration serveur `page.tsx`, vue `MasterPlanViewer.tsx`, test `technical-memory.test.mts`, suite `206/206 PASS`, ESLint ciblÃƒÂ© `PASS`, build Next `PASS`. VÃƒÂ©rification navigateur : spec `e2e/admin-development.spec.ts` enrichie, mais exÃƒÂ©cution locale actuellement bloquÃƒÂ©e par la route `/api/auth/dev-workspace-login` qui ne prÃƒÂ©pare pas le compte workspace dans cet environnement.
+  - Centre de dÃƒÂ©cisions : nouvelle page admin `/dashboard/admin/decisions-architecture` dÃƒÂ©diÃƒÂ©e aux arbitrages d'architecture, avec moteur de recherche, filtres par catÃƒÂ©gorie/tag, fiches complÃƒÂ¨tes `contexte / problÃƒÂ¨me / options / avantages / inconvÃƒÂ©nients / choix / justification / consÃƒÂ©quences / date / auteur` et affichage des dÃƒÂ©cisions liÃƒÂ©es entre elles. Preuves : `decisions-architecture/architectureDecisions.ts`, `DecisionCenterPage.tsx`, `page.tsx`, test `architecture-decisions.test.mts` `PASS`, ESLint ciblÃƒÂ© `PASS`, build Next `PASS`. Limite : les dÃƒÂ©cisions dÃƒÂ©rivÃƒÂ©es du Master Plan restent enrichies heuristiquement tant qu'une persistance ADR dÃƒÂ©diÃƒÂ©e n'est pas branchÃƒÂ©e.
+  - Roadmap intelligente : vue vivante en trois colonnes avec prioritÃƒÂ©s, difficultÃƒÂ©, dÃƒÂ©pendances, estimation, gains, dette technique, responsable, date prÃƒÂ©vue et recommandation automatique de la prochaine fonctionnalitÃƒÂ© logique ; les clÃƒÂ´tures locales recalculent immÃƒÂ©diatement la feuille de route. Preuves : helper `roadmap.ts`, intÃƒÂ©gration serveur `page.tsx`, vue `MasterPlanViewer.tsx`, test `roadmap.test.mts`, suite `205/205 PASS`, ESLint ciblÃƒÂ© `PASS`, build Next `PASS`. VÃƒÂ©rification navigateur : spec `e2e/admin-development.spec.ts` enrichie pour couvrir la roadmap, non exÃƒÂ©cutÃƒÂ©e localement car la commande `playwright` nÃ¢â‚¬â„¢est pas disponible dans ce shell Windows.
 
 ### Roadmap par phases permanentes
 
-| Phase | Périmètre | État de pilotage |
+| Phase | PÃƒÂ©rimÃƒÂ¨tre | Ãƒâ€°tat de pilotage |
 |---|---|---|
-| Phase 1 — Socle fiable | Architecture, sécurité, authentification, permissions, données, CI | En cours : E2E et gouvernance Supabase restent P0 |
-| Phase 2 — Mise en relation | Profils, recherche, disponibilités, zones, demandes, contacts | En cours : profil artisan et densité locale prioritaires |
-| Phase 3 — Conversion en mission | Devis, contrat, mission, planning, règlement | En cours : preuve E2E et consolidation paiement manquent |
-| Phase 4 — Fidélisation | Outils quotidiens, équipe, maintenance, finance, assistant décoration | En cours : plusieurs modules sont N2 et doivent être validés/persistés |
-| Phase 5 — Réseau professionnel | Fil, publications, carte, mur des missions, recommandations | À faire après preuve de liquidité locale |
-| Phase 6 — Développement stratégique | IA réelle, intégrations, reporting avancé, modèles économiques | Évolution future ; aucune industrialisation avant validation d'usage |
+| Phase 1 Ã¢â‚¬â€ Socle fiable | Architecture, sÃƒÂ©curitÃƒÂ©, authentification, permissions, donnÃƒÂ©es, CI | En cours : E2E et gouvernance Supabase restent P0 |
+| Phase 2 Ã¢â‚¬â€ Mise en relation | Profils, recherche, disponibilitÃƒÂ©s, zones, demandes, contacts | En cours : profil artisan et densitÃƒÂ© locale prioritaires |
+| Phase 3 Ã¢â‚¬â€ Conversion en mission | Devis, contrat, mission, planning, rÃƒÂ¨glement | En cours : preuve E2E et consolidation paiement manquent |
+| Phase 4 Ã¢â‚¬â€ FidÃƒÂ©lisation | Outils quotidiens, ÃƒÂ©quipe, maintenance, finance, assistant dÃƒÂ©coration | En cours : plusieurs modules sont N2 et doivent ÃƒÂªtre validÃƒÂ©s/persistÃƒÂ©s |
+| Phase 5 Ã¢â‚¬â€ RÃƒÂ©seau professionnel | Fil, publications, carte, mur des missions, recommandations | Ãƒâ‚¬ faire aprÃƒÂ¨s preuve de liquiditÃƒÂ© locale |
+| Phase 6 Ã¢â‚¬â€ DÃƒÂ©veloppement stratÃƒÂ©gique | IA rÃƒÂ©elle, intÃƒÂ©grations, reporting avancÃƒÂ©, modÃƒÂ¨les ÃƒÂ©conomiques | Ãƒâ€°volution future ; aucune industrialisation avant validation d'usage |
 
-Note de trajectoire : le futur module privé `Pilotage PlanetLS` pour la fondatrice rejoint désormais la phase 6 comme chantier structurant à livrer par lots `budget, trésorerie, provisions, réserve, KPI SaaS, journal, décisions, risques`, sans le confondre avec une comptabilité réglementaire.
+Note de trajectoire : le futur module privÃƒÂ© `Pilotage PlanetLS` pour la fondatrice rejoint dÃƒÂ©sormais la phase 6 comme chantier structurant ÃƒÂ  livrer par lots `budget, trÃƒÂ©sorerie, provisions, rÃƒÂ©serve, KPI SaaS, journal, dÃƒÂ©cisions, risques`, sans le confondre avec une comptabilitÃƒÂ© rÃƒÂ©glementaire.
 
-### Idées et opportunités — format obligatoire
+### IdÃƒÂ©es et opportunitÃƒÂ©s Ã¢â‚¬â€ format obligatoire
 
-Avant d'ajouter une idée, rechercher ses synonymes dans ce document. Ne pas l'implémenter hors demande.
+Avant d'ajouter une idÃƒÂ©e, rechercher ses synonymes dans ce document. Ne pas l'implÃƒÂ©menter hors demande.
 
-| Idée | Problème résolu | Utilisateurs concernés | Valeur attendue | Effort estimé | Risques | Priorité proposée | Statut |
+| IdÃƒÂ©e | ProblÃƒÂ¨me rÃƒÂ©solu | Utilisateurs concernÃƒÂ©s | Valeur attendue | Effort estimÃƒÂ© | Risques | PrioritÃƒÂ© proposÃƒÂ©e | Statut |
 |---|---|---|---|---|---|---|---|
-| Génération visuelle avant/après décoration | Le rapport actuel ne produit qu'un prompt texte | Concierge, propriétaire | Projection et conversion plus fortes | Moyen | Coût, qualité, droits sur les photos, conservation des images | P3 Confort après validation du rapport | À étudier |
-| Programme d'impact solidaire local | La marque n'exprime pas encore de contribution sociale tangible malgré son ancrage terrain | Propriétaire, concierge, artisan, administrateur, partenaires associatifs | Différenciation émotionnelle, fidélisation, preuve d'utilité locale, meilleure narration de marque | Moyen à élevé | Promesse marketing sans exécution, arbitrage juridique/fiscal, gouvernance des causes, besoin de traçabilité publique | P3 Confort | À étudier |
-| Pilotage PlanetLS — espace entrepreneurial et financier privé fondatrice | L'admin pilote déjà l'activité et les risques opérationnels, mais pas encore le budget prévisionnel, la trésorerie, les provisions, la réserve, les KPI SaaS consolidés et le journal entrepreneurial dans un même espace protégé | Fondatrice, administrateur principal | Vision claire de la santé business, routine financière simple, arbitrages plus rapides, meilleure préparation juridique/fiscale et meilleur alignement entre produit, revenus et cash | Élevé | Risque de dériver vers un faux logiciel comptable, taux fiscaux codés en dur, métriques approximatives prises pour des vérités, duplication avec les journaux/décisions admin existants, confidentialité des données | P1 Prioritaire | Validée |
-| Référentiel IA PlanetLS et bibliothèque de prompts versionnée | Les idées et prompts IA restent dispersés entre conversations, pièces jointes et documents isolés, donc difficiles à retrouver et à faire évoluer | Fondatrice, administrateur principal, développeur | Retrouver vite les cadres IA utiles, réduire les répétitions, préparer un futur centre de prompts sans dupliquer les sources | Moyen | Dérive documentaire sans gouvernance, duplication avec le Master Plan, tentation d'industrialiser trop tôt l'interface | P2 Important | Validée |
+| GÃƒÂ©nÃƒÂ©ration visuelle avant/aprÃƒÂ¨s dÃƒÂ©coration | Le rapport actuel ne produit qu'un prompt texte | Concierge, propriÃƒÂ©taire | Projection et conversion plus fortes | Moyen | CoÃƒÂ»t, qualitÃƒÂ©, droits sur les photos, conservation des images | P3 Confort aprÃƒÂ¨s validation du rapport | Ãƒâ‚¬ ÃƒÂ©tudier |
+| Programme d'impact solidaire local | La marque n'exprime pas encore de contribution sociale tangible malgrÃƒÂ© son ancrage terrain | PropriÃƒÂ©taire, concierge, artisan, administrateur, partenaires associatifs | DiffÃƒÂ©renciation ÃƒÂ©motionnelle, fidÃƒÂ©lisation, preuve d'utilitÃƒÂ© locale, meilleure narration de marque | Moyen ÃƒÂ  ÃƒÂ©levÃƒÂ© | Promesse marketing sans exÃƒÂ©cution, arbitrage juridique/fiscal, gouvernance des causes, besoin de traÃƒÂ§abilitÃƒÂ© publique | P3 Confort | Ãƒâ‚¬ ÃƒÂ©tudier |
+| Pilotage PlanetLS Ã¢â‚¬â€ espace entrepreneurial et financier privÃƒÂ© fondatrice | L'admin pilote dÃƒÂ©jÃƒÂ  l'activitÃƒÂ© et les risques opÃƒÂ©rationnels, mais pas encore le budget prÃƒÂ©visionnel, la trÃƒÂ©sorerie, les provisions, la rÃƒÂ©serve, les KPI SaaS consolidÃƒÂ©s et le journal entrepreneurial dans un mÃƒÂªme espace protÃƒÂ©gÃƒÂ© | Fondatrice, administrateur principal | Vision claire de la santÃƒÂ© business, routine financiÃƒÂ¨re simple, arbitrages plus rapides, meilleure prÃƒÂ©paration juridique/fiscale et meilleur alignement entre produit, revenus et cash | Ãƒâ€°levÃƒÂ© | Risque de dÃƒÂ©river vers un faux logiciel comptable, taux fiscaux codÃƒÂ©s en dur, mÃƒÂ©triques approximatives prises pour des vÃƒÂ©ritÃƒÂ©s, duplication avec les journaux/dÃƒÂ©cisions admin existants, confidentialitÃƒÂ© des donnÃƒÂ©es | P1 Prioritaire | ValidÃƒÂ©e |
+| RÃƒÂ©fÃƒÂ©rentiel IA PlanetLS et bibliothÃƒÂ¨que de prompts versionnÃƒÂ©e | Les idÃƒÂ©es et prompts IA restent dispersÃƒÂ©s entre conversations, piÃƒÂ¨ces jointes et documents isolÃƒÂ©s, donc difficiles ÃƒÂ  retrouver et ÃƒÂ  faire ÃƒÂ©voluer | Fondatrice, administrateur principal, dÃƒÂ©veloppeur | Retrouver vite les cadres IA utiles, rÃƒÂ©duire les rÃƒÂ©pÃƒÂ©titions, prÃƒÂ©parer un futur centre de prompts sans dupliquer les sources | Moyen | DÃƒÂ©rive documentaire sans gouvernance, duplication avec le Master Plan, tentation d'industrialiser trop tÃƒÂ´t l'interface | P2 Important | ValidÃƒÂ©e |
 
-Statuts d'idée autorisés : `À étudier`, `Validée`, `Planifiée`, `En développement`, `Livrée`, `Refusée`, `Reportée`.
+Statuts d'idÃƒÂ©e autorisÃƒÂ©s : `Ãƒâ‚¬ ÃƒÂ©tudier`, `ValidÃƒÂ©e`, `PlanifiÃƒÂ©e`, `En dÃƒÂ©veloppement`, `LivrÃƒÂ©e`, `RefusÃƒÂ©e`, `ReportÃƒÂ©e`.
 
-### Pilotage business et financier — réflexion sur une offre Pro
+### Pilotage business et financier Ã¢â‚¬â€ rÃƒÂ©flexion sur une offre Pro
 
-Contexte au lundi 3 août 2026 : le cockpit entrepreneurial privé sait déjà comparer des stratégies et simuler des scénarios, mais PlanetLS n'a pas encore figé une offre Pro monétisable à brancher ensuite dans Stripe, dans le discours commercial et dans les KPI. L'objectif prioritaire n'est donc pas d'ajouter plus de simulation, mais de choisir une offre simple à vendre, lisible pour la cible et cohérente avec la maturité réelle du produit.
+Contexte au lundi 3 aoÃƒÂ»t 2026 : le cockpit entrepreneurial privÃƒÂ© sait dÃƒÂ©jÃƒÂ  comparer des stratÃƒÂ©gies et simuler des scÃƒÂ©narios, mais PlanetLS n'a pas encore figÃƒÂ© une offre Pro monÃƒÂ©tisable ÃƒÂ  brancher ensuite dans Stripe, dans le discours commercial et dans les KPI. L'objectif prioritaire n'est donc pas d'ajouter plus de simulation, mais de choisir une offre simple ÃƒÂ  vendre, lisible pour la cible et cohÃƒÂ©rente avec la maturitÃƒÂ© rÃƒÂ©elle du produit.
 
-### Due diligence investisseur — synthèse conservée
+### Due diligence investisseur Ã¢â‚¬â€ synthÃƒÂ¨se conservÃƒÂ©e
 
-Lecture comité d'investissement au lundi 3 août 2026 : PlanetLS n'est pas encore finançable comme un SaaS prêt pour une levée de plusieurs millions d'euros. Le verdict simulé reste `Attendre`, non parce que la vision serait faible, mais parce que trop de risques structurants restent ouverts en même temps.
+Lecture comitÃƒÂ© d'investissement au lundi 3 aoÃƒÂ»t 2026 : PlanetLS n'est pas encore finanÃƒÂ§able comme un SaaS prÃƒÂªt pour une levÃƒÂ©e de plusieurs millions d'euros. Le verdict simulÃƒÂ© reste `Attendre`, non parce que la vision serait faible, mais parce que trop de risques structurants restent ouverts en mÃƒÂªme temps.
 
-Constats à garder visibles :
+Constats ÃƒÂ  garder visibles :
 
-- PlanetLS cumule encore trois moteurs difficiles à exécuter simultanément : `SaaS`, `marketplace locale` et `réseau professionnel`.
-- Le segment payeur principal n'est pas encore verrouillé avec des preuves commerciales réelles.
-- La liquidité locale et l'effet réseau restent à démontrer ; ils ne peuvent pas encore être considérés comme acquis dans une thèse d'investissement.
-- Le risque de désintermédiation après la première mise en relation reste élevé.
-- Le produit est déjà large et crédible, mais cette largeur augmente la dette d'exécution tant que le PMF n'est pas prouvé.
-- Le noyau le plus prometteur à ce stade reste `Conciergerie Pro`, à traiter d'abord comme moteur SaaS / workflow avant d'industrialiser la logique marketplace.
+- PlanetLS cumule encore trois moteurs difficiles ÃƒÂ  exÃƒÂ©cuter simultanÃƒÂ©ment : `SaaS`, `marketplace locale` et `rÃƒÂ©seau professionnel`.
+- Le segment payeur principal n'est pas encore verrouillÃƒÂ© avec des preuves commerciales rÃƒÂ©elles.
+- La liquiditÃƒÂ© locale et l'effet rÃƒÂ©seau restent ÃƒÂ  dÃƒÂ©montrer ; ils ne peuvent pas encore ÃƒÂªtre considÃƒÂ©rÃƒÂ©s comme acquis dans une thÃƒÂ¨se d'investissement.
+- Le risque de dÃƒÂ©sintermÃƒÂ©diation aprÃƒÂ¨s la premiÃƒÂ¨re mise en relation reste ÃƒÂ©levÃƒÂ©.
+- Le produit est dÃƒÂ©jÃƒÂ  large et crÃƒÂ©dible, mais cette largeur augmente la dette d'exÃƒÂ©cution tant que le PMF n'est pas prouvÃƒÂ©.
+- Le noyau le plus prometteur ÃƒÂ  ce stade reste `Conciergerie Pro`, ÃƒÂ  traiter d'abord comme moteur SaaS / workflow avant d'industrialiser la logique marketplace.
 
-Top questions comité à conserver :
+Top questions comitÃƒÂ© ÃƒÂ  conserver :
 
-1. Quel problème unique PlanetLS résout-il mieux que tout autre outil, pour un segment unique et solvable 
+1. Quel problÃƒÂ¨me unique PlanetLS rÃƒÂ©sout-il mieux que tout autre outil, pour un segment unique et solvable 
 2. Qui paie en premier et pourquoi 
-3. Pourquoi une conciergerie paierait-elle PlanetLS plutôt qu'un empilement `WhatsApp + Excel + Notion + Stripe + PMS` 
-4. PlanetLS est-il d'abord un SaaS, une marketplace ou un réseau, et lequel domine économiquement 
-5. Quel niveau de densité locale est nécessaire pour rendre la marketplace utile 
-6. Quel est le risque réel de désintermédiation après le premier match 
-7. Quelle fonctionnalité justifie à elle seule un abonnement récurrent `99–149 € HT / mois` 
-8. Quel est le taux réel `demande -> devis -> mission -> facture -> paiement` 
-9. Quel moat défendable existera à 5 ans 
-10. Si 70 % du produit devait disparaître pour accélérer, quel serait le noyau conservé 
+3. Pourquoi une conciergerie paierait-elle PlanetLS plutÃƒÂ´t qu'un empilement `WhatsApp + Excel + Notion + Stripe + PMS` 
+4. PlanetLS est-il d'abord un SaaS, une marketplace ou un rÃƒÂ©seau, et lequel domine ÃƒÂ©conomiquement 
+5. Quel niveau de densitÃƒÂ© locale est nÃƒÂ©cessaire pour rendre la marketplace utile 
+6. Quel est le risque rÃƒÂ©el de dÃƒÂ©sintermÃƒÂ©diation aprÃƒÂ¨s le premier match 
+7. Quelle fonctionnalitÃƒÂ© justifie ÃƒÂ  elle seule un abonnement rÃƒÂ©current `99Ã¢â‚¬â€œ149 Ã¢â€šÂ¬ HT / mois` 
+8. Quel est le taux rÃƒÂ©el `demande -> devis -> mission -> facture -> paiement` 
+9. Quel moat dÃƒÂ©fendable existera ÃƒÂ  5 ans 
+10. Si 70 % du produit devait disparaÃƒÂ®tre pour accÃƒÂ©lÃƒÂ©rer, quel serait le noyau conservÃƒÂ© 
 
-Conditions minimales avant réexamen investisseur :
+Conditions minimales avant rÃƒÂ©examen investisseur :
 
-- Signer `10 à 15` conciergeries payantes réellement actives.
+- Signer `10 ÃƒÂ  15` conciergeries payantes rÃƒÂ©ellement actives.
 - Geler une offre unique vendue pendant au moins `60 jours`.
-- Mesurer `activation`, `rétention` et `churn` à `30/60/90 jours` par cohorte.
-- Prouver la chaîne `demande -> mission -> paiement` sur données réelles.
-- Valider une zone pilote avec densité locale minimale et temps de réponse crédible.
-- Choisir clairement `SaaS d'abord puis marketplace` ou l'inverse, mais ne plus piloter les deux comme moteurs primaires en même temps.
-- Produire un mini-dossier avec `CAC`, `LTV`, `marge brute` et `coût d'onboarding` observés, pas seulement simulés.
+- Mesurer `activation`, `rÃƒÂ©tention` et `churn` ÃƒÂ  `30/60/90 jours` par cohorte.
+- Prouver la chaÃƒÂ®ne `demande -> mission -> paiement` sur donnÃƒÂ©es rÃƒÂ©elles.
+- Valider une zone pilote avec densitÃƒÂ© locale minimale et temps de rÃƒÂ©ponse crÃƒÂ©dible.
+- Choisir clairement `SaaS d'abord puis marketplace` ou l'inverse, mais ne plus piloter les deux comme moteurs primaires en mÃƒÂªme temps.
+- Produire un mini-dossier avec `CAC`, `LTV`, `marge brute` et `coÃƒÂ»t d'onboarding` observÃƒÂ©s, pas seulement simulÃƒÂ©s.
 
-#### Stratégie A — Abonnement logiciel Pro unique
+#### StratÃƒÂ©gie A Ã¢â‚¬â€ Abonnement logiciel Pro unique
 
-- Principe : une offre mensuelle simple, vendue comme cockpit Pro pour conciergeries et propriétaires professionnels, avec accès aux modules les plus mûrs et promesse de gain de temps opérationnel.
-- Avantages : lisibilité commerciale forte ; pricing facile à tester ; meilleur fit avec une logique SaaS récurrente ; limite la charge manuelle de vente sur mesure ; facilite plus tard la connexion aux KPI MRR, churn et activation.
-- Risques : promesse trop large si certains modules clés restent N2/N3 ; objection prix si la valeur n'est pas perçue dès la première semaine ; risque de vendre un "tout-en-un" alors que les usages réels sont encore hétérogènes selon les profils.
-- Conditions de réussite : périmètre fonctionnel strictement borné ; onboarding très court avec première valeur en moins de 7 jours ; page d'offre claire avec preuves d'usage concrètes ; support fondateur très réactif sur les premiers comptes.
+- Principe : une offre mensuelle simple, vendue comme cockpit Pro pour conciergeries et propriÃƒÂ©taires professionnels, avec accÃƒÂ¨s aux modules les plus mÃƒÂ»rs et promesse de gain de temps opÃƒÂ©rationnel.
+- Avantages : lisibilitÃƒÂ© commerciale forte ; pricing facile ÃƒÂ  tester ; meilleur fit avec une logique SaaS rÃƒÂ©currente ; limite la charge manuelle de vente sur mesure ; facilite plus tard la connexion aux KPI MRR, churn et activation.
+- Risques : promesse trop large si certains modules clÃƒÂ©s restent N2/N3 ; objection prix si la valeur n'est pas perÃƒÂ§ue dÃƒÂ¨s la premiÃƒÂ¨re semaine ; risque de vendre un "tout-en-un" alors que les usages rÃƒÂ©els sont encore hÃƒÂ©tÃƒÂ©rogÃƒÂ¨nes selon les profils.
+- Conditions de rÃƒÂ©ussite : pÃƒÂ©rimÃƒÂ¨tre fonctionnel strictement bornÃƒÂ© ; onboarding trÃƒÂ¨s court avec premiÃƒÂ¨re valeur en moins de 7 jours ; page d'offre claire avec preuves d'usage concrÃƒÂ¨tes ; support fondateur trÃƒÂ¨s rÃƒÂ©actif sur les premiers comptes.
 
-#### Stratégie B — Offre Pro hybride avec abonnement socle + services d'accompagnement
+#### StratÃƒÂ©gie B Ã¢â‚¬â€ Offre Pro hybride avec abonnement socle + services d'accompagnement
 
-- Principe : un abonnement Pro volontairement resserré sur le cockpit et les usages récurrents, complété par des services payants d'onboarding, paramétrage, import, cadrage ou accompagnement business.
-- Avantages : monétisation plus réaliste à court terme ; réduit le risque de sous-pricer l'effort d'acquisition et de mise en route ; s'adapte à des clients encore peu matures numériquement ; crée du chiffre d'affaires même si le produit n'est pas encore totalement industrialisé.
-- Risques : modèle moins scalable ; dépendance plus forte au temps fondatrice/ops ; confusion possible entre logiciel et prestation ; marge plus difficile à standardiser si le catalogue d'accompagnement n'est pas borné.
-- Conditions de réussite : découpage très explicite entre ce qui est inclus dans l'abonnement et ce qui relève du service ; packages d'accompagnement standardisés ; estimation du temps de delivery réelle ; pilotage serré du coût d'acquisition et du temps passé par client.
+- Principe : un abonnement Pro volontairement resserrÃƒÂ© sur le cockpit et les usages rÃƒÂ©currents, complÃƒÂ©tÃƒÂ© par des services payants d'onboarding, paramÃƒÂ©trage, import, cadrage ou accompagnement business.
+- Avantages : monÃƒÂ©tisation plus rÃƒÂ©aliste ÃƒÂ  court terme ; rÃƒÂ©duit le risque de sous-pricer l'effort d'acquisition et de mise en route ; s'adapte ÃƒÂ  des clients encore peu matures numÃƒÂ©riquement ; crÃƒÂ©e du chiffre d'affaires mÃƒÂªme si le produit n'est pas encore totalement industrialisÃƒÂ©.
+- Risques : modÃƒÂ¨le moins scalable ; dÃƒÂ©pendance plus forte au temps fondatrice/ops ; confusion possible entre logiciel et prestation ; marge plus difficile ÃƒÂ  standardiser si le catalogue d'accompagnement n'est pas bornÃƒÂ©.
+- Conditions de rÃƒÂ©ussite : dÃƒÂ©coupage trÃƒÂ¨s explicite entre ce qui est inclus dans l'abonnement et ce qui relÃƒÂ¨ve du service ; packages d'accompagnement standardisÃƒÂ©s ; estimation du temps de delivery rÃƒÂ©elle ; pilotage serrÃƒÂ© du coÃƒÂ»t d'acquisition et du temps passÃƒÂ© par client.
 
-#### Stratégie C — Offre Pro segmentée par vertical métier
+#### StratÃƒÂ©gie C Ã¢â‚¬â€ Offre Pro segmentÃƒÂ©e par vertical mÃƒÂ©tier
 
-- Principe : plusieurs offres Pro distinctes selon le profil, par exemple `Conciergerie Pro`, `Propriétaire Pro` puis plus tard `Prestataire Pro`, chacune avec proposition de valeur, modules et prix dédiés.
-- Avantages : meilleure pertinence du discours ; prix potentiellement mieux alignés à la valeur perçue ; réduit l'effet "usine à gaz" d'une offre unique ; permet de concentrer la roadmap sur le segment qui convertit le mieux.
-- Risques : complexité produit, marketing et pricing plus élevée ; plus de friction côté Stripe, support, contenus et KPI ; danger de lancer trop tôt plusieurs offres alors que la densité d'usage et les preuves clients sont encore faibles.
-- Conditions de réussite : choisir un segment prioritaire net ; limiter le nombre d'offres actives au départ ; disposer d'indicateurs séparés par segment ; accepter de reporter certains profils tant que le message principal n'est pas stabilisé.
+- Principe : plusieurs offres Pro distinctes selon le profil, par exemple `Conciergerie Pro`, `PropriÃƒÂ©taire Pro` puis plus tard `Prestataire Pro`, chacune avec proposition de valeur, modules et prix dÃƒÂ©diÃƒÂ©s.
+- Avantages : meilleure pertinence du discours ; prix potentiellement mieux alignÃƒÂ©s ÃƒÂ  la valeur perÃƒÂ§ue ; rÃƒÂ©duit l'effet "usine ÃƒÂ  gaz" d'une offre unique ; permet de concentrer la roadmap sur le segment qui convertit le mieux.
+- Risques : complexitÃƒÂ© produit, marketing et pricing plus ÃƒÂ©levÃƒÂ©e ; plus de friction cÃƒÂ´tÃƒÂ© Stripe, support, contenus et KPI ; danger de lancer trop tÃƒÂ´t plusieurs offres alors que la densitÃƒÂ© d'usage et les preuves clients sont encore faibles.
+- Conditions de rÃƒÂ©ussite : choisir un segment prioritaire net ; limiter le nombre d'offres actives au dÃƒÂ©part ; disposer d'indicateurs sÃƒÂ©parÃƒÂ©s par segment ; accepter de reporter certains profils tant que le message principal n'est pas stabilisÃƒÂ©.
 
-#### Recommandation argumentée
+#### Recommandation argumentÃƒÂ©e
 
-Recommandation : privilégier la stratégie B comme point d'entrée des 60 à 90 prochains jours, avec une trajectoire assumée vers la stratégie C et sans se verrouiller trop tôt dans une promesse SaaS unique de type stratégie A.
+Recommandation : privilÃƒÂ©gier la stratÃƒÂ©gie B comme point d'entrÃƒÂ©e des 60 ÃƒÂ  90 prochains jours, avec une trajectoire assumÃƒÂ©e vers la stratÃƒÂ©gie C et sans se verrouiller trop tÃƒÂ´t dans une promesse SaaS unique de type stratÃƒÂ©gie A.
 
-Pourquoi ce choix : PlanetLS possède déjà un socle crédible, mais le Master Plan montre encore plusieurs modules `🟡 En cours` et `🟠 Partiel`, avec une valeur plus mûre côté conciergerie/admin que côté produit totalement standardisé. Une offre hybride permet donc de vendre dès maintenant une valeur réelle sans surpromettre, de financer l'apprentissage terrain, de comprendre quels services deviennent récurrents, puis de transformer ensuite ce qui se répète en fonctionnalités produit ou en déclinaison segmentée `Conciergerie Pro`. En revanche, partir tout de suite sur une offre A trop large exposerait à du churn lié aux attentes, et partir immédiatement sur une offre C complète multiplierait la complexité avant d'avoir le bon message commercial.
+Pourquoi ce choix : PlanetLS possÃƒÂ¨de dÃƒÂ©jÃƒÂ  un socle crÃƒÂ©dible, mais le Master Plan montre encore plusieurs modules `Ã°Å¸Å¸Â¡ En cours` et `Ã°Å¸Å¸Â  Partiel`, avec une valeur plus mÃƒÂ»re cÃƒÂ´tÃƒÂ© conciergerie/admin que cÃƒÂ´tÃƒÂ© produit totalement standardisÃƒÂ©. Une offre hybride permet donc de vendre dÃƒÂ¨s maintenant une valeur rÃƒÂ©elle sans surpromettre, de financer l'apprentissage terrain, de comprendre quels services deviennent rÃƒÂ©currents, puis de transformer ensuite ce qui se rÃƒÂ©pÃƒÂ¨te en fonctionnalitÃƒÂ©s produit ou en dÃƒÂ©clinaison segmentÃƒÂ©e `Conciergerie Pro`. En revanche, partir tout de suite sur une offre A trop large exposerait ÃƒÂ  du churn liÃƒÂ© aux attentes, et partir immÃƒÂ©diatement sur une offre C complÃƒÂ¨te multiplierait la complexitÃƒÂ© avant d'avoir le bon message commercial.
 
-Cadre recommandé : lancer une seule offre commerciale prioritaire `Conciergerie Pro`, avec un abonnement socle clair et 2 à 3 packs d'accompagnement bornés. Les propriétaires professionnels peuvent rester en cible secondaire tant que la proposition de valeur dédiée n'est pas validée en entretien et en closing.
+Cadre recommandÃƒÂ© : lancer une seule offre commerciale prioritaire `Conciergerie Pro`, avec un abonnement socle clair et 2 ÃƒÂ  3 packs d'accompagnement bornÃƒÂ©s. Les propriÃƒÂ©taires professionnels peuvent rester en cible secondaire tant que la proposition de valeur dÃƒÂ©diÃƒÂ©e n'est pas validÃƒÂ©e en entretien et en closing.
 
 #### Plan d'action en 7 jours
 
-1. Jour 1 : figer la cible prioritaire, le problème principal résolu et la promesse exacte de l'offre Pro en une phrase ; bannir toute promesse non soutenue par le produit actuel.
-2. Jour 2 : définir le contenu de l'abonnement socle `Conciergerie Pro` avec une liste stricte `inclus / non inclus / bientôt`, plus 2 ou 3 packs d'accompagnement standardisés.
-3. Jour 3 : fixer une première hypothèse de prix avec bornes basses et hautes, puis préparer un script d'entretien commercial de 20 minutes pour tester valeur perçue, objections et urgence.
-4. Jour 4 : sélectionner 5 à 10 prospects ou contacts chauds, réaliser les entretiens et noter systématiquement les signaux `compréhension`, `intérêt`, `objection prix`, `objection confiance`, `fonction manquante`.
-5. Jour 5 : synthétiser les retours dans le cockpit entrepreneurial, comparer au moins 2 variantes de pricing et décider si l'offre garde un socle unique ou si une segmentation légère devient déjà nécessaire.
-6. Jour 6 : rédiger la page d'offre et le support de vente minimal `landing, argumentaire, FAQ, conditions d'accompagnement`, sans encore automatiser Stripe tant que le wording n'a pas été validé à l'oral.
-7. Jour 7 : arbitrer go/no-go sur un pilote payant, choisir 1 offre officielle à tester pendant 30 jours, définir les KPI de validation `taux de rendez-vous, taux d'intérêt, taux de closing, délai à première valeur, temps d'accompagnement par client`.
+1. Jour 1 : figer la cible prioritaire, le problÃƒÂ¨me principal rÃƒÂ©solu et la promesse exacte de l'offre Pro en une phrase ; bannir toute promesse non soutenue par le produit actuel.
+2. Jour 2 : dÃƒÂ©finir le contenu de l'abonnement socle `Conciergerie Pro` avec une liste stricte `inclus / non inclus / bientÃƒÂ´t`, plus 2 ou 3 packs d'accompagnement standardisÃƒÂ©s.
+3. Jour 3 : fixer une premiÃƒÂ¨re hypothÃƒÂ¨se de prix avec bornes basses et hautes, puis prÃƒÂ©parer un script d'entretien commercial de 20 minutes pour tester valeur perÃƒÂ§ue, objections et urgence.
+4. Jour 4 : sÃƒÂ©lectionner 5 ÃƒÂ  10 prospects ou contacts chauds, rÃƒÂ©aliser les entretiens et noter systÃƒÂ©matiquement les signaux `comprÃƒÂ©hension`, `intÃƒÂ©rÃƒÂªt`, `objection prix`, `objection confiance`, `fonction manquante`.
+5. Jour 5 : synthÃƒÂ©tiser les retours dans le cockpit entrepreneurial, comparer au moins 2 variantes de pricing et dÃƒÂ©cider si l'offre garde un socle unique ou si une segmentation lÃƒÂ©gÃƒÂ¨re devient dÃƒÂ©jÃƒÂ  nÃƒÂ©cessaire.
+6. Jour 6 : rÃƒÂ©diger la page d'offre et le support de vente minimal `landing, argumentaire, FAQ, conditions d'accompagnement`, sans encore automatiser Stripe tant que le wording n'a pas ÃƒÂ©tÃƒÂ© validÃƒÂ© ÃƒÂ  l'oral.
+7. Jour 7 : arbitrer go/no-go sur un pilote payant, choisir 1 offre officielle ÃƒÂ  tester pendant 30 jours, dÃƒÂ©finir les KPI de validation `taux de rendez-vous, taux d'intÃƒÂ©rÃƒÂªt, taux de closing, dÃƒÂ©lai ÃƒÂ  premiÃƒÂ¨re valeur, temps d'accompagnement par client`.
 
-### Historique synthétique des fonctionnalités structurantes
+### Historique synthÃƒÂ©tique des fonctionnalitÃƒÂ©s structurantes
 
-| Fonctionnalité | Création | Dernière évolution importante | Statut actuel | Limites connues | Dépendances | Prochaine étape |
+| FonctionnalitÃƒÂ© | CrÃƒÂ©ation | DerniÃƒÂ¨re ÃƒÂ©volution importante | Statut actuel | Limites connues | DÃƒÂ©pendances | Prochaine ÃƒÂ©tape |
 |---|---|---|---|---|---|---|
-| Authentification et permissions | Avant 2026-04 | 2026-08-07 | 🟡 En cours | Le proxy bloque maintenant aussi les mutations API cross-origin non fiables via un garde CSRF central (`Origin`/`Referer`) avec exemptions explicites pour `/api/auth`, webhook Stripe et appels serveur-à-serveur signés ; E2E multi-rôles et validation de cette défense en environnement réel restent absents | NextAuth, Supabase, guards API, proxy, helper CSRF partagé | Automatiser les parcours et confirmer la sécurité en environnement réel, y compris les cas CSRF autorisés/refusés |
-| Demande → devis → mission → paiement | Avant 2026-05 | 2026-06-06 | 🟡 En cours | Validation bout en bout et consolidation paiement incomplètes | Tables métier, Stripe, workflow events | E2E owner/concierge et gestion visible des échecs |
-| Profils professionnels | Avant 2026-04 | 2026-08-07 | 🟠 Partiel | Édition et preuves privées artisan livrées ; la vue publique concierge expose maintenant une V1 actionnable type Linktree sur les liens sociaux existants, des CTA structurés et un tracking léger des clics ; migration distante, validation admin, avis plus riches, lecture acquisition des CTA et vue provider détaillée manquent encore ; l'extension provider reste volontairement reportée | `profiles`, `provider_profile_documents`, Storage privé, reviews, profils publics, workflow_events | Agréger ensuite les CTA réellement utilisés, clarifier les CTA métier provider, puis étendre la mécanique sans créer de second produit de profil public |
-| Maintenance, équipe et séjours | 2026-07 | 2026-07-12 | 🟠 Partiel | Persistance spécialisée incomplète | Missions, metadata, interventions | Tables/RLS/types et E2E |
-| Réservations partagées propriétaire -> conciergerie | 2026-07-29 | 2026-07-29 | 🟡 En cours | Phases A à C terminées ; phase D désormais appliquée à distance sur `missions`, `provider_interventions` et `workflow_events` avec confirmation le mercredi 29 juillet 2026, puis nettoyée sur les parcours secondaires : table canonique `reservations`, index, trigger `updated_at`, RLS participants, helper partagé, route owner `GET/POST`, route participant `GET/PATCH`, `/api/concierge/stays` lit désormais `reservations` avant le legacy `missions`, `GET /api/concierge/reservations` prend aussi `reservations` comme racine avec rattachement des missions workflow, l'écran owner `voyageurs` lit/crée les séjours canoniques, le planning owner lit désormais `/api/owner/reservations`, `missions.reservation_id` est créé en base et poussé sur Supabase, `POST /api/concierge/reservations` crée ou recharge la réservation canonique avant les missions liées, `provider_interventions.reservation_id` est aussi créé et poussé sur Supabase, les routes mission/provider privilégient désormais les liaisons explicites avant fallback metadata, `workflow_events.reservation_id` est créé et poussé sur Supabase, `recordWorkflowEvent` sait l'écrire avec fallback si nécessaire, `/api/workflow-events` peut maintenant filtrer directement par réservation, l'agrégation de séjour privilégie `reservation_id`, les événements concierge réinjectent l'identifiant canonique, l'annulation des factures de workflow s'appuie d'abord sur `mission_id`, `/api/reservations/[id]` expose désormais une timeline unifiée de la réservation canonique avec traçage des créations owner/concierge et des mises à jour statut/notes/consignes, cette lecture est branchée dans `/dashboard/concierge/sejours` et dans l'aside de `/dashboard/owner/missions/voyageurs`, l'écriture collaborative est maintenant ouverte depuis ces deux cockpits avec actions de cycle de vie et notes éditoriales, et `/dashboard/owner/planning` réinjecte ce brief canonique dans ses cartes pour une lecture plus narrative ; les fallbacks `metadata.reservation_id/reservation_workflow_id` restent volontairement conservés en lecture pour la compatibilité avec l'historique non migré | Contrats ou devis signés, planning, missions, provider_interventions, workflow_events | Étendre maintenant cette même écriture et cette narration canonique vers les vues concierge planning/réservations détaillées et vers les opérations/artisans liés afin que tout le suivi terrain parle la même chronologie |
-| Pilotage PlanetLS — cockpit entrepreneurial privé | 2026-07-29 | 2026-08-06 | 🟠 Partiel | Le cockpit opérationnel reste en place mais le centre de stratégie business de la page `/dashboard/admin/pilotage` est maintenant recentré sur une gamme plus crédible à tester : `29 € HT / mois`, `49 € HT / mois` puis `sur devis`, avec préférence actuelle pour la `stratégie B par niveau`. Les onglets marché, finance et modèle économique portent désormais cette même narration, la commission n'étant plus présentée comme direction immédiate mais comme hypothèse secondaire à réévaluer seulement si PlanetLS prouve une vraie intermédiation de missions et de coordination. Les exports PDF/Excel/CSV/Business Plan/Pitch et l analyse IA restent désactivés, et le modèle Stripe Concierge PRO existant à `29 €` reste visible mais non modifié. | Composants UI partagés, navigateur, future persistance Supabase admin, futurs paramètres financiers canoniques, Stripe si une stratégie est validée | P1 Prioritaire : tester d'abord la lisibilité et l'acceptabilité de la gamme `29 / 49 / sur devis`, confirmer ou infirmer la préférence pour la stratégie B sur prospects réels, puis seulement décider s'il faut réintroduire une logique de commission ou une variante hybride |
-| Assistant décoration | 2026-07-18 | 2026-07-18 | 🟠 Partiel | Moteur déterministe, pas d'image réelle ni envoi owner tracé | `decoration_ai_reports`, API concierge | Tester avec des concierges avant extension |
-| Réseau professionnel | Vision 2026-07 | 2026-07-18 | 🔴 À faire | Liquidité locale non prouvée | Profils, zones, missions, modération | Pilote local puis mur des missions |
+| Authentification et permissions | Avant 2026-04 | 2026-08-07 | En cours | Le proxy bloque maintenant aussi les mutations API cross-origin non fiables via un garde CSRF central (`Origin`/`Referer`) avec exemptions explicites pour `/api/auth`, webhook Stripe et appels serveur-ÃƒÂ -serveur signÃƒÂ©s ; E2E multi-rÃƒÂ´les et validation de cette dÃƒÂ©fense en environnement rÃƒÂ©el restent absents | NextAuth, Supabase, guards API, proxy, helper CSRF partagÃƒÂ© | Automatiser les parcours et confirmer la sÃƒÂ©curitÃƒÂ© en environnement rÃƒÂ©el, y compris les cas CSRF autorisÃƒÂ©s/refusÃƒÂ©s |
+| Demande Ã¢â€ â€™ devis Ã¢â€ â€™ mission Ã¢â€ â€™ paiement | Avant 2026-05 | 2026-06-06 | En cours | Validation bout en bout et consolidation paiement incomplÃƒÂ¨tes | Tables mÃƒÂ©tier, Stripe, workflow events | E2E owner/concierge et gestion visible des ÃƒÂ©checs |
+| Profils professionnels | Avant 2026-04 | 2026-08-07 | Partiel | Ãƒâ€°dition et preuves privÃƒÂ©es artisan livrÃƒÂ©es ; la vue publique concierge expose maintenant une V1 actionnable type Linktree sur les liens sociaux existants, des CTA structurÃƒÂ©s et un tracking lÃƒÂ©ger des clics ; migration distante, validation admin, avis plus riches, lecture acquisition des CTA et vue provider dÃƒÂ©taillÃƒÂ©e manquent encore ; l'extension provider reste volontairement reportÃƒÂ©e | `profiles`, `provider_profile_documents`, Storage privÃƒÂ©, reviews, profils publics, workflow_events | AgrÃƒÂ©ger ensuite les CTA rÃƒÂ©ellement utilisÃƒÂ©s, clarifier les CTA mÃƒÂ©tier provider, puis ÃƒÂ©tendre la mÃƒÂ©canique sans crÃƒÂ©er de second produit de profil public |
+| Maintenance, ÃƒÂ©quipe et sÃƒÂ©jours | 2026-07 | 2026-07-12 | Partiel | Persistance spÃƒÂ©cialisÃƒÂ©e incomplÃƒÂ¨te | Missions, metadata, interventions | Tables/RLS/types et E2E |
+| RÃƒÂ©servations partagÃƒÂ©es propriÃƒÂ©taire -> conciergerie | 2026-07-29 | 2026-07-29 | En cours | Phases A ÃƒÂ  C terminÃƒÂ©es ; phase D dÃƒÂ©sormais appliquÃƒÂ©e ÃƒÂ  distance sur `missions`, `provider_interventions` et `workflow_events` avec confirmation le mercredi 29 juillet 2026, puis nettoyÃƒÂ©e sur les parcours secondaires : table canonique `reservations`, index, trigger `updated_at`, RLS participants, helper partagÃƒÂ©, route owner `GET/POST`, route participant `GET/PATCH`, `/api/concierge/stays` lit dÃƒÂ©sormais `reservations` avant le legacy `missions`, `GET /api/concierge/reservations` prend aussi `reservations` comme racine avec rattachement des missions workflow, l'ÃƒÂ©cran owner `voyageurs` lit/crÃƒÂ©e les sÃƒÂ©jours canoniques, le planning owner lit dÃƒÂ©sormais `/api/owner/reservations`, `missions.reservation_id` est crÃƒÂ©ÃƒÂ© en base et poussÃƒÂ© sur Supabase, `POST /api/concierge/reservations` crÃƒÂ©e ou recharge la rÃƒÂ©servation canonique avant les missions liÃƒÂ©es, `provider_interventions.reservation_id` est aussi crÃƒÂ©ÃƒÂ© et poussÃƒÂ© sur Supabase, les routes mission/provider privilÃƒÂ©gient dÃƒÂ©sormais les liaisons explicites avant fallback metadata, `workflow_events.reservation_id` est crÃƒÂ©ÃƒÂ© et poussÃƒÂ© sur Supabase, `recordWorkflowEvent` sait l'ÃƒÂ©crire avec fallback si nÃƒÂ©cessaire, `/api/workflow-events` peut maintenant filtrer directement par rÃƒÂ©servation, l'agrÃƒÂ©gation de sÃƒÂ©jour privilÃƒÂ©gie `reservation_id`, les ÃƒÂ©vÃƒÂ©nements concierge rÃƒÂ©injectent l'identifiant canonique, l'annulation des factures de workflow s'appuie d'abord sur `mission_id`, `/api/reservations/[id]` expose dÃƒÂ©sormais une timeline unifiÃƒÂ©e de la rÃƒÂ©servation canonique avec traÃƒÂ§age des crÃƒÂ©ations owner/concierge et des mises ÃƒÂ  jour statut/notes/consignes, cette lecture est branchÃƒÂ©e dans `/dashboard/concierge/sejours` et dans l'aside de `/dashboard/owner/missions/voyageurs`, l'ÃƒÂ©criture collaborative est maintenant ouverte depuis ces deux cockpits avec actions de cycle de vie et notes ÃƒÂ©ditoriales, et `/dashboard/owner/planning` rÃƒÂ©injecte ce brief canonique dans ses cartes pour une lecture plus narrative ; les fallbacks `metadata.reservation_id/reservation_workflow_id` restent volontairement conservÃƒÂ©s en lecture pour la compatibilitÃƒÂ© avec l'historique non migrÃƒÂ© | Contrats ou devis signÃƒÂ©s, planning, missions, provider_interventions, workflow_events | Ãƒâ€°tendre maintenant cette mÃƒÂªme ÃƒÂ©criture et cette narration canonique vers les vues concierge planning/rÃƒÂ©servations dÃƒÂ©taillÃƒÂ©es et vers les opÃƒÂ©rations/artisans liÃƒÂ©s afin que tout le suivi terrain parle la mÃƒÂªme chronologie |
+| Pilotage PlanetLS Ã¢â‚¬â€ cockpit entrepreneurial privÃƒÂ© | 2026-07-29 | 2026-08-06 | Partiel | Le cockpit opÃƒÂ©rationnel reste en place mais le centre de stratÃƒÂ©gie business de la page `/dashboard/admin/pilotage` est maintenant recentrÃƒÂ© sur une gamme plus crÃƒÂ©dible ÃƒÂ  tester : `29 Ã¢â€šÂ¬ HT / mois`, `49 Ã¢â€šÂ¬ HT / mois` puis `sur devis`, avec prÃƒÂ©fÃƒÂ©rence actuelle pour la `stratÃƒÂ©gie B par niveau`. Les onglets marchÃƒÂ©, finance et modÃƒÂ¨le ÃƒÂ©conomique portent dÃƒÂ©sormais cette mÃƒÂªme narration, la commission n'ÃƒÂ©tant plus prÃƒÂ©sentÃƒÂ©e comme direction immÃƒÂ©diate mais comme hypothÃƒÂ¨se secondaire ÃƒÂ  rÃƒÂ©ÃƒÂ©valuer seulement si PlanetLS prouve une vraie intermÃƒÂ©diation de missions et de coordination. Les exports PDF/Excel/CSV/Business Plan/Pitch et l analyse IA restent dÃƒÂ©sactivÃƒÂ©s, et le modÃƒÂ¨le Stripe Concierge PRO existant ÃƒÂ  `29 Ã¢â€šÂ¬` reste visible mais non modifiÃƒÂ©. | Composants UI partagÃƒÂ©s, navigateur, future persistance Supabase admin, futurs paramÃƒÂ¨tres financiers canoniques, Stripe si une stratÃƒÂ©gie est validÃƒÂ©e | P1 Prioritaire : tester d'abord la lisibilitÃƒÂ© et l'acceptabilitÃƒÂ© de la gamme `29 / 49 / sur devis`, confirmer ou infirmer la prÃƒÂ©fÃƒÂ©rence pour la stratÃƒÂ©gie B sur prospects rÃƒÂ©els, puis seulement dÃƒÂ©cider s'il faut rÃƒÂ©introduire une logique de commission ou une variante hybride |
+| Assistant dÃƒÂ©coration | 2026-07-18 | 2026-07-18 | Partiel | Moteur dÃƒÂ©terministe, pas d'image rÃƒÂ©elle ni envoi owner tracÃƒÂ© | `decoration_ai_reports`, API concierge | Tester avec des concierges avant extension |
+| Reseau professionnel | Vision 2026-07 | 2026-07-18 | A faire | Liquidite locale non prouvee | Profils, zones, missions, moderation | Pilote local puis mur des missions |
 
-### Mise à jour ciblée — Pilotage Business du lundi 3 août 2026
+### Mise ÃƒÂ  jour ciblÃƒÂ©e Ã¢â‚¬â€ Pilotage Business du lundi 3 aoÃƒÂ»t 2026
 
-- Statut : `🟠 Partiel`
-- Priorité : `P1 Prioritaire`
-- Périmètre mis à jour : `/dashboard/admin/pilotage`
-- Réalité produit : le haut de page a été simplifié pour retirer les blocs exploratoires devenus encombrants (`comparateur d'offre Pro`, `mémo investisseur`) et garder un cockpit plus directement exploitable.
-- Ajout majeur : un premier `RiskRegister` statique et filtrable est maintenant affiché dans la page via `src/app/dashboard/admin/pilotage/risk-register/`, sans migration ni persistance Supabase.
-- Source d'alimentation : les risques affichés reprennent la lecture due diligence et la transforment en cartographie opérationnelle par priorité, catégorie, profils impactés, horizon, mitigation et signaux d'alerte.
-- Limites connues : le registre ne permet encore ni édition, ni assignation persistée, ni historique, ni scoring dynamique ; il ne remplace pas encore un vrai module de gouvernance des risques.
-- Dépendances inchangées : endpoints admin existants, composants dashboard partagés, future persistance Supabase admin, futur arbitrage Stripe si un modèle financier est figé.
-- Décision de pilotage : conserver le cadrage financier et la synthèse investisseur dans ce Master Plan comme base d'arbitrage, sans les laisser occuper la page opérationnelle tant que le modèle économique n'est pas validé.
-- Preuve de vérification : `npm run build` PASS le lundi 3 août 2026.
-- Prochaine étape recommandée : définir plus tard un schéma canonique `risk_register` seulement après validation du noyau business `offre, prix, commission ou non`.
-- À faire demain, samedi 8 août 2026 : ouvrir un premier cockpit admin des événements `public_profile_cta_clicked` pour lire les clics CTA publics par profil, canal et période, puis décider si l'itération suivante porte sur l'agrégation acquisition concierge ou sur le cadrage des CTA métier provider.
+- Statut : `Partiel`
+- PrioritÃƒÂ© : `P1 Prioritaire`
+- PÃƒÂ©rimÃƒÂ¨tre mis ÃƒÂ  jour : `/dashboard/admin/pilotage`
+- RÃƒÂ©alitÃƒÂ© produit : le haut de page a ÃƒÂ©tÃƒÂ© simplifiÃƒÂ© pour retirer les blocs exploratoires devenus encombrants (`comparateur d'offre Pro`, `mÃƒÂ©mo investisseur`) et garder un cockpit plus directement exploitable.
+- Ajout majeur : un premier `RiskRegister` statique et filtrable est maintenant affichÃƒÂ© dans la page via `src/app/dashboard/admin/pilotage/risk-register/`, sans migration ni persistance Supabase.
+- Source d'alimentation : les risques affichÃƒÂ©s reprennent la lecture due diligence et la transforment en cartographie opÃƒÂ©rationnelle par prioritÃƒÂ©, catÃƒÂ©gorie, profils impactÃƒÂ©s, horizon, mitigation et signaux d'alerte.
+- Limites connues : le registre ne permet encore ni ÃƒÂ©dition, ni assignation persistÃƒÂ©e, ni historique, ni scoring dynamique ; il ne remplace pas encore un vrai module de gouvernance des risques.
+- DÃƒÂ©pendances inchangÃƒÂ©es : endpoints admin existants, composants dashboard partagÃƒÂ©s, future persistance Supabase admin, futur arbitrage Stripe si un modÃƒÂ¨le financier est figÃƒÂ©.
+- DÃƒÂ©cision de pilotage : conserver le cadrage financier et la synthÃƒÂ¨se investisseur dans ce Master Plan comme base d'arbitrage, sans les laisser occuper la page opÃƒÂ©rationnelle tant que le modÃƒÂ¨le ÃƒÂ©conomique n'est pas validÃƒÂ©.
+- Preuve de vÃƒÂ©rification : `npm run build` PASS le lundi 3 aoÃƒÂ»t 2026.
+- Prochaine ÃƒÂ©tape recommandÃƒÂ©e : dÃƒÂ©finir plus tard un schÃƒÂ©ma canonique `risk_register` seulement aprÃƒÂ¨s validation du noyau business `offre, prix, commission ou non`.
+- Ãƒâ‚¬ faire demain, samedi 8 aoÃƒÂ»t 2026 : ouvrir un premier cockpit admin des ÃƒÂ©vÃƒÂ©nements `public_profile_cta_clicked` pour lire les clics CTA publics par profil, canal et pÃƒÂ©riode, puis dÃƒÂ©cider si l'itÃƒÂ©ration suivante porte sur l'agrÃƒÂ©gation acquisition concierge ou sur le cadrage des CTA mÃƒÂ©tier provider.
 
-Ajout du lundi 3 août 2026 : la vue rapide chiffrée du haut de page `Pilotage Business` a aussi été retirée, car les tuiles `pipeline`, `missions facturées`, `activation moyenne` et `points de vigilance` donnaient une précision trompeuse. Le haut de page est maintenant recentré sur un cadrage décisionnel qualitatif.
-Ajout du lundi 3 août 2026 : la page `Pilotage Business` embarque maintenant un module `Conseiller stratégique` statique qui formalise la méthode de décision de la fondatrice en 8 étapes, les questions stratégiques à poser, les critères de comparaison des options et les sorties de pilotage à historiser. Cette brique reste volontairement sans persistance ni automatisation afin de préserver la simplicité tout en créant une mémoire de travail réutilisable.
-Ajout du lundi 3 août 2026 : la page `Pilotage Business` expose aussi un module `Validation marché` statique de type Lean Startup. Il consolide un diagnostic initial, le classement des hypothèses critiques, un plan de validation sur 30 jours, les 13 tests mesurables, les scripts d'entretien, le sondage, les variantes de landing, les KPI de validation, la grille `GO / TEST MORE / PIVOT`, les recommandations d'intégration et les actions immédiates. Cette brique s'appuie sur les parcours déjà disponibles, ne modifie pas Stripe, ne lance aucune migration et sert d'abord de cadre d'exécution frugal avant toute nouvelle couche produit.
+Ajout du lundi 3 aoÃƒÂ»t 2026 : la vue rapide chiffrÃƒÂ©e du haut de page `Pilotage Business` a aussi ÃƒÂ©tÃƒÂ© retirÃƒÂ©e, car les tuiles `pipeline`, `missions facturÃƒÂ©es`, `activation moyenne` et `points de vigilance` donnaient une prÃƒÂ©cision trompeuse. Le haut de page est maintenant recentrÃƒÂ© sur un cadrage dÃƒÂ©cisionnel qualitatif.
+Ajout du lundi 3 aoÃƒÂ»t 2026 : la page `Pilotage Business` embarque maintenant un module `Conseiller stratÃƒÂ©gique` statique qui formalise la mÃƒÂ©thode de dÃƒÂ©cision de la fondatrice en 8 ÃƒÂ©tapes, les questions stratÃƒÂ©giques ÃƒÂ  poser, les critÃƒÂ¨res de comparaison des options et les sorties de pilotage ÃƒÂ  historiser. Cette brique reste volontairement sans persistance ni automatisation afin de prÃƒÂ©server la simplicitÃƒÂ© tout en crÃƒÂ©ant une mÃƒÂ©moire de travail rÃƒÂ©utilisable.
+Ajout du lundi 3 aoÃƒÂ»t 2026 : la page `Pilotage Business` expose aussi un module `Validation marchÃƒÂ©` statique de type Lean Startup. Il consolide un diagnostic initial, le classement des hypothÃƒÂ¨ses critiques, un plan de validation sur 30 jours, les 13 tests mesurables, les scripts d'entretien, le sondage, les variantes de landing, les KPI de validation, la grille `GO / TEST MORE / PIVOT`, les recommandations d'intÃƒÂ©gration et les actions immÃƒÂ©diates. Cette brique s'appuie sur les parcours dÃƒÂ©jÃƒÂ  disponibles, ne modifie pas Stripe, ne lance aucune migration et sert d'abord de cadre d'exÃƒÂ©cution frugal avant toute nouvelle couche produit.
 
-### Mise à jour ciblée — Navigation admin du mardi 4 août 2026
+### Mise ÃƒÂ  jour ciblÃƒÂ©e Ã¢â‚¬â€ Navigation admin du mardi 4 aoÃƒÂ»t 2026
 
-- Statut : `🟡 En cours`
-- Priorité : `P2 Important`
-- Périmètre mis à jour : `/dashboard/admin/developpement`, `/dashboard/admin/controle`, `/dashboard/admin/pilotage`, `/api/admin/project-advisor`
-- Réalité produit : la page `developpement` n'est plus pensée comme un long scroll continu. Elle ouvre maintenant directement sur le `Tableau fonctionnel / Master Plan`, puis sépare `Mission Control`, `Roadmap`, `Mémoire` et `Journal` dans des onglets explicites. Le bloc `Sommaire et détail du Master Plan` a en plus été allégé au strict utile : filtres + sections, sans métriques, sans sommaire latéral et sans raccourcis redondants.
-- Réalité produit : le `Conseiller projet` a quitté la page `developpement`. Les signaux utiles à l'arbitrage produit/business sont maintenant relus depuis `Pilotage Business`, dans l'onglet stratégie, via la route admin `/api/admin/project-advisor`.
-- Réalité produit : la page `controle` est désormais structurée par onglets de premier niveau `Santé globale / Inscriptions / Missions / Messages`, ce qui isole mieux la vue de santé, les filtres métier et les listes opérationnelles sans mélanger tous les blocs sur une seule lecture verticale.
-- Réutilisation : l'implémentation s'appuie sur les primitives UI `Tabs` déjà présentes dans le design system, sans créer de nouveau composant spécifique.
-- Réutilisation : la génération du conseiller est mutualisée côté serveur pour pouvoir alimenter `Pilotage Business` sans réintroduire ces arbitrages dans la page `developpement`.
-- Responsive et accessibilité : la navigation onglets reste clavier-compatible via les primitives existantes ; les listes d'onglets se replient sur une seule colonne en mobile pour éviter les débordements horizontaux.
-- Limites connues : la page `controle` conserve encore des sections pliables à l'intérieur de chaque onglet pour les filtres et le détail ; ce n'est donc pas encore une simplification maximale du flux.
-- Vérification : `npm.cmd run build` `PASS` le mardi 4 août 2026.
-- Prochaine étape recommandée : si l'usage confirme le gain de lisibilité, réduire ensuite le nombre de sections pliables internes dans `controle` pour garder un seul niveau de hiérarchie visuelle par onglet.
+- Statut : `En cours`
+- PrioritÃƒÂ© : `P2 Important`
+- PÃƒÂ©rimÃƒÂ¨tre mis ÃƒÂ  jour : `/dashboard/admin/developpement`, `/dashboard/admin/controle`, `/dashboard/admin/pilotage`, `/api/admin/project-advisor`
+- RÃƒÂ©alitÃƒÂ© produit : la page `developpement` n'est plus pensÃƒÂ©e comme un long scroll continu. Elle ouvre maintenant directement sur le `Tableau fonctionnel / Master Plan`, puis sÃƒÂ©pare `Mission Control`, `Roadmap`, `MÃƒÂ©moire` et `Journal` dans des onglets explicites. Le bloc `Sommaire et dÃƒÂ©tail du Master Plan` a en plus ÃƒÂ©tÃƒÂ© allÃƒÂ©gÃƒÂ© au strict utile : filtres + sections, sans mÃƒÂ©triques, sans sommaire latÃƒÂ©ral et sans raccourcis redondants.
+- RÃƒÂ©alitÃƒÂ© produit : le `Conseiller projet` a quittÃƒÂ© la page `developpement`. Les signaux utiles ÃƒÂ  l'arbitrage produit/business sont maintenant relus depuis `Pilotage Business`, dans l'onglet stratÃƒÂ©gie, via la route admin `/api/admin/project-advisor`.
+- RÃƒÂ©alitÃƒÂ© produit : la page `controle` est dÃƒÂ©sormais structurÃƒÂ©e par onglets de premier niveau `SantÃƒÂ© globale / Inscriptions / Missions / Messages`, ce qui isole mieux la vue de santÃƒÂ©, les filtres mÃƒÂ©tier et les listes opÃƒÂ©rationnelles sans mÃƒÂ©langer tous les blocs sur une seule lecture verticale.
+- RÃƒÂ©utilisation : l'implÃƒÂ©mentation s'appuie sur les primitives UI `Tabs` dÃƒÂ©jÃƒÂ  prÃƒÂ©sentes dans le design system, sans crÃƒÂ©er de nouveau composant spÃƒÂ©cifique.
+- RÃƒÂ©utilisation : la gÃƒÂ©nÃƒÂ©ration du conseiller est mutualisÃƒÂ©e cÃƒÂ´tÃƒÂ© serveur pour pouvoir alimenter `Pilotage Business` sans rÃƒÂ©introduire ces arbitrages dans la page `developpement`.
+- Responsive et accessibilitÃƒÂ© : la navigation onglets reste clavier-compatible via les primitives existantes ; les listes d'onglets se replient sur une seule colonne en mobile pour ÃƒÂ©viter les dÃƒÂ©bordements horizontaux.
+- Limites connues : la page `controle` conserve encore des sections pliables ÃƒÂ  l'intÃƒÂ©rieur de chaque onglet pour les filtres et le dÃƒÂ©tail ; ce n'est donc pas encore une simplification maximale du flux.
+- VÃƒÂ©rification : `npm.cmd run build` `PASS` le mardi 4 aoÃƒÂ»t 2026.
+- Prochaine ÃƒÂ©tape recommandÃƒÂ©e : si l'usage confirme le gain de lisibilitÃƒÂ©, rÃƒÂ©duire ensuite le nombre de sections pliables internes dans `controle` pour garder un seul niveau de hiÃƒÂ©rarchie visuelle par onglet.
 
-### Mise à jour ciblée — Intégration progressive des dashboards du mercredi 5 août 2026
+### Mise ÃƒÂ  jour ciblÃƒÂ©e Ã¢â‚¬â€ IntÃƒÂ©gration progressive des dashboards du mercredi 5 aoÃƒÂ»t 2026
 
-- Statut : `🟡 En cours`
-- Priorité : `P2 Important`
-- Périmètre mis à jour : `src/app/components/dashboard/unified/`, `/dashboard/owner`, `/dashboard/admin`
-- Réalité produit : l'intégration dashboard est maintenant découpée par lots au lieu de modifier les quatre espaces simultanément. Les dashboards owner, admin, concierge et provider convergent progressivement vers un socle UI partagé `UnifiedRoleDashboard`, sans fusionner leurs logiques métier ni leurs sources de données. Le socle supporte désormais les variantes de rôle, les tons de badges configurables et une zone de complément hero réutilisable.
-- Réalité produit : l'espace propriétaire réutilise davantage les composants communs déjà présents (`UnifiedSpotlightList`, `UnifiedStatStack`) pour ses priorités, ses prochaines missions et ses repères séjours, ce qui réduit les rendus ad hoc sans changer les sources de données owner existantes.
-- Réalité produit : la page `/dashboard/admin` a quitté l'ancien `DashboardLayout` spécifique pour rejoindre le même tronc commun visuel que l'owner. Les calculs métier admin, les endpoints (`/api/admin/operations`, `/api/admin/overview`, `/api/admin/control-tower`, `/api/kpis/overview`) et les tableaux détaillés sont conservés, mais la composition devient plus homogène avec hero partagé, KPI unifiés, rail d'activité et raccourcis latéraux.
-- Réutilisation : aucune nouvelle dépendance n'a été ajoutée ; le lot capitalise sur les primitives dashboard existantes au lieu d'introduire une seconde bibliothèque de composants.
-- Réalité produit : l'espace concierge reposait déjà majoritairement sur ce même socle UI partagé ; le lot suivant a surtout confirmé cette convergence sans réécriture lourde ni changement des fetchs métier concierge.
-- Réalité produit : la page `/dashboard/provider` a quitté son cockpit isolé pour rejoindre le même tronc commun visuel que les autres espaces, tout en conservant ses calculs métier, ses liens d'action et ses sources provider existantes.
-- Limites connues : plusieurs styles legacy restent présents dans `page.module.scss` même si la couche de composition principale est maintenant homogénéisée ; la navigation E2E inter-pages et les compteurs filtrés par lien restent encore à consolider.
-- Vérification : `npm run build` `PASS` le jeudi 6 août 2026.
-- Prochaine étape recommandée : factoriser ensuite ce qui reste dupliqué dans les tableaux, listes compactes, rails de priorités et états vides, sans écraser les besoins métier propres à chaque rôle.
+- Statut : `En cours`
+- PrioritÃƒÂ© : `P2 Important`
+- PÃƒÂ©rimÃƒÂ¨tre mis ÃƒÂ  jour : `src/app/components/dashboard/unified/`, `/dashboard/owner`, `/dashboard/admin`
+- RÃƒÂ©alitÃƒÂ© produit : l'intÃƒÂ©gration dashboard est maintenant dÃƒÂ©coupÃƒÂ©e par lots au lieu de modifier les quatre espaces simultanÃƒÂ©ment. Les dashboards owner, admin, concierge et provider convergent progressivement vers un socle UI partagÃƒÂ© `UnifiedRoleDashboard`, sans fusionner leurs logiques mÃƒÂ©tier ni leurs sources de donnÃƒÂ©es. Le socle supporte dÃƒÂ©sormais les variantes de rÃƒÂ´le, les tons de badges configurables et une zone de complÃƒÂ©ment hero rÃƒÂ©utilisable.
+- RÃƒÂ©alitÃƒÂ© produit : l'espace propriÃƒÂ©taire rÃƒÂ©utilise davantage les composants communs dÃƒÂ©jÃƒÂ  prÃƒÂ©sents (`UnifiedSpotlightList`, `UnifiedStatStack`) pour ses prioritÃƒÂ©s, ses prochaines missions et ses repÃƒÂ¨res sÃƒÂ©jours, ce qui rÃƒÂ©duit les rendus ad hoc sans changer les sources de donnÃƒÂ©es owner existantes.
+- RÃƒÂ©alitÃƒÂ© produit : la page `/dashboard/admin` a quittÃƒÂ© l'ancien `DashboardLayout` spÃƒÂ©cifique pour rejoindre le mÃƒÂªme tronc commun visuel que l'owner. Les calculs mÃƒÂ©tier admin, les endpoints (`/api/admin/operations`, `/api/admin/overview`, `/api/admin/control-tower`, `/api/kpis/overview`) et les tableaux dÃƒÂ©taillÃƒÂ©s sont conservÃƒÂ©s, mais la composition devient plus homogÃƒÂ¨ne avec hero partagÃƒÂ©, KPI unifiÃƒÂ©s, rail d'activitÃƒÂ© et raccourcis latÃƒÂ©raux.
+- RÃƒÂ©utilisation : aucune nouvelle dÃƒÂ©pendance n'a ÃƒÂ©tÃƒÂ© ajoutÃƒÂ©e ; le lot capitalise sur les primitives dashboard existantes au lieu d'introduire une seconde bibliothÃƒÂ¨que de composants.
+- RÃƒÂ©alitÃƒÂ© produit : l'espace concierge reposait dÃƒÂ©jÃƒÂ  majoritairement sur ce mÃƒÂªme socle UI partagÃƒÂ© ; le lot suivant a surtout confirmÃƒÂ© cette convergence sans rÃƒÂ©ÃƒÂ©criture lourde ni changement des fetchs mÃƒÂ©tier concierge.
+- RÃƒÂ©alitÃƒÂ© produit : la page `/dashboard/provider` a quittÃƒÂ© son cockpit isolÃƒÂ© pour rejoindre le mÃƒÂªme tronc commun visuel que les autres espaces, tout en conservant ses calculs mÃƒÂ©tier, ses liens d'action et ses sources provider existantes.
+- Limites connues : plusieurs styles legacy restent prÃƒÂ©sents dans `page.module.scss` mÃƒÂªme si la couche de composition principale est maintenant homogÃƒÂ©nÃƒÂ©isÃƒÂ©e ; la navigation E2E inter-pages et les compteurs filtrÃƒÂ©s par lien restent encore ÃƒÂ  consolider.
+- VÃƒÂ©rification : `npm run build` `PASS` le jeudi 6 aoÃƒÂ»t 2026.
+- Prochaine ÃƒÂ©tape recommandÃƒÂ©e : factoriser ensuite ce qui reste dupliquÃƒÂ© dans les tableaux, listes compactes, rails de prioritÃƒÂ©s et ÃƒÂ©tats vides, sans ÃƒÂ©craser les besoins mÃƒÂ©tier propres ÃƒÂ  chaque rÃƒÂ´le.
 
 ### Checklist de fin de mission documentaire
 
-- [ ] Relire les fichiers réellement modifiés et identifier les fonctions touchées.
-- [ ] Exécuter les tests ou vérifications proportionnés au risque.
-- [ ] Mettre à jour statut, priorité, date, preuve et prochaine action.
-- [ ] Réévaluer la phase de roadmap et les dépendances.
-- [ ] Ajouter sans doublon les idées apparues, sans les implémenter hors périmètre.
-- [ ] Ajouter au journal uniquement les décisions utiles à long terme.
-- [ ] Préciser les limites et les éléments non confirmables par le code.
-- [ ] Ne créer aucun audit transversal supplémentaire.
+- [ ] Relire les fichiers rÃƒÂ©ellement modifiÃƒÂ©s et identifier les fonctions touchÃƒÂ©es.
+- [ ] ExÃƒÂ©cuter les tests ou vÃƒÂ©rifications proportionnÃƒÂ©s au risque.
+- [ ] Mettre ÃƒÂ  jour statut, prioritÃƒÂ©, date, preuve et prochaine action.
+- [ ] RÃƒÂ©ÃƒÂ©valuer la phase de roadmap et les dÃƒÂ©pendances.
+- [ ] Ajouter sans doublon les idÃƒÂ©es apparues, sans les implÃƒÂ©menter hors pÃƒÂ©rimÃƒÂ¨tre.
+- [ ] Ajouter au journal uniquement les dÃƒÂ©cisions utiles ÃƒÂ  long terme.
+- [ ] PrÃƒÂ©ciser les limites et les ÃƒÂ©lÃƒÂ©ments non confirmables par le code.
+- [ ] Ne crÃƒÂ©er aucun audit transversal supplÃƒÂ©mentaire.
 ---
 
-## 13. Prochaine revue recommandée
+## 13. Prochaine revue recommandÃƒÂ©e
 
-La prochaine mise à jour de ce document doit intervenir après le lot de stabilisation. Elle devra :
+La prochaine mise ÃƒÂ  jour de ce document doit intervenir aprÃƒÂ¨s le lot de stabilisation. Elle devra :
 
-1. consigner le résultat de `npm test`, `npm run lint` et `npm run build` ;
+1. consigner le rÃƒÂ©sultat de `npm test`, `npm run lint` et `npm run build` ;
 2. joindre les preuves des trois E2E critiques ;
-3. confirmer la source canonique des migrations et l'état réel de la base ;
-4. mettre à jour les niveaux N2/N3 après persistance des modules récents ;
+3. confirmer la source canonique des migrations et l'ÃƒÂ©tat rÃƒÂ©el de la base ;
+4. mettre ÃƒÂ  jour les niveaux N2/N3 aprÃƒÂ¨s persistance des modules rÃƒÂ©cents ;
 5. nommer la zone pilote, les responsables et les dates d'acquisition ;
-6. transformer toute décision prise en entrée du journal, sans créer de nouvel audit transversal.
+6. transformer toute dÃƒÂ©cision prise en entrÃƒÂ©e du journal, sans crÃƒÂ©er de nouvel audit transversal.
 
-### Mise à jour ciblée — Référentiel IA du lundi 3 août 2026
+### Mise ÃƒÂ  jour ciblÃƒÂ©e Ã¢â‚¬â€ RÃƒÂ©fÃƒÂ©rentiel IA du lundi 3 aoÃƒÂ»t 2026
 
-- Statut : `🟠 Partiel`
-- Priorité : `P2 Important`
-- Périmètre mis à jour : `docs/ai/`, `src/server/prompt-library/`, `/api/admin/prompt-library`, `/dashboard/admin/pilotage`
-- Réalité produit : PlanetLS dispose maintenant d'un contexte central partagé, de règles Codex permanentes, d'une première bibliothèque de `10` prompts versionnés, d'un parseur léger de frontmatter/sections et d'un onglet admin `Centre IA` dans `Pilotage Business` pour rechercher, filtrer, consulter et préparer les prompts sans dupliquer leur source.
-- Source officielle : les prompts restent des fichiers Markdown dans `docs/ai/prompts/` ; l'interface admin ne crée pas de seconde source de vérité.
-- Sécurité : la lecture passe par une route admin dédiée `/api/admin/prompt-library` ; aucun secret, token ou donnée personnelle n'est stocké dans les prompts ou les runs.
-- Vérifications : test ciblé `src/tests/prompt-library.test.mts` `3/3 PASS` le lundi 3 août 2026 ; `npm run build` `PASS` le lundi 3 août 2026.
-- Limites connues : les favoris et préparations sont stockés localement dans le navigateur ; les runs ne sont pas encore persistés automatiquement ; `npm test` global n'est pas entièrement vert à cause de trois échecs préexistants hors périmètre (`concierge-team-api-contract`, `dashboard-client` avec OOM, puis le nouveau test avant correction d'import).
-- Prochaine étape recommandée : migrer d'autres prompts historiques utiles, ajouter un enregistrement léger optionnel des runs importants et relier davantage le Centre IA au journal de bord de développement sans créer de duplication documentaire.
-### Mise Ã  jour ciblÃ©e â€” Cartographie de convergence des dashboards du jeudi 6 aoÃ»t 2026
+- Statut : `Partiel`
+- PrioritÃƒÂ© : `P2 Important`
+- PÃƒÂ©rimÃƒÂ¨tre mis ÃƒÂ  jour : `docs/ai/`, `src/server/prompt-library/`, `/api/admin/prompt-library`, `/dashboard/admin/pilotage`
+- RÃƒÂ©alitÃƒÂ© produit : PlanetLS dispose maintenant d'un contexte central partagÃƒÂ©, de rÃƒÂ¨gles Codex permanentes, d'une premiÃƒÂ¨re bibliothÃƒÂ¨que de `10` prompts versionnÃƒÂ©s, d'un parseur lÃƒÂ©ger de frontmatter/sections et d'un onglet admin `Centre IA` dans `Pilotage Business` pour rechercher, filtrer, consulter et prÃƒÂ©parer les prompts sans dupliquer leur source.
+- Source officielle : les prompts restent des fichiers Markdown dans `docs/ai/prompts/` ; l'interface admin ne crÃƒÂ©e pas de seconde source de vÃƒÂ©ritÃƒÂ©.
+- SÃƒÂ©curitÃƒÂ© : la lecture passe par une route admin dÃƒÂ©diÃƒÂ©e `/api/admin/prompt-library` ; aucun secret, token ou donnÃƒÂ©e personnelle n'est stockÃƒÂ© dans les prompts ou les runs.
+- VÃƒÂ©rifications : test ciblÃƒÂ© `src/tests/prompt-library.test.mts` `3/3 PASS` le lundi 3 aoÃƒÂ»t 2026 ; `npm run build` `PASS` le lundi 3 aoÃƒÂ»t 2026.
+- Limites connues : les favoris et prÃƒÂ©parations sont stockÃƒÂ©s localement dans le navigateur ; les runs ne sont pas encore persistÃƒÂ©s automatiquement ; `npm test` global n'est pas entiÃƒÂ¨rement vert ÃƒÂ  cause de trois ÃƒÂ©checs prÃƒÂ©existants hors pÃƒÂ©rimÃƒÂ¨tre (`concierge-team-api-contract`, `dashboard-client` avec OOM, puis le nouveau test avant correction d'import).
+- Prochaine ÃƒÂ©tape recommandÃƒÂ©e : migrer d'autres prompts historiques utiles, ajouter un enregistrement lÃƒÂ©ger optionnel des runs importants et relier davantage le Centre IA au journal de bord de dÃƒÂ©veloppement sans crÃƒÂ©er de duplication documentaire.
+### Mise ÃƒÆ’Ã‚Â  jour ciblÃƒÆ’Ã‚Â©e ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Cartographie de convergence des dashboards du jeudi 6 aoÃƒÆ’Ã‚Â»t 2026
 
-- Statut : `ðŸŸ¡ En cours`
-- PrioritÃ© : `P2 Important`
-- PÃ©rimÃ¨tre mis Ã  jour : `docs/dashboards/dashboard-feature-inventory.md`, `docs/dashboards/dashboard-roadmap.md`, `docs/master-plan-planetls.md`
-- RÃ©alitÃ© produit : avant de poursuivre la convergence visuelle, un inventaire repo-first des dashboards owner, concierge, provider/artisan et admin a Ã©tÃ© formalisÃ©. Il confirme que les homes `/dashboard/owner`, `/dashboard/concierge`, `/dashboard/provider` et `/dashboard/admin` partagent dÃ©jÃ  un socle commun `UnifiedRoleDashboard`, tandis qu'une seconde strate legacy reste active sur plusieurs pages secondaires via `DashboardLayout`, `WorkspacePageShell`, `DashboardWorkspace` et `SimpleOverviewWorkspace`.
-- RÃ©alitÃ© produit : la convergence progressive du cockpit n'est pas un dÃ©placement du "vrai" Ã©tat mÃ©tier vers une abstraction vide. Elle sert au contraire Ã  rapprocher des surfaces dÃ©jÃ  rÃ©elles vers un socle commun de composition, sans fusionner les fetchs, les permissions ni les rÃ¨gles propres Ã  chaque rÃ´le.
-- DÃ©cision de pilotage : la suite doit rester dÃ©coupÃ©e `dashboard par dashboard`, avec prioritÃ© immÃ©diate aux briques communes et aux pages d'entrÃ©e, puis aux pages admin secondaires `controle` et `pilotage`, avant de reprendre les overviews legacy plus diffuses.
-- DÃ©cision de pilotage : `DashboardLayout`, `WorkspacePageShell` et `SimpleOverviewWorkspace` restent des couches de transition acceptÃ©es tant qu'elles servent des pages encore actives, mais ne doivent plus devenir la rÃ©fÃ©rence de nouvelles intÃ©grations. Le prototype `/premium-owner-dashboard` reste une source d'inspiration UX, pas une base technique Ã  propager.
-- DÃ©pendances et limites : plusieurs modules forts restent hybrides ou partiellement consolidÃ©s cote donnÃ©es `reservations/sejours`, `CRM owner/concierge`, `equipe`, `finances`, `pages admin expertes`; leur harmonisation visuelle doit suivre leur maturitÃ© rÃ©elle et non la prÃ©cÃ©der.
-- VÃ©rifications : inventaire croisÃ© entre code, routes dashboard, tests ciblÃ©s `mission-control`, `owner-crm` et documentation produit/UX existante ; pas de changement fonctionnel direct sur les parcours mÃ©tier dans ce lot.
-- Prochaine Ã©tape recommandÃ©e : migrer la prochaine surface visible `admin/controle` vers le socle partagÃ©, puis aligner plus explicitement la narration `owner <-> concierge` autour des rÃ©servations/sejours canoniques.
+- Statut : `En cours`
+- PrioritÃƒÆ’Ã‚Â© : `P2 Important`
+- PÃƒÆ’Ã‚Â©rimÃƒÆ’Ã‚Â¨tre mis ÃƒÆ’Ã‚Â  jour : `docs/dashboards/dashboard-feature-inventory.md`, `docs/dashboards/dashboard-roadmap.md`, `docs/master-plan-planetls.md`
+- RÃƒÆ’Ã‚Â©alitÃƒÆ’Ã‚Â© produit : avant de poursuivre la convergence visuelle, un inventaire repo-first des dashboards owner, concierge, provider/artisan et admin a ÃƒÆ’Ã‚Â©tÃƒÆ’Ã‚Â© formalisÃƒÆ’Ã‚Â©. Il confirme que les homes `/dashboard/owner`, `/dashboard/concierge`, `/dashboard/provider` et `/dashboard/admin` partagent dÃƒÆ’Ã‚Â©jÃƒÆ’Ã‚Â  un socle commun `UnifiedRoleDashboard`, tandis qu'une seconde strate legacy reste active sur plusieurs pages secondaires via `DashboardLayout`, `WorkspacePageShell`, `DashboardWorkspace` et `SimpleOverviewWorkspace`.
+- RÃƒÆ’Ã‚Â©alitÃƒÆ’Ã‚Â© produit : la convergence progressive du cockpit n'est pas un dÃƒÆ’Ã‚Â©placement du "vrai" ÃƒÆ’Ã‚Â©tat mÃƒÆ’Ã‚Â©tier vers une abstraction vide. Elle sert au contraire ÃƒÆ’Ã‚Â  rapprocher des surfaces dÃƒÆ’Ã‚Â©jÃƒÆ’Ã‚Â  rÃƒÆ’Ã‚Â©elles vers un socle commun de composition, sans fusionner les fetchs, les permissions ni les rÃƒÆ’Ã‚Â¨gles propres ÃƒÆ’Ã‚Â  chaque rÃƒÆ’Ã‚Â´le.
+- DÃƒÆ’Ã‚Â©cision de pilotage : la suite doit rester dÃƒÆ’Ã‚Â©coupÃƒÆ’Ã‚Â©e `dashboard par dashboard`, avec prioritÃƒÆ’Ã‚Â© immÃƒÆ’Ã‚Â©diate aux briques communes et aux pages d'entrÃƒÆ’Ã‚Â©e, puis aux pages admin secondaires `controle` et `pilotage`, avant de reprendre les overviews legacy plus diffuses.
+- DÃƒÆ’Ã‚Â©cision de pilotage : `DashboardLayout`, `WorkspacePageShell` et `SimpleOverviewWorkspace` restent des couches de transition acceptÃƒÆ’Ã‚Â©es tant qu'elles servent des pages encore actives, mais ne doivent plus devenir la rÃƒÆ’Ã‚Â©fÃƒÆ’Ã‚Â©rence de nouvelles intÃƒÆ’Ã‚Â©grations. Le prototype `/premium-owner-dashboard` reste une source d'inspiration UX, pas une base technique ÃƒÆ’Ã‚Â  propager.
+- DÃƒÆ’Ã‚Â©pendances et limites : plusieurs modules forts restent hybrides ou partiellement consolidÃƒÆ’Ã‚Â©s cote donnÃƒÆ’Ã‚Â©es `reservations/sejours`, `CRM owner/concierge`, `equipe`, `finances`, `pages admin expertes`; leur harmonisation visuelle doit suivre leur maturitÃƒÆ’Ã‚Â© rÃƒÆ’Ã‚Â©elle et non la prÃƒÆ’Ã‚Â©cÃƒÆ’Ã‚Â©der.
+- VÃƒÆ’Ã‚Â©rifications : inventaire croisÃƒÆ’Ã‚Â© entre code, routes dashboard, tests ciblÃƒÆ’Ã‚Â©s `mission-control`, `owner-crm` et documentation produit/UX existante ; pas de changement fonctionnel direct sur les parcours mÃƒÆ’Ã‚Â©tier dans ce lot.
+- Prochaine ÃƒÆ’Ã‚Â©tape recommandÃƒÆ’Ã‚Â©e : migrer la prochaine surface visible `admin/controle` vers le socle partagÃƒÆ’Ã‚Â©, puis aligner plus explicitement la narration `owner <-> concierge` autour des rÃƒÆ’Ã‚Â©servations/sejours canoniques.
 
-### Mise à jour ciblée — Allègement du panneau Master Plan du jeudi 6 août 2026
+### Mise ÃƒÂ  jour ciblÃƒÂ©e Ã¢â‚¬â€ AllÃƒÂ¨gement du panneau Master Plan du jeudi 6 aoÃƒÂ»t 2026
 
-- Statut : `🟡 En cours`
-- Priorité : `P2 Important`
-- Périmètre mis à jour : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `docs/master-plan-planetls.md`
-- Réalité produit : dans `/dashboard/admin/developpement`, le panneau autrefois nommé `Sommaire et détail du Master Plan` est désormais recentré sur la lecture utile des sections et tableaux. Le titre devient `Tableaux du Master Plan`, et les sections parentes sans contenu propre n’affichent plus un mini-sommaire de sous-sections ; elles montrent seulement une courte phrase indiquant d’ouvrir les sous-sections concernées.
-- Décision de pilotage : dans ce cockpit, le sommaire interne n’apporte pas assez de valeur face au coût visuel. Les filtres restent la vraie porte d’entrée, puis les tableaux et sections détaillées servent de source de vérité.
-- Limites connues : les styles historiques liés au sommaire interne peuvent encore exister dans la feuille SCSS tant qu’ils ne gênent pas le rendu ; un nettoyage CSS plus large pourra être fait lors d’un prochain lot UI.
-- Vérifications : simplification locale du composant sans changement de logique métier ; build Next à relancer après le lot.
-- Prochaine étape recommandée : confirmer visuellement que la lecture `filtres -> tableaux -> sections` suffit en desktop et mobile, puis poursuivre l’allègement des autres panneaux documentaires si cette hiérarchie est jugée plus efficace.
-### Mise Ã  jour ciblÃ©e â€” Recentrage Business Plan de la page pilotage du jeudi 6 aoÃ»t 2026
+- Statut : `En cours`
+- PrioritÃƒÂ© : `P2 Important`
+- PÃƒÂ©rimÃƒÂ¨tre mis ÃƒÂ  jour : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `docs/master-plan-planetls.md`
+- RÃƒÂ©alitÃƒÂ© produit : dans `/dashboard/admin/developpement`, le panneau autrefois nommÃƒÂ© `Sommaire et dÃƒÂ©tail du Master Plan` est dÃƒÂ©sormais recentrÃƒÂ© sur la lecture utile des sections et tableaux. Le titre devient `Tableaux du Master Plan`, et les sections parentes sans contenu propre nÃ¢â‚¬â„¢affichent plus un mini-sommaire de sous-sections ; elles montrent seulement une courte phrase indiquant dÃ¢â‚¬â„¢ouvrir les sous-sections concernÃƒÂ©es.
+- DÃƒÂ©cision de pilotage : dans ce cockpit, le sommaire interne nÃ¢â‚¬â„¢apporte pas assez de valeur face au coÃƒÂ»t visuel. Les filtres restent la vraie porte dÃ¢â‚¬â„¢entrÃƒÂ©e, puis les tableaux et sections dÃƒÂ©taillÃƒÂ©es servent de source de vÃƒÂ©ritÃƒÂ©.
+- Limites connues : les styles historiques liÃƒÂ©s au sommaire interne peuvent encore exister dans la feuille SCSS tant quÃ¢â‚¬â„¢ils ne gÃƒÂªnent pas le rendu ; un nettoyage CSS plus large pourra ÃƒÂªtre fait lors dÃ¢â‚¬â„¢un prochain lot UI.
+- VÃƒÂ©rifications : simplification locale du composant sans changement de logique mÃƒÂ©tier ; build Next ÃƒÂ  relancer aprÃƒÂ¨s le lot.
+- Prochaine ÃƒÂ©tape recommandÃƒÂ©e : confirmer visuellement que la lecture `filtres -> tableaux -> sections` suffit en desktop et mobile, puis poursuivre lÃ¢â‚¬â„¢allÃƒÂ¨gement des autres panneaux documentaires si cette hiÃƒÂ©rarchie est jugÃƒÂ©e plus efficace.
+### Mise ÃƒÆ’Ã‚Â  jour ciblÃƒÆ’Ã‚Â©e ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Recentrage Business Plan de la page pilotage du jeudi 6 aoÃƒÆ’Ã‚Â»t 2026
 
-- Statut : `ðŸŸ¡ En cours`
-- PrioritÃ© : `P1 Prioritaire`
-- PÃ©rimÃ¨tre mis Ã  jour : `/dashboard/admin/pilotage`, `docs/master-plan-planetls.md`
-- RÃ©alitÃ© produit : la page `Pilotage` n'est plus organisÃ©e comme un cockpit mixte `overview / stratÃ©gie / validation / risques / centre IA`. Elle devient une page unique consacrÃ©e au `business plan PlanetLS`, avec une lecture plus directionnelle : thÃ¨se produit, rÃ©sumÃ© exÃ©cutif, traction actuelle, offre recommandÃ©e `Conciergerie Pro`, scÃ©narios financiers, Ã©conomie unitaire cible, benchmark de positionnement, go-to-market et risques prioritaires.
-- RÃ©alitÃ© produit : les donnÃ©es rÃ©elles encore utiles au business plan restent exploitÃ©es via les endpoints existants `/api/admin/overview`, `/api/admin/operations` et `/api/kpis/overview` pour alimenter la traction actuelle, les blocages de demandes, les devis acceptÃ©s non transformÃ©s et les missions non facturÃ©es.
-- DÃ©cision de pilotage : le benchmark affichÃ© dans la page sert de `cadre stratÃ©gique interne` inspirÃ© des familles d'outils `PMS`, `opÃ©rations terrain`, `coordination d'interventions`, `expÃ©rience de confiance` et `marketplaces locales`. Il ne doit pas Ãªtre interprÃ©tÃ© comme un comparatif tarifaire externe vivant.
-- DÃ©cision de pilotage : les modules plus exploratoires `validation marchÃ©`, `registre de risques complet`, `centre IA`, `conseiller stratÃ©gique` et `conseiller projet issu du dÃ©veloppement` ne structurent plus la page pilotage. Ils restent disponibles ailleurs dans le projet ou dans le code, mais ne sont plus la porte d'entrÃ©e principale du pilotage business.
-- Limites connues : les scÃ©narios financiers et le benchmark restent des hypothÃ¨ses de pilotage et non des donnÃ©es marchÃ© validÃ©es automatiquement ; aucune persistance admin de business plan, aucun export investisseur et aucun reporting financier canonique n'ont Ã©tÃ© ajoutÃ©s dans ce lot.
-- VÃ©rification : `npm run build` Ã  relancer aprÃ¨s le lot pour confirmer la stabilitÃ©.
-- Prochaine Ã©tape recommandÃ©e : si cette narration business est validÃ©e, relier ensuite les leviers `traction, activation, rÃ©tention pilote, risques` Ã  des filtres et vues dÃ©taillÃ©es plus ciblÃ©s, sans retransformer la page en cockpit multi-onglets hÃ©tÃ©rogÃ¨ne.
+- Statut : `En cours`
+- PrioritÃƒÆ’Ã‚Â© : `P1 Prioritaire`
+- PÃƒÆ’Ã‚Â©rimÃƒÆ’Ã‚Â¨tre mis ÃƒÆ’Ã‚Â  jour : `/dashboard/admin/pilotage`, `docs/master-plan-planetls.md`
+- RÃƒÆ’Ã‚Â©alitÃƒÆ’Ã‚Â© produit : la page `Pilotage` n'est plus organisÃƒÆ’Ã‚Â©e comme un cockpit mixte `overview / stratÃƒÆ’Ã‚Â©gie / validation / risques / centre IA`. Elle devient une page unique consacrÃƒÆ’Ã‚Â©e au `business plan PlanetLS`, avec une lecture plus directionnelle : thÃƒÆ’Ã‚Â¨se produit, rÃƒÆ’Ã‚Â©sumÃƒÆ’Ã‚Â© exÃƒÆ’Ã‚Â©cutif, traction actuelle, offre recommandÃƒÆ’Ã‚Â©e `Conciergerie Pro`, scÃƒÆ’Ã‚Â©narios financiers, ÃƒÆ’Ã‚Â©conomie unitaire cible, benchmark de positionnement, go-to-market et risques prioritaires.
+- RÃƒÆ’Ã‚Â©alitÃƒÆ’Ã‚Â© produit : les donnÃƒÆ’Ã‚Â©es rÃƒÆ’Ã‚Â©elles encore utiles au business plan restent exploitÃƒÆ’Ã‚Â©es via les endpoints existants `/api/admin/overview`, `/api/admin/operations` et `/api/kpis/overview` pour alimenter la traction actuelle, les blocages de demandes, les devis acceptÃƒÆ’Ã‚Â©s non transformÃƒÆ’Ã‚Â©s et les missions non facturÃƒÆ’Ã‚Â©es.
+- DÃƒÆ’Ã‚Â©cision de pilotage : le benchmark affichÃƒÆ’Ã‚Â© dans la page sert de `cadre stratÃƒÆ’Ã‚Â©gique interne` inspirÃƒÆ’Ã‚Â© des familles d'outils `PMS`, `opÃƒÆ’Ã‚Â©rations terrain`, `coordination d'interventions`, `expÃƒÆ’Ã‚Â©rience de confiance` et `marketplaces locales`. Il ne doit pas ÃƒÆ’Ã‚Âªtre interprÃƒÆ’Ã‚Â©tÃƒÆ’Ã‚Â© comme un comparatif tarifaire externe vivant.
+- DÃƒÆ’Ã‚Â©cision de pilotage : les modules plus exploratoires `validation marchÃƒÆ’Ã‚Â©`, `registre de risques complet`, `centre IA`, `conseiller stratÃƒÆ’Ã‚Â©gique` et `conseiller projet issu du dÃƒÆ’Ã‚Â©veloppement` ne structurent plus la page pilotage. Ils restent disponibles ailleurs dans le projet ou dans le code, mais ne sont plus la porte d'entrÃƒÆ’Ã‚Â©e principale du pilotage business.
+- Limites connues : les scÃƒÆ’Ã‚Â©narios financiers et le benchmark restent des hypothÃƒÆ’Ã‚Â¨ses de pilotage et non des donnÃƒÆ’Ã‚Â©es marchÃƒÆ’Ã‚Â© validÃƒÆ’Ã‚Â©es automatiquement ; aucune persistance admin de business plan, aucun export investisseur et aucun reporting financier canonique n'ont ÃƒÆ’Ã‚Â©tÃƒÆ’Ã‚Â© ajoutÃƒÆ’Ã‚Â©s dans ce lot.
+- VÃƒÆ’Ã‚Â©rification : `npm run build` ÃƒÆ’Ã‚Â  relancer aprÃƒÆ’Ã‚Â¨s le lot pour confirmer la stabilitÃƒÆ’Ã‚Â©.
+- Prochaine ÃƒÆ’Ã‚Â©tape recommandÃƒÆ’Ã‚Â©e : si cette narration business est validÃƒÆ’Ã‚Â©e, relier ensuite les leviers `traction, activation, rÃƒÆ’Ã‚Â©tention pilote, risques` ÃƒÆ’Ã‚Â  des filtres et vues dÃƒÆ’Ã‚Â©taillÃƒÆ’Ã‚Â©es plus ciblÃƒÆ’Ã‚Â©s, sans retransformer la page en cockpit multi-onglets hÃƒÆ’Ã‚Â©tÃƒÆ’Ã‚Â©rogÃƒÆ’Ã‚Â¨ne.
 
-Ajout du jeudi 6 aoÃ»t 2026 : la page a ensuite Ã©tÃ© poussÃ©e vers une lecture plus `investor deck / board-level`, avec une narration plus concise pour comitÃ© de direction, une table `TAM / SAM / SOM` qualitative, un plan d'exÃ©cution `12 mois` et des `conditions avant accÃ©lÃ©ration`. Cette surcouche reste volontairement prudente : elle professionnalise le storytelling business sans prÃ©tendre produire un vrai modÃ¨le financier canonique ni des donnÃ©es de marchÃ© live.
-Ajout du jeudi 6 aoÃ»t 2026 : la page `Pilotage` a aussi Ã©tÃ© rÃ©organisÃ©e en `4 onglets` `Vue d'ensemble / MarchÃ© & offre / Finance / ExÃ©cution & risques`. Le contenu reste orientÃ© business plan et investor deck, mais il n'est plus prÃ©sentÃ© comme une longue suite de blocs verticaux ; la hiÃ©rarchie devient plus digeste et plus exploitable pour une lecture direction.
-Ajout du jeudi 6 aoÃ»t 2026 : l'onglet `MarchÃ© & offre` intÃ¨gre maintenant l'Ã©tude concurrentielle PlanetLS sous une forme visuelle et pilotable `tarifs du marchÃ©`, `benchmark concurrentiel intÃ©grÃ©`, `tableau comparatif synthÃ©tique`, `enseignements du benchmark`. Les tarifs d'Easy Concierge, Turno, Breezeway, Guesty, Airbnb co-hÃ´tes, AlloVoisins / marketplaces locales et PlanetLS servent de repÃ¨res de positionnement, pas de vÃ©ritÃ© financiÃ¨re canonique ni de comparatif contractuel vivant.
-Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark vers une lecture plus `board-level`, avec un graphe de positionnement `prix vs profondeur fonctionnelle`, un tableau `stratÃ©gie ocÃ©an bleu` et un bloc `lecture comitÃ© de direction`. La page assume ainsi davantage son rÃ´le de support d'arbitrage et de narration stratÃ©gique, tout en restant distincte d'un reporting financier canonique.
+Ajout du jeudi 6 aoÃƒÆ’Ã‚Â»t 2026 : la page a ensuite ÃƒÆ’Ã‚Â©tÃƒÆ’Ã‚Â© poussÃƒÆ’Ã‚Â©e vers une lecture plus `investor deck / board-level`, avec une narration plus concise pour comitÃƒÆ’Ã‚Â© de direction, une table `TAM / SAM / SOM` qualitative, un plan d'exÃƒÆ’Ã‚Â©cution `12 mois` et des `conditions avant accÃƒÆ’Ã‚Â©lÃƒÆ’Ã‚Â©ration`. Cette surcouche reste volontairement prudente : elle professionnalise le storytelling business sans prÃƒÆ’Ã‚Â©tendre produire un vrai modÃƒÆ’Ã‚Â¨le financier canonique ni des donnÃƒÆ’Ã‚Â©es de marchÃƒÆ’Ã‚Â© live.
+Ajout du jeudi 6 aoÃƒÆ’Ã‚Â»t 2026 : la page `Pilotage` a aussi ÃƒÆ’Ã‚Â©tÃƒÆ’Ã‚Â© rÃƒÆ’Ã‚Â©organisÃƒÆ’Ã‚Â©e en `4 onglets` `Vue d'ensemble / MarchÃƒÆ’Ã‚Â© & offre / Finance / ExÃƒÆ’Ã‚Â©cution & risques`. Le contenu reste orientÃƒÆ’Ã‚Â© business plan et investor deck, mais il n'est plus prÃƒÆ’Ã‚Â©sentÃƒÆ’Ã‚Â© comme une longue suite de blocs verticaux ; la hiÃƒÆ’Ã‚Â©rarchie devient plus digeste et plus exploitable pour une lecture direction.
+Ajout du jeudi 6 aoÃƒÆ’Ã‚Â»t 2026 : l'onglet `MarchÃƒÆ’Ã‚Â© & offre` intÃƒÆ’Ã‚Â¨gre maintenant l'ÃƒÆ’Ã‚Â©tude concurrentielle PlanetLS sous une forme visuelle et pilotable `tarifs du marchÃƒÆ’Ã‚Â©`, `benchmark concurrentiel intÃƒÆ’Ã‚Â©grÃƒÆ’Ã‚Â©`, `tableau comparatif synthÃƒÆ’Ã‚Â©tique`, `enseignements du benchmark`. Les tarifs d'Easy Concierge, Turno, Breezeway, Guesty, Airbnb co-hÃƒÆ’Ã‚Â´tes, AlloVoisins / marketplaces locales et PlanetLS servent de repÃƒÆ’Ã‚Â¨res de positionnement, pas de vÃƒÆ’Ã‚Â©ritÃƒÆ’Ã‚Â© financiÃƒÆ’Ã‚Â¨re canonique ni de comparatif contractuel vivant.
+Ajout du jeudi 6 aoÃƒÆ’Ã‚Â»t 2026 : la mÃƒÆ’Ã‚Âªme page pousse dÃƒÆ’Ã‚Â©sormais le benchmark vers une lecture plus `board-level`, avec un graphe de positionnement `prix vs profondeur fonctionnelle`, un tableau `stratÃƒÆ’Ã‚Â©gie ocÃƒÆ’Ã‚Â©an bleu` et un bloc `lecture comitÃƒÆ’Ã‚Â© de direction`. La page assume ainsi davantage son rÃƒÆ’Ã‚Â´le de support d'arbitrage et de narration stratÃƒÆ’Ã‚Â©gique, tout en restant distincte d'un reporting financier canonique.
 
-### Mise à jour ciblée — Onglet Modèle économique du jeudi 6 août 2026
+### Mise ÃƒÂ  jour ciblÃƒÂ©e Ã¢â‚¬â€ Onglet ModÃƒÂ¨le ÃƒÂ©conomique du jeudi 6 aoÃƒÂ»t 2026
 
-- Statut : `🟠 Partiel`
-- Priorité : `P1 Prioritaire`
-- Périmètre mis à jour : `src/app/dashboard/admin/pilotage/page.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `src/app/dashboard/admin/pilotage/economic-model/types.ts`, `src/app/dashboard/admin/pilotage/economic-model/data.ts`, `docs/master-plan-planetls.md`
-- Réalité produit : la page `/dashboard/admin/pilotage` expose désormais un cinquième onglet `Modèle économique` dans la navigation principale du business plan. Cette première étape pose la structure du futur module sans créer de seconde page ni casser les onglets existants.
-- Réalité produit : un socle dédié `economic-model` formalise maintenant les types métier de pricing `PricingStrategyType`, `PricingStrategyStatus`, `PricingOfferStatus`, `PricingOffer`, `PricingScenario`, `PricingDecisionLogEntry`, ainsi qu'un inventaire initial des 10 stratégies tarifaires à comparer et des profils tarifaires de référence.
-- Décision de pilotage : le module sépare explicitement `réel`, `hypothèse` et `simulation` avant d'ajouter des calculateurs plus poussés. Il documente d'abord la gouvernance, les stratégies, les profils et un journal initial des décisions, afin d'éviter toute confusion entre aide à la décision et offre publiée.
-- Décision de pilotage : un bloc protégé `Conciergerie Pro existante` rend visible dans le cockpit business l'offre réelle déjà reliée à Stripe via le plan `concierge_pro_monthly`, avec prix mensuel affiché `29 €`, statut de production et interdiction explicite de modification depuis ce module.
-- Limites connues : l'éditeur d'offres simulées, la matrice de fonctionnalités, le scoring pondéré, les scénarios `prudent / réaliste / ambitieux` et le comparateur visuel multi-stratégies ne sont pas encore branchés dans cet onglet. Le lot pose le socle de types et de structure UI pour les étapes suivantes.
-- Vérification : `npm run build` PASS après intégration de l'onglet `Modèle économique` et du bloc protégé `Conciergerie Pro existante`.
-- Prochaine étape recommandée : brancher l'éditeur d'offres simulées sur ce socle, puis raccorder les futures simulations financières et la matrice de fonctionnalités sans toucher à Stripe.
+- Statut : `Partiel`
+- PrioritÃƒÂ© : `P1 Prioritaire`
+- PÃƒÂ©rimÃƒÂ¨tre mis ÃƒÂ  jour : `src/app/dashboard/admin/pilotage/page.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `src/app/dashboard/admin/pilotage/economic-model/types.ts`, `src/app/dashboard/admin/pilotage/economic-model/data.ts`, `docs/master-plan-planetls.md`
+- RÃƒÂ©alitÃƒÂ© produit : la page `/dashboard/admin/pilotage` expose dÃƒÂ©sormais un cinquiÃƒÂ¨me onglet `ModÃƒÂ¨le ÃƒÂ©conomique` dans la navigation principale du business plan. Cette premiÃƒÂ¨re ÃƒÂ©tape pose la structure du futur module sans crÃƒÂ©er de seconde page ni casser les onglets existants.
+- RÃƒÂ©alitÃƒÂ© produit : un socle dÃƒÂ©diÃƒÂ© `economic-model` formalise maintenant les types mÃƒÂ©tier de pricing `PricingStrategyType`, `PricingStrategyStatus`, `PricingOfferStatus`, `PricingOffer`, `PricingScenario`, `PricingDecisionLogEntry`, ainsi qu'un inventaire initial des 10 stratÃƒÂ©gies tarifaires ÃƒÂ  comparer et des profils tarifaires de rÃƒÂ©fÃƒÂ©rence.
+- DÃƒÂ©cision de pilotage : le module sÃƒÂ©pare explicitement `rÃƒÂ©el`, `hypothÃƒÂ¨se` et `simulation` avant d'ajouter des calculateurs plus poussÃƒÂ©s. Il documente d'abord la gouvernance, les stratÃƒÂ©gies, les profils et un journal initial des dÃƒÂ©cisions, afin d'ÃƒÂ©viter toute confusion entre aide ÃƒÂ  la dÃƒÂ©cision et offre publiÃƒÂ©e.
+- DÃƒÂ©cision de pilotage : un bloc protÃƒÂ©gÃƒÂ© `Conciergerie Pro existante` rend visible dans le cockpit business l'offre rÃƒÂ©elle dÃƒÂ©jÃƒÂ  reliÃƒÂ©e ÃƒÂ  Stripe via le plan `concierge_pro_monthly`, avec prix mensuel affichÃƒÂ© `29 Ã¢â€šÂ¬`, statut de production et interdiction explicite de modification depuis ce module.
+- Limites connues : l'ÃƒÂ©diteur d'offres simulÃƒÂ©es, la matrice de fonctionnalitÃƒÂ©s, le scoring pondÃƒÂ©rÃƒÂ©, les scÃƒÂ©narios `prudent / rÃƒÂ©aliste / ambitieux` et le comparateur visuel multi-stratÃƒÂ©gies ne sont pas encore branchÃƒÂ©s dans cet onglet. Le lot pose le socle de types et de structure UI pour les ÃƒÂ©tapes suivantes.
+- VÃƒÂ©rification : `npm run build` PASS aprÃƒÂ¨s intÃƒÂ©gration de l'onglet `ModÃƒÂ¨le ÃƒÂ©conomique` et du bloc protÃƒÂ©gÃƒÂ© `Conciergerie Pro existante`.
+- Prochaine ÃƒÂ©tape recommandÃƒÂ©e : brancher l'ÃƒÂ©diteur d'offres simulÃƒÂ©es sur ce socle, puis raccorder les futures simulations financiÃƒÂ¨res et la matrice de fonctionnalitÃƒÂ©s sans toucher ÃƒÂ  Stripe.
 
 ### Mise a jour ciblee - Extension du module Modele economique du jeudi 6 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/page.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/economic-model/data.ts`, `docs/master-plan-planetls.md`
 - Realite produit : l'onglet principal `Modele economique` du business plan admin expose maintenant une navigation interne en `7 sous-onglets` `Vue d'ensemble / Strategies / Offres & profils / Simulations / Comparaison / Tests tarifaires / Decisions`, pour eviter une longue pile verticale et rendre la lecture de pilotage plus canonique.
@@ -1018,7 +1018,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Refonte UX du module Modele economique du jeudi 6 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : le module `Modele economique` n'utilise plus de sous-onglets internes. La lecture est maintenant structuree en une seule page continue avec un hero de cadrage, une rangee de cartes de reperes, puis 7 sections editoriales `Vue d'ensemble`, `Strategies`, `Offres & profils`, `Simulations`, `Comparaison`, `Tests tarifaires`, `Decisions`.
@@ -1030,7 +1030,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Renforcement board executive des blocs Strategies et Comparaison du jeudi 6 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : la section `Strategies` affiche maintenant un niveau de lecture direction supplementaire avec trois cartes executive mises en avant `option prioritaire / option simple / option risquee`, en plus de la grille complete des dix strategies.
@@ -1042,7 +1042,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Mise en gamme visuelle du bloc Simulations du jeudi 6 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : la section `Simulations` n'est plus seulement un tableau et trois cartes de lecture. Elle ajoute maintenant une premiere couche `KPI`, une couche `cartes scenario premium` et une couche `projection investisseur` afin de rendre la trajectoire plus lisible pour un usage board-level.
@@ -1053,19 +1053,19 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Simplification du module et score moyen dans les cartes Strategies du jeudi 6 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : la page `Modele economique` a ete simplifiee pour reduire les doublons de lecture. La rangee de cartes de reperes a ete retiree, le bloc `Strategies` repose maintenant sur une seule grille principale, et la partie `Comparaison` a ete reduite a une lecture executive plus concise.
 - Realite produit : chaque carte de strategie affiche maintenant un `score moyen` visible directement dans la carte, afin de rendre le niveau d'interet plus lisible sans ouvrir d'autre vue ni lire tout le detail.
 - Decision de pilotage : la page privilegie desormais une lecture plus directe `synthese -> gouvernance -> strategies -> simulations -> comparaison -> tests -> decisions`, avec moins de couches paralleles et moins de repetition visuelle.
-- Limites connues : le score moyen reste un repere editorial calcule a partir d'un barème interne statique, pas un moteur de scoring dynamique editable. La simplification ameliore la clarte mais ne change pas encore la profondeur fonctionnelle du module.
+- Limites connues : le score moyen reste un repere editorial calcule a partir d'un barÃƒÂ¨me interne statique, pas un moteur de scoring dynamique editable. La simplification ameliore la clarte mais ne change pas encore la profondeur fonctionnelle du module.
 - Verification : `npm run build` PASS le jeudi 6 aout 2026 apres simplification de la page et ajout du score moyen dans les cartes `Strategies`.
 - Prochaine etape recommandee : simplifier de la meme maniere `Offres & profils`, puis transformer cette zone en veritable bloc premium avec offres simulees, badges, limites et matrice de fonctionnalites plus executive.
 
 ### Mise a jour ciblee - Refonte premium du bloc Offres et profils du jeudi 6 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : la section `Offres & profils` ne se limite plus a un tableau de prochaine etape. Elle expose maintenant des cartes d'offres simulees, une lecture plus claire des profils cibles et un cadre produit simplifie pour le futur pricing `socle / modules / limites`.
@@ -1076,7 +1076,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Matrice de fonctionnalites executive du jeudi 6 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : la section `Offres & profils` integre maintenant une matrice de fonctionnalites executive et compacte comparant les offres simulees `Essentiel / Pro / Portefeuille` sur une lecture `Inclus / Limite / Option / Futur`.
@@ -1087,7 +1087,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Mini editeur visuel des offres simulees du jeudi 6 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : la section `Offres & profils` integre maintenant un mini editeur visuel non editable dans les cartes d'offres simulees, avec badges, volume de biens, volume d'utilisateurs, niveau de support, modules visibles et nombre de limites clefs.
@@ -1098,7 +1098,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Nettoyage editorial et renforcement executive de la page Pilotage du jeudi 6 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/page.tsx`, `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : la page `Pilotage` et l'onglet `Modele economique` ont ete relus et simplifies pour une lecture plus direction. Plusieurs formulations ont ete raccourcies, les messages repetitifs ont ete reduits et les blocs `Conditions avant acceleration`, `Narration board / investisseur` et le hero du module economique portent des intitules plus clairs.
@@ -1110,7 +1110,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Reorganisation pleine largeur de la page Pilotage du jeudi 6 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/page.tsx`, `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : l'acces rapide affiche a droite dans le layout `DashboardLayout` a ete retire de la page `Pilotage` en conservant une prop `actions` vide pour rester compatible avec le composant. La page gagne une lecture plus sobre et moins dispersee.
@@ -1123,12 +1123,12 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Realignement tarifaire des onglets Marche, Finance et Modele economique du jeudi 6 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/page.tsx`, `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/economic-model/data.ts`, `docs/master-plan-planetls.md`
-- Realite produit : la page `/dashboard/admin/pilotage` n'affiche plus un cadrage principal base sur `99 € / 149 €`. Les onglets `Marche & offre`, `Finance` et `Modele economique` convergent maintenant vers une gamme de travail `29 € HT / mois / 49 € HT / mois / sur devis`, plus proche de l'offre Stripe reelle a `29 €` et plus defendable en phase de validation terrain.
+- Realite produit : la page `/dashboard/admin/pilotage` n'affiche plus un cadrage principal base sur `99 Ã¢â€šÂ¬ / 149 Ã¢â€šÂ¬`. Les onglets `Marche & offre`, `Finance` et `Modele economique` convergent maintenant vers une gamme de travail `29 Ã¢â€šÂ¬ HT / mois / 49 Ã¢â€šÂ¬ HT / mois / sur devis`, plus proche de l'offre Stripe reelle a `29 Ã¢â€šÂ¬` et plus defendable en phase de validation terrain.
 - Realite produit : la section `Finance` projette maintenant ses scenarios sur cette base `29 / 49 / sur devis`, avec commission retiree des scenarios d'entree et maintenue seulement comme hypothese secondaire sur le cas `sur devis`.
-- Realite produit : le module `Modele economique` traite desormais la `strategie B - tarification par niveau` comme direction de test prioritaire. Les cartes d'offres simulees, les simulations et le backlog de tests tarifaires ont ete realignes sur `29 € / 49 € / sur devis`.
+- Realite produit : le module `Modele economique` traite desormais la `strategie B - tarification par niveau` comme direction de test prioritaire. Les cartes d'offres simulees, les simulations et le backlog de tests tarifaires ont ete realignes sur `29 Ã¢â€šÂ¬ / 49 Ã¢â€šÂ¬ / sur devis`.
 - Decision de pilotage : la commission n'est plus le message principal du cockpit business. Elle reste une option a reevaluer plus tard seulement si PlanetLS prouve une vraie valeur d'intermediation et une execution suffisamment robuste.
 - Limites connues : cette convergence reste editoriale et strategique. Aucun editeur admin persistant, aucun moteur de calcul dynamique et aucune modification Stripe ou checkout n'ont ete ajoutes dans ce lot.
 - Verification : `npm run build` PASS le jeudi 6 aout 2026 apres realignement tarifaire des onglets `Marche`, `Finance` et `Modele economique`.
@@ -1136,18 +1136,18 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Tableau financier concret `qui paie quoi` du jeudi 6 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/page.tsx`, `docs/master-plan-planetls.md`
 - Realite produit : l'onglet `Finance` de `/dashboard/admin/pilotage` ne se limite plus aux scenarios et a l'economie unitaire. Il expose maintenant un bloc concret `Qui paie quoi selon le parc gere` avec une lecture `90 jours`, trois jalons de validation et un tableau operable `profil / nombre de biens / accompagnement / prix / payeur naturel / lecture terrain`.
-- Decision de pilotage : la grille tarifaire est desormais pensee comme outil d'entretien et de proposition commerciale immediate, pas seulement comme hypothese abstraite de business plan. Le cadrage `29 € / 49 € / sur devis` gagne ainsi une traduction plus exploitable face aux prospects.
+- Decision de pilotage : la grille tarifaire est desormais pensee comme outil d'entretien et de proposition commerciale immediate, pas seulement comme hypothese abstraite de business plan. Le cadrage `29 Ã¢â€šÂ¬ / 49 Ã¢â€šÂ¬ / sur devis` gagne ainsi une traduction plus exploitable face aux prospects.
 - Limites connues : le tableau reste editorial et non persistant. Il ne calcule pas automatiquement les montants selon des donnees client reelles et ne remplace pas encore un futur configurateur d'offre.
 - Verification : `npm run build` PASS le jeudi 6 aout 2026 apres ajout du tableau `Qui paie quoi selon le parc gere` dans l'onglet `Finance`.
 - Prochaine etape recommandee : si les retours terrain convergent, transformer ensuite cette grille en script commercial ou en mini configurateur de proposition, sans toucher a Stripe tant que le modele n'est pas valide.
 
 ### Mise a jour ciblee - Consolidation desktop de la page Pilotage du vendredi 7 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : la page `/dashboard/admin/pilotage` renforce sa lecture desktop sur ecran classique. Les grilles principales `highlights`, `summary`, `roadmap` et les cartes du nouveau bloc finance gagnent des largeurs minimales plus stables, des retours a la ligne plus robustes et une meilleure repartition des colonnes.
@@ -1159,7 +1159,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Verification visuelle desktop de Finance et allegement du cockpit le vendredi 7 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/page.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `src/components/dashboard/DashboardLayout/DashboardLayout.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : une verification visuelle navigateur reelle a ete menee sur `/dashboard/admin/pilotage` en desktop via Playwright local avec quick login administrateur. Elle a confirme que l'ancien bloc `Faire maintenant` etait visuellement parasite et que la lecture `Finance` restait trop comprimee dans le cockpit.
@@ -1172,7 +1172,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Verification visuelle desktop de Modele economique le vendredi 7 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : une verification visuelle navigateur reelle a ete menee sur l'onglet `Modele economique` de `/dashboard/admin/pilotage` en desktop via Playwright local avec quick login administrateur. La capture a confirme l'absence de debordement majeur, mais aussi une densite encore trop forte dans plusieurs grilles internes a cause du cockpit lateral.
@@ -1184,7 +1184,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Repli responsive du rail lateral et verification desktop de Controle detaille le vendredi 7 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/components/dashboard/DashboardLayout/DashboardLayout.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : une verification visuelle navigateur reelle a ete menee sur `/dashboard/admin/controle` en desktop, avec un focus sur le rail lateral `Pilotage admin / Profil / Activite recente / Notifications / Acces rapides`. La lecture etait correcte en grand desktop, mais trop tendue sur une largeur plus classique de type `1280 px`.
@@ -1196,7 +1196,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Verification desktop de Developpement sans correction supplementaire le vendredi 7 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `docs/master-plan-planetls.md`
 - Realite produit : une verification visuelle navigateur reelle a ete menee sur `/dashboard/admin/developpement` en desktop intermediaire `1280 px` apres la mise a jour responsive du `DashboardLayout`. La page reste dense par nature, mais aucun chevauchement critique du rail lateral avec le contenu principal n'a ete observe dans cette configuration.
@@ -1207,7 +1207,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Lecture guidee du Master Plan dans Developpement le vendredi 7 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/app/dashboard/admin/developpement/page.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : l'onglet `Master Plan` de `/dashboard/admin/developpement` ne s'ouvre plus comme une pile exhaustive sans orientation. Une `lecture guidee` devient le mode par defaut : elle met en avant les sections actives `P0 / P1 / bloquees / en cours / partielles` et les grands reperes structurants, tout en laissant une option explicite `Tout afficher`.
@@ -1219,7 +1219,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Presets de lecture et correction du texte corrompu dans Developpement le vendredi 7 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/app/dashboard/admin/developpement/page.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : le texte corrompu de la mise a jour `Pilotage Business du lundi 3 aout 2026` a ete corrige directement dans `docs/master-plan-planetls.md`. La section retrouve une lecture normale avec accents, statuts et contenu metier lisibles dans la page `Developpement`.
@@ -1231,7 +1231,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Suppression du bottom nav admin en doublon et nouveaux presets de lecture le vendredi 7 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/components/dashboard/DashboardLayout/DashboardLayout.tsx`, `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/app/dashboard/admin/developpement/page.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : le `bottomNav` du `DashboardLayout` n'est plus rendu pour la persona `admin`. Le dock mobile d'administration dedie reste la seule navigation basse sur mobile, ce qui supprime le doublon avec `DashboardMobileExperience`.
@@ -1243,7 +1243,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Audit de l'existant Business Plan du vendredi 7 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `docs/business-plan-audit.md`, `docs/master-plan-planetls.md`
 - Realite produit : un audit cible du module `Business Plan / Pilotage Business` a ete formalise dans `docs/business-plan-audit.md` a partir du code et des documents existants. Il confirme que la page `/dashboard/admin/pilotage` constitue bien la surface principale, mais que le coeur du business plan reste majoritairement editorial et code en dur dans `page.tsx`, `economic-model/data.ts`, `EconomicModelTab.tsx`, `validationData.ts` et `riskData.ts`.
@@ -1255,10 +1255,10 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Restructuration du centre de pilotage Business Plan le vendredi 7 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/page.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `src/app/dashboard/admin/pilotage/businessPlanData.ts`, `docs/master-plan-planetls.md`
-- Realite produit : la page `/dashboard/admin/pilotage` n'est plus un simple enchainement d'onglets editoriaux `Vue d'ensemble / Marche / Finance / Modele economique / Execution`. Elle devient un `centre de pilotage strategique SaaS` organise par grands blocs `Synthese & vision / Marche & clients / Business model / Produit & IA / Pilotage & risques / Annexes`, avec sous-sections explicites, navigation secondaire par section, accordéons repliables, cartes synthetiques, badges de statut et barre de maturite globale du Business Plan.
+- Realite produit : la page `/dashboard/admin/pilotage` n'est plus un simple enchainement d'onglets editoriaux `Vue d'ensemble / Marche / Finance / Modele economique / Execution`. Elle devient un `centre de pilotage strategique SaaS` organise par grands blocs `Synthese & vision / Marche & clients / Business model / Produit & IA / Pilotage & risques / Annexes`, avec sous-sections explicites, navigation secondaire par section, accordÃƒÂ©ons repliables, cartes synthetiques, badges de statut et barre de maturite globale du Business Plan.
 - Realite produit : les 22 sections cibles du Business Plan `Synthese, Vision, Probleme marche, Solution, Proposition de valeur, Personas, Etude de marche, Concurrence, Business Model Canvas, Modele economique, Tarification, Go-To-Market, Acquisition, Roadmap, Strategie IA, KPI SaaS, Previsions financieres, SWOT, Risques, Hypotheses, Plan d'action, Annexes` sont maintenant structurees dans un referentiel TypeScript dedie `businessPlanData.ts`. Cette couche centralise statuts, ordre, evidence et une partie importante des donnees editoriales deja presentes `benchmark, pricing, TAM/SAM/SOM, roadmap, SWOT reconstruit, canaux d'acquisition, etc.` sans casser les modules existants.
 - Realite produit : les briques detaillees deja disponibles sont conservees et rebranchees dans la nouvelle architecture au lieu d'etre supprimees : `EconomicModelTab` pour le modele economique, `RiskRegister` pour le registre des risques, `LeanValidationDashboard` pour les hypotheses et la validation marche, `StrategicDecisionAssistant` dans les annexes. La page garde aussi sa compatibilite avec les donnees live `api/admin/overview`, `api/admin/operations` et `api/kpis/overview` pour afficher traction, alertes et KPI SaaS reels.
 - Decision de pilotage : cette version privilegie une `restructuration non destructive` et une meilleure lisibilite executive, sans transformer encore le cockpit en back-office d'edition persistant. Les contenus partiels ou fragiles sont explicites via les statuts `A completer / A valider / Valide / A actualiser`, ce qui aligne mieux l'UI sur l'audit realise juste avant.
@@ -1268,7 +1268,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Centralisation du modele de donnees Business Plan le vendredi 7 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/business-plan-reference.ts`, `src/app/dashboard/admin/pilotage/businessPlanData.ts`, `docs/business-plan-data-model.md`, `docs/master-plan-planetls.md`
 - Realite produit : le Business Plan admin dispose maintenant d'une `source de verite centralisee` locale et typee dans `business-plan-reference.ts`. Cette couche ne remplace pas la base applicative et n'ajoute aucune migration ; elle unifie les donnees strategiques qui etaient dispersees entre contenus editoriaux, modele economique, validation marche et registre de risques.
@@ -1281,7 +1281,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Ajout du Business Model Canvas interactif le vendredi 7 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/page.tsx`, `src/app/dashboard/admin/pilotage/business-plan-reference.ts`, `src/app/dashboard/admin/pilotage/BusinessModelCanvas.tsx`, `src/app/dashboard/admin/pilotage/BusinessModelCanvas.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : la section `Business Model Canvas` de `/dashboard/admin/pilotage` n'est plus une simple grille statique. Elle devient un module interactif avec `vue synthetique / vue detaillee`, score de completude, compte d'hypotheses `validees / a valider`, details repliables par bloc et liens directs vers les autres sections du Business Plan.
@@ -1293,7 +1293,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Construction de la section Marche & Concurrence du vendredi 7 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/page.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `src/app/dashboard/admin/pilotage/business-plan-reference.ts`, `docs/master-plan-planetls.md`
 - Realite produit : les sections `Etude de marche`, `Personas / segments clients` et `Concurrence` du Business Plan admin ont ete reconstruites comme surfaces de decision plutot que comme simple contenu descriptif. Elles distinguent maintenant explicitement `faits verifies / estimations / hypotheses`, affichent `source, date, confiance` et reposent sur un referentiel central au lieu d'un texte eparpille dans la page.
@@ -1307,7 +1307,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Simulateur Tarification & Revenus du vendredi 7 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/page.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `src/app/dashboard/admin/pilotage/economic-model/types.ts`, `src/app/dashboard/admin/pilotage/economic-model/data.ts`, `src/app/dashboard/admin/pilotage/economic-model/PricingRevenueSimulator.tsx`, `docs/master-plan-planetls.md`
 - Realite produit : la section `Tarification et abonnements` du Business Plan admin embarque maintenant un simulateur complet `Tarification & revenus` distinct de la production. Il permet de comparer des offres de travail `FREE / ESSENTIAL / PRO / BUSINESS` et trois scenarios `Prudent / Central / Ambitieux` sans modifier l'offre commerciale active ni Stripe.
@@ -1320,7 +1320,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Modele de previsions financieres du vendredi 7 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/page.tsx`, `src/app/dashboard/admin/pilotage/economic-model/FinancialForecastModel.tsx`, `src/app/dashboard/admin/pilotage/economic-model/financialModel.ts`, `docs/business-plan-financial-model.md`, `docs/master-plan-planetls.md`
 - Realite produit : la section `Previsions financieres` du Business Plan admin n'affiche plus un simple tableau statique de scenarios. Elle devient un vrai module de modelisation SaaS sur 5 ans avec separation explicite `Hypotheses / Calculs / Resultats`, navigation par scenario `Prudent / Central / Ambitieux`, edition locale des hypotheses, cartes KPI, tableau annuel detaille et lectures visuelles `revenus versus couts`, tresorerie, break-even et runway.
@@ -1333,33 +1333,33 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Cockpit strategique de premiere lecture du vendredi 7 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/page.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : l'arrivee sur `/dashboard/admin/pilotage` ne se limite plus a une hero editoriale puis a des onglets. La page expose maintenant, avant la navigation detaillee, un vrai `cockpit strategique` de premiere lecture avec cinq scores `maturite, Product-Market Fit, financier, marche, produit`, un bloc `KPI principaux`, une zone `A regarder en premier` et une lecture immediate des `prochaines decisions`.
 - Realite produit : les signaux de tete de page sont derives de l'existant et non recrees en parallele. Le cockpit combine les statuts des sections du Business Plan, les KPI reels disponibles via `/api/kpis/overview`, les risques critiques, les hypotheses prioritaires, le pipeline commercial non transforme, les missions non facturees et l'anciennete des donnees marche pour faire remonter automatiquement les sujets a surveiller.
 - Realite produit : la section `Synthese` du Business Plan a ete renforcee dans la meme logique. Elle affiche maintenant `Top 5 priorites`, `Top 5 risques`, `Top 5 hypotheses`, `Prochaines decisions` et `Dernieres modifications`, ce qui transforme la page en outil de pilotage plus immediat sans supprimer les modules detailles deja presents.
-- Decision de pilotage : les KPI business encore non instrumentes `MRR reel, ARR reel, clients payants reels, conversion payante reelle, churn reel, CAC reel, LTV reelle` restent affiches honnêtement comme `A mesurer`, avec contexte issu du modele financier central ou des signaux produit existants. L'objectif est de montrer la verite actuelle plutot que de maquiller l'absence de mesure par des chiffres speculatifs.
+- Decision de pilotage : les KPI business encore non instrumentes `MRR reel, ARR reel, clients payants reels, conversion payante reelle, churn reel, CAC reel, LTV reelle` restent affiches honnÃƒÂªtement comme `A mesurer`, avec contexte issu du modele financier central ou des signaux produit existants. L'objectif est de montrer la verite actuelle plutot que de maquiller l'absence de mesure par des chiffres speculatifs.
 - Limites connues : certains scores restent des heuristiques de pilotage derivees des statuts documentaires et des KPI disponibles, pas des scores scientifiques. La zone `Dernieres modifications` repose sur les dates de mise a jour du referentiel business local et non sur un historique persistant multi-auteur.
 - Verification : `npm run build` PASS le vendredi 7 aout 2026 apres integration du cockpit strategique dans `/dashboard/admin/pilotage`.
 - Prochaine etape recommandee : si besoin, brancher ensuite une vraie source de verite pour les KPI business payants `MRR, clients payants, churn, CAC, LTV`, puis ajuster les scores pour qu'ils reposent davantage sur des mesures observees que sur la maturite documentaire.
 
 ### Mise a jour ciblee - Processus Business Impact Check du vendredi 7 aout 2026
 
-- Statut : ` Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `docs/business-plan-maintenance.md`, `docs/business-plan-data-model.md`, `docs/master-plan-planetls.md`
 - Realite produit : PlanetLS dispose maintenant d'un processus documentaire explicite de maintenance du Business Plan via `docs/business-plan-maintenance.md`. Le mecanisme `Business Impact Check` formalise les declencheurs, les zones du Business Plan a reviser, les actions autorisees sans validation humaine et les actions interdites `ne pas modifier automatiquement hypothese, prix, cout, chiffre de marche ou KPI strategique`.
 - Realite produit : le process couvre explicitement les evolutions critiques `nouvelle fonctionnalite, suppression, changement d'abonnement, changement de tarif, nouveau persona, nouvelle source de revenu, nouvelle integration IA, nouveau service marketplace, changement d'architecture significatif, nouveau cout recurrent` et impose de verifier les impacts potentiels sur `proposition de valeur, roadmap, modele economique, tarification, couts, revenus, marche, concurrence, risques, KPI`.
 - Realite produit : la gouvernance du referentiel central est renforcee. `docs/business-plan-data-model.md` reference maintenant le `Business Impact Check` comme regle de maintenance, et le `Master Plan` impose ce controle pour toute evolution importante susceptible d'affecter le Business Plan.
 - Decision de pilotage : le systeme choisi reste volontairement simple et robuste. Il repose d'abord sur une discipline documentaire et un marquage `A actualiser / A valider` plutot que sur une automatisation risquee qui pourrait modifier silencieusement des donnees strategiques.
-- Limites connues : aucun moteur automatique ne scanne encore les diffs git ou les fichiers modifies pour produire seul un impact business. Le controle reste humain, guide et traçable.
+- Limites connues : aucun moteur automatique ne scanne encore les diffs git ou les fichiers modifies pour produire seul un impact business. Le controle reste humain, guide et traÃƒÂ§able.
 - Verification : documentation relue et integree au referentiel de pilotage le vendredi 7 aout 2026 ; aucun build non indispensable n'a ete relance car le lot est purement documentaire.
 - Prochaine etape recommandee : si besoin, ajouter plus tard un template reutilisable dans le cockpit admin ou dans le journal de developpement pour saisir un `Business Impact Check` directement depuis l'interface.
 
 ### Mise a jour ciblee - Correction d'encodage et uniformisation des hero cards du jeudi 13 aout 2026
 
-- Statut : `🟠 Partiel`
+- Statut : `Partiel`
 - Priorite : `P2 Important`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/page.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `.editorconfig`, `docs/master-plan-planetls.md`
 - Realite produit : la page `/dashboard/admin/pilotage` corrige maintenant plusieurs libelles visibles casses par un melange UTF-8 / Windows-1252 `Controle, Developpement, desormais, controle operationnel`, ce qui restaure une lecture francaise correcte sur les zones hero et navigation du cockpit.
@@ -1372,7 +1372,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Tableau d'action concis pour la page Developpement du jeudi 13 aout 2026
 
-- Statut : `🟡 En cours`
+- Statut : `En cours`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/app/dashboard/admin/developpement/page.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : la page `/dashboard/admin/developpement` gagne un premier onglet `Plan d'action` affiche par defaut. Il reprend les sujets de reprise les plus utiles sous forme de tableau court `priorite / sujet / pourquoi maintenant / prochaine action / preuve / source`, afin d'orienter l'execution sans forcer la lecture immediate de tout le Master Plan.
@@ -1385,7 +1385,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Simplification radicale de la page Developpement du jeudi 13 aout 2026
 
-- Statut : `🟡 En cours`
+- Statut : `En cours`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/app/dashboard/admin/developpement/page.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : la page `/dashboard/admin/developpement` n'est plus pensee comme un espace documentaire a onglets a parcourir longuement avant d'agir. Elle devient un cockpit court centre sur `ou j'en suis`, `prochaine action`, `blocages`, `en cours`, `pret a faire`, `termine` et `verifications rapides`.
@@ -1396,23 +1396,23 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 - Verification : `npm run build` a relancer apres simplification finale de la page `Developpement`.
 - Prochaine etape recommandee : si ce format te convient, faire ensuite un lot de nettoyage du code mort et des imports/helpers devenus inutiles pour aligner la structure technique sur la nouvelle experience courte.
 
-### Mise a jour ciblee - Tableau D. Priorites pour la page Developpement du jeudi 13 aout 2026
+### Mise a jour ciblee - Tableau Pilotage des priorites pour la page Developpement du jeudi 13 aout 2026
 
-- Statut : `🟡 En cours`
+- Statut : `En cours`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/developpement/MasterPlanViewer.tsx`, `src/app/dashboard/admin/developpement/page.module.scss`, `docs/master-plan-planetls.md`
-- Realite produit : la page `/dashboard/admin/developpement` reprend maintenant explicitement une section `D. Priorites` en tableaux separes `P0 / P1 / P2 / P3`, avec les colonnes `ID, Titre, Categorie, Difficulté, Impact, Zones concernees`, dans un format proche de l'audit externe demande.
+- Realite produit : la page `/dashboard/admin/developpement` reprend maintenant explicitement une section `Pilotage des priorites` en tableaux separes `P0 / P1 / P2 / P3`, avec les colonnes `ID, Titre, Categorie, DifficultÃƒÂ©, Impact, Zones concernees`, dans un format proche de l'audit externe demande.
 - Realite produit : cette presentation remplace le tableau d'action court trop minimal et sert de repere plus direct pour arbitrer `critique`, `avant lancement`, `amelioration importante` et `evolution future` sans replonger dans une page trop longue.
-- Realite produit : le tableau `D. Priorites` agrege maintenant aussi les priorites dispersees du Master Plan qui n'etaient pas dans la matrice initiale, avec dedoublonnage des sujets recouvrants comme le cockpit entrepreneurial, pour garder une vue complete mais encore concise.
+- Realite produit : le tableau `Pilotage des priorites` agrege maintenant aussi les priorites dispersees du Master Plan qui n'etaient pas dans la matrice initiale, avec dedoublonnage des sujets recouvrants comme le cockpit entrepreneurial, pour garder une vue complete mais encore concise.
 - Realite produit : la matrice `P2` integre maintenant explicitement `P2-016 - Normaliser les reliquats ASCII/labels historiques du depot` pour transformer le reliquat d'hygiene francaise du code en vraie action de pilotage, au lieu de le laisser seulement en limite connue.
-- Decision de pilotage : la page Developpement garde une lecture courte en tete `ou j'en suis, prochaine action, bloque, en cours, pret a faire, termine`, puis utilise le tableau `D. Priorites` comme reference principale de travail.
+- Decision de pilotage : la page Developpement garde une lecture courte en tete `ou j'en suis, prochaine action, bloque, en cours, pret a faire, termine`, puis utilise le tableau `Pilotage des priorites` comme reference principale de travail.
 - Limites connues : certaines lignes du tableau restent du cadrage de pilotage et non des tickets relies a une persistance de statut editable. La priorisation doit donc rester relue regulierement contre le code et le Master Plan.
-- Verification : `npm run build` PASS apres integration finale du tableau `D. Priorites`.
+- Verification : `npm run build` PASS apres integration finale du tableau `Pilotage des priorites`.
 - Prochaine etape recommandee : si besoin, relier ensuite chaque ligne du tableau a une vue detaillee ou a un ticket source, sans recharger la page principale.
 
 ### Mise a jour ciblee - Lecture visuelle business pour la page Pilotage du jeudi 13 aout 2026
 
-- Statut : `🟠 Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/pilotage/page.tsx`, `src/app/dashboard/admin/pilotage/page.module.scss`, `docs/master-plan-planetls.md`
 - Realite produit : la page `/dashboard/admin/pilotage` expose maintenant une lecture business plus directe avec des cartes `Positionnement PlanetLS`, `Concurrents directs`, `Concurrents indirects`, `Differenciation PlanetLS`, un tableau comparatif multi-dimensions simplifie, une synthese visuelle des ecarts, une roadmap technique `Architecture globale / MVP / V1 / V2 / Timeline` et un bloc marketing `Proposition de valeur / Messages cles / Segments / Identite narrative`.
@@ -1425,8 +1425,9 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Hygiene UTF-8 pour le site francais du jeudi 13 aout 2026
 
-- Statut : `🟡 En cours`
+- Statut : `En cours`
 - Priorite : `P1 Prioritaire`
+- ID priorite associee : `P2-018`
 - Perimetre mis a jour : `src/app/layout.tsx`, `src/app/complete-registration/CompleteRegistrationPage.tsx`, `src/app/dashboard/missions/MissionDetailClient.tsx`, `src/app/components/dashboard/navbar/DashboardNavbar.tsx`, `scripts/check-encoding.mjs`, `package.json`, `docs/master-plan-planetls.md`
 - Realite produit : un audit cible des surfaces visibles a confirme que le standard repo restait bien `UTF-8`, mais que plusieurs chaines francaises avaient deja ete mojibakees dans le code source. Les textes visibles ont ete corriges dans le layout global, l'inscription et certains ecrans dashboard.
 - Realite produit : la page `/dashboard/admin/pilotage` a aussi ete re-ecrite proprement en UTF-8 natif pour corriger les libelles encore sans accents ou corrompus dans le contenu principal et la navigation horizontale `Controle detaille`, `Developpement`, `Controle operationnel`, `Critere` et `Synthese`.
@@ -1439,7 +1440,7 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 
 ### Mise a jour ciblee - Page Personas & Segments dans le pilotage business du jeudi 13 aout 2026
 
-- Statut : `🟠 Partiel`
+- Statut : `Partiel`
 - Priorite : `P2 Important`
 - Perimetre mis a jour : `src/app/dashboard/admin/personas/page.tsx`, `src/app/dashboard/admin/pilotage/personas/page.tsx`, `src/app/dashboard/admin/pilotage/personas/page.module.scss`, `src/app/dashboard/admin/developpement/personas/`, `src/app/components/dashboard/Sidebar/sidebarconfig.tsx`, `src/components/development/DevelopmentSectionNav.tsx`, `src/app/dashboard/admin/pilotage/page.tsx`, `docs/master-plan-planetls.md`
 - Realite produit : les personas PlanetLS ont ete remis au propre en UTF-8 dans leur referentiel editable historique, puis exposes dans une page admin unique `/dashboard/admin/personas` qui devient desormais l'URL canonique.
@@ -1457,9 +1458,60 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 - Limites connues : le persona `voyageur` n'est pas encore un vrai persona complet dans la source canonique ; il est volontairement presente comme piste a cadrer plus tard, pas comme cible deja maturee.
 - Verification : `npm run check:encoding` PASS. `npm test` PASS `241/241` le jeudi 13 aout 2026 apres realignement des contrats de libelles UTF-8. `npm run build` PASS le jeudi 13 aout 2026 lors de la reverification finale.
 
+### Mise a jour ciblee - Refonte desktop des cartes Personas du vendredi 14 aout 2026
+
+- Statut : `En cours`
+- Priorite : `P2 Important`
+- ID priorite : `P2-017`
+- ID priorite associee suivante : `P2-019`
+- Perimetre mis a jour : `src/app/dashboard/admin/personas/page.tsx`, `src/app/dashboard/admin/personas/PersonaFlipCard.tsx`, `src/app/dashboard/admin/pilotage/personas/page.module.scss`, `docs/master-plan-planetls.md`
+- Realite produit : la page canonique `/dashboard/admin/personas` expose maintenant un tableau distinct `Referentiel des profils cibles` avant les cartes, afin de montrer clairement `profil`, `besoin principal`, `ce que PlanetLS apporte` et `potentiel payant` pour chaque cible cle.
+- Realite produit : en desktop, les cartes personas restent sur `2 cartes par ligne`, mais avec un format plus long et plus rectangulaire. Le recto affiche davantage d'informations utiles `profil, besoin principal, dashboard, focus, apport PlanetLS, potentiel`, et le verso reprend aussi ces reperes avant les blocs detail `contexte, objectifs, frustrations, besoins, fonctionnalites prioritaires`.
+- Realite produit : les blocs `personaInfoPill` et `familyMetaCard` ne ressemblent plus a de simples pills rondes ; ils deviennent des cartes rectangulaires bordees, avec une grille `2 par ligne` pour les informations persona et des cartes meta plus lisibles pour chaque famille.
+- Realite produit : les familles de personas et les `Insights par famille` sont maintenant pliables/depliables avec une fleche visible, pour reduire la charge visuelle tout en gardant l'information complete a la demande.
+- Realite produit : le rail compact de la page supprime les blocs redondants `Profil` et `Activite recente` pour laisser la priorite a la navigation et aux notifications utiles a cette vue.
+- Decision UX : la bordure des cartes devient un signal d'etat. Le verso est volontairement plus visible avec une bordure plus marquee et un halo plus present afin qu'on distingue immediatement qu'une carte est retournee.
+- Decision de pilotage : la lecture `Impact persona sur les priorites` est maintenant reformulee en `Chantiers structurants par persona`, afin de separer le referentiel business des arbitrages produit complementaires qui n'etaient pas dans le tableau de profils.
+- Limites connues : le referentiel `potentiel payant` reste code en dur dans la page admin et n'est pas encore aligne sur une source editable commune avec l'atelier historique `developpement/personas`.
+- Contradictions detectees : la page cherchait a etre plus visuelle et plus compacte, mais les cartes n'affichaient pas assez d'information au recto et des blocs secondaires `Profil`, `Activite recente` concurrencaient la lecture principale. Le lot recentre l'ecran sur les personas eux-memes.
+- Verification : `npm run build` PASS le vendredi 14 aout 2026.
+- Prochaine etape recommandee : verifier en usage reel si le flip 3D reste le bon modele quand le niveau de detail augmente, ou si une ouverture verticale plus directe devient plus robuste.
+
+### Mise a jour ciblee - Nouvelles pistes developpables pour planning et compte rendu terrain du vendredi 14 aout 2026
+
+- Statut : `A faire`
+- Priorite : `P2 Important`
+- IDs priorite : `P2-020`, `P2-021`
+- Perimetre cible : `src/app/dashboard/concierge/planning/`, `src/app/api/concierge/optimized-routes/`, `src/app/api/concierge/team/`, `src/app/dashboard/concierge/sejours/`, `src/app/dashboard/concierge/missions/`, `src/app/api/reservations/`, `src/app/api/workflow-events/`
+- Idee produit : ajouter un vrai moteur d'optimisation des tournees quotidiennes concierge/equipe quand plusieurs missions sont prevues la meme journee. Le systeme doit analyser horaires, logements, contraintes de check-in/check-out et deplacement, puis proposer un ordre de passage optimise tout en laissant la modification manuelle a l'utilisateur.
+- Idee produit : ajouter un compte rendu vocal IA de fin d'intervention pour les check-in/check-out. Le concierge dicte librement son retour terrain ; l'application transcrit, detecte les informations importantes, propose une version structuree a valider, puis seulement apres validation enregistre le rapport, met a jour la mission ou le sejour et peut envoyer un recapitulatif au proprietaire.
+- Decision de pilotage : ces deux idees sont suffisamment concretes pour entrer dans le `Pilotage des priorites` plutot que rester de simples notes de brainstorming. Elles deviennent des pistes developpables officielles a arbitrer contre les autres chantiers `P2`.
+- Dependances pressenties : geolocalisation/adresses fiables, structures canoniques de reservation ou mission, timeline ou rapport d'intervention persistant, et pour la brique vocale un flux `transcription -> structuration -> validation humaine -> persistance`.
+- Limites connues : aucune des deux idees n'est encore branchée au produit ni specifiée en detail ; il faudra cadrer les regles metier exactes avant implementation, notamment sur le niveau d'automatisation autorise pour les changements de statut et les notifications proprietaire.
+
+### Mise a jour ciblee - Processus operationnels a optimiser par IA et automatisation du vendredi 14 aout 2026
+
+- Statut : `A faire`
+- Priorite : `P2 Important`
+- IDs priorite : `P2-022`, `P2-023`, `P2-024`, `P2-025`, `P2-026`
+- Perimetre cible : `src/app/api/service-requests/`, `src/app/api/quotes/`, `src/app/api/missions/`, `src/app/api/billing/`, `src/server/notifications/`, `src/app/dashboard/owner/demandes/`, `src/app/dashboard/concierge/demandes/`, `src/app/dashboard/owner/`, `src/app/dashboard/concierge/`
+- Idee produit : formaliser un premier processus d'automatisation du cycle `demande -> devis -> mission`. Une demande proprietaire doit pouvoir etre mieux structuree, diffusee aux bons professionnels, puis convertie plus simplement en mission apres acceptation du devis, avec regles explicables et points de validation clairs.
+- Idee produit : formaliser un second processus de relances automatiques sur les devis sans reponse, les missions a confirmer et les paiements en attente. L'objectif est de reduire les oublis administratifs sans supprimer le controle humain sur les cas sensibles.
+- Vision d'ensemble : ces deux chantiers s'ajoutent aux priorites deja posees sur l'optimisation des tournees `P2-020` et le compte rendu vocal terrain `P2-021`. Ensemble, ils decrivent un axe produit coherent : diminuer la charge repetitive des professionnels tout en augmentant la tracabilite et la qualite de suivi cote proprietaire.
+- Schema de reference a cartographier visuellement : `Demande proprietaire -> Devis -> Acceptation -> Creation de mission -> Optimisation du planning -> Check-in / Check-out -> Compte rendu vocal -> Analyse IA -> Validation humaine -> Cloture de mission -> Notification proprietaire`
+- Decision de pilotage : ces processus ne doivent pas etre traites comme de simples automatisations techniques. Ils doivent rester reversibles, validables par l'utilisateur et relies a des etats lisibles dans l'historique des demandes, devis, missions et paiements.
+- Cadrage metier a integrer au tableau de pilotage : avant tout developpement, il faut preciser les seuils de relance, les validations humaines obligatoires et la tracabilite des actions automatiques. Ce prerequis devient une priorite distincte `P2-024` pour eviter de lancer les automatismes sans garde-fous explicites.
+- Travail attendu pour `P2-024` : definir ensuite concretement les seuils de relance, les points de validation humaine obligatoires et le niveau de journalisation attendu pour chaque action automatique.
+- Feuille de route IA et automatisation a formaliser pour les livrables : `Phase 1 - Automatisation du workflow demande -> devis -> mission -> notifications`, `Phase 2 - Compte rendu vocal IA check-in/check-out`, `Phase 3 - Optimisation des tournees`, `Phase 4 - IA avancee assistant / incidents / recommandations`. Cette structuration devient une priorite distincte `P2-025` afin de cadrer une roadmap d'integration IA dediee plutot qu'une roadmap globale de tout PlanetLS.
+- Fil rouge recommande pour les livrables 2 a 5 : `Concierge termine son check-out -> appuie sur compte rendu vocal -> dicte son observation -> transcription -> IA structure les informations -> PlanetLS affiche le rapport -> concierge valide -> Supabase enregistre -> mission cloturee -> proprietaire informe automatiquement`. Si l'IA detecte une anomalie type `serrure endommagee`, elle ne doit proposer une creation d'incident ou de demande d'intervention qu'avec validation humaine explicite.
+- Principe produit a conserver : `l'IA prepare, analyse et propose ; le professionnel conserve le controle des decisions importantes`.
+- Sources officielles defendables a citer dans les livrables et PDF : `CNIL - fiches pratiques IA` https://www.cnil.fr/fr/les-fiches-pratiques-ia ; `Make - automatisation et IA / AI Agents` https://help.make.com/make-ai-agents ; `Mistral AI - documentation developpeurs` https://docs.mistral.ai/en . La consolidation de ce referentiel de sources devient une priorite distincte `P2-026`.
+- Dependances pressenties : statuts metier plus stricts sur les demandes, devis et missions, moteur de notifications, orchestration des relances, garde-fous de permissions, et journalisation des actions automatiques pour conserver la confiance produit.
+- Limites connues : ce cadrage ne fixe pas encore les seuils exacts de relance, les exceptions metier, ni la frontiere entre suggestion IA et action automatique. Une specification plus detaillee sera necessaire avant implementation.
+
 ### Mise a jour ciblee - Page admin Modele financier du jeudi 13 aout 2026
 
-- Statut : `🟠 Partiel`
+- Statut : `Partiel`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/modele-financier/page.tsx`, `src/app/dashboard/admin/modele-financier/page.module.scss`, `src/app/dashboard/admin/pilotage/economic-model/sharedFinancialReference.ts`, `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/components/dashboard/Sidebar/sidebarconfig.tsx`, `src/app/dashboard/admin/pilotage/page.tsx`, `src/app/dashboard/admin/personas/page.tsx`, `src/app/dashboard/admin/controle/page.tsx`, `src/app/dashboard/admin/decisions-architecture/DecisionCenterPage.tsx`, `docs/master-plan-planetls.md`
 - Realite produit : l'espace admin dispose maintenant d'une vraie page canonique `/dashboard/admin/modele-financier` exposee dans la navigation laterale et dans plusieurs navigations internes du cockpit admin. Elle consolide le benchmark tarifaire 2026, la grille de pricing cible PlanetLS, la lecture `willingness to pay`, les couts variables et les triggers de passage au payant dans une seule surface lisible.
@@ -1468,17 +1520,35 @@ Ajout du jeudi 6 aoÃ»t 2026 : la mÃªme page pousse dÃ©sormais le benchmark
 - Decision de pilotage : `modele financier` devient une entree admin distincte plutot qu'un simple sous-bloc du `pilotage business`. Cela clarifie le parcours admin entre `vision/benchmark`, `pricing & unit economics`, `personas`, `controle detaille` et `developpement`.
 - Decision de pilotage : la source de verite du cadrage financier doit etre mutualisee plutot que recopier des constantes dans plusieurs pages admin. Le referentiel partage devient la couche intermediaire entre lecture strategique et atelier de simulation.
 - Limites connues : les chiffres affiches restent des hypotheses et une synthese de benchmark, pas des valeurs branchees sur Stripe, la comptabilite ou un MRR reel. L'offre de production existante et les simulations avancees du module economique restent ailleurs et ne sont pas encore reunies dans une meme gouvernance outillee.
-- Contradictions detectees : le cockpit admin disposait deja de briques `business strategy` et `economic-model`, mais sans point d'entree explicite `modele financier` dans la navigation principale ni referentiel partage entre lecture strategique et simulation. Le lot corrige la lisibilite et une premiere partie de cette duplication, sans fusionner encore tous les objets financiers avancÃ©s.
+- Contradictions detectees : le cockpit admin disposait deja de briques `business strategy` et `economic-model`, mais sans point d'entree explicite `modele financier` dans la navigation principale ni referentiel partage entre lecture strategique et simulation. Le lot corrige la lisibilite et une premiere partie de cette duplication, sans fusionner encore tous les objets financiers avancÃƒÆ’Ã‚Â©s.
 - Verification : `npx eslint src/app/dashboard/admin/modele-financier/page.tsx src/app/dashboard/admin/pilotage/economic-model/sharedFinancialReference.ts src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx` PASS. `npm run check:encoding` PASS. `npm test` PASS `241/241` le jeudi 13 aout 2026 apres realignement des contrats UTF-8. `npm run build` PASS le jeudi 13 aout 2026 apres liberation du verrou `.next`.
 - Prochaine etape recommandee : etendre ensuite le meme socle partage aux autres briques finance `PricingRevenueSimulator`, `FinancialForecastModel` et, si besoin, ajouter une persistance admin des hypotheses pour sortir d'un referentiel purement code.
 
+### Mise a jour ciblee - Realignement value-based du modele financier du vendredi 14 aout 2026
+
+- Statut : `En cours`
+- Priorite : `P1 Prioritaire`
+- IDs priorite associees : `P2-025`, `P2-027`, `P2-028`, `P2-029`
+- Perimetre mis a jour : `src/app/dashboard/admin/pilotage/economic-model/sharedFinancialReference.ts`, `src/app/dashboard/admin/pilotage/economic-model/data.ts`, `src/app/dashboard/admin/pilotage/economic-model/types.ts`, `src/app/dashboard/admin/pilotage/economic-model/financialModel.ts`, `src/app/dashboard/admin/pilotage/economic-model/EconomicModelTab.tsx`, `src/app/dashboard/admin/pilotage/business-plan-reference.ts`, `src/app/dashboard/admin/pilotage/businessPlanData.ts`, `docs/master-plan-planetls.md`
+- Realite produit : le cadrage financier admin ne repose plus seulement sur une lecture `29 / 49 / sur devis`. La source partagee met maintenant en avant une grille `Free / Owner Pro / Concierge Pro / Business` avec repere de travail `0 / 19,90 / 49 / 149`, plus proche du texte de cadrage recent sur la tarification par valeur creee.
+- Priorite `P2-027` : rendre ce nouveau cadrage tarifaire visible et referencable directement dans le `Pilotage des priorites`, sans l'enfouir seulement dans la documentation narrative.
+- Realite produit : seules les idees nouvelles utiles ont ete ajoutees dans la couche active `willingness to pay`, `triggers de passage au payant`, `value-based pricing`, `Owner Pro a 19,90`, `Business a 149`, sans dupliquer des hypothese deja presentes ailleurs.
+- Realite produit : le module `Modele economique` et le referentiel `Business Plan` ont ete realignes sur les memes noms de paliers actifs `owner_pro`, `concierge_pro`, `business`. Les cartes d'offres simulees, les benchmarks PlanetLS, les recommandations de guidance et les scenarios de simulation partagent a nouveau une meme narration.
+- Decision de pilotage : la page admin peut assumer deux verites simultanees sans les melanger. `Conciergerie Pro a 29 EUR` reste l'offre Stripe reelle existante et verrouillee ; `Free / Owner Pro / Concierge Pro / Business` devient la gamme de travail interne pour tester une tarification value-based avant toute evolution commerciale ou technique.
+- Priorite `P2-028` : clarifier explicitement cette coexistence `offre Stripe reelle a 29 EUR` versus `gamme de travail admin`, afin d'eviter les contresens pendant les entretiens, les livrables et les futures decisions commerciales.
+- Contradictions detectees : le projet portait en parallele plusieurs grilles `29 / 49 / sur devis`, `FREE / ESSENTIAL / PRO / BUSINESS` et `0 / 19,90 / 49 / 149`. Ce lot reduit la dispersion sur les vues actives, mais l'historique documentaire ancien garde encore des traces des versions precedentes.
+- Limites connues : le simulateur financier de production n'est pas encore branche sur une persistance admin ni sur des donnees Stripe reellement observees. La comparaison entre offre reelle et gamme de travail reste donc editoriale et doit etre validee en entretien terrain avant toute migration commerciale.
+- Priorite `P2-029` : nettoyer ensuite les derniers libelles historiques de pricing encore divergents dans les vues secondaires et dans l'historique documentaire utile, sans reecrire artificiellement tout l'historique ancien.
+- Verification : verification locale a relancer sur `npm run build` apres realignement complet des references de tiers et des scenarios.
+- Prochaine etape recommandee : harmoniser ensuite les derniers libelles de travail visibles dans `PricingRevenueSimulator`, `FinancialForecastModel` et les surfaces de validation marche qui parlent encore en `ESSENTIAL / PRO` ou en `29 EUR`.
+
 ### Mise a jour ciblee - Revalidation finale du lot admin du jeudi 13 aout 2026
 
-- Statut : `✅ Terminé`
+- Statut : `Termine`
 - Priorite : `P1 Prioritaire`
 - Perimetre mis a jour : `src/app/dashboard/admin/page.tsx`, `src/tests/create-logement-helpers.test.mts`, `src/tests/developer-log.test.mts`, `src/tests/kpis-overview-contract.test.mts`, `docs/master-plan-planetls.md`
-- Realite produit : le tableau `D. Priorites` reste coherent avec les sujets remontes pendant la journee, notamment la couverture `P0/P1` deja visible dans la page `Developpement` et l'action `P2-016` sur les reliquats ASCII / labels historiques.
-- Realite produit : la contradiction de verification ouverte en fin de lot est maintenant levee. Les contrats de tests impactes par la francisation ont ete realignes, et le libelle admin visible `Mode dégradé` est de nouveau coherent entre interface et tests.
+- Realite produit : le tableau `Pilotage des priorites` reste coherent avec les sujets remontes pendant la journee, notamment la couverture `P0/P1` deja visible dans la page `Developpement` et l'action `P2-016` sur les reliquats ASCII / labels historiques.
+- Realite produit : la contradiction de verification ouverte en fin de lot est maintenant levee. Les contrats de tests impactes par la francisation ont ete realignes, et le libelle admin visible `Mode dÃƒÂ©gradÃƒÂ©` est de nouveau coherent entre interface et tests.
 - Decision de pilotage : les lots du jeudi 13 aout 2026 ne doivent plus etre presentes comme simplement "verifies plus tot dans la mission" ou "bloques par lock" alors qu'une reverification finale complete existe. La preuve de validation finale devient la reference documentaire.
 - Contradictions detectees : aucune contradiction ouverte restante sur l'etat de verification du lot admin du 13 aout 2026 apres relance complete des controles locaux.
 - Verification : `npm test` PASS `241/241`, `npm run check:encoding` PASS, `npm run build` PASS le jeudi 13 aout 2026.
