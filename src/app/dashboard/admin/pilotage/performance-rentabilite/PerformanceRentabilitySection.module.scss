@@ -1,0 +1,242 @@
+.panelStack,
+.metaGrid,
+.kpiGrid,
+.sectionGrid,
+.list,
+.roadmapGrid,
+.calendarGrid,
+.tableWrap,
+.dataAuditGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+.introCard,
+.metaCard,
+.kpiCard,
+.noteCard,
+.roadmapCard,
+.dataAuditCard,
+.recommendationCard,
+.statusChip,
+.calendarItem {
+  border: 1px solid rgba(120, 91, 46, 0.14);
+  border-radius: 1.1rem;
+  background:
+    radial-gradient(circle at top right, rgba(195, 153, 66, 0.12), transparent 36%),
+    linear-gradient(145deg, rgba(255, 251, 244, 0.98), rgba(255, 255, 255, 0.98));
+  box-shadow: 0 16px 32px rgba(56, 39, 18, 0.06);
+}
+
+.introCard,
+.metaCard,
+.kpiCard,
+.noteCard,
+.roadmapCard,
+.dataAuditCard,
+.recommendationCard {
+  padding: 1rem 1.05rem;
+}
+
+.introCard {
+  gap: 0.85rem;
+}
+
+.eyebrow,
+.kpiSource,
+.metaLabel,
+.calendarSource,
+.statusChip {
+  color: #8b631a;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.introCard h3,
+.metaCard strong,
+.kpiCard strong,
+.roadmapCard strong,
+.dataAuditCard strong,
+.recommendationCard strong,
+.tableHeading {
+  color: #2d261d;
+}
+
+.introCard h3 {
+  margin: 0;
+  font-size: 1.45rem;
+}
+
+.introCard p,
+.metaCard p,
+.kpiCard p,
+.noteCard li,
+.roadmapCard li,
+.dataAuditCard li,
+.recommendationCard p,
+.valueChain li,
+.tableSubtle,
+.calendarText {
+  color: rgba(45, 38, 29, 0.78);
+  line-height: 1.58;
+}
+
+.valueChain {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.valueChain li {
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(139, 99, 26, 0.08);
+}
+
+.metaGrid,
+.kpiGrid,
+.sectionGrid,
+.roadmapGrid,
+.dataAuditGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.metaCard {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.metaCard p,
+.kpiCard p,
+.recommendationCard p {
+  margin: 0;
+}
+
+.kpiCard {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.kpiValue {
+  font-size: 1.45rem;
+  font-weight: 800;
+}
+
+.statusChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.35rem 0.7rem;
+  width: fit-content;
+  border-radius: 999px;
+  background: rgba(49, 91, 67, 0.12);
+  color: #315b43;
+}
+
+.list {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.dataTable {
+  width: 100%;
+  min-width: 820px;
+  border-collapse: collapse;
+}
+
+.dataTable th,
+.dataTable td {
+  padding: 0.82rem 0.72rem;
+  border-bottom: 1px solid rgba(116, 95, 62, 0.12);
+  text-align: left;
+  vertical-align: top;
+}
+
+.dataTable th {
+  color: #6f532b;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: rgba(249, 243, 232, 0.88);
+}
+
+.dataTable td {
+  color: rgba(45, 38, 29, 0.86);
+}
+
+.tone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.9rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.tone[data-tone="excellent"] {
+  background: rgba(49, 91, 67, 0.12);
+  color: #315b43;
+}
+
+.tone[data-tone="good"] {
+  background: rgba(71, 112, 176, 0.12);
+  color: #2f5f98;
+}
+
+.tone[data-tone="watch"] {
+  background: rgba(139, 108, 74, 0.14);
+  color: #765738;
+}
+
+.tone[data-tone="opportunity"] {
+  background: rgba(195, 153, 66, 0.16);
+  color: #8b631a;
+}
+
+.tone[data-tone="underperforming"] {
+  background: rgba(183, 74, 74, 0.12);
+  color: #a14949;
+}
+
+.recommendationCard {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.calendarGrid {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.calendarItem {
+  padding: 0.85rem 0.9rem;
+}
+
+.calendarMonth {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #2d261d;
+  font-weight: 800;
+}
+
+@media (max-width: 960px) {
+  .metaGrid,
+  .kpiGrid,
+  .sectionGrid,
+  .roadmapGrid,
+  .dataAuditGrid {
+    grid-template-columns: 1fr;
+  }
+}

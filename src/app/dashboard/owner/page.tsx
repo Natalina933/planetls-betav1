@@ -489,27 +489,41 @@ export default function OwnerDashboardPage() {
   );
 
   const priorityItems = useMemo<UnifiedSpotlightItem[]>(
-    () =>
-      actionQueue.slice(0, 3).map((item) => ({
-        id: item.id,
-        label: item.kicker,
-        title: item.label,
-        detail: item.detail,
-        href: item.href,
-        icon:
-          item.icon === "home" ? (
-            <Home size={18} />
-          ) : item.icon === "request" ? (
-            <ClipboardList size={18} />
-          ) : item.icon === "invoice" ? (
-            <Wallet size={18} />
-          ) : item.icon === "quote" ? (
-            <CircleDollarSign size={18} />
-          ) : (
-            <BellRing size={18} />
-          ),
-        tone: item.tone === "warning" ? "warning" : item.tone === "success" ? "success" : "accent",
-      })),
+    () => {
+      const performanceItem: UnifiedSpotlightItem = {
+        id: "performance-rentability",
+        label: "Performance",
+        title: "Suivre la rentabilite locative",
+        detail: "Occupation, revenus nets et leviers d'amelioration de votre logement.",
+        href: "/dashboard/owner/finances/overview",
+        icon: <Wallet size={18} />,
+        tone: "accent",
+      };
+
+      return [
+        performanceItem,
+        ...actionQueue.slice(0, 2).map<UnifiedSpotlightItem>((item) => ({
+          id: item.id,
+          label: item.kicker,
+          title: item.label,
+          detail: item.detail,
+          href: item.href,
+          icon:
+            item.icon === "home" ? (
+              <Home size={18} />
+            ) : item.icon === "request" ? (
+              <ClipboardList size={18} />
+            ) : item.icon === "invoice" ? (
+              <Wallet size={18} />
+            ) : item.icon === "quote" ? (
+              <CircleDollarSign size={18} />
+            ) : (
+              <BellRing size={18} />
+            ),
+          tone: item.tone === "warning" ? "warning" : item.tone === "success" ? "success" : "accent",
+        })),
+      ];
+    },
     [actionQueue],
   );
 

@@ -132,6 +132,21 @@ type PriorityTableRow = {
   zones: string;
 };
 
+type DevelopmentAutomationTableRow = {
+  id: string;
+  zone: string;
+  state: string;
+  criticality: string;
+  objective: string;
+  summary: string;
+  trigger: string;
+  scenario: string;
+  dependencies: string;
+  tool: string;
+  kpi: string;
+  monitoring: string;
+};
+
 const FAVORITES_STORAGE_KEY = "planetls:developer-log:favorites";
 const COMMENTS_STORAGE_KEY = "planetls:developer-log:comments";
 const MANUAL_ENTRIES_STORAGE_KEY = "planetls:developer-log:manual-entries";
@@ -535,6 +550,78 @@ const PRIORITY_TABLE_ROWS: PriorityTableRow[] = [
     zones: "docs/master-plan-planetls.md, src/app/dashboard/admin/pilotage/, src/app/dashboard/admin/modele-financier/",
   },
   {
+    id: "P2-030",
+    level: "P2",
+    title: "Formaliser un registre des automatisations PlanetLS par rôle",
+    category: "Pilotage",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐⭐",
+    zones: "src/app/dashboard/admin/pilotage/, src/app/dashboard/admin/developpement/, docs/master-plan-planetls.md",
+  },
+  {
+    id: "P2-031",
+    level: "P2",
+    title: "Cadrer le flux owner réservation -> séjour -> planning -> tâches",
+    category: "Produit",
+    difficulty: "Élevée",
+    impact: "⭐⭐⭐⭐",
+    zones: "src/app/dashboard/owner/planning/, src/app/dashboard/owner/missions/voyageurs/, src/app/api/reservations/, docs/master-plan-planetls.md",
+  },
+  {
+    id: "P2-032",
+    level: "P2",
+    title: "Cadrer le flux concierge mission -> checklist -> compte rendu -> notification",
+    category: "Opérations",
+    difficulty: "Élevée",
+    impact: "⭐⭐⭐⭐",
+    zones: "src/app/dashboard/concierge/planning/, src/app/dashboard/concierge/sejours/, src/app/dashboard/concierge/missions/, src/server/notifications/",
+  },
+  {
+    id: "P2-033",
+    level: "P2",
+    title: "Cadrer le flux artisan demande qualifiée -> devis -> intervention -> facture",
+    category: "Marketplace",
+    difficulty: "Élevée",
+    impact: "⭐⭐⭐⭐",
+    zones: "src/app/dashboard/provider/interventions/, src/app/dashboard/provider/devis/, src/app/api/quotes/, src/app/api/provider/",
+  },
+  {
+    id: "P2-034",
+    level: "P2",
+    title: "Ajouter une grille anti-sur-automatisation avec score d'opportunité",
+    category: "Pilotage",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐⭐",
+    zones: "src/app/dashboard/admin/developpement/, src/app/dashboard/admin/pilotage/, docs/master-plan-planetls.md",
+  },
+  {
+    id: "P2-035",
+    level: "P2",
+    title: "Lancer l'audit terrain par acteur propriétaire, concierge et artisan",
+    category: "Recherche",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐⭐",
+    zones: "docs/master-plan-planetls.md, futurs questionnaires et guides d'entretien, src/app/dashboard/admin/pilotage/",
+  },
+  {
+    id: "P2-036",
+    level: "P2",
+    title: "Produire la cartographie AS-IS des processus métier et de leurs exceptions",
+    category: "Audit",
+    difficulty: "Élevée",
+    impact: "⭐⭐⭐⭐",
+    zones: "docs/master-plan-planetls.md, docs/spec-reservations-sejours-operations-2026-07-29.md, src/app/api/, cockpits owner/concierge/provider/admin",
+  },
+  {
+    id: "P2-037",
+    level: "P2",
+    title: "Faire valider les cartographies puis préparer le TO-BE priorisé",
+    category: "Produit",
+    difficulty: "Moyenne",
+    impact: "⭐⭐⭐⭐",
+    zones: "docs/master-plan-planetls.md, futurs ateliers terrain, src/app/dashboard/admin/developpement/",
+  },
+  {
     id: "P3-001",
     level: "P3",
     title: "Implémenter la carte interactive réseau",
@@ -668,6 +755,79 @@ const PRIORITY_TABLE_ROWS: PriorityTableRow[] = [
     difficulty: "Élevée",
     impact: "⭐⭐",
     zones: "Pages publiques, pilotage admin, futur modèle métier",
+  },
+];
+
+const DEVELOPMENT_AUTOMATION_TABLE_ROWS: DevelopmentAutomationTableRow[] = [
+  {
+    id: "AUT-001",
+    zone: "Devis",
+    state: "🟢 Actif",
+    criticality: "Critique",
+    objective: "Créer une mission",
+    summary: "Transforme un devis accepté en mission",
+    trigger: "Devis accepté",
+    scenario: "Acceptation → création mission → planning",
+    dependencies: "AUT-002",
+    tool: "PlanetLS",
+    kpi: "taux de succès",
+    monitoring: "98,7 % · 78 exécutions · 1 incident",
+  },
+  {
+    id: "AUT-002",
+    zone: "Planning",
+    state: "🟢 Actif",
+    criticality: "Élevée",
+    objective: "Ajouter la mission au planning",
+    summary: "Planifie automatiquement la mission",
+    trigger: "Mission créée",
+    scenario: "Mission → calendrier",
+    dependencies: "AUT-001",
+    tool: "PlanetLS",
+    kpi: "erreurs planning",
+    monitoring: "99,4 % · stable",
+  },
+  {
+    id: "AUT-003",
+    zone: "Notifications",
+    state: "🟢 Actif",
+    criticality: "Élevée",
+    objective: "Prévenir le prestataire",
+    summary: "Informe le concierge/artisan",
+    trigger: "Mission créée",
+    scenario: "Mission → notification",
+    dependencies: "AUT-001",
+    tool: "Resend",
+    kpi: "taux d’envoi",
+    monitoring: "96,1 % · 3 erreurs",
+  },
+  {
+    id: "AUT-004",
+    zone: "Mission",
+    state: "🟠 Test",
+    criticality: "Moyenne",
+    objective: "Envoyer un rappel",
+    summary: "Réduit les oublis",
+    trigger: "Mission J-1",
+    scenario: "contrôle statut → rappel",
+    dependencies: "AUT-002",
+    tool: "PlanetLS/Resend",
+    kpi: "missions à l’heure",
+    monitoring: "Pilote · 243 exécutions",
+  },
+  {
+    id: "AUT-005",
+    zone: "Compte rendu",
+    state: "⚪ Prévu",
+    criticality: "Moyenne",
+    objective: "Générer un résumé IA",
+    summary: "Aide le prestataire à rédiger",
+    trigger: "Mission terminée",
+    scenario: "données + photos → IA → validation",
+    dependencies: "AUT-001",
+    tool: "IA",
+    kpi: "temps gagné",
+    monitoring: "À mesurer",
   },
 ];
 
@@ -1850,6 +2010,48 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                         <td>{row.difficulty}</td>
                         <td>{row.impact}</td>
                         <td>{row.zones}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className={styles.priorityHeader}>
+                <strong>Automatisations &amp; Processus - tableau court</strong>
+              </div>
+              <div className={styles.tableScroll}>
+                <table aria-label="Tableau court des automatisations et processus">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Zone d’intervention</th>
+                      <th>État</th>
+                      <th>Criticité</th>
+                      <th>Objectif</th>
+                      <th>Résumé</th>
+                      <th>Déclencheur</th>
+                      <th>Scénario simplifié</th>
+                      <th>Dépendances</th>
+                      <th>Outil</th>
+                      <th>KPI</th>
+                      <th>Suivi utile</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {DEVELOPMENT_AUTOMATION_TABLE_ROWS.map((item) => (
+                      <tr key={`execution-automation-${item.id}`}>
+                        <td>{item.id}</td>
+                        <td>{item.zone}</td>
+                        <td>{item.state}</td>
+                        <td>{item.criticality}</td>
+                        <td>{item.objective}</td>
+                        <td>{item.summary}</td>
+                        <td>{item.trigger}</td>
+                        <td>{item.scenario}</td>
+                        <td>{item.dependencies}</td>
+                        <td>{item.tool}</td>
+                        <td>{item.kpi}</td>
+                        <td>{item.monitoring}</td>
                       </tr>
                     ))}
                   </tbody>

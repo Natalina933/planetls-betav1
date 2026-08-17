@@ -44,6 +44,7 @@ interface DashboardLayoutProps {
   hideQuickActions?: boolean;
   hideProfileSummary?: boolean;
   hideActivityFeed?: boolean;
+  hideSidebarNav?: boolean;
   hideNotifications?: boolean;
   hideShortcuts?: boolean;
   showBottomNav?: boolean;
@@ -91,6 +92,7 @@ export function DashboardLayout({
   hideQuickActions = false,
   hideProfileSummary = false,
   hideActivityFeed = false,
+  hideSidebarNav = false,
   hideNotifications = false,
   hideShortcuts = false,
   showBottomNav = true,
@@ -98,6 +100,7 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
   const PersonaIcon = getPersonaIcon(persona);
   const shouldShowBottomNav = showBottomNav && persona !== "admin";
+  const shouldShowAdminRail = persona !== "admin";
 
   return (
     <div className={styles.page}>
@@ -150,10 +153,10 @@ export function DashboardLayout({
         </main>
 
         <aside className={styles.aside}>
-          <Sidebar title={navTitle} items={navItems} />
+          {shouldShowAdminRail && !hideSidebarNav ? <Sidebar title={navTitle} items={navItems} /> : null}
           {!hideProfileSummary ? <ProfileSummary {...profile} /> : null}
           {!hideActivityFeed ? <ActivityFeed items={activity} /> : null}
-          {!hideNotifications ? (
+          {shouldShowAdminRail && !hideNotifications ? (
             <Card className={styles.panel}>
               <CardHeader className={styles.panelHeader}>
                 <h2>Notifications</h2>
@@ -173,7 +176,7 @@ export function DashboardLayout({
               </CardBody>
             </Card>
           ) : null}
-          {!hideShortcuts ? (
+          {shouldShowAdminRail && !hideShortcuts ? (
             <Card className={styles.panel}>
               <CardHeader className={styles.panelHeader}>
                 <h2>Accès rapides</h2>

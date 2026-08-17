@@ -3,6 +3,7 @@
 import SimpleOverviewWorkspace from "@/app/dashboard/_components/SimpleOverviewWorkspace";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { buildOwnerFinancesCompletion } from "@/app/dashboard/shared";
+import { PerformanceRentabilitySection } from "@/app/dashboard/admin/pilotage/performance-rentabilite/PerformanceRentabilitySection";
 import { useOwnerDashboardData } from "../../useOwnerDashboardData";
 
 export default function OwnerFinancesOverviewPage() {
@@ -18,7 +19,7 @@ export default function OwnerFinancesOverviewPage() {
       tone="owner"
       eyebrow="Pilotage financier"
       title="Vue d'ensemble des finances"
-      description="Cette vue rassemble uniquement l'etat de vos finances. Les sous-rubriques servent ensuite a suivre vos devis, vos factures et vos reglements, sans redondance."
+      description="Cette vue rassemble l'etat de vos finances et une premiere lecture de performance locative. Les sous-rubriques servent ensuite a suivre vos devis, vos factures, vos reglements et vos leviers de rentabilite sans redondance."
       chips={["Vue synthese", "A finaliser", "Points en attente"]}
       actions={[
         { label: "Voir les devis", href: "/dashboard/owner/devis", variant: "secondary" },
@@ -64,6 +65,8 @@ export default function OwnerFinancesOverviewPage() {
           actions: [{ label: "Voir les devis", href: "/dashboard/owner/devis", variant: "primary" }],
         },
       ]}
-    />
+    >
+      <PerformanceRentabilitySection />
+    </SimpleOverviewWorkspace>
   );
 }

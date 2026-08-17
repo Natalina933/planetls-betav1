@@ -66,6 +66,7 @@ export default async function AdminFinancialModelPage() {
         { label: "Coûts variables", value: "4 postes", hint: "Infra, IA, paiement, SMS" },
         { label: "Focus court terme", value: "Concierge Pro", hint: "Cœur de cible" },
       ]}
+      hideTodaySection
       actions={[]}
       hideQuickActions
       activity={[
@@ -108,7 +109,7 @@ export default async function AdminFinancialModelPage() {
         <section className={styles.hero}>
           <div className={styles.heroCopy}>
             <span className={styles.eyebrow}>Admin → Modèle financier</span>
-            <h2>Une lecture claire du pricing PlanetLS avant d'industrialiser les simulations</h2>
+            <h2>Un cadre simple pour piloter l'offre, les marges et les priorités de croissance</h2>
             <p>
               Le benchmark 2026 montre un marché déjà structuré par niveau de service, par volume de biens
               ou par vente sur devis. L'opportunité PlanetLS est de garder un SaaS lisible tout en captant

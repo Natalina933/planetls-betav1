@@ -4,7 +4,7 @@ import { ArrowRight, ChevronDown } from "lucide-react";
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth/authOptions";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
-import { Card, CardBody, CardHeader } from "@/components/ui";
+import { Card, CardBody } from "@/components/ui";
 import {
   productPersonas,
   type ProductPersona,
@@ -552,49 +552,6 @@ function PersonaFamilyPanel({ family }: { family: PersonaFamily }) {
   );
 }
 
-type CompactAdminRailProps = {
-  navItems: Array<{ label: string; href: string }>;
-  notifications: Array<{ id: string; title: string; href?: string }>;
-};
-
-function CompactAdminRail({ navItems, notifications }: CompactAdminRailProps) {
-  return (
-    <section className={styles.compactAdminRail} aria-label="Contexte admin compact">
-      <Card tone="soft" className={styles.compactAdminCard}>
-        <CardHeader>
-          <h3>Pilotage admin</h3>
-        </CardHeader>
-        <CardBody className={styles.compactNavBody}>
-          {navItems.map((item) => (
-            <Link key={item.href} href={item.href} className={styles.compactNavLink}>
-              <span>{item.label}</span>
-              <ArrowRight size={15} />
-            </Link>
-          ))}
-        </CardBody>
-      </Card>
-      <Card tone="soft" className={styles.compactAdminCard}>
-        <CardHeader>
-          <h3>Notifications</h3>
-        </CardHeader>
-        <CardBody className={styles.compactListBody}>
-          {notifications.map((item) => (
-            <article key={item.id} className={styles.compactListItem}>
-              <strong>info</strong>
-              <p>{item.title}</p>
-              {item.href ? (
-                <Link href={item.href}>
-                  Traiter <ArrowRight size={15} />
-                </Link>
-              ) : null}
-            </article>
-          ))}
-        </CardBody>
-      </Card>
-    </section>
-  );
-}
-
 export default async function AdminPersonasPage() {
   const session = await auth();
   const role = session?.user?.role;
@@ -637,7 +594,10 @@ export default async function AdminPersonasPage() {
       actions={[]}
       hideQuickActions
       activity={[]}
+      hideSidebarNav
+      hideNotifications
       notifications={notifications.map((item) => ({ ...item, level: "info" as const }))}
+      hideShortcuts
       shortcuts={[
         { label: "Pilotage", href: "/dashboard/admin/pilotage" },
         { label: "Modèle financier", href: "/dashboard/admin/modele-financier" },
@@ -651,34 +611,33 @@ export default async function AdminPersonasPage() {
         <section className={styles.hero}>
           <div className={styles.heroCopy}>
             <span className={styles.eyebrow}>Admin → Personas</span>
-            <h2>Des cartes personas plus longues, rectangulaires et lisibles des deux côtés</h2>
+            <h2>Un référentiel pour aligner les priorités business, produit et opérationnelles</h2>
             <p>
-              Chaque persona apparaît maintenant comme une vraie carte desktop en format rectangle,
-              alignée par deux, avec plus d'informations visibles au recto comme au verso, une
-              bordure plus nette et un état retourné mieux signalé.
+              Cette page sert à comprendre rapidement quels profils PlanetLS doit mieux servir,
+              quels besoins doivent guider les arbitrages et où concentrer les prochains efforts.
+              Elle transforme les personas en outil de pilotage concret pour la roadmap, l'UX et le
+              contrôle détaillé.
             </p>
           </div>
           <div className={styles.heroStats}>
             <article>
-              <strong>Recto</strong>
-              <span>Profil, besoin, valeur PlanetLS, étoiles, dashboard et focus</span>
+              <strong>Lecture rapide</strong>
+              <span>Profil, besoin principal, valeur PlanetLS et potentiel de chaque persona</span>
             </article>
             <article>
-              <strong>Verso</strong>
-              <span>Contexte, objectifs, frustrations, besoins et fonctionnalités prioritaires</span>
+              <strong>Arbitrage</strong>
+              <span>Contexte, objectifs, frictions et priorités à transformer en décisions produit</span>
             </article>
             <article>
-              <strong>Grille</strong>
-              <span>2 cartes par ligne en desktop, 1 en mobile, hauteur allongée</span>
+              <strong>Structure</strong>
+              <span>Familles lisibles, comparaison plus simple et vision cohérente entre dashboards</span>
             </article>
             <article>
               <strong>Usage</strong>
-              <span>Familles et insights repliables pour une lecture plus claire</span>
+              <span>Un support commun pour cadrer la roadmap, l'UX et les opportunités business</span>
             </article>
           </div>
         </section>
-
-        <CompactAdminRail navItems={[...navItems]} notifications={[...notifications]} />
 
         <section className={styles.sectionStack}>
           <DashboardPanel title="Référentiel des profils cibles">

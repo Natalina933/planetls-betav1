@@ -1,5 +1,7 @@
 .card {
   border: 1px solid var(--dash-border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(246, 241, 232, 0.94));
+  color: var(--dash-text);
 }
 
 .header {
@@ -26,6 +28,6 @@
 
 .subtitle {
   margin: var(--dash-space-1) 0 var(--dash-space-2);
-  color: var(--dash-text-muted);
+  color: color-mix(in srgb, var(--dash-text) 78%, #42564f);
   font-size: 0.83rem;
 }

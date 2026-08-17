@@ -193,6 +193,7 @@
   gap: var(--dash-space-4, var(--ds-space-4));
   min-width: 0;
   align-content: start;
+  color: var(--dash-text);
 }
 
 .aside > * {
@@ -202,8 +203,10 @@
 .panel {
   border: 1px solid color-mix(in srgb, var(--dash-accent) 12%, var(--dash-border));
   border-radius: calc(var(--dash-radius-lg, var(--ds-radius-lg)) + 2px);
-  background: var(--dash-bg-panel);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(246, 241, 232, 0.94));
   box-shadow: 0 16px 32px rgba(73, 53, 22, 0.06);
+  color: var(--dash-text);
 }
 
 .panelHeader {
@@ -239,7 +242,7 @@
 .notificationItem p {
   margin: 0;
   font-size: 0.84rem;
-  color: var(--dash-text-muted);
+  color: color-mix(in srgb, var(--dash-text) 82%, #31443d);
   line-height: 1.35;
 }
 
@@ -261,7 +264,7 @@
   justify-content: space-between;
   min-height: 54px;
   text-decoration: none;
-  color: var(--dash-text-muted);
+  color: color-mix(in srgb, var(--dash-text) 88%, #27453d);
   font-size: 0.78rem;
   font-weight: 900;
   padding: var(--dash-space-2);
@@ -351,7 +354,7 @@
 .empty {
   margin: 0;
   font-size: 0.86rem;
-  color: var(--dash-text-muted);
+  color: color-mix(in srgb, var(--dash-text) 82%, #31443d);
 }
 
 :global(body[data-readability="on"]) {

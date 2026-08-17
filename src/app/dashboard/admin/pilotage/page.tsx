@@ -173,10 +173,10 @@ function formatPercent(value: number | null | undefined) {
   return `${Math.round(value * 100) / 100} %`;
 }
 
-function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+function SectionHeader({ title, subtitle, hideTitle = false }: { title: string; subtitle?: string; hideTitle?: boolean }) {
   return (
     <div className={styles.sectionHeader}>
-      <h3>{title}</h3>
+      {!hideTitle ? <h3>{title}</h3> : null}
       {subtitle ? <p>{subtitle}</p> : null}
     </div>
   );
@@ -490,12 +490,7 @@ export default function AdminBusinessPage() {
         { label: "Contrôle détaillé", href: "/dashboard/admin/controle" },
         { label: "Développement", href: "/dashboard/admin/developpement" },
       ]}
-      stats={[
-        { label: "Utilisateurs visibles", value: overview ? String(overview.summary.totalUsers) : "À mesurer", hint: "Lecture API admin" },
-        { label: "Hypothèses critiques", value: String(criticalHypothesesCount), hint: "À trancher vite" },
-        { label: "Risques critiques", value: String(criticalRisksCount), hint: "À surveiller" },
-        { label: "Offre active", value: "29 EUR", hint: "Concierge Pro" },
-      ]}
+      stats={[]}
       actions={[]}
       hideQuickActions
       activity={[
@@ -620,6 +615,7 @@ export default function AdminBusinessPage() {
             <SectionHeader
               title="Positionnement & concurrence"
               subtitle="Une lecture directe des forces de PlanetLS face aux outils spécialisés ou fragmentés."
+              hideTitle
             />
             <BenchmarkCardGrid items={positioningCards} />
           </DashboardPanel>
@@ -681,6 +677,7 @@ export default function AdminBusinessPage() {
             <SectionHeader
               title="Roadmap technique"
               subtitle="Un socle clair, puis une montée en valeur par étapes plutôt qu'une complexité lancée d'un bloc."
+              hideTitle
             />
             <BenchmarkCardGrid items={roadmapCards} />
             <div className={styles.timelineMiniGrid}>
@@ -698,7 +695,8 @@ export default function AdminBusinessPage() {
           <DashboardPanel title="Positionnement marketing">
             <SectionHeader
               title="Positionnement marketing"
-              subtitle="Les messages et segments à garder cohérents entre landing, vente et démonstration produit."
+              subtitle="Messages et segments à garder cohérents entre landing, vente et démo produit."
+              hideTitle
             />
             <BenchmarkCardGrid items={marketingCards} />
           </DashboardPanel>

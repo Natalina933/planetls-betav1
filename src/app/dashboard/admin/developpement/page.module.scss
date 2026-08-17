@@ -308,6 +308,365 @@
   font-weight: 500;
 }
 
+.automationWorkspaceBody,
+.automationSummaryGrid,
+.automationFilters,
+.automationReadableIntro,
+.automationOverviewGrid,
+.automationProcessGrid,
+.automationProcessColumns,
+.automationCardsGrid,
+.automationMetaGrid,
+.automationThreeCols,
+.automationMappingGrid,
+.automationHistoryList,
+.automationChipRow,
+.automationChain,
+.automationBadgeRow {
+  display: grid;
+  gap: 1rem;
+}
+
+.automationSummaryGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.automationSummaryCard,
+.automationOverviewCard,
+.automationProcessCard,
+.automationCard,
+.automationMappingCard,
+.automationHistoryItem,
+.automationAuditBanner {
+  padding: 1rem 1.1rem;
+  border: 1px solid #e7dfd0;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.automationSummaryCard span,
+.automationOverviewCard span,
+.automationProcessCard span,
+.automationCard span,
+.automationMappingCard span,
+.automationHistoryItem span,
+.automationAuditBanner span,
+.automationChainStep strong {
+  color: #8c641e;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.automationSummaryCard strong,
+.automationOverviewCard strong,
+.automationProcessCard strong,
+.automationCard strong,
+.automationMappingCard strong,
+.automationHistoryItem strong,
+.automationAuditBanner strong {
+  color: #183f36;
+}
+
+.automationSummaryCard p,
+.automationOverviewCard p,
+.automationProcessCard p,
+.automationCard p,
+.automationMappingCard p,
+.automationHistoryItem p,
+.automationAuditBanner p,
+.automationMetaGrid span,
+.automationThreeCols p {
+  margin: 0;
+  color: #5e6965;
+  line-height: 1.55;
+}
+
+.automationAuditBanner {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  background:
+    radial-gradient(circle at top right, rgba(35, 116, 118, 0.08), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 244, 237, 0.94));
+}
+
+.automationFilters {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.automationFilters select,
+.automationSearch {
+  min-width: 0;
+  border: 1px solid rgba(24, 63, 54, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.automationFilters select {
+  padding: 0.8rem 0.9rem;
+  color: #25332f;
+}
+
+.automationSearch {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0 0.9rem;
+}
+
+.automationSearch input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  padding: 0.9rem 0;
+  background: transparent;
+  color: #25332f;
+}
+
+.automationTabsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: flex-start;
+  padding: 0;
+  background: transparent;
+}
+
+.automationTabContent {
+  margin-top: 1rem;
+}
+
+.automationOverviewGrid,
+.automationMappingGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.automationProcessGrid,
+.automationCardsGrid,
+.automationHistoryList,
+.automationReadableIntro {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.automationProcessTop,
+.automationCardTop,
+.automationHistoryTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.automationProcessColumns,
+.automationThreeCols {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.automationThreeCols {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.automationMetaGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.automationMetaGrid div,
+.automationThreeCols div {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid #eee5d8;
+  border-radius: 16px;
+  background: rgba(249, 247, 242, 0.9);
+}
+
+.automationDependencyRow {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.automationChipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.automationChip,
+.automationChipAccent,
+.automationBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.automationChip {
+  border: 1px solid rgba(24, 63, 54, 0.12);
+  background: rgba(24, 63, 54, 0.06);
+  color: #183f36;
+}
+
+.automationChipAccent {
+  border: 1px solid rgba(178, 122, 41, 0.22);
+  background: rgba(178, 122, 41, 0.1);
+  color: #8c641e;
+}
+
+.automationStatusActive {
+  background: rgba(47, 122, 76, 0.12);
+  color: #1d6d42;
+}
+
+.automationStatusWarning {
+  background: rgba(191, 140, 45, 0.16);
+  color: #8c641e;
+}
+
+.automationStatusNeutral,
+.automationStatusMuted {
+  background: rgba(36, 59, 54, 0.08);
+  color: #51615d;
+}
+
+.automationStatusCritical {
+  background: rgba(161, 55, 39, 0.14);
+  color: #8b2c20;
+}
+
+.automationCriticalityHigh {
+  background: rgba(161, 55, 39, 0.14);
+  color: #8b2c20;
+}
+
+.automationCriticalityRaised {
+  background: rgba(191, 140, 45, 0.16);
+  color: #8c641e;
+}
+
+.automationCriticalityMedium {
+  background: rgba(35, 116, 118, 0.14);
+  color: #145b5d;
+}
+
+.automationCriticalityLow {
+  background: rgba(24, 63, 54, 0.08);
+  color: #51615d;
+}
+
+.automationMiniList {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding-left: 1rem;
+  color: #5e6965;
+}
+
+.automationMiniList li {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.automationChain {
+  align-items: center;
+}
+
+.automationChainStep {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid #eee5d8;
+  border-radius: 16px;
+  background: rgba(249, 247, 242, 0.9);
+}
+
+.automationChainStep span {
+  color: #183f36;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.automationHistoryItem small {
+  color: #6c7571;
+}
+
+.automationTablePrimary {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.automationTablePrimary span {
+  color: #5e6965;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.automationTableRowActive {
+  background: rgba(35, 116, 118, 0.08);
+}
+
+.automationDetailPanel {
+  display: grid;
+  gap: 1rem;
+  padding: 1.15rem;
+  border: 1px solid rgba(24, 63, 54, 0.12);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(35, 116, 118, 0.08), transparent 22%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 244, 237, 0.94));
+}
+
+@container development-page (max-width: 980px) {
+  .automationSummaryGrid,
+  .automationReadableIntro,
+  .automationOverviewGrid,
+  .automationProcessGrid,
+  .automationCardsGrid,
+  .automationHistoryList,
+  .automationMappingGrid,
+  .automationFilters,
+  .automationMetaGrid,
+  .automationThreeCols,
+  .automationProcessColumns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container development-page (max-width: 720px) {
+  .automationSummaryGrid,
+  .automationReadableIntro,
+  .automationOverviewGrid,
+  .automationProcessGrid,
+  .automationCardsGrid,
+  .automationHistoryList,
+  .automationMappingGrid,
+  .automationFilters,
+  .automationMetaGrid,
+  .automationThreeCols,
+  .automationProcessColumns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .automationAuditBanner,
+  .automationProcessTop,
+  .automationCardTop,
+  .automationHistoryTop {
+    flex-direction: column;
+  }
+}
+
 .workspaceTabsList {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));

@@ -5,7 +5,8 @@
   width: 100%;
   max-width: none;
   border: 1px solid var(--dash-border);
-  background: linear-gradient(180deg, var(--dash-bg-panel), var(--dash-bg-panel-soft));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(246, 241, 232, 0.94));
+  color: var(--dash-text);
   z-index: 2;
 }
 
@@ -37,7 +38,7 @@
 .link {
   display: block;
   text-decoration: none;
-  color: var(--dash-text);
+  color: color-mix(in srgb, var(--dash-text) 92%, #23443d);
   font-size: 0.9rem;
   padding: var(--dash-space-2) var(--dash-space-3);
   border-radius: var(--dash-radius-sm);
@@ -57,8 +58,8 @@
 
 .active {
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--dash-accent) 16%, transparent), transparent),
-    var(--dash-bg-panel-soft);
+    linear-gradient(135deg, color-mix(in srgb, var(--dash-accent) 16%, white), transparent),
+    rgba(242, 248, 246, 0.96);
   color: var(--dash-accent-strong);
   border-color: color-mix(in srgb, var(--dash-accent) 26%, transparent);
   box-shadow: inset 3px 0 0 var(--dash-accent);
