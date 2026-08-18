@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiAuthContext } from "@/server/auth/apiAuth";
-import { loadProjectAdvisorViewForAdmin } from "@/app/dashboard/admin/developpement/workspaceData";
+import { loadProjectAdvisorViewForAdmin } from "@/app/dashboard/admin/(product-tech)/developpement/workspaceData";
 
 export const dynamic = "force-dynamic";
 

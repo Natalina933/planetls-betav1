@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildTechnicalMemoryView } from "../app/dashboard/admin/developpement/technicalMemory.ts";
+import { buildTechnicalMemoryView } from "../app/dashboard/admin/(product-tech)/developpement/technicalMemory.ts";
 
 test("buildTechnicalMemoryView expose les décisions canoniques et celles du Master Plan", () => {
   const markdown = `# Master Plan PlanetLS

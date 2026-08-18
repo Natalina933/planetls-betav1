@@ -15,8 +15,8 @@ Cette architecture doit rester compatible avec l'existant de `/dashboard/admin/p
 
 La source de verite centralisee est un referentiel TypeScript local :
 
-- fichier canonique : `src/app/dashboard/admin/pilotage/business-plan-reference.ts`
-- fichier adaptateur UI compatible : `src/app/dashboard/admin/pilotage/businessPlanData.ts`
+- fichier canonique : `src/app/dashboard/admin/(business)/pilotage/business-plan-reference.ts`
+- fichier adaptateur UI compatible : `src/app/dashboard/admin/(business)/pilotage/businessPlanData.ts`
 
 Pourquoi ce choix :
 
@@ -115,9 +115,9 @@ type BusinessPlanEntity<T> = BusinessPlanField<T> & {
 Le referentiel central ne reinvente pas les donnees. Il s'appuie sur :
 
 - `docs/master-plan-planetls.md`
-- `src/app/dashboard/admin/pilotage/economic-model/data.ts`
-- `src/app/dashboard/admin/pilotage/market-validation/validationData.ts`
-- `src/app/dashboard/admin/pilotage/risk-register/riskData.ts`
+- `src/app/dashboard/admin/(business)/pilotage/economic-model/data.ts`
+- `src/app/dashboard/admin/(business)/pilotage/market-validation/validationData.ts`
+- `src/app/dashboard/admin/(business)/pilotage/risk-register/riskData.ts`
 - les contenus editoriaux deja presents dans l'ancien `businessPlanData.ts`
 
 ## Donnees reelles vs hypotheses vs simulations
@@ -203,3 +203,4 @@ Une persistance future ne devra etre envisagee que si au moins un des besoins su
 2. Ajouter des helpers de lecture par section pour simplifier les composants du cockpit.
 3. Clarifier visuellement dans l'UI la difference entre `reel`, `hypothese` et `simulation`.
 4. Ne considerer une persistance admin que lorsque le workflow d'edition sera explicitement defini.
+

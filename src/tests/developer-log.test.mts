@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildDeveloperLogView } from "../app/dashboard/admin/developpement/developerLog.ts";
-import { parseMasterPlan } from "../app/dashboard/admin/developpement/masterPlan.ts";
+import { buildDeveloperLogView } from "../app/dashboard/admin/(product-tech)/developpement/developerLog.ts";
+import { parseMasterPlan } from "../app/dashboard/admin/(product-tech)/developpement/masterPlan.ts";
 
 test("buildDeveloperLogView combine commits et planning avec metadata exploitables", () => {
   const plan = parseMasterPlan(`# Plan
@@ -15,8 +15,8 @@ test("buildDeveloperLogView combine commits et planning avec metadata exploitabl
     projectVersion: "0.1.0",
     repositoryUrl: "https://github.com/Natalina933/planetls-betav1.git",
     changedFiles: [
-      "src/app/dashboard/admin/developpement/MasterPlanViewer.tsx",
-      "src/app/dashboard/admin/developpement/developerLog.ts",
+      "src/app/dashboard/admin/(product-tech)/developpement/MasterPlanViewer.tsx",
+      "src/app/dashboard/admin/(product-tech)/developpement/developerLog.ts",
       "docs/master-plan-planetls.md",
       "e2e/admin-development.spec.ts",
     ],

@@ -1,3 +1,0 @@
-module.exports=[656817,a=>{"use strict";var b=a.i(187924),c=a.i(400614);function d({eyebrow:a,title:d,description:e,cards:f,metrics:g,chips:h,actions:i,detailSections:j,children:k}){return(0,b.jsx)(c.default,{eyebrow:a,title:d,description:e,cards:f,metrics:g,chips:h,actions:i,detailSections:j,fallbackTone:"provider",children:k})}a.s(["default",()=>d])}];
-
-//# sourceMappingURL=src_app_dashboard_provider__components_ProviderWorkspacePage_tsx_06f8d74f._.js.map

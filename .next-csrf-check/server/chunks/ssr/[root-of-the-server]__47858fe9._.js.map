@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../../../src/app/page.tsx"],"sourcesContent":["// src/app/page.tsx\r\nimport { redirect } from 'next/navigation';\r\n\r\nexport default function HomeRedirectPage() {\r\n  redirect('/home');\r\n}\r\n"],"names":[],"mappings":"6WACA,EAAA,CAAA,CAAA,QAAA,IAAA,EAAA,EAAA,CAAA,CAAA,QAEe,SAAS,IACtB,CAAA,EAAA,EAAA,QAAA,AAAQ,EAAC,QACX"}

@@ -22,8 +22,8 @@ tags:
   - lean
   - go-to-market
 source:
-  - src/app/dashboard/admin/pilotage/market-validation/validationData.ts
-  - src/app/dashboard/admin/pilotage/market-validation/LeanValidationDashboard.tsx
+  - src/app/dashboard/admin/(business)/pilotage/market-validation/validationData.ts
+  - src/app/dashboard/admin/(business)/pilotage/market-validation/LeanValidationDashboard.tsx
 ---
 
 ## Objectif
@@ -78,3 +78,4 @@ Puis :
 ## Provenance
 
 - Validation marche de Pilotage Business
+

@@ -46,16 +46,3 @@ export function buildAdminShortcuts(...sections: AdminNavigationSection[]): Dash
   }));
 }
 
-export function overrideAdminNavItems(
-  _legacyItems: DashboardNavItem[],
-  ...sections: AdminNavigationSection[]
-) {
-  return buildAdminNavItems(...sections);
-}
-
-export function overrideAdminShortcuts(
-  _legacyItems: DashboardShortcutItem[],
-  ...sections: AdminNavigationSection[]
-) {
-  return buildAdminShortcuts(...sections);
-}

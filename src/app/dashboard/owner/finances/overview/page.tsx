@@ -3,7 +3,7 @@
 import SimpleOverviewWorkspace from "@/app/dashboard/_components/SimpleOverviewWorkspace";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { buildOwnerFinancesCompletion } from "@/app/dashboard/shared";
-import { PerformanceRentabilitySection } from "@/app/dashboard/admin/pilotage/performance-rentabilite/PerformanceRentabilitySection";
+import { PerformanceRentabilitySection } from "@/app/dashboard/admin/(business)/pilotage/performance-rentabilite/PerformanceRentabilitySection";
 import { useOwnerDashboardData } from "../../useOwnerDashboardData";
 
 export default function OwnerFinancesOverviewPage() {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildArchitectureDecisionCenter } from "../app/dashboard/admin/decisions-architecture/architectureDecisions.ts";
+import { buildArchitectureDecisionCenter } from "../app/dashboard/admin/(product-tech)/decisions-architecture/architectureDecisions.ts";
 
 test("buildArchitectureDecisionCenter expose les champs de décision et les liens entre décisions", () => {
   const center = buildArchitectureDecisionCenter({

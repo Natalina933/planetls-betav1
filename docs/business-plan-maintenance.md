@@ -21,8 +21,8 @@ Il sert a :
 ## Sources de verite concernees
 
 - `docs/master-plan-planetls.md`
-- `src/app/dashboard/admin/pilotage/business-plan-reference.ts`
-- `src/app/dashboard/admin/pilotage/businessPlanData.ts`
+- `src/app/dashboard/admin/(business)/pilotage/business-plan-reference.ts`
+- `src/app/dashboard/admin/(business)/pilotage/businessPlanData.ts`
 - `docs/business-plan-data-model.md`
 - `docs/business-plan-financial-model.md`
 
@@ -396,3 +396,4 @@ Le `Business Impact Check` ne :
 - n'impose pas de nouvelle base de donnees.
 
 Son role est d'eviter l'obsolescence silencieuse du Business Plan et de rendre visibles les parties qui doivent etre relues.
+

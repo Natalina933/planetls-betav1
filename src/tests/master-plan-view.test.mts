@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseMasterPlan } from "../app/dashboard/admin/developpement/masterPlan.ts";
+import { parseMasterPlan } from "../app/dashboard/admin/(product-tech)/developpement/masterPlan.ts";
 
 test("parseMasterPlan indexe les sections, statuts et priorités", () => {
   const plan = parseMasterPlan("# Plan\n\n## Livraison\n\n🟡 En cours | P0 Critique\n\n### Suite\n\n✅ Terminé", "2026-07-19T12:00:00.000Z");

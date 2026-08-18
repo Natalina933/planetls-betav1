@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseMasterPlan } from "../app/dashboard/admin/developpement/masterPlan.ts";
-import { buildRoadmapView, projectRoadmap } from "../app/dashboard/admin/developpement/roadmap.ts";
+import { parseMasterPlan } from "../app/dashboard/admin/(product-tech)/developpement/masterPlan.ts";
+import { buildRoadmapView, projectRoadmap } from "../app/dashboard/admin/(product-tech)/developpement/roadmap.ts";
 
 test("la roadmap intelligente recalcule la prochaine fonctionnalité quand un chantier est terminé", () => {
   const markdown = `# Plan

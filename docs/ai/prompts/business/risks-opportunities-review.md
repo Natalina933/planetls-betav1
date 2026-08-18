@@ -21,7 +21,7 @@ tags:
   - opportunites
   - strategie
 source:
-  - src/app/dashboard/admin/pilotage/risk-register/riskData.ts
+  - src/app/dashboard/admin/(business)/pilotage/risk-register/riskData.ts
   - docs/master-plan-planetls.md
 ---
 
@@ -77,3 +77,4 @@ Ensuite :
 
 - Risk Register Pilotage Business
 - Master Plan PlanetLS
+

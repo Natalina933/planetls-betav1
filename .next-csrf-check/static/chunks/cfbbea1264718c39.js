@@ -1,1 +1,0 @@
-(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,67832,e=>{"use strict";function t(e,t){let s,r=(s=(t||e).trim())?/[.!?]$/.test(s)?s:`${s}.`:"";return`${r} R\xe9essayez dans quelques instants.`}e.s(["conciergeApiError",()=>t])}]);

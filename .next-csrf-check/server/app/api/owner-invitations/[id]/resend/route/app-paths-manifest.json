@@ -1,3 +1,0 @@
-{
-  "/api/owner-invitations/[id]/resend/route": "app/api/owner-invitations/[id]/resend/route.js"
-}

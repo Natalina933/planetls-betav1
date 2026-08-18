@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseMasterPlan } from "../app/dashboard/admin/developpement/masterPlan.ts";
+import { MASTER_PLAN_STATUSES, parseMasterPlan } from "../app/dashboard/admin/(product-tech)/developpement/masterPlan.ts";
 
 test("parseMasterPlan reconnait le tableau fonctionnel meme avec un en-tete degrade", () => {
   const markdown = `# Plan
@@ -14,6 +14,6 @@ test("parseMasterPlan reconnait le tableau fonctionnel meme avec un en-tete degr
   const plan = parseMasterPlan(markdown, "2026-08-18T10:00:00.000Z");
 
   assert.equal(plan.functionalRows.length, 2);
-  assert.equal(plan.functionalStatusCounts["ðŸŸ¡ En cours"], 1);
-  assert.equal(plan.functionalStatusCounts["ðŸŸ  Partiel"], 1);
+  assert.equal(plan.functionalStatusCounts[MASTER_PLAN_STATUSES[1]], 1);
+  assert.equal(plan.functionalStatusCounts[MASTER_PLAN_STATUSES[2]], 1);
 });

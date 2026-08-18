@@ -7,7 +7,7 @@ import {
   computeOccupancyRate,
   computePotentialAdditionalNights,
   computeRevPar,
-} from "../app/dashboard/admin/pilotage/performance-rentabilite/calculations.ts";
+} from "../app/dashboard/admin/(business)/pilotage/performance-rentabilite/calculations.ts";
 
 test("les calculs de performance renvoient des métriques cohérentes", () => {
   assert.equal(computeOccupancyRate(130, 364), 35.7);

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildMissionControlView } from "../app/dashboard/admin/developpement/missionControl.ts";
-import { parseMasterPlan } from "../app/dashboard/admin/developpement/masterPlan.ts";
+import { buildMissionControlView } from "../app/dashboard/admin/(product-tech)/developpement/missionControl.ts";
+import { parseMasterPlan } from "../app/dashboard/admin/(product-tech)/developpement/masterPlan.ts";
 
 test("buildMissionControlView synthétise progression, charge et santé", () => {
   const markdown = `# Plan

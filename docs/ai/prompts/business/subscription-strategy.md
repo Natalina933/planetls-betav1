@@ -22,7 +22,7 @@ tags:
   - pricing
   - offre
 source:
-  - src/app/dashboard/admin/pilotage/page.tsx
+  - src/app/dashboard/admin/(business)/pilotage/page.tsx
   - docs/master-plan-planetls.md
 ---
 
@@ -80,3 +80,4 @@ Puis :
 
 - Pilotage Business
 - Master Plan PlanetLS
+

@@ -4,13 +4,13 @@ Date: 2026-08-07
 
 ## Perimetre analyse
 
-- `src/app/dashboard/admin/pilotage/page.tsx`
-- `src/app/dashboard/admin/pilotage/economic-model/*`
-- `src/app/dashboard/admin/pilotage/market-validation/*`
-- `src/app/dashboard/admin/pilotage/risk-register/*`
-- `src/app/dashboard/admin/pilotage/decision-assistant/*`
-- `src/app/dashboard/admin/pilotage/ai-center/*`
-- `src/app/dashboard/admin/pilotage/business-strategy/*`
+- `src/app/dashboard/admin/(business)/pilotage/page.tsx`
+- `src/app/dashboard/admin/(business)/pilotage/economic-model/*`
+- `src/app/dashboard/admin/(business)/pilotage/market-validation/*`
+- `src/app/dashboard/admin/(business)/pilotage/risk-register/*`
+- `src/app/dashboard/admin/(business)/pilotage/decision-assistant/*`
+- `src/app/dashboard/admin/(business)/pilotage/ai-center/*`
+- `src/app/dashboard/admin/(business)/pilotage/business-strategy/*`
 - `src/app/abonnement/concierge-pro/ConciergeProSubscriptionPageClient.tsx`
 - `docs/master-plan-planetls.md`
 - `docs/ai/contexts/business-context.md`
@@ -46,11 +46,11 @@ L'architecture actuelle se partage en trois couches:
 
 ### Pages actives
 
-- `src/app/dashboard/admin/pilotage/page.tsx`
+- `src/app/dashboard/admin/(business)/pilotage/page.tsx`
   Surface principale du business plan et du pilotage business.
 - `src/app/abonnement/concierge-pro/ConciergeProSubscriptionPageClient.tsx`
   Source utile pour la seule offre reellement branchee a Stripe (`Concierge Pro`, `29 EUR / mois`).
-- `src/app/dashboard/admin/developpement/page.tsx`
+- `src/app/dashboard/admin/(product-tech)/developpement/page.tsx`
   Pas une page business plan, mais elle expose le Master Plan et influence le pilotage strategique global.
 
 ### Pages / modules existants mais non exposes comme pages de pilotage completes
@@ -354,7 +354,7 @@ Structure cible minimale recommandee:
 
 ### P0 Critique
 
-1. Creer un referentiel de donnees business unique sous `src/app/dashboard/admin/pilotage/` ou `src/features/business-plan/`.
+1. Creer un referentiel de donnees business unique sous `src/app/dashboard/admin/(business)/pilotage/` ou `src/features/business-plan/`.
 2. Y deplacer sans changer l'interface:
    - benchmark,
    - pricing,
@@ -404,3 +404,4 @@ Structure cible minimale recommandee:
 ## Conclusion
 
 L'existant est deja riche et exploitable pour raconter PlanetLS, arbitrer une offre et structurer une discussion business. En revanche, il reste principalement editorial, statique et disperse. Le chantier prioritaire n'est pas une refonte d'interface, mais la centralisation des donnees, la clarification des niveaux de verite et la reduction des doublons entre cockpit, documentation et modules dormants.
+

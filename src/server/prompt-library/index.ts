@@ -295,7 +295,7 @@ function buildDiagnostic(_promptFiles: string[]): PromptLibraryDiagnostic {
       "src/components/ui/SearchBar",
       "src/components/ui/Badge",
       "src/components/dashboard/DashboardPanel",
-      "src/app/dashboard/admin/pilotage/BusinessCollapsibleSection.tsx",
+      "src/app/dashboard/admin/(business)/pilotage/BusinessCollapsibleSection.tsx",
     ],
     storageApproach: "Fichiers Markdown versionnes dans docs/ai/prompts + runs JSON legers dans docs/ai/runs.",
     migrationRisks: [

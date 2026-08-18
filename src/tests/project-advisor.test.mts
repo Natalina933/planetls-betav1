@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildProjectAdvisorView } from "../app/dashboard/admin/developpement/projectAdvisor.ts";
-import { buildMissionControlView } from "../app/dashboard/admin/developpement/missionControl.ts";
-import { parseMasterPlan } from "../app/dashboard/admin/developpement/masterPlan.ts";
-import { buildRoadmapView, projectRoadmap } from "../app/dashboard/admin/developpement/roadmap.ts";
-import { buildTechnicalMemoryView } from "../app/dashboard/admin/developpement/technicalMemory.ts";
+import { buildProjectAdvisorView } from "../app/dashboard/admin/(product-tech)/developpement/projectAdvisor.ts";
+import { buildMissionControlView } from "../app/dashboard/admin/(product-tech)/developpement/missionControl.ts";
+import { parseMasterPlan } from "../app/dashboard/admin/(product-tech)/developpement/masterPlan.ts";
+import { buildRoadmapView, projectRoadmap } from "../app/dashboard/admin/(product-tech)/developpement/roadmap.ts";
+import { buildTechnicalMemoryView } from "../app/dashboard/admin/(product-tech)/developpement/technicalMemory.ts";
 
 test("buildProjectAdvisorView priorise les réponses utiles du conseiller projet", () => {
   const markdown = `# Plan
@@ -62,14 +62,14 @@ test("buildProjectAdvisorView priorise les réponses utiles du conseiller projet
       productionReadyPages: [
         {
           route: "/dashboard/admin/developpement",
-          file: "src/app/dashboard/admin/developpement/page.tsx",
+          file: "src/app/dashboard/admin/(product-tech)/developpement/page.tsx",
           lines: 180,
           signals: ["Tests présents", "Mission Control branché"],
           testReferences: ["src/tests/mission-control.test.mts"],
         },
       ],
       largeFiles: [
-        { file: "src/app/dashboard/admin/developpement/MasterPlanViewer.tsx", lines: 2200 },
+        { file: "src/app/dashboard/admin/(product-tech)/developpement/MasterPlanViewer.tsx", lines: 2200 },
       ],
       underusedComponents: [
         {

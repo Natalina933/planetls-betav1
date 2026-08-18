@@ -12,11 +12,11 @@ Le modele est volontairement separe en trois couches :
 
 La source de verite technique des formules est :
 
-- `src/app/dashboard/admin/pilotage/economic-model/financialModel.ts`
+- `src/app/dashboard/admin/(business)/pilotage/economic-model/financialModel.ts`
 
 La surface de restitution dans le cockpit business est :
 
-- `src/app/dashboard/admin/pilotage/economic-model/FinancialForecastModel.tsx`
+- `src/app/dashboard/admin/(business)/pilotage/economic-model/FinancialForecastModel.tsx`
 
 ## Hypotheses
 
@@ -169,3 +169,4 @@ La section `Previsions financieres` expose :
 - Garder `Ambitieux` comme borne haute de traction.
 - Reviser les hypotheses a chaque changement d'offre, de canaux d'acquisition, de structure de couts ou de donnees terrain.
 - Ne pas dupliquer les formules dans plusieurs composants : toute evolution du modele doit partir de `financialModel.ts`.
+
