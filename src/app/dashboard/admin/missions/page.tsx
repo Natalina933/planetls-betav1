@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
+import { overrideAdminNavItems, overrideAdminShortcuts } from "../adminNavigation";
 import {
   AdminEmptyState,
   AdminFilterBar,
@@ -151,12 +152,12 @@ export default function AdminMissionsPage() {
       persona="admin"
       title="Suivi des missions"
       subtitle="Contrôler la synchronisation planning, l’exécution terrain, les rapports, factures et règlements."
-      navTitle="Pilotage admin"
-      navItems={[
+      navTitle="Admin / Operations"
+      navItems={overrideAdminNavItems([
         { label: "Vue d’ensemble", href: "/dashboard/admin" },
         { label: "Demandes", href: "/dashboard/admin/demandes" },
         { label: "Missions", href: "/dashboard/admin/missions" },
-      ]}
+      ], "operations")}
       stats={[
         { label: "Missions", value: String(missions.length), hint: "Toutes missions suivies" },
         { label: "Filtrées", value: String(filteredMissions.length), hint: "Résultat actuel" },
@@ -179,10 +180,10 @@ export default function AdminMissionsPage() {
           href: "/dashboard/admin/missions",
         },
       ]}
-      shortcuts={[
+      shortcuts={overrideAdminShortcuts([
         { label: "Vue admin", href: "/dashboard/admin" },
         { label: "Demandes", href: "/dashboard/admin/demandes" },
-      ]}
+      ], "operations")}
       profile={{ name: "Admin", subtitle: "Contrôle des missions", badge: "Qualité" }}
     >
       <div className={styles.pageBody}>

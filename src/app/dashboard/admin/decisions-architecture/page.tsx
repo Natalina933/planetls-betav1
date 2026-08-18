@@ -1,19 +1,13 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { redirect } from "next/navigation";
-import { auth } from "@/server/auth/authOptions";
+import { requireAdminAccess } from "../adminAccess";
 import DecisionCenterPage from "./DecisionCenterPage";
 import { buildArchitectureDecisionCenter } from "./architectureDecisions";
 
 export const dynamic = "force-dynamic";
 
 export default async function DecisionsArchitectureRoute() {
-  const session = await auth();
-  const role = session?.user?.role;
-
-  if (role !== "admin" && role !== "super_admin") {
-    redirect("/login");
-  }
+  await requireAdminAccess();
 
   const masterPlanPath = path.join(process.cwd(), "docs", "master-plan-planetls.md");
   const packageJsonPath = path.join(process.cwd(), "package.json");

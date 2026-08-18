@@ -1,20 +1,59 @@
 export const MASTER_PLAN_STATUSES = [
-  "✅ Terminé", "🟡 En cours", "🟠 Partiel", "🔴 À faire", "⚠️ Bloqué", "⏸️ Reporté", "❌ Abandonné",
+  "✅ Terminé",
+  "🟡 En cours",
+  "🟠 Partiel",
+  "🔴 À faire",
+  "⚠️ Bloqué",
+  "⏸️ Reporté",
+  "❌ Abandonné",
 ] as const;
 
 export const MASTER_PLAN_PRIORITIES = [
-  "P0 Critique", "P1 Prioritaire", "P2 Important", "P3 Confort", "P4 Évolution future",
+  "P0 Critique",
+  "P1 Prioritaire",
+  "P2 Important",
+  "P3 Confort",
+  "P4 Évolution future",
+] as const;
+
+export const MASTER_PLAN_MATURITY_LEVELS = [
+  { level: "N0", label: "Idée", definition: "Intention sans conception validée" },
+  { level: "N1", label: "Spécifié", definition: "Parcours/règles documentés, pas de réalisation exploitable" },
+  { level: "N2", label: "Socle", definition: "UI, helper ou API partielle ; données parfois locales ou en metadata" },
+  { level: "N3", label: "Fonctionnel", definition: "Parcours principal persistant et utilisable, finitions ou E2E manquants" },
+  { level: "N4", label: "Validé", definition: "Parcours complet, permissions, erreurs, tests et QA réels validés" },
+  { level: "N5", label: "Piloté", definition: "N4 + métriques, alertes et amélioration continue" },
+] as const;
+
+export const MASTER_PLAN_PRIORITY_GUIDE = [
+  { priority: "P0 Critique", scope: "Bloque la fiabilité, la sécurité, la donnée, le lancement ou un parcours de valeur principal" },
+  { priority: "P1 Prioritaire", scope: "Augmente fortement conversion, rétention ou efficacité opérationnelle" },
+  { priority: "P2 Important", scope: "Améliore nettement le produit ou le pilotage, sans bloquer l’usage principal" },
+  { priority: "P3 Confort", scope: "Améliore cohérence, lisibilité ou productivité sans bloquer l’usage" },
+  { priority: "P4 Évolution future", scope: "Pari stratégique à valider avant industrialisation" },
 ] as const;
 
 export type MasterPlanSection = {
-  id: string; level: number; title: string; content: string; statuses: string[]; priorities: string[];
+  id: string;
+  level: number;
+  title: string;
+  content: string;
+  statuses: string[];
+  priorities: string[];
 };
 
 export type MasterPlanView = {
-  title: string; updatedAt: string; sections: MasterPlanSection[];
-  statusCounts: Record<string, number>; priorityCounts: Record<string, number>; lineCount: number;
+  title: string;
+  updatedAt: string;
+  sections: MasterPlanSection[];
+  statusCounts: Record<string, number>;
+  priorityCounts: Record<string, number>;
+  lineCount: number;
   registryPriorityCounts: Record<string, number>;
   remainingPriorityCounts: Record<string, number>;
+  functionalRows: MasterPlanFunctionalRow[];
+  functionalLevelCounts: Record<string, number>;
+  functionalStatusCounts: Record<string, number>;
   planning: MasterPlanPlanningItem[];
 };
 
@@ -31,12 +70,36 @@ export type MasterPlanPlanningItem = {
   nextAction: string;
 };
 
+export type MasterPlanFunctionalRow = {
+  feature: string;
+  status: string;
+  level: string;
+  observations: string;
+};
+
 function slugify(value: string) {
-  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }
 
-function countSectionsWithToken(sections: Array<{ statuses: string[]; priorities: string[] }>, token: string, kind: "status" | "priority") {
+function normalizeComparable(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function countSectionsWithToken(
+  sections: Array<{ statuses: string[]; priorities: string[] }>,
+  token: string,
+  kind: "status" | "priority",
+) {
   return sections.filter((section) => (
     kind === "status" ? section.statuses.includes(token) : section.priorities.includes(token)
   )).length;
@@ -46,12 +109,38 @@ function markdownCells(line: string) {
   return line.split("|").slice(1, -1).map((cell) => cell.trim().replace(/[`*_]/g, ""));
 }
 
-function registryRows(lines: string[]) {
-  const headerIndex = lines.findIndex((line) => {
-    const cells = markdownCells(line);
-    return cells.includes("Domaine") && cells.includes("Fonctionnalité") && cells.includes("Prochaine action");
+function hasHeader(cells: string[], expected: string[]) {
+  const normalized = cells.map(normalizeComparable);
+  return expected.every((header) => normalized.includes(normalizeComparable(header)));
+}
+
+function findFunctionalTableHeaderIndex(lines: string[]) {
+  const strictHeaderIndex = lines.findIndex((line) => hasHeader(markdownCells(line), [
+    "Fonctionnalité",
+    "État",
+    "Niveau",
+    "Observations factuelles",
+  ]));
+  if (strictHeaderIndex >= 0) return strictHeaderIndex;
+
+  return lines.findIndex((line) => {
+    const normalizedLine = normalizeComparable(line);
+    return line.trim().startsWith("|")
+      && normalizedLine.includes("niveau")
+      && normalizedLine.includes("observations factuelles")
+      && (normalizedLine.includes("fonctionnal") || normalizedLine.includes("fonct"))
+      && (normalizedLine.includes("etat") || normalizedLine.includes("tat"));
   });
+}
+
+function registryRows(lines: string[]) {
+  const headerIndex = lines.findIndex((line) => hasHeader(markdownCells(line), [
+    "Domaine",
+    "Fonctionnalité",
+    "Prochaine action",
+  ]));
   if (headerIndex < 0) return [] as string[][];
+
   const rows: string[][] = [];
   for (let index = headerIndex + 2; index < lines.length && lines[index].trim().startsWith("|"); index += 1) {
     rows.push(markdownCells(lines[index]));
@@ -60,20 +149,26 @@ function registryRows(lines: string[]) {
 }
 
 function buildPlanning(lines: string[]) {
-  const headerIndex = lines.findIndex((line) => {
-    const cells = markdownCells(line);
-    return cells.includes("Domaine") && cells.includes("Fonctionnalité") && cells.includes("Prochaine action");
-  });
-  if (headerIndex < 0) return [];
+  const headerIndex = lines.findIndex((line) => hasHeader(markdownCells(line), [
+    "Domaine",
+    "Fonctionnalité",
+    "Prochaine action",
+  ]));
+  if (headerIndex < 0) return [] as MasterPlanPlanningItem[];
+
   const headers = markdownCells(lines[headerIndex]);
-  const column = (name: string) => headers.indexOf(name);
+  const normalizedHeaders = headers.map(normalizeComparable);
+  const column = (name: string) => normalizedHeaders.indexOf(normalizeComparable(name));
   const priorityOrder = new Map(MASTER_PLAN_PRIORITIES.map((priority, index) => [priority, index]));
   const rows: MasterPlanPlanningItem[] = [];
+
   for (let index = headerIndex + 2; index < lines.length && lines[index].trim().startsWith("|"); index += 1) {
     const cells = markdownCells(lines[index]);
     const status = cells[column("Statut")] ?? "";
     const priority = cells[column("Priorité")] ?? "";
-    if (!priorityOrder.has(priority as typeof MASTER_PLAN_PRIORITIES[number]) || status === "✅ Terminé") continue;
+    if (!priorityOrder.has(priority as typeof MASTER_PLAN_PRIORITIES[number])) continue;
+    if (normalizeComparable(status).includes("termine")) continue;
+
     const rank = priorityOrder.get(priority as typeof MASTER_PLAN_PRIORITIES[number]) ?? 99;
     rows.push({
       id: `${slugify(cells[column("Domaine")] ?? "")}-${slugify(cells[column("Fonctionnalité")] ?? "")}`,
@@ -88,16 +183,38 @@ function buildPlanning(lines: string[]) {
       nextAction: cells[column("Prochaine action")] ?? "",
     });
   }
+
   return rows.sort((left, right) => left.order - right.order || left.feature.localeCompare(right.feature, "fr"));
+}
+
+function buildFunctionalRows(lines: string[]) {
+  const headerIndex = findFunctionalTableHeaderIndex(lines);
+  if (headerIndex < 0) return [] as MasterPlanFunctionalRow[];
+
+  const rows: MasterPlanFunctionalRow[] = [];
+  for (let index = headerIndex + 2; index < lines.length && lines[index].trim().startsWith("|"); index += 1) {
+    const cells = markdownCells(lines[index]);
+    rows.push({
+      feature: cells[0] ?? "",
+      status: cells[1] ?? "",
+      level: cells[2] ?? "",
+      observations: cells[3] ?? "",
+    });
+  }
+
+  return rows.filter((row) => row.feature && row.status && row.level);
 }
 
 export function parseMasterPlan(markdown: string, updatedAt: string): MasterPlanView {
   const normalized = markdown.replaceAll("\r\n", "\n");
   const lines = normalized.split("\n");
-  const headings = lines.map((line, index) => {
-    const match = /^(#{1,4})\s+(.+)$/.exec(line);
-    return match ? { index, level: match[1].length, title: match[2].trim() } : null;
-  }).filter((heading): heading is NonNullable<typeof heading> => Boolean(heading));
+  const headings = lines
+    .map((line, index) => {
+      const match = /^(#{1,4})\s+(.+)$/.exec(line);
+      return match ? { index, level: match[1].length, title: match[2].trim() } : null;
+    })
+    .filter((heading): heading is NonNullable<typeof heading> => Boolean(heading));
+
   const usedIds = new Map<string, number>();
   const sections = headings.slice(1).map((heading, headingIndex) => {
     const end = headings[headingIndex + 2]?.index ?? lines.length;
@@ -107,27 +224,54 @@ export function parseMasterPlan(markdown: string, updatedAt: string): MasterPlan
     usedIds.set(baseId, duplicateIndex + 1);
     return {
       id: duplicateIndex ? `${baseId}-${duplicateIndex + 1}` : baseId,
-      level: heading.level, title: heading.title, content,
+      level: heading.level,
+      title: heading.title,
+      content,
       statuses: MASTER_PLAN_STATUSES.filter((status) => content.includes(status)),
       priorities: MASTER_PLAN_PRIORITIES.filter((priority) => content.includes(priority)),
     };
   });
+
   const planning = buildPlanning(lines);
   const registry = registryRows(lines);
+  const functionalRows = buildFunctionalRows(lines);
+
   const registryPriorityCounts = Object.fromEntries(MASTER_PLAN_PRIORITIES.map((priority) => [
     priority,
     registry.filter((cells) => cells.includes(priority)).length,
   ]));
+
   const remainingPriorityCounts = Object.fromEntries(MASTER_PLAN_PRIORITIES.map((priority) => [
     priority,
     planning.filter((item) => item.priority === priority).length,
   ]));
+
   return {
-    title: headings[0]?.title ?? "Master Plan PlanetLS", updatedAt, sections,
-    statusCounts: Object.fromEntries(MASTER_PLAN_STATUSES.map((status) => [status, countSectionsWithToken(sections, status, "status")])),
-    priorityCounts: Object.fromEntries(MASTER_PLAN_PRIORITIES.map((priority) => [priority, countSectionsWithToken(sections, priority, "priority")])),
+    title: headings[0]?.title ?? "Master Plan PlanetLS",
+    updatedAt,
+    sections,
+    statusCounts: Object.fromEntries(MASTER_PLAN_STATUSES.map((status) => [
+      status,
+      countSectionsWithToken(sections, status, "status"),
+    ])),
+    priorityCounts: Object.fromEntries(MASTER_PLAN_PRIORITIES.map((priority) => [
+      priority,
+      countSectionsWithToken(sections, priority, "priority"),
+    ])),
     registryPriorityCounts,
     remainingPriorityCounts,
+    functionalRows,
+    functionalLevelCounts: Object.fromEntries(MASTER_PLAN_MATURITY_LEVELS.map((item) => [
+      item.level,
+      functionalRows.filter((row) => row.level === item.level).length,
+    ])),
+    functionalStatusCounts: Object.fromEntries(MASTER_PLAN_STATUSES.map((status) => [
+      status,
+      functionalRows.filter((row) => (
+        row.status === status
+        || normalizeComparable(row.status) === normalizeComparable(status.replace(/^[^\wÀ-ÿ]+ /u, ""))
+      )).length,
+    ])),
     lineCount: lines.length,
     planning,
   };

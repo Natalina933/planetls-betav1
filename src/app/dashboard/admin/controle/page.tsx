@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
+import { overrideAdminNavItems, overrideAdminShortcuts } from "../adminNavigation";
 import {
   AdminEmptyState,
   AdminStatusBadge,
@@ -451,8 +452,8 @@ function AdminControlPageContent() {
       persona="admin"
       title="Contrôle détaillé"
       subtitle="Vérifier et colorer les étapes d'inscription, les missions et les messages pour repérer vite ce qui bloque."
-      navTitle="Pilotage admin"
-      navItems={[
+      navTitle="Admin / Operations"
+      navItems={overrideAdminNavItems([
         { label: "Vue d'ensemble", href: "/dashboard/admin" },
         { label: "Pilotage business", href: "/dashboard/admin/pilotage" },
         { label: "Modèle financier", href: "/dashboard/admin/modele-financier" },
@@ -460,7 +461,7 @@ function AdminControlPageContent() {
         { label: "Utilisateurs", href: "/dashboard/admin/utilisateurs" },
         { label: "Demandes", href: "/dashboard/admin/demandes" },
         { label: "Missions", href: "/dashboard/admin/missions" },
-      ]}
+      ], "operations", "business")}
       stats={[
         { label: "Problèmes", value: String(payload?.summary.totalProblems ?? 0), hint: "Rouge + orange" },
         {
@@ -512,12 +513,12 @@ function AdminControlPageContent() {
           href: "/dashboard/admin/controle",
         },
       ]}
-      shortcuts={[
+      shortcuts={overrideAdminShortcuts([
         { label: "Cockpit", href: "/dashboard/admin" },
         { label: "Modèle financier", href: "/dashboard/admin/modele-financier" },
         { label: "Demandes", href: "/dashboard/admin/demandes" },
         { label: "Missions", href: "/dashboard/admin/missions" },
-      ]}
+      ], "operations", "business")}
       profile={{ name: "PlanetLS", subtitle: "Contrôle des étapes", badge: "Administration" }}
     >
       <section className={styles.hero} data-tone={heroTone}>

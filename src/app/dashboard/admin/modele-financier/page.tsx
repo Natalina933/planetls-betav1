@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import {
   ArrowRight,
   CircleDollarSign,
@@ -12,9 +11,10 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
-import { auth } from "@/server/auth/authOptions";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
 import { Card, CardBody, CardHeader } from "@/components/ui";
+import { requireAdminAccess } from "../adminAccess";
+import { overrideAdminNavItems, overrideAdminShortcuts } from "../adminNavigation";
 import {
   ACTIVE_PRICING_DECISIONS,
   FINANCIAL_BENCHMARK_TIERS,
@@ -39,27 +39,22 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminFinancialModelPage() {
-  const session = await auth();
-  const role = session?.user?.role;
-
-  if (role !== "admin" && role !== "super_admin") {
-    redirect("/login");
-  }
+  await requireAdminAccess();
 
   return (
     <DashboardLayout
       persona="admin"
       title="Modèle financier"
       subtitle="Benchmark 2026, grille cible PlanetLS et hypothèses de conversion à piloter."
-      navTitle="Pilotage admin"
-      navItems={[
+      navTitle="Admin · Pilotage business"
+      navItems={overrideAdminNavItems([
         { label: "Vue d'ensemble", href: "/dashboard/admin" },
         { label: "Pilotage business", href: "/dashboard/admin/pilotage" },
         { label: "Modèle financier", href: "/dashboard/admin/modele-financier" },
         { label: "Personas", href: "/dashboard/admin/personas" },
         { label: "Contrôle détaillé", href: "/dashboard/admin/controle" },
         { label: "Développement", href: "/dashboard/admin/developpement" },
-      ]}
+      ], "business", "productTech")}
       stats={[
         { label: "Paliers marché", value: "3", hint: "Entrée, milieu, haut de gamme" },
         { label: "Grille cible", value: "4 plans", hint: "Free à Business" },
@@ -97,12 +92,12 @@ export default async function AdminFinancialModelPage() {
           href: "/dashboard/admin/modele-financier",
         },
       ]}
-      shortcuts={[
+      shortcuts={overrideAdminShortcuts([
         { label: "Cockpit", href: "/dashboard/admin" },
         { label: "Pilotage", href: "/dashboard/admin/pilotage" },
         { label: "Modèle financier", href: "/dashboard/admin/modele-financier" },
         { label: "Développement", href: "/dashboard/admin/developpement" },
-      ]}
+      ], "business", "productTech")}
       profile={{ name: "Direction PlanetLS", subtitle: "Pricing & rentabilité", badge: "Finance" }}
     >
       <section className={styles.page}>

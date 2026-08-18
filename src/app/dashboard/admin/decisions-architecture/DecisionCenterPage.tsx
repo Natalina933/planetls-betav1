@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Search, Network, Layers3, ShieldCheck, Workflow, GitBranchPlus, CalendarClock } from "lucide-react";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
 import { Card, CardBody, CardHeader, Input, SectionIntro, Select, StatsCard, Tag } from "@/components/ui";
+import { overrideAdminNavItems, overrideAdminShortcuts } from "../adminNavigation";
 import type { ArchitectureDecision, ArchitectureDecisionCenter } from "./architectureDecisions";
 import styles from "./page.module.scss";
 
@@ -68,8 +69,8 @@ export default function DecisionCenterPage({ center }: DecisionCenterPageProps) 
       persona="admin"
       title="Décisions Architecture"
       subtitle="Le centre de décisions conserve les arbitrages structurants de PlanetLS et permet de les retrouver en quelques secondes."
-      navTitle="Pilotage admin"
-      navItems={[
+      navTitle="Admin / Produit & tech"
+      navItems={overrideAdminNavItems([
         { label: "Vue d'ensemble", href: "/dashboard/admin" },
         { label: "Pilotage business", href: "/dashboard/admin/pilotage" },
         { label: "Modèle financier", href: "/dashboard/admin/modele-financier" },
@@ -77,7 +78,7 @@ export default function DecisionCenterPage({ center }: DecisionCenterPageProps) 
         { label: "Développement", href: "/dashboard/admin/developpement" },
         { label: "Décisions Architecture", href: "/dashboard/admin/decisions-architecture" },
         { label: "Utilisateurs", href: "/dashboard/admin/utilisateurs" },
-      ]}
+      ], "productTech", "business")}
       stats={[
         { label: "Décisions", value: String(center.decisions.length), hint: "Arbitrages indexés" },
         { label: "Catégories", value: String(center.categories.length), hint: "Stack, architecture, workflow..." },
@@ -110,12 +111,12 @@ export default function DecisionCenterPage({ center }: DecisionCenterPageProps) 
           href: "/dashboard/admin/decisions-architecture",
         },
       ]}
-      shortcuts={[
+      shortcuts={overrideAdminShortcuts([
         { label: "Cockpit", href: "/dashboard/admin" },
         { label: "Modèle financier", href: "/dashboard/admin/modele-financier" },
         { label: "Développement", href: "/dashboard/admin/developpement" },
         { label: "Contrôle", href: "/dashboard/admin/controle" },
-      ]}
+      ], "productTech", "business")}
       profile={{ name: "PlanetLS", subtitle: "Centre de décisions", badge: "Architecture" }}
     >
       <DashboardPanel title="Vue rapide">

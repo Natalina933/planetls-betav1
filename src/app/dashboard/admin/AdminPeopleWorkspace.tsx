@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { FiAlertTriangle, FiCheckCircle, FiClock, FiHome, FiShield, FiTool, FiUsers } from "react-icons/fi";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
+import { buildAdminNavItems, buildAdminShortcuts } from "./adminNavigation";
 import {
   AdminEmptyState,
   AdminKpiGrid,
@@ -706,16 +707,8 @@ export function AdminPeopleWorkspace({
       persona="admin"
       title={title}
       subtitle={subtitle}
-      navTitle="Pilotage admin"
-      navItems={[
-        { label: "Vue d'ensemble", href: "/dashboard/admin" },
-        { label: "Utilisateurs", href: "/dashboard/admin/utilisateurs" },
-        { label: "Propriétaires", href: "/dashboard/admin/proprietaires" },
-        { label: "Conciergeries", href: "/dashboard/admin/conciergeries" },
-        { label: "Artisans", href: "/dashboard/admin/artisans" },
-        { label: "Demandes", href: "/dashboard/admin/demandes" },
-        { label: "Missions", href: "/dashboard/admin/missions" },
-      ]}
+      navTitle="Admin / Operations"
+      navItems={buildAdminNavItems("operations")}
       stats={[
         { label: "Utilisateurs", value: String(payload?.summary.totalUsers ?? 0), hint: "Base globale" },
         { label: "Actifs 24 h", value: String(payload?.summary.active24h ?? 0), hint: "Connexions récentes" },
@@ -752,13 +745,7 @@ export function AdminPeopleWorkspace({
         level: !user.lastSignInAt ? "danger" : "warning",
         href: getScopeHref(user.roleBucket),
       }))}
-      shortcuts={[
-        { label: "Vue admin", href: "/dashboard/admin" },
-        { label: "Utilisateurs", href: "/dashboard/admin/utilisateurs" },
-        { label: "Propriétaires", href: "/dashboard/admin/proprietaires" },
-        { label: "Conciergeries", href: "/dashboard/admin/conciergeries" },
-        { label: "Artisans", href: "/dashboard/admin/artisans" },
-      ]}
+      shortcuts={buildAdminShortcuts("operations")}
       profile={{
         name: "PlanetLS",
         subtitle: "Contrôle comptes et activité",

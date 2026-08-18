@@ -35,6 +35,28 @@ test("parseMasterPlan construit un planning ordonné depuis le registre de maint
   assert.equal(plan.remainingPriorityCounts["P0 Critique"], 1);
 });
 
+test("parseMasterPlan extrait le tableau fonctionnel avec statuts et niveaux", () => {
+  const markdown = `# Plan
+## État actuel
+### Tableau fonctionnel construit depuis le code
+| Fonctionnalité | État | Niveau | Observations factuelles |
+|---|---|---:|---|
+| Authentification | En cours | N3 | Parcours principal disponible |
+| Notifications | Partiel | N2 | Push non branché |`;
+  const plan = parseMasterPlan(markdown, "2026-08-18T10:00:00.000Z");
+  assert.equal(plan.functionalRows.length, 2);
+  assert.deepEqual(plan.functionalRows[0], {
+    feature: "Authentification",
+    status: "En cours",
+    level: "N3",
+    observations: "Parcours principal disponible",
+  });
+  assert.equal(plan.functionalLevelCounts.N3, 1);
+  assert.equal(plan.functionalLevelCounts.N2, 1);
+  assert.equal(plan.functionalStatusCounts["🟡 En cours"], 1);
+  assert.equal(plan.functionalStatusCounts["🟠 Partiel"], 1);
+});
+
 test("parseMasterPlan ne compte pas les mentions historiques comme des P0 à réaliser", () => {
   const markdown = `# Plan
 ## Journal

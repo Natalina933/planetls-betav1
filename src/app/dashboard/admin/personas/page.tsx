@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, ChevronDown } from "lucide-react";
-import { redirect } from "next/navigation";
-import { auth } from "@/server/auth/authOptions";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
 import { Card, CardBody } from "@/components/ui";
+import { requireAdminAccess } from "../adminAccess";
+import { buildAdminNavItems, overrideAdminShortcuts } from "../adminNavigation";
 import {
   productPersonas,
   type ProductPersona,
@@ -553,12 +553,7 @@ function PersonaFamilyPanel({ family }: { family: PersonaFamily }) {
 }
 
 export default async function AdminPersonasPage() {
-  const session = await auth();
-  const role = session?.user?.role;
-
-  if (role !== "admin" && role !== "super_admin") {
-    redirect("/login");
-  }
+  await requireAdminAccess();
 
   const strategicPersonas = getPersonasByIds(PERSONA_FAMILIES.flatMap((family) => family.personas));
   const validatedCount = strategicPersonas.filter((persona) => persona.status === "Validé").length;
@@ -583,8 +578,8 @@ export default async function AdminPersonasPage() {
       persona="admin"
       title="Personas"
       subtitle="Les profils qui orientent stratégie, contrôle détaillé et priorités produit."
-      navTitle="Pilotage admin"
-      navItems={[...navItems]}
+      navTitle="Admin / Pilotage business"
+      navItems={buildAdminNavItems("business", "productTech")}
       stats={[
         { label: "Familles", value: String(PERSONA_FAMILIES.length), hint: "Clients à plateforme" },
         { label: "Profils actifs", value: String(strategicPersonas.length), hint: "Socle structuré" },
@@ -598,13 +593,13 @@ export default async function AdminPersonasPage() {
       hideNotifications
       notifications={notifications.map((item) => ({ ...item, level: "info" as const }))}
       hideShortcuts
-      shortcuts={[
+      shortcuts={overrideAdminShortcuts([
         { label: "Pilotage", href: "/dashboard/admin/pilotage" },
         { label: "Modèle financier", href: "/dashboard/admin/modele-financier" },
         { label: "Personas", href: "/dashboard/admin/personas" },
         { label: "Contrôle", href: "/dashboard/admin/controle" },
         { label: "Développement", href: "/dashboard/admin/developpement" },
-      ]}
+      ], "business", "productTech")}
       profile={{ name: "Direction PlanetLS", subtitle: "Référentiel personas", badge: "Stratégique" }}
     >
       <section className={styles.page}>

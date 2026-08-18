@@ -19,6 +19,7 @@ import {
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
 import { Card, CardBody, CardHeader } from "@/components/ui";
 import type { KpiOverviewPayload } from "@/app/api/kpis/overview/shared";
+import { overrideAdminNavItems, overrideAdminShortcuts } from "../adminNavigation";
 import type { AdminMissionRow, AdminRequestRow } from "../AdminOperations";
 import { PRICING_DECISION_LOG } from "./economic-model/data";
 import { nextDecisions, prioritizedHypotheses } from "./market-validation/validationData";
@@ -481,15 +482,15 @@ export default function AdminBusinessPage() {
       persona="admin"
       title="Pilotage business"
       subtitle="Version courte du benchmark, du positionnement et de la roadmap PlanetLS."
-      navTitle="Pilotage admin"
-      navItems={[
+      navTitle="Admin / Pilotage business"
+      navItems={overrideAdminNavItems([
         { label: "Vue d'ensemble", href: "/dashboard/admin" },
         { label: "Business plan", href: "/dashboard/admin/pilotage" },
         { label: "Modèle financier", href: "/dashboard/admin/modele-financier" },
         { label: "Personas", href: "/dashboard/admin/personas" },
         { label: "Contrôle détaillé", href: "/dashboard/admin/controle" },
         { label: "Développement", href: "/dashboard/admin/developpement" },
-      ]}
+      ], "business", "productTech")}
       stats={[]}
       actions={[]}
       hideQuickActions
@@ -521,13 +522,13 @@ export default function AdminBusinessPage() {
           href: "/dashboard/admin/pilotage",
         },
       ]}
-      shortcuts={[
+      shortcuts={overrideAdminShortcuts([
         { label: "Cockpit", href: "/dashboard/admin" },
         { label: "Modèle financier", href: "/dashboard/admin/modele-financier" },
         { label: "Personas", href: "/dashboard/admin/personas" },
         { label: "Contrôle", href: "/dashboard/admin/controle" },
         { label: "Développement", href: "/dashboard/admin/developpement" },
-      ]}
+      ], "business", "productTech")}
       profile={{ name: "Direction PlanetLS", subtitle: "Benchmark business", badge: "Compact" }}
     >
       <section className={styles.page}>

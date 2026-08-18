@@ -1,4 +1,4 @@
-import type { DeveloperLogCommit } from "./developerLog";
+﻿import type { DeveloperLogCommit } from "./developerLog";
 import type { MasterPlanPlanningItem, MasterPlanView } from "./masterPlan";
 
 export type MissionControlHealthStatus = "healthy" | "warning" | "danger" | "unverifiable";
@@ -58,12 +58,6 @@ type BuildMissionControlOptions = {
   checkedAt?: string;
 };
 
-const REFERENCE_NOW = new Date("2026-07-27T12:00:00+02:00");
-
-function sumRegistryRows(plan: MasterPlanView) {
-  return Object.values(plan.registryPriorityCounts).reduce((total, count) => total + count, 0);
-}
-
 function estimateCommitMinutes(subject: string) {
   const normalized = subject.toLowerCase();
   if (normalized.includes("control tower") || normalized.includes("health")) return 180;
@@ -72,12 +66,12 @@ function estimateCommitMinutes(subject: string) {
   return 60;
 }
 
-function isThisWeek(date: string) {
+function isThisWeek(date: string, referenceNow: Date) {
   const value = new Date(date);
-  const monday = new Date(REFERENCE_NOW);
-  monday.setDate(REFERENCE_NOW.getDate() - 6);
+  const monday = new Date(referenceNow);
+  monday.setDate(referenceNow.getDate() - 6);
   monday.setHours(0, 0, 0, 0);
-  return value >= monday && value <= REFERENCE_NOW;
+  return value >= monday && value <= referenceNow;
 }
 
 function formatMinutes(minutes: number) {
@@ -86,6 +80,32 @@ function formatMinutes(minutes: number) {
   if (hours === 0) return `${remaining} min`;
   if (remaining === 0) return `${hours} h`;
   return `${hours} h ${remaining} min`;
+}
+
+function normalizeComparable(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function statusCategory(status: string): "done" | "active" | "blocked" | "todo" | "other" {
+  const normalized = normalizeComparable(status);
+  if (normalized.includes("termine")) return "done";
+  if (normalized.includes("bloque")) return "blocked";
+  if (normalized.includes("a faire") || normalized.includes("non commence") || normalized.includes("reporte")) return "todo";
+  if (normalized.includes("en cours") || normalized.includes("partiel")) return "active";
+  return "other";
+}
+
+function toMinorBugCount(items: MasterPlanPlanningItem[]) {
+  return items.filter((item) => {
+    const normalizedPriority = normalizeComparable(item.priority);
+    const category = statusCategory(item.status);
+    return normalizedPriority === "p3 confort" || normalizedPriority === "p4 evolution future" || category === "active";
+  }).length;
 }
 
 function extractRecentDecisions(markdown: string) {
@@ -117,17 +137,7 @@ function extractRecentDecisions(markdown: string) {
     }
   }
 
-  return decisions
-    .sort((left, right) => right.date.localeCompare(left.date))
-    .slice(0, 4);
-}
-
-function toMinorBugCount(items: MasterPlanPlanningItem[]) {
-  return items.filter((item) =>
-    item.priority === "P3 Confort" ||
-    item.priority === "P4 Évolution future" ||
-    item.status === "🟠 Partiel"
-  ).length;
+  return decisions.sort((left, right) => right.date.localeCompare(left.date)).slice(0, 4);
 }
 
 function buildGitHubHealth({
@@ -190,7 +200,7 @@ function buildVercelHealth({
     status: metadataBaseHost.includes("vercel.app") ? "healthy" : "warning",
     detail: metadataBaseHost.includes("vercel.app")
       ? `Domaine applicatif déclaré : ${metadataBaseHost}.`
-      : `Domaine déclaré : ${metadataBaseHost}, vérifier l’alignement avec Vercel.`,
+      : `Domaine déclaré : ${metadataBaseHost}, vérifier l'alignement avec Vercel.`,
     checkedAt,
   };
 }
@@ -208,22 +218,33 @@ export function buildMissionControlView({
   supabaseHealth,
   checkedAt = new Date().toISOString(),
 }: BuildMissionControlOptions): MissionControlView {
-  const totalFeatures = sumRegistryRows(plan);
-  const completedFeatures = Math.max(0, totalFeatures - plan.planning.length);
-  const inProgressFeatures = plan.planning.filter((item) => item.status === "🟡 En cours" || item.status === "🟠 Partiel").length;
-  const blockedFeatures = plan.planning.filter((item) => item.status === "⚠️ Bloqué").length;
-  const criticalBugs = plan.planning.filter((item) => item.priority === "P0 Critique" && item.status !== "✅ Terminé").length;
+  const referenceNow = new Date(checkedAt);
+  const functionalRows = plan.functionalRows;
+  const totalFeatures = functionalRows.length
+    || Math.max(0, Object.values(plan.registryPriorityCounts).reduce((total, count) => total + count, 0));
+  const completedFeatures = functionalRows.length
+    ? functionalRows.filter((row) => statusCategory(row.status) === "done").length
+    : Math.max(0, totalFeatures - plan.planning.length);
+  const inProgressFeatures = functionalRows.length
+    ? functionalRows.filter((row) => statusCategory(row.status) === "active").length
+    : plan.planning.filter((item) => statusCategory(item.status) === "active").length;
+  const blockedFeatures = functionalRows.length
+    ? functionalRows.filter((row) => statusCategory(row.status) === "blocked").length
+    : plan.planning.filter((item) => statusCategory(item.status) === "blocked").length;
+  const criticalBugs = plan.planning.filter(
+    (item) => normalizeComparable(item.priority) === "p0 critique" && statusCategory(item.status) !== "done",
+  ).length;
   const minorBugs = toMinorBugCount(plan.planning);
   const progressionPct = totalFeatures === 0 ? 0 : Math.round((completedFeatures / totalFeatures) * 100);
-  const weeklyDevelopmentMinutes = commits.filter((commit) => isThisWeek(commit.date)).reduce(
-    (total, commit) => total + estimateCommitMinutes(commit.subject),
-    0,
-  );
+  const weeklyDevelopmentMinutes = commits
+    .filter((commit) => isThisWeek(commit.date, referenceNow))
+    .reduce((total, commit) => total + estimateCommitMinutes(commit.subject), 0);
+
   const weeklyGoal = plan.planning[0]?.feature
-    ? `${plan.planning[0].feature} — ${plan.planning[0].nextAction || "prochaine action à préciser"}`
+    ? `${plan.planning[0].feature} - ${plan.planning[0].nextAction || "prochaine action à préciser"}`
     : "Aucun chantier prioritaire ouvert.";
   const nextGoal = plan.planning[1]?.feature
-    ? `${plan.planning[1].feature} — ${plan.planning[1].nextAction || "prochaine action à préciser"}`
+    ? `${plan.planning[1].feature} - ${plan.planning[1].nextAction || "prochaine action à préciser"}`
     : weeklyGoal;
 
   return {
@@ -238,9 +259,11 @@ export function buildMissionControlView({
     weeklyGoal,
     nextGoal,
     lastBackupAt: commits[0]?.date ?? null,
-    currentEnvironment: [process.env.NODE_ENV || "development", branch ? `branche ${branch}` : null, dirtyFileCount > 0 ? `${dirtyFileCount} fichier(s) modifié(s)` : "workspace propre"]
-      .filter(Boolean)
-      .join(" · "),
+    currentEnvironment: [
+      process.env.NODE_ENV || "development",
+      branch ? `branche ${branch}` : null,
+      dirtyFileCount > 0 ? `${dirtyFileCount} fichier(s) modifié(s)` : "workspace propre",
+    ].filter(Boolean).join(" · "),
     projectVersion,
     lastDecisions: extractRecentDecisions(markdown),
     lastCommits: commits.slice(0, 4).map((commit) => ({

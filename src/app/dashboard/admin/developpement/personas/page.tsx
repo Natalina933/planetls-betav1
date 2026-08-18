@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { auth } from "@/server/auth/authOptions";
+import { requireAdminAccess } from "../../adminAccess";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -9,12 +9,6 @@ export const metadata: Metadata = {
 };
 
 export default async function PersonasPage() {
-  const session = await auth();
-  const role = session?.user?.role;
-
-  if (role !== "admin" && role !== "super_admin") {
-    redirect("/login");
-  }
-
+  await requireAdminAccess();
   redirect("/dashboard/admin/personas");
 }

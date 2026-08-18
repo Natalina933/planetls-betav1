@@ -66,8 +66,11 @@ import {
   type MissionControlView,
 } from "./missionControl";
 import {
+  MASTER_PLAN_MATURITY_LEVELS,
   MASTER_PLAN_PRIORITIES,
+  MASTER_PLAN_PRIORITY_GUIDE,
   MASTER_PLAN_STATUSES,
+  type MasterPlanPlanningItem,
   type MasterPlanSection,
   type MasterPlanView,
 } from "./masterPlan";
@@ -1086,6 +1089,49 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
+function normalizeComparable(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function functionalStatusCategory(status: string): "done" | "blocked" | "todo" | "active" | "other" {
+  const normalized = normalizeComparable(status);
+  if (normalized.includes("termine")) return "done";
+  if (normalized.includes("bloque")) return "blocked";
+  if (normalized.includes("a faire") || normalized.includes("non commence") || normalized.includes("reporte")) return "todo";
+  if (normalized.includes("en cours") || normalized.includes("partiel")) return "active";
+  return "other";
+}
+
+function maturityScore(level: string) {
+  const match = /^N(\d)$/i.exec(level.trim());
+  return match ? Number(match[1]) : 99;
+}
+
+function priorityScore(priority: string) {
+  if (priority === "P0 Critique") return 0;
+  if (priority === "P1 Prioritaire") return 1;
+  if (priority === "P2 Important") return 2;
+  if (priority === "P3 Confort") return 3;
+  if (priority === "P4 Évolution future") return 4;
+  return 9;
+}
+
+function matchFunctionalPlanningRow(feature: string, planning: MasterPlanPlanningItem[]) {
+  const normalizedFeature = normalizeComparable(feature);
+  const exact = planning.find((item) => normalizeComparable(item.feature) === normalizedFeature);
+  if (exact) return exact;
+
+  return planning.find((item) => {
+    const candidate = normalizeComparable(item.feature);
+    return candidate.length >= 6 && (normalizedFeature.includes(candidate) || candidate.includes(normalizedFeature));
+  }) ?? null;
+}
+
 function hoursSince(date: string | null) {
   if (!date) return null;
   const parsed = new Date(date);
@@ -1536,6 +1582,49 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
     p2: PRIORITY_TABLE_ROWS.filter((row) => row.level === "P2"),
     p3: PRIORITY_TABLE_ROWS.filter((row) => row.level === "P3"),
   }), []);
+  const functionalRows = plan.functionalRows;
+  const functionalRowsWithPlanning = useMemo(() => functionalRows.map((row) => {
+    const planningItem = matchFunctionalPlanningRow(row.feature, plan.planning);
+    return {
+      ...row,
+      planningPriority: planningItem?.priority ?? "—",
+      planningNextAction: planningItem?.nextAction ?? "",
+      planningEvidence: planningItem?.evidence ?? "",
+    };
+  }), [functionalRows, plan.planning]);
+  const functionalActiveCount = useMemo(
+    () => functionalRows.filter((row) => functionalStatusCategory(row.status) === "active").length,
+    [functionalRows],
+  );
+  const functionalBlockedCount = useMemo(
+    () => functionalRows.filter((row) => functionalStatusCategory(row.status) === "blocked").length,
+    [functionalRows],
+  );
+  const functionalTodoCount = useMemo(
+    () => functionalRows.filter((row) => functionalStatusCategory(row.status) === "todo").length,
+    [functionalRows],
+  );
+  const functionalDoneCount = useMemo(
+    () => functionalRows.filter((row) => functionalStatusCategory(row.status) === "done").length,
+    [functionalRows],
+  );
+  const functionalFocusRows = useMemo(() => functionalRowsWithPlanning
+    .filter((row) => functionalStatusCategory(row.status) !== "done")
+    .sort((left, right) => {
+      const categoryOrder = { blocked: 0, todo: 1, active: 2, other: 3, done: 4 } as const;
+      const statusDiff = categoryOrder[functionalStatusCategory(left.status)] - categoryOrder[functionalStatusCategory(right.status)];
+      if (statusDiff !== 0) return statusDiff;
+      const priorityDiff = priorityScore(left.planningPriority) - priorityScore(right.planningPriority);
+      if (priorityDiff !== 0) return priorityDiff;
+      const maturityDiff = maturityScore(left.level) - maturityScore(right.level);
+      if (maturityDiff !== 0) return maturityDiff;
+      return left.feature.localeCompare(right.feature, "fr");
+    })
+    .slice(0, 12), [functionalRowsWithPlanning]);
+  const recentCompletedFunctionalRows = useMemo(() => functionalRowsWithPlanning
+    .filter((row) => functionalStatusCategory(row.status) === "done")
+    .sort((left, right) => priorityScore(left.planningPriority) - priorityScore(right.planningPriority) || left.feature.localeCompare(right.feature, "fr"))
+    .slice(0, 6), [functionalRowsWithPlanning]);
   const executionSummary = `${PRIORITY_TABLE_ROWS.length} priorités structurées par niveau critique, lancement, amélioration et évolution`;
   const masterPlanSummary = hasMasterPlanFilters
     ? `${visibleSections.length} section(s) correspondent aux filtres actifs`
@@ -2060,6 +2149,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
             </div>
           </CardBody>
         </Card>
+
       </section>
     </div>
   );
@@ -2548,8 +2638,31 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
             <p>{executionRowsByPriority.p2.length} chantier(s) d'allègement et de convergence à traiter ensuite, sans urgence immédiate.</p>
           </article>
           <article className={styles.auditCard}>
-            <strong>Filtre appliqué</strong>
-            <p>Les éléments déjà présents, faux ou trop spéculatifs dans l'audit externe n'ont pas été repris ici.</p>
+            <strong>Socle suivi</strong>
+            <p>{functionalRows.length} fonctionnalité(s) suivies dans le tableau fonctionnel du Master Plan.</p>
+          </article>
+        </div>
+
+        <div className={styles.executionStatusGrid}>
+          <article className={styles.executionStatusCard}>
+            <span>Terminé</span>
+            <strong>{functionalDoneCount}</strong>
+            <p>Fonctionnalités déjà clôturées dans le suivi fonctionnel.</p>
+          </article>
+          <article className={styles.executionStatusCard}>
+            <span>En cours / partiel</span>
+            <strong>{functionalActiveCount}</strong>
+            <p>Chantiers encore actifs à consolider avant élargissement du périmètre.</p>
+          </article>
+          <article className={styles.executionStatusCard}>
+            <span>À lancer</span>
+            <strong>{functionalTodoCount}</strong>
+            <p>Sujets encore non démarrés ou explicitement reportés côté produit.</p>
+          </article>
+          <article className={styles.executionStatusCard}>
+            <span>Bloqué</span>
+            <strong>{functionalBlockedCount}</strong>
+            <p>Arbitrages ou dépendances qui empêchent une progression normale.</p>
           </article>
         </div>
 
@@ -2579,6 +2692,118 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
             </tbody>
           </table>
         </div>
+
+        <div className={styles.executionInsightGrid}>
+          <article className={styles.auditCard}>
+            <strong>N2</strong>
+            <p>{plan.functionalLevelCounts.N2 ?? 0} fonctionnalité(s) encore au niveau socle.</p>
+          </article>
+          <article className={styles.auditCard}>
+            <strong>N3</strong>
+            <p>{plan.functionalLevelCounts.N3 ?? 0} fonctionnalité(s) déjà fonctionnelles mais encore à consolider.</p>
+          </article>
+          <article className={styles.auditCard}>
+            <strong>P0 / P1 reliés</strong>
+            <p>{functionalFocusRows.filter((row) => row.planningPriority === "P0 Critique" || row.planningPriority === "P1 Prioritaire").length} ligne(s) fonctionnelles remontent aussi dans les priorités immédiates.</p>
+          </article>
+          <article className={styles.auditCard}>
+            <strong>Lecture utile</strong>
+            <p>Le tableau ci-dessous mélange maintenant statut métier, niveau N et prochaine action pour éviter d’ouvrir plusieurs zones en parallèle.</p>
+          </article>
+        </div>
+
+        <div className={styles.prioritySection}>
+          <div className={styles.priorityHeader}>
+            <strong>Suivi fonctionnel priorisé</strong>
+          </div>
+          <div className={styles.tableScroll}>
+            <table aria-label="Suivi fonctionnel priorisé développement">
+              <thead>
+                <tr>
+                  <th>Statut</th>
+                  <th>Niveau</th>
+                  <th>Fonctionnalité</th>
+                  <th>Priorité</th>
+                  <th>Prochaine action</th>
+                  <th>Observation</th>
+                </tr>
+              </thead>
+              <tbody>
+                {functionalFocusRows.map((row) => (
+                  <tr key={`focus-${row.feature}-${row.level}`}>
+                    <td>{row.status}</td>
+                    <td>{row.level}</td>
+                    <td>{row.feature}</td>
+                    <td>{row.planningPriority}</td>
+                    <td>{row.planningNextAction || "Voir observation / roadmap"}</td>
+                    <td>{row.observations}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className={styles.executionSplitGrid}>
+          <Card>
+            <CardHeader className={styles.panelHeader}>
+              <div>
+                <strong>Derniers éléments terminés</strong>
+                <p className={styles.sidebarIntro}>Pour voir ce qui est réellement déjà sécurisé sans relire tout l’historique.</p>
+              </div>
+            </CardHeader>
+            <CardBody className={styles.compactList}>
+              {recentCompletedFunctionalRows.length ? recentCompletedFunctionalRows.map((row) => (
+                <article key={`done-${row.feature}`} className={styles.compactListItem}>
+                  <div className={styles.compactListTop}>
+                    <p className={styles.categoryLabel}>{row.planningPriority}</p>
+                    <Tag tone="status">{row.status}</Tag>
+                  </div>
+                  <strong>{row.feature}</strong>
+                  <p>{row.observations}</p>
+                </article>
+              )) : <p className={styles.executiveEmpty}>Aucune fonctionnalité terminée visible dans le tableau fonctionnel.</p>}
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader className={styles.panelHeader}>
+              <div>
+                <strong>Référentiels développement</strong>
+                <p className={styles.sidebarIntro}>Repères rapides pour lire les niveaux N et les priorités sans quitter la page.</p>
+              </div>
+            </CardHeader>
+            <CardBody>
+              <MasterPlanQuickReferenceTables />
+            </CardBody>
+          </Card>
+        </div>
+
+        <details className={styles.executionDetails}>
+          <summary>Voir le tableau fonctionnel complet</summary>
+          <div className={styles.tableScroll}>
+            <table aria-label="Tableau fonctionnel du Master Plan dans développement">
+              <thead>
+                <tr>
+                  <th>Fonctionnalité</th>
+                  <th>Statut</th>
+                  <th>Niveau</th>
+                  <th>Observations factuelles</th>
+                </tr>
+              </thead>
+              <tbody>
+                {functionalRows.map((row) => (
+                  <tr key={`${row.feature}-${row.level}`}>
+                    <td>{row.feature}</td>
+                    <td>{row.status}</td>
+                    <td>{row.level}</td>
+                    <td>{row.observations}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
       </div> : null}
     </section>
       </TabsContent>
@@ -3501,6 +3726,54 @@ function InlineDisclosureButton({
       <span>{label}</span>
       <ChevronDown size={16} className={styles.chevron} aria-hidden="true" />
     </button>
+  );
+}
+
+function MasterPlanQuickReferenceTables() {
+  return (
+    <div className={styles.prioritySection}>
+      <div className={styles.priorityHeader}>
+        <strong>Référentiels rapides du Master Plan</strong>
+      </div>
+      <div className={styles.tableScroll}>
+        <table aria-label="Niveaux de maturité du Master Plan">
+          <thead>
+            <tr>
+              <th>Niveau</th>
+              <th>Libellé</th>
+              <th>Définition</th>
+            </tr>
+          </thead>
+          <tbody>
+            {MASTER_PLAN_MATURITY_LEVELS.map((item) => (
+              <tr key={item.level}>
+                <td>{item.level}</td>
+                <td>{item.label}</td>
+                <td>{item.definition}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className={styles.tableScroll}>
+        <table aria-label="Guide des priorités du Master Plan">
+          <thead>
+            <tr>
+              <th>Priorité</th>
+              <th>Quand l'utiliser</th>
+            </tr>
+          </thead>
+          <tbody>
+            {MASTER_PLAN_PRIORITY_GUIDE.map((item) => (
+              <tr key={item.priority}>
+                <td>{item.priority}</td>
+                <td>{item.scope}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 

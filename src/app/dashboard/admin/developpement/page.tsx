@@ -3,8 +3,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import { execFile } from "node:child_process";
 import { createClient } from "@supabase/supabase-js";
-import { redirect } from "next/navigation";
-import { auth } from "@/server/auth/authOptions";
+import { requireAdminAccess } from "../adminAccess";
 import { buildDeveloperLogView, type DeveloperLogCommit } from "./developerLog";
 import { MasterPlanViewer } from "./MasterPlanViewer";
 import { parseMasterPlan } from "./masterPlan";
@@ -299,9 +298,7 @@ async function _collectProjectAdvisorSignals(): Promise<{
 }
 
 export default async function DevelopmentPage() {
-  const session = await auth();
-  const role = session?.user?.role;
-  if (role !== "admin" && role !== "super_admin") redirect("/login");
+  const session = await requireAdminAccess();
 
   const masterPlanPath = path.join(process.cwd(), "docs", "master-plan-planetls.md");
   const packageJsonPath = path.join(process.cwd(), "package.json");
