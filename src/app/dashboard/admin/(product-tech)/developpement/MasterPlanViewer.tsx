@@ -173,7 +173,8 @@ const COMMENTS_STORAGE_KEY = "planetls:developer-log:comments";
 const MANUAL_ENTRIES_STORAGE_KEY = "planetls:developer-log:manual-entries";
 const ROADMAP_COMPLETIONS_STORAGE_KEY = "planetls:developer-roadmap:completions";
 const REFERENCE_NOW = new Date("2026-07-27T12:00:00+02:00");
-const PRIORITY_TABLE_ROWS: PriorityTableRow[] = [
+// Historical reference kept for a future dedicated priority-table migration.
+const _PRIORITY_TABLE_ROWS: PriorityTableRow[] = [
   {
     id: "P0-001",
     level: "P0",

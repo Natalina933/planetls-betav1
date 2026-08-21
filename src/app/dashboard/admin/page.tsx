@@ -21,6 +21,7 @@ import {
   UnifiedStatStack,
   type UnifiedSpotlightItem,
 } from "@/app/components/dashboard/unified";
+import { Badge } from "@/components/ui";
 import type { KpiOverviewPayload } from "@/app/api/kpis/overview/shared";
 import {
   getElapsedLabel,
@@ -251,10 +252,12 @@ function buildLinePath(points: number[], width: number, height: number) {
 }
 
 function StatusChip({ tone, children }: { tone: MetricTone; children: string }) {
+  const variant = tone === "positive" ? "success" : tone === "warning" ? "warning" : tone === "danger" ? "danger" : "neutral";
+
   return (
-    <span className={styles.statusChip} data-tone={tone}>
+    <Badge variant={variant} className={styles.statusChip}>
       {children}
-    </span>
+    </Badge>
   );
 }
 
@@ -595,8 +598,8 @@ export default function AdminDashboard() {
   const blockedRequests = useMemo(
     () =>
       requests.filter((request) => {
-        const status = getRequestStatus(request);
-        return status === "Bloquee" || getRequestUrgency(request) === "danger";
+        const status = normalizeAdminText(getRequestStatus(request));
+        return status === "bloquee" || getRequestUrgency(request) === "danger";
       }),
     [requests],
   );
@@ -604,7 +607,7 @@ export default function AdminDashboard() {
   const acceptedQuotesWithoutMission = useMemo(
     () =>
       requests.filter((request) => {
-        const quoteAccepted = getRequestStatus(request) === "Devis accepte";
+        const quoteAccepted = normalizeAdminText(getRequestStatus(request)) === "devis accepte";
         return quoteAccepted && !normalizeAdminText(request.mission_workflow_status);
       }),
     [requests],
@@ -941,9 +944,10 @@ export default function AdminDashboard() {
     <div className="theme-admin">
       <UnifiedRoleDashboard
         role="admin"
-        title="Mission Control"
-        subtitle="Voir la tension du jour, les conversions qui accelerent et les points ou l'equipe doit intervenir maintenant."
-        experienceBadge={`Fenetre ${period} jours`}
+        visualVariant="admin-prototype"
+        title="Aujourd'hui sur PlanetLS"
+        subtitle="Les signaux a traiter, l'activite du reseau et les operations qui demandent votre attention."
+        experienceBadge={`Vue des ${period} derniers jours`}
         experienceBadgeTone="info"
         statusLabel={heroStatusLabel}
         statusTone={heroTone === "danger" ? "danger" : heroTone === "warning" ? "warning" : "success"}

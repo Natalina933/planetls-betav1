@@ -94,19 +94,19 @@
 }
 
 :global(.theme-admin) .dashboardRoot {
-  --theme-accent: #125c5b;
-  --theme-accent-strong: #0f3f46;
-  --theme-secondary: #d4a74a;
-  --theme-secondary-strong: #b7831f;
-  --theme-soft: #667085;
-  --theme-soft-surface: #ffffff;
-  --theme-muted-surface: #f7f8fa;
-  --theme-badge-surface: rgba(18, 92, 91, 0.1);
-  --theme-text: #111827;
-  --theme-text-soft: #667085;
-  --theme-border: rgba(17, 24, 39, 0.1);
-  --theme-shadow: rgba(15, 23, 42, 0.06);
-  --theme-glow: rgba(18, 92, 91, 0.12);
+  --theme-accent: var(--ds-color-accent);
+  --theme-accent-strong: var(--ds-color-secondary);
+  --theme-secondary: var(--ds-color-primary);
+  --theme-secondary-strong: var(--ds-color-primary-hover);
+  --theme-soft: var(--ds-color-text-secondary);
+  --theme-soft-surface: var(--ds-color-surface);
+  --theme-muted-surface: var(--ds-color-surface-soft);
+  --theme-badge-surface: color-mix(in srgb, var(--ds-color-accent) 10%, transparent);
+  --theme-text: var(--ds-color-text-primary);
+  --theme-text-soft: var(--ds-color-text-secondary);
+  --theme-border: var(--ds-color-border);
+  --theme-shadow: rgba(26, 37, 48, 0.06);
+  --theme-glow: color-mix(in srgb, var(--ds-color-accent) 12%, transparent);
 }
 
 .heroCard,
@@ -517,6 +517,178 @@
 
 .heroLead {
   max-width: 78ch;
+}
+
+/* The Admin cockpit follows the validated prototype without changing shared role layouts. */
+.adminPrototype {
+  gap: var(--ds-space-section);
+  padding: var(--ds-space-page);
+  background:
+    radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--ds-color-primary) 16%, transparent), transparent 24%),
+    radial-gradient(circle at 0% 20%, color-mix(in srgb, var(--ds-color-accent) 9%, transparent), transparent 26%),
+    var(--ds-color-background);
+}
+
+.adminPrototype .heroCard {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ds-space-5);
+  padding: clamp(var(--ds-space-5), 2.6vw, var(--ds-space-7));
+  border: var(--ds-border-subtle);
+  border-left: 4px solid var(--ds-color-primary);
+  border-radius: var(--ds-radius-xl);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--ds-color-primary) 18%, transparent), transparent 30%),
+    linear-gradient(135deg, var(--ds-color-surface-soft), var(--ds-color-surface) 62%);
+  box-shadow: var(--ds-shadow-md);
+}
+
+.adminPrototype .heroTitleWrap h1,
+.adminPrototype .embeddedHeader h3,
+.adminPrototype .disclosureCard summary span {
+  color: var(--ds-color-text-primary);
+}
+
+.adminPrototype .heroTitleWrap h1 {
+  font-size: clamp(2rem, 3vw, 3.25rem);
+  letter-spacing: -0.035em;
+}
+
+.adminPrototype .heroEyebrow {
+  color: var(--ds-color-primary-hover);
+}
+
+.adminPrototype .heroActions {
+  grid-template-columns: repeat(3, minmax(0, max-content));
+  justify-content: start;
+}
+
+.adminPrototype .actionButton {
+  min-height: var(--ds-control-height-md);
+  border-radius: var(--ds-radius-md);
+  box-shadow: none;
+}
+
+.adminPrototype .primaryAction {
+  background: var(--ds-color-primary);
+}
+
+.adminPrototype .secondaryAction,
+.adminPrototype .ghostAction {
+  border-color: var(--ds-color-border);
+  background: var(--ds-color-surface);
+  color: var(--ds-color-text-primary);
+}
+
+.adminPrototype .kpiSection {
+  gap: var(--ds-space-4);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.adminPrototype .dashboardGrid {
+  gap: var(--ds-space-5);
+  grid-template-columns: minmax(0, 1.65fr) minmax(300px, 0.85fr);
+}
+
+.adminPrototype .embeddedModule,
+.adminPrototype .disclosureCard {
+  border-color: var(--ds-color-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.adminPrototype .embeddedModule {
+  padding: var(--ds-space-5);
+}
+
+@media (max-width: 1180px) {
+  .adminPrototype .heroActions,
+  .adminPrototype .kpiSection,
+  .adminPrototype .dashboardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .adminPrototype .dashboardGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Keep the validated Admin reference above the legacy shared refresh. */
+.adminPrototype .heroCard {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ds-space-5);
+  padding: clamp(var(--ds-space-5), 2.6vw, var(--ds-space-7));
+  border: var(--ds-border-subtle);
+  border-left: 4px solid var(--ds-color-primary);
+  border-radius: var(--ds-radius-xl);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--ds-color-primary) 18%, transparent), transparent 30%),
+    linear-gradient(135deg, var(--ds-color-surface-soft), var(--ds-color-surface) 62%);
+  box-shadow: var(--ds-shadow-md);
+}
+
+.adminPrototype .heroActions {
+  grid-template-columns: repeat(3, minmax(0, max-content));
+  justify-content: start;
+}
+
+.adminPrototype .actionButton {
+  min-height: var(--ds-control-height-md);
+  border-radius: var(--ds-radius-md);
+}
+
+.adminPrototype .kpiSection {
+  gap: var(--ds-space-4);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.adminPrototype .dashboardGrid {
+  gap: var(--ds-space-5);
+  grid-template-columns: minmax(0, 1.65fr) minmax(300px, 0.85fr);
+}
+
+.adminPrototype .embeddedModule {
+  padding: var(--ds-space-5);
+  border-color: var(--ds-color-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+@media (max-width: 1180px) {
+  .adminPrototype .heroActions,
+  .adminPrototype .kpiSection,
+  .adminPrototype .dashboardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .adminPrototype .dashboardGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .adminPrototype .heroActions,
+  .adminPrototype .kpiSection {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .adminPrototype {
+    gap: var(--ds-space-5);
+    padding: var(--ds-space-3);
+  }
+
+  .adminPrototype .heroCard {
+    padding: var(--ds-space-5);
+    border-radius: var(--ds-radius-lg);
+  }
+
+  .adminPrototype .heroActions,
+  .adminPrototype .kpiSection {
+    grid-template-columns: 1fr;
+  }
 }
 
 .heroSupplement {

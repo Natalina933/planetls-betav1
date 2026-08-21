@@ -8,6 +8,64 @@
 
 > Encodage du document normalise en UTF-8 le 6 aout 2026 pour supprimer les entrées hybrides UTF-8 / Windows-1252.
 
+### Mise à jour ciblée - UX/UI — Étape 1 : Design System PlanetLS du 21 août 2026
+
+- Statut : `🟡 En cours`
+- Priorité : `P2 Important`
+- Périmètre mis à jour : `src/app/styles/abstracts/variables.css`, `src/styles/_variables.scss`, `src/styles/globals.scss`, `src/components/ui/README.md`, `src/app/design-system/page.tsx`, `src/app/design-system/page.module.scss`, `src/app/dashboard/admin/(product-tech)/developpement/MasterPlanViewer.tsx`, `docs/master-plan-planetls.md`.
+- Réalité produit : `src/app/styles/abstracts/variables.css` devient la source officielle des tokens visuels. La famille `--ds-*` est canonique ; `--ui-*` et `--dash-*` sont conservés comme alias de compatibilité, sans migration globale risquée des écrans existants.
+- Réalité produit : le catalogue `/design-system` présente les fondations Phase 1 et les primitives partagées. La documentation `src/components/ui/README.md` définit les composants officiels, les doublons à fusionner progressivement et les reliques Tailwind/shadcn à ne pas supprimer sans audit dédié.
+- Décision de pilotage : conserver l'identité chaude PlanetLS et adopter les principes SaaS de hiérarchie, densité et navigation de manière progressive, sans ajout de MUI, Tailwind ni shadcn.
+- Limites connues : les dashboards, les badges métier, les tableaux et les polices existantes ne sont pas encore migrés. `lucide-react` est la bibliothèque officielle pour le nouveau code, mais `react-icons` reste présent dans les surfaces historiques.
+- Dépendances : une Phase 2 de prototype visuel du dashboard admin devra valider les composants KPI, statut, table, layout et responsive avant toute migration transversale.
+- Réparation terminal : la table historique non branchée `PRIORITY_TABLE_ROWS` dans `MasterPlanViewer.tsx` est explicitement marquée comme donnée de référence en attente de migration. Elle ne bloque plus le lint.
+- Réparation build : `src/styles/globals.scss` référence désormais explicitement `_variables.scss`, ce qui corrige l'erreur Turbopack `Can't find stylesheet to import` produite par l'ancien import implicite `@use "variables"`.
+- Vérification : `npm test` passe avec `248/248` tests. `npm run check:encoding` passe. La compilation Sass isolée confirme que `src/styles/_variables.scss` charge bien la source canonique `variables.css`. `npm run lint` passe. `npm run build` ne reproduit plus l'erreur de feuille Sass introuvable, mais dépasse encore la limite locale après deux minutes sans erreur affichée ; ce comportement de build reste à diagnostiquer dans un lot technique distinct.
+- Prochaine étape recommandée : Phase 2 - Prototype visuel du Dashboard Admin PlanetLS.
+
+### Mise à jour ciblée - UX/UI — Étape 2A : Prototype Dashboard Admin du 21 août 2026
+
+- Statut : `✅ Terminé`
+- Priorité : `P2 Important`
+- Périmètre mis à jour : `src/app/design-system/admin-dashboard/page.tsx`, `src/app/design-system/admin-dashboard/page.module.scss`, `src/app/design-system/page.tsx`, `src/app/design-system/page.module.scss`, `docs/master-plan-planetls.md`.
+- Réalité produit : un prototype interne est disponible sous `/design-system/admin-dashboard`. Il teste la hiérarchie cible admin : signaux prioritaires, KPI, actions rapides, activité récente et tableau compact responsive, sans requête API, donnée réelle ou modification du cockpit admin.
+- Réalité produit : la revue UX/UI a allégé l'en-tête, limité l'action principale à une seule, rendu les priorités explicites par texte et statut, renforcé la sémantique du tableau et préparé le comportement mobile avec un défilement horizontal contenu.
+- Décision de pilotage : valider d'abord la direction visuelle et la densité dans un espace isolé. L'intégration aux données et aux routes admin existantes reste un lot distinct, après validation produit du prototype.
+- Limites connues : les boutons, tableaux et chiffres du prototype sont volontairement non connectés. Le prototype n'est pas encore une nouvelle page `/dashboard/admin`.
+- Vérification : `npm run lint` passe. `npm test` passe avec `248/248` tests. `npm run build` : `TIMEOUT sans erreur` après deux minutes. La vérification visuelle automatisée reste à refaire dans un environnement où le navigateur `agent-browser` et le serveur local sont accessibles.
+- Prochaine étape recommandée : UX/UI — Étape 2B, revue et amélioration UX/UI du prototype Admin.
+
+### Mise à jour ciblée - UX/UI — Étape 2B : Revue et amélioration UX/UI du prototype Admin du 21 août 2026
+
+- Statut : `✅ Terminé`
+- Priorité : `P2 Important`
+- Périmètre mis à jour : `src/app/design-system/admin-dashboard/page.tsx`, `src/app/design-system/admin-dashboard/page.module.scss`, `docs/master-plan-planetls.md`.
+- Réalité produit : le prototype a reçu un en-tête plus sobre, une seule action principale, des priorités explicites, un tableau sémantique et un comportement mobile contenu. Il reste isolé du dashboard de production et ne consomme aucune donnée réelle.
+- Prochaine étape recommandée : UX/UI — Étape 2C, validation formelle du prototype Admin.
+
+### Mise à jour ciblée - UX/UI — Étape 2C : Validation formelle du prototype Admin du 21 août 2026
+
+- Statut : `✅ Terminé`
+- Priorité : `P2 Important`
+- Périmètre mis à jour : `src/app/design-system/admin-dashboard/page.tsx`, `src/app/design-system/admin-dashboard/page.module.scss`, `docs/master-plan-planetls.md`.
+- Réalité produit : les dernières corrections ciblées remplacent les actions inertes du prototype par des liens internes de démonstration et utilisent un balisage d'activité valide. La hiérarchie, les tokens, le tableau et les règles responsive ont été relus sans modification du dashboard admin réel.
+- Décision de pilotage : la nomenclature UX/UI est indépendante de la roadmap métier : Étapes 1, 2A, 2B, 2C, puis 3 à 6. La roadmap métier globale n'est ni renommée ni renumérotée.
+- Décision de pilotage : la validation visuelle desktop, tablette et mobile a été confirmée manuellement par le produit, autorisant l'intégration contrôlée dans le vrai Dashboard Admin.
+- Vérification : `npm run lint` passe. `npm test` passe avec `248/248` tests. `npm run build` : `TIMEOUT sans erreur` après deux minutes, sans nouvelle erreur Sass ou TypeScript affichée.
+- Prochaine étape recommandée : UX/UI — Étape 3, intégration contrôlée dans le vrai Dashboard Admin.
+
+### Mise à jour ciblée - UX/UI — Étape 3 : Intégration contrôlée Dashboard Admin du 21 août 2026
+
+- Statut : `✅ Terminé`
+- Priorité : `P2 Important`
+- Périmètre mis à jour : `src/app/dashboard/admin/page.tsx`, `src/app/dashboard/admin/AdminDashboard.module.scss`, `src/app/components/dashboard/unified/UnifiedRoleDashboard.module.scss`, `docs/master-plan-planetls.md`.
+- Réalité produit : le cockpit `/dashboard/admin` conserve ses quatre lectures réelles en parallèle (opérations, vue utilisateurs, tour de contrôle et KPI), les protections Admin côté layout et API, les filtres, tableaux, états vides, erreurs et liens opérationnels. Les priorités administratives normalisent désormais les statuts accentués et remontent correctement les demandes bloquées ou devis acceptés sans mission.
+- Design : la palette Admin du shell unifié s'appuie sur les tokens officiels `--ds-*` et les statuts visibles du cockpit réutilisent le composant `Badge` du Design System. La structure actuelle, les KPI, priorités, activité, tableaux et raccourcis sont préservés avec leur comportement responsive existant.
+- Migration différée — risque de régression : le remplacement structurel du shell `UnifiedRoleDashboard` et la réécriture des graphiques ou tableaux restent hors de cette étape. Ce shell est partagé avec les autres rôles ; aucune migration supplémentaire n'est nécessaire pour valider le cockpit Admin actuel.
+- Vérification : validation visuelle authentifiée Playwright réussie sur desktop large (`1600px`), laptop (`1366px`), tablette (`768px`) et mobile (`390px`). Les filtres de période et de rôle sont fonctionnels, les trois tableaux réels restent affichés et aucun débordement horizontal global n'est détecté. `npm run lint` passe. `npm test` passe avec `248/248` tests. `npm run build` compile, passe TypeScript et génère les pages, puis atteint le délai local pendant la finalisation sans erreur affichée (`TIMEOUT sans erreur affichée`).
+- Décision de pilotage : le Dashboard Admin est validé comme référence d'intégration UX/UI. La roadmap métier globale n'est ni renommée ni renumérotée.
+- Prochaine étape recommandée : ne démarrer une déclinaison de rôle qu'après instruction produit explicite.
+
 ## 0. Mode d'emploi et gouvernance
 
 Ce document remplace les nouveaux audits transverses comme support de pilotage. Les documents historiques de `docs/` restent conservés comme preuves, spécifications détaillées et archives de décisions ; ils ne doivent plus être utilisés seuls pour déterminér l'état courant du produit.

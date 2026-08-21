@@ -66,9 +66,86 @@
   white-space: nowrap;
 }
 
+.calloutActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+}
+
+.catalogue {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 1.5rem auto 2rem;
+  padding: var(--ds-space-6);
+  border: var(--ds-border-subtle);
+  border-radius: var(--ds-radius-xl);
+  background: var(--ds-surface-raised);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.catalogueHeading p,
+.catalogueHeading h2,
+.catalogueHeading span { margin: 0; }
+
+.catalogueHeading p {
+  color: var(--ds-color-primary-hover);
+  font: 700 0.75rem/1.2 var(--ds-font-ui);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.catalogueHeading h2 {
+  margin-top: var(--ds-space-2);
+  color: var(--ds-color-text-primary);
+  font: 700 clamp(1.35rem, 3vw, 2rem)/1.15 var(--ds-font-ui);
+}
+
+.catalogueHeading span {
+  display: block;
+  margin-top: var(--ds-space-2);
+  color: var(--ds-color-text-secondary);
+}
+
+.tokenGrid,
+.componentGrid {
+  display: grid;
+  gap: var(--ds-space-4);
+  margin-top: var(--ds-space-5);
+}
+
+.tokenGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.tokenGrid article {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-3);
+  border: var(--ds-border-subtle);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-color-text-primary);
+  font: 600 0.9rem/1.3 var(--ds-font-ui);
+}
+
+.tokenGrid span {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-sm);
+}
+
+.primarySwatch { background: var(--ds-color-primary); }
+.surfaceSwatch { background: var(--ds-color-surface-muted); }
+.successSwatch { background: var(--ds-color-success); }
+.componentGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.componentGrid :global(article) { max-width: none; }
+.badgeRow { display: flex; flex-wrap: wrap; gap: var(--ds-space-2); }
+
 @media (max-width: 700px) {
   .visualReferenceCallout {
     align-items: stretch;
     flex-direction: column;
   }
+
+  .catalogue { padding: var(--ds-space-4); }
+  .tokenGrid,
+  .componentGrid { grid-template-columns: 1fr; }
 }

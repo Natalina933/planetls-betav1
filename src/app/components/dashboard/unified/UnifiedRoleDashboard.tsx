@@ -77,6 +77,7 @@ interface UnifiedRoleDashboardProps {
   sidebarSections?: DashboardSectionBlock[];
   disclosures?: DashboardDisclosureItem[];
   className?: string;
+  visualVariant?: "admin-prototype";
 }
 
 const ROLE_META: Record<
@@ -165,9 +166,12 @@ export default function UnifiedRoleDashboard({
   sidebarSections = [],
   disclosures = [],
   className,
+  visualVariant,
 }: UnifiedRoleDashboardProps) {
   const roleMeta = ROLE_META[role];
-  const rootClassName = className ? `${styles.dashboardRoot} ${className}` : styles.dashboardRoot;
+  const rootClassName = [styles.dashboardRoot, visualVariant ? styles.adminPrototype : "", className]
+    .filter(Boolean)
+    .join(" ");
   const kpiCount = Math.max(kpis.length, 1);
 
   return (

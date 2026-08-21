@@ -1,101 +1,211 @@
-/* styles/variables.scss */
+/* PlanetLS Design System - source officielle des tokens CSS.
+ * Les tokens --ds-* sont canoniques. --ui-* et --dash-* restent des alias
+ * temporaires afin de ne pas casser les ecrans existants. */
 
 :root {
-    /* 🎨 Couleurs neutres */
-    --color-text: #2b2b2b;
-    --color-bg: #f8f9fb;
-    --color-text-secondary: #555;
-    --color-border: #eaeaea;
-    --background: #ffffff;
-    --foreground: #171717;
+  /* Colors */
+  --ds-color-primary: #b88746;
+  --ds-color-primary-hover: #9a6f34;
+  --ds-color-secondary: #6f532f;
+  --ds-color-accent: #3f7f83;
+  --ds-color-background: #fffdf9;
+  --ds-color-surface: #ffffff;
+  --ds-color-surface-soft: #f8f3ea;
+  --ds-color-surface-muted: #efe6d6;
+  --ds-color-text-primary: #2f261f;
+  --ds-color-text-secondary: #6f6257;
+  --ds-color-text-muted: #8a7966;
+  --ds-color-text-inverse: #fffdf9;
+  --ds-color-border: #e6dbc8;
+  --ds-color-border-strong: #b88746;
+  --ds-color-border-soft: #eadfca;
+  --ds-color-success: #3b7d6a;
+  --ds-color-warning: #8c4b1f;
+  --ds-color-error: #af3f3f;
+  --ds-color-info: #476ca0;
 
-    /* 🎨 Couleurs système */
-    --color-success: #4caf50;
-    --color-error: #e53935;
-    --color-accent: #ffc107;
-    --color-focus-ring: #ffe09b;
+  /* Montserrat for interface and Open Sans for readable content. */
+  --ds-font-ui: "Montserrat", "Segoe UI", sans-serif;
+  --ds-font-body: "Open Sans", "Segoe UI", sans-serif;
+  --ds-font-heading: var(--ds-font-ui);
 
-    /* 🎨 Couleurs principales */
-    --color-primary: #d4af37;
-    /* Or principal */
-    --color-primary-hover: #b8912f;
-    --color-primary-rgb: 212, 175, 55;
+  /* Spacing scale */
+  --ds-space-1: 0.25rem;
+  --ds-space-2: 0.5rem;
+  --ds-space-3: 0.75rem;
+  --ds-space-4: 1rem;
+  --ds-space-5: 1.5rem;
+  --ds-space-6: 2rem;
+  --ds-space-7: 3rem;
+  --ds-space-8: 4rem;
+  --ds-space-page: clamp(1rem, 2vw, 2rem);
+  --ds-space-section: clamp(1.25rem, 2.8vw, 2.5rem);
 
-    /* 🌟 Accents par catégorie */
-    --color-accent-homeowners: #d4a017;
-    /* Or doux */
-    --color-accent-managers: #3c91e6;
-    /* Bleu lumineux */
-    --color-accent-partners: #e76f51;
-    /* Terre cuite */
+  /* Controls, radii and shadows */
+  --ds-control-height-sm: 36px;
+  --ds-control-height-md: 44px;
+  --ds-control-height-lg: 50px;
+  --ds-radius-sm: 8px;
+  --ds-radius-md: 12px;
+  --ds-radius-lg: 18px;
+  --ds-radius-xl: 24px;
+  --ds-radius-pill: 999px;
+  --ds-shadow-sm: 0 8px 20px rgba(26, 37, 48, 0.07);
+  --ds-shadow-md: 0 16px 34px rgba(26, 37, 48, 0.1);
+  --ds-shadow-lg: 0 22px 46px rgba(26, 37, 48, 0.14);
+  --ds-shadow-focus: 0 0 0 3px rgba(184, 135, 70, 0.2);
+  --ds-motion-fast: 140ms ease;
+  --ds-motion-base: 200ms ease;
+  --ds-motion-slow: 280ms ease;
+  --ds-ease-premium: cubic-bezier(0.2, 0.8, 0.2, 1);
 
-    /* ✨ Effet "verre" */
-    --glass-bg: rgba(255, 255, 255, 0.85);
-    --glass-border: rgba(255, 255, 255, 0.3);
-    --glass-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --glass-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.12);
+  /* Compatibility aliases. Do not use these in new components. */
+  --ds-color-bg: var(--ds-color-background);
+  --ds-color-text: var(--ds-color-text-primary);
+  --ds-color-text-soft: var(--ds-color-text-secondary);
+  --ds-color-gold: var(--ds-color-primary);
+  --ds-color-gold-strong: var(--ds-color-primary-hover);
+  --ds-color-gold-soft: #ead7a7;
+  --ds-color-brown: var(--ds-color-secondary);
+  --ds-color-brown-strong: #4c3418;
+  --ds-color-dark: #1d2430;
+  --ds-color-dark-soft: #2b3448;
+  --ds-color-danger: var(--ds-color-error);
+  --ds-color-bluegray: #e7edf1;
+  --ds-color-ivory: #fffdf8;
+  --ds-color-sage: #dfe8df;
+  --ds-color-clay: #f1e3dc;
+  --ds-color-teal: var(--ds-color-accent);
+  --ds-color-teal-soft: #e7f1f0;
+  --ds-color-ink: #1a2530;
+  --ds-surface-raised: linear-gradient(180deg, #ffffff 0%, #fbfcfc 100%);
+  --ds-surface-premium: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(247, 250, 250, 0.92));
+  --ds-surface-accent: linear-gradient(135deg, rgba(63, 127, 131, 0.1), rgba(212, 175, 55, 0.08));
+  --ds-radius-card: var(--ds-radius-lg);
+  --ds-radius-panel: var(--ds-radius-md);
+  --ds-radius-control: var(--ds-radius-md);
+  --ds-border-subtle: 1px solid var(--ds-color-border);
+  --ds-border-strong: 1px solid var(--ds-color-border-strong);
 
-    /* 🖋 Typographies */
-    --font-title: "Montserrat", sans-serif;
-    --font-primary: "Cormorant Garamond", serif;
-    --font-text: "Open Sans", sans-serif;
+  --ui-color-bg: var(--ds-color-background);
+  --ui-color-surface: var(--ds-color-surface);
+  --ui-color-surface-soft: var(--ds-color-surface-soft);
+  --ui-color-border: var(--ds-color-border);
+  --ui-color-text: var(--ds-color-text-primary);
+  --ui-color-text-muted: var(--ds-color-text-secondary);
+  --ui-color-primary: var(--ds-color-primary);
+  --ui-color-primary-strong: var(--ds-color-primary-hover);
+  --ui-color-accent: var(--ds-color-accent);
+  --ui-color-danger: var(--ds-color-error);
+  --ui-font-title: var(--ds-font-ui);
+  --ui-font-text: var(--ds-font-body);
+  --ui-space-1: var(--ds-space-1);
+  --ui-space-2: var(--ds-space-2);
+  --ui-space-3: var(--ds-space-3);
+  --ui-space-4: var(--ds-space-4);
+  --ui-space-5: var(--ds-space-5);
+  --ui-space-6: var(--ds-space-6);
+  --ui-space-7: var(--ds-space-7);
+  --ui-space-8: var(--ds-space-8);
+  --ui-radius-sm: var(--ds-radius-sm);
+  --ui-radius-md: var(--ds-radius-md);
+  --ui-radius-lg: var(--ds-radius-lg);
+  --ui-radius-pill: var(--ds-radius-pill);
+  --ui-button-radius: var(--ds-radius-pill);
+  --ui-input-radius: var(--ds-radius-md);
+  --ui-select-radius: var(--ds-radius-md);
+  --ui-card-radius: var(--ds-radius-lg);
+  --ui-panel-radius: var(--ds-radius-md);
+  --ui-shadow-sm: var(--ds-shadow-sm);
+  --ui-shadow-md: var(--ds-shadow-md);
+  --ui-transition-fast: var(--ds-motion-fast);
+  --ui-transition-base: var(--ds-motion-base);
+  --ui-card-small-max: 320px;
+  --ui-card-large-max: 520px;
+  --ui-avatar-sm: 32px;
+  --ui-avatar-md: 48px;
+  --ui-avatar-lg: 72px;
 
-    /* 📏 Espacements */
-    --spacing-xs: 0.25rem;
-    --spacing-sm: 0.5rem;
-    --spacing-md: 1rem;
-    --spacing-lg: 2rem;
-    --spacing-xl: 4rem;
-    --spacing-xxl: 6rem;
-
-    /* 🟦 Radius */
-    --radius: 4px;
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 24px;
-    --radius-pill: 500px;
-
-    /* 🌙 Dark mode (optionnel) */
-    @media (prefers-color-scheme: dark) {
-        --color-bg: #1c1c1c;
-        --color-text: #f5f5f5;
-        --color-text-secondary: #bbb;
-        --glass-bg: rgba(40, 40, 40, 0.8);
-        --glass-border: rgba(255, 255, 255, 0.1);
-    }
+  --dash-font-heading: var(--ds-font-ui);
+  --dash-font-body: var(--ds-font-body);
+  --dash-bg-page: var(--ds-color-background);
+  --dash-bg-panel: var(--ds-color-surface);
+  --dash-bg-panel-soft: var(--ds-color-surface-soft);
+  --dash-bg-accent-soft: var(--ds-color-surface-muted);
+  --dash-text: var(--ds-color-text-primary);
+  --dash-text-muted: var(--ds-color-text-secondary);
+  --dash-border: var(--ds-color-border);
+  --dash-accent: var(--ds-color-primary);
+  --dash-accent-strong: var(--ds-color-primary-hover);
+  --dash-info: var(--ds-color-info);
+  --dash-warning: var(--ds-color-warning);
+  --dash-danger: var(--ds-color-error);
+  --dash-success: var(--ds-color-success);
+  --dash-space-1: var(--ds-space-1);
+  --dash-space-2: var(--ds-space-2);
+  --dash-space-3: var(--ds-space-3);
+  --dash-space-4: var(--ds-space-4);
+  --dash-space-5: var(--ds-space-5);
+  --dash-space-6: var(--ds-space-6);
+  --dash-radius-sm: var(--ds-radius-sm);
+  --dash-radius-md: var(--ds-radius-md);
+  --dash-radius-lg: var(--ds-radius-lg);
+  --dash-radius-panel: var(--ds-radius-md);
+  --dash-shadow-sm: var(--ds-shadow-sm);
+  --dash-shadow-md: var(--ds-shadow-md);
 }
 
-/* 🔄 Animation spinner */
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
+[data-theme="art-deco"],
+.theme-art-deco {
+  --ds-color-primary: #d4af37;
+  --ds-color-primary-hover: #b5a642;
+  --ds-color-secondary: #7a5b12;
+  --ds-color-accent: #1a2530;
+  --ds-color-background: #f4f6f8;
+  --ds-color-surface-soft: #ebeff2;
+  --ds-color-surface-muted: #eef1f5;
+  --ds-color-text-primary: #2c3e50;
+  --ds-color-text-secondary: #5d6d7e;
+  --ds-color-text-muted: #748596;
+  --ds-color-border: #d5dbdf;
+  --ds-color-border-strong: #b5a642;
+  --ds-color-border-soft: #e8ecef;
+  --ds-radius-sm: 4px;
+  --ds-radius-md: 4px;
+  --ds-radius-lg: 4px;
+  --ds-radius-xl: 4px;
+  --ds-radius-pill: 4px;
 }
 
-/* Loader global */
-.loaderWrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    min-height: 80px;
+[data-theme="mucha-dark"],
+[data-theme="dark"] {
+  --ds-color-primary: #d3a35d;
+  --ds-color-primary-hover: #dfb375;
+  --ds-color-secondary: #d8b279;
+  --ds-color-accent: #5db79d;
+  --ds-color-background: #18120f;
+  --ds-color-surface: #231b16;
+  --ds-color-surface-soft: #2d241f;
+  --ds-color-surface-muted: #3a2d24;
+  --ds-color-text-primary: #f4ece3;
+  --ds-color-text-secondary: #c7b9ab;
+  --ds-color-text-muted: #b7a594;
+  --ds-color-border: #4a3d32;
+  --ds-color-border-strong: #c89a60;
+  --ds-color-border-soft: #5f4c3e;
+  --ds-color-success: #78c08e;
+  --ds-color-warning: #db9c6a;
+  --ds-color-error: #df7b7b;
+  --ds-color-info: #6aa9dd;
+  --ds-shadow-sm: 0 10px 24px rgba(7, 9, 14, 0.2);
+  --ds-shadow-md: 0 16px 36px rgba(7, 9, 14, 0.28);
+  --ds-shadow-lg: 0 24px 48px rgba(7, 9, 14, 0.34);
 }
 
-.spinner {
-    display: inline-block;
-    border: 4px solid;
-    border-top: 4px solid transparent;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-.loadingText {
-    margin-top: 0.75rem;
-    font-size: 0.9rem;
-    color: var(--color-text-secondary);
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ds-motion-fast: 1ms linear;
+    --ds-motion-base: 1ms linear;
+    --ds-motion-slow: 1ms linear;
+  }
 }
