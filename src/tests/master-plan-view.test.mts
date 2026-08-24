@@ -46,6 +46,10 @@ test("parseMasterPlan extrait le tableau fonctionnel avec statuts et niveaux", (
   const plan = parseMasterPlan(markdown, "2026-08-18T10:00:00.000Z");
   assert.equal(plan.functionalRows.length, 2);
   assert.deepEqual(plan.functionalRows[0], {
+    id: "PLS-MP-AUTHENTIFICATION",
+    planetLsId: "",
+    githubIssues: [],
+    githubUrls: [],
     feature: "Authentification",
     status: "En cours",
     level: "N3",
@@ -70,4 +74,18 @@ Ancienne décision P0 Critique.
   assert.equal(plan.priorityCounts["P0 Critique"], 2);
   assert.equal(plan.registryPriorityCounts["P0 Critique"], 2);
   assert.equal(plan.remainingPriorityCounts["P0 Critique"], 1);
+});
+
+test("parseMasterPlan exposes GitHub references separately from the PlanetLS ID", () => {
+  const markdown = `# Plan
+### Registre structure du developpement
+\`\`\`json
+{"version":1,"items":[{"id":"PLS-SEC-001","domain":"Securite","title":"Politique profils","summary":"Validation par role.","status":"TO_VERIFY","priority":"P1","type":"test","persona":"Owner","phase":"Qualite","updatedAt":"2026-08-24","nextAction":"Ajouter les tests d'integration.","validationCriteria":["Permissions verifiees"],"dependencies":[],"blocker":null,"routes":["/api/profiles"],"files":["src/tests/profile-patch-policy.test.mts"],"progressLabel":"Politique partielle.","source":"GitHub Issue #17","evidence":["src/tests/profile-patch-policy.test.mts"],"missingWork":["Tester la route authentifiee."],"githubIssues":[{"number":17,"url":"https://github.com/Natalina933/planetls-betav1/issues/17"}]}]}
+\`\`\``;
+  const plan = parseMasterPlan(markdown, "2026-08-24T12:00:00.000Z");
+
+  assert.equal(plan.diagnostics.errors.length, 0);
+  assert.deepEqual(plan.planning[0].githubIssues, [17]);
+  assert.equal(plan.planning[0].planetLsId, "PLS-SEC-001");
+  assert.deepEqual(plan.functionalRows[0].githubUrls, ["https://github.com/Natalina933/planetls-betav1/issues/17"]);
 });

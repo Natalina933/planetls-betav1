@@ -70,6 +70,11 @@ import {
   type MissionControlView,
 } from "./missionControl";
 import {
+  AUTOMATION_HISTORY,
+  AUTOMATION_INCIDENTS,
+  AUTOMATION_RECORDS,
+} from "./automationWorkspace";
+import {
   MASTER_PLAN_MATURITY_LEVELS,
   MASTER_PLAN_PRIORITIES,
   MASTER_PLAN_PRIORITY_GUIDE,
@@ -173,8 +178,8 @@ const COMMENTS_STORAGE_KEY = "planetls:developer-log:comments";
 const MANUAL_ENTRIES_STORAGE_KEY = "planetls:developer-log:manual-entries";
 const ROADMAP_COMPLETIONS_STORAGE_KEY = "planetls:developer-roadmap:completions";
 const REFERENCE_NOW = new Date("2026-07-27T12:00:00+02:00");
-// Historical reference kept for a future dedicated priority-table migration.
-const _PRIORITY_TABLE_ROWS: PriorityTableRow[] = [
+// Historical reference recovered from commit 3add992b and kept explicit until full registry convergence.
+const PRIORITY_TABLE_ROWS: PriorityTableRow[] = [
   {
     id: "P0-001",
     level: "P0",
@@ -780,81 +785,65 @@ const _PRIORITY_TABLE_ROWS: PriorityTableRow[] = [
   },
 ];
 
-const DEVELOPMENT_AUTOMATION_TABLE_ROWS: DevelopmentAutomationTableRow[] = [
-  {
-    id: "AUT-001",
-    zone: "Devis",
-    state: "🟢 Actif",
-    criticality: "Critique",
-    objective: "Créer une mission",
-    summary: "Transforme un devis accepté en mission",
-    trigger: "Devis accepté",
-    scenario: "Acceptation → création mission → planning",
-    dependencies: "AUT-002",
-    tool: "PlanetLS",
-    kpi: "taux de succès",
-    monitoring: "98,7 % · 78 exécutions · 1 incident",
-  },
-  {
-    id: "AUT-002",
-    zone: "Planning",
-    state: "🟢 Actif",
-    criticality: "Élevée",
-    objective: "Ajouter la mission au planning",
-    summary: "Planifie automatiquement la mission",
-    trigger: "Mission créée",
-    scenario: "Mission → calendrier",
-    dependencies: "AUT-001",
-    tool: "PlanetLS",
-    kpi: "erreurs planning",
-    monitoring: "99,4 % · stable",
-  },
-  {
-    id: "AUT-003",
-    zone: "Notifications",
-    state: "🟢 Actif",
-    criticality: "Élevée",
-    objective: "Prévenir le prestataire",
-    summary: "Informe le concierge/artisan",
-    trigger: "Mission créée",
-    scenario: "Mission → notification",
-    dependencies: "AUT-001",
-    tool: "Resend",
-    kpi: "taux d’envoi",
-    monitoring: "96,1 % · 3 erreurs",
-  },
-  {
-    id: "AUT-004",
-    zone: "Mission",
-    state: "🟠 Test",
-    criticality: "Moyenne",
-    objective: "Envoyer un rappel",
-    summary: "Réduit les oublis",
-    trigger: "Mission J-1",
-    scenario: "contrôle statut → rappel",
-    dependencies: "AUT-002",
-    tool: "PlanetLS/Resend",
-    kpi: "missions à l’heure",
-    monitoring: "Pilote · 243 exécutions",
-  },
-  {
-    id: "AUT-005",
-    zone: "Compte rendu",
-    state: "⚪ Prévu",
-    criticality: "Moyenne",
-    objective: "Générer un résumé IA",
-    summary: "Aide le prestataire à rédiger",
-    trigger: "Mission terminée",
-    scenario: "données + photos → IA → validation",
-    dependencies: "AUT-001",
-    tool: "IA",
-    kpi: "temps gagné",
-    monitoring: "À mesurer",
-  },
-];
+function automationStateLabel(status: string) {
+  if (status === "Active") return "🟢 Actif";
+  if (status === "Pilote") return "🟡 Pilote";
+  if (status === "En test") return "🟠 Test";
+  if (status === "Validée" || status === "Cartographiée") return "🔵 Cadré";
+  if (status === "À développer" || status === "En développement") return "⚪ À développer";
+  if (status === "Suspendue" || status === "Désactivée") return "⏸️ Suspendu";
+  return "⚪ Prévu";
+}
+
+function buildAutomationMonitoring(rowId: string, kpiLabel: string) {
+  const automation = AUTOMATION_RECORDS.find((item) => item.id === rowId);
+  if (!automation) return "Aucune donnée connectée";
+
+  const incidentCount = AUTOMATION_INCIDENTS.filter((incident) => incident.automationId === rowId && incident.status !== "Résolu").length;
+  const historyCount = AUTOMATION_HISTORY.filter((entry) => entry.automationId === rowId).length;
+  const executionLabel = automation.executions7d > 0 ? `${automation.executions7d} exécutions` : "0 exécution";
+  const successLabel = automation.successCount7d > 0
+    ? `${Math.round((automation.successCount7d / Math.max(automation.executions7d, 1)) * 1000) / 10} %`
+    : automation.observedLabel;
+
+  return [successLabel, executionLabel, `${incidentCount} incident(s)`, `${historyCount} trace(s)`, kpiLabel]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+const DEVELOPMENT_AUTOMATION_TABLE_ROWS: DevelopmentAutomationTableRow[] = AUTOMATION_RECORDS
+  .filter((item) => ["AUT-021", "AUT-022", "AUT-023", "AUT-014", "AUT-031", "AUT-032", "AUT-040", "AUT-041", "AUT-050", "AUT-051"].includes(item.id))
+  .map((item) => ({
+    id: item.id,
+    zone: item.zone,
+    state: automationStateLabel(item.status),
+    criticality: item.criticality,
+    objective: item.objective,
+    summary: item.summary,
+    trigger: item.triggerEvent,
+    scenario: item.scenario,
+    dependencies: item.dependencies.join(", ") || "Aucune",
+    tool: item.technologies.join(" / "),
+    kpi: item.processId,
+    monitoring: buildAutomationMonitoring(item.id, item.userSatisfactionLabel),
+  }));
 
 function stripMarkdown(value: string) {
   return value.replace(/[`*_]/g, "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+}
+
+function markdownTableRowId(headers: string[], row: string[]) {
+  // The semantic columns stay stable when a priority or status changes.
+  const identity = headers.map((header, index) => {
+    const normalized = header.toLowerCase();
+    return normalized.includes("statut") || normalized.includes("priorit") ? "" : row[index] ?? "";
+  }).join("|");
+  let hash = 2166136261;
+  for (const character of `${headers.join("|")}|${identity}`) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `PLS-TBL-${(hash >>> 0).toString(36).toUpperCase()}`;
 }
 
 function _LegacyMarkdownContent({ content }: { content: string }) {
@@ -875,8 +864,8 @@ function _LegacyMarkdownContent({ content }: { content: string }) {
         nodes.push(
           <div className={styles.tableScroll} key={`table-${index}`}>
             <table>
-              <thead><tr>{rows[0].map((cell, cellIndex) => <th key={cellIndex}>{cell}</th>)}</tr></thead>
-              <tbody>{rows.slice(1).map((row, rowIndex) => <tr key={rowIndex}>{row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}</tr>)}</tbody>
+              <thead><tr><th>ID</th>{rows[0].map((cell, cellIndex) => <th key={cellIndex}>{cell}</th>)}</tr></thead>
+              <tbody>{rows.slice(1).map((row) => <tr key={markdownTableRowId(rows[0], row)}><td>{markdownTableRowId(rows[0], row)}</td>{row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}</tr>)}</tbody>
             </table>
           </div>,
         );
@@ -909,8 +898,8 @@ function MarkdownContent({ content }: { content: string }) {
         nodes.push(
           <div className={styles.tableScroll} key={`table-${index}`}>
             <table>
-              <thead><tr>{rows[0].map((cell, cellIndex) => <th key={cellIndex}>{cell}</th>)}</tr></thead>
-              <tbody>{rows.slice(1).map((row, rowIndex) => <tr key={rowIndex}>{row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}</tr>)}</tbody>
+              <thead><tr><th>ID</th>{rows[0].map((cell, cellIndex) => <th key={cellIndex}>{cell}</th>)}</tr></thead>
+              <tbody>{rows.slice(1).map((row) => <tr key={markdownTableRowId(rows[0], row)}><td>{markdownTableRowId(rows[0], row)}</td>{row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}</tr>)}</tbody>
             </table>
           </div>,
         );
@@ -942,6 +931,15 @@ function formatTimeOnly(date: string) {
 
 function formatDateLabel(date: string) {
   return new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium" }).format(new Date(date));
+}
+
+function GitHubIssueLinks({ issues, urls }: { issues: number[]; urls: string[] }) {
+  if (!issues.length) return <>-</>;
+  return <>{issues.map((issue, index) => (
+    <a key={issue} href={urls[index] ?? `https://github.com/Natalina933/planetls-betav1/issues/${issue}`} target="_blank" rel="noreferrer">
+      #{issue}{index < issues.length - 1 ? " " : ""}
+    </a>
+  ))}</>;
 }
 
 function isSameDay(left: Date, right: Date) {
@@ -1404,6 +1402,11 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   const [journalFeature, setJournalFeature] = useState("");
   const [journalPriority, setJournalPriority] = useState("");
   const [journalAuthor, setJournalAuthor] = useState("");
+  const [priorityQuery, setPriorityQuery] = useState("");
+  const [priorityLevelFilter, setPriorityLevelFilter] = useState("");
+  const [priorityStatusFilter, setPriorityStatusFilter] = useState("");
+  const [priorityDomainFilter, setPriorityDomainFilter] = useState("");
+  const [priorityPersonaFilter, setPriorityPersonaFilter] = useState("");
   const [memoryQuery, setMemoryQuery] = useState("");
   const [memoryCategory, setMemoryCategory] = useState("");
   const [memoryTag, setMemoryTag] = useState("");
@@ -1519,7 +1522,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   const filteredMasterPlanSections = useMemo(() => {
     const normalizedQuery = masterPlanQuery.trim().toLocaleLowerCase("fr");
     return plan.sections.filter((section) => {
-      const matchesQuery = !normalizedQuery || `${section.title} ${section.content}`.toLocaleLowerCase("fr").includes(normalizedQuery);
+      const matchesQuery = !normalizedQuery || `${section.id} ${section.title} ${section.content}`.toLocaleLowerCase("fr").includes(normalizedQuery);
       return matchesQuery
         && (!masterPlanStatus || section.statuses.includes(masterPlanStatus))
         && (!masterPlanPriority || section.priorities.includes(masterPlanPriority));
@@ -1560,6 +1563,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
     const normalizedQuery = memoryQuery.trim().toLocaleLowerCase("fr");
     return technicalMemory.entries.filter((entry) => {
       const haystack = [
+        entry.id,
         entry.title,
         entry.question,
         entry.answer,
@@ -1604,6 +1608,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
     const normalizedQuery = journalQuery.trim().toLocaleLowerCase("fr");
     return combinedEntries.filter((entry) => {
       const haystack = [
+        entry.id,
         entry.title,
         entry.description,
         entry.decisions,
@@ -1645,6 +1650,11 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   const journalSummary = `${filteredEntries.length} entrée(s), ${favoriteCount} favori(s), ${commentCount} commentaire(s)`;
   const hiddenMasterPlanCount = Math.max(filteredMasterPlanSections.length - visibleSections.length, 0);
   const functionalRows = plan.functionalRows;
+  const syncErrorCount = plan.diagnostics.errors.length;
+  const syncWarningCount = plan.diagnostics.warnings.length;
+  const syncSourceLabel = plan.diagnostics.source === "structured" ? "Registre structuré du Master Plan" : "Parsing Markdown historique";
+  const syncLastUpdateLabel = plan.diagnostics.lastStructuredUpdate ?? "Non renseignée";
+  const syncNextIdLabel = plan.diagnostics.nextSuggestedId ?? "Non disponible";
   const recentUpdateRows = useMemo(() => [...plan.updates]
     .reverse()
     .slice(0, 12)
@@ -1677,11 +1687,53 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
     [recentUpdateRows],
   );
   const executionRowsByPriority = useMemo(() => ({
-    p0: recentUpdateRows.filter((row) => row.priority === "P0 Critique"),
-    p1: recentUpdateRows.filter((row) => row.priority === "P1 Prioritaire"),
-    p2: recentUpdateRows.filter((row) => row.priority === "P2 Important"),
-    p3: recentUpdateRows.filter((row) => row.priority === "P3 Confort" || row.priority === "P4 Évolution future"),
-  }), [recentUpdateRows]);
+    p0: plan.planning.filter((row) => row.priority === "P0 Critique"),
+    p1: plan.planning.filter((row) => row.priority === "P1 Prioritaire"),
+    p2: plan.planning.filter((row) => row.priority === "P2 Important"),
+    p3: plan.planning.filter((row) => row.priority === "P3 Confort"),
+  }), [plan.planning]);
+  const canonicalPriorityRows = useMemo(() => {
+    const normalizedQuery = priorityQuery.trim().toLocaleLowerCase("fr");
+    const historicalP3Items = PRIORITY_TABLE_ROWS
+      .filter((row) => row.level === "P3")
+      .map((row) => ({
+        id: `PLS-HIST-${row.id.slice(3)}`,
+        trackingId: `${row.id} historique`,
+        title: row.title,
+        priority: "P3" as const,
+        priorityLabel: "P3 Confort",
+        statusLabel: "Idée à étudier",
+        horizon: "Long terme" as const,
+        domain: row.category,
+        persona: "À confirmer",
+        source: "Historique Git 3add992b",
+        evidence: [row.zones],
+        dependencies: [],
+        nextAction: "Réévaluer le besoin terrain avant toute planification.",
+        updatedAt: "2026-08-24",
+      }));
+    return [...plan.registryItems, ...historicalP3Items].filter((item) => {
+      const matchesQuery = !normalizedQuery || [
+        item.id,
+        item.trackingId,
+        item.title,
+        item.domain,
+        item.persona,
+        item.source,
+        ...item.evidence,
+        ...item.dependencies,
+      ].join(" ").toLocaleLowerCase("fr").includes(normalizedQuery);
+      return matchesQuery
+        && (!priorityLevelFilter || item.priority === priorityLevelFilter)
+        && (!priorityStatusFilter || item.statusLabel === priorityStatusFilter)
+        && (!priorityDomainFilter || item.domain === priorityDomainFilter)
+        && (!priorityPersonaFilter || item.persona === priorityPersonaFilter);
+    });
+  }, [plan.registryItems, priorityDomainFilter, priorityLevelFilter, priorityPersonaFilter, priorityQuery, priorityStatusFilter]);
+  const priorityDomains = useMemo(() => Array.from(new Set(canonicalPriorityRows.map((item) => item.domain))).sort((left, right) => left.localeCompare(right, "fr")), [canonicalPriorityRows]);
+  const priorityPersonas = useMemo(() => Array.from(new Set(canonicalPriorityRows.map((item) => item.persona))).sort((left, right) => left.localeCompare(right, "fr")), [canonicalPriorityRows]);
+  const priorityStatuses = useMemo(() => Array.from(new Set(canonicalPriorityRows.map((item) => item.statusLabel))).sort((left, right) => left.localeCompare(right, "fr")), [canonicalPriorityRows]);
+  const archivedHistoricalPriorityCount = PRIORITY_TABLE_ROWS.length;
   const functionalRowsWithPlanning = useMemo(() => functionalRows.map((row) => {
     const planningItem = matchFunctionalPlanningRow(row.feature, plan.planning);
     return {
@@ -1902,7 +1954,11 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       : "Release compatible avec la trajectoire actuelle du projet.";
   const escalationHeadline = priorityActions[0]?.title || topBlockedItems[0]?.title || missionControl.weeklyGoal;
   const currentWork = useMemo(
-    () => plan.planning.filter((item) => item.status === "🟡 En cours" || item.status === "🟠 Partiel").slice(0, 6),
+    () => plan.planning.filter((item) => item.status === "🟡 En cours").slice(0, 6),
+    [plan.planning],
+  );
+  const verificationWork = useMemo(
+    () => plan.planning.filter((item) => item.status === "🟠 Partiel").slice(0, 6),
     [plan.planning],
   );
   const blockedWork = useMemo(
@@ -1910,12 +1966,16 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
     [plan.planning],
   );
   const readyWork = useMemo(
-    () => roadmapProjection.readyItems.slice(0, 6),
-    [roadmapProjection.readyItems],
+    () => plan.planning.filter((item) => item.status === "🔴 À faire").slice(0, 6),
+    [plan.planning],
   );
   const completedWork = useMemo(
-    () => roadmapProjection.completedItems.slice(0, 6),
-    [roadmapProjection.completedItems],
+    () => plan.planning.filter((item) => item.status === "✅ Terminé").slice(0, 6),
+    [plan.planning],
+  );
+  const deferredWork = useMemo(
+    () => plan.planning.filter((item) => item.status === "⏸️ Reporté").slice(0, 6),
+    [plan.planning],
   );
   const conciseHealthCards = useMemo(
     () => missionControl.healthCards.slice(0, 3),
@@ -1947,6 +2007,17 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
           <StatsCard label="En cours" value={String(missionControl.inProgressFeatures)} hint="À poursuivre" visual={<Activity size={18} />} visualLabel="En cours" />
           <StatsCard label="Bloqués" value={String(missionControl.blockedFeatures)} hint="À débloquer" visual={<AlertTriangle size={18} />} visualLabel="Bloqués" />
           <StatsCard label="Terminés" value={String(missionControl.completedFeatures)} hint="Déjà faits" visual={<CheckCheck size={18} />} visualLabel="Terminés" />
+        </div>
+
+        <div className={styles.compactGrid}>
+          <article className={styles.auditCard}>
+            <strong>Source canonique</strong>
+            <p>{syncSourceLabel} · {plan.diagnostics.itemCount} élément(s) · mise à jour {syncLastUpdateLabel} · prochain numéro {syncNextIdLabel}.</p>
+          </article>
+          <article className={styles.auditCard}>
+            <strong>Santé de la synchronisation</strong>
+            <p>{syncErrorCount} erreur(s), {syncWarningCount} alerte(s) et {plan.diagnostics.duplicateIds.length} doublon(s) d&apos;identifiant.</p>
+          </article>
         </div>
 
         <div className={styles.compactGrid}>
@@ -1985,6 +2056,14 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                   <p>{card.detail}</p>
                 </article>
               ))}
+              <article className={styles.auditCard}>
+                <strong>Priorités suivies</strong>
+                <p>P0 {plan.registryItems.filter((item) => item.priority === "P0").length} · P1 {plan.registryItems.filter((item) => item.priority === "P1").length} · P2 {plan.registryItems.filter((item) => item.priority === "P2").length} · P3 {plan.registryItems.filter((item) => item.priority === "P3").length + PRIORITY_TABLE_ROWS.filter((item) => item.level === "P3").length}</p>
+              </article>
+              <article className={styles.auditCard}>
+                <strong>États des priorités</strong>
+                <p>En cours {plan.registryItems.filter((item) => item.status === "IN_PROGRESS").length} · Prêt {plan.registryItems.filter((item) => item.status === "READY").length} · À vérifier {plan.registryItems.filter((item) => item.status === "TO_VERIFY").length} · Terminées {plan.registryItems.filter((item) => item.status === "COMPLETED").length} · Bloquées {plan.registryItems.filter((item) => item.status === "BLOCKED").length} · Reportées {plan.registryItems.filter((item) => item.status === "DEFERRED").length} · Idées {plan.registryItems.filter((item) => item.status === "IDEA").length + PRIORITY_TABLE_ROWS.filter((item) => item.level === "P3").length}</p>
+              </article>
             </CardBody>
           </Card>
         </div>
@@ -2001,7 +2080,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
               {blockedWork.length ? blockedWork.map((item) => (
                 <article key={item.id} className={styles.compactListItem}>
                   <div className={styles.compactListTop}>
-                    <p className={styles.categoryLabel}>{item.priority}</p>
+                    <p className={styles.categoryLabel}>{item.id} · {item.priority}</p>
                     <Tag tone="neutral">Bloqué</Tag>
                   </div>
                   <strong>{item.feature}</strong>
@@ -2022,7 +2101,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
               {currentWork.length ? currentWork.map((item) => (
                 <article key={item.id} className={styles.compactListItem}>
                   <div className={styles.compactListTop}>
-                    <p className={styles.categoryLabel}>{item.priority}</p>
+                    <p className={styles.categoryLabel}>{item.id} · {item.priority}</p>
                     <Tag tone="status">{item.status}</Tag>
                   </div>
                   <strong>{item.feature}</strong>
@@ -2045,7 +2124,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
               {readyWork.length ? readyWork.map((item) => (
                 <article key={item.id} className={styles.compactListItem}>
                   <div className={styles.compactListTop}>
-                    <p className={styles.categoryLabel}>{item.priority}</p>
+                    <p className={styles.categoryLabel}>{item.id} · {item.priority}</p>
                     <Tag tone="gold">{item.estimation}</Tag>
                   </div>
                   <strong>{item.title}</strong>
@@ -2066,13 +2145,57 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
               {completedWork.length ? completedWork.map((item) => (
                 <article key={item.id} className={styles.compactListItem}>
                   <div className={styles.compactListTop}>
-                    <p className={styles.categoryLabel}>{item.priority}</p>
+                    <p className={styles.categoryLabel}>{item.id} · {item.priority}</p>
                     <Tag tone="status">Terminé</Tag>
                   </div>
                   <strong>{item.title}</strong>
                   <p>{item.evidence || item.domain}</p>
                 </article>
               )) : <p className={styles.executiveEmpty}>Aucun repère terminé remonté dans cette vue.</p>}
+            </CardBody>
+          </Card>
+        </div>
+
+        <div className={styles.compactColumns}>
+          <Card>
+            <CardHeader className={styles.panelHeader}>
+              <div>
+                <strong>À vérifier</strong>
+                <p className={styles.sidebarIntro}>Les réalisations qui demandent encore une validation explicite.</p>
+              </div>
+            </CardHeader>
+            <CardBody className={styles.compactList}>
+              {verificationWork.length ? verificationWork.map((item) => (
+                <article key={item.id} className={styles.compactListItem}>
+                  <div className={styles.compactListTop}>
+                    <p className={styles.categoryLabel}>{item.id} · {item.priority}</p>
+                    <Tag tone="status">À vérifier</Tag>
+                  </div>
+                  <strong>{item.feature}</strong>
+                  <p>{item.nextAction || item.evidence}</p>
+                </article>
+              )) : <p className={styles.executiveEmpty}>Aucune vérification en attente.</p>}
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader className={styles.panelHeader}>
+              <div>
+                <strong>Reporté</strong>
+                <p className={styles.sidebarIntro}>Les sujets volontairement sortis du flux actif.</p>
+              </div>
+            </CardHeader>
+            <CardBody className={styles.compactList}>
+              {deferredWork.length ? deferredWork.map((item) => (
+                <article key={item.id} className={styles.compactListItem}>
+                  <div className={styles.compactListTop}>
+                    <p className={styles.categoryLabel}>{item.id} · {item.priority}</p>
+                    <Tag tone="neutral">Reporté</Tag>
+                  </div>
+                  <strong>{item.feature}</strong>
+                  <p>{item.nextAction || item.evidence}</p>
+                </article>
+              )) : <p className={styles.executiveEmpty}>Aucun sujet reporté.</p>}
             </CardBody>
           </Card>
         </div>
@@ -2087,113 +2210,52 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
           <CardBody>
             <div className={styles.prioritySection}>
               <div className={styles.priorityHeader}>
-                <strong>🔴 P0 - Critique / Sécurité / Blocage</strong>
+                <strong>Référentiel unique P0 à P3</strong>
+              </div>
+              <p className={styles.sidebarIntro}>Les cartes d&apos;exécution, les compteurs et ce tableau lisent tous le registre structuré. Les anciens intitulés restent archivés avec leur provenance, sans créer une seconde liste active.</p>
+              <div className={styles.filterBar}>
+                <input aria-label="Rechercher dans le pilotage des priorités" value={priorityQuery} onChange={(event) => setPriorityQuery(event.target.value)} placeholder="ID, sujet, preuve ou dépendance…" />
+                <select aria-label="Filtrer les priorités par niveau" value={priorityLevelFilter} onChange={(event) => setPriorityLevelFilter(event.target.value)}><option value="">Tous les niveaux</option>{["P0", "P1", "P2", "P3"].map((level) => <option key={level} value={level}>{level}</option>)}</select>
+                <select aria-label="Filtrer les priorités par statut" value={priorityStatusFilter} onChange={(event) => setPriorityStatusFilter(event.target.value)}><option value="">Tous les statuts</option>{priorityStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select>
+                <select aria-label="Filtrer les priorités par domaine" value={priorityDomainFilter} onChange={(event) => setPriorityDomainFilter(event.target.value)}><option value="">Tous les domaines</option>{priorityDomains.map((domain) => <option key={domain} value={domain}>{domain}</option>)}</select>
+                <select aria-label="Filtrer les priorités par persona" value={priorityPersonaFilter} onChange={(event) => setPriorityPersonaFilter(event.target.value)}><option value="">Toutes les personas</option>{priorityPersonas.map((persona) => <option key={persona} value={persona}>{persona}</option>)}</select>
               </div>
               <div className={styles.tableScroll}>
-                <table aria-label="Priorités P0">
+                <table aria-label="Pilotage des priorités">
                   <thead>
                     <tr>
+                      <th>ID</th>
+                      <th>Priorité</th>
+                      <th>Horizon</th>
                       <th>Statut</th>
                       <th>Sujet</th>
-                      <th>Ce qui a changé</th>
                       <th>Prochaine action</th>
-                      <th>Périmètre</th>
+                      <th>Domaine</th>
+                      <th>Persona</th>
+                      <th>Source</th>
+                      <th>Preuves</th>
+                      <th>Dépendances</th>
+                      <th>Vérifié</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {executionRowsByPriority.p0.map((row) => (
-                      <tr key={row.id}>
-                        <td><StatusBadge status={row.status} /></td>
-                        <td>{row.subject}</td>
-                        <td>{row.summary}</td>
-                        <td>{row.nextAction}</td>
-                        <td>{row.scope}</td>
+                    {canonicalPriorityRows.map((item) => (
+                      <tr key={item.id}>
+                        <td><strong>{item.id}</strong><br />{item.trackingId}</td>
+                        <td>{item.priorityLabel}</td>
+                        <td>{item.horizon}</td>
+                        <td><StatusBadge status={item.statusLabel} /></td>
+                        <td>{item.title}</td>
+                        <td>{item.nextAction}</td>
+                        <td>{item.domain}</td>
+                        <td>{item.persona}</td>
+                        <td>{item.source}</td>
+                        <td>{item.evidence.join(" · ") || "Aucune preuve"}</td>
+                        <td>{item.dependencies.join(" · ") || "Aucune"}</td>
+                        <td>{item.updatedAt}</td>
                       </tr>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className={styles.priorityHeader}>
-                <strong>🟠 P1 - Nécessaire avant lancement</strong>
-              </div>
-              <div className={styles.tableScroll}>
-                <table aria-label="Priorités P1">
-                  <thead>
-                    <tr>
-                      <th>Statut</th>
-                      <th>Sujet</th>
-                      <th>Ce qui a changé</th>
-                      <th>Prochaine action</th>
-                      <th>Périmètre</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {executionRowsByPriority.p1.map((row) => (
-                      <tr key={row.id}>
-                        <td><StatusBadge status={row.status} /></td>
-                        <td>{row.subject}</td>
-                        <td>{row.summary}</td>
-                        <td>{row.nextAction}</td>
-                        <td>{row.scope}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className={styles.priorityHeader}>
-                <strong>🟡 P2 - Amélioration importante</strong>
-              </div>
-              <div className={styles.tableScroll}>
-                <table aria-label="Priorités P2">
-                  <thead>
-                    <tr>
-                      <th>Statut</th>
-                      <th>Sujet</th>
-                      <th>Ce qui a changé</th>
-                      <th>Prochaine action</th>
-                      <th>Périmètre</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {executionRowsByPriority.p2.map((row) => (
-                      <tr key={row.id}>
-                        <td><StatusBadge status={row.status} /></td>
-                        <td>{row.subject}</td>
-                        <td>{row.summary}</td>
-                        <td>{row.nextAction}</td>
-                        <td>{row.scope}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className={styles.priorityHeader}>
-                <strong>🟢 P3 / P4 - Confort / Évolution</strong>
-              </div>
-              <div className={styles.tableScroll}>
-                <table aria-label="Priorités P3">
-                  <thead>
-                    <tr>
-                      <th>Statut</th>
-                      <th>Sujet</th>
-                      <th>Ce qui a changé</th>
-                      <th>Prochaine action</th>
-                      <th>Périmètre</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {executionRowsByPriority.p3.map((row) => (
-                      <tr key={row.id}>
-                        <td><StatusBadge status={row.status} /></td>
-                        <td>{row.subject}</td>
-                        <td>{row.summary}</td>
-                        <td>{row.nextAction}</td>
-                        <td>{row.scope}</td>
-                      </tr>
-                    ))}
+                    {!canonicalPriorityRows.length && <tr><td colSpan={12}>Aucune priorité ne correspond aux filtres actifs.</td></tr>}
                   </tbody>
                 </table>
               </div>
@@ -2201,6 +2263,9 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
               <div className={styles.priorityHeader}>
                 <strong>Automatisations &amp; Processus - tableau court</strong>
               </div>
+              <p className={styles.sidebarIntro}>
+                Vue courte branchée sur les enregistrements réels `AUT-*` de l&apos;espace d&apos;automatisation actuel, sans réintroduire l&apos;ancien mock statique.
+              </p>
               <div className={styles.tableScroll}>
                 <table aria-label="Tableau court des automatisations et processus">
                   <thead>
@@ -2239,6 +2304,10 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                   </tbody>
                 </table>
               </div>
+
+              <p className={styles.sidebarIntro}>
+                {archivedHistoricalPriorityCount} lignes du tableau D du commit <code>3add992b</code> restent conservées comme archive de provenance. Elles ne constituent plus un second tableau de pilotage et seront reliées une à une au registre actif lors de leur réévaluation factuelle.
+              </p>
             </div>
           </CardBody>
         </Card>
@@ -2719,6 +2788,25 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
 
         <div className={styles.auditGrid}>
           <article className={styles.auditCard}>
+            <strong>Source canonique</strong>
+            <p>{syncSourceLabel}</p>
+          </article>
+          <article className={styles.auditCard}>
+            <strong>Éléments lus</strong>
+            <p>{plan.diagnostics.itemCount || functionalRows.length} élément(s) structurés exploitables pour le cockpit.</p>
+          </article>
+          <article className={styles.auditCard}>
+            <strong>Dernière mise à jour</strong>
+            <p>{syncLastUpdateLabel}</p>
+          </article>
+          <article className={styles.auditCard}>
+            <strong>Santé de synchronisation</strong>
+            <p>{syncErrorCount} erreur(s) bloquante(s), {syncWarningCount} alerte(s), {plan.diagnostics.duplicateIds.length} doublon(s) d&apos;identifiant.</p>
+          </article>
+        </div>
+
+        <div className={styles.auditGrid}>
+          <article className={styles.auditCard}>
             <strong>P0 immédiat</strong>
             <p>{executionRowsByPriority.p0.length} mise(s) à jour critique(s) encore visibles dans le pilotage prioritaire.</p>
           </article>
@@ -2732,9 +2820,28 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
           </article>
           <article className={styles.auditCard}>
             <strong>Socle suivi</strong>
-            <p>{functionalRows.length} fonctionnalité(s) suivies dans le tableau fonctionnel du Master Plan.</p>
+            <p>{functionalRows.length} élément(s) suivis dans la vue fonctionnelle active du Master Plan.</p>
           </article>
         </div>
+
+        {syncErrorCount || syncWarningCount ? <Card tone={syncErrorCount ? "warning" : "soft"}>
+          <CardHeader className={styles.panelHeader}>
+            <div>
+              <strong>Santé de la synchronisation</strong>
+              <p className={styles.sidebarIntro}>La page signale explicitement ce qui empêche une lecture fiable au lieu de masquer les écarts.</p>
+            </div>
+          </CardHeader>
+          <CardBody className={styles.compactChecklist}>
+            {plan.diagnostics.errors.map((error) => <article key={error} className={styles.auditCard}>
+              <strong>Erreur</strong>
+              <p>{error}</p>
+            </article>)}
+            {plan.diagnostics.warnings.map((warning) => <article key={warning} className={styles.auditCard}>
+              <strong>Alerte</strong>
+              <p>{warning}</p>
+            </article>)}
+          </CardBody>
+        </Card> : null}
 
         <div className={styles.executionStatusGrid}>
           <article className={styles.executionStatusCard}>
@@ -2786,6 +2893,9 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
           <table aria-label="Mises à jour récentes du pilotage dans développement">
             <thead>
                 <tr>
+                  <th>ID</th>
+                  <th>ID PlanetLS</th>
+                  <th>GitHub</th>
                   <th>Statut</th>
                   <th>Priorité</th>
                   <th>Sujet</th>
@@ -2799,6 +2909,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
               <tbody>
               {recentUpdateRows.map((row) => (
                 <tr key={row.id}>
+                  <td>{row.id}</td>
                   <td><StatusBadge status={row.status} /></td>
                   <td>{row.priority}</td>
                   <td>{row.subject}</td>
@@ -2850,6 +2961,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
             <table aria-label="Suivi fonctionnel priorisé développement">
               <thead>
                 <tr>
+                  <th>ID</th>
                   <th>Statut</th>
                   <th>Niveau</th>
                   <th>Fonctionnalité</th>
@@ -2860,7 +2972,10 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
               </thead>
               <tbody>
                 {functionalFocusRows.map((row) => (
-                  <tr key={`focus-${row.feature}-${row.level}`}>
+                  <tr key={`focus-${row.id}`}>
+                    <td>{row.id}</td>
+                    <td>{row.planetLsId || "-"}</td>
+                    <td><GitHubIssueLinks issues={row.githubIssues} urls={row.githubUrls} /></td>
                     <td>{row.status}</td>
                     <td>{row.level}</td>
                     <td>{row.feature}</td>
@@ -2915,6 +3030,9 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
             <table aria-label="Tableau fonctionnel du Master Plan dans développement">
               <thead>
                 <tr>
+                  <th>ID</th>
+                  <th>ID PlanetLS</th>
+                  <th>GitHub</th>
                   <th>Fonctionnalité</th>
                   <th>Statut</th>
                   <th>Niveau</th>
@@ -2923,7 +3041,10 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
               </thead>
               <tbody>
                 {functionalRows.map((row) => (
-                  <tr key={`${row.feature}-${row.level}`}>
+                  <tr key={row.id}>
+                    <td>{row.id}</td>
+                    <td>{row.planetLsId || "-"}</td>
+                    <td><GitHubIssueLinks issues={row.githubIssues} urls={row.githubUrls} /></td>
                     <td>{row.feature}</td>
                     <td>{row.status}</td>
                     <td>{row.level}</td>
@@ -3024,7 +3145,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       </div>
     </section>
     <section className={styles.filters} aria-label="Filtres du Master Plan">
-      <label className={styles.search}><Search size={18} /><input value={masterPlanQuery} onChange={(event) => setMasterPlanQuery(event.target.value)} placeholder="Rechercher une fonctionnalité, une décision, une limite…" /></label>
+      <label className={styles.search}><Search size={18} /><input value={masterPlanQuery} onChange={(event) => setMasterPlanQuery(event.target.value)} placeholder="Rechercher un ID, une fonctionnalité, une décision, une limite…" /></label>
       <select value={masterPlanStatus} onChange={(event) => setMasterPlanStatus(event.target.value)} aria-label="Filtrer par statut"><option value="">Tous les statuts</option>{MASTER_PLAN_STATUSES.map((item) => <option value={item} key={item}>{item} ({plan.statusCounts[item] ?? 0})</option>)}</select>
       <select value={masterPlanPriority} onChange={(event) => setMasterPlanPriority(event.target.value)} aria-label="Filtrer par priorité"><option value="">Toutes les priorités</option>{MASTER_PLAN_PRIORITIES.map((item) => <option value={item} key={item}>{item} ({plan.remainingPriorityCounts[item] ?? 0} restant)</option>)}</select>
       {(masterPlanQuery || masterPlanStatus || masterPlanPriority) && <button type="button" onClick={() => { setMasterPlanQuery(""); setMasterPlanStatus(""); setMasterPlanPriority(""); }}><X size={16} /> Effacer</button>}
@@ -3065,7 +3186,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
               <div>
                 <p className={styles.progressEyebrow}>Progression globale</p>
                 <strong>{missionControl.progressionPct}%</strong>
-                <p>{missionControl.completedFeatures} fonctionnalités terminées sur {missionControl.completedFeatures + plan.planning.length} suivies dans le registre officiel.</p>
+                <p>{missionControl.completedFeatures} élément(s) terminés sur {plan.diagnostics.itemCount || missionControl.completedFeatures + plan.planning.length} suivis dans la source canonique.</p>
               </div>
               <div className={styles.progressRing} aria-label={`Progression globale ${missionControl.progressionPct}%`}>
                 <svg viewBox="0 0 120 120" aria-hidden="true">
@@ -3240,7 +3361,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
             <CardHeader className={styles.memoryHeader}>
               <CollapsibleCardHeader
                 title={entry.title}
-                eyebrow={entry.category}
+                eyebrow={`${entry.id} · ${entry.category}`}
                 meta={<Tag tone={entry.source === "canonique" ? "gold" : "status"}>{entry.source === "canonique" ? "Décision canonique" : entry.date}</Tag>}
                 isOpen={expandedMemoryEntryIds.includes(entry.id)}
                 onToggle={() => toggleExpandedMemoryEntry(entry.id)}
@@ -3313,7 +3434,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
           <CardBody className={styles.roadmapSpotlightBody}>
             {roadmapProjection.nextSuggestion ? <>
               <div className={styles.roadmapSpotlightTitle}>
-                <span>{roadmapProjection.nextSuggestion?.domain}</span>
+                <span>{roadmapProjection.nextSuggestion?.id} · {roadmapProjection.nextSuggestion?.domain}</span>
                 <h3 data-testid="roadmap-next-title">{roadmapProjection.nextSuggestion?.title}</h3>
               </div>
               <p>{roadmapProjection.nextSuggestion?.nextAction || "Aucune prochaine action détaillée dans le registre."}</p>
@@ -3349,6 +3470,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                 <div className={styles.roadmapCardHeader}>
                   <div>
                     <p className={styles.categoryLabel}>{item.domain}</p>
+                    <p className={styles.categoryLabel}>{item.id}</p>
                     <h3>{item.title}</h3>
                   </div>
                   <Tag tone="neutral" className={priorityChipClass(item.priority as DeveloperLogPriority)}>{item.priority}</Tag>
@@ -3399,6 +3521,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                 <div className={styles.roadmapCardHeader}>
                   <div>
                     <p className={styles.categoryLabel}>{item.domain}</p>
+                    <p className={styles.categoryLabel}>{item.id}</p>
                     <h3>{item.title}</h3>
                   </div>
                   <Tag tone="neutral" className={priorityChipClass(item.priority as DeveloperLogPriority)}>{item.priority}</Tag>
@@ -3449,6 +3572,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                 <div className={styles.roadmapCardHeader}>
                   <div>
                     <p className={styles.categoryLabel}>{item.domain}</p>
+                    <p className={styles.categoryLabel}>{item.id}</p>
                     <h3>{item.title}</h3>
                   </div>
                   <Tag tone="status">Terminée</Tag>
@@ -3522,6 +3646,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                         aria-expanded={isExpanded}
                       >
                         <div className={styles.timelineMeta}>
+                          <span>{entry.id}</span>
                           <span>{formatDateOnly(entry.createdAt)}</span>
                           <span>{formatTimeOnly(entry.createdAt)}</span>
                           <span>v{entry.version}</span>
@@ -3880,6 +4005,7 @@ function MasterPlanQuickReferenceTables() {
         <table aria-label="Niveaux de maturité du Master Plan">
           <thead>
             <tr>
+              <th>ID</th>
               <th>Niveau</th>
               <th>Libellé</th>
               <th>Définition</th>
@@ -3888,6 +4014,7 @@ function MasterPlanQuickReferenceTables() {
           <tbody>
             {MASTER_PLAN_MATURITY_LEVELS.map((item) => (
               <tr key={item.level}>
+                <td>PLS-REF-MATURITY-{item.level}</td>
                 <td>{item.level}</td>
                 <td>{item.label}</td>
                 <td>{item.definition}</td>
@@ -3900,6 +4027,7 @@ function MasterPlanQuickReferenceTables() {
         <table aria-label="Guide des priorités du Master Plan">
           <thead>
             <tr>
+              <th>ID</th>
               <th>Priorité</th>
               <th>Quand l'utiliser</th>
             </tr>
@@ -3907,6 +4035,7 @@ function MasterPlanQuickReferenceTables() {
           <tbody>
             {MASTER_PLAN_PRIORITY_GUIDE.map((item) => (
               <tr key={item.priority}>
+                <td>PLS-REF-PRIORITY-{item.priority.slice(0, 2)}</td>
                 <td>{item.priority}</td>
                 <td>{item.scope}</td>
               </tr>

@@ -21,7 +21,7 @@ async function expectFoldablePanel(page: Page, title: string, panelId: string, i
 
 async function loginAdmin(page: Page) {
   const response = await page.request.post("/api/auth/dev-workspace-login", { data: { workspace: "admin" } });
-  expect(response.ok(), `Préparation du compte admin impossible : ${await response.text()}`).toBeTruthy();
+  expect(response.ok(), `Preparation du compte admin impossible : ${await response.text()}`).toBeTruthy();
   const credentials = (await response.json()) as AdminCredentials;
   await page.goto("/login");
   await page.getByLabel("Email").fill(credentials.email);
@@ -66,7 +66,7 @@ test("admin : le Master Plan reste lisible, pilotable et la roadmap se recalcule
   await expect(visionSubsections).toBeVisible();
   await expect(visionSubsections.getByRole("link", { name: "Mission", exact: true })).toBeVisible();
 
-  const search = page.getByPlaceholder("Rechercher une fonctionnalité, une décision, une limite…");
+  const search = page.getByPlaceholder("Rechercher un ID, une fonctionnalité, une décision, une limite…");
   const masterPlanFilters = page.getByLabel("Filtres du Master Plan");
   await search.fill("Stripe");
   await expect(page.getByText(/résultats?/).first()).toBeVisible();
@@ -81,7 +81,15 @@ test("admin : le Master Plan reste lisible, pilotable et la roadmap se recalcule
   await masterPlanFilters.getByLabel(/Filtrer par priorit/).selectOption("");
   await page.getByRole("button", { name: /En cours/ }).click();
   await expect(masterPlanFilters.getByLabel("Filtrer par statut")).not.toHaveValue("");
-  await expect(page.getByText(/Aucun r.sultat/)).toHaveCount(0);
+  await expect(page.getByText(/Aucun résultat/)).toHaveCount(0);
+
+  await expect(page.getByRole("table", { name: "Pilotage des priorités" })).toBeVisible();
+  await expect(page.getByText("3add992b")).toBeVisible();
+  await expect(page.getByRole("cell", { name: "AUT-021" })).toBeVisible();
+  const prioritySearch = page.getByLabel("Rechercher dans le pilotage des priorités");
+  await prioritySearch.fill("PLS-DEV-008");
+  await expect(page.getByRole("cell", { name: /PLS-DEV-008/ })).toBeVisible();
+  await prioritySearch.fill("");
 
   await page.getByRole("button", { name: "Tout replier" }).click();
   const firstSectionToggle = page
@@ -92,7 +100,6 @@ test("admin : le Master Plan reste lisible, pilotable et la roadmap se recalcule
   await expect(firstSectionToggle).toHaveAttribute("aria-expanded", "false");
   await firstSectionToggle.click();
   await expect(firstSectionToggle).toHaveAttribute("aria-expanded", "true");
-  await page.getByRole("button", { name: "Tout replier" }).click();
   await page.getByRole("button", { name: "Tout déplier" }).click();
   await expect(firstSectionToggle).toHaveAttribute("aria-expanded", "true");
 

@@ -6,6 +6,8 @@ import { resolveUserRole } from "@/app/utils/roles";
 import { buildControlTowerHealth, type ControlSourceHealth } from "./health";
 import { evaluateMissionHealth } from "./missionHealth";
 import { controlActionKey, parseAdminControlAction, type AdminControlTarget } from "./actions";
+import { createOrRedetectAdminProblem } from "@/server/admin/problems";
+import { detectMissionProblems } from "@/server/admin/problemDetectors";
 
 const ADMIN_ROLES = new Set(["admin", "super_admin"]);
 const FALLBACK_ONBOARDING_ID = "00000000-0000-4000-8000-000000000001";
@@ -559,6 +561,10 @@ export async function GET(req: NextRequest) {
       .sort((left, right) => right.issueCount - left.issueCount || getAgeHours(right.createdAt) - getAgeHours(left.createdAt));
 
     stage = "missions";
+    const canDetectMissionProblems = [missionsRes, serviceRequestsRes, quotesRes, invoicesRes, interventionsRes, maintenanceRes].every(
+      (source) => source.available,
+    );
+    const missionProblemDetections: ReturnType<typeof detectMissionProblems> = [];
     const requests = (serviceRequestsRes.data ?? []) as Array<{ id: string; mission_id: string | null }>;
     const quotes = (quotesRes.data ?? []) as Array<{ id: string; mission_id: string | null; status: string; created_at: string }>;
     const invoices = (invoicesRes.data ?? []) as Array<{
@@ -637,6 +643,22 @@ export async function GET(req: NextRequest) {
           assignmentCount,
           openMaintenanceCount: openMaintenanceCountByMissionId.get(mission.id) ?? 0,
         });
+        if (canDetectMissionProblems) {
+          missionProblemDetections.push(
+            ...detectMissionProblems({
+              id: mission.id,
+              status: mission.status,
+              scheduledStart: mission.scheduled_start,
+              scheduledEnd: mission.scheduled_end,
+              completedAt: mission.completed_at,
+              hasRequest: requestByMissionId.has(mission.id),
+              quoteCount: relatedQuotes.length,
+              invoices: relatedInvoices,
+              assignmentCount,
+              openMaintenanceCount: openMaintenanceCountByMissionId.get(mission.id) ?? 0,
+            }),
+          );
+        }
 
         return {
           id: mission.id,
@@ -661,6 +683,17 @@ export async function GET(req: NextRequest) {
         };
       })
       .sort((left, right) => right.issueCount - left.issueCount || getAgeHours(right.updatedAt) - getAgeHours(left.updatedAt));
+
+    if (missionProblemDetections.length > 0) {
+      const registryClient = db as unknown as Parameters<typeof createOrRedetectAdminProblem>[0];
+      await Promise.all(
+        missionProblemDetections.map((detection) =>
+          createOrRedetectAdminProblem(registryClient, detection).catch((error) => {
+            console.error("[admin/control-tower] problem registry sync failed", error);
+          }),
+        ),
+      );
+    }
 
     stage = "messages";
     const messages = (messagesRes.data ?? []) as Array<{

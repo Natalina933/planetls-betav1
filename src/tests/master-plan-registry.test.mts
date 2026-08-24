@@ -1,0 +1,177 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+import { DEVELOPMENT_ITEM_STATUSES, parseMasterPlan } from "../app/dashboard/admin/(product-tech)/developpement/masterPlan.ts";
+
+test("parseMasterPlan privilégie le registre structuré pour le cockpit développement", () => {
+  const markdown = `# Plan
+
+## Registre structuré du développement
+
+\`\`\`json
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "PLS-DEV-001",
+      "domain": "Produit",
+      "title": "Cockpit développement",
+      "summary": "Source canonique",
+      "status": "IN_PROGRESS",
+      "priority": "P1",
+      "type": "documentation",
+      "persona": "Admin",
+      "phase": "Pilotage",
+      "updatedAt": "2026-08-24",
+      "nextAction": "Valider le cockpit.",
+      "validationCriteria": ["Vue branchée"],
+      "dependencies": [],
+      "blocker": null,
+      "routes": ["/dashboard/admin/developpement"],
+      "files": ["docs/master-plan-planetls.md"],
+      "progressLabel": "Le cockpit est maintenant branché sur un registre structuré.",
+      "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
+      "evidence": ["src/app/dashboard/admin/(product-tech)/developpement/masterPlan.ts"]
+    }
+  ]
+}
+\`\`\``;
+
+  const plan = parseMasterPlan(markdown, "2026-08-24T10:00:00.000Z");
+
+  assert.equal(plan.diagnostics.source, "structured");
+  assert.equal(plan.registryItems.length, 1);
+  assert.equal(plan.planning[0]?.id, "P1-001");
+  assert.equal(plan.diagnostics.nextSuggestedId, "P0-001 · P1-002 · P2-001 · P3-001");
+  assert.equal(plan.planning[0]?.status, "🟡 En cours");
+  assert.equal(plan.functionalRows[0]?.feature, "Cockpit développement");
+});
+
+test("parseMasterPlan remonte les erreurs de validation du registre structuré", () => {
+  const markdown = `# Plan
+
+## Registre structuré du développement
+
+\`\`\`json
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "PLS-DEV-001",
+      "domain": "Produit",
+      "title": "Cockpit développement",
+      "summary": "Source canonique",
+      "status": "COMPLETED",
+      "priority": "P1",
+      "type": "documentation",
+      "persona": "Admin",
+      "phase": "Pilotage",
+      "updatedAt": "2026-08-24",
+      "nextAction": "",
+      "validationCriteria": ["Vue branchée"],
+      "dependencies": ["PLS-DEV-999"],
+      "blocker": null,
+      "routes": ["/dashboard/admin/developpement"],
+      "files": ["docs/master-plan-planetls.md"],
+      "progressLabel": "Le cockpit est branché.",
+      "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
+      "evidence": []
+    }
+  ]
+}
+\`\`\``;
+
+  const plan = parseMasterPlan(markdown, "2026-08-24T10:00:00.000Z");
+
+  assert.equal(plan.diagnostics.source, "structured");
+  assert.equal(plan.diagnostics.errors.some((error) => error.includes("sans prochaine action")), true);
+  assert.equal(plan.diagnostics.errors.some((error) => error.includes("sans preuve")), true);
+  assert.equal(plan.diagnostics.errors.some((error) => error.includes("Dépendances inconnues")), true);
+});
+
+test("the structured registry maps every status to its cockpit group", () => {
+  const expectedLabels = {
+    COMPLETED: "✅ Terminé",
+    IN_PROGRESS: "🟡 En cours",
+    TO_VERIFY: "🟠 Partiel",
+    BLOCKED: "⚠️ Bloqué",
+    READY: "🔴 À faire",
+    TO_PLAN: "🔴 À faire",
+    IDEA: "🔴 À faire",
+    DEFERRED: "⏸️ Reporté",
+  } as const;
+  const markdown = `# Plan
+
+## Registre structuré du développement
+
+\`\`\`json
+${JSON.stringify({
+    version: 1,
+    items: DEVELOPMENT_ITEM_STATUSES.map((status, index) => ({
+      id: `PLS-DEV-${String(index + 1).padStart(3, "0")}`,
+      domain: "Pilotage",
+      title: `Item ${status}`,
+      summary: "Representative classification case.",
+      status,
+      priority: `P${index % 5}`,
+      type: "test",
+      persona: "Admin",
+      phase: "Validation",
+      updatedAt: "2026-08-24",
+      nextAction: "Check the cockpit section.",
+      validationCriteria: ["Status visible"],
+      dependencies: [],
+      blocker: null,
+      routes: ["/dashboard/admin/developpement"],
+      files: ["src/tests/master-plan-registry.test.mts"],
+      progressLabel: "Registry test case.",
+      source: "test",
+      evidence: status === "COMPLETED" ? ["Automated test"] : [],
+    })),
+  }, null, 2)}
+\`\`\``;
+
+  const plan = parseMasterPlan(markdown, "2026-08-24T10:00:00.000Z");
+  const statusByFeature = new Map(plan.planning.map((item) => [item.feature.replace("Item ", ""), item.status]));
+
+  assert.equal(plan.planning.length, DEVELOPMENT_ITEM_STATUSES.length);
+  for (const status of DEVELOPMENT_ITEM_STATUSES) {
+    assert.equal(statusByFeature.get(status), expectedLabels[status]);
+  }
+});
+
+test("le registre réel conserve des IDs uniques et un prochain numéro exploitable", async () => {
+  const markdown = await readFile(new URL("../../docs/master-plan-planetls.md", import.meta.url), "utf8");
+  const plan = parseMasterPlan(markdown, "2026-08-24T10:00:00.000Z");
+  const ids = plan.registryItems.map((item) => item.id);
+
+  assert.equal(plan.diagnostics.source, "structured");
+  assert.equal(plan.diagnostics.errors.length, 0);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.equal(ids.every((id) => /^PLS-[A-Z]+-\d{3}$/.test(id)), true);
+  const githubIssues = plan.registryItems.flatMap((item) => item.githubIssues.map((issue) => issue.number));
+  assert.equal(new Set(githubIssues).size, githubIssues.length);
+  assert.deepEqual(githubIssues.sort((left, right) => left - right), [10, 11, 12, 13, 14, 15, 16, 17]);
+  assert.equal(plan.diagnostics.nextSuggestedId, "P0-005 · P1-012 · P2-013 · P3-005");
+});
+
+test("le suivi par priorité reste unique et continu avec plusieurs préfixes de registre", () => {
+  const markdown = `# Plan
+
+### Registre structuré du développement
+
+\`\`\`json
+${JSON.stringify({
+    version: 1,
+    items: [
+      { id: "PLS-DEV-001", domain: "Pilotage", title: "Premier sujet", summary: "Premier sujet de suivi.", status: "READY", priority: "P1", type: "improvement", persona: "Admin", phase: "Pilotage", updatedAt: "2026-08-24", nextAction: "Le réaliser.", progressLabel: "Prêt.", source: "test", evidence: ["test"] },
+      { id: "PLS-DATA-001", domain: "Données", title: "Second sujet", summary: "Second sujet de suivi.", status: "IN_PROGRESS", priority: "P1", type: "tech_debt", persona: "Admin", phase: "Pilotage", updatedAt: "2026-08-24", nextAction: "Le poursuivre.", progressLabel: "En cours.", source: "test", evidence: ["test"] },
+    ],
+  }, null, 2)}
+\`\`\``;
+
+  const plan = parseMasterPlan(markdown, "2026-08-24T10:00:00.000Z");
+
+  assert.deepEqual(plan.planning.map((item) => item.id), ["P1-001", "P1-002"]);
+  assert.equal(new Set(plan.functionalRows.map((item) => item.id)).size, 2);
+});
