@@ -9,7 +9,8 @@
 .decisionList,
 .sectionPanelGrid,
 .inlineLinks,
-.progressMeta {
+.progressMeta,
+.competitorOpportunityContent {
   display: grid;
   gap: 1rem;
 }
@@ -91,6 +92,31 @@
   margin: 0;
   color: rgba(45, 38, 29, 0.78);
   line-height: 1.62;
+}
+
+.competitorOpportunityContent {
+  align-content: start;
+  gap: 0.72rem;
+  margin-top: 1rem;
+}
+
+.competitorOpportunityContent b {
+  color: #2d261d;
+}
+
+.sourceLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  color: #315b43;
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.sourceLink:hover {
+  text-decoration: underline;
 }
 
 .heroCard,

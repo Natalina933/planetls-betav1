@@ -2505,6 +2505,23 @@ Statuts d’idée autorisés : À étudier, Validée, Planifiée, En développem
 
 ### Pilotage business et financier -> réflexion sur une offre Pro
 
+### Veille concurrentielle -> services et opportunités PlanetLS
+
+Statut : `🟠 Partiel` - une veille comparative sourcée est affichée dans `/dashboard/admin/pilotage`, mais elle reste une aide à la décision statique, sans collecte automatisée ni validation par des clients pilotes.
+
+Mise à jour du 24 août 2026 : les concurrents historiques du pilotage business ont été repris depuis leurs sources officielles. La veille ne conclut pas que PlanetLS doit copier leurs produits ; elle isole quatre propositions à confronter au terrain :
+
+| Concurrent | Offre observée | Opportunité PlanetLS | Priorité | Horizon | Limite / prochaine validation |
+| --- | --- | --- | --- | --- | --- |
+| Airbnb | Réseau de co-hôtes, responsabilités et permissions différenciées | Annuaire local de concierges qualifiés, avec zone, disponibilité et périmètre d'intervention | P2 Important | Pilote | Ne pas lancer de marketplace avant preuve de densité locale, vérification des profils et règles de paiement. |
+| Lodgify | Tâches liées aux séjours, attribution, checklist et preuve photo | Consolider le cycle `séjour -> mission -> checklist -> preuve -> contrôle` | P1 Prioritaire | MVP | Le flux doit rester traçable par le propriétaire ; la présence des écrans ne prouve pas encore l'E2E connecté. |
+| Hostaway | Écosystème d'intégrations : opérations, finance, sécurité, automatisation, marketing et expérience voyageur | Cadrer des connecteurs demandés par les pilotes, par exemple serrures, tarification, identité ou comptabilité | P2 Important | Après pilote | Aucun catalogue, API publique ou partenaire n'est engagé sans besoin mesuré et contrat d'intégration. |
+| Smoobu | Guide voyageur avec check-in, recommandations locales et extras réservables | Tester un guide de séjour avec consignes, urgences et services locaux optionnels | P2 Important | Pilote | Les extras doivent avoir prestataire, prix, consentement, responsabilité et suivi explicites. |
+
+Sources vérifiées le 24 août 2026 : [Airbnb Co-Host Network](https://www.airbnb.com/host/co-hosts), [Lodgify Task Management](https://www.lodgify.com/task-management/), [Hostaway Marketplace](https://www.hostaway.com/marketplace/), [Smoobu Guest Guide](https://support.smoobu.com/hc/en-us/articles/360017241879-Set-up-your-digital-Guest-Guide).
+
+Décision de pilotage : ces opportunités alimentent la validation marché et la roadmap existante ; elles ne créent ni une promesse de disponibilité, ni une nouvelle priorité P4, ni un développement automatique. La prochaine action est de demander à 5 conciergeries pilotes lesquelles de ces quatre offres résolvent une douleur payante et à quelle fréquence.
+
 Contexte au lundi 3 aoà»t 2026 : le cockpit entrepreneurial privé sait déjà comparer des stratégies et simuler des scénarios, mais PlanetLS n'a pas encore figé une offre Pro monétisable à brancher ensuite dans Stripe, dans le discours commercial et dans les KPI. L'objectif prioritaire n'est donc pas d'ajouter plus de simulation, mais de choisir une offre simple à vendre, lisible pour la cible et cohérente avec la maturité réelle du produit.
 
 ### Due diligence investisseur -> synthèse conservée

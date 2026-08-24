@@ -8,6 +8,7 @@ import {
   BadgeCheck,
   Building2,
   Compass,
+  ExternalLink,
   Layers3,
   LineChart,
   RefreshCw,
@@ -50,6 +51,55 @@ type BenchmarkCardItem = {
   icon: typeof Building2;
   label: string;
 };
+
+type CompetitorOpportunity = {
+  competitor: string;
+  observedOffer: string;
+  sourceLabel: string;
+  sourceUrl: string;
+  opportunity: string;
+  guardrail: string;
+  tone: BenchmarkCardItem["tone"];
+};
+
+const COMPETITOR_OPPORTUNITIES: CompetitorOpportunity[] = [
+  {
+    competitor: "Airbnb",
+    observedOffer: "Réseau de co-hôtes et partage de responsabilités selon des permissions distinctes.",
+    sourceLabel: "Airbnb - Co-Host Network",
+    sourceUrl: "https://www.airbnb.com/host/co-hosts",
+    opportunity: "Tester un annuaire local de concierges qualifiés avec rôle, zone, disponibilité et périmètre d'intervention.",
+    guardrail: "Ne pas ouvrir une marketplace avant d'avoir validé la densité locale, la vérification des profils et les règles de paiement.",
+    tone: "blue",
+  },
+  {
+    competitor: "Lodgify",
+    observedOffer: "Tâches déclenchées par les séjours, attribution d'équipe, checklist et preuves photo avant validation.",
+    sourceLabel: "Lodgify - Task management",
+    sourceUrl: "https://www.lodgify.com/task-management/",
+    opportunity: "Prioriser le cycle séjour -> mission -> checklist -> preuve -> contrôle, déjà central dans le noyau PlanetLS.",
+    guardrail: "Conserver une preuve consultable par propriétaire et un statut explicite plutôt qu'un simple envoi de notification.",
+    tone: "green",
+  },
+  {
+    competitor: "Hostaway",
+    observedOffer: "Marketplace d'intégrations couvrant opérations, expérience voyageur, finance, sécurité, automatisation et marketing.",
+    sourceLabel: "Hostaway - Marketplace",
+    sourceUrl: "https://www.hostaway.com/marketplace/",
+    opportunity: "Préparer une stratégie d'intégrations ciblées : serrures connectées, prix dynamiques, identité, comptabilité et communications.",
+    guardrail: "Commencer par des connecteurs demandés par les pilotes ; ne pas promettre un catalogue ou une API publique avant une base fiable.",
+    tone: "orange",
+  },
+  {
+    competitor: "Smoobu",
+    observedOffer: "Guide voyageur personnalisé avec check-in, recommandations locales et extras réservables pendant le séjour.",
+    sourceLabel: "Smoobu - Guest Guide",
+    sourceUrl: "https://support.smoobu.com/hc/en-us/articles/360017241879-Set-up-your-digital-Guest-Guide",
+    opportunity: "Cadrer un guide de séjour PlanetLS avec consignes, contacts d'urgence et services locaux optionnels : ménage, arrivée anticipée, location ou expérience.",
+    guardrail: "Valider d'abord l'usage concierge et la responsabilité des prestataires ; les extras doivent être traçables, tarifés et explicitement acceptés.",
+    tone: "purple",
+  },
+];
 
 const POSITIONING_PLANETLS_POINTS = [
   "Plateforme SaaS multi-acteurs",
@@ -243,6 +293,34 @@ function BenchmarkComparisonTable() {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function CompetitorOpportunityGrid() {
+  return (
+    <div className={styles.businessCardGrid}>
+      {COMPETITOR_OPPORTUNITIES.map((item) => (
+        <article key={item.competitor} className={styles.businessCard} data-tone={item.tone}>
+          <div className={styles.businessCardHeader}>
+            <span className={styles.cardIcon} aria-hidden="true">
+              <Compass size={18} />
+            </span>
+            <div>
+              <span>Veille vérifiée le 24 août 2026</span>
+              <strong>{item.competitor}</strong>
+            </div>
+          </div>
+          <div className={styles.competitorOpportunityContent}>
+            <p><b>Offre observée :</b> {item.observedOffer}</p>
+            <p><b>Piste PlanetLS :</b> {item.opportunity}</p>
+            <p><b>Garde-fou :</b> {item.guardrail}</p>
+            <a href={item.sourceUrl} target="_blank" rel="noreferrer" className={styles.sourceLink}>
+              {item.sourceLabel} <ExternalLink size={14} aria-hidden="true" />
+            </a>
+          </div>
+        </article>
+      ))}
     </div>
   );
 }
@@ -614,6 +692,14 @@ export default function AdminBusinessPage() {
               subtitle="La lecture multi-dimensions montre immédiatement ce que PlanetLS cumule réellement."
             />
             <BenchmarkComparisonTable />
+          </DashboardPanel>
+
+          <DashboardPanel title="Veille concurrentielle : opportunités à tester">
+            <SectionHeader
+              title="Veille concurrentielle : opportunités à tester"
+              subtitle="Offres constatées sur les sites officiels. Elles inspirent des tests produit ou de partenariat, pas des promesses commerciales PlanetLS."
+            />
+            <CompetitorOpportunityGrid />
           </DashboardPanel>
 
           <DashboardPanel title="Synthèse visuelle des écarts">
