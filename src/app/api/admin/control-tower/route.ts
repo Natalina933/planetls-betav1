@@ -244,6 +244,17 @@ type OnboardingEventRow = {
   created_at: string | null;
 };
 
+type AdminProblemRow = {
+  id: string;
+  severity: "information" | "vigilance" | "prioritaire" | "critique";
+  status: "new" | "acknowledged" | "in_progress" | "escalated" | "resolved" | "closed" | "reopened";
+  title: string;
+  summary: string;
+  functional_owner: string;
+  occurrence_count: number;
+  last_detected_at: string;
+};
+
 type UntypedQueryBuilder = PromiseLike<unknown> & {
   select: (columns: string) => UntypedQueryBuilder;
   order: (column: string, options?: { ascending?: boolean }) => UntypedQueryBuilder;
@@ -695,6 +706,14 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    stage = "problem-registry";
+    const problemRegistryRes = await safeQuery(
+      queryTable("admin_problems")
+        .select("id,severity,status,title,summary,functional_owner,occurrence_count,last_detected_at")
+        .order("last_detected_at", { ascending: false })
+        .limit(24) as unknown as PromiseLike<QueryResult<AdminProblemRow>>,
+    );
+
     stage = "messages";
     const messages = (messagesRes.data ?? []) as Array<{
       id: string;
@@ -774,6 +793,7 @@ export async function GET(req: NextRequest) {
       interventionsRes,
       maintenanceRes,
       controlActionsRes,
+      problemRegistryRes,
     ].some((source) => !source.available);
 
     if (hasUnavailableSources && onboardingItems.length === 0 && missionItems.length === 0 && conversationItems.length === 0) {
@@ -806,6 +826,7 @@ export async function GET(req: NextRequest) {
       { key: "provider-interventions", label: "Affectations prestataires", available: interventionsRes.available, reason: interventionsRes.reason },
       { key: "maintenance-incidents", label: "Incidents de maintenance", available: maintenanceRes.available, reason: maintenanceRes.reason },
       { key: "control-actions", label: "Actions administratives", available: controlActionsRes.available, reason: controlActionsRes.reason },
+      { key: "admin-problems", label: "Registre des problèmes", available: problemRegistryRes.available, reason: problemRegistryRes.reason },
     ];
     const health = buildControlTowerHealth({ sources: sourceHealth, dangerCount, warningCount });
 
@@ -837,6 +858,12 @@ export async function GET(req: NextRequest) {
         onboarding: onboardingItems.slice(0, 24).map((item) => withControlAction("onboarding", item)),
         missions: missionItems.slice(0, 24).map((item) => withControlAction("mission", item)),
         messages: conversationItems.slice(0, 24).map((item) => withControlAction("message", item)),
+        problemRegistry: {
+          available: problemRegistryRes.available,
+          reason: problemRegistryRes.reason,
+          openCount: (problemRegistryRes.data ?? []).filter((item) => item.status !== "resolved" && item.status !== "closed").length,
+          items: problemRegistryRes.data ?? [],
+        },
       },
       { status: 200 },
     );

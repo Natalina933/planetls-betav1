@@ -1,5 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
 
+const e2eOrigin = new URL(
+  process.env.E2E_BASE_URL ?? `http://127.0.0.1:${process.env.E2E_PORT ?? "3100"}`,
+).origin;
+
 async function loginAdmin(page: Page) {
   const response = await page.request.post("/api/auth/dev-workspace-login", { data: { workspace: "admin" } });
   expect(response.ok(), await response.text()).toBeTruthy();
@@ -27,7 +31,7 @@ test("admin : une anomalie peut être prise en charge avec une trace persistée"
     missions: ControlItem[];
     messages: ControlItem[];
   };
-  expect(payload.health.totalSourceCount).toBe(12);
+  expect(payload.health.totalSourceCount).toBe(13);
 
   const collections = [
     ["onboarding", payload.onboarding],
@@ -42,6 +46,7 @@ test("admin : une anomalie peut être prise en charge avec une trace persistée"
 
   const note = "Validation E2E automatique du centre de santé";
   const actionResponse = await page.request.post("/api/admin/control-tower", {
+    headers: { Origin: e2eOrigin },
     data: { targetType: target.targetType, targetId: target.item.id, status: "acknowledged", note },
   });
   expect(actionResponse.status(), await actionResponse.text()).toBe(201);
@@ -56,10 +61,9 @@ test("admin : une anomalie peut être prise en charge avec une trace persistée"
 
   const tab = target.targetType === "onboarding" ? "inscriptions" : target.targetType === "mission" ? "missions" : "messages";
   await page.goto("/dashboard/admin/controle?tab=" + tab, { waitUntil: "domcontentloaded" });
-  const noteMatch = page.getByText(note).first();
-  await expect(noteMatch).toBeVisible();
-  const trackedCard = page.locator("article").filter({ has: noteMatch }).first();
+  const trackedCard = page.locator(`article[data-control-target="${target.targetType}:${target.item.id}"]`);
+  await expect(trackedCard.getByText(note, { exact: true })).toBeVisible();
   await expect(trackedCard.getByRole("button", { name: "Prendre en charge" })).toBeVisible();
   await expect(trackedCard.getByRole("button", { name: "Transmettre au responsable" })).toBeVisible();
-  await expect(trackedCard.getByRole("button", { name: "Clôturer le suivi" })).toBeVisible();
+  await expect(trackedCard.getByRole("button", { name: "Cloturer le suivi" })).toBeVisible();
 });

@@ -15,6 +15,7 @@ export const MASTER_PLAN_PRIORITIES = [
   "P1 Prioritaire",
   "P2 Important",
   "P3 Confort",
+  "P4 Évolution future",
 ] as const;
 
 export const MASTER_PLAN_MATURITY_LEVELS = [
@@ -31,6 +32,7 @@ export const MASTER_PLAN_PRIORITY_GUIDE = [
   { priority: "P1 Prioritaire", scope: "Augmente fortement conversion, rétention ou efficacité opérationnelle" },
   { priority: "P2 Important", scope: "Améliore nettement le produit ou le pilotage, sans bloquer l’usage principal" },
   { priority: "P3 Confort", scope: "Amélioration, expérimentation ou confort non bloquant" },
+  { priority: "P4 Évolution future", scope: "Pari stratégique à valider avant industrialisation" },
 ] as const;
 
 export const DEVELOPMENT_ITEM_STATUSES = [
@@ -44,7 +46,7 @@ export const DEVELOPMENT_ITEM_STATUSES = [
   "DEFERRED",
 ] as const;
 
-export const DEVELOPMENT_ITEM_PRIORITIES = ["P0", "P1", "P2", "P3"] as const;
+export const DEVELOPMENT_ITEM_PRIORITIES = ["P0", "P1", "P2", "P3", "P4"] as const;
 export const DEVELOPMENT_ITEM_HORIZONS = ["MVP", "Pilote", "Après pilote", "Long terme"] as const;
 
 export const DEVELOPMENT_ITEM_TYPES = [
@@ -128,6 +130,7 @@ export type DevelopmentRegistryItem = {
   updatedAt: string;
   nextAction: string;
   validationCriteria: string[];
+  validatedCriteria: string[];
   dependencies: string[];
   blocker: string | null;
   routes: string[];
@@ -189,6 +192,7 @@ const developmentRegistrySchema = z.object({
     updatedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     nextAction: z.string().default(""),
     validationCriteria: z.array(z.string().min(2)).default([]),
+    validatedCriteria: z.array(z.string().min(2)).default([]),
     dependencies: z.array(z.string().min(1)).default([]),
     blocker: z.string().nullable().optional(),
     routes: z.array(z.string().min(1)).default([]),
@@ -503,6 +507,21 @@ function statusLabelFromRegistry(status: DevelopmentRegistryItem["status"]) {
   }
 }
 
+function statusFromValidatedCriteria(item: RawDevelopmentRegistry["items"][number]) {
+  if (item.status === "BLOCKED" || item.status === "DEFERRED" || item.status === "COMPLETED") {
+    return item.status;
+  }
+
+  if (item.validationCriteria.length === 0) return item.status;
+
+  const validatedCriteria = new Set(item.validatedCriteria.map(normalizeComparable));
+  const isFullyValidated = item.validationCriteria.every((criterion) =>
+    validatedCriteria.has(normalizeComparable(criterion)),
+  );
+
+  return isFullyValidated ? "COMPLETED" : item.status;
+}
+
 function priorityLabelFromRegistry(priority: DevelopmentRegistryItem["priority"]) {
   switch (priority) {
     case "P0":
@@ -513,6 +532,8 @@ function priorityLabelFromRegistry(priority: DevelopmentRegistryItem["priority"]
       return "P2 Important";
     case "P3":
       return "P3 Confort";
+    case "P4":
+      return "P4 Évolution future";
     default:
       return "P3 Confort";
   }
@@ -619,10 +640,11 @@ function validateStructuredRegistry(markdown: string) {
   const today = new Date("2026-08-24T00:00:00.000Z");
   const trackingSequences = new Map<typeof DEVELOPMENT_ITEM_PRIORITIES[number], number>();
   const items: DevelopmentRegistryItem[] = rawRegistry.items.map((item) => {
+    const status = statusFromValidatedCriteria(item);
     const nextSequence = (trackingSequences.get(item.priority) ?? 0) + 1;
     trackingSequences.set(item.priority, nextSequence);
     if (!item.nextAction.trim()) diagnostics.missingNextActions.push(item.id);
-    if (item.status === "COMPLETED" && item.evidence.length === 0) diagnostics.completedWithoutEvidence.push(item.id);
+    if (status === "COMPLETED" && item.evidence.length === 0) diagnostics.completedWithoutEvidence.push(item.id);
     for (const dependency of item.dependencies) {
       if (!existingIds.has(dependency)) diagnostics.unknownDependencies.push(`${item.id} -> ${dependency}`);
     }
@@ -632,9 +654,10 @@ function validateStructuredRegistry(markdown: string) {
 
     return {
       ...item,
+      status,
       // The tracking number stays unique even when registry IDs use different prefixes.
       trackingId: `${item.priority}-${String(nextSequence).padStart(3, "0")}`,
-      statusLabel: statusLabelFromRegistry(item.status),
+      statusLabel: statusLabelFromRegistry(status),
       priorityLabel: priorityLabelFromRegistry(item.priority),
       horizon: item.horizon ?? horizonFromPriority(item.priority),
       blocker: item.blocker ?? null,

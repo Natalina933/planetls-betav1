@@ -43,9 +43,12 @@ test("concierge → mission → intervention provider → preuve → facture", a
   const conciergeContext = await browser.newContext();
   const conciergePage = await conciergeContext.newPage();
   await loginWorkspace(conciergePage, request, "concierge");
+  const conciergeOrigin = new URL(conciergePage.url()).origin;
+  const providerOrigin = new URL(providerPage.url()).origin;
 
   const marker = `[E2E] Intervention provider ${Date.now()}`;
   const missionResponse = await conciergePage.request.post("/api/missions", {
+    headers: { Origin: conciergeOrigin },
     data: {
       title: marker,
       description: "Mission automatisée pour validation du parcours artisan.",
@@ -65,6 +68,7 @@ test("concierge → mission → intervention provider → preuve → facture", a
   const createInterventionResponse = await conciergePage.request.post(
     `/api/missions/${mission.id}/provider-interventions`,
     {
+      headers: { Origin: conciergeOrigin },
       data: {
         provider_profile_id: providerProfileId,
         title: marker,
@@ -94,6 +98,7 @@ test("concierge → mission → intervention provider → preuve → facture", a
   expect(received?.status).toBe("pending");
 
   const startResponse = await providerPage.request.patch(`/api/provider/interventions/${intervention.id}`, {
+    headers: { Origin: providerOrigin },
     data: { status: "in_progress" },
   });
   const startBody = await startResponse.text();
@@ -101,6 +106,7 @@ test("concierge → mission → intervention provider → preuve → facture", a
   expect((JSON.parse(startBody) as InterventionPayload).status).toBe("in_progress");
 
   const uploadResponse = await providerPage.request.post(`/api/missions/${mission.id}/files`, {
+    headers: { Origin: providerOrigin },
     multipart: {
       file: {
         name: "preuve-intervention.jpg",
@@ -132,6 +138,7 @@ test("concierge → mission → intervention provider → preuve → facture", a
   expect((JSON.parse(downloadBody) as { signed_url?: string }).signed_url).toMatch(/^https?:\/\//);
 
   const completeResponse = await providerPage.request.patch(`/api/provider/interventions/${intervention.id}`, {
+    headers: { Origin: providerOrigin },
     data: {
       status: "completed",
       metadata: {
@@ -151,6 +158,7 @@ test("concierge → mission → intervention provider → preuve → facture", a
   expect(completed.metadata?.proof).toBeTruthy();
   const createInvoiceResponse = await providerPage.request.post(
     `/api/provider/interventions/${intervention.id}/invoice`,
+    { headers: { Origin: providerOrigin } },
   );
   const createInvoiceBody = await createInvoiceResponse.text();
   expect(createInvoiceResponse.status(), createInvoiceBody).toBe(201);

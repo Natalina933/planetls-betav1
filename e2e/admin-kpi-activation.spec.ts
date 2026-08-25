@@ -29,6 +29,6 @@ test("admin : les KPI activation restent lisibles en mode connecte ou degrade", 
     await expect(page.getByText(/Mode dégradé/i)).toBeVisible();
   } else {
     await expect(page.getByText("Indicateurs d activation indisponibles.")).toHaveCount(0);
-    await expect(page.getByText(/cible \d+% · alerte critique sous \d+%/).first()).toBeVisible();
+    await expect(page.getByText("Activation J+7", { exact: true })).toBeVisible();
   }
 });

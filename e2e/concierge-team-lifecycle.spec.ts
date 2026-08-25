@@ -17,6 +17,7 @@ test("concierge : création, disponibilité et désactivation d'un membre persis
   const conciergeContext = await browser.newContext();
   const conciergePage = await conciergeContext.newPage();
   await loginWorkspace(conciergePage, request, "concierge");
+  const origin = new URL(conciergePage.url()).origin;
 
   const initialResponse = await conciergePage.request.get("/api/concierge/team");
   expect(initialResponse.ok(), await initialResponse.text()).toBeTruthy();
@@ -25,6 +26,7 @@ test("concierge : création, disponibilité et désactivation d'un membre persis
 
   const marker = "[E2E] Équipe " + Date.now();
   const createResponse = await conciergePage.request.post("/api/concierge/team", {
+    headers: { Origin: origin },
     data: {
       name: marker,
       role: "employee",
@@ -38,6 +40,7 @@ test("concierge : création, disponibilité et désactivation d'un membre persis
   expect(created).toMatchObject({ name: marker, role: "employee", availability: "available" });
 
   const updateResponse = await conciergePage.request.patch("/api/concierge/team/" + created.id, {
+    headers: { Origin: origin },
     data: { availability: "busy", title: "Référente terrain", dailyCapacityMinutes: 360 },
   });
   expect(updateResponse.ok(), await updateResponse.text()).toBeTruthy();
@@ -55,7 +58,9 @@ test("concierge : création, disponibilité et désactivation d'un membre persis
   await expect(conciergePage.getByRole("heading", { name: marker })).toBeVisible();
   await expect(conciergePage.getByLabel("Disponibilite de " + marker)).toHaveValue("busy");
 
-  const deleteResponse = await conciergePage.request.delete("/api/concierge/team/" + created.id);
+  const deleteResponse = await conciergePage.request.delete("/api/concierge/team/" + created.id, {
+    headers: { Origin: origin },
+  });
   expect(deleteResponse.ok(), await deleteResponse.text()).toBeTruthy();
   const finalResponse = await conciergePage.request.get("/api/concierge/team");
   const finalPayload = (await finalResponse.json()) as TeamPayload;

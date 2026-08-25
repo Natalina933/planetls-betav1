@@ -42,7 +42,7 @@ test("parseMasterPlan privilégie le registre structuré pour le cockpit dévelo
   assert.equal(plan.diagnostics.source, "structured");
   assert.equal(plan.registryItems.length, 1);
   assert.equal(plan.planning[0]?.id, "P1-001");
-  assert.equal(plan.diagnostics.nextSuggestedId, "P0-001 · P1-002 · P2-001 · P3-001");
+  assert.equal(plan.diagnostics.nextSuggestedId, "P0-001 · P1-002 · P2-001 · P3-001 · P4-001");
   assert.equal(plan.planning[0]?.status, "🟡 En cours");
   assert.equal(plan.functionalRows[0]?.feature, "Cockpit développement");
 });
@@ -96,8 +96,8 @@ test("the structured registry maps every status to its cockpit group", () => {
     TO_VERIFY: "🟠 Partiel",
     BLOCKED: "⚠️ Bloqué",
     READY: "🔴 À faire",
-    TO_PLAN: "🔴 À faire",
-    IDEA: "🔴 À faire",
+    TO_PLAN: "Non planifié",
+    IDEA: "Idée à étudier",
     DEFERRED: "⏸️ Reporté",
   } as const;
   const markdown = `# Plan
@@ -113,7 +113,7 @@ ${JSON.stringify({
       title: `Item ${status}`,
       summary: "Representative classification case.",
       status,
-      priority: `P${index % 5}`,
+      priority: `P${index % 4}`,
       type: "test",
       persona: "Admin",
       phase: "Validation",
@@ -140,6 +140,70 @@ ${JSON.stringify({
   }
 });
 
+test("the registry completes a priority automatically when every criterion is validated", () => {
+  const markdown = `# Plan
+
+## Registre structuré du développement
+
+\`\`\`json
+${JSON.stringify({
+    version: 1,
+    items: [
+      {
+        id: "PLS-DEV-001",
+        domain: "Pilotage",
+        title: "Validated priority",
+        summary: "Status is derived from explicit validation.",
+        status: "TO_VERIFY",
+        priority: "P0",
+        type: "test",
+        persona: "Admin",
+        phase: "Validation",
+        updatedAt: "2026-08-25",
+        nextAction: "Keep the automated check running.",
+        validationCriteria: ["Criterion A", "Criterion B"],
+        validatedCriteria: ["Criterion A", "Criterion B"],
+        dependencies: [],
+        blocker: null,
+        routes: ["/dashboard/admin/developpement"],
+        files: ["src/tests/master-plan-registry.test.mts"],
+        progressLabel: "Every criterion is explicitly validated.",
+        source: "test",
+        evidence: ["Automated test"],
+      },
+      {
+        id: "PLS-DEV-002",
+        domain: "Pilotage",
+        title: "Blocked priority",
+        summary: "A blocker must keep precedence over completion automation.",
+        status: "BLOCKED",
+        priority: "P0",
+        type: "test",
+        persona: "Admin",
+        phase: "Validation",
+        updatedAt: "2026-08-25",
+        nextAction: "Resolve the explicit blocker.",
+        validationCriteria: ["Criterion A"],
+        validatedCriteria: ["Criterion A"],
+        dependencies: [],
+        blocker: "External dependency",
+        routes: ["/dashboard/admin/developpement"],
+        files: ["src/tests/master-plan-registry.test.mts"],
+        progressLabel: "Blocked despite a locally validated criterion.",
+        source: "test",
+        evidence: ["Automated test"],
+      },
+    ],
+  }, null, 2)}
+\`\`\``;
+
+  const plan = parseMasterPlan(markdown, "2026-08-25T10:00:00.000Z");
+
+  assert.equal(plan.registryItems[0]?.status, "COMPLETED");
+  assert.equal(plan.planning[0]?.status, "✅ Terminé");
+  assert.equal(plan.registryItems[1]?.status, "BLOCKED");
+});
+
 test("le registre réel conserve des IDs uniques et un prochain numéro exploitable", async () => {
   const markdown = await readFile(new URL("../../docs/master-plan-planetls.md", import.meta.url), "utf8");
   const plan = parseMasterPlan(markdown, "2026-08-24T10:00:00.000Z");
@@ -152,7 +216,7 @@ test("le registre réel conserve des IDs uniques et un prochain numéro exploita
   const githubIssues = plan.registryItems.flatMap((item) => item.githubIssues.map((issue) => issue.number));
   assert.equal(new Set(githubIssues).size, githubIssues.length);
   assert.deepEqual(githubIssues.sort((left, right) => left - right), [10, 11, 12, 13, 14, 15, 16, 17]);
-  assert.equal(plan.diagnostics.nextSuggestedId, "P0-005 · P1-012 · P2-013 · P3-005");
+  assert.equal(plan.diagnostics.nextSuggestedId, "P0-006 · P1-013 · P2-013 · P3-005 · P4-002");
 });
 
 test("le suivi par priorité reste unique et continu avec plusieurs préfixes de registre", () => {
@@ -174,4 +238,23 @@ ${JSON.stringify({
 
   assert.deepEqual(plan.planning.map((item) => item.id), ["P1-001", "P1-002"]);
   assert.equal(new Set(plan.functionalRows.map((item) => item.id)).size, 2);
+});
+
+test("le registre structuré accepte et projette une priorité P4", () => {
+  const markdown = `# Plan
+
+### Registre structuré du développement
+
+\`\`\`json
+${JSON.stringify({
+    version: 1,
+    items: [{ id: "PLS-DEV-001", domain: "Mobile", title: "Accès hors ligne", summary: "Piste de long terme.", status: "DEFERRED", priority: "P4", type: "feature", persona: "Terrain", phase: "Long terme", updatedAt: "2026-08-25", nextAction: "Valider le besoin terrain.", progressLabel: "Non priorisé pour le pilote.", source: "test", evidence: ["test"] }],
+  })}
+\`\`\``;
+
+  const plan = parseMasterPlan(markdown, "2026-08-25T10:00:00.000Z");
+
+  assert.equal(plan.registryItems[0]?.priorityLabel, "P4 Évolution future");
+  assert.equal(plan.planning[0]?.horizon, "Plus tard");
+  assert.equal(plan.remainingPriorityCounts["P4 Évolution future"], 1);
 });

@@ -1691,6 +1691,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
     p1: plan.planning.filter((row) => row.priority === "P1 Prioritaire"),
     p2: plan.planning.filter((row) => row.priority === "P2 Important"),
     p3: plan.planning.filter((row) => row.priority === "P3 Confort"),
+    p4: plan.planning.filter((row) => row.priority === "P4 Évolution future"),
   }), [plan.planning]);
   const canonicalPriorityRows = useMemo(() => {
     const normalizedQuery = priorityQuery.trim().toLocaleLowerCase("fr");
@@ -1966,12 +1967,12 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
     [plan.planning],
   );
   const readyWork = useMemo(
-    () => plan.planning.filter((item) => item.status === "🔴 À faire").slice(0, 6),
-    [plan.planning],
+    () => roadmapProjection.readyItems.slice(0, 6),
+    [roadmapProjection.readyItems],
   );
   const completedWork = useMemo(
-    () => plan.planning.filter((item) => item.status === "✅ Terminé").slice(0, 6),
-    [plan.planning],
+    () => roadmapProjection.completedItems.slice(0, 6),
+    [roadmapProjection.completedItems],
   );
   const deferredWork = useMemo(
     () => plan.planning.filter((item) => item.status === "⏸️ Reporté").slice(0, 6),
@@ -2210,12 +2211,12 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
           <CardBody>
             <div className={styles.prioritySection}>
               <div className={styles.priorityHeader}>
-                <strong>Référentiel unique P0 à P3</strong>
+                <strong>Référentiel unique P0 à P4</strong>
               </div>
               <p className={styles.sidebarIntro}>Les cartes d&apos;exécution, les compteurs et ce tableau lisent tous le registre structuré. Les anciens intitulés restent archivés avec leur provenance, sans créer une seconde liste active.</p>
               <div className={styles.filterBar}>
                 <input aria-label="Rechercher dans le pilotage des priorités" value={priorityQuery} onChange={(event) => setPriorityQuery(event.target.value)} placeholder="ID, sujet, preuve ou dépendance…" />
-                <select aria-label="Filtrer les priorités par niveau" value={priorityLevelFilter} onChange={(event) => setPriorityLevelFilter(event.target.value)}><option value="">Tous les niveaux</option>{["P0", "P1", "P2", "P3"].map((level) => <option key={level} value={level}>{level}</option>)}</select>
+                <select aria-label="Filtrer les priorités par niveau" value={priorityLevelFilter} onChange={(event) => setPriorityLevelFilter(event.target.value)}><option value="">Tous les niveaux</option>{["P0", "P1", "P2", "P3", "P4"].map((level) => <option key={level} value={level}>{level}</option>)}</select>
                 <select aria-label="Filtrer les priorités par statut" value={priorityStatusFilter} onChange={(event) => setPriorityStatusFilter(event.target.value)}><option value="">Tous les statuts</option>{priorityStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select>
                 <select aria-label="Filtrer les priorités par domaine" value={priorityDomainFilter} onChange={(event) => setPriorityDomainFilter(event.target.value)}><option value="">Tous les domaines</option>{priorityDomains.map((domain) => <option key={domain} value={domain}>{domain}</option>)}</select>
                 <select aria-label="Filtrer les priorités par persona" value={priorityPersonaFilter} onChange={(event) => setPriorityPersonaFilter(event.target.value)}><option value="">Toutes les personas</option>{priorityPersonas.map((persona) => <option key={persona} value={persona}>{persona}</option>)}</select>
@@ -2819,12 +2820,12 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
             <p>{executionRowsByPriority.p2.length} amélioration(s) importantes restent remontées automatiquement dans la lecture produit.</p>
           </article>
           <article className={styles.auditCard}>
-            <strong>Socle suivi</strong>
-            <p>{functionalRows.length} élément(s) suivis dans la vue fonctionnelle active du Master Plan.</p>
+            <strong>P3 / P4 avenir</strong>
+            <p>{executionRowsByPriority.p3.length + executionRowsByPriority.p4.length} amélioration(s) de confort ou d'évolution future restent visibles sans concurrencer les urgences.</p>
           </article>
         </div>
 
-        {syncErrorCount || syncWarningCount ? <Card tone={syncErrorCount ? "warning" : "soft"}>
+        {syncErrorCount || syncWarningCount ? <Card tone={syncErrorCount ? "dark" : "soft"}>
           <CardHeader className={styles.panelHeader}>
             <div>
               <strong>Santé de la synchronisation</strong>

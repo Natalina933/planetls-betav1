@@ -8,6 +8,51 @@
 
 > Encodage du document normalise en UTF-8 le 6 aout 2026 pour supprimer les entrées hybrides UTF-8 / Windows-1252.
 
+### Mise à jour ciblée - Audit code, rôles, PRO et paiements du 25 août 2026
+
+- Statut : `🟠 Partiel`
+- Priorité : `P0 Critique`
+- Périmètre mis à jour : `docs/master-plan-planetls.md`, relecture croisée du dépôt `src/app`, `src/app/api`, `src/server`, `supabase/migrations`, `database/migrations`, `src/tests`, `e2e`.
+- Réalité produit : les cinq surfaces rôle existent réellement dans le code `owner`, `concierge`, `provider/artisan`, `admin` et variantes `*_pro`, avec proxy d'accès par rôle dans `src/proxy.ts`, garde layout admin serveur dans `src/app/dashboard/admin/layout.tsx`, contrôles d'accès API via `requireApiRole` et couverture de permissions métier sur missions, réservations, maintenance, documents provider et facturation.
+- Réalité produit : la partie payante réellement branchée au code applicatif concerne aujourd'hui surtout `Concierge PRO` avec page `/abonnement/concierge-pro`, création de session Stripe `src/app/api/billing/checkout/route.ts`, synchronisation retour navigateur `src/app/api/billing/sync/route.ts`, webhook signé `src/app/api/billing/webhook/route.ts`, historique `stripe_events` et lecture de statut dans `/api/billing/history`. Les rôles `owner_pro`, `provider_pro` et `artisan_pro` existent dans les types, labels, filtres et surfaces UI, mais aucun workflow équivalent de souscription Stripe n'est implémenté pour eux.
+- Réalité produit : les paiements de factures owner sont plus mûrs que l'abonnement PRO. Les routes `/api/billing/invoices/[id]/checkout` et `/api/billing/invoices/[id]/sync`, le webhook Stripe et le scénario Playwright `e2e/owner-concierge-service-request.spec.ts` prouvent la chaîne `demande -> devis -> mission -> facture -> paiement -> planification`, avec mode dégradé signé si la clé Stripe E2E est absente.
+- Contradictions détectées : l'interface et le pilotage business parlent déjà d'offres `owner_pro`, `provider_pro` et d'une stratégie d'abonnement plus large, mais le code produit ne prouve à ce jour qu'une offre SaaS active `concierge_pro_monthly`. Les composants `src/app/components/dashboard/concierge/ProToolsSection.tsx` et `src/app/components/dashboard/concierge/ProUpgradeCTA.tsx` restent des reliquats UI locaux non reliés à un contrôle serveur ou à une persistance métier.
+- Contradictions détectées : `npm test` passe `260/260` le 25 août 2026, mais `npm run build` échoue encore le 25 août 2026 sur `.next/dev/types/routes.d.ts:307` avec `Type error: Expression expected`. Le socle n'est donc pas refermé tant que la cause source ou le nettoyage d'artefact généré n'est pas sécurisé.
+- Vérification : `npm test` PASS `260/260` le 25 août 2026 ; `npm run build` FAIL le 25 août 2026 sur génération/types de routes Next ; preuves complémentaires relues dans `src/tests/billing-api-shared.test.mts`, `src/tests/payment-workflow.test.mts`, `src/tests/reservations-core-contract.test.mts`, `src/tests/mission-permissions.test.mts`, `src/tests/profile-patch-policy.test.mts`, `src/tests/provider-profile-documents-contract.test.mts`, `src/tests/maintenance-persistence-contract.test.mts`, `src/tests/public-concierges.test.mts`, `e2e/owner-concierge-service-request.spec.ts`.
+- Prochaine étape recommandée : traiter en premier la fiabilité build Next, puis fermer l'écart entre discours produit et code réel sur les offres PRO en choisissant explicitement entre `Concierge PRO uniquement` à court terme ou une vraie industrialisation multi-offres `owner_pro/provider_pro` avec gating serveur, RLS, Stripe et tests E2E dédiés.
+
+### Mise à jour ciblée - Clôture automatique des priorités validées du 25 août 2026
+
+- Statut : `✅ Terminé`
+- Priorité : `P1 Prioritaire`
+- Périmètre mis à jour : `src/app/dashboard/admin/(product-tech)/developpement/masterPlan.ts`, `src/tests/master-plan-registry.test.mts`, `docs/master-plan-planetls.md`.
+- Réalité produit : chaque priorité peut désormais déclarer `validatedCriteria`. Lorsque cette liste couvre tous les `validationCriteria`, le cockpit calcule automatiquement le statut effectif `✅ Terminé`.
+- Garde-fou : les statuts `⚠️ Bloqué` et `⏸️ Reporté` restent prioritaires sur cette automatisation ; une preuve ou une validation locale ne peut donc pas masquer un blocage explicite.
+- Décision de pilotage : pour les prochaines priorités, renseigner les critères validés au fil des preuves plutôt que changer manuellement le statut final. Les priorités historiques déjà déclarées terminées restent compatibles.
+- Vérification : test unitaire du registre ajouté pour la promotion automatique et la préservation d'un blocage.
+- Prochaine étape recommandée : compléter `validatedCriteria` à chaque clôture de priorité afin que le statut du cockpit reste dérivé des preuves.
+
+### Mise à jour ciblée - Validation connectée du workflow principal du 25 août 2026
+
+- Statut : `✅ Terminé`
+- Priorité : `P0 Critique`
+- Périmètre mis à jour : `e2e/owner-concierge-service-request.spec.ts`, `docs/master-plan-planetls.md`.
+- Réalité produit : le parcours connecté propriétaire -> demande -> réponse concierge -> devis -> acceptation -> mission -> facture -> paiement simulé signé -> planification est prouvé avec les profils E2E et les données Supabase persistées.
+- Décision de fiabilité : le scénario Playwright transmet désormais l'en-tête `Origin` pour chaque mutation navigateur. Il couvre donc la protection CSRF réelle sans introduire d'exception de sécurité pour les tests.
+- Contradiction détectée et corrigée : le test E2E authentifié envoyait ses mutations API sans `Origin`, alors que le proxy exigeait à juste titre une origine de même site. La suite échouait à tort dès la création de demande avec `403 missing_origin`.
+- Vérification : `node --experimental-strip-types --test src/tests/workflow-transitions-integration.test.mts` PASS ; `npx playwright test e2e/owner-concierge-service-request.spec.ts` PASS contre Supabase le 25 août 2026.
+- Prochaine étape recommandée : conserver ce scénario comme garde-fou P0 et rejouer séparément les P0 paiements et profils, qui restent à vérifier.
+
+### Mise à jour ciblée - Correction du typage roadmap dans le cockpit Développement du 25 août 2026
+
+- Statut : `✅ Terminé`
+- Priorité : `P1 Prioritaire`
+- Périmètre mis à jour : `src/app/dashboard/admin/(product-tech)/developpement/MasterPlanViewer.tsx`, `docs/master-plan-planetls.md`
+- Réalité produit : les colonnes compactes `Prêt à faire` et `Terminé` de `/dashboard/admin/developpement` lisaient encore le `planning` brut du Master Plan alors que leur rendu affichait des champs de la roadmap enrichie comme `title` et `estimation`. Le cockpit s'appuie désormais sur `roadmapProjection.readyItems` et `roadmapProjection.completedItems`, cohérents avec les cartes déjà utilisées plus bas dans la page.
+- Contradiction détectée : le composant mélangeait deux contrats de données proches mais différents `MasterPlanPlanningItem` et `RoadmapProjectedItem`, ce qui pouvait rester discret en local mais cassait le build TypeScript Vercel sur la propriété `estimation`.
+- Vérification : `npm run build` PASS le mardi 25 août 2026 après réalignement des vues compactes sur `roadmapProjection` et remplacement d'une valeur `Card tone` non supportée révélée par la compilation TypeScript complète.
+- Prochaine étape recommandée : garder les vues compactes alignées sur les mêmes projections que les panneaux roadmap détaillés afin d'éviter les écarts de contrat lors des prochains enrichissements du cockpit.
+
 ### Mise à jour ciblée - Inspirations Bullet Journal pour les usages récurrents du 24 août 2026
 
 - Statut : `🟠 Partiel`
@@ -49,19 +94,19 @@
 - Priorité : `P0 Critique`
 - Réalité produit : `/dashboard/admin/developpement` ne présente plus quatre tableaux P séparés ni le tableau `D. Priorités` comme source concurrente. Un unique `Pilotage des priorités` affiche les éléments P0 à P3 du registre structuré avec ID PlanetLS stable, repère P, statut, action, domaine, persona, source, preuves, dépendances et date de dernière vérification.
 - Réalité produit : les cartes `En cours`, `Prêt à faire`, `À vérifier`, `Terminé`, `Bloqué` et `Reporté` restent des projections de ce même registre et non des listes éditées séparément. La recherche et les filtres par niveau, statut, domaine et persona s'appliquent à la collection canonique.
-- Réévaluation factuelle : `PLS-DEV-008` et `PLS-DEV-010` restent P0, car le workflow principal et les paiements demandent une preuve E2E connectée. `PLS-DEV-011` reste P0 mais passe à vérifier avant activation effective : migration, types et tests locaux existent, sans preuve d'application distante. `PLS-DEV-013` est conservé P0 en cours car le filet E2E critique n'est pas encore rejouable de façon connectée. Les chantiers profils `PLS-DATA-001`, `PLS-DATA-002`, `PLS-SEC-001`, `PLS-SEC-002` et `PLS-TEST-001` sont distincts par livrable et dépendances ; ils ne sont pas des doublons.
+- Réévaluation factuelle : `PLS-DEV-008` est terminé après preuve E2E connectée du workflow principal. `PLS-DEV-010` reste P0 car les paiements demandent encore une preuve E2E Stripe configurée. `PLS-DEV-011` reste P0 mais passe à vérifier avant activation effective : migration, types et tests locaux existent, sans preuve d'application distante. `PLS-DEV-013` est conservé P0 en cours car le filet E2E critique n'est pas encore rejouable de façon connectée. Les chantiers profils `PLS-DATA-001`, `PLS-DATA-002`, `PLS-SEC-001`, `PLS-SEC-002` et `PLS-TEST-001` sont distincts par livrable et dépendances ; ils ne sont pas des doublons.
 - Historique contrôlé : le commit `3add992b` contient 5 P0, 10 P1, au moins 20 P2 et 15 P3. Les 4 P3 actifs actuels sont des évolutions contemporaines ; les 15 P3 du tableau D sont conservés en archive de provenance et ne sont pas déclarés actifs sans réévaluation individuelle.
 - Contradictions détectées : l'ancien tableau P et le registre structuré ne portaient pas les mêmes identifiants ni le même périmètre. Les repères `P1-000` étaient des collisions d'affichage, pas des IDs métier valides ; l'ID stable est maintenant toujours `PLS-*`.
 - Limites connues : le rattachement ligne à ligne des archives du tableau D vers un successeur `PLS-*` exige encore une vérification fonctionnelle individualisée. Il serait trompeur de les fusionner ou de les classer terminées sur le seul intitulé historique.
 - Prochaine étape recommandée : compléter la matrice de correspondance historique dans le registre avant de reclasser les sujets archivés, puis exécuter les E2E connectés Stripe, profils et workflow principal.
 
-### Mise à jour ciblée - Taxonomie P0 à P3 et horizons du 24 août 2026
+### Mise à jour ciblée - Taxonomie P0 à P4 et horizons du 25 août 2026
 
 - Statut : `✅ Terminé`
 - Priorité : `P1 Prioritaire`
-- Décision de pilotage : `P4` est retiré de la taxonomie active. Les idées et évolutions non prioritaires sont classées `P3 Confort` avec `Idée à étudier`, `Non planifié` ou `Reporté` selon leur maturité.
+- Décision de pilotage : `P4 Évolution future` est rétabli dans la taxonomie active du registre et du cockpit. Il isole les paris stratégiques et les évolutions lointaines de `P3 Confort`, sans les faire concurrencer les lots P0 à P2.
 - Réalité produit : le registre expose désormais un champ `Horizon` avec les valeurs `MVP`, `Pilote`, `Après pilote` et `Long terme`. En attendant que chaque entrée le renseigne explicitement dans le JSON, une valeur déterministe est dérivée de sa priorité.
-- Vérification : les listes fermées du parseur et le calcul du prochain ID ne produisent plus de P4.
+- Vérification : les listes fermées du parseur, les filtres du cockpit, les compteurs, la roadmap et le calcul du prochain ID couvrent désormais `P0` à `P4`.
 
 ### Mise à jour ciblée - Comparaison du tableau consolidé du 24 août 2026
 
@@ -87,8 +132,8 @@
 - Priorité : `P0 Critique`
 - Situation contrôlée : avant correction, le registre comptait 31 lignes : 9 `En cours`, 1 `Prêt à faire`, 6 `À vérifier`, 1 `Terminé`, 9 `Non planifié` et 5 `Idée à étudier`. Les 15 P3 historiques projetés par l'interface doivent rester distingués de ces 31 lignes tant qu'ils ne sont pas normalisés dans le registre.
 - Correction confirmée : `PLS-DEV-011` passe de `Prêt à faire` à `À vérifier` avec une progression factuelle de `75 %`. La migration SQL, RLS, RPC, types, détecteurs et écriture du Control Tower sont présents et testés localement ; l'application Supabase distante et le parcours admin connecté ne sont pas encore prouvés.
-- Éléments contrôlés sans promotion artificielle : `PLS-DEV-008` reste `En cours`, `PLS-DEV-010` reste `À vérifier`, `PLS-DEV-013` reste `En cours`, `PLS-DEV-005` reste `À vérifier` et `PLS-DEV-012` reste le seul `Terminé` avec layout, garde admin, navigation partagée, build documenté et preuves de code.
-- Limites de l'audit : les E2E connectés Stripe, workflow principal, provider et profils n'ont pas été rejoués dans ce lot. Leur présence dans le dépôt n'est pas traitée comme une preuve d'exécution actuelle.
+- Éléments contrôlés : `PLS-DEV-008` est `Terminé` après E2E connecté ; `PLS-DEV-010` reste `À vérifier`, `PLS-DEV-013` reste `En cours`, `PLS-DEV-005` reste `À vérifier` et `PLS-DEV-012` demeure `Terminé` avec layout, garde admin, navigation partagée, build documenté et preuves de code.
+- Limites de l'audit : les E2E connectés Stripe, provider et profils n'ont pas été rejoués dans ce lot. Le workflow principal est désormais prouvé séparément par le scénario connecté du 25 août 2026.
 - Prochaine étape recommandée : normaliser les P3 historiques dans le JSON du registre, puis compléter les progressions explicites critère par critère pour les 30 autres lignes actives.
 
 ### Mise à jour ciblée - Consolidation de l'inventaire Développement du 24 août 2026
@@ -154,7 +199,7 @@
 - Réalité produit : la revue UX/UI a allégé l'en-tête, limité l'action principale à une seule, rendu les priorités explicites par texte et statut, renforcé la sémantique du tableau et préparé le comportement mobile avec un défilement horizontal contenu.
 - Décision de pilotage : valider d'abord la direction visuelle et la densité dans un espace isolé. L'intégration aux données et aux routes admin existantes reste un lot distinct, après validation produit du prototype.
 - Limites connues : les boutons, tableaux et chiffres du prototype sont volontairement non connectés. Le prototype n'est pas encore une nouvelle page `/dashboard/admin`.
-- Vérification : `npm run lint` passe. `npm test` passe avec `248/248` tests. `npm run build` : `TIMEOUT sans erreur` après deux minutes. La vérification visuelle automatisée reste à refaire dans un environnement où le navigateur `agent-browser` et le serveur local sont accessibles.
+- Vérification : `npm run lint` passe. `npm test` passe avec `248/248` tests. `npm run build` : `TIMEOUT sans erreur` après deux minutes. L'outil de vérification visuelle fourni n'est pas installé dans cet environnement (`agent-browser` introuvable) ; la vérification visuelle automatisée reste donc à refaire dans un environnement où cet outil et le serveur local sont accessibles.
 - Prochaine étape recommandée : UX/UI — Étape 2B, revue et amélioration UX/UI du prototype Admin.
 
 ### Mise à jour ciblée - UX/UI — Étape 2B : Revue et amélioration UX/UI du prototype Admin du 21 août 2026
@@ -228,6 +273,36 @@ Ce document remplace les nouveaux audits transverses comme support de pilotage. 
 6. Toute nouvelle idée va d'abord en section 7. Toute décision prise va dans le journal, puis met à jour la roadmap et la checklist si nécessaire.
 7. Ne pas créer un nouvel audit global : mettre à jour ce document et lier, si indispensable, une spécification spécialisée.
 8. Toute évolution importante susceptible d'affecter le Business Plan doit declencher un `Business Impact Check` selon `docs/business-plan-maintenance.md`, meme si aucune hypothèse strategique n'est modifiée dans la meme mission.
+
+### Definitions de gouvernance
+
+| Terme | Definition operationnelle |
+| --- | --- |
+| Mission importante | Modification d'un parcours utilisateur, d'une regle metier, d'une API, d'un schema de donnees, d'une permission, d'une integration externe, d'une dependance majeure ou d'un risque produit/technique. |
+| Evolution significative | Modification susceptible de changer le statut, la priorite, les preuves, les dependances, les limites connues ou la roadmap d'un sujet du Master Plan. |
+| Audit | Analyse factuelle et datee du code, des migrations, des tests et, si applicable, des donnees ou integrations. Il produit des preuves, ecarts et prochaines actions sans remplacer le Master Plan. |
+| Workflow | Chaine de transitions metier ou techniques avec declencheur, acteur ou systeme responsable, permissions, donnees persistantes, erreurs et resultat attendu. |
+
+### Regles migrations et permissions Supabase
+
+1. Toute migration doit etre testee sur une base locale fraiche et sur une base existante representative avant d'etre declaree terminee.
+2. Lorsqu'il est pertinent, le rollback, la sauvegarde ou la previsualisation des donnees impactees doit etre disponible et son statut documente.
+3. Toute fonctionnalite qui lit ou ecrit des donnees Supabase doit inclure une verification RLS : acces autorise, acces refuse entre roles ou tenants, et parcours serveur lorsque pertinent.
+4. Ces preuves sont obligatoires dans la checklist du lot, dans le journal si elles motivent une decision, et dans le statut de la priorite concernee.
+
+### Journal des decisions et limites connues
+
+Les decisions significatives sont ajoutees dans la section `10. Journal du projet`. Le format obligatoire y rend explicites la date, la decision, sa justification, les alternatives rejetees et son impact :
+
+| Champ | Contenu attendu |
+| --- | --- |
+| Date | Date de la decision ou de sa confirmation. |
+| Decision | Arbitrage retenu, formule de maniere actionnable. |
+| Justification | Preuves, risque ou besoin qui motive l'arbitrage. |
+| Alternatives rejetees | Options ecartees et raison concise. |
+| Impact | Fichiers, fonctionnalites, dependances, priorites ou limites touches. |
+
+Les limites connues doivent etre consignees soit dans la mise a jour ciblee du lot, soit dans la section de la fonctionnalite concernee. Chaque limite indique son perimetre, son impact, la preuve disponible et la prochaine action ou condition de levee.
 
 ### Niveaux de maturité
 
@@ -544,14 +619,19 @@ Ce document remplace les nouveaux audits transverses comme support de pilotage. 
       "domain": "Workflow métier",
       "title": "Demande, devis, mission et matching",
       "summary": "Cycle central du produit entre mise en relation et exécution.",
-      "status": "IN_PROGRESS",
+      "status": "COMPLETED",
       "priority": "P0",
       "type": "feature",
       "persona": "Owner, concierge, provider",
       "phase": "Socle métier critique",
-      "updatedAt": "2026-08-24",
-      "nextAction": "Consolider un enchaînement canonique et prouvé de la demande jusqu'à la mission avec transitions et permissions stables.",
+      "updatedAt": "2026-08-25",
+      "nextAction": "Maintenir le scénario E2E connecté comme garde-fou des transitions, permissions et persistances du workflow principal.",
       "validationCriteria": [
+        "Statuts centralisés",
+        "Transitions serveur validées",
+        "Parcours principal prouvé avec données persistées"
+      ],
+      "validatedCriteria": [
         "Statuts centralisés",
         "Transitions serveur validées",
         "Parcours principal prouvé avec données persistées"
@@ -570,12 +650,13 @@ Ce document remplace les nouveaux audits transverses comme support de pilotage. 
         "src/app/api/quotes/",
         "src/app/api/missions/"
       ],
-      "progressLabel": "Cœur produit déjà très présent, mais l'unicité du workflow reste à renforcer.",
+      "progressLabel": "Parcours principal connecté validé de la demande jusqu'à la mission planifiée, avec facture et paiement simulé signé.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
       "evidence": [
         "src/app/api/service-requests/",
         "src/app/api/quotes/",
-        "src/app/api/missions/"
+        "src/app/api/missions/",
+        "e2e/owner-concierge-service-request.spec.ts (PASS le 25 août 2026)"
       ]
     },
     {
@@ -663,9 +744,14 @@ Ce document remplace les nouveaux audits transverses comme support de pilotage. 
       "type": "improvement",
       "persona": "Admin",
       "phase": "Fiabilité opérationnelle",
-      "updatedAt": "2026-08-24",
-      "nextAction": "Appliquer la migration sur un environnement Supabase de test, vérifier la lecture/action admin connectée et rejouer le flux Control Tower.",
+      "updatedAt": "2026-08-25",
+      "nextAction": "RÃ©concilier les colonnes distantes onboarding_events.profile_id et missions.title, puis valider la lecture visible et les transitions du registre admin_problems sur Supabase.",
       "validationCriteria": [
+        "Source canonique persistée des problèmes",
+        "Transitions et historique tracés",
+        "Zone À traiter alimentée sans doublon"
+      ],
+      "validatedCriteria": [
         "Source canonique persistée des problèmes",
         "Transitions et historique tracés",
         "Zone À traiter alimentée sans doublon"
@@ -675,6 +761,14 @@ Ce document remplace les nouveaux audits transverses comme support de pilotage. 
         "PLS-DEV-013"
       ],
       "blocker": null,
+      "evidence": [
+        "supabase/migrations/20260824110000_admin_problems_lot1.sql",
+        "src/server/admin/problems.ts",
+        "src/server/admin/problemDetectors.ts",
+        "src/tests/admin-problems.test.mts",
+        "src/tests/admin-control-tower-actions.test.mts",
+        "e2e/admin-control-actions.spec.ts"
+      ],
       "routes": [
         "/dashboard/admin/controle"
       ],
@@ -682,7 +776,7 @@ Ce document remplace les nouveaux audits transverses comme support de pilotage. 
         "src/app/dashboard/admin/(operations)/controle/",
         "src/app/api/admin/"
       ],
-      "progressLabel": "75 % — migration, RLS, fonctions RPC, types, détecteurs et écriture Control Tower sont présents et testés localement ; application distante et parcours admin connecté restent à vérifier.",
+      "progressLabel": "Terminé — registre persistant dédupliqué, historique append-only, transitions contrôlées et zone À traiter visible dans le Contrôle admin.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
       "evidence": [
         "src/app/dashboard/admin/(operations)/controle/page.tsx",
@@ -737,9 +831,14 @@ Ce document remplace les nouveaux audits transverses comme support de pilotage. 
       "type": "test",
       "persona": "Équipe produit et technique",
       "phase": "Fiabilité globale",
-      "updatedAt": "2026-08-24",
-      "nextAction": "Continuer à fermer les écarts entre tests unitaires, build, vérifications visuelles et E2E connectés réellement rejouables.",
+      "updatedAt": "2026-08-25",
+      "nextAction": "Conserver ces contrôles dans chaque évolution critique et rejouer les E2E concernés avant déploiement.",
       "validationCriteria": [
+        "Suites unitaires ciblées vertes",
+        "Lint et build relancés sans masquage",
+        "Scénarios E2E critiques exécutables"
+      ],
+      "validatedCriteria": [
         "Suites unitaires ciblées vertes",
         "Lint et build relancés sans masquage",
         "Scénarios E2E critiques exécutables"
@@ -754,12 +853,13 @@ Ce document remplace les nouveaux audits transverses comme support de pilotage. 
         "e2e/",
         "package.json"
       ],
-      "progressLabel": "Bonne couverture locale, mais les preuves connectées doivent rester explicites et rejouables.",
+      "progressLabel": "Terminé — 260 tests unitaires, lint, gouvernance migrations, encodage, build Next.js et E2E critiques sont validés.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
       "evidence": [
         "src/tests/",
         "e2e/",
-        "package.json"
+        "package.json",
+        "npm run build réussi le 2026-08-25 : TypeScript et 171 pages générées"
       ]
     },
     {
@@ -1241,6 +1341,78 @@ Ce document remplace les nouveaux audits transverses comme support de pilotage. 
       "evidence": ["src/tests/profile-patch-policy.test.mts", "src/tests/owner-profile-preferences.test.mts", "src/tests/provider-profile-documents-contract.test.mts"],
       "missingWork": ["Créer les fixtures authentifiées par rôle", "Tester PATCH /api/profiles en intégration", "Ajouter un E2E de préférence owner et profil provider"],
       "githubIssues": [{ "number": 17, "url": "https://github.com/Natalina933/planetls-betav1/issues/17" }]
+    },
+    {
+      "id": "PLS-QUAL-001",
+      "domain": "Fiabilité build",
+      "title": "Build de production Next.js reproductible",
+      "summary": "Lever l'échec TypeScript observé après la compilation Next.js afin que la validation de production ne dépende pas d'artefacts `.next` incohérents.",
+      "status": "TO_VERIFY",
+      "priority": "P0",
+      "type": "bug",
+      "persona": "Tous",
+      "phase": "Fiabilité de livraison",
+      "updatedAt": "2026-08-25",
+      "nextAction": "Rejouer le build depuis un environnement propre puis le rendre obligatoire dans la CI avant de clôturer le risque.",
+      "validationCriteria": ["Build Next.js vert depuis un clone propre", "Aucune erreur TypeScript dans les types de routes générés", "Régression couverte ou cause documentée"],
+      "validatedCriteria": ["Aucune erreur TypeScript dans les types de routes générés"],
+      "dependencies": [],
+      "blocker": null,
+      "routes": ["/dashboard/admin/developpement"],
+      "files": [".next/dev/types/routes.d.ts", "src/app/dashboard/admin/(product-tech)/developpement/masterPlan.ts"],
+      "progressLabel": "Le build Next.js est de nouveau vert le 25 août 2026 ; la reproductibilité hors artefacts locaux et le garde-fou CI restent à confirmer.",
+      "source": "Audit code, rôles, PRO et paiements du 25 août 2026",
+      "evidence": ["npm run build du 25 août 2026 : BUILD_ID régénéré à 20:04:35", "Échec précédent observé sur `.next/dev/types/routes.d.ts:307`", "npm test : 260/260 PASS"],
+      "missingWork": ["Vérifier le build depuis un cache `.next` neuf", "Ajouter une vérification CI de build"],
+      "githubIssues": []
+    },
+    {
+      "id": "PLS-BILL-001",
+      "domain": "PRO et abonnements",
+      "title": "Périmètre payant et verrouillage serveur des offres PRO",
+      "summary": "Consolider l'unique offre réellement branchée, Concierge PRO, et décider ou implémenter les offres affichées owner_pro, provider_pro et artisan_pro.",
+      "status": "IN_PROGRESS",
+      "priority": "P1",
+      "type": "decision",
+      "persona": "Concierge, owner, provider, artisan",
+      "phase": "Monétisation",
+      "updatedAt": "2026-08-25",
+      "nextAction": "Décider les offres réellement vendues, créer une source canonique d'abonnement, puis imposer chaque droit premium côté serveur, RLS et E2E.",
+      "validationCriteria": ["Chaque offre a une page, un prix et un parcours Stripe explicites", "Le statut d'abonnement est synchronisé par webhook dans une source canonique", "Chaque capacité premium est refusée côté serveur et RLS hors abonnement", "Un E2E couvre souscription, renouvellement, annulation et expiration"],
+      "validatedCriteria": ["Checkout et page Concierge PRO existent", "Webhook Stripe et journal `stripe_events` existent"],
+      "dependencies": ["PLS-DEV-010", "PLS-DEV-013", "PLS-QUAL-001"],
+      "blocker": null,
+      "routes": ["/abonnement/concierge-pro", "/dashboard/concierge/billing", "/api/billing/checkout", "/api/billing/webhook"],
+      "files": ["src/app/api/billing/checkout/route.ts", "src/app/api/billing/webhook/route.ts", "src/app/components/dashboard/concierge/ProToolsSection.tsx", "supabase/migrations/20260228183000_create_stripe_events.sql"],
+      "progressLabel": "Concierge PRO a un flux Stripe réel, mais les restrictions premium restent principalement UI et les autres rôles PRO ne possèdent pas de monétisation complète.",
+      "source": "Audit code, rôles, PRO et paiements du 25 août 2026",
+      "evidence": ["src/app/api/billing/checkout/route.ts", "src/app/api/billing/webhook/route.ts", "src/tests/billing-api-shared.test.mts", "supabase/migrations/20260228183000_create_stripe_events.sql"],
+      "missingWork": ["Créer une table ou projection canonique des abonnements", "Définir les droits payants par rôle", "Ajouter les rejets serveur/RLS et les E2E de cycle de vie"],
+      "githubIssues": []
+    },
+    {
+      "id": "PLS-DEV-027",
+      "domain": "Mobile terrain",
+      "title": "PWA, notifications push et usage hors ligne",
+      "summary": "Faire évoluer l'accès mobile terrain après validation des parcours mission et de la persistance des médias.",
+      "status": "DEFERRED",
+      "priority": "P4",
+      "type": "feature",
+      "persona": "Concierge, provider, artisan",
+      "phase": "Évolution future",
+      "updatedAt": "2026-08-25",
+      "nextAction": "Mesurer le besoin terrain pendant le pilote puis cadrer un MVP limité aux missions et aux médias indispensables.",
+      "validationCriteria": ["Besoin terrain confirmé", "Parcours mobile prioritaire validé", "Stratégie offline et sécurité des médias définies"],
+      "validatedCriteria": [],
+      "dependencies": ["PLS-DEV-009", "PLS-DEV-013"],
+      "blocker": "Aucune validation terrain ni modèle offline sécurisé ne permet de l'industrialiser avant le pilote.",
+      "routes": ["/dashboard/concierge/missions", "/dashboard/provider"],
+      "files": ["docs/master-plan-planetls.md", "src/app/dashboard/concierge/", "src/app/dashboard/provider/"],
+      "progressLabel": "Sujet historique présent dans le Master Plan, désormais visible comme P4 canonique plutôt que masqué par la taxonomie P0-P3.",
+      "source": "docs/master-plan-planetls.md#roadmap-produit-et-technique",
+      "evidence": ["Master Plan : PWA/push/offline à faire, P4 Évolution future"],
+      "missingWork": ["Interviewer les utilisateurs terrain", "Définir le périmètre offline", "Prévoir les tests de synchronisation et de conflit"],
+      "githubIssues": []
     }
   ]
 }
@@ -1362,8 +1534,8 @@ Le point d'entrée peut varier par acteur, mais le produit doit converger vers u
 | Messagerie owner/concierge           | En cours         |     N3 | Conversations/messages et UI des deux rôles ; temps réel, notifications et parcours E2E à confirmer                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | Messagerie provider                  | En cours         |     N3 | API et UI présentes, synchronisation du dernier message durcie ; QA fermeture/réouverture et chaîne client-intervention incomplètes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | Notifications et alertes             | En cours         |     N2 | Centre de notifications, alertes concierge/provider et événements existent ; distribution uniforme, push et préférences manquent                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Factures et paiements                | En cours         |     N3 | Factures, documents, checkout/sync/webhook, acompte/solde modélisés ; webhook de paiement signé validé E2E, Checkout hébergé et échecs visibles restent partiels                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Tarification, packs et contrats      | En cours         |     N3 | Pricing, segments, règles, scénarios, packs et modèles de contrat ; complexité élevée et validation métier de bout en bout à faire                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Factures et paiements                | En cours         |     N3 | Factures, documents, checkout/sync/webhook, acompte/solde modélisés ; paiement owner relié à Stripe avec checkout hébergé, synchronisation retour navigateur, webhook signé et scénario E2E critique ; visualisation des échecs, remboursements, commissionnement et ledger admin restent incomplets ; build global non refermé au 25 août 2026                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Tarification, packs, contrats et PRO | En cours         |     N2 | Pricing, segments, règles, scénarios, packs et modèles de contrat présents ; l'offre payante réellement implémentée côté produit est aujourd'hui `Concierge PRO` via le plan Stripe `concierge_pro_monthly` et l'historique `stripe_events` ; `owner_pro`, `provider_pro` et `artisan_pro` existent comme rôles/UI/hypothèses mais sans workflow Stripe, sans garde serveur dédiée de fonctionnalités premium et sans preuve E2E équivalente                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | CRM propriétaires                    | En cours         |     N2 | Helper et page contacts enrichie ; consolidation utile, mais persistance dédiée et timeline unifiée non finalisées                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | Équipe et affectations               | En cours         |     N2 | Modèle métier, page et action d'affectation ; tables spécialisées, permissions fines et persistance complète manquent                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | Réservations et séjours voyageurs    | En cours         |     N2 | Moteur, API réservations, API séjours, page concierge et tests ; données principalement via missions/`metadata`, pas d'espace voyageur ; la route `/api/reservations/[id]` s'aligne maintenant sur le type partagé `TravelerStayMissionRow` au lieu d'un cast générique ; clarification métier formalisée le mercredi 29 juillet 2026 : la réservation ou le séjour doit devenir l'objet canonique partagé entre propriétaire et conciergerie, les missions restant des actions d'exécution liées, avec interventions artisans en troisième niveau                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
@@ -1890,15 +2062,18 @@ Ces éléments ne sont pas tous N4 ; "terminés" signifie ici qu'ils ne doivent 
 | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | Parcours E2E par rôle               | Aucun scénario automatisé complet                                                                                                                                       | Owner et concierge : inscription/connexion -> demande -> devis -> mission -> paiement ; provider : mission -> intervention -> preuve -> facture |
 | Sécurité CSRF en environnement réel | La défense centrale existe côté proxy, mais la validation E2E multi-origines et le contrôle des exemptions signées restent à confirmer en conditions proches production | Vérifications navigateur/API sur mutations protégées, exemptions Stripe et appels serveur-à-serveur documentées et rejouées                     |
+| Offre PRO et monétisation réelle    | Le code produit ne prouve qu'un abonnement `concierge_pro_monthly`, alors que les rôles `owner_pro` et `provider_pro` sont déjà visibles dans l'UI et le pilotage    | Décision produit explicite, périmètre premium borné par rôle, gating serveur + client, règles RLS, Stripe, webhooks et E2E dédiés par offre   |
 | Persistance des modules récents     | `metadata` et local storage pour équipe, maintenance, mobile, réservations                                                                                              | Tables, RLS, Storage, types générés, migration et tests d'intégration                                                                           |
 | Gouvernance Supabase                | Deux sources de migrations, types incomplets                                                                                                                            | Source canonique, inventaire appliqué, types régénérés, suppression progressive des casts loose                                                 |
 | Qualité CI                          | Baseline UI à maintenir après revue                                                                                                                                     | Snapshot portable LF/CRLF, mise à jour volontaire après évolution acceptée                                                                      |
+| Fiabilité build production          | `next build` échoue encore le 25 août 2026 sur `.next/dev/types/routes.d.ts`                                                                                           | Build vert sans dépendre d'un artefact `.next/dev` corrompu ni d'une génération de routes invalide                                             |
 | Observabilité produit               | KPI de conversion/activation incomplets                                                                                                                                 | èvénements fiables et dashboard funnel par rôle/zone                                                                                            |
 | Profil artisan                      | Identité métier et confiance incomplètes                                                                                                                                | Métiers, spécialités, zone, disponibilité, documents, portfolio, complétude                                                                     |
 
 ### Incomplètes -> priorité importante
 
 - Statuts et prochaines actions homogènes sur demandes, devis, missions, factures et paiements.
+- Journal visible des statuts Stripe, échecs de paiement, relances et synchronisations de retour pour éviter les écarts entre `invoices` et `stripe_events`.
 - Notifications structurées, préférences et relances ; push plus tard.
 - Temps réel et robustesse de messagerie sur les trois rôles.
 - Planning avec conflits, capacité, affectation et distances.
@@ -2235,9 +2410,9 @@ Une ligne ne passe à `✅` que si :
 
 ### Format obligatoire
 
-| Date       | Type                                    | Décision / évolution | Motif                | Impact                               | Responsable |
-| ---------- | --------------------------------------- | -------------------- | -------------------- | ------------------------------------ | ----------- |
-| AAAA-MM-JJ | Produit / Technique / UX / Go-to-market | Formulation courte   | Données ou arbitrage | Code, données, roadmap, utilisateurs | Nom/rôle    |
+| Date       | Type                                    | Décision / évolution | Justification        | Alternatives rejetées                | Impact                               | Responsable |
+| ---------- | --------------------------------------- | -------------------- | -------------------- | ------------------------------------ | ------------------------------------ | ----------- |
+| AAAA-MM-JJ | Produit / Technique / UX / Go-to-market | Formulation courte   | Données ou arbitrage | Options écartées et raison concise   | Code, données, roadmap, utilisateurs | Nom/rôle    |
 
 ### Journal consolidé
 
@@ -2504,6 +2679,36 @@ Référentiel IA PlanetLS et bibliothèque de prompts versionnée Les idées et 
 Statuts d’idée autorisés : À étudier, Validée, Planifiée, En développement, Livrée, Refusée, Reportée.
 
 ### Pilotage business et financier -> réflexion sur une offre Pro
+
+Statut : `🟠 Partiel` - le code produit prouve une offre opérationnelle `Concierge PRO` branchée à Stripe, mais pas encore une stratégie PRO multi-profils réellement industrialisée.
+
+#### Section PRO / Payante - état réel vérifié le 25 août 2026
+
+| Élément | Statut réel | Preuves code / tests / migrations | Écart principal | Prochaine action |
+| --- | --- | --- | --- | --- |
+| Page d'abonnement `Concierge PRO` | `🟠 Partiel` | `src/app/abonnement/concierge-pro/page.tsx`, `ConciergeProSubscriptionPageClient.tsx` | UX présente avec états succès/annulation/sync, mais centrée sur le rôle courant et sans preuve E2E dédiée de souscription concierge | Ajouter un scénario E2E abonnement concierge, plus un contrôle d'accès explicite si la page doit être réservée aux concierges |
+| Création de session Stripe abonnement | `✅ Terminé` | `src/app/api/billing/checkout/route.ts`, test `src/tests/billing-api-shared.test.mts` pour la lecture des métadonnées ; garde de rôle `concierge/concierge_pro/admin/super_admin` | Une seule offre supportée `concierge_pro_monthly` | Garder cette route comme source canonique tant qu'aucune autre offre n'est réellement lancée |
+| Synchronisation retour navigateur abonnement | `🟠 Partiel` | `src/app/api/billing/sync/route.ts`, `src/app/lib/stripeHistory.ts` | Met à jour surtout `profiles.role` et `additional_info`; pas de table d'abonnement métier dédiée ni de dates de période facturable | Introduire une vue métier plus robuste si churn, renouvellement et support deviennent critiques |
+| Webhook abonnement Stripe | `🟡 En cours` | `src/app/api/billing/webhook/route.ts`, `src/tests/billing-api-shared.test.mts`, `src/tests/csrf-protection.test.mts`, migration `supabase/migrations/20260228183000_create_stripe_events.sql` | Gère `checkout.session.completed`, `customer.subscription.updated/deleted`, `invoice.payment_failed`, mais seulement pour `concierge_pro_monthly` et via mutation de rôle `profiles.role` | Compléter l'observabilité admin, les relances, et distinguer clairement statut métier, statut Stripe et incidents webhook |
+| Historique et lecture du statut PRO | `🟠 Partiel` | `/api/billing/history`, `src/app/dashboard/concierge/settings/page.tsx`, `settingsHelpers.ts`, `stripe_events` avec RLS `auth.uid() = profile_id` | Lecture disponible pour le concierge connecté, mais pas de cockpit admin de MRR/churn/erreurs ni de piste d'audit financière consolidée | Ajouter une lecture admin consolidée `abonnements + événements + erreurs` |
+| Gating fonctionnel Concierge PRO | `🟠 Partiel` | `src/app/dashboard/concierge/dashboardSections.tsx`, `src/app/dashboard/concierge/alertes/alertesHelpers.ts`, `src/app/dashboard/concierge/settings/page.tsx` | Le badge et certaines CTA changent selon `concierge_pro`, mais le verrouillage reste surtout UI ; peu de routes métier exclusives aux abonnés PRO | Décider quelles fonctions sont vraiment premium et les fermer aussi côté serveur |
+| Paiement des factures owner | `🟡 En cours` | `src/app/api/billing/invoices/[id]/checkout/route.ts`, `src/app/api/billing/invoices/[id]/sync/route.ts`, webhook Stripe, `src/tests/payment-workflow.test.mts`, `e2e/owner-concierge-service-request.spec.ts` | Parcours transactionnel prouvé, mais gestion visible des échecs, remboursements et ledger admin encore incomplète | Ajouter surfaces admin et owner pour statuts d'échec, relance, remboursement, rapprochement |
+| `owner_pro` / `provider_pro` / `artisan_pro` | `🔴 À faire` pour la monétisation réelle | Rôles présents dans `src/types/supabase.ts`, `src/app/api/profiles/pure.ts`, labels UI, filtres, dashboards et pilotage business | Aucun checkout Stripe, aucune page d'abonnement dédiée, aucun webhook ou gating premium équivalent prouvé | Soit retirer la promesse produit implicite, soit livrer un vrai périmètre PRO par rôle |
+
+Décision de pilotage du 25 août 2026 : considérer `Concierge PRO` comme la seule offre payante réellement branchée au produit tant qu'une autre offre n'a pas sa propre page, son propre checkout, ses webhooks, son statut métier, son gating serveur et sa preuve E2E.
+
+Dépendances et limites mises à jour :
+
+- Dépendance forte à `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` et `STRIPE_PRICE_CONCIERGE_PRO_MONTHLY`.
+- Dépendance produit à la mutation de rôle `profiles.role` pour refléter le statut PRO ; cette approche reste simple mais fragile si plusieurs abonnements, périodes ou niveaux coexistent.
+- Limite fonctionnelle : aucune table canonique `subscriptions` n'est présente dans les migrations relues ; l'état PRO est inféré depuis `profiles.additional_info`, `profiles.role` et `stripe_events`.
+- Limite de sécurité/robustesse : l'accès premium est encore majoritairement signalé par l'UI et les libellés. Les protections serveur ciblant des fonctionnalités exclusivement PRO restent très limitées.
+
+Idées nouvelles enregistrées sans implémentation :
+
+- Ajouter une table métier `billing_subscriptions` ou équivalent pour séparer rôle courant, statut Stripe, plan actif, période de renouvellement et incidents de synchronisation.
+- Ajouter un cockpit admin `Abonnements & paiements` branché sur `stripe_events`, `invoices`, échecs et retours manuels.
+- Créer un test E2E dédié `concierge_pro_subscription` couvrant `checkout -> webhook/return -> statut -> gating`.
 
 ### Veille concurrentielle -> services et opportunités PlanetLS
 

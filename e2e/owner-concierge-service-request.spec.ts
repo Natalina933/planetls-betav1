@@ -53,6 +53,11 @@ type ServiceRequestListPayload = {
   scope?: "owner" | "concierge";
 };
 
+const e2eOrigin = new URL(
+  process.env.E2E_BASE_URL ?? `http://127.0.0.1:${process.env.E2E_PORT ?? "3100"}`,
+).origin;
+const csrfHeaders = { Origin: e2eOrigin };
+
 async function completeStripeTestCheckout(page: Page, checkoutUrl: string) {
   expect(checkoutUrl).toMatch(/^https:\/\/checkout\.stripe\.com\//);
   await page.goto(checkoutUrl, { waitUntil: "domcontentloaded", timeout: 90_000 });
@@ -99,6 +104,7 @@ test("propriétaire → demande → devis accepté → mission et facture émise
 
   const marker = `[E2E] Demande propriétaire-concierge ${Date.now()}`;
   const createResponse = await ownerPage.request.post("/api/service-requests", {
+    headers: csrfHeaders,
     data: {
       title: marker,
       description: "Validation automatisée du parcours transactionnel critique.",
@@ -138,6 +144,7 @@ test("propriétaire → demande → devis accepté → mission et facture émise
   const response = await conciergePage.request.post(
     `/api/service-request-recipients/${recipient!.id}/respond`,
     {
+      headers: csrfHeaders,
       data: {
         status: "interested",
         response_message: "Intérêt automatique du scénario E2E.",
@@ -148,7 +155,7 @@ test("propriétaire → demande → devis accepté → mission et facture émise
   expect(response.ok(), responseBody).toBeTruthy();
   const prepareQuoteResponse = await conciergePage.request.post(
     `/api/service-request-recipients/${recipient!.id}/prepare-quote`,
-    { data: {} },
+    { data: {}, headers: csrfHeaders },
   );
   const prepareQuoteBody = await prepareQuoteResponse.text();
   expect([200, 201], prepareQuoteBody).toContain(prepareQuoteResponse.status());
@@ -158,6 +165,7 @@ test("propriétaire → demande → devis accepté → mission et facture émise
   expect(preparedQuote.quote?.status).toBe("draft");
 
   const sendQuoteResponse = await conciergePage.request.patch(`/api/quotes/${quoteId}/status`, {
+    headers: csrfHeaders,
     data: { status: "sent" },
   });
   const sendQuoteBody = await sendQuoteResponse.text();
@@ -176,6 +184,7 @@ test("propriétaire → demande → devis accepté → mission et facture émise
   expect(receivedQuote?.service_request_recipient_id).toBe(recipient!.id);
 
   const acceptQuoteResponse = await ownerPage.request.patch(`/api/quotes/${quoteId}/status`, {
+    headers: csrfHeaders,
     data: { status: "accepted" },
   });
   const acceptQuoteBody = await acceptQuoteResponse.text();
@@ -200,6 +209,7 @@ test("propriétaire → demande → devis accepté → mission et facture émise
   expect(conciergeInvoice?.mission_id).toBe(acceptedQuote.mission_id);
 
   const issueInvoiceResponse = await conciergePage.request.patch(`/api/invoices/${invoiceId}/status`, {
+    headers: csrfHeaders,
     data: { status: "issued" },
   });
   const issueInvoiceBody = await issueInvoiceResponse.text();
@@ -217,7 +227,9 @@ test("propriétaire → demande → devis accepté → mission et facture émise
   expect(ownerInvoice?.status).toBe("issued");
   expect(ownerInvoice?.mission_id).toBe(acceptedQuote.mission_id);
 
-  const checkoutResponse = await ownerPage.request.post(`/api/billing/invoices/${invoiceId}/checkout`);
+  const checkoutResponse = await ownerPage.request.post(`/api/billing/invoices/${invoiceId}/checkout`, {
+    headers: csrfHeaders,
+  });
   const checkoutBody = await checkoutResponse.text();
   const stripeTestEnabled = process.env.E2E_STRIPE_SECRET_KEY?.startsWith("sk_test_") === true;
   if (stripeTestEnabled) {
@@ -275,6 +287,7 @@ test("propriétaire → demande → devis accepté → mission et facture émise
   const scheduleResponse = await conciergePage.request.patch(
     `/api/missions/${acceptedQuote.mission_id}`,
     {
+      headers: csrfHeaders,
       data: {
         status: "scheduled",
         scheduled_start: scheduledStart.toISOString(),

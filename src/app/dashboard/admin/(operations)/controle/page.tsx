@@ -101,6 +101,21 @@ type ControlPayload = {
   onboarding: OnboardingItem[];
   missions: MissionItem[];
   messages: MessageItem[];
+  problemRegistry: {
+    available: boolean;
+    reason: string | null;
+    openCount: number;
+    items: Array<{
+      id: string;
+      severity: "information" | "vigilance" | "prioritaire" | "critique";
+      status: string;
+      title: string;
+      summary: string;
+      functional_owner: string;
+      occurrence_count: number;
+      last_detected_at: string;
+    }>;
+  };
 };
 
 type TabKey = "inscriptions" | "missions" | "messages";
@@ -580,6 +595,7 @@ function AdminControlPageContent() {
             {panelOpen.health ? (
               <div id="admin-control-health" className={styles.foldableContent}>
                 {payload ? (
+                  <>
                   <section className={`${styles.healthBanner} ${styles[`health_${payload.health.status}`]}`}>
                     <div className={styles.healthSummary}>
                       <span className={styles.healthEyebrow}>État général</span>
@@ -626,6 +642,38 @@ function AdminControlPageContent() {
                       </div>
                     ) : null}
                   </section>
+                  <DashboardPanel title={`Registre À traiter (${payload.problemRegistry.openCount})`}>
+                    {payload.problemRegistry.available ? (
+                      payload.problemRegistry.items.length > 0 ? (
+                        <div className={styles.cardList}>
+                          {payload.problemRegistry.items.map((problem) => (
+                            <article key={problem.id} className={styles.card} data-problem-id={problem.id}>
+                              <div className={styles.cardHeader}>
+                                <div>
+                                  <h3>{problem.title}</h3>
+                                  <p>{problem.summary}</p>
+                                </div>
+                                <AdminStatusBadge
+                                  label={problem.severity}
+                                  tone={problem.severity === "critique" ? "danger" : problem.severity === "prioritaire" ? "warning" : "positive"}
+                                />
+                              </div>
+                              <div className={styles.inlineFacts}>
+                                <div><span>Statut</span><strong>{problem.status}</strong></div>
+                                <div><span>Responsable</span><strong>{problem.functional_owner}</strong></div>
+                                <div><span>Détections</span><strong>{problem.occurrence_count}</strong></div>
+                              </div>
+                            </article>
+                          ))}
+                        </div>
+                      ) : (
+                        <AdminEmptyState title="Aucun problème persistant ouvert" description="Les prochaines détections dédupliquées apparaîtront ici." />
+                      )
+                    ) : (
+                      <AdminEmptyState title="Registre indisponible" description={payload.problemRegistry.reason ?? "La source ne peut pas être vérifiée."} />
+                    )}
+                  </DashboardPanel>
+                  </>
                 ) : (
                   <section className={`${styles.healthBanner} ${styles.health_unverifiable}`} role="alert">
                     <div className={styles.healthSummary}>
@@ -712,7 +760,7 @@ function AdminControlPageContent() {
                       <div className={styles.cardList}>
                   {tab === "inscriptions" &&
                     (filteredItems as OnboardingItem[]).map((item) => (
-                      <article key={item.id} className={styles.card}>
+                      <article key={item.id} className={styles.card} data-control-target={`onboarding:${item.id}`}>
                         <div className={styles.cardHeader}>
                           <div>
                             <h3>{item.displayName}</h3>
@@ -760,7 +808,7 @@ function AdminControlPageContent() {
 
                   {tab === "missions" &&
                     (filteredItems as MissionItem[]).map((item) => (
-                      <article key={item.id} className={styles.card}>
+                      <article key={item.id} className={styles.card} data-control-target={`mission:${item.id}`}>
                         <div className={styles.cardHeader}>
                           <div>
                             <h3>{item.title || "Mission"}</h3>
@@ -814,7 +862,7 @@ function AdminControlPageContent() {
 
                   {tab === "messages" &&
                     (filteredItems as MessageItem[]).map((item) => (
-                      <article key={item.id} className={styles.card}>
+                      <article key={item.id} className={styles.card} data-control-target={`message:${item.id}`}>
                         <div className={styles.cardHeader}>
                           <div>
                             <h3>{item.subject}</h3>

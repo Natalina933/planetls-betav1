@@ -28,7 +28,7 @@ test("admin dashboard remains readable across reference viewports", async ({ pag
 
   await loginAdmin(page);
   await page.goto("/dashboard/admin", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: "Mission Control", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Aujourd'hui sur PlanetLS", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "7 jours" })).toBeVisible();
   await expect(page.getByRole("button", { name: "30 jours" })).toHaveAttribute("data-active", "true");
   await expect(page.getByRole("button", { name: "90 jours" })).toBeVisible();
@@ -47,7 +47,7 @@ test("admin dashboard remains readable across reference viewports", async ({ pag
   ]) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.reload({ waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: "Mission Control", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Aujourd'hui sur PlanetLS", exact: true })).toBeVisible();
     await expect(page.locator("table").first()).toBeVisible();
     await expect
       .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
