@@ -109,6 +109,7 @@ type DevelopmentWorkspaceTab =
 
 type MasterPlanDisplayMode = "focus" | "all";
 type MasterPlanPreset = "blocked" | "p1" | "recent-decisions" | "roadmap-ready" | "critical-bugs";
+type CompactPanelId = "nextAction" | "healthChecks" | "blockedWork" | "currentWork" | "readyWork" | "completedWork" | "verificationWork" | "deferredWork";
 
 type ManualEntryDraft = Omit<DeveloperLogEntry, "features" | "links"> & {
   featuresText: string;
@@ -812,7 +813,7 @@ function buildAutomationMonitoring(rowId: string, kpiLabel: string) {
 }
 
 const DEVELOPMENT_AUTOMATION_TABLE_ROWS: DevelopmentAutomationTableRow[] = AUTOMATION_RECORDS
-  .filter((item) => ["AUT-021", "AUT-022", "AUT-023", "AUT-014", "AUT-031", "AUT-032", "AUT-040", "AUT-041", "AUT-050", "AUT-051"].includes(item.id))
+  .filter((item) => ["AUT-020", "AUT-021", "AUT-022", "AUT-023", "AUT-024", "AUT-014", "AUT-031", "AUT-032", "AUT-040", "AUT-041", "AUT-050", "AUT-051"].includes(item.id))
   .map((item) => ({
     id: item.id,
     zone: item.zone,
@@ -1386,6 +1387,39 @@ function FoldableSectionHeader({
   );
 }
 
+function CompactCardHeader({
+  title,
+  summary,
+  isOpen,
+  onToggle,
+  controlsId,
+}: {
+  title: string;
+  summary: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  controlsId: string;
+}) {
+  return (
+    <CardHeader className={styles.panelHeader}>
+      <div>
+        <strong>{title}</strong>
+        <p className={styles.sidebarIntro}>{summary}</p>
+      </div>
+      <button
+        type="button"
+        className={styles.compactCardToggle}
+        aria-expanded={isOpen}
+        aria-controls={controlsId}
+        aria-label={isOpen ? `Replier ${title}` : `Déplier ${title}`}
+        onClick={onToggle}
+      >
+        <ChevronDown className={isOpen ? styles.compactCardToggleOpen : undefined} size={20} aria-hidden="true" />
+      </button>
+    </CardHeader>
+  );
+}
+
 export function MasterPlanViewer({ plan, journal, missionControl, roadmap, technicalMemory, defaultAuthor, projectVersion }: MasterPlanViewerProps) {
   const blockedMasterPlanStatus = "⚠️ Bloqué";
   const workspaceAnchorRef = useRef<HTMLDivElement | null>(null);
@@ -1421,6 +1455,16 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   const [expandedMemoryEntryIds, setExpandedMemoryEntryIds] = useState<string[]>(() => technicalMemory.entries.slice(0, 2).map((entry) => entry.id));
   const [expandedExecutivePanels, setExpandedExecutivePanels] = useState<string[]>(["priorities", "dependencies", "alerts"]);
   const [expandedRoadmapLanes, setExpandedRoadmapLanes] = useState<string[]>(["ready", "blocked"]);
+  const [compactPanelOpen, setCompactPanelOpen] = useState<Record<CompactPanelId, boolean>>({
+    nextAction: true,
+    healthChecks: true,
+    blockedWork: true,
+    currentWork: true,
+    readyWork: true,
+    completedWork: true,
+    verificationWork: true,
+    deferredWork: true,
+  });
   const [isManualEntryModalOpen, setIsManualEntryModalOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState({
     execution: true,
@@ -2004,7 +2048,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
         </div>
 
         <div className={styles.compactStats}>
-          <StatsCard label="Progression" value={`${missionControl.progressionPct}%`} hint="Avancement global" visual={<Target size={18} />} visualLabel="Progression" />
+          <StatsCard label="Progression" value={`${missionControl.progressionPct}%`} hint="Avancement global" progress={missionControl.progressionPct} visual={<Target size={18} />} visualLabel="Progression" />
           <StatsCard label="En cours" value={String(missionControl.inProgressFeatures)} hint="À poursuivre" visual={<Activity size={18} />} visualLabel="En cours" />
           <StatsCard label="Bloqués" value={String(missionControl.blockedFeatures)} hint="À débloquer" visual={<AlertTriangle size={18} />} visualLabel="Bloqués" />
           <StatsCard label="Terminés" value={String(missionControl.completedFeatures)} hint="Déjà faits" visual={<CheckCheck size={18} />} visualLabel="Terminés" />
@@ -2023,13 +2067,8 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
 
         <div className={styles.compactGrid}>
           <Card className={styles.compactPrimaryCard}>
-            <CardHeader className={styles.panelHeader}>
-              <div>
-                <strong>Prochaine action</strong>
-                <p className={styles.sidebarIntro}>Le meilleur prochain sujet à lancer ou débloquer maintenant.</p>
-              </div>
-            </CardHeader>
-            <CardBody className={styles.compactBody}>
+            <CompactCardHeader title="Prochaine action" summary="Le meilleur prochain sujet à lancer ou débloquer maintenant." isOpen={compactPanelOpen.nextAction} onToggle={() => toggleCompactPanel("nextAction")} controlsId="next-action-panel" />
+            {compactPanelOpen.nextAction ? <CardBody id="next-action-panel" className={styles.compactBody}>
               <div className={styles.compactFocusCard}>
                 <span>{nextSuggestion?.isReady ? "Maintenant" : "Sous dépendances"}</span>
                 <strong>{nextSuggestion?.title || "Aucune action prioritaire détectée"}</strong>
@@ -2040,17 +2079,12 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                 <div><strong>Release</strong><span>{releaseReadiness}</span></div>
                 <div><strong>Rythme</strong><span>{missionControl.weeklyDevelopmentLabel}</span></div>
               </div>
-            </CardBody>
+            </CardBody> : null}
           </Card>
 
           <Card>
-            <CardHeader className={styles.panelHeader}>
-              <div>
-                <strong>Vérifications rapides</strong>
-                <p className={styles.sidebarIntro}>Trois signaux pour savoir si la base technique tient.</p>
-              </div>
-            </CardHeader>
-            <CardBody className={styles.compactChecklist}>
+            <CompactCardHeader title="Vérifications rapides" summary="Trois signaux pour savoir si la base technique tient." isOpen={compactPanelOpen.healthChecks} onToggle={() => toggleCompactPanel("healthChecks")} controlsId="health-checks-panel" />
+            {compactPanelOpen.healthChecks ? <CardBody id="health-checks-panel" className={styles.compactChecklist}>
               {conciseHealthCards.map((card) => (
                 <article key={card.label} className={styles.auditCard}>
                   <strong>{card.label}</strong>
@@ -2065,19 +2099,14 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                 <strong>États des priorités</strong>
                 <p>En cours {plan.registryItems.filter((item) => item.status === "IN_PROGRESS").length} · Prêt {plan.registryItems.filter((item) => item.status === "READY").length} · À vérifier {plan.registryItems.filter((item) => item.status === "TO_VERIFY").length} · Terminées {plan.registryItems.filter((item) => item.status === "COMPLETED").length} · Bloquées {plan.registryItems.filter((item) => item.status === "BLOCKED").length} · Reportées {plan.registryItems.filter((item) => item.status === "DEFERRED").length} · Idées {plan.registryItems.filter((item) => item.status === "IDEA").length + PRIORITY_TABLE_ROWS.filter((item) => item.level === "P3").length}</p>
               </article>
-            </CardBody>
+            </CardBody> : null}
           </Card>
         </div>
 
         <div className={styles.compactColumns}>
           <Card>
-            <CardHeader className={styles.panelHeader}>
-              <div>
-                <strong>À débloquer</strong>
-                <p className={styles.sidebarIntro}>Ce qui empêche d&apos;avancer maintenant.</p>
-              </div>
-            </CardHeader>
-            <CardBody className={styles.compactList}>
+            <CompactCardHeader title="À débloquer" summary="Ce qui empêche d'avancer maintenant." isOpen={compactPanelOpen.blockedWork} onToggle={() => toggleCompactPanel("blockedWork")} controlsId="blocked-work-panel" />
+            {compactPanelOpen.blockedWork ? <CardBody id="blocked-work-panel" className={styles.compactList}>
               {blockedWork.length ? blockedWork.map((item) => (
                 <article key={item.id} className={styles.compactListItem}>
                   <div className={styles.compactListTop}>
@@ -2088,17 +2117,12 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                   <p>{item.nextAction || item.evidence}</p>
                 </article>
               )) : <p className={styles.executiveEmpty}>Aucun blocage ouvert.</p>}
-            </CardBody>
+            </CardBody> : null}
           </Card>
 
           <Card>
-            <CardHeader className={styles.panelHeader}>
-              <div>
-                <strong>En cours</strong>
-                <p className={styles.sidebarIntro}>Ce qui mérite de continuer sans repartir dans tous les sens.</p>
-              </div>
-            </CardHeader>
-            <CardBody className={styles.compactList}>
+            <CompactCardHeader title="En cours" summary="Ce qui mérite de continuer sans repartir dans tous les sens." isOpen={compactPanelOpen.currentWork} onToggle={() => toggleCompactPanel("currentWork")} controlsId="current-work-panel" />
+            {compactPanelOpen.currentWork ? <CardBody id="current-work-panel" className={styles.compactList}>
               {currentWork.length ? currentWork.map((item) => (
                 <article key={item.id} className={styles.compactListItem}>
                   <div className={styles.compactListTop}>
@@ -2109,19 +2133,14 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                   <p>{item.nextAction || item.evidence}</p>
                 </article>
               )) : <p className={styles.executiveEmpty}>Aucun chantier actif détecté.</p>}
-            </CardBody>
+            </CardBody> : null}
           </Card>
         </div>
 
         <div className={styles.compactColumns}>
           <Card>
-            <CardHeader className={styles.panelHeader}>
-              <div>
-                <strong>Prêt à faire</strong>
-                <p className={styles.sidebarIntro}>Les sujets qui peuvent avancer sans dépendance forte.</p>
-              </div>
-            </CardHeader>
-            <CardBody className={styles.compactList}>
+            <CompactCardHeader title="Prêt à faire" summary="Les sujets qui peuvent avancer sans dépendance forte." isOpen={compactPanelOpen.readyWork} onToggle={() => toggleCompactPanel("readyWork")} controlsId="ready-work-panel" />
+            {compactPanelOpen.readyWork ? <CardBody id="ready-work-panel" className={styles.compactList}>
               {readyWork.length ? readyWork.map((item) => (
                 <article key={item.id} className={styles.compactListItem}>
                   <div className={styles.compactListTop}>
@@ -2132,17 +2151,12 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                   <p>{item.nextAction || item.evidence}</p>
                 </article>
               )) : <p className={styles.executiveEmpty}>Aucun sujet prêt immédiat détecté.</p>}
-            </CardBody>
+            </CardBody> : null}
           </Card>
 
           <Card>
-            <CardHeader className={styles.panelHeader}>
-              <div>
-                <strong>Terminé</strong>
-                <p className={styles.sidebarIntro}>Les derniers éléments déjà stabilisés pour éviter les redites.</p>
-              </div>
-            </CardHeader>
-            <CardBody className={styles.compactList}>
+            <CompactCardHeader title="Terminé" summary="Les derniers éléments déjà stabilisés pour éviter les redites." isOpen={compactPanelOpen.completedWork} onToggle={() => toggleCompactPanel("completedWork")} controlsId="completed-work-panel" />
+            {compactPanelOpen.completedWork ? <CardBody id="completed-work-panel" className={styles.compactList}>
               {completedWork.length ? completedWork.map((item) => (
                 <article key={item.id} className={styles.compactListItem}>
                   <div className={styles.compactListTop}>
@@ -2153,19 +2167,14 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                   <p>{item.evidence || item.domain}</p>
                 </article>
               )) : <p className={styles.executiveEmpty}>Aucun repère terminé remonté dans cette vue.</p>}
-            </CardBody>
+            </CardBody> : null}
           </Card>
         </div>
 
         <div className={styles.compactColumns}>
           <Card>
-            <CardHeader className={styles.panelHeader}>
-              <div>
-                <strong>À vérifier</strong>
-                <p className={styles.sidebarIntro}>Les réalisations qui demandent encore une validation explicite.</p>
-              </div>
-            </CardHeader>
-            <CardBody className={styles.compactList}>
+            <CompactCardHeader title="À vérifier" summary="Les réalisations qui demandent encore une validation explicite." isOpen={compactPanelOpen.verificationWork} onToggle={() => toggleCompactPanel("verificationWork")} controlsId="verification-work-panel" />
+            {compactPanelOpen.verificationWork ? <CardBody id="verification-work-panel" className={styles.compactList}>
               {verificationWork.length ? verificationWork.map((item) => (
                 <article key={item.id} className={styles.compactListItem}>
                   <div className={styles.compactListTop}>
@@ -2176,17 +2185,12 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                   <p>{item.nextAction || item.evidence}</p>
                 </article>
               )) : <p className={styles.executiveEmpty}>Aucune vérification en attente.</p>}
-            </CardBody>
+            </CardBody> : null}
           </Card>
 
           <Card>
-            <CardHeader className={styles.panelHeader}>
-              <div>
-                <strong>Reporté</strong>
-                <p className={styles.sidebarIntro}>Les sujets volontairement sortis du flux actif.</p>
-              </div>
-            </CardHeader>
-            <CardBody className={styles.compactList}>
+            <CompactCardHeader title="Reporté" summary="Les sujets volontairement sortis du flux actif." isOpen={compactPanelOpen.deferredWork} onToggle={() => toggleCompactPanel("deferredWork")} controlsId="deferred-work-panel" />
+            {compactPanelOpen.deferredWork ? <CardBody id="deferred-work-panel" className={styles.compactList}>
               {deferredWork.length ? deferredWork.map((item) => (
                 <article key={item.id} className={styles.compactListItem}>
                   <div className={styles.compactListTop}>
@@ -2197,7 +2201,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                   <p>{item.nextAction || item.evidence}</p>
                 </article>
               )) : <p className={styles.executiveEmpty}>Aucun sujet reporté.</p>}
-            </CardBody>
+            </CardBody> : null}
           </Card>
         </div>
 
@@ -2371,6 +2375,10 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   const togglePanel = (panel: keyof typeof panelOpen) => {
     setPanelOpen((current) => ({ ...current, [panel]: !current[panel] }));
   };
+
+  function toggleCompactPanel(panel: CompactPanelId) {
+    setCompactPanelOpen((current) => ({ ...current, [panel]: !current[panel] }));
+  }
 
   const resetManualDraft = () => {
     const seed = createManualLogEntrySeed(projectVersion, defaultAuthor);

@@ -152,6 +152,36 @@
   min-width: 0;
 }
 
+.compactCardToggle {
+  display: grid;
+  width: 2.35rem;
+  min-width: 2.35rem;
+  height: 2.35rem;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #d9cdb8;
+  border-radius: 999px;
+  background: #fffdf8;
+  color: #735b31;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.compactCardToggle:hover {
+  border-color: #b58a42;
+  background: #fbf2df;
+  color: #523b16;
+}
+
+.compactCardToggle:focus-visible {
+  outline: 3px solid rgba(181, 138, 66, 0.35);
+  outline-offset: 3px;
+}
+
+.compactCardToggleOpen {
+  transform: rotate(180deg);
+}
+
 .compactFocusCard,
 .compactListItem {
   display: grid;
@@ -189,10 +219,17 @@
 }
 
 .compactMetaRow div {
+  display: grid;
+  gap: 0.35rem;
+  align-content: start;
   padding: 0.9rem 1rem;
   border: 1px solid #e7dfd0;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.92);
+}
+
+.compactMetaRow span {
+  display: block;
 }
 
 .compactList {

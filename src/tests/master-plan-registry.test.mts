@@ -213,10 +213,25 @@ test("le registre réel conserve des IDs uniques et un prochain numéro exploita
   assert.equal(plan.diagnostics.errors.length, 0);
   assert.equal(new Set(ids).size, ids.length);
   assert.equal(ids.every((id) => /^PLS-[A-Z]+-\d{3}$/.test(id)), true);
+  const adminCockpit = plan.registryItems.find((item) => item.id === "PLS-ADM-001");
+  assert.equal(adminCockpit?.priority, "P1");
+  assert.equal(adminCockpit?.status, "TO_VERIFY");
+  assert.equal(adminCockpit?.title, "Provenance KPI et santé technique explicite");
+  assert.equal(plan.registryItems.find((item) => item.id === "PLS-BIZ-001")?.priority, "P1");
+  assert.equal(plan.registryItems.find((item) => item.id === "PLS-QUAL-002")?.priority, "P1");
+  assert.equal(plan.registryItems.find((item) => item.id === "PLS-DS-001")?.priority, "P2");
+  const gdprAutomation = plan.registryItems.find((item) => item.id === "PLS-SEC-004");
+  assert.equal(gdprAutomation?.priority, "P1");
+  assert.equal(gdprAutomation?.status, "TO_PLAN");
+  assert.equal(gdprAutomation?.title, "Conformité RGPD des demandes automatisées");
+  const requestAutomation = plan.registryItems.find((item) => item.id === "PLS-DEV-029");
+  assert.equal(requestAutomation?.priority, "P1");
+  assert.equal(requestAutomation?.status, "TO_PLAN");
+  assert.deepEqual(requestAutomation?.dependencies, ["PLS-SEC-003", "PLS-SEC-004", "PLS-DATA-003", "PLS-TEST-001"]);
   const githubIssues = plan.registryItems.flatMap((item) => item.githubIssues.map((issue) => issue.number));
   assert.equal(new Set(githubIssues).size, githubIssues.length);
   assert.deepEqual(githubIssues.sort((left, right) => left - right), [10, 11, 12, 13, 14, 15, 16, 17]);
-  assert.equal(plan.diagnostics.nextSuggestedId, "P0-006 · P1-013 · P2-013 · P3-005 · P4-002");
+  assert.equal(plan.diagnostics.nextSuggestedId, "P0-007 · P1-020 · P2-015 · P3-005 · P4-002");
 });
 
 test("le suivi par priorité reste unique et continu avec plusieurs préfixes de registre", () => {

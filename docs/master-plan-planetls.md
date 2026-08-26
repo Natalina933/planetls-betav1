@@ -8,6 +8,60 @@
 
 > Encodage du document normalise en UTF-8 le 6 aout 2026 pour supprimer les entrées hybrides UTF-8 / Windows-1252.
 
+### Mise à jour ciblée - Cadrage des automatisations de demandes et RGPD du 26 août 2026
+
+- Statut : `🟠 Partiel`
+- Priorité : `P1 Prioritaire`
+- Périmètre mis à jour : `docs/master-plan-planetls.md`, `src/app/dashboard/admin/(product-tech)/developpement/automationWorkspace.ts`, `src/app/dashboard/admin/(product-tech)/developpement/MasterPlanViewer.tsx`, `src/tests/master-plan-registry.test.mts`.
+- Réalité produit : le parcours owner -> demande -> réponse concierge -> devis -> mission -> facture -> paiement -> planification est prouvé par `e2e/owner-concierge-service-request.spec.ts`. Le produit conserve aussi des événements de workflow, mais la livraison unifiée des notifications, les relances contrôlées, l'archivage de clôture et une politique RGPD opérationnelle des demandes ne sont pas encore prouvés.
+- Décision de pilotage : PlanetLS est la cible d'exécution. Google Forms, Sheets et Gmail ne deviennent ni une architecture cible ni une source de vérité ; ils peuvent seulement constituer une solution transitoire extérieure au produit, à documenter séparément si nécessaire.
+- Décision de sécurité : les automatisations de demande restent assistées et réversibles tant que les règles d'urgence, les accès, les préférences de contact, les délais de conservation et les preuves de conformité ne sont pas validés. Les cas incomplets, urgents ou ambigus exigent une reprise humaine explicite.
+- Priorités ajoutées : `PLS-SEC-004` cadre la conformité RGPD des demandes automatisées ; `PLS-DEV-029` prépare l'orchestration native de réception, qualification, accusé de réception, suivi, relance et archivage. Les deux restent P1 et dépendent du traitement P0 `PLS-SEC-003` ainsi que de la gouvernance des données et des tests.
+- Limite connue : les scénarios `AUT-020` et `AUT-024` sont uniquement cartographiés. Ils déclarent zéro exécution et aucune métrique de production ; les chiffres présentés par d'autres automatisations locales ne constituent pas une preuve d'activation sans traces et tests vérifiables.
+- Vérification : `npm run development:check` et les tests du registre doivent confirmer la validité du JSON et la remontée automatique des priorités dans `/dashboard/admin/developpement`.
+- Prochaine étape recommandée : définir le contrat des états de demande, les SLA, les responsables, les préférences de contact, les règles anti-doublon et la politique de rétention avant toute activation native.
+
+### Mise à jour ciblée - Audit recherche, logements, profils, pages et workflows du 26 août 2026
+
+- Statut : `🟠 Partiel`
+- Priorité : `P0 Critique`
+- Périmètre vérifié : 126 composants `page.tsx`, dont 32 pages owner, 35 concierge, 14 provider et 16 admin ; routes `housing`, `housing/photos`, `profiles/concierges`, `profiles/housing/owners`, `profiles`, `service-requests`, `workflow-events` ; migrations RLS `20260404113000_harden_remaining_public_tables.sql`, `20260404123000_resolve_remaining_security_advisors.sql`, `20260621000100_housing_collaborations.sql`, `20260719140000_provider_profile_documents.sql` et `20260729153000_reservations_core.sql`.
+- Recherche owner -> concierge : `🟠 Partiel`. `/dashboard/owner/concierges` et `/api/profiles/concierges` fournissent recherche authentifiée, filtres région/ville/code postal/catégorie/service/type de logement/budget/rayon/PRO/disponibilité, tri par avis puis PRO, état vide, erreur et formulaire de demande. Les tests `owner-concierges-search.test.mts` prouvent les filtres. La route charge néanmoins au plus `limit * 3` profils avec une clé de service puis filtre et tronque en mémoire : pas de pagination, de curseur ni de comptage exhaustif côté base.
+- Recherche concierge -> owner : `🟠 Partiel`. `/dashboard/concierge/recherche` filtre zone, rayon et services puis ouvre une conversation ; `/api/profiles/housing/owners` est réservé concierge/admin et fournit une recherche bornée à 25. Mais cette route lit via service role les e-mails et téléphones de tous les owners et son `POST` crée un profil owner sans compte Auth ni invitation : la politique de confidentialité, la conversion lead -> compte et les tests d'autorisation restent à définir.
+- Recherche artisan : `🟠 Partiel`. Les annuaires et l'affectation existent dans les parcours concierge, maintenance et interventions provider ; le flux `concierge -> intervention provider -> preuve -> facture` est couvert par `e2e/provider-intervention-transaction.spec.ts`. Aucun annuaire public/canonique artisan avec recherche avancée, disponibilité structurée, pagination et proposition autonome vers owner n'est prouvé.
+- Logements : `🟠 Partiel`. Création, édition, archivage logique, galerie photo, équipements, services et états vide/chargement/erreur existent dans `/dashboard/owner/logements` et `/dashboard/concierge/logements`; les helpers `create-logement-helpers.test.mts` et `logement-helpers.test.mts` prouvent les validations de nom, adresse, ville, owner, e-mail, type, surface, chambres et service manuel. Les données restent majoritairement dans les colonnes JSON legacy de `housing`; aucun test d'intégration ne prouve les refus entre tenants.
+- Risque P0 logement/médias : `src/server/db/dbServer.ts` emploie `SUPABASE_SERVICE_ROLE_KEY`, donc les RLS `housing_*_participants` sont contournées par `/api/housing`. La création contrôle seulement le rôle et le nom, pas la cohérence auteur/owner/manager du payload. `/api/housing/photos` accepte tout utilisateur authentifié sans vérifier l'accès au `housingId` et crée un bucket `housing-photos` public. Aucune policy Storage ni test de refus n'a été trouvé.
+- Profils : `🟠 Partiel`. `PATCH /api/profiles` est authentifié, appliqué au seul `userId` et protégé par une whitelist par rôle ; `profile-patch-policy.test.mts` couvre les champs interdits et valeurs négatives. Owner, provider et concierge possèdent des pages d'édition, mais les informations opérationnelles sont encore fusionnées dans `availability_hours` et JSON de préférences. Les tests sont unitaires/contractuels, sans preuve connectée multi-rôle de RLS, de formulaires et de documents provider.
+- Workflows prouvés : owner -> demande -> réponse concierge -> devis -> mission -> facture -> paiement -> planification est couvert par `e2e/owner-concierge-service-request.spec.ts`; concierge -> intervention provider -> preuve -> facture l'est par `e2e/provider-intervention-transaction.spec.ts`. Les migrations établissent des RLS participants pour demandes, réservations, collaborations, incidents et documents provider. Les notifications sont persistées via `workflow_events`, mais aucune livraison email/push ni E2E de notification n'est prouvée.
+- Pages : les pages publiques, dashboards et pages métier existent largement, avec un `error.tsx` global et de nombreux états locaux. Aucune couverture systématique page par page de `loading.tsx`/`error.tsx`/accessibilité n'existe : présence de route ne vaut pas validation fonctionnelle. Les pages admin sont gardées serveur par `dashboard/admin/layout.tsx`; le proxy redirige les dossiers dashboard selon le rôle.
+- Décision de pilotage : considérer les RLS SQL comme une défense de base seulement lorsque le client authentifié les utilise. Toute route service-role doit posséder sa propre autorisation métier, testée par acteur autorisé et refusée entre tenants.
+- Vérifications restantes : migration non exécutée dans ce lot sur base fraîche/existante, absence de test connecté RLS logement/photo/recherche owner, absence d'E2E création logement et profil, absence de test Stripe réellement configuré pour abonnement PRO.
+- Prochaine étape recommandée : fermer d'abord `PLS-SEC-003`, puis `PLS-DEV-028` et `PLS-DATA-003`; conserver le périmètre PRO dans `PLS-BILL-001` plutôt que créer des promesses multi-offres non sécurisées.
+
+### Mise à jour ciblée - Sortie du fallback KPI local du 26 août 2026
+
+- Statut : `🔴 À faire`
+- Priorité : `P2 Important`
+- Périmètre mis à jour : `docs/master-plan-planetls.md`.
+- Réalité produit : `/api/kpis/overview` injecte des cohortes déterministes uniquement pour le workspace local lorsque Supabase est indisponible ou qu'aucune cohorte mature J+7 n'est observée. Le bandeau `Mode dégradé` rend explicitement cette substitution visible dans le cockpit admin.
+- Décision de pilotage : inscrire la sortie de ce mécanisme comme dette technique distincte. Les environnements partagés doivent utiliser des données KPI persistées via `scripts/seed-admin-workspace-kpis.mjs`; le fallback synthétique doit rester exclusivement local jusqu'à son retrait.
+- Limite connue : conserver indéfiniment des cohortes injectées peut masquer l'absence de données réelles et rendre les indicateurs de démonstration ambigus.
+- Vérification : code relu dans `src/app/api/kpis/overview/route.ts` et rendu du bandeau relu dans `src/app/dashboard/admin/page.tsx`; aucune modification applicative ni test d'exécution dans ce lot de pilotage.
+- Prochaine étape recommandée : planifier `PLS-KPI-001` après l'amorçage des données KPI réelles, puis remplacer le fallback par un état vide explicite lorsque les cohortes J+7 sont insuffisantes.
+
+### Mise à jour ciblée - Cockpit admin : provenance KPI et santé technique du 26 août 2026
+
+- Statut : `🟠 Partiel`
+- Priorité : `P1 Prioritaire`
+- Périmètre mis à jour : `src/app/dashboard/admin/page.tsx`, `src/app/dashboard/admin/AdminDashboard.module.scss`, `src/tests/admin-dashboard-contract.test.mts`, `docs/master-plan-planetls.md`.
+- Réalité produit : la home `/dashboard/admin` conserve ses sources réelles existantes `/api/admin/operations`, `/api/admin/overview`, `/api/admin/control-tower` et `/api/kpis/overview`, mais expose maintenant un `Cadre de lecture des KPI` pour expliciter source, formule, période et état de chaque indicateur clef sans inventer de données.
+- Réalité produit : la colonne latérale affiche désormais une section `Sante technique` branchée sur la vraie réponse du Control Tower `status, checkedAt, checkedSourceCount, totalSourceCount, unavailableSources, problemRegistry`. Le cockpit n'affiche plus un signal positif implicite quand le contrôle est `unverifiable`.
+- Réalité produit : l'activité récente remonte aussi les problèmes du registre admin en plus des connexions, demandes et missions, afin de mieux refléter les incidents réellement détectés côté plateforme.
+- Décision de pilotage : sur le cockpit admin, toute donnée calculée doit rester accompagnée d'un état explicite `réel / calculé sur données réelles / partiel ou indisponible`. Une source absente ou un contrôle incomplet doit dégrader le message de confiance avant toute lecture optimiste.
+- Limites connues : la home n'expose toujours pas de télémétrie fiable sur sauvegardes, déploiements, mails transactionnels, disponibilité infra ou tâches planifiées, faute de backend branché dans ce lot. Le registre des problèmes renseigne surtout les incidents métiers/admin déjà détectés, pas encore un observability stack complet.
+- Vérification : `node --experimental-strip-types --test src/tests/admin-dashboard-contract.test.mts src/tests/kpis-overview-contract.test.mts` PASS le 26 août 2026. `npm run build` PASS le 26 août 2026.
+- Prochaine étape recommandée : brancher ensuite de vraies sources techniques supplémentaires `jobs, mails, déploiements, sauvegardes` avant de promettre un cockpit de supervision complet, puis étendre la même discipline de provenance au détail `/dashboard/admin/controle`.
+
 ### Mise à jour ciblée - Audit code, rôles, PRO et paiements du 25 août 2026
 
 - Statut : `🟠 Partiel`
@@ -90,15 +144,15 @@
 
 ### Mise à jour ciblée - Tableau canonique et réévaluation des priorités du 24 août 2026
 
-- Statut : `🟡 En cours`
-- Priorité : `P0 Critique`
+- Statut : `✅ Terminé`
+- Priorité active associée : `PLS-DEV-014` (`P1 Prioritaire`)
 - Réalité produit : `/dashboard/admin/developpement` ne présente plus quatre tableaux P séparés ni le tableau `D. Priorités` comme source concurrente. Un unique `Pilotage des priorités` affiche les éléments P0 à P3 du registre structuré avec ID PlanetLS stable, repère P, statut, action, domaine, persona, source, preuves, dépendances et date de dernière vérification.
 - Réalité produit : les cartes `En cours`, `Prêt à faire`, `À vérifier`, `Terminé`, `Bloqué` et `Reporté` restent des projections de ce même registre et non des listes éditées séparément. La recherche et les filtres par niveau, statut, domaine et persona s'appliquent à la collection canonique.
 - Réévaluation factuelle : `PLS-DEV-008` est terminé après preuve E2E connectée du workflow principal. `PLS-DEV-010` reste P0 car les paiements demandent encore une preuve E2E Stripe configurée. `PLS-DEV-011` reste P0 mais passe à vérifier avant activation effective : migration, types et tests locaux existent, sans preuve d'application distante. `PLS-DEV-013` est conservé P0 en cours car le filet E2E critique n'est pas encore rejouable de façon connectée. Les chantiers profils `PLS-DATA-001`, `PLS-DATA-002`, `PLS-SEC-001`, `PLS-SEC-002` et `PLS-TEST-001` sont distincts par livrable et dépendances ; ils ne sont pas des doublons.
 - Historique contrôlé : le commit `3add992b` contient 5 P0, 10 P1, au moins 20 P2 et 15 P3. Les 4 P3 actifs actuels sont des évolutions contemporaines ; les 15 P3 du tableau D sont conservés en archive de provenance et ne sont pas déclarés actifs sans réévaluation individuelle.
 - Contradictions détectées : l'ancien tableau P et le registre structuré ne portaient pas les mêmes identifiants ni le même périmètre. Les repères `P1-000` étaient des collisions d'affichage, pas des IDs métier valides ; l'ID stable est maintenant toujours `PLS-*`.
 - Limites connues : le rattachement ligne à ligne des archives du tableau D vers un successeur `PLS-*` exige encore une vérification fonctionnelle individualisée. Il serait trompeur de les fusionner ou de les classer terminées sur le seul intitulé historique.
-- Prochaine étape recommandée : compléter la matrice de correspondance historique dans le registre avant de reclasser les sujets archivés, puis exécuter les E2E connectés Stripe, profils et workflow principal.
+- Rattachement de gouvernance : ce lot P0 est clôturé ; la matrice de correspondance historique et la qualité de synchronisation restent suivies uniquement dans `PLS-DEV-014`, sans créer de nouveau P0 documentaire.
 
 ### Mise à jour ciblée - Taxonomie P0 à P4 et horizons du 25 août 2026
 
@@ -128,13 +182,13 @@
 
 ### Mise à jour ciblée - Audit factuel des statuts du pilotage du 24 août 2026
 
-- Statut : `🟡 En cours`
-- Priorité : `P0 Critique`
+- Statut : `✅ Terminé`
+- Priorité active associée : `PLS-DEV-014` (`P1 Prioritaire`)
 - Situation contrôlée : avant correction, le registre comptait 31 lignes : 9 `En cours`, 1 `Prêt à faire`, 6 `À vérifier`, 1 `Terminé`, 9 `Non planifié` et 5 `Idée à étudier`. Les 15 P3 historiques projetés par l'interface doivent rester distingués de ces 31 lignes tant qu'ils ne sont pas normalisés dans le registre.
 - Correction confirmée : `PLS-DEV-011` passe de `Prêt à faire` à `À vérifier` avec une progression factuelle de `75 %`. La migration SQL, RLS, RPC, types, détecteurs et écriture du Control Tower sont présents et testés localement ; l'application Supabase distante et le parcours admin connecté ne sont pas encore prouvés.
 - Éléments contrôlés : `PLS-DEV-008` est `Terminé` après E2E connecté ; `PLS-DEV-010` reste `À vérifier`, `PLS-DEV-013` reste `En cours`, `PLS-DEV-005` reste `À vérifier` et `PLS-DEV-012` demeure `Terminé` avec layout, garde admin, navigation partagée, build documenté et preuves de code.
 - Limites de l'audit : les E2E connectés Stripe, provider et profils n'ont pas été rejoués dans ce lot. Le workflow principal est désormais prouvé séparément par le scénario connecté du 25 août 2026.
-- Prochaine étape recommandée : normaliser les P3 historiques dans le JSON du registre, puis compléter les progressions explicites critère par critère pour les 30 autres lignes actives.
+- Rattachement de gouvernance : ce lot P0 est clôturé ; la normalisation des archives et les progressions critère par critère sont désormais suivies par `PLS-DEV-014`, sans maintenir un P0 de gouvernance concurrent.
 
 ### Mise à jour ciblée - Consolidation de l'inventaire Développement du 24 août 2026
 
@@ -872,8 +926,8 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "type": "documentation",
       "persona": "Admin",
       "phase": "Pilotage produit et technique",
-      "updatedAt": "2026-08-24",
-      "nextAction": "Maintenir le registre structuré comme source canonique et continuer à enrichir la page uniquement depuis cette source validée.",
+      "updatedAt": "2026-08-26",
+      "nextAction": "Maintenir le registre structuré comme source canonique, achever le rattachement des archives et mises à jour de gouvernance, puis continuer à enrichir la page uniquement depuis cette source validée.",
       "validationCriteria": [
         "Source canonique unique explicitée",
         "Commande de contrôle en échec clair sur données invalides",
@@ -891,8 +945,8 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "docs/master-plan-planetls.md",
         "src/app/dashboard/admin/(product-tech)/developpement/"
       ],
-      "progressLabel": "Le cockpit devient enfin dérivé d'un registre structuré validé, sans promesse de synchronisation magique.",
-      "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
+      "progressLabel": "Le cockpit est dérivé d'un registre structuré validé ; les anciens lots P0 Tableau canonique et Audit factuel des statuts sont clôturés et leurs suites de gouvernance sont désormais rattachées ici.",
+      "source": "docs/master-plan-planetls.md#registre-structure-du-developpement ; rattachement des mises à jour P0 de gouvernance du 24 août 2026",
       "evidence": [
         "docs/master-plan-planetls.md",
         "src/app/dashboard/admin/(product-tech)/developpement/masterPlan.ts"
@@ -1391,6 +1445,126 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "githubIssues": []
     },
     {
+      "id": "PLS-KPI-001",
+      "domain": "Pilotage KPI",
+      "title": "Retrait progressif du fallback KPI local synthétique",
+      "summary": "Remplacer les cohortes KPI injectées en mode local par un amorçage persistant des environnements partagés, puis par un état vide explicite lorsque les données J+7 réelles restent insuffisantes.",
+      "status": "TO_PLAN",
+      "priority": "P2",
+      "type": "tech_debt",
+      "persona": "Admin",
+      "phase": "Fiabilité des données",
+      "updatedAt": "2026-08-26",
+      "nextAction": "Vérifier l'amorçage KPI persistant sur les environnements partagés, confirmer que le fallback ne peut jamais s'exécuter hors localhost, puis définir l'état vide J+7 avant de retirer les cohortes synthétiques.",
+      "validationCriteria": ["Les environnements partagés utilisent uniquement des données KPI persistées", "Le fallback synthétique est impossible hors localhost et couvert par test", "L'absence de cohorte J+7 affiche un état vide explicite sans KPI inventé"],
+      "validatedCriteria": [],
+      "dependencies": ["PLS-DEV-006", "PLS-DEV-013"],
+      "blocker": "Les cohortes KPI réelles doivent être suffisamment amorcées avant de retirer le garde-fou local sans dégrader la lisibilité du cockpit.",
+      "routes": ["/dashboard/admin", "/api/kpis/overview"],
+      "files": ["src/app/api/kpis/overview/route.ts", "src/app/dashboard/admin/page.tsx", "scripts/seed-admin-workspace-kpis.mjs"],
+      "progressLabel": "Un fallback déterministe maintient les KPI lisibles en local, mais il doit devenir temporaire pour ne pas confondre démonstration et données métier observées.",
+      "source": "Décision de pilotage, 26 août 2026",
+      "evidence": ["src/app/api/kpis/overview/route.ts : canUseWorkspaceFallback et buildWorkspaceFallbackPayload", "src/app/dashboard/admin/page.tsx : bandeau Mode dégradé", "docs/master-plan-planetls.md : seed KPI persistant documenté"],
+      "missingWork": ["Valider le seed KPI persistant sur les environnements partagés", "Ajouter un test garantissant l'interdiction du fallback hors localhost", "Concevoir et vérifier l'état vide de maturation J+7", "Retirer les cohortes synthétiques après stabilisation des données réelles"],
+      "githubIssues": []
+    },
+    {
+      "id": "PLS-ADM-001",
+      "domain": "Cockpit admin",
+      "title": "Provenance KPI et santé technique explicite",
+      "summary": "Rendre chaque KPI du cockpit admin interprétable et exposer un état de santé technique qui se dégrade explicitement lorsque le Control Tower ne peut pas vérifier toutes ses sources.",
+      "status": "TO_VERIFY",
+      "priority": "P1",
+      "type": "improvement",
+      "persona": "Admin",
+      "phase": "Fiabilité du pilotage",
+      "updatedAt": "2026-08-26",
+      "nextAction": "Brancher des sources fiables pour les jobs, mails, déploiements et sauvegardes, puis étendre les métadonnées de provenance au détail /dashboard/admin/controle.",
+      "validationCriteria": ["Chaque KPI affiché expose source, formule, période et état", "Un Control Tower unverifiable dégrade explicitement le niveau de confiance", "Les problèmes du registre admin remontent dans l'activité récente", "Les sources techniques complémentaires sont branchées avant de déclarer la supervision complète"],
+      "validatedCriteria": ["Chaque KPI affiché expose source, formule, période et état", "Un Control Tower unverifiable dégrade explicitement le niveau de confiance", "Les problèmes du registre admin remontent dans l'activité récente"],
+      "dependencies": ["PLS-KPI-001", "PLS-DEV-013"],
+      "blocker": "Les contrôles de sauvegardes, déploiements, mails transactionnels, disponibilité infra et tâches planifiées ne disposent pas encore de backend exploitable par le cockpit.",
+      "routes": ["/dashboard/admin", "/dashboard/admin/controle", "/api/admin/control-tower", "/api/kpis/overview"],
+      "files": ["src/app/dashboard/admin/page.tsx", "src/app/dashboard/admin/AdminDashboard.module.scss", "src/app/api/admin/control-tower/route.ts", "src/tests/admin-dashboard-contract.test.mts"],
+      "progressLabel": "La page admin explicite désormais la fiabilité de ses KPI et du contrôle technique existant, mais ne constitue pas encore une supervision complète de l'infrastructure.",
+      "source": "Mise à jour ciblée - Cockpit admin : provenance KPI et santé technique du 26 août 2026",
+      "evidence": ["src/app/dashboard/admin/page.tsx : Cadre de lecture des KPI et Sante technique", "src/tests/admin-dashboard-contract.test.mts", "node --experimental-strip-types --test src/tests/admin-dashboard-contract.test.mts src/tests/kpis-overview-contract.test.mts : PASS le 26 août 2026", "npm run build : PASS le 26 août 2026"],
+      "missingWork": ["Connecter les sources jobs, mails, déploiements et sauvegardes", "Définir les seuils et la fréquence des contrôles techniques", "Étendre la provenance et les alertes au détail Control Tower"],
+      "githubIssues": []
+    },
+    {
+      "id": "PLS-BIZ-001",
+      "domain": "Pilotage Business",
+      "title": "Pilotage Business et modèle financier fondé sur des données observées",
+      "summary": "Faire évoluer les espaces stratégie, risques, modèle financier et validation marché d'un référentiel éditorial vers des arbitrages sourcés et, lorsque pertinent, persistés.",
+      "status": "TO_VERIFY",
+      "priority": "P1",
+      "type": "improvement",
+      "persona": "Fondatrice, Admin",
+      "phase": "Stratégie et monétisation",
+      "updatedAt": "2026-08-26",
+      "nextAction": "Définir les données business canoniques à persister, relier les hypothèses à leurs sources et tests terrain, puis distinguer strictement les offres Stripe réelles des scénarios de travail.",
+      "validationCriteria": ["Chaque hypothèse financière expose une source, une date et un niveau de confiance", "Les offres réellement vendues sont distinguées des scénarios de travail", "Le registre de risques possède un modèle persistant, des responsables et un historique", "Les décisions de pricing sont appuyées par des retours terrain ou des données observées"],
+      "validatedCriteria": ["Le modèle financier possède une page admin et un référentiel partagé", "Les offres Stripe existantes sont distinguées des scénarios de travail dans les écrans concernés"],
+      "dependencies": ["PLS-BILL-001", "PLS-KPI-001", "PLS-DEV-006"],
+      "blocker": "Les chiffres business actuels restent principalement des hypothèses ou des benchmarks ; aucun modèle persistant de risques, d'hypothèses et de décisions n'est encore branché sur des données observées.",
+      "routes": ["/dashboard/admin/pilotage", "/dashboard/admin/modele-financier"],
+      "files": ["src/app/dashboard/admin/(business)/pilotage/", "src/app/dashboard/admin/(business)/modele-financier/", "src/app/dashboard/admin/(business)/pilotage/economic-model/sharedFinancialReference.ts"],
+      "progressLabel": "Les espaces admin de pilotage business et de modèle financier existent, mais ils restent majoritairement documentaires et doivent être reliés à des décisions, sources et données observées traçables.",
+      "source": "Mises à jour Pilotage Business et modèle financier des 3, 6, 7, 13 et 14 août 2026",
+      "evidence": ["src/app/dashboard/admin/(business)/pilotage/risk-register/", "src/app/dashboard/admin/(business)/modele-financier/page.tsx", "src/app/dashboard/admin/(business)/pilotage/economic-model/sharedFinancialReference.ts", "docs/master-plan-planetls.md : mises à jour Pilotage Business et modèle financier"],
+      "missingWork": ["Définir le schéma canonique des risques, hypothèses et décisions", "Ajouter provenance, date et niveau de confiance aux données", "Connecter les métriques observées pertinentes", "Valider la tarification et les offres avec des entretiens terrain"],
+      "githubIssues": []
+    },
+    {
+      "id": "PLS-QUAL-002",
+      "domain": "Qualité éditoriale",
+      "title": "Hygiène UTF-8 et cohérence des libellés français",
+      "summary": "Prévenir le retour de texte corrompu et terminer la normalisation des libellés français visibles, sans réécrire artificiellement les clés techniques ni l'historique documentaire.",
+      "status": "TO_VERIFY",
+      "priority": "P1",
+      "type": "tech_debt",
+      "persona": "Tous",
+      "phase": "Qualité produit",
+      "updatedAt": "2026-08-26",
+      "nextAction": "Faire un inventaire ciblé des derniers libellés visibles incohérents, distinguer les clés techniques à conserver des textes à corriger, puis verrouiller les cas détectés par le contrôle d'encodage.",
+      "validationCriteria": ["Les textes visibles critiques sont encodés en UTF-8 valide", "Le contrôle d'encodage bloque les régressions connues", "Les derniers libellés français visibles sont cohérents", "Les exceptions techniques documentées ne sont pas traitées comme des régressions"],
+      "validatedCriteria": ["Les textes visibles critiques ont été corrigés dans les surfaces ciblées", "Le contrôle d'encodage est exécuté dans le dépôt"],
+      "dependencies": ["PLS-DEV-013"],
+      "blocker": "Le Master Plan et certaines zones semi-documentaires conservent des traces historiques ; elles doivent être triées avant toute normalisation pour éviter de modifier des clés ou des preuves techniques.",
+      "routes": ["/dashboard/admin", "/dashboard/admin/pilotage", "/dashboard/admin/developpement"],
+      "files": ["scripts/check-encoding.mjs", "src/app/layout.tsx", "src/app/dashboard/", "docs/master-plan-planetls.md"],
+      "progressLabel": "Un garde-fou UTF-8 et plusieurs corrections visibles existent ; la cohérence sémantique des reliquats doit encore être vérifiée et documentée.",
+      "source": "Mise à jour ciblée - Hygiène UTF-8 pour le site français du 13 août 2026",
+      "evidence": ["scripts/check-encoding.mjs", "package.json : npm run check:encoding", "docs/master-plan-planetls.md : vérifications encodage et build du 13 août 2026"],
+      "missingWork": ["Inventorier les libellés visibles restants", "Documenter les exceptions de clés techniques", "Ajouter des contrôles ciblés pour les régressions identifiées"],
+      "githubIssues": []
+    },
+    {
+      "id": "PLS-DS-001",
+      "domain": "Design System",
+      "title": "Design System PlanetLS et convergence UI progressive",
+      "summary": "Consolider les tokens, primitives et règles de composition partagées afin de faire converger les écrans PlanetLS sans réécriture globale risquée ni nouvelle bibliothèque de composants.",
+      "status": "TO_VERIFY",
+      "priority": "P2",
+      "type": "improvement",
+      "persona": "Tous",
+      "phase": "Cohérence de l'expérience",
+      "updatedAt": "2026-08-26",
+      "nextAction": "Établir l'inventaire des composants et écrans encore legacy, prioriser les migrations à fort impact, puis vérifier visuellement et en accessibilité les surfaces migrées.",
+      "validationCriteria": ["Les tokens visuels canoniques sont documentés et réutilisables", "Les composants partagés possèdent une convention d'usage claire", "Les écrans prioritaires convergent sans perte de comportement métier", "Les migrations sont vérifiées sur desktop et mobile"],
+      "validatedCriteria": ["Les tokens --ds-* et leurs alias de compatibilité sont définis", "Le catalogue /design-system et la documentation des composants existent", "Le prototype admin a été intégré de manière contrôlée au cockpit réel"],
+      "dependencies": ["PLS-DEV-003", "PLS-DEV-004", "PLS-DEV-005", "PLS-DEV-006", "PLS-DEV-013"],
+      "blocker": "Des styles, composants et bibliothèques historiques restent présents ; une migration globale masquerait les écarts métier et augmenterait le risque de régression.",
+      "routes": ["/design-system", "/design-system/admin-dashboard", "/dashboard/admin"],
+      "files": ["src/app/styles/abstracts/variables.css", "src/styles/_variables.scss", "src/components/ui/README.md", "src/app/design-system/", "src/app/dashboard/"],
+      "progressLabel": "Le socle de design et un prototype admin validé existent ; la convergence des écrans restants doit être menée par lots vérifiables.",
+      "source": "Mise à jour ciblée - UX/UI Étape 1 Design System PlanetLS du 21 août 2026",
+      "evidence": ["src/app/styles/abstracts/variables.css", "src/components/ui/README.md", "src/app/design-system/page.tsx", "src/app/design-system/admin-dashboard/page.tsx"],
+      "missingWork": ["Inventorier les composants legacy", "Définir les lots de migration par écran", "Vérifier accessibilité et responsive des surfaces migrées"],
+      "githubIssues": []
+    },
+    {
       "id": "PLS-DEV-027",
       "domain": "Mobile terrain",
       "title": "PWA, notifications push et usage hors ligne",
@@ -1412,6 +1586,126 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "source": "docs/master-plan-planetls.md#roadmap-produit-et-technique",
       "evidence": ["Master Plan : PWA/push/offline à faire, P4 Évolution future"],
       "missingWork": ["Interviewer les utilisateurs terrain", "Définir le périmètre offline", "Prévoir les tests de synchronisation et de conflit"],
+      "githubIssues": []
+    },
+    {
+      "id": "PLS-SEC-003",
+      "domain": "Sécurité logements et médias",
+      "title": "Autorisation serveur et confidentialité des logements",
+      "summary": "Rendre les routes logement et photo sûres malgré l'usage nécessaire de la clé de service Supabase.",
+      "status": "READY",
+      "priority": "P0",
+      "type": "bug",
+      "persona": "Owner, concierge, admin",
+      "phase": "Sécurité multi-tenant",
+      "updatedAt": "2026-08-26",
+      "nextAction": "Vérifier l'auteur, owner et manager de chaque mutation, contrôler l'accès au housingId avant upload, rendre les médias privés ou signés, puis couvrir les refus entre tenants en intégration.",
+      "validationCriteria": ["POST/PATCH/DELETE logement refusent toute relation auteur-owner-manager illégitime", "Un upload photo exige l'accès au logement ciblé", "Les médias logement ne sont pas publics par défaut", "Tests d'intégration couvrent 401, 403 et tenant voisin"],
+      "validatedCriteria": [],
+      "dependencies": ["PLS-DEV-013", "PLS-TEST-001"],
+      "blocker": "Les routes actuelles utilisent SUPABASE_SERVICE_ROLE_KEY, qui contourne les policies RLS housing ; la protection doit être explicitement appliquée dans le serveur.",
+      "routes": ["/api/housing", "/api/housing/[id]", "/api/housing/photos"],
+      "files": ["src/app/api/housing/route.ts", "src/app/api/housing/[id]/route.ts", "src/app/api/housing/photos/route.ts", "src/server/db/dbServer.ts", "supabase/migrations/20260404123000_resolve_remaining_security_advisors.sql"],
+      "progressLabel": "Les RLS SQL participants existent, mais le service role les contourne et l'upload photo ne vérifie aujourd'hui ni rôle ni housingId.",
+      "source": "Audit recherche, logements, profils, pages et workflows du 26 août 2026",
+      "evidence": ["src/server/db/dbServer.ts : SUPABASE_SERVICE_ROLE_KEY", "src/app/api/housing/route.ts : POST ne vérifie que rôle + nom", "src/app/api/housing/photos/route.ts : bucket public et absence de contrôle housingId", "supabase/migrations/20260404123000_resolve_remaining_security_advisors.sql : policies housing participants"],
+      "missingWork": ["Écrire les contrôles métier serveur", "Migrer les photos vers accès privé/signé", "Tester les refus croisés et les erreurs Storage", "Documenter la migration et le rollback Storage"],
+      "githubIssues": []
+    },
+    {
+      "id": "PLS-SEC-004",
+      "domain": "Conformité et données personnelles",
+      "title": "Conformité RGPD des demandes automatisées",
+      "summary": "Cadrer les informations personnelles utilisées dans les demandes, les notifications et les relances afin que leur traitement reste transparent, limité, protégé et prouvable.",
+      "status": "TO_PLAN",
+      "priority": "P1",
+      "type": "tech_debt",
+      "persona": "Owner, concierge, provider, admin",
+      "phase": "Gouvernance des données",
+      "updatedAt": "2026-08-26",
+      "nextAction": "Produire l'inventaire des données et traitements de demande, la matrice d'accès, les durées de conservation, les règles de préférences de contact et le parcours de demande d'accès ou suppression.",
+      "validationCriteria": ["Chaque donnée de demande possède une finalité, un responsable et une durée de conservation documentés", "Les droits d'accès, rectification, suppression et export disposent d'un parcours traçable", "Les notifications et relances respectent les préférences de contact et journalisent leur décision", "Les accès autorisés et refusés entre tenants sont prouvés", "Les preuves de conformité et incidents sont consultables par les rôles habilités"],
+      "validatedCriteria": [],
+      "dependencies": ["PLS-SEC-003", "PLS-DATA-003", "PLS-TEST-001"],
+      "blocker": "Le contrat canonique des données de demande, les règles de rétention et la politique de notification ne sont pas encore définis de façon opérationnelle.",
+      "routes": ["/api/service-requests", "/dashboard/owner", "/dashboard/concierge", "/dashboard/admin/developpement"],
+      "files": ["src/app/api/service-requests/route.ts", "src/app/api/_shared/workflowEvents.ts", "src/app/dashboard/admin/(product-tech)/developpement/automationWorkspace.ts", "docs/master-plan-planetls.md"],
+      "progressLabel": "Les contrôles d'accès et le journal de workflow existent par endroits, mais la conformité des demandes automatisées n'a pas encore de contrat complet ni de preuve multi-rôle.",
+      "source": "Exercice d'automatisation adapté à PlanetLS, 26 août 2026",
+      "evidence": ["e2e/owner-concierge-service-request.spec.ts : parcours transactionnel owner -> paiement", "src/app/api/_shared/workflowEvents.ts : événements persistés", "Audit du 26 août 2026 : aucune livraison email/push ni E2E de notification prouvée"],
+      "missingWork": ["Cartographier les traitements et données personnelles", "Définir les durées de conservation et purges", "Concevoir les demandes d'accès, export et suppression", "Définir les préférences de contact et preuves de notification", "Ajouter les tests RLS et multi-tenant de conformité"],
+      "githubIssues": []
+    },
+    {
+      "id": "PLS-DEV-029",
+      "domain": "Demandes et automatisations",
+      "title": "Orchestration native du traitement d'une demande owner",
+      "summary": "Préparer un flux PlanetLS de réception, qualification, urgence, accusé de réception, suivi, relance contrôlée et archivage, sans dépendre d'outils Google comme source de vérité.",
+      "status": "TO_PLAN",
+      "priority": "P1",
+      "type": "feature",
+      "persona": "Owner, concierge, provider, admin",
+      "phase": "Fiabilisation opérationnelle",
+      "updatedAt": "2026-08-26",
+      "nextAction": "Définir les états de demande, règles d'urgence, SLA, responsable, événements, préférences de contact et conditions anti-doublon, puis concevoir un pilote assisté sans activation automatique irréversible.",
+      "validationCriteria": ["Une demande complète obtient un identifiant et un accusé de réception ou une erreur explicite", "Une urgence est journalisée et portée au responsable défini", "Une demande incomplète ou ambiguë bascule vers une reprise humaine", "Les relances empêchent les doublons et respectent les préférences de contact", "La clôture conserve les preuves requises puis applique la politique de rétention", "Les scénarios autorisés, refusés et en échec sont couverts en intégration et E2E"],
+      "validatedCriteria": [],
+      "dependencies": ["PLS-SEC-003", "PLS-SEC-004", "PLS-DATA-003", "PLS-TEST-001"],
+      "blocker": "Les états canoniques de demande, SLA, règles anti-doublon, préférences de contact et politique d'archivage ne sont pas encore spécifiés ni testés.",
+      "routes": ["/api/service-requests", "/dashboard/owner", "/dashboard/concierge", "/dashboard/admin/developpement"],
+      "files": ["src/app/api/service-requests/route.ts", "src/app/api/_shared/workflowEvents.ts", "src/app/dashboard/admin/(product-tech)/developpement/automationWorkspace.ts", "e2e/owner-concierge-service-request.spec.ts"],
+      "progressLabel": "Le flux devis accepté -> mission est déjà couvert, mais la réception, les urgences, les relances et l'archivage des demandes restent à industrialiser de manière native et contrôlée.",
+      "source": "Exercice d'automatisation adapté à PlanetLS, 26 août 2026",
+      "evidence": ["e2e/owner-concierge-service-request.spec.ts", "src/app/api/service-requests/route.ts", "src/app/dashboard/admin/(product-tech)/developpement/automationWorkspace.ts : PROC-001, AUT-020 et AUT-024 cartographiés"],
+      "missingWork": ["Spécifier le modèle d'état et les transitions", "Définir les SLA et escalades", "Créer le contrat de notifications et relances", "Définir l'archivage et la rétention", "Implémenter un pilote assisté et ses tests multi-rôle"],
+      "githubIssues": []
+    },
+    {
+      "id": "PLS-DEV-028",
+      "domain": "Recherche et mise en relation",
+      "title": "Recherche multi-rôle paginée et respectueuse des données privées",
+      "summary": "Industrialiser la recherche owner-concierge, concierge-owner et concierge-provider avec filtres base de données, pagination, contrats de visibilité et conversion de contact traçable.",
+      "status": "TO_PLAN",
+      "priority": "P1",
+      "type": "improvement",
+      "persona": "Owner, concierge, provider",
+      "phase": "Liquidité du réseau",
+      "updatedAt": "2026-08-26",
+      "nextAction": "Définir le contrat de visibilité par rôle, déplacer les filtres et le tri en base, ajouter curseur/total fiable, puis remplacer la création de profil owner sans Auth par lead ou invitation traçable.",
+      "validationCriteria": ["Chaque recherche a son contrat de données visible et masquée", "Filtres, tri et pagination sont exécutés côté base", "Un concierge ne reçoit les coordonnées owner que selon une règle explicite", "Les leads owner sont distingués des comptes Auth et convertibles par invitation", "États vide, erreur et résultats sont couverts par E2E"],
+      "validatedCriteria": ["Recherche owner -> concierge avec filtres métier et demande existe", "Recherche concierge -> owner avec conversation existe", "Intervention provider est prouvée en E2E"],
+      "dependencies": ["PLS-SEC-003", "PLS-DEV-001", "PLS-DATA-003"],
+      "blocker": "Les routes actuelles lisent via service role, filtrent partiellement en mémoire et ne portent pas de politique unifiée de visibilité ni de pagination.",
+      "routes": ["/dashboard/owner/concierges", "/dashboard/concierge/recherche", "/api/profiles/concierges", "/api/profiles/housing/owners"],
+      "files": ["src/app/api/profiles/concierges/route.ts", "src/app/api/profiles/concierges/shared.ts", "src/app/dashboard/concierge/recherche/page.tsx", "src/app/api/profiles/housing/owners/route.ts"],
+      "progressLabel": "Les deux surfaces de recherche sont utilisables, mais la recherche artisan autonome, la pagination et le contrat de confidentialité restent incomplets.",
+      "source": "Audit recherche, logements, profils, pages et workflows du 26 août 2026",
+      "evidence": ["src/tests/owner-concierges-search.test.mts", "src/tests/search-client.test.mts", "e2e/provider-intervention-transaction.spec.ts", "src/app/api/profiles/housing/owners/route.ts"],
+      "missingWork": ["Concevoir l'annuaire artisan", "Ajouter pagination/cursor et tri serveur", "Écrire les règles de contact", "Créer les tests multi-rôle de visibilité et de conversion lead"],
+      "githubIssues": []
+    },
+    {
+      "id": "PLS-DATA-003",
+      "domain": "Données logements et profils",
+      "title": "Contrats canoniques pour logement, disponibilité et profil métier",
+      "summary": "Réduire les champs JSON legacy qui mélangent disponibilité, préférences, services, documents et données logement sans contraintes relationnelles ni validation partagée.",
+      "status": "TO_PLAN",
+      "priority": "P1",
+      "type": "tech_debt",
+      "persona": "Owner, concierge, provider, admin",
+      "phase": "Gouvernance des données",
+      "updatedAt": "2026-08-26",
+      "nextAction": "Publier un schéma cible et une matrice lecteurs-écrivains, prévisualiser les données existantes, puis migrer progressivement avec rollback avant de supprimer les formats legacy.",
+      "validationCriteria": ["Chaque donnée critique possède une table ou un contrat JSON versionné", "Validations partagées serveur/formulaire couvrent les champs métier", "Migration testée sur base fraîche et existante représentative", "RLS et accès service-role sont rejoués sur le modèle cible"],
+      "validatedCriteria": ["Whitelist de patch par rôle existe", "Helpers de validation logement existent", "RLS participants housing et demandes existent dans les migrations"],
+      "dependencies": ["PLS-DATA-001", "PLS-DATA-002", "PLS-SEC-003", "PLS-SEC-002"],
+      "blocker": "Le schéma initial profiles/housing n'est pas entièrement versionné et les formats availability_hours/proprietaire/infos se chevauchent ; une migration sans inventaire serait risquée.",
+      "routes": ["/api/profiles", "/api/housing", "/dashboard/owner/settings", "/dashboard/concierge/profile", "/dashboard/provider/settings"],
+      "files": ["src/app/api/profiles/pure.ts", "src/types/housing.ts", "src/app/dashboard/concierge/logements/create/createLogementHelpers.ts", "supabase/migrations/20260404123000_resolve_remaining_security_advisors.sql"],
+      "progressLabel": "Le produit valide plusieurs champs côté helpers et API, mais les données complexes restent dispersées dans des JSON legacy sans preuve d'intégration multi-rôle.",
+      "source": "Audit recherche, logements, profils, pages et workflows du 26 août 2026",
+      "evidence": ["src/tests/profile-patch-policy.test.mts", "src/tests/create-logement-helpers.test.mts", "src/tests/logement-helpers.test.mts", "src/tests/owner-profile-preferences.test.mts"],
+      "missingWork": ["Inventorier les données production anonymisées", "Versionner les contrats JSON transitoires", "Créer les migrations et rollbacks", "Ajouter les tests connectés profil/logement par rôle"],
       "githubIssues": []
     }
   ]

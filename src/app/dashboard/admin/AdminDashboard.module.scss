@@ -449,7 +449,11 @@
 .insightGrid,
 .tablesGrid,
 .activityList,
-.shortcutList {
+.shortcutList,
+.kpiDefinitionGrid,
+.technicalHealthStack,
+.technicalHealthGrid,
+.sourceList {
   display: grid;
   gap: 1rem;
   min-width: 0;
@@ -1002,6 +1006,120 @@
     rgba(255, 255, 255, 0.84);
 }
 
+.kpiDefinitionGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.kpiDefinitionCard,
+.technicalHealthCard,
+.sourceListItem {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem;
+  border: 1px solid rgba(18, 92, 91, 0.1);
+  border-radius: 1.2rem;
+  background: rgba(255, 255, 255, 0.82);
+  color: inherit;
+  text-decoration: none;
+}
+
+.kpiDefinitionCard[data-tone="positive"],
+.technicalHealthCard[data-tone="positive"] {
+  background:
+    radial-gradient(circle at top right, rgba(31, 157, 85, 0.12), transparent 28%),
+    rgba(239, 249, 242, 0.96);
+}
+
+.kpiDefinitionCard[data-tone="warning"],
+.technicalHealthCard[data-tone="warning"] {
+  background:
+    radial-gradient(circle at top right, rgba(245, 158, 11, 0.12), transparent 28%),
+    rgba(255, 250, 239, 0.96);
+}
+
+.kpiDefinitionCard[data-tone="danger"],
+.technicalHealthCard[data-tone="danger"] {
+  background:
+    radial-gradient(circle at top right, rgba(239, 68, 68, 0.12), transparent 28%),
+    rgba(255, 245, 244, 0.96);
+}
+
+.kpiDefinitionTop,
+.technicalHealthHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.kpiDefinitionTop span,
+.technicalHealthCard span {
+  color: #6a7582;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.kpiDefinitionTop strong,
+.technicalHealthCard strong,
+.sourceListItem strong {
+  color: #17242b;
+}
+
+.kpiDefinitionTop strong,
+.technicalHealthCard strong {
+  font-size: 1.2rem;
+  line-height: 1.1;
+}
+
+.kpiDefinitionCard p,
+.technicalHealthCard p,
+.sourceListItem span,
+.technicalHealthHeader small {
+  margin: 0;
+  color: #5c6876;
+  line-height: 1.5;
+}
+
+.kpiDefinitionMeta {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.kpiDefinitionMeta div {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.kpiDefinitionMeta dt {
+  color: #6a7582;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.kpiDefinitionMeta dd {
+  margin: 0;
+  color: #23313b;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.technicalHealthGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sourceList {
+  gap: 0.75rem;
+}
+
+.sourceListItem {
+  gap: 0.35rem;
+}
+
 @media (max-width: 1200px) {
   .loadingGrid,
   .metricsGrid {
@@ -1013,7 +1131,9 @@
   .insightGrid,
   .visualGrid,
   .donutRow,
-  .inlineMetrics {
+  .inlineMetrics,
+  .kpiDefinitionGrid,
+  .technicalHealthGrid {
     grid-template-columns: 1fr;
   }
 
@@ -1052,7 +1172,9 @@
 .visualCardHeader,
 .chartMeta,
 .zoneHeader,
-.healthSectionHeader {
+.healthSectionHeader,
+.kpiDefinitionTop,
+.technicalHealthHeader {
   flex-direction: column;
   align-items: flex-start;
 }

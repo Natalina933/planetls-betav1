@@ -108,15 +108,42 @@ type AdminOverviewPayload = {
 
 type AdminControlPayload = {
   health?: {
-    tone?: "positive" | "warning" | "danger";
+    tone?: "positive" | "warning" | "danger" | "neutral";
+    status?: "healthy" | "warning" | "danger" | "unverifiable";
+    label?: string;
     updatedAt?: string | null;
-    unavailableSources?: number;
+    checkedAt?: string | null;
+    fullyVerifiable?: boolean;
+    checkedSourceCount?: number;
+    totalSourceCount?: number;
+    unavailableSources?: Array<{
+      key: string;
+      label: string;
+      reason: string | null;
+    }>;
+    warningCount?: number;
+    dangerCount?: number;
   } | null;
   summary: {
     onboarding: { total: number; healthy: number; warning: number; danger: number };
     missions: { total: number; healthy: number; warning: number; danger: number };
     messages: { total: number; healthy: number; warning: number; danger: number };
     totalProblems: number;
+  };
+  problemRegistry?: {
+    available: boolean;
+    reason: string | null;
+    openCount: number;
+    items: Array<{
+      id: string;
+      severity: "information" | "vigilance" | "prioritaire" | "critique";
+      status: "new" | "acknowledged" | "in_progress" | "escalated" | "resolved" | "closed" | "reopened";
+      title: string;
+      summary: string;
+      functional_owner: string;
+      occurrence_count: number;
+      last_detected_at: string;
+    }>;
   };
 };
 
@@ -147,7 +174,7 @@ type ActivityItem = {
   detail: string;
   href: string;
   timestamp: string | null;
-  kind: "user" | "request" | "mission";
+  kind: "user" | "request" | "mission" | "problem";
 };
 
 type ControlSummaryBlock = {
@@ -162,6 +189,18 @@ type HeroStoryCard = {
   label: string;
   value: string;
   detail: string;
+  tone: MetricTone;
+};
+
+type KpiDefinitionCard = {
+  id: string;
+  label: string;
+  value: string;
+  source: string;
+  formula: string;
+  period: string;
+  state: string;
+  href: string;
   tone: MetricTone;
 };
 
@@ -232,6 +271,35 @@ function formatPercent(value: number) {
 
 function formatNullablePercent(value: number | null, fallback = "Donnée insuffisante") {
   return typeof value === "number" ? `${value}%` : fallback;
+}
+
+function formatOptionalCount(value: number | null | undefined, suffix: string, fallback = "Indisponible") {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  return `${value} ${suffix}`;
+}
+
+function resolveControlStatusTone(status: "healthy" | "warning" | "danger" | "unverifiable" | undefined): MetricTone {
+  if (status === "danger") return "danger";
+  if (status === "warning" || status === "unverifiable") return "warning";
+  if (status === "healthy") return "positive";
+  return "neutral";
+}
+
+function formatProblemSeverity(severity: string) {
+  if (severity === "critique") return "Critique";
+  if (severity === "prioritaire") return "Prioritaire";
+  if (severity === "vigilance") return "Vigilance";
+  return "Information";
+}
+
+function formatProblemStatus(status: string) {
+  if (status === "acknowledged") return "Pris en charge";
+  if (status === "in_progress") return "En cours";
+  if (status === "escalated") return "Escalade";
+  if (status === "resolved") return "Resolue";
+  if (status === "closed") return "Cloturee";
+  if (status === "reopened") return "Reouverte";
+  return "Nouveau";
 }
 
 function buildLinePath(points: number[], width: number, height: number) {
@@ -534,6 +602,13 @@ export default function AdminDashboard() {
 
         if (controlRes.status === "fulfilled" && controlRes.value.ok) {
           controlData = (await controlRes.value.json().catch(() => null)) as AdminControlPayload | null;
+          if (controlData?.health?.status === "unverifiable") {
+            warnings.push(
+              ...(controlData.health.unavailableSources?.map(
+                (source) => `${source.label} : ${source.reason ?? "indisponible"}`,
+              ) ?? []),
+            );
+          }
         } else {
           warnings.push("Tour de controle indisponible.");
         }
@@ -720,6 +795,17 @@ export default function AdminDashboard() {
       });
     });
 
+    (adminControl?.problemRegistry?.items ?? []).slice(0, 3).forEach((problem) => {
+      items.push({
+        id: `problem-${problem.id}`,
+        title: problem.title,
+        detail: `${formatProblemSeverity(problem.severity)} Â· ${formatProblemStatus(problem.status)} Â· ${problem.functional_owner}`,
+        href: "/dashboard/admin/controle",
+        timestamp: problem.last_detected_at,
+        kind: "problem",
+      });
+    });
+
     return items
       .sort((left, right) => {
         const leftTime = getDate(left.timestamp)?.getTime() ?? 0;
@@ -727,7 +813,7 @@ export default function AdminDashboard() {
         return rightTime - leftTime;
       })
       .slice(0, 8);
-  }, [adminOverview, missions, requests]);
+  }, [adminControl, adminOverview, missions, requests]);
 
   const activationSummary = useMemo(() => {
     if (!kpiOverview) return null;
@@ -842,12 +928,21 @@ export default function AdminDashboard() {
   const heroTone: MetricTone =
     lateMissions.length > 0 || (adminControl?.summary.totalProblems ?? 0) >= 8
       ? "danger"
-      : blockedRequests.length > 0 || sourceWarnings.length > 0 || (adminControl?.summary.totalProblems ?? 0) > 0
+      : adminControl?.health?.status === "unverifiable" ||
+          blockedRequests.length > 0 ||
+          sourceWarnings.length > 0 ||
+          (adminControl?.summary.totalProblems ?? 0) > 0
         ? "warning"
         : "positive";
 
   const heroStatusLabel =
-    heroTone === "danger" ? "Tension operationnelle forte" : heroTone === "warning" ? "Journee sous surveillance" : "Exploitation fluide";
+    adminControl?.health?.status === "unverifiable"
+      ? "Controle incomplet"
+      : heroTone === "danger"
+        ? "Tension operationnelle forte"
+        : heroTone === "warning"
+          ? "Journee sous surveillance"
+          : "Exploitation fluide";
 
   const heroStoryCards: HeroStoryCard[] = [
     {
@@ -880,6 +975,125 @@ export default function AdminDashboard() {
     },
   ];
 
+  const kpiDefinitionCards: KpiDefinitionCard[] = [
+    {
+      id: "users",
+      label: `Nouveaux comptes (${period} j)`,
+      value: String(recentUsers),
+      source: "Profils admin + comptes Auth via /api/admin/overview",
+      formula: "Profils crees dans la fenetre selectionnee.",
+      period: `${period} derniers jours`,
+      state: adminOverview ? "Reel" : "Indisponible",
+      href: "/dashboard/admin/utilisateurs",
+      tone: "neutral",
+    },
+    {
+      id: "onboarding",
+      label: "Completude onboarding",
+      value: formatPercent(onboardingCompletionRate),
+      source: "profiles.onboarding_complete via /api/admin/overview",
+      formula: "Profils onboarding complets / profils totaux.",
+      period: "Photo courante du parc",
+      state: adminOverview ? "Calcule sur donnees reelles" : "Indisponible",
+      href: "/dashboard/admin/controle?tab=inscriptions",
+      tone: onboardingCompletionRate >= 70 ? "positive" : onboardingCompletionRate >= 40 ? "warning" : "danger",
+    },
+    {
+      id: "email",
+      label: "Confirmation e-mail",
+      value: formatPercent(emailConfirmationRate),
+      source: "Supabase Auth via /api/admin/overview",
+      formula: "Comptes avec email confirme / profils totaux.",
+      period: "Photo courante du parc",
+      state: adminOverview ? "Calcule sur donnees reelles" : "Indisponible",
+      href: "/dashboard/admin/controle?tab=inscriptions",
+      tone: emailConfirmationRate >= 80 ? "positive" : emailConfirmationRate >= 50 ? "warning" : "danger",
+    },
+    {
+      id: "requests",
+      label: `Demandes entrantes (${period} j)`,
+      value: String(recentRequests),
+      source: "service_requests via /api/admin/operations",
+      formula: "Demandes creees dans la fenetre selectionnee.",
+      period: `${period} derniers jours`,
+      state: requests.length > 0 || sourceWarnings.length === 0 ? "Reel" : "Partiel ou indisponible",
+      href: "/dashboard/admin/demandes",
+      tone: blockedRequests.length > 0 ? "warning" : "neutral",
+    },
+    {
+      id: "missions",
+      label: "Missions a surveiller",
+      value: String(missionWarnings.length),
+      source: "missions + regles d'urgence via /api/admin/operations",
+      formula: "Missions en warning ou danger selon planning, statut et retard.",
+      period: "Photo courante du portefeuille",
+      state: missions.length > 0 || sourceWarnings.length === 0 ? "Calcule sur donnees reelles" : "Partiel ou indisponible",
+      href: "/dashboard/admin/missions",
+      tone: lateMissions.length > 0 ? "danger" : missionWarnings.length > 0 ? "warning" : "neutral",
+    },
+    {
+      id: "billing",
+      label: "Facturation",
+      value: String(invoiceCount),
+      source: "invoices via /api/admin/operations et /api/admin/overview",
+      formula: "Volume de factures suivies par le cockpit.",
+      period: "Photo courante du portefeuille",
+      state: adminOverview?.summary.invoices || invoiceCount ? "Reel" : "Aucune facture visible ou source indisponible",
+      href: "/dashboard/admin/pilotage",
+      tone: "neutral",
+    },
+  ];
+
+  const controlStatusTone = resolveControlStatusTone(adminControl?.health?.status);
+  const controlStatusLabel =
+    adminControl?.health?.status === "unverifiable"
+      ? "Controle incomplet"
+      : adminControl?.health?.status === "danger"
+        ? "Sante degradee"
+        : adminControl?.health?.status === "warning"
+          ? "Sante a surveiller"
+          : "Sante stable";
+
+  const technicalHealthCards = [
+    {
+      id: "verification",
+      label: "Verification",
+      value: adminControl?.health
+        ? `${adminControl.health.checkedSourceCount ?? 0}/${adminControl.health.totalSourceCount ?? 0}`
+        : "0/0",
+      detail: adminControl?.health?.fullyVerifiable
+        ? "Toutes les sources attendues sont verifiees."
+        : "Une partie des controles relies au cockpit reste indisponible.",
+      tone: controlStatusTone,
+    },
+    {
+      id: "incidents",
+      label: "Incidents ouverts",
+      value: String(adminControl?.problemRegistry?.openCount ?? 0),
+      detail: adminControl?.problemRegistry?.available
+        ? "Registre admin des problemes detectes."
+        : adminControl?.problemRegistry?.reason ?? "Registre indisponible.",
+      tone:
+        (adminControl?.problemRegistry?.openCount ?? 0) > 0
+          ? "warning"
+          : adminControl?.problemRegistry?.available
+            ? "positive"
+            : "neutral",
+    },
+    {
+      id: "recent-errors",
+      label: "Signaux critiques",
+      value: formatOptionalCount(adminControl?.health?.dangerCount, "critiques"),
+      detail: formatOptionalCount(adminControl?.health?.warningCount, "signaux a surveiller", "Volume indisponible"),
+      tone:
+        (adminControl?.health?.dangerCount ?? 0) > 0
+          ? "danger"
+          : (adminControl?.health?.warningCount ?? 0) > 0
+            ? "warning"
+            : "positive",
+    },
+  ];
+
   const prioritySpotlights = useMemo<UnifiedSpotlightItem[]>(
     () =>
       priorities.map((item) => ({
@@ -899,13 +1113,32 @@ export default function AdminDashboard() {
     () =>
       recentActivity.map((item) => ({
         id: item.id,
-        label: item.kind === "user" ? "Compte" : item.kind === "request" ? "Demande" : "Mission",
+        label:
+          item.kind === "user"
+            ? "Compte"
+            : item.kind === "request"
+              ? "Demande"
+              : item.kind === "problem"
+                ? "Alerte"
+                : "Mission",
         title: item.title,
         detail: item.detail,
         meta: formatDateTime(item.timestamp),
         href: item.href,
-        tone: item.kind === "mission" ? "accent" : item.kind === "request" ? "warning" : "neutral",
-        icon: item.kind === "user" ? <UserRoundPlus size={16} /> : item.kind === "request" ? <BellRing size={16} /> : <LifeBuoy size={16} />,
+        tone:
+          item.kind === "mission"
+            ? "accent"
+            : item.kind === "request" || item.kind === "problem"
+              ? "warning"
+              : "neutral",
+        icon:
+          item.kind === "user"
+            ? <UserRoundPlus size={16} />
+            : item.kind === "request"
+              ? <BellRing size={16} />
+              : item.kind === "problem"
+                ? <ShieldAlert size={16} />
+                : <LifeBuoy size={16} />,
       })),
     [recentActivity],
   );
@@ -1002,16 +1235,12 @@ export default function AdminDashboard() {
               </div>
 
               <div className={styles.heroSignals}>
-                <StatusChip tone={adminControl?.health?.tone ?? "neutral"}>
-                  {adminControl?.health?.tone === "danger"
-                    ? "Santé dégradée"
-                    : adminControl?.health?.tone === "warning"
-                      ? "Santé à surveiller"
-                      : "Santé stable"}
+                <StatusChip tone={controlStatusTone}>
+                  {controlStatusLabel}
                 </StatusChip>
                 <span>
-                  {adminControl?.health?.updatedAt
-                    ? `Contrôle mis à jour le ${formatDateTime(adminControl.health.updatedAt)}`
+                  {adminControl?.health?.checkedAt
+                    ? `Contrôle mis à jour le ${formatDateTime(adminControl.health.checkedAt)}`
                     : "Dernière mise à jour indisponible"}
                 </span>
               </div>
@@ -1232,6 +1461,44 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </article>
+
+            <article className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <div>
+                  <span className={styles.panelEyebrow}>
+                    <CircleDollarSign size={16} />
+                    Cadre KPI
+                  </span>
+                  <h3>Cadre de lecture des KPI</h3>
+                </div>
+              </div>
+
+              <div className={styles.kpiDefinitionGrid}>
+                {kpiDefinitionCards.map((item) => (
+                  <Link key={item.id} href={item.href} className={styles.kpiDefinitionCard} data-tone={item.tone}>
+                    <div className={styles.kpiDefinitionTop}>
+                      <span>{item.label}</span>
+                      <strong>{item.value}</strong>
+                    </div>
+                    <p>{item.formula}</p>
+                    <dl className={styles.kpiDefinitionMeta}>
+                      <div>
+                        <dt>Source</dt>
+                        <dd>{item.source}</dd>
+                      </div>
+                      <div>
+                        <dt>Période</dt>
+                        <dd>{item.period}</dd>
+                      </div>
+                      <div>
+                        <dt>État</dt>
+                        <dd>{item.state}</dd>
+                      </div>
+                    </dl>
+                  </Link>
+                ))}
+              </div>
+            </article>
           </>
         }
         leftSecondary={
@@ -1410,6 +1677,48 @@ export default function AdminDashboard() {
               ),
           },
           {
+            id: "technical-health",
+            title: "Sante technique",
+            subtitle: "Ce qui est reellement verifie, en alerte ou indisponible",
+            content: (
+              <div className={styles.technicalHealthStack}>
+                <div className={styles.technicalHealthHeader}>
+                  <StatusChip tone={controlStatusTone}>
+                    {adminControl?.health?.label ?? "Controle indisponible"}
+                  </StatusChip>
+                  <small>
+                    {adminControl?.health?.checkedAt
+                      ? `Verification au ${formatDateTime(adminControl.health.checkedAt)}`
+                      : "Horodatage indisponible"}
+                  </small>
+                </div>
+
+                <div className={styles.technicalHealthGrid}>
+                  {technicalHealthCards.map((card) => (
+                    <article key={card.id} className={styles.technicalHealthCard} data-tone={card.tone}>
+                      <span>{card.label}</span>
+                      <strong>{card.value}</strong>
+                      <p>{card.detail}</p>
+                    </article>
+                  ))}
+                </div>
+
+                {adminControl?.health?.unavailableSources?.length ? (
+                  <div className={styles.sourceList} role="list" aria-label="Sources indisponibles">
+                    {adminControl.health.unavailableSources.map((source) => (
+                      <div key={source.key} className={styles.sourceListItem} role="listitem">
+                        <strong>{source.label}</strong>
+                        <span>{source.reason ?? "Indisponible"}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className={styles.inlineNote}>Aucune source technique manquante sur le perimetre verifie.</p>
+                )}
+              </div>
+            ),
+          },
+          {
             id: "shortcuts",
             title: "Raccourcis metier",
             subtitle: "Les portes d'entree utiles pour agir vite",
@@ -1457,6 +1766,10 @@ export default function AdminDashboard() {
                 <Link href="/dashboard/admin/developpement" className={styles.shortcutCard}>
                   <strong>Mission Control dev</strong>
                   <p>Suivre la roadmap, la dette et les decisions techniques.</p>
+                </Link>
+                <Link href="/dashboard/admin/controle" className={styles.shortcutCard}>
+                  <strong>Registre des problemes</strong>
+                  <p>{adminControl?.problemRegistry?.openCount ?? 0} probleme(s) ouvert(s) et suivi des incidents admin.</p>
                 </Link>
               </div>
             ),
