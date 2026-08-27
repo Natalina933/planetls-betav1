@@ -3055,6 +3055,34 @@
   margin-bottom: 0.8rem;
 }
 
+.saveConfirmationModal {
+  width: min(460px, 100%);
+  padding: 1.5rem;
+  border: 1px solid rgba(24, 63, 54, 0.2);
+  border-radius: 24px;
+  background: linear-gradient(180deg, #fffefb, #edf7f1);
+  box-shadow: 0 28px 60px rgba(24, 39, 48, 0.18);
+}
+
+.saveConfirmationModal > svg {
+  color: #257451;
+}
+
+.saveConfirmationModal h3 {
+  margin: 0.3rem 0 0;
+  color: #183f36;
+  font-size: 1.35rem;
+}
+
+.saveConfirmationModal p:not(.categoryLabel) {
+  color: #50615a;
+  line-height: 1.6;
+}
+
+.saveConfirmationHint {
+  font-size: 0.9rem;
+}
+
 .masterPlanGuide,
 .masterPlanGuideHeader,
 .masterPlanGuideBody,

@@ -12,6 +12,7 @@ import {
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
+import { collectHousingReferenceIds, getListingLabel } from "@/app/lib/listingReferences";
 import { requireApiRole } from "@/server/auth/roleGuards";
 
 const dbAny = asLooseSupabaseClient(db);
@@ -63,34 +64,62 @@ export async function GET(req: NextRequest) {
     const reservations = (data ?? []) as ReservationRow[];
     const profileIds = Array.from(new Set(reservations.flatMap((item) => [item.owner_profile_id, item.concierge_profile_id]).filter(Boolean)));
     const propertyIds = Array.from(new Set(reservations.map((item) => item.property_id).filter(Boolean)));
+    const housingIds = collectHousingReferenceIds(
+      reservations.map((reservation) => ({ propertyId: reservation.property_id ?? null, metadata: reservation.metadata ?? null })),
+    );
 
-    const [{ data: profiles }, { data: properties }] = await Promise.all([
+    const numericHousingIds = housingIds.filter((id) => /^\d+$/.test(id)).map((id) => Number(id));
+
+    const [{ data: profiles }, { data: properties }, { data: housings }] = await Promise.all([
       profileIds.length
         ? dbAny.from("profiles").select("id,first_name,last_name,company_name,username,email").in("id", profileIds)
         : Promise.resolve({ data: [] }),
       propertyIds.length
         ? dbAny.from("properties").select("id,name,city").in("id", propertyIds)
         : Promise.resolve({ data: [] }),
+      numericHousingIds.length
+        ? dbAny.from("housing").select("id,nom_logement,ville").in("id", numericHousingIds)
+        : Promise.resolve({ data: [] }),
     ]);
 
     const profileMap = new Map<string, ProfileMini>(((profiles ?? []) as ProfileMini[]).map((item) => [item.id, item]));
     const propertyMap = new Map<string, PropertyMini>(((properties ?? []) as PropertyMini[]).map((item) => [item.id, item]));
+    const propertyNameById = new Map(
+      Array.from(propertyMap.entries()).map(([id, item]) => [id, cleanString(item.name) ?? (item.city ? `Logement à ${item.city}` : "Logement")]),
+    );
+    const housingNameById = new Map(
+      (((housings ?? []) as Array<{ id: number; nom_logement?: string | null; ville?: string | null }>)).map((item) => [
+        String(item.id),
+        cleanString(item.nom_logement) ?? (item.ville ? `Logement à ${item.ville}` : "Logement"),
+      ]),
+    );
 
     return NextResponse.json({
-      reservations: reservations.map((reservation) => ({
-        ...reservation,
-        owner_name: profileDisplayName(profileMap.get(reservation.owner_profile_id), "Propriétaire"),
-        concierge_name: profileDisplayName(profileMap.get(reservation.concierge_profile_id), "Conciergerie"),
-        property_label: reservation.property_id
-          ? cleanString(propertyMap.get(reservation.property_id)?.name) ?? "Logement à renseigner"
-          : "Logement à renseigner",
-        stay: reservationToTravelerStay({
-          reservation,
-          ownerName: profileDisplayName(profileMap.get(reservation.owner_profile_id), "Propriétaire"),
-          propertyLabel: reservation.property_id ? cleanString(propertyMap.get(reservation.property_id)?.name) : null,
-          missions: [],
-        }),
-      })),
+      reservations: reservations.map((reservation) => {
+        const ownerName = profileDisplayName(profileMap.get(reservation.owner_profile_id), "Propriétaire");
+        const conciergeName = profileDisplayName(profileMap.get(reservation.concierge_profile_id), "Conciergerie");
+        const propertyLabel =
+          getListingLabel(
+            {
+              propertyId: reservation.property_id ?? null,
+              metadata: reservation.metadata ?? null,
+            },
+            { propertyNameById, housingNameById },
+          ) ?? "Logement à renseigner";
+
+        return {
+          ...reservation,
+          owner_name: ownerName,
+          concierge_name: conciergeName,
+          property_label: propertyLabel,
+          stay: reservationToTravelerStay({
+            reservation,
+            ownerName,
+            propertyLabel,
+            missions: [],
+          }),
+        };
+      }),
     });
   } catch (error) {
     console.error("[GET /api/owner/reservations] ERROR:", error);

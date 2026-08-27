@@ -18,6 +18,7 @@ import { DashboardLoadingScreen } from "@/components/dashboard";
 import { DashboardHomeIcon } from "@/components/ui/PublicIcon";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import type { CurrentUser } from "@/app/components/hooks/useCurrentUser";
+import { matchesHousingReference } from "@/app/lib/listingReferences";
 import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
 import {
   FirstLoginOnboardingPopup,
@@ -278,11 +279,23 @@ export default function OwnerDashboardPage() {
   const propertyItems = useMemo<UnifiedPropertyItem[]>(
     () =>
       properties.slice(0, 8).map((property, index) => {
-        const propertyMissions = sortedUpcomingMissions.filter(
-          (mission) => String(mission.property_id ?? "") === String(property.id),
+        const propertyMissions = sortedUpcomingMissions.filter((mission) =>
+          matchesHousingReference(
+            {
+              propertyId: mission.property_id ?? null,
+              metadata: mission.metadata ?? null,
+            },
+            property.id,
+          ),
         );
-        const propertyTravelerMissions = travelerMissions.filter(
-          (mission) => String(mission.property_id ?? "") === String(property.id),
+        const propertyTravelerMissions = travelerMissions.filter((mission) =>
+          matchesHousingReference(
+            {
+              propertyId: mission.property_id ?? null,
+              metadata: mission.metadata ?? null,
+            },
+            property.id,
+          ),
         );
         const nextMission = propertyMissions[0];
         const nextArrival = [...propertyTravelerMissions]
@@ -368,7 +381,15 @@ export default function OwnerDashboardPage() {
         status: getMissionStatusLabel(mission.status),
         partner: getPartnerName(mission.concierge_name),
         property:
-          properties.find((property) => String(property.id) === String(mission.property_id ?? ""))?.nom_logement ||
+          properties.find((property) =>
+            matchesHousingReference(
+              {
+                propertyId: mission.property_id ?? null,
+                metadata: mission.metadata ?? null,
+              },
+              property.id,
+            ),
+          )?.nom_logement ||
           "Logement à préciser",
         date:
           formatDateValue(mission.scheduled_start, {
@@ -395,7 +416,15 @@ export default function OwnerDashboardPage() {
           id: mission.id,
           title: mission.title || "Séjour voyageur",
           property:
-            properties.find((property) => String(property.id) === String(mission.property_id ?? ""))?.nom_logement ||
+            properties.find((property) =>
+              matchesHousingReference(
+                {
+                  propertyId: mission.property_id ?? null,
+                  metadata: mission.metadata ?? null,
+                },
+                property.id,
+              ),
+            )?.nom_logement ||
             "Logement à préciser",
           arrival:
             formatDateValue(mission.scheduled_start, {

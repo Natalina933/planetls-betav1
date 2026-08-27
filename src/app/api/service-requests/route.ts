@@ -4,6 +4,7 @@ import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { deriveCommercialWorkflowStatus } from "@/app/lib/commercialWorkflow";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { collectHousingReferenceIds, getHousingReferenceId, getListingLabel, matchesHousingReference } from "@/app/lib/listingReferences";
 import {
   buildServiceRequestBrief,
   readServiceRequestBriefMetadata,
@@ -214,13 +215,6 @@ function readPropertyLabelFromMetadata(value: unknown): string | null {
   return typeof propertyLabel === "string" && propertyLabel.trim()
     ? propertyLabel.trim()
     : null;
-}
-
-function readHousingIdFromMetadata(value: unknown): string | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const housingId = "property_housing_id" in value ? value.property_housing_id : null;
-  if (typeof housingId === "number" && Number.isFinite(housingId)) return String(housingId);
-  return typeof housingId === "string" && housingId.trim() ? housingId.trim() : null;
 }
 
 function readStringFromMetadata(value: unknown, key: string): string | null {
@@ -453,12 +447,13 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
         .filter((id: unknown): id is string => typeof id === "string" && id.length > 0),
     ),
   );
-  const housingIds = Array.from(
-    new Set(
-      (requests ?? [])
-        .map((row: Record<string, unknown>) => readHousingIdFromMetadata(row.metadata))
-        .filter((id: string | null): id is string => Boolean(id)),
-    ),
+  const housingIds = collectHousingReferenceIds(
+    (requests ?? []).map((row: Record<string, unknown>) => ({
+      propertyId: typeof row.property_id === "string" ? row.property_id : null,
+      metadata: typeof row.metadata === "object" && row.metadata !== null && !Array.isArray(row.metadata)
+        ? (row.metadata as Record<string, unknown>)
+        : null,
+    })),
   );
 
   const { data: recipients, error: recipientsError } = await dbAny
@@ -657,8 +652,15 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
       hasMission: Boolean(readStringField(request, "mission_id")),
     });
     const brief = buildBriefFromRequestRow(request);
+    const requestMetadata: Record<string, unknown> | null =
+      typeof request.metadata === "object" && request.metadata !== null && !Array.isArray(request.metadata)
+        ? (request.metadata as Record<string, unknown>)
+        : null;
     const metadata = readServiceRequestBriefMetadata(request.metadata);
-    const housingId = readHousingIdFromMetadata(request.metadata);
+    const housingId = getHousingReferenceId({
+      propertyId: typeof request.property_id === "string" ? request.property_id : null,
+      metadata: requestMetadata,
+    });
 
     return {
       ...request,
@@ -671,10 +673,14 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
       request_workflow_status: requestWorkflow.request_workflow_status,
       quote_workflow_status: requestWorkflow.quote_workflow_status,
       mission_workflow_status: requestWorkflow.mission_workflow_status,
-      property_name:
-        (housingId ? housingNameById.get(housingId) ?? null : null) ??
-        (typeof request.property_id === "string" ? propertyNameById.get(request.property_id) ?? null : null) ??
-        readPropertyLabelFromMetadata(request.metadata),
+      property_name: getListingLabel(
+        {
+          propertyId: typeof request.property_id === "string" ? request.property_id : null,
+          propertyHousingId: housingId,
+          metadata: requestMetadata,
+        },
+        { propertyNameById, housingNameById },
+      ) ?? readPropertyLabelFromMetadata(request.metadata),
       property_housing_id: housingId,
       selected_concierge_name: request.selected_concierge_profile_id
         ? conciergeNameById.get(request.selected_concierge_profile_id) ?? "Concierge"
@@ -869,8 +875,16 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
       quote_workflow_status: workflow.quote_workflow_status,
       mission_workflow_status: workflow.mission_workflow_status,
       property_name:
-        (typeof request?.property_id === "string" ? propertyNameById.get(request.property_id) ?? null : null) ??
-        readPropertyLabelFromMetadata(request?.metadata),
+        getListingLabel(
+          {
+            propertyId: typeof request?.property_id === "string" ? request.property_id : null,
+            metadata:
+              typeof request?.metadata === "object" && request.metadata !== null && !Array.isArray(request.metadata)
+                ? (request.metadata as Record<string, unknown>)
+                : null,
+          },
+          { propertyNameById },
+        ) ?? readPropertyLabelFromMetadata(request?.metadata),
       recipient_id: recipient.id,
       recipient_status: recipient.status,
       response_message: recipient.response_message,
@@ -1215,7 +1229,7 @@ async function findOwnerRequestForHousing(ownerProfileId: string, housingId: str
   return (
     (existingRequests ?? []).find(
       (request: Record<string, unknown>) =>
-        readHousingIdFromMetadata(request.metadata) === housingId && request.request_type !== "renfort",
+        matchesHousingReference(request, housingId) && request.request_type !== "renfort",
     ) ?? null
   );
 }

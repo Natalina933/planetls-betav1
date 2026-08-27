@@ -19,6 +19,7 @@ import {
   FiSend,
   FiBarChart2,
 } from "react-icons/fi";
+import { matchesHousingReference } from "@/app/lib/listingReferences";
 import {
   Bath,
   BedDouble,
@@ -626,7 +627,15 @@ export default function OwnerHousingDetailPage() {
   }, [draft?.owner.managerProfileId]);
 
   const relatedMissions = useMemo(
-    () => missions.filter((mission) => String(mission.property_id ?? "") === String(id)),
+    () =>
+      missions.filter((mission) =>
+        matchesHousingReference(
+          {
+            propertyId: mission.property_id ?? null,
+          },
+          id,
+        ),
+      ),
     [id, missions],
   );
   const relatedServiceRequests = useMemo(() => {

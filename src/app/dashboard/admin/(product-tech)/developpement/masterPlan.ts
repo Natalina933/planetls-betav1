@@ -127,6 +127,7 @@ export type DevelopmentRegistryItem = {
   type: typeof DEVELOPMENT_ITEM_TYPES[number];
   persona: string;
   phase: string;
+  addedAt: string;
   updatedAt: string;
   nextAction: string;
   validationCriteria: string[];
@@ -189,6 +190,7 @@ const developmentRegistrySchema = z.object({
     type: z.enum(DEVELOPMENT_ITEM_TYPES),
     persona: z.string().min(2),
     phase: z.string().min(2),
+    addedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
     updatedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     nextAction: z.string().default(""),
     validationCriteria: z.array(z.string().min(2)).default([]),
@@ -661,6 +663,8 @@ function validateStructuredRegistry(markdown: string) {
       priorityLabel: priorityLabelFromRegistry(item.priority),
       horizon: item.horizon ?? horizonFromPriority(item.priority),
       blocker: item.blocker ?? null,
+      // Historical entries predate this field; their last known update remains the fallback.
+      addedAt: item.addedAt ?? item.updatedAt,
     };
   });
 

@@ -1,3 +1,5 @@
+import { getCanonicalListingId } from "@/app/lib/listingReferences";
+
 type TravelerMissionLike = {
   id: string;
   title: string | null;
@@ -98,9 +100,8 @@ export function getTravelerMissionStatusTone(status: string | null | undefined) 
 export function getTravelerMissionPropertyId(
   mission: Pick<TravelerMissionLike, "metadata" | "property_id">,
 ) {
-  const housingId = mission.metadata?.housing_id;
-  if (mission.property_id !== null && mission.property_id !== undefined) {
-    return String(mission.property_id);
-  }
-  return typeof housingId === "string" ? housingId : "";
+  return getCanonicalListingId({
+    propertyId: mission.property_id ?? null,
+    metadata: mission.metadata ?? null,
+  }) ?? "";
 }

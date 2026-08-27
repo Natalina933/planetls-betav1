@@ -14,6 +14,7 @@ import OwnerWorkspacePage from "../../_components/OwnerWorkspacePage";
 import { DashboardPanel, MetricDonut } from "@/components/dashboard";
 import { AsyncState } from "@/components/ui";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
+import { matchesHousingReference } from "@/app/lib/listingReferences";
 import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
 import {
   getTravelerMissionPropertyId,
@@ -248,7 +249,14 @@ export default function OwnerMissionsOverviewPage() {
   const propertyRows = properties
     .map((property) => {
       const propertyMissions = missions.filter(
-        (mission) => String(mission.property_id ?? getTravelerMissionPropertyId(mission)) === String(property.id),
+        (mission) =>
+          matchesHousingReference(
+            {
+              propertyId: mission.property_id ?? null,
+              metadata: mission.metadata ?? null,
+            },
+            property.id,
+          ) || String(getTravelerMissionPropertyId(mission)) === String(property.id),
       );
       const activeMissions = propertyMissions.filter((mission) => mission.status !== "completed" && mission.status !== "canceled");
       const lastCompleted = [...propertyMissions]

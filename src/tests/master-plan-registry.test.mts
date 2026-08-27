@@ -41,10 +41,28 @@ test("parseMasterPlan privilégie le registre structuré pour le cockpit dévelo
 
   assert.equal(plan.diagnostics.source, "structured");
   assert.equal(plan.registryItems.length, 1);
+  assert.equal(plan.registryItems[0]?.addedAt, "2026-08-24");
   assert.equal(plan.planning[0]?.id, "P1-001");
   assert.equal(plan.diagnostics.nextSuggestedId, "P0-001 · P1-002 · P2-001 · P3-001 · P4-001");
   assert.equal(plan.planning[0]?.status, "🟡 En cours");
   assert.equal(plan.functionalRows[0]?.feature, "Cockpit développement");
+});
+
+test("parseMasterPlan conserve une date d'ajout explicite lorsqu'elle est renseignée", () => {
+  const markdown = `# Plan
+
+## Registre structuré du développement
+
+\`\`\`json
+${JSON.stringify({
+    version: 1,
+    items: [{ id: "PLS-DEV-001", domain: "Pilotage", title: "Date d'ajout", summary: "Une date d'ajout explicite.", status: "READY", priority: "P1", type: "improvement", persona: "Admin", phase: "Pilotage", addedAt: "2026-08-20", updatedAt: "2026-08-24", nextAction: "La vérifier.", progressLabel: "Prêt.", source: "test", evidence: ["test"] }],
+  })}
+\`\`\``;
+
+  const plan = parseMasterPlan(markdown, "2026-08-24T10:00:00.000Z");
+
+  assert.equal(plan.registryItems[0]?.addedAt, "2026-08-20");
 });
 
 test("parseMasterPlan remonte les erreurs de validation du registre structuré", () => {
@@ -228,10 +246,16 @@ test("le registre réel conserve des IDs uniques et un prochain numéro exploita
   assert.equal(requestAutomation?.priority, "P1");
   assert.equal(requestAutomation?.status, "TO_PLAN");
   assert.deepEqual(requestAutomation?.dependencies, ["PLS-SEC-003", "PLS-SEC-004", "PLS-DATA-003", "PLS-TEST-001"]);
+  const guidedActivation = plan.registryItems.find((item) => item.id === "PLS-DEV-031");
+  assert.equal(guidedActivation?.status, "TO_VERIFY");
+  assert.match(guidedActivation?.progressLabel ?? "", /Popup existante repérée, mais non auditée/);
+  const housingReferences = plan.registryItems.find((item) => item.id === "PLS-DATA-004");
+  assert.equal(housingReferences?.trackingId, "P0-005");
+  assert.equal(housingReferences?.status, "COMPLETED");
   const githubIssues = plan.registryItems.flatMap((item) => item.githubIssues.map((issue) => issue.number));
   assert.equal(new Set(githubIssues).size, githubIssues.length);
   assert.deepEqual(githubIssues.sort((left, right) => left - right), [10, 11, 12, 13, 14, 15, 16, 17]);
-  assert.equal(plan.diagnostics.nextSuggestedId, "P0-007 · P1-020 · P2-015 · P3-005 · P4-002");
+  assert.equal(plan.diagnostics.nextSuggestedId, "P0-008 · P1-021 · P2-016 · P3-005 · P4-003");
 });
 
 test("le suivi par priorité reste unique et continu avec plusieurs préfixes de registre", () => {

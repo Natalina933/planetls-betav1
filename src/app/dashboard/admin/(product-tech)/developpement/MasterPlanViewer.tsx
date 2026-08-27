@@ -116,6 +116,11 @@ type ManualEntryDraft = Omit<DeveloperLogEntry, "features" | "links"> & {
   linksText: string;
 };
 
+type ManualEntrySaveConfirmation = {
+  title: string;
+  savedAt: string;
+};
+
 type ExecutivePriorityAction = {
   id: string;
   title: string;
@@ -216,15 +221,6 @@ const PRIORITY_TABLE_ROWS: PriorityTableRow[] = [
     difficulty: "Faible",
     impact: "⭐⭐⭐⭐",
     zones: "src/server/auth/authOptions.ts",
-  },
-  {
-    id: "P0-005",
-    level: "P0",
-    title: "Corriger la double source housing/properties",
-    category: "Architecture",
-    difficulty: "Moyenne",
-    impact: "⭐⭐⭐⭐⭐",
-    zones: "src/types/supabase.ts, src/types/supabase.generated.ts, migrations",
   },
   {
     id: "P1-001",
@@ -1445,34 +1441,36 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   const [memoryCategory, setMemoryCategory] = useState("");
   const [memoryTag, setMemoryTag] = useState("");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [hasHydratedLocalState, setHasHydratedLocalState] = useState(false);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [commentsByEntry, setCommentsByEntry] = useState<Record<string, DeveloperLogComment[]>>({});
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [manualEntries, setManualEntries] = useState<DeveloperLogEntry[]>([]);
   const [roadmapCompletedIds, setRoadmapCompletedIds] = useState<string[]>([]);
   const [expandedTimelineEntryIds, setExpandedTimelineEntryIds] = useState<string[]>([]);
-  const [expandedDailySummaryIds, setExpandedDailySummaryIds] = useState<string[]>(() => journal.dailySummaries.slice(0, 1).map((summary) => summary.id));
-  const [expandedMemoryEntryIds, setExpandedMemoryEntryIds] = useState<string[]>(() => technicalMemory.entries.slice(0, 2).map((entry) => entry.id));
-  const [expandedExecutivePanels, setExpandedExecutivePanels] = useState<string[]>(["priorities", "dependencies", "alerts"]);
-  const [expandedRoadmapLanes, setExpandedRoadmapLanes] = useState<string[]>(["ready", "blocked"]);
+  const [expandedDailySummaryIds, setExpandedDailySummaryIds] = useState<string[]>([]);
+  const [expandedMemoryEntryIds, setExpandedMemoryEntryIds] = useState<string[]>([]);
+  const [expandedExecutivePanels, setExpandedExecutivePanels] = useState<string[]>([]);
+  const [expandedRoadmapLanes, setExpandedRoadmapLanes] = useState<string[]>([]);
   const [compactPanelOpen, setCompactPanelOpen] = useState<Record<CompactPanelId, boolean>>({
-    nextAction: true,
-    healthChecks: true,
-    blockedWork: true,
-    currentWork: true,
-    readyWork: true,
-    completedWork: true,
-    verificationWork: true,
-    deferredWork: true,
+    nextAction: false,
+    healthChecks: false,
+    blockedWork: false,
+    currentWork: false,
+    readyWork: false,
+    completedWork: false,
+    verificationWork: false,
+    deferredWork: false,
   });
   const [isManualEntryModalOpen, setIsManualEntryModalOpen] = useState(false);
+  const [manualEntrySaveConfirmation, setManualEntrySaveConfirmation] = useState<ManualEntrySaveConfirmation | null>(null);
   const [panelOpen, setPanelOpen] = useState({
-    execution: true,
-    missionControl: true,
+    execution: false,
+    missionControl: false,
     technicalMemory: false,
-    roadmap: true,
+    roadmap: false,
     journal: false,
-    masterPlan: true,
+    masterPlan: false,
   });
   const [manualDraft, setManualDraft] = useState<ManualEntryDraft>(() => {
     const seed = createManualLogEntrySeed(projectVersion, defaultAuthor);
@@ -1486,31 +1484,32 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
     setCommentsByEntry(readStorage<Record<string, DeveloperLogComment[]>>(COMMENTS_STORAGE_KEY, {}));
     setManualEntries(readStorage<DeveloperLogEntry[]>(MANUAL_ENTRIES_STORAGE_KEY, []));
     setRoadmapCompletedIds(readStorage<string[]>(ROADMAP_COMPLETIONS_STORAGE_KEY, []));
+    setHasHydratedLocalState(true);
   }, []);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (hasHydratedLocalState && typeof window !== "undefined") {
       window.localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(favoriteIds));
     }
-  }, [favoriteIds]);
+  }, [favoriteIds, hasHydratedLocalState]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (hasHydratedLocalState && typeof window !== "undefined") {
       window.localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(commentsByEntry));
     }
-  }, [commentsByEntry]);
+  }, [commentsByEntry, hasHydratedLocalState]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (hasHydratedLocalState && typeof window !== "undefined") {
       window.localStorage.setItem(MANUAL_ENTRIES_STORAGE_KEY, JSON.stringify(manualEntries));
     }
-  }, [manualEntries]);
+  }, [hasHydratedLocalState, manualEntries]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (hasHydratedLocalState && typeof window !== "undefined") {
       window.localStorage.setItem(ROADMAP_COMPLETIONS_STORAGE_KEY, JSON.stringify(roadmapCompletedIds));
     }
-  }, [roadmapCompletedIds]);
+  }, [hasHydratedLocalState, roadmapCompletedIds]);
 
   useEffect(() => {
     if (!pendingMasterPlanAnchor || !panelOpen.masterPlan) return;
@@ -1557,6 +1556,36 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isManualEntryModalOpen]);
+
+  useEffect(() => {
+    if (!manualEntrySaveConfirmation) return;
+
+    const modal = document.getElementById("developer-log-save-confirmation-modal");
+    if (modal instanceof HTMLElement) {
+      window.requestAnimationFrame(() => focusFirstModalElement(modal));
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setManualEntrySaveConfirmation(null);
+        return;
+      }
+
+      const dialog = document.getElementById("developer-log-save-confirmation-modal");
+      if (dialog instanceof HTMLElement) {
+        trapFocusInModal(event, dialog);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [manualEntrySaveConfirmation]);
 
   const combinedEntries = useMemo(
     () => [...manualEntries, ...journal.entries].sort((left, right) => right.createdAt.localeCompare(left.createdAt)),
@@ -1755,6 +1784,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
         evidence: [row.zones],
         dependencies: [],
         nextAction: "Réévaluer le besoin terrain avant toute planification.",
+        addedAt: "2026-08-24",
         updatedAt: "2026-08-24",
       }));
     return [...plan.registryItems, ...historicalP3Items].filter((item) => {
@@ -2230,6 +2260,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                   <thead>
                     <tr>
                       <th>ID</th>
+                      <th>Ajouté le</th>
                       <th>Priorité</th>
                       <th>Horizon</th>
                       <th>Statut</th>
@@ -2247,6 +2278,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                     {canonicalPriorityRows.map((item) => (
                       <tr key={item.id}>
                         <td><strong>{item.id}</strong><br />{item.trackingId}</td>
+                        <td>{formatDateOnly(item.addedAt)}</td>
                         <td>{item.priorityLabel}</td>
                         <td>{item.horizon}</td>
                         <td><StatusBadge status={item.statusLabel} /></td>
@@ -2260,7 +2292,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                         <td>{item.updatedAt}</td>
                       </tr>
                     ))}
-                    {!canonicalPriorityRows.length && <tr><td colSpan={12}>Aucune priorité ne correspond aux filtres actifs.</td></tr>}
+                    {!canonicalPriorityRows.length && <tr><td colSpan={13}>Aucune priorité ne correspond aux filtres actifs.</td></tr>}
                   </tbody>
                 </table>
               </div>
@@ -2406,7 +2438,15 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       links: parseLinks(manualDraft.linksText),
       timeSpentMinutes: Number(manualDraft.timeSpentMinutes) || 0,
     };
-    setManualEntries((current) => [nextEntry, ...current]);
+    const nextEntries = [nextEntry, ...manualEntries];
+    try {
+      window.localStorage.setItem(MANUAL_ENTRIES_STORAGE_KEY, JSON.stringify(nextEntries));
+      setManualEntries(nextEntries);
+      setManualEntrySaveConfirmation({ title: nextEntry.title, savedAt: nextEntry.createdAt });
+    } catch {
+      setManualEntries(nextEntries);
+      return;
+    }
     resetManualDraft();
   };
 
@@ -3962,6 +4002,23 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
               </div>
             </div>
           </div>
+        </section>
+      </div> : null}
+      {manualEntrySaveConfirmation ? <div className={styles.modalOverlay} role="presentation" onClick={() => setManualEntrySaveConfirmation(null)}>
+        <section
+          id="developer-log-save-confirmation-modal"
+          className={styles.saveConfirmationModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="save-confirmation-modal-title"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <CheckCircle2 size={28} aria-hidden="true" />
+          <p className={styles.categoryLabel}>Journal de bord</p>
+          <h3 id="save-confirmation-modal-title">Entrée bien enregistrée</h3>
+          <p><strong>{manualEntrySaveConfirmation?.title}</strong> est conservée dans le journal de bord de ce navigateur depuis le {formatEntryDate(manualEntrySaveConfirmation?.savedAt ?? new Date().toISOString())}.</p>
+          <p className={styles.saveConfirmationHint}>Vous pouvez fermer cette confirmation : l’entrée restera disponible dans l’onglet Journal de bord.</p>
+          <Button variant="primary" onClick={() => setManualEntrySaveConfirmation(null)}>J&apos;ai compris</Button>
         </section>
       </div> : null}
       </div> : null}

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
+import { matchesHousingReference } from "@/app/lib/listingReferences";
 import { AsyncState } from "@/components/ui";
 import { useOwnerDashboardData } from "../useOwnerDashboardData";
 import OwnerMissionsFilters from "./OwnerMissionsFilters";
@@ -86,7 +87,15 @@ export default function OwnerMissionsPage() {
   const missionItems = useMemo<OwnerMissionListItem[]>(() => {
     return missions
       .map((mission) => {
-        const property = properties.find((item) => String(item.id) === String(mission.property_id ?? ""));
+        const property = properties.find((item) =>
+          matchesHousingReference(
+            {
+              propertyId: mission.property_id ?? null,
+              metadata: mission.metadata ?? null,
+            },
+            item.id,
+          ),
+        );
         const fallbackDate = mission.scheduled_start || mission.scheduled_end || new Date().toISOString();
 
         return {

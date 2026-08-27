@@ -25,6 +25,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { getCanonicalListingId } from "@/app/lib/listingReferences";
 import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
 import { ServiceRequestCard, type ServiceRequestCardTone, type ServiceRequestFact, type ServiceRequestMilestone } from "@/features/service-requests";
 import { formatDateValue } from "@/app/utils/formatters";
@@ -496,8 +497,12 @@ function getPropertyLabel(housing: HousingRow[], propertyId: string | null) {
 }
 
 function getMissionHousingId(mission: MissionRow) {
-  const housingId = mission.metadata?.housing_id;
-  return mission.property_id || (typeof housingId === "string" ? housingId : null);
+  return (
+    getCanonicalListingId({
+      propertyId: mission.property_id ?? null,
+      metadata: mission.metadata ?? null,
+    }) ?? null
+  );
 }
 
 function getGuestCount(mission: MissionRow) {
@@ -551,7 +556,12 @@ function getGenericMetadataString(metadata: Record<string, unknown> | null | und
 }
 
 function getPartnerPropertyId(partner: PartnerRequestRow) {
-  return partner.property_id ? String(partner.property_id) : "";
+  return (
+    getCanonicalListingId({
+      propertyId: partner.property_id ?? null,
+      metadata: partner.metadata ?? null,
+    }) ?? ""
+  );
 }
 
 function getPartnerPropertyName(partner: PartnerRequestRow) {
@@ -719,7 +729,11 @@ function findAcceptedQuoteForAssignment(quotes: OwnerQuoteRow[], option: Assignm
 
   const byProperty = acceptedQuotes.find((quote) => {
     const metadata = asRecord(quote.metadata);
-    const quotePropertyId = getGenericMetadataString(metadata, ["property_id", "housing_id", "service_property_id"]);
+    const quotePropertyId =
+      getCanonicalListingId({
+        propertyId: getGenericMetadataString(metadata, ["property_id", "service_property_id"]) || null,
+        metadata,
+      }) ?? "";
     return quotePropertyId && quotePropertyId === option.propertyId && quote.concierge_profile_id === option.conciergeId;
   });
   if (byProperty) return byProperty;
@@ -962,7 +976,7 @@ function reservationToMissionRow(reservation: OwnerReservationApiRow): MissionRo
     mission_kind: "traveler_stay",
     reservation_id: reservation.id,
     reservation_status: reservation.status ?? null,
-    housing_id: reservation.property_id ?? null,
+    housing_id: getCanonicalListingId({ propertyId: reservation.property_id ?? null, metadata }) ?? null,
     property_label: reservation.property_label ?? cleanString(metadata.property_label),
     concierge_profile_id: reservation.concierge_profile_id ?? cleanString(metadata.concierge_profile_id),
     concierge_name: reservation.concierge_name ?? cleanString(metadata.concierge_name),
@@ -1045,7 +1059,7 @@ function buildReservationPayload(form: TravelerMissionForm, context?: MissionOpe
     channel: form.bookingPlatform,
     metadata: {
       mission_kind: "traveler_stay",
-      housing_id: form.propertyId || null,
+      housing_id: getCanonicalListingId({ propertyId: form.propertyId || null, metadata: null }) ?? null,
       property_label: propertyLabel || null,
       concierge_profile_id: form.conciergeProfileId,
       concierge_name: context?.assignment?.conciergeName ?? null,

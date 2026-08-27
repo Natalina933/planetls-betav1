@@ -21,6 +21,7 @@ import {
   findMissionScheduleConflicts,
   validateMissionScheduleRange,
 } from "@/app/lib/missionScheduleConflicts";
+import { getHousingReferenceId } from "@/app/lib/listingReferences";
 import { requireApiRole } from "@/server/auth/roleGuards";
 import type { Json } from "@/types/supabase";
 
@@ -264,11 +265,7 @@ async function loadProfiles(profileIds: string[]) {
 }
 
 async function loadMissionHousing(propertyId: string | null, metadata: Record<string, unknown>) {
-  const housingId =
-    typeof metadata.property_housing_id === "string" || typeof metadata.property_housing_id === "number"
-      ? String(metadata.property_housing_id)
-      : null;
-  const lookupId = housingId ?? propertyId;
+  const lookupId = getHousingReferenceId({ propertyId, metadata });
   if (!lookupId) return null;
   const { data } = await dbAny
     .from("housing")

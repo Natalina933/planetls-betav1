@@ -31,6 +31,7 @@ import { DashboardLoadingScreen } from "@/components/dashboard";
 import { AsyncState } from "@/components/ui";
 import { DashboardHomeIcon } from "@/components/ui/PublicIcon";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
+import { matchesHousingReference } from "@/app/lib/listingReferences";
 import { formatCurrencyAmount, formatDateValue } from "@/app/utils/formatters";
 import type { CurrentUser } from "@/app/components/hooks/useCurrentUser";
 import {
@@ -641,7 +642,13 @@ export default function DashboardPage() {
     () =>
       housings.slice(0, 4).map((housing, index) => {
         const relatedMission = missionRows.find(
-          (mission) => String(mission.property_id ?? "") === String(housing.id) && !isMissionClosed(mission.status),
+          (mission) =>
+            matchesHousingReference(
+              {
+                propertyId: mission.property_id ?? null,
+              },
+              housing.id,
+            ) && !isMissionClosed(mission.status),
         );
         const toneCycle: UnifiedPropertyItem["tone"][] = ["soft", "accent", "gold", "ink"];
 
