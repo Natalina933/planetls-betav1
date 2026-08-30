@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { attachProviderInterventionReports } from "@/app/api/_shared/providerInterventionReports";
+import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { providerDb, requireProviderAuth } from "../shared";
 import type { ProviderInsert, ProviderRow } from "@/types/supabase-provider";
 
 type ProviderInterventionRow = ProviderRow<"provider_interventions">;
+const providerDbAny = asLooseSupabaseClient(providerDb);
 
 export async function GET(req: NextRequest) {
   const authResult = await requireProviderAuth(req);
@@ -32,14 +35,16 @@ export async function GET(req: NextRequest) {
   }
 
   const rows = (data ?? []) as ProviderInterventionRow[];
+  const reports = await attachProviderInterventionReports(providerDbAny, rows);
   return NextResponse.json({
-    items: rows,
+    items: reports.items,
     summary: {
       total: rows.length,
       in_progress: rows.filter((item) => item.status === "in_progress").length,
       pending: rows.filter((item) => item.status === "pending").length,
       completed: rows.filter((item) => item.status === "completed").length,
     },
+    completion_reports_schema_ready: reports.schemaReady,
     note: rows.length === 0 ? "Aucune intervention artisan pour le moment." : null,
   });
 }

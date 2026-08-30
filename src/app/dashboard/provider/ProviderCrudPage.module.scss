@@ -192,6 +192,34 @@
   color: #23311f;
 }
 
+.reportBox {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.8rem;
+  border-radius: 14px;
+  border: 1px solid rgba(76, 97, 69, 0.14);
+  background: rgba(138, 161, 109, 0.08);
+  color: #23311f;
+}
+
+.reportBox p,
+.reportBox span {
+  margin: 0;
+}
+
+.formGrid .checkboxLine {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.formGrid .checkboxLine input {
+  width: 18px;
+  height: 18px;
+  accent-color: #5f7055;
+}
+
 .chartList {
   display: grid;
   gap: 0.8rem;

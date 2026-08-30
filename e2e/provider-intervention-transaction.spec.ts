@@ -9,6 +9,12 @@ type InterventionPayload = {
   status?: string;
   title?: string;
   metadata?: Record<string, unknown> | null;
+  completion_report?: {
+    id?: string;
+    summary?: string;
+    work_performed?: string | null;
+    follow_up_required?: boolean;
+  } | null;
 };
 type InterventionListPayload = {
   items?: InterventionPayload[];
@@ -149,6 +155,11 @@ test("concierge → mission → intervention provider → preuve → facture", a
           recorded_at: new Date().toISOString(),
         },
       },
+      completion_report: {
+        summary: "Intervention E2E terminee avec remise des cles verifiee.",
+        work_performed: "Controle logement, remise des cles et preuve photo.",
+        follow_up_required: false,
+      },
     },
   });
   const completeBody = await completeResponse.text();
@@ -156,6 +167,7 @@ test("concierge → mission → intervention provider → preuve → facture", a
   const completed = JSON.parse(completeBody) as InterventionPayload;
   expect(completed.status).toBe("completed");
   expect(completed.metadata?.proof).toBeTruthy();
+  expect(completed.completion_report?.summary).toContain("Intervention E2E");
   const createInvoiceResponse = await providerPage.request.post(
     `/api/provider/interventions/${intervention.id}/invoice`,
     { headers: { Origin: providerOrigin } },
@@ -191,6 +203,7 @@ test("concierge → mission → intervention provider → preuve → facture", a
   const persisted = conciergeList.items?.find((item) => item.id === intervention.id);
   expect(persisted?.status).toBe("completed");
   expect(persisted?.metadata?.proof).toBeTruthy();
+  expect(persisted?.completion_report?.summary).toContain("Intervention E2E");
 
   await conciergeContext.close();
   await providerContext.close();

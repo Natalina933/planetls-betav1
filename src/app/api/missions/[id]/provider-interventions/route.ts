@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { attachProviderInterventionReports } from "@/app/api/_shared/providerInterventionReports";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
 import { canAccessMissionForRole, CONCIERGE_MISSION_ROLES } from "@/app/lib/missionPermissions";
@@ -91,7 +92,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const { data, error } = await loadProviderInterventionsForMission(mission);
   if (error) return NextResponse.json({ error: "Erreur chargement interventions" }, { status: 500 });
-  return NextResponse.json({ items: data ?? [] });
+  const reports = await attachProviderInterventionReports(dbAny, data ?? []);
+  return NextResponse.json({
+    items: reports.items,
+    completion_reports_schema_ready: reports.schemaReady,
+  });
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

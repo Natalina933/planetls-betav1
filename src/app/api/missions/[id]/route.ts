@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
+import { attachProviderInterventionReports } from "@/app/api/_shared/providerInterventionReports";
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { deriveMissionWorkflowStatus, deriveQuoteWorkflowStatus } from "@/app/lib/commercialWorkflow";
 import { db } from "@/app/lib/dbServer";
@@ -54,6 +55,25 @@ type MissionRow = {
   updated_at: string;
 };
 
+type MissionChecklistRow = {
+  id: string;
+  external_key: string | null;
+  label: string | null;
+  is_done: boolean | null;
+  position: number | null;
+  required: boolean | null;
+  completed_at: string | null;
+  completed_by: string | null;
+  metadata: Json | null;
+};
+
+type MissionChecklistPayloadItem = {
+  id: string;
+  label: string;
+  done: boolean;
+  required?: boolean;
+};
+
 const missionSelect =
   "id, concierge_profile_id, owner_profile_id, property_id, reservation_id, service_id, title, description, status, priority, amount, currency, scheduled_start, scheduled_end, response_time_minutes, started_at, completed_at, canceled_at, cancel_reason, metadata, created_at, updated_at";
 const missionSelectFallback =
@@ -86,6 +106,11 @@ function isMissingReservationIdColumn(error: { code?: string; message?: string; 
   return error?.code === "42703" || error?.code === "PGRST204" || (message.includes("reservation_id") && message.includes("column"));
 }
 
+function isMissingMissionChecklistTable(error: { code?: string; message?: string; details?: string } | null | undefined) {
+  const message = `${error?.message ?? ""} ${error?.details ?? ""}`.toLowerCase();
+  return error?.code === "42P01" || error?.code === "PGRST205" || message.includes("mission_checklist_items");
+}
+
 async function loadProviderInterventionsForMission(mission: MissionRow) {
   const reservationId = typeof mission.reservation_id === "string" ? mission.reservation_id : null;
   if (reservationId) {
@@ -108,6 +133,96 @@ async function loadProviderInterventionsForMission(mission: MissionRow) {
     .order("created_at", { ascending: false })
     .limit(10);
 }
+
+function normalizeChecklistPayload(value: unknown): MissionChecklistPayloadItem[] {
+  if (!Array.isArray(value)) return [];
+
+  const checklist: MissionChecklistPayloadItem[] = [];
+  value.slice(0, 30).forEach((item, index) => {
+    const record = toRecord(item);
+    const label = typeof record.label === "string" ? record.label.trim() : "";
+    if (!label) return;
+    const rawId = typeof record.id === "string" && record.id.trim()
+      ? record.id.trim()
+      : `checklist_${index}`;
+
+    checklist.push({
+      id: rawId.slice(0, 120),
+      label: label.slice(0, 240),
+      done: Boolean(record.done),
+      required: typeof record.required === "boolean" ? record.required : true,
+    });
+  });
+
+  return checklist;
+}
+
+function mapChecklistRows(rows: MissionChecklistRow[]) {
+  return rows.map((item, index) => ({
+    id: item.external_key || item.id || `checklist_${index}`,
+    label: item.label || `Point de controle ${index + 1}`,
+    done: Boolean(item.is_done),
+    required: item.required ?? true,
+    completed_at: item.completed_at,
+    completed_by: item.completed_by,
+    metadata: item.metadata ?? {},
+  }));
+}
+
+async function loadMissionChecklistItems(missionId: string) {
+  const { data, error } = await dbAny
+    .from("mission_checklist_items")
+    .select("id, external_key, label, is_done, position, required, completed_at, completed_by, metadata")
+    .eq("mission_id", missionId)
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    if (isMissingMissionChecklistTable(error)) return { items: null, schemaReady: false };
+    console.error("[missions/[id]] checklist load error:", error);
+    return { items: null, schemaReady: true };
+  }
+
+  return {
+    items: mapChecklistRows((data ?? []) as MissionChecklistRow[]),
+    schemaReady: true,
+  };
+}
+
+async function replaceMissionChecklistItems(input: {
+  missionId: string;
+  checklist: MissionChecklistPayloadItem[];
+  actorProfileId: string;
+}) {
+  const deleteResult = await dbAny
+    .from("mission_checklist_items")
+    .delete()
+    .eq("mission_id", input.missionId)
+    .is("provider_intervention_id", null);
+
+  if (deleteResult.error) return deleteResult;
+  if (input.checklist.length === 0) return deleteResult;
+
+  const now = new Date().toISOString();
+  return dbAny.from("mission_checklist_items").insert(
+    input.checklist.map((item, index) => ({
+      mission_id: input.missionId,
+      external_key: item.id,
+      label: item.label,
+      is_done: item.done,
+      position: index,
+      required: item.required ?? true,
+      completed_at: item.done ? now : null,
+      completed_by: item.done ? input.actorProfileId : null,
+      created_by: input.actorProfileId,
+      updated_by: input.actorProfileId,
+      metadata: {
+        source: "mission_detail",
+      } as Json,
+    })),
+  );
+}
+
 function canAccessMission(mission: MissionRow, userId: string, role: string) {
   return canAccessMissionForRole({
     role,
@@ -563,6 +678,7 @@ async function hydrateMissionDetail(mission: MissionRow) {
     { data: quotes },
     { data: invoices },
     { data: providerInterventions },
+    missionChecklist,
     { data: providers },
     property,
   ] =
@@ -593,6 +709,7 @@ async function hydrateMissionDetail(mission: MissionRow) {
         .order("created_at", { ascending: false })
         .limit(10),
       loadProviderInterventionsForMission(mission),
+      loadMissionChecklistItems(mission.id),
       dbAny
         .from("profiles")
         .select("id, first_name, last_name, username, company_name, role, city")
@@ -609,8 +726,16 @@ async function hydrateMissionDetail(mission: MissionRow) {
     mission.service_label ||
     (typeof metadata.property_label === "string" ? `Mission ${metadata.property_label}` : null);
   const proofLinks = Array.isArray(metadata.proof_links) ? metadata.proof_links : [];
-  const checklist = Array.isArray(metadata.checklist) ? metadata.checklist : [];
+  const metadataChecklist = Array.isArray(metadata.checklist) ? metadata.checklist : [];
+  const checklist =
+    missionChecklist.items && missionChecklist.items.length > 0
+      ? missionChecklist.items
+      : metadataChecklist;
   const conversationId = conversations?.[0]?.id ?? null;
+  const providerInterventionsWithReports = await attachProviderInterventionReports(
+    dbAny,
+    providerInterventions ?? [],
+  );
 
   return {
     mission: {
@@ -629,11 +754,12 @@ async function hydrateMissionDetail(mission: MissionRow) {
     conversation_id: conversationId,
     quotes: (quotes ?? []).map(attachQuoteWorkflow),
     invoices: invoices ?? [],
-    provider_interventions: providerInterventions ?? [],
+    provider_interventions: providerInterventionsWithReports.items,
     providers: providers ?? [],
     evidence: {
       proof_links: proofLinks,
       checklist,
+      checklist_schema_ready: missionChecklist.schemaReady,
       signature: metadata.owner_signature ?? metadata.concierge_signature ?? null,
     },
     quick_links: {
@@ -695,6 +821,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const eventPayload: Record<string, unknown> = { action };
     let eventType = "updated";
     let statusMessage: string | null = null;
+    let checklistToPersist: MissionChecklistPayloadItem[] | null = null;
 
     const actionStatus = getMissionActionTarget(action);
     let requestedStatus = actionStatus ?? (body.status ? normalizeMissionStatus(body.status) : null);
@@ -827,12 +954,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       if (!CONCIERGE_MISSION_ROLES.has(role)) {
         return NextResponse.json({ error: "Checklist reservee a la conciergerie" }, { status: 403 });
       }
-      const checklist = Array.isArray(body.checklist) ? body.checklist : [];
+      const checklist = normalizeChecklistPayload(body.checklist);
+      checklistToPersist = checklist;
       patch.metadata = {
         ...metadata,
-        checklist: checklist.slice(0, 30),
+        checklist,
+        checklist_source: "mission_checklist_items",
+        checklist_synced_at: new Date().toISOString(),
       } as Json;
       eventPayload.checklist_updated = true;
+      eventPayload.checklist_item_count = checklist.length;
     }
 
     if (action === "assign_team_member") {
@@ -954,6 +1085,25 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (updateError || !updatedMission) {
       console.error("[PATCH /api/missions/[id]] update error:", updateError);
       return NextResponse.json({ error: "Erreur mise a jour mission" }, { status: 500 });
+    }
+
+    if (checklistToPersist) {
+      const checklistResult = await replaceMissionChecklistItems({
+        missionId: mission.id,
+        checklist: checklistToPersist,
+        actorProfileId: userId,
+      });
+
+      if (checklistResult.error) {
+        if (isMissingMissionChecklistTable(checklistResult.error)) {
+          return NextResponse.json(
+            { error: "Migration mission_checklist_items requise pour sauvegarder la checklist." },
+            { status: 500 },
+          );
+        }
+        console.error("[PATCH /api/missions/[id]] checklist persist error:", checklistResult.error);
+        return NextResponse.json({ error: "Erreur sauvegarde checklist mission" }, { status: 500 });
+      }
     }
 
     const eventInsert = await dbAny.from("mission_events").insert({

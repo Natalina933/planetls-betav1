@@ -25,6 +25,13 @@ type ProviderIntervention = {
   currency: string | null;
   location_label: string | null;
   created_at: string;
+  completion_report?: {
+    summary: string;
+    work_performed: string | null;
+    follow_up_required: boolean;
+    follow_up_notes: string | null;
+    submitted_at: string;
+  } | null;
 };
 
 type ProviderInterventionsPayload = {
@@ -54,6 +61,10 @@ type InterventionFormState = {
   budget_amount: string;
   currency: string;
   location_label: string;
+  completion_summary: string;
+  work_performed: string;
+  follow_up_required: boolean;
+  follow_up_notes: string;
 };
 
 const defaultForm: InterventionFormState = {
@@ -68,6 +79,10 @@ const defaultForm: InterventionFormState = {
   budget_amount: "",
   currency: "EUR",
   location_label: "",
+  completion_summary: "",
+  work_performed: "",
+  follow_up_required: false,
+  follow_up_notes: "",
 };
 
 function formatDateTime(value: string | null) {
@@ -105,6 +120,10 @@ function toFormState(item: ProviderIntervention): InterventionFormState {
     budget_amount: item.budget_amount != null ? String(item.budget_amount) : "",
     currency: item.currency ?? "EUR",
     location_label: item.location_label ?? "",
+    completion_summary: item.completion_report?.summary ?? "",
+    work_performed: item.completion_report?.work_performed ?? "",
+    follow_up_required: Boolean(item.completion_report?.follow_up_required),
+    follow_up_notes: item.completion_report?.follow_up_notes ?? "",
   };
 }
 
@@ -295,6 +314,16 @@ function ProviderInterventionsContent() {
         budget_amount: form.budget_amount.trim() ? Number(form.budget_amount) : null,
         currency: form.currency.trim() || "EUR",
         location_label: form.location_label.trim() || null,
+        completion_report:
+          form.status === "completed" &&
+          [form.completion_summary, form.work_performed, form.follow_up_notes].some((value) => value.trim())
+            ? {
+                summary: form.completion_summary.trim() || form.work_performed.trim() || "Intervention terminee.",
+                work_performed: form.work_performed.trim() || null,
+                follow_up_required: form.follow_up_required,
+                follow_up_notes: form.follow_up_notes.trim() || null,
+              }
+            : undefined,
       };
 
       const response = await fetch(
@@ -482,6 +511,35 @@ function ProviderInterventionsContent() {
                 onChange={(event) => updateField("description", event.target.value)}
                 placeholder="Travaux à effectuer, contexte client, consignes..."
               />
+              <Textarea
+                label="Compte rendu"
+                className={[styles.fieldTextarea, styles.fullWidth].join(" ")}
+                value={form.completion_summary}
+                onChange={(event) => updateField("completion_summary", event.target.value)}
+                placeholder="Synthese de fin d'intervention"
+              />
+              <Textarea
+                label="Travaux realises"
+                className={[styles.fieldTextarea, styles.fullWidth].join(" ")}
+                value={form.work_performed}
+                onChange={(event) => updateField("work_performed", event.target.value)}
+                placeholder="Actions effectuees, pieces remplacees, controles..."
+              />
+              <label className={[styles.checkboxLine, styles.fullWidth].join(" ")}>
+                <input
+                  type="checkbox"
+                  checked={form.follow_up_required}
+                  onChange={(event) => updateField("follow_up_required", event.target.checked)}
+                />
+                Suivi requis apres intervention
+              </label>
+              <Textarea
+                label="Suivi a prevoir"
+                className={[styles.fieldTextarea, styles.fullWidth].join(" ")}
+                value={form.follow_up_notes}
+                onChange={(event) => updateField("follow_up_notes", event.target.value)}
+                placeholder="Point a revoir, achat a valider, retour owner..."
+              />
               <div className={styles.formActions}>
                 <Button type="submit" disabled={!canSubmit || saving}>
                   {saving ? "Enregistrement..." : editingId ? "Mettre à jour" : "Ajouter"}
@@ -597,6 +655,18 @@ function ProviderInterventionsContent() {
                         <span>Budget: {item.budget_amount != null ? `${item.budget_amount} ${item.currency || "EUR"}` : "Non renseigné"}</span>
                       </div>
                       {item.description ? <p className={styles.itemBody}>{item.description}</p> : null}
+                      {item.completion_report ? (
+                        <div className={styles.reportBox}>
+                          <strong>Compte rendu</strong>
+                          <p>{item.completion_report.summary}</p>
+                          {item.completion_report.work_performed ? <span>{item.completion_report.work_performed}</span> : null}
+                          {item.completion_report.follow_up_required ? (
+                            <span>
+                              Suivi requis{item.completion_report.follow_up_notes ? ` : ${item.completion_report.follow_up_notes}` : ""}
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : null}
                       <div className={styles.cardActions}>
                         <Select
                           className={styles.statusSelect}
