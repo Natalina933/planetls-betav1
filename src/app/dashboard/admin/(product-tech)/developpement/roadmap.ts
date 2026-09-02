@@ -221,7 +221,9 @@ function itemScore(item: RoadmapItem, blockedBy: string[], isReady: boolean, isC
 }
 
 export function buildRoadmapView(plan: MasterPlanView): RoadmapView {
-  const items = plan.planning.map((item, index, allItems) => {
+  // P4 is an idea inbox: it is intentionally excluded from commitments and next-action scoring.
+  const activePlanning = plan.planning.filter((item) => item.priority !== "P4 Idée / À étudier");
+  const items = activePlanning.map((item, index, allItems) => {
     const difficulty = inferDifficulty(item);
     const estimationDays = inferEstimationDays(item, difficulty);
     const dependencies = findDependencyIds(allItems, index);

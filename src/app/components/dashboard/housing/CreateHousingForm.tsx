@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { FiPlus } from "react-icons/fi";
 import HousingPhotoManager from "@/app/components/dashboard/housing/HousingPhotoManager";
+import { removeHousingPhoto } from "@/app/lib/housingPhotoUrl";
 import formStyles from "@/app/dashboard/concierge/logements/LogementsPage.module.scss";
 import pageStyles from "@/app/dashboard/owner/OwnerDashboardPages.module.scss";
 import {
@@ -70,11 +71,11 @@ export default function CreateHousingForm({ redirectPath }: CreateHousingFormPro
         });
 
         const payload = await response.json().catch(() => ({}));
-        if (!response.ok || typeof payload?.url !== "string") {
+        if (!response.ok || typeof payload?.path !== "string") {
           throw new Error(typeof payload?.error === "string" ? payload.error : "Upload photo impossible.");
         }
 
-        uploadedUrls.push(payload.url);
+        uploadedUrls.push(payload.path);
       }
 
       setForm((prev) => {
@@ -107,7 +108,13 @@ export default function CreateHousingForm({ redirectPath }: CreateHousingFormPro
     });
   };
 
-  const removeHousingPhoto = (photo: string) => {
+  const removePhoto = async (photo: string) => {
+    try {
+      await removeHousingPhoto(photo, "draft");
+    } catch (removeError) {
+      setError(removeError instanceof Error ? removeError.message : "Suppression de la photo impossible.");
+      return;
+    }
     setForm((prev) => {
       const currentPhotos = prev.photos ?? (prev.photo ? [prev.photo] : []);
       const nextPhotos = currentPhotos.filter((item) => item !== photo);
@@ -330,12 +337,13 @@ export default function CreateHousingForm({ redirectPath }: CreateHousingFormPro
               editing={true}
               photos={housingPhotos}
               primaryPhoto={form.photo ?? null}
+              housingId="draft"
               uploading={photoUploading}
               title="Photos du logement"
               helperText="Sélectionnez vos photos depuis votre appareil puis choisissez la photo principale."
               onUpload={uploadHousingPhotos}
               onSetPrimary={setPrimaryHousingPhoto}
-              onRemove={removeHousingPhoto}
+              onRemove={removePhoto}
             />
           </section>
 

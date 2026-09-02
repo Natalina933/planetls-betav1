@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { FiCamera, FiEdit2, FiFileText, FiHome, FiList, FiRotateCcw, FiSave } from "react-icons/fi";
 import { Avatar } from "@/components/ui/Avatar";
 import HousingPhotoManager from "@/app/components/dashboard/housing/HousingPhotoManager";
+import { removeHousingPhoto, toHousingPhotoUrl } from "@/app/lib/housingPhotoUrl";
 import styles from "./LogementWorkspace.module.scss";
 import HousingStatusBadge from "./HousingStatusBadge";
 import HousingOwnerContactSection from "./HousingOwnerContactSection";
@@ -361,11 +362,11 @@ export default function LogementPage() {
         });
 
         const payload = await response.json().catch(() => ({}));
-        if (!response.ok || typeof payload?.url !== "string") {
+        if (!response.ok || typeof payload?.path !== "string") {
           throw new Error(typeof payload?.error === "string" ? payload.error : "Upload photo impossible.");
         }
 
-        uploadedUrls.push(payload.url);
+        uploadedUrls.push(payload.path);
       }
 
       updateDraft("characteristics", {
@@ -392,7 +393,13 @@ export default function LogementPage() {
     });
   }
 
-  function removeHousingPhoto(photo: string) {
+  async function removePhoto(photo: string) {
+    try {
+      await removeHousingPhoto(photo, id);
+    } catch (removeError) {
+      setError(removeError instanceof Error ? removeError.message : "Suppression de la photo impossible.");
+      return;
+    }
     if (!draft) return;
     const nextPhotos = (draft.characteristics.photos ?? []).filter((item) => item !== photo);
     updateDraft("characteristics", {
@@ -664,7 +671,7 @@ export default function LogementPage() {
                       {housingPhotos.map((photo, index) => (
                         <div className={styles.housingGalleryItem} key={`${photo}-${index}`}>
                           <Image
-                            src={photo}
+                            src={toHousingPhotoUrl(photo, id)}
                             alt={`Photo ${index + 1} du logement`}
                             className={styles.housingGalleryImage}
                             width={800}
@@ -740,12 +747,13 @@ export default function LogementPage() {
                         editing={editing}
                         photos={housingPhotos}
                         primaryPhoto={draft.photo_principale}
+                        housingId={id}
                         uploading={photoUploading}
                         title="Galerie du logement"
                         helperText="Ajoute plusieurs photos utiles pour la fiche logement, les demandes de mission et le suivi conciergerie."
                         onUpload={uploadHousingPhotos}
                         onSetPrimary={setPrimaryHousingPhoto}
-                        onRemove={removeHousingPhoto}
+                        onRemove={removePhoto}
                       />
                     </div>
 

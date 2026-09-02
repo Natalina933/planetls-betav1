@@ -1131,7 +1131,7 @@ function priorityScore(priority: string) {
   if (priority === "P1 Prioritaire") return 1;
   if (priority === "P2 Important") return 2;
   if (priority === "P3 Confort") return 3;
-  if (priority === "P4 Évolution future") return 4;
+  if (priority === "P4 Idée / À étudier") return 4;
   return 9;
 }
 
@@ -1764,7 +1764,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
     p1: plan.planning.filter((row) => row.priority === "P1 Prioritaire"),
     p2: plan.planning.filter((row) => row.priority === "P2 Important"),
     p3: plan.planning.filter((row) => row.priority === "P3 Confort"),
-    p4: plan.planning.filter((row) => row.priority === "P4 Évolution future"),
+    p4: plan.planning.filter((row) => row.priority === "P4 Idée / À étudier"),
   }), [plan.planning]);
   const canonicalPriorityRows = useMemo(() => {
     const normalizedQuery = priorityQuery.trim().toLocaleLowerCase("fr");
@@ -1805,6 +1805,14 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
         && (!priorityPersonaFilter || item.persona === priorityPersonaFilter);
     });
   }, [plan.registryItems, priorityDomainFilter, priorityLevelFilter, priorityPersonaFilter, priorityQuery, priorityStatusFilter]);
+  const futurePriorityRows = useMemo(
+    () => canonicalPriorityRows.filter((item) => item.priority === "P4"),
+    [canonicalPriorityRows],
+  );
+  const activePriorityRows = useMemo(
+    () => canonicalPriorityRows.filter((item) => item.priority !== "P4"),
+    [canonicalPriorityRows],
+  );
   const priorityDomains = useMemo(() => Array.from(new Set(canonicalPriorityRows.map((item) => item.domain))).sort((left, right) => left.localeCompare(right, "fr")), [canonicalPriorityRows]);
   const priorityPersonas = useMemo(() => Array.from(new Set(canonicalPriorityRows.map((item) => item.persona))).sort((left, right) => left.localeCompare(right, "fr")), [canonicalPriorityRows]);
   const priorityStatuses = useMemo(() => Array.from(new Set(canonicalPriorityRows.map((item) => item.statusLabel))).sort((left, right) => left.localeCompare(right, "fr")), [canonicalPriorityRows]);
@@ -2123,11 +2131,11 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
               ))}
               <article className={styles.auditCard}>
                 <strong>Priorités suivies</strong>
-                <p>P0 {plan.registryItems.filter((item) => item.priority === "P0").length} · P1 {plan.registryItems.filter((item) => item.priority === "P1").length} · P2 {plan.registryItems.filter((item) => item.priority === "P2").length} · P3 {plan.registryItems.filter((item) => item.priority === "P3").length + PRIORITY_TABLE_ROWS.filter((item) => item.level === "P3").length}</p>
+                <p>P0 {plan.registryItems.filter((item) => item.priority === "P0").length} · P1 {plan.registryItems.filter((item) => item.priority === "P1").length} · P2 {plan.registryItems.filter((item) => item.priority === "P2").length} · P3 {plan.registryItems.filter((item) => item.priority === "P3").length} · P4 {plan.registryItems.filter((item) => item.priority === "P4").length}</p>
               </article>
               <article className={styles.auditCard}>
                 <strong>États des priorités</strong>
-                <p>En cours {plan.registryItems.filter((item) => item.status === "IN_PROGRESS").length} · Prêt {plan.registryItems.filter((item) => item.status === "READY").length} · À vérifier {plan.registryItems.filter((item) => item.status === "TO_VERIFY").length} · Terminées {plan.registryItems.filter((item) => item.status === "COMPLETED").length} · Bloquées {plan.registryItems.filter((item) => item.status === "BLOCKED").length} · Reportées {plan.registryItems.filter((item) => item.status === "DEFERRED").length} · Idées {plan.registryItems.filter((item) => item.status === "IDEA").length + PRIORITY_TABLE_ROWS.filter((item) => item.level === "P3").length}</p>
+                <p>En cours {plan.registryItems.filter((item) => item.status === "IN_PROGRESS").length} · Prêt {plan.registryItems.filter((item) => item.status === "READY").length} · À vérifier {plan.registryItems.filter((item) => item.status === "TO_VERIFY").length} · Terminées {plan.registryItems.filter((item) => item.status === "COMPLETED").length} · Bloquées {plan.registryItems.filter((item) => item.status === "BLOCKED").length} · Reportées {plan.registryItems.filter((item) => item.status === "DEFERRED").length} · Idées actives {plan.registryItems.filter((item) => item.status === "IDEA").length}</p>
               </article>
             </CardBody> : null}
           </Card>
@@ -2275,7 +2283,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                     </tr>
                   </thead>
                   <tbody>
-                    {canonicalPriorityRows.map((item) => (
+                    {activePriorityRows.map((item) => (
                       <tr key={item.id}>
                         <td><strong>{item.id}</strong><br />{item.trackingId}</td>
                         <td>{formatDateOnly(item.addedAt)}</td>
@@ -2292,10 +2300,30 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                         <td>{item.updatedAt}</td>
                       </tr>
                     ))}
-                    {!canonicalPriorityRows.length && <tr><td colSpan={13}>Aucune priorité ne correspond aux filtres actifs.</td></tr>}
+                    {!activePriorityRows.length && <tr><td colSpan={13}>Aucune priorité active ne correspond aux filtres. Les idées P4 sont listées séparément ci-dessous.</td></tr>}
                   </tbody>
                 </table>
               </div>
+              <details className={styles.executionDetails}>
+                <summary>P4 Idées / À étudier ({futurePriorityRows.length})</summary>
+                <p className={styles.sidebarIntro}>Tiroir d'idées distinct de la roadmap active : les P4 ne comptent ni comme travaux en cours, ni comme retards, ni comme engagements MVP. Un passage vers P3, P2, P1 ou P0 exige une décision documentée, avec besoin terrain, valeur, urgence, effort, dépendances, risques et preuve.</p>
+                <div className={styles.compactChecklist}>
+                  {futurePriorityRows.length ? futurePriorityRows.map((item) => (
+                    <article key={`${item.id}-future`} className={styles.auditCard}>
+                      <strong>{item.id} · {item.title}</strong>
+                      <p>{item.progressLabel}</p>
+                      {item.userNeed ? <p><strong>Besoin :</strong> {item.userNeed}</p> : null}
+                      {item.potentialValue ? <p><strong>Valeur potentielle :</strong> {item.potentialValue}</p> : null}
+                      {item.businessModel ? <p><strong>Modèle envisagé :</strong> {item.businessModel}</p> : null}
+                      {item.risks || item.blocker ? <p><strong>Risques / inconnues :</strong> {item.risks || item.blocker}</p> : null}
+                      <p><strong>Prochaine action :</strong> {item.nextAction}</p>
+                    </article>
+                  )) : <article className={styles.auditCard}>
+                    <strong>Aucune idée future</strong>
+                    <p>Le registre ne remonte actuellement aucune priorité P4 avec les filtres actifs.</p>
+                  </article>}
+                </div>
+              </details>
 
               <div className={styles.priorityHeader}>
                 <strong>Automatisations &amp; Processus - tableau court</strong>

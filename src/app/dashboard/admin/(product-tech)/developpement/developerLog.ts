@@ -5,7 +5,7 @@ export const DEVELOPER_LOG_PRIORITIES = [
   "P1 Prioritaire",
   "P2 Important",
   "P3 Confort",
-  "P4 Évolution future",
+  "P4 Idée / À étudier",
 ] as const;
 
 export const DEVELOPER_LOG_STATUSES = [

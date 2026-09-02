@@ -31,6 +31,57 @@
 - Vérification : `node --experimental-strip-types --test src/tests/mission-checklist-persistence-contract.test.mts src/tests/mission-object-center.test.mts` PASS `4/4`; `npx eslint src/app/api/missions/[id]/route.ts src/tests/mission-checklist-persistence-contract.test.mts` PASS; `npm test` PASS `274/274`; `npm run check:migrations` PASS; `npm run development:check` PASS.
 - Limites connues : `npx tsc --noEmit --pretty false` reste bloqué par des erreurs existantes dans `src/tests/admin-problems.test.mts` lignes 46-50, sans erreur dans les fichiers de ce lot. `supabase db push --local` n'a pas pu valider la migration sur base existante car aucun Postgres Supabase local ne répondait sur `127.0.0.1:54322`.
 - Prochaine étape recommandée : ce lot checklist est maintenant complété par le lot compte-rendu prestataire du même jour ; valider l'ensemble P0-006 sur Supabase local frais + existant avec E2E connecté.
+### Mise à jour ciblée - Lot 1 de la priorité cockpit P0-007 `PLS-SEC-003` du 2 septembre 2026
+
+- Statut : `🟡 En cours`
+- Priorité : `P0 Critique`
+- Périmètre mis à jour : `docs/master-plan-planetls.md`, `src/app/lib/housingWriteGuards.ts`, `src/app/api/housing/route.ts`, `src/app/api/housing/[id]/route.ts`, `src/app/api/housing/photos/route.ts`, `src/app/dashboard/concierge/logements/create/createLogementHelpers.ts`, `src/tests/housing-write-guards.test.mts`, `src/tests/create-logement-helpers.test.mts`.
+- Réalité produit : le cockpit `Développement` numérote actuellement `P0-007` sur l'entrée canonique `PLS-SEC-003 Autorisation serveur et confidentialité des logements`, distincte de la capability map `PLS-CAP-007` sur la finance. Le lot a donc été cadré sur la sécurité logement et non sur la facturation.
+- Réalité code : `POST /api/housing` et `PATCH /api/housing/[id]` appliquent maintenant un garde-fou serveur explicite sur la cohérence `auteur -> owner_profile_id -> manager_profile_id`. Un owner ne peut plus enregistrer un logement pour un autre profil owner ; une concierge ne peut plus attribuer un autre manager que le profil connecté ; les administrateurs conservent le bypass explicite.
+- Réalité code : `POST /api/housing/photos` refuse désormais les rôles non autorisés, exige un `housingId` numérique valide hors brouillon, recharge le logement cible côté serveur et vérifie `canAccessHousing` avant tout upload. Le trou le plus direct `upload libre vers un logement tiers` est donc refermé dans ce lot.
+- Réalité code : le brouillon manuel concierge ne préremplit plus `owner.profileId` avec l'identifiant du manager. Un garde-fou serveur complémentaire nettoie aussi ce faux owner si un ancien brouillon `@pending.local` tente encore de le soumettre.
+- Critères Lot 1 retenus : sécuriser les mutations `create/update` les plus exposées, sécuriser l'upload photo lié à un logement existant, corriger le faux `owner_profile_id` côté création concierge, ajouter des tests unitaires du garde-fou et du brouillon manuel. Hors périmètre volontaire : privatisation/signature Storage, migration de bucket, couverture d'intégration multi-tenant connectée et rollback Storage.
+- Contradictions détectées : le libellé demandé `P0-007` pouvait faire croire à `PLS-CAP-007`, mais la numérotation canonique réelle du cockpit au 2 septembre 2026 l'associe à `PLS-SEC-003`. Le code et le registre structuré ont été pris comme source de vérité.
+- Limites connues : le bucket `housing-photos` reste public dans ce lot pour ne pas casser les écrans existants ; la confidentialité média n'est donc pas totalement refermée tant qu'une stratégie `privé ou URL signée` n'est pas branchée et testée. Les refus cross-tenant restent prouvés localement par tests unitaires, pas encore par intégration Supabase ou Storage connectée.
+- Vérification : `node --experimental-strip-types --test src/tests/housing-write-guards.test.mts src/tests/create-logement-helpers.test.mts src/tests/master-plan-registry.test.mts` à exécuter après ce lot ; build et tests plus larges à revalider selon l'état du workspace.
+- Prochaine étape recommandée : Lot 2 sur `PLS-SEC-003` = rendre `housing-photos` privé ou signé, vérifier la lecture des médias dans les pages owner/concierge, puis ajouter des tests d'intégration `401/403/tenant voisin` sur `housing` et Storage.
+
+### Mise à jour ciblée - Lot 2 de la priorité cockpit P0-007 `PLS-SEC-003` du 2 septembre 2026
+
+- Statut : `🟡 En cours`
+- Priorité : `P0 Critique`
+- Périmètre mis à jour : `supabase/migrations/20260902113000_private_housing_photos.sql`, `src/app/api/housing/photos/route.ts`, `src/app/lib/housingPhotoUrl.ts`, les galeries logement owner/concierge et `src/tests/housing-photo-security-contract.test.mts`.
+- Réalité code : `housing-photos` est privé par migration idempotente et l'API maintient également `public: false` lors de la création ou de la vérification du bucket. Les uploads renvoient désormais le chemin Storage, jamais une URL publique.
+- Réalité code : `GET /api/housing/photos` vérifie l'authentification et l'accès au logement, vérifie que le chemin appartient bien au logement ou à son brouillon, puis redirige vers une URL signée de cinq minutes. Les anciennes URL publiques conservées en base sont converties à l'affichage vers cette route, sans migration de données risquée.
+- Parcours vérifiés dans le code : les galeries owner, concierge, fiche logement et le gestionnaire partagé utilisent le même générateur d'URL contrôlée. Le brouillon reste visible uniquement par l'auteur connecté.
+- Contradiction résolue : le lot 1 annonçait explicitement un bucket encore public ; ce constat est désormais obsolète après ce lot 2. Il n'existe pas de test d'intégration connecté prouvant les politiques ou les refus réels Supabase.
+- Limites connues : le cycle de vie des fichiers retirés (suppression Storage / nettoyage des brouillons) n'est pas couvert. La migration doit encore être validée sur une base locale fraîche et une base existante représentative avec procédure de rollback, conformément à la gouvernance Supabase.
+- Vérification : `node --experimental-strip-types --test src/tests/housing-photo-security-contract.test.mts src/tests/housing-write-guards.test.mts src/tests/create-logement-helpers.test.mts src/tests/master-plan-registry.test.mts` et `npm run check:migrations` passent localement.
+- Prochaine étape recommandée : tester réellement la migration et les parcours `401/403/tenant voisin` sur une instance Supabase, puis traiter le nettoyage sécurisé des fichiers photo supprimés ou abandonnés.
+
+### Mise à jour ciblée - Lot 3 de la priorité cockpit P0-007 `PLS-SEC-003` du 2 septembre 2026
+
+- Statut : `🟡 En cours` ; priorité : `P0 Critique`.
+- Réalité code : le retrait de photo passe maintenant par une suppression Storage autorisée ; pour un logement existant, la référence JSON et la photo principale sont retirées avant le fichier. Un endpoint admin propose, par défaut en `dryRun`, le nettoyage plafonné des brouillons de plus de 24 h.
+- Réalité tests : `housing-photo-supabase.integration.test.mts` est prêt pour le bucket privé et les cas `401/403/owner`, mais se met volontairement en attente sans les fixtures `HOUSING_PHOTO_TEST_*`.
+- Blocage : Docker n'est pas requis. Aucun projet Supabase de test/branche ni jeton de gestion n'est configuré, et le projet lié ne peut pas être identifié avec certitude comme distinct de `planetls-beta-v2`. La migration n'est donc pas exécutée sans risque sur base fraîche ou existante. Le build reste bloqué séparément par l'erreur TypeScript préexistante de `MasterPlanViewer.tsx`.
+- Prochaine étape : fournir ou créer une instance Supabase de test isolée (ou une branche), ses accès de gestion et les URLs/cookies de fixture ; appliquer la migration, exécuter les scénarios connectés puis n'autoriser `dryRun=false` qu'après prévisualisation.
+
+### Mise à jour ciblée - Audit des nouvelles idées produit et séparation P4 du 2 septembre 2026
+
+- Statut : `🟠 Partiel`
+- Priorité : `P2 Important`
+- Périmètre mis à jour : `docs/master-plan-planetls.md`, `src/app/dashboard/admin/(product-tech)/developpement/MasterPlanViewer.tsx`, `src/tests/master-plan-registry.test.mts`.
+- Réalité produit : l'audit confirme que plusieurs idées transmises le 2 septembre 2026 étaient déjà couvertes partiellement par le pilotage existant. `PLS-DEV-020` couvre déjà l'optimisation des tournées concierge, `PLS-DEV-021` le compte rendu vocal terrain, `PLS-DEV-025` le pilotage de l'occupation, `PLS-DEV-027` la PWA, `PLS-DEV-028` une partie de l'évolution artisan, `PLS-DEV-030` la gestion des clés et `PLS-DEV-031` l'activation guidée.
+- Réalité produit : les surfaces code déjà présentes ne suffisent pas à déclarer ces idées terminées. Le planning concierge, les stocks, les urgences, la décoration IA, l'espace provider/artisan, les pages logement et les modules business existent dans le dépôt, mais la plupart restent `partiels`, `à planifier` ou `à étudier` selon le niveau de preuve réellement disponible.
+- Décision de pilotage : ne pas déclasser ni reclasser artificiellement les priorités déjà structurées sans nouvelle preuve de code ou de tests. Les entrées existantes sont enrichies lorsque l'idée recouvre le même besoin ; seules les idées réellement absentes sont ajoutées.
+- Décision de déduplication : `Parcours journalier du concierge` fusionne avec `PLS-DEV-020`, `Compte rendu vocal des arrivées et départs` avec `PLS-DEV-021`, `Gestion sécurisée des clés` avec `PLS-DEV-030`, `Gestion et amélioration du taux d'occupation` avec `PLS-DEV-025`, `Application installable PWA` avec `PLS-DEV-027`, `Évolution de l'espace Artisan` reste reliée à `PLS-DEV-028` pour la recherche et reçoit en plus une entrée dédiée pour le cockpit métier provider/artisan.
+- Priorités ajoutées : `PLS-AI-001` assistant éditorial premium `P4`, `PLS-OPS-001` stocks et consommables `P3`, `PLS-DATA-005` carnet numérique du logement `P3`, `PLS-OPS-002` mode urgence `P3`, `PLS-PRO-001` espace provider/artisan enrichi `P3`, `PLS-BIZ-002` rémunération flexible des concierges `P4`, `PLS-AI-002` simulations visuelles déco `P4`.
+- Règle P4 : `P4 Idée / À étudier` est un tiroir distinct de la roadmap active. Il ne compte ni comme chantier en cours, ni comme retard, ni comme livrable MVP. Le passage vers `P3`, `P2`, `P1` ou `P0` ne peut suivre qu'une décision explicite et datée, documentant le besoin utilisateur, la valeur, les profils concernés, l'urgence, l'impact métier, l'effort, les dépendances, les risques, la cohérence stratégique et les preuves disponibles. `P4 -> P3` valide une amélioration future ; `P4 -> P2` une fonctionnalité importante après les fondations ; `P4 -> P1` une priorité démontrée pour les utilisateurs ou le modèle économique ; `P4 -> P0` reste limité à un besoin indispensable au fonctionnement, à la sécurité ou au parcours métier principal.
+- Contradictions détectées : le cockpit Développement affichait déjà `P4` dans le référentiel canonique, mais ses compteurs rapides continuaient à mélanger les idées actives du registre et l'archive historique `P3`, ce qui brouillait la lecture des sujets futurs.
+- Limites connues : cette mission reste documentaire. Aucun workflow métier, schéma Supabase, écran métier, règle de paiement, moteur IA, PWA offline ou intégration provider supplémentaire n'est implémenté dans ce lot.
+- Vérification : audit croisé du Master Plan, de `masterPlan.ts`, de la page `/dashboard/admin/developpement`, des pages `concierge/planning`, `concierge/stocks`, `concierge/urgences`, `concierge/decoration-ai`, `provider`, `owner`, ainsi que des tests du registre et du cockpit.
+- Prochaine étape recommandée : traiter séparément les fondations encore prioritaires `P0 à P2`, puis ouvrir des lots cadrés sur `stocks`, `carnet logement`, `urgence` ou `provider/artisan` seulement si les dépendances `data`, `permissions` et `tests` sont suffisamment stabilisées.
 
 ### Mise à jour ciblée - Clôture de la priorité historique P0-005 housing/properties du 27 août 2026
 
@@ -237,7 +288,7 @@
 
 - Statut : `✅ Terminé`
 - Priorité : `P1 Prioritaire`
-- Décision de pilotage : `P4 Évolution future` est rétabli dans la taxonomie active du registre et du cockpit. Il isole les paris stratégiques et les évolutions lointaines de `P3 Confort`, sans les faire concurrencer les lots P0 à P2.
+- Décision de pilotage : `P4 Idée / À étudier` est rétabli dans la taxonomie active du registre et du cockpit. Il isole les paris stratégiques et les évolutions lointaines de `P3 Confort`, sans les faire concurrencer les lots P0 à P2.
 - Réalité produit : le registre expose désormais un champ `Horizon` avec les valeurs `MVP`, `Pilote`, `Après pilote` et `Long terme`. En attendant que chaque entrée le renseigne explicitement dans le JSON, une valeur déterministe est dérivée de sa priorité.
 - Vérification : les listes fermées du parseur, les filtres du cockpit, les compteurs, la roadmap et le calcul du prochain ID couvrent désormais `P0` à `P4`.
 
@@ -1217,43 +1268,43 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "id": "PLS-DEV-020",
       "domain": "Conciergerie",
       "title": "Optimisation des tournées terrain",
-      "summary": "Proposer un ordre de passage quotidien tenant compte des horaires, logements et contraintes, tout en laissant la main au concierge.",
+      "summary": "Donner au concierge un mode `Ma journée` avec missions du jour, ordre de passage, urgence, retards, problèmes signalés et suggestion de tournée modifiable.",
       "status": "IDEA",
       "priority": "P2",
       "type": "feature",
       "persona": "Concierge, équipe terrain",
       "phase": "Exécution terrain",
-      "updatedAt": "2026-08-24",
-      "nextAction": "Vérifier la fiabilité des adresses et horaires, puis cadrer un premier algorithme de suggestion modifiable.",
-      "validationCriteria": ["Suggestion explicable", "Modification manuelle possible", "Aucune mission déplacée sans validation"],
+      "updatedAt": "2026-09-02",
+      "nextAction": "Définir un premier mode `Ma journée` lisible sans optimisation automatique obligatoire, vérifier la fiabilité des adresses, horaires et urgences, puis cadrer une suggestion de parcours toujours modifiable.",
+      "validationCriteria": ["Les missions du jour sont visibles dans un ordre exploitable", "Le concierge peut réordonner et confirmer les étapes", "Un retard ou un problème peut être signalé sans quitter le flux", "La suggestion de tournée reste explicable et modifiable", "Aucune mission n'est déplacée automatiquement sans validation"],
       "dependencies": ["PLS-DEV-009", "PLS-DEV-015"],
       "blocker": "Les données de géolocalisation et contraintes terrain doivent être normalisées.",
       "routes": ["/dashboard/concierge/planning"],
       "files": ["src/app/dashboard/concierge/planning/"],
-      "progressLabel": "Piste historique P2-020, non implémentée.",
-      "source": "docs/master-plan-planetls.md#mises-a-jour-ciblees-historiques-p2-020",
-      "evidence": ["Master Plan historique : P2-020, 14 août 2026"]
+      "progressLabel": "La page planning expose déjà urgences, horaires et optimisation locale, mais le vrai parcours `Ma journée` avec confirmations d'étapes, retards et incidents reste à spécifier.",
+      "source": "Historique P2-020 enrichi par l'audit produit du 2 septembre 2026",
+      "evidence": ["Master Plan historique : P2-020, 14 août 2026", "src/app/dashboard/concierge/planning/page.tsx", "src/app/dashboard/concierge/planning/OptimizedRoutePlanner.tsx"]
     },
     {
       "id": "PLS-DEV-021",
       "domain": "IA terrain",
       "title": "Compte rendu vocal avec validation humaine",
-      "summary": "Transcrire et structurer un compte rendu de check-in ou check-out avant validation et persistance par le professionnel.",
+      "summary": "Permettre au concierge de dicter un compte rendu après check-in, check-out ou intervention, puis proposer un rapport structuré avec validation humaine avant toute persistance.",
       "status": "IDEA",
       "priority": "P2",
       "type": "feature",
       "persona": "Concierge, owner",
       "phase": "Exécution terrain",
-      "updatedAt": "2026-08-24",
-      "nextAction": "Spécifier le flux transcription -> proposition structurée -> validation -> preuve et les cas d'anomalie.",
-      "validationCriteria": ["Aucune écriture sans validation", "Rapport lié à la mission ou au séjour", "Anomalies traçables"],
+      "updatedAt": "2026-09-02",
+      "nextAction": "Spécifier le flux dictée ou transcription -> proposition structurée -> ajout de photos ou preuves -> validation -> notification owner, avec gestion explicite des anomalies et travaux à prévoir.",
+      "validationCriteria": ["Aucune écriture sans validation humaine", "Le rapport est lié à une mission, un séjour ou une intervention", "L'état du logement, les anomalies, les éléments manquants et actions recommandées sont structurés", "Les photos ou preuves restent rattachables au rapport", "La notification owner reste explicite et réversible"],
       "dependencies": ["PLS-DEV-009", "PLS-DEV-015"],
       "blocker": null,
-      "routes": ["/dashboard/concierge/missions"],
+      "routes": ["/dashboard/concierge/missions", "/dashboard/concierge/sejours"],
       "files": ["src/app/dashboard/concierge/", "src/app/api/workflow-events/"],
-      "progressLabel": "Piste historique P2-021, non implémentée ; l'IA prépare, le professionnel décide.",
-      "source": "docs/master-plan-planetls.md#mises-a-jour-ciblees-historiques-p2-021",
-      "evidence": ["Master Plan historique : P2-021, 14 août 2026"]
+      "progressLabel": "Piste historique toujours non implémentée ; le besoin est maintenant cadré aussi pour les interventions et la notification propriétaire, sans laisser l'IA écrire seule.",
+      "source": "Historique P2-021 enrichi par l'audit produit du 2 septembre 2026",
+      "evidence": ["Master Plan historique : P2-021, 14 août 2026", "src/app/dashboard/concierge/sejours/page.tsx", "src/app/dashboard/concierge/missions/page.tsx"]
     },
     {
       "id": "PLS-DEV-022",
@@ -1322,22 +1373,22 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "id": "PLS-DEV-025",
       "domain": "Owner",
       "title": "Pilotage du taux d'occupation et jours vacants",
-      "summary": "Aider le propriétaire à repérer les périodes creuses et les opportunités de remplissage avec des données réellement disponibles.",
+      "summary": "Aider le propriétaire à suivre réservations, périodes libres, taux d'occupation et jours difficiles à remplir, avec recommandations descriptives sans promesse de revenu.",
       "status": "IDEA",
       "priority": "P3",
       "type": "feature",
       "persona": "Owner",
       "phase": "Valeur financière owner",
-      "updatedAt": "2026-08-24",
-      "nextAction": "Auditer la qualité des séries de réservation et définir une première lecture descriptive avant toute recommandation tarifaire.",
-      "validationCriteria": ["Calcul explicable", "Données source visibles", "Aucune recommandation présentée comme certaine"],
+      "updatedAt": "2026-09-02",
+      "nextAction": "Auditer la qualité des séries de réservation, définir des vues comparaison de périodes et jours vacants, puis limiter la V1 à des recommandations d'aide à la décision sur prix, durée minimale, promotions ou communication.",
+      "validationCriteria": ["Le taux d'occupation et les jours vacants sont calculables de façon explicable", "Les périodes comparées et la source des réservations restent visibles", "Les recommandations sont présentées comme aides à la décision et non comme garanties de revenus", "Les jours difficiles à remplir sont identifiables sans prédiction opaque"],
       "dependencies": ["PLS-DEV-024", "PLS-DEV-017"],
       "blocker": "Les données externes et historiques doivent être consolidées avant une recommandation.",
       "routes": ["/dashboard/owner"],
       "files": ["src/app/dashboard/owner/"],
-      "progressLabel": "Piste business owner à tester, sans moteur de prix ou prédiction actuellement prouvé.",
-      "source": "Cahier des charges Développement",
-      "evidence": ["Analyse besoins owner, août 2026"]
+      "progressLabel": "Piste owner toujours exploratoire ; aucune recommandation tarifaire ou garantie de remplissage n'est actuellement prouvée dans le produit.",
+      "source": "Cahier des charges Développement enrichi par l'audit produit du 2 septembre 2026",
+      "evidence": ["Analyse besoins owner, août 2026", "Demande produit du 2 septembre 2026"]
     },
     {
       "id": "PLS-DEV-026",
@@ -1673,24 +1724,24 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "id": "PLS-DEV-027",
       "domain": "Mobile terrain",
       "title": "PWA, notifications push et usage hors ligne",
-      "summary": "Faire évoluer l'accès mobile terrain après validation des parcours mission et de la persistance des médias.",
+      "summary": "Préparer une application installable avec manifeste, icône PlanetLS, expérience responsive, mises à jour maîtrisées et offline limité aux usages terrain pertinents.",
       "status": "DEFERRED",
       "priority": "P4",
       "type": "feature",
       "persona": "Concierge, provider, artisan",
       "phase": "Évolution future",
-      "updatedAt": "2026-08-25",
-      "nextAction": "Mesurer le besoin terrain pendant le pilote puis cadrer un MVP limité aux missions et aux médias indispensables.",
-      "validationCriteria": ["Besoin terrain confirmé", "Parcours mobile prioritaire validé", "Stratégie offline et sécurité des médias définies"],
+      "updatedAt": "2026-09-02",
+      "nextAction": "Mesurer le besoin terrain pendant le pilote puis cadrer un MVP PWA limité à l'installation, au manifeste, à l'icône, aux mises à jour et à quelques lectures ou brouillons offline avant toute notification push.",
+      "validationCriteria": ["Le besoin d'installation est confirmé sur desktop ou mobile", "Le manifeste, l'icône et l'expérience responsive sont cohérents avec l'identité PlanetLS", "La stratégie offline est limitée aux usages réellement utiles", "Les conflits de synchronisation et la sécurité des médias sont définis", "Les notifications push restent séparées et étudiées plus tard"],
       "validatedCriteria": [],
       "dependencies": ["PLS-DEV-009", "PLS-DEV-013"],
       "blocker": "Aucune validation terrain ni modèle offline sécurisé ne permet de l'industrialiser avant le pilote.",
       "routes": ["/dashboard/concierge/missions", "/dashboard/provider"],
       "files": ["docs/master-plan-planetls.md", "src/app/dashboard/concierge/", "src/app/dashboard/provider/"],
-      "progressLabel": "Sujet historique présent dans le Master Plan, désormais visible comme P4 canonique plutôt que masqué par la taxonomie P0-P3.",
+      "progressLabel": "Sujet futur confirmé, à isoler du flux prioritaire tant que l'installation, l'offline limité et les mises à jour ne sont pas cadrés sur des usages terrain prouvés.",
       "source": "docs/master-plan-planetls.md#roadmap-produit-et-technique",
-      "evidence": ["Master Plan : PWA/push/offline à faire, P4 Évolution future"],
-      "missingWork": ["Interviewer les utilisateurs terrain", "Définir le périmètre offline", "Prévoir les tests de synchronisation et de conflit"],
+      "evidence": ["Master Plan : PWA/push/offline à faire, P4 Idée / À étudier", "public/manifest.json déjà présent mais non traité comme PWA métier complète"],
+      "missingWork": ["Interviewer les utilisateurs terrain", "Définir le périmètre installable et offline", "Dessiner l'icône PlanetLS dédiée", "Prévoir les tests de synchronisation et de conflit", "Étudier séparément les notifications push"],
       "githubIssues": []
     },
     {
@@ -1698,23 +1749,23 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "domain": "Sécurité logements et médias",
       "title": "Autorisation serveur et confidentialité des logements",
       "summary": "Rendre les routes logement et photo sûres malgré l'usage nécessaire de la clé de service Supabase.",
-      "status": "READY",
+      "status": "IN_PROGRESS",
       "priority": "P0",
       "type": "bug",
       "persona": "Owner, concierge, admin",
       "phase": "Sécurité multi-tenant",
-      "updatedAt": "2026-08-26",
-      "nextAction": "Vérifier l'auteur, owner et manager de chaque mutation, contrôler l'accès au housingId avant upload, rendre les médias privés ou signés, puis couvrir les refus entre tenants en intégration.",
+      "updatedAt": "2026-09-02",
+      "nextAction": "Configurer une instance Supabase de test isolée ou une branche, appliquer la migration sur base fraîche et existante, exécuter `housing-photo-supabase.integration.test.mts` avec les fixtures `HOUSING_PHOTO_TEST_*`, puis lancer le nettoyage admin après prévisualisation.",
       "validationCriteria": ["POST/PATCH/DELETE logement refusent toute relation auteur-owner-manager illégitime", "Un upload photo exige l'accès au logement ciblé", "Les médias logement ne sont pas publics par défaut", "Tests d'intégration couvrent 401, 403 et tenant voisin"],
-      "validatedCriteria": [],
+      "validatedCriteria": ["POST/PATCH/DELETE logement refusent toute relation auteur-owner-manager illégitime", "Un upload photo exige l'accès au logement ciblé", "Les médias logement ne sont pas publics par défaut"],
       "dependencies": ["PLS-DEV-013", "PLS-TEST-001"],
       "blocker": "Les routes actuelles utilisent SUPABASE_SERVICE_ROLE_KEY, qui contourne les policies RLS housing ; la protection doit être explicitement appliquée dans le serveur.",
       "routes": ["/api/housing", "/api/housing/[id]", "/api/housing/photos"],
       "files": ["src/app/api/housing/route.ts", "src/app/api/housing/[id]/route.ts", "src/app/api/housing/photos/route.ts", "src/server/db/dbServer.ts", "supabase/migrations/20260404123000_resolve_remaining_security_advisors.sql"],
-      "progressLabel": "Les RLS SQL participants existent, mais le service role les contourne et l'upload photo ne vérifie aujourd'hui ni rôle ni housingId.",
+      "progressLabel": "Lots 1 à 3 livrés le 2 septembre 2026 : mutations, uploads, lecture signée et suppression photo sont contrôlés ; les brouillons peuvent être prévisualisés puis nettoyés par un admin. Les preuves connectées attendent une cible Supabase isolée et ses fixtures.",
       "source": "Audit recherche, logements, profils, pages et workflows du 26 août 2026",
-      "evidence": ["src/server/db/dbServer.ts : SUPABASE_SERVICE_ROLE_KEY", "src/app/api/housing/route.ts : POST ne vérifie que rôle + nom", "src/app/api/housing/photos/route.ts : bucket public et absence de contrôle housingId", "supabase/migrations/20260404123000_resolve_remaining_security_advisors.sql : policies housing participants"],
-      "missingWork": ["Écrire les contrôles métier serveur", "Migrer les photos vers accès privé/signé", "Tester les refus croisés et les erreurs Storage", "Documenter la migration et le rollback Storage"],
+      "evidence": ["src/server/db/dbServer.ts : SUPABASE_SERVICE_ROLE_KEY", "src/app/lib/housingWriteGuards.ts : cohérence serveur owner/manager selon le rôle connecté", "src/app/api/housing/route.ts : garde-fou appliqué avant insert", "src/app/api/housing/[id]/route.ts : garde-fou appliqué lors des mises à jour du bloc proprietaire", "src/app/api/housing/photos/route.ts : upload contrôlé, accès lecture vérifié et URL signée de 5 minutes", "src/app/lib/housingPhotoUrl.ts : compatibilité des URL publiques historiques sans exposer le bucket", "supabase/migrations/20260902113000_private_housing_photos.sql : bucket privé idempotent", "src/tests/housing-photo-security-contract.test.mts", "src/tests/housing-write-guards.test.mts", "src/tests/create-logement-helpers.test.mts", "supabase/migrations/20260404123000_resolve_remaining_security_advisors.sql : policies housing participants"],
+      "missingWork": ["Configurer une instance Supabase de test isolée ou une branche avec accès de gestion", "Valider la migration sur base fraîche et existante avec rollback documenté", "Exécuter les refus connectés 401/403/tenant voisin", "Planifier le nettoyage admin après une première prévisualisation"],
       "githubIssues": []
     },
     {
@@ -1769,24 +1820,24 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "id": "PLS-DEV-028",
       "domain": "Recherche et mise en relation",
       "title": "Recherche multi-rôle paginée et respectueuse des données privées",
-      "summary": "Industrialiser la recherche owner-concierge, concierge-owner et concierge-provider avec filtres base de données, pagination, contrats de visibilité et conversion de contact traçable.",
+      "summary": "Industrialiser la recherche owner-concierge, concierge-owner et concierge-provider avec filtres base de données, pagination, contrats de visibilité et base saine pour un futur espace artisan plus crédible.",
       "status": "TO_PLAN",
       "priority": "P1",
       "type": "improvement",
       "persona": "Owner, concierge, provider",
       "phase": "Liquidité du réseau",
-      "updatedAt": "2026-08-26",
-      "nextAction": "Définir le contrat de visibilité par rôle, déplacer les filtres et le tri en base, ajouter curseur/total fiable, puis remplacer la création de profil owner sans Auth par lead ou invitation traçable.",
+      "updatedAt": "2026-09-02",
+      "nextAction": "Définir le contrat de visibilité par rôle, déplacer les filtres et le tri en base, ajouter curseur/total fiable, puis décider quelles briques de l'espace artisan relèvent du profil, du devis, de l'intervention, des avis ou des preuves.",
       "validationCriteria": ["Chaque recherche a son contrat de données visible et masquée", "Filtres, tri et pagination sont exécutés côté base", "Un concierge ne reçoit les coordonnées owner que selon une règle explicite", "Les leads owner sont distingués des comptes Auth et convertibles par invitation", "États vide, erreur et résultats sont couverts par E2E"],
       "validatedCriteria": ["Recherche owner -> concierge avec filtres métier et demande existe", "Recherche concierge -> owner avec conversation existe", "Intervention provider est prouvée en E2E"],
       "dependencies": ["PLS-SEC-003", "PLS-DEV-001", "PLS-DATA-003"],
       "blocker": "Les routes actuelles lisent via service role, filtrent partiellement en mémoire et ne portent pas de politique unifiée de visibilité ni de pagination.",
       "routes": ["/dashboard/owner/concierges", "/dashboard/concierge/recherche", "/api/profiles/concierges", "/api/profiles/housing/owners"],
       "files": ["src/app/api/profiles/concierges/route.ts", "src/app/api/profiles/concierges/shared.ts", "src/app/dashboard/concierge/recherche/page.tsx", "src/app/api/profiles/housing/owners/route.ts"],
-      "progressLabel": "Les deux surfaces de recherche sont utilisables, mais la recherche artisan autonome, la pagination et le contrat de confidentialité restent incomplets.",
+      "progressLabel": "Les deux surfaces de recherche sont utilisables, mais la recherche artisan autonome, la pagination, le contrat de confidentialité et le périmètre d'un vrai espace artisan restent incomplets.",
       "source": "Audit recherche, logements, profils, pages et workflows du 26 août 2026",
       "evidence": ["src/tests/owner-concierges-search.test.mts", "src/tests/search-client.test.mts", "e2e/provider-intervention-transaction.spec.ts", "src/app/api/profiles/housing/owners/route.ts"],
-      "missingWork": ["Concevoir l'annuaire artisan", "Ajouter pagination/cursor et tri serveur", "Écrire les règles de contact", "Créer les tests multi-rôle de visibilité et de conversion lead"],
+      "missingWork": ["Concevoir l'annuaire artisan", "Ajouter pagination/cursor et tri serveur", "Écrire les règles de contact", "Découper le futur espace artisan entre profil, avis, devis et preuves", "Créer les tests multi-rôle de visibilité et de conversion lead"],
       "githubIssues": []
     },
     {
@@ -1883,6 +1934,185 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "source": "Inspiration Todoist adaptée à PlanetLS, 27 août 2026",
       "evidence": ["Idée produit : popup `Essayez Pro gratuit` observée le 27 août 2026 dans Todoist", "Audit du 25 août 2026 : seul Concierge PRO possède un flux Stripe réel partiel"],
       "missingWork": ["Finaliser les offres PRO réellement vendues", "Définir les moments d'usage qui justifient un upsell", "Créer une expérimentation propre par rôle", "Mesurer conversion, annulation et effet sur la rétention"],
+      "githubIssues": []
+    },
+    {
+      "id": "PLS-AI-001",
+      "domain": "IA marketing et communication",
+      "title": "Assistant éditorial et communication premium",
+      "summary": "Étudier un assistant capable de générer publications sociales, annonces, descriptions, calendriers éditoriaux et variantes, avec un positionnement premium ou payant seulement après preuve de valeur.",
+      "status": "IDEA",
+      "priority": "P4",
+      "type": "feature",
+      "persona": "Owner, concierge, conciergerie, provider/artisan",
+      "phase": "Évolution future",
+      "addedAt": "2026-09-02",
+      "updatedAt": "2026-09-02",
+      "nextAction": "Vérifier les cas d'usage réellement répétés par rôle, définir les contenus autorisés, puis décider si la valeur relève d'un module produit, d'une bibliothèque de prompts ou d'une option premium.",
+      "validationCriteria": ["Les cas d'usage sont prouvés par des besoins terrain récurrents", "Le contenu généré reste modifiable avant publication", "Les sources, ton et données sensibles sont cadrés", "Le positionnement premium correspond à une valeur réellement perçue"],
+      "validatedCriteria": [],
+      "dependencies": ["PLS-DEV-023", "PLS-BILL-001", "PLS-KPI-001"],
+      "blocker": "Aucune preuve terrain ne confirme encore quels acteurs paieraient vraiment pour cet usage ni quelles données PlanetLS devraient alimenter la génération.",
+      "routes": ["/dashboard/admin/pilotage", "/dashboard/concierge", "/dashboard/owner"],
+      "files": ["docs/master-plan-planetls.md", "src/server/prompt-library/", "src/app/dashboard/admin/(business)/pilotage/ai-center/"],
+      "progressLabel": "Idée stratégique à étudier ; aucune surface éditoriale métier ni monétisation premium n'est prouvée dans PlanetLS aujourd'hui.",
+      "userNeed": "Réduire le temps et la difficulté de production de contenus utiles à la commercialisation des logements, services et interventions.",
+      "potentialValue": "Aider chaque rôle à produire des contenus cohérents, adaptables et validés humainement, sans publication automatique en V1.",
+      "risks": "Permissions sur les données source, qualité et exactitude des contenus, conformité RGPD, preuve de disposition à payer et absence d'intégration sociale automatique en V1.",
+      "businessModel": "Option premium ou payante à confirmer uniquement après mesure de valeur et retours terrain.",
+      "source": "Demande produit du 2 septembre 2026",
+      "evidence": ["src/server/prompt-library/index.ts", "src/app/dashboard/admin/(business)/pilotage/ai-center/PromptLibraryCenter.tsx"],
+      "missingWork": ["Qualifier les usages par rôle", "Définir garde-fous éditoriaux et RGPD", "Décider la place du premium", "Mesurer le gain réel avant industrialisation"],
+      "githubIssues": []
+    },
+    {
+      "id": "PLS-OPS-001",
+      "domain": "Opérations logement",
+      "title": "Stocks et consommables par logement ou conciergerie",
+      "summary": "Structurer linge, produits ménagers, produits d'accueil, petit matériel, seuils d'alerte, entrées-sorties et propositions de réapprovisionnement sans ouvrir une marketplace d'achats complexe.",
+      "status": "TO_PLAN",
+      "priority": "P3",
+      "type": "feature",
+      "persona": "Concierge, conciergerie, owner",
+      "phase": "Exploitation quotidienne",
+      "addedAt": "2026-09-02",
+      "updatedAt": "2026-09-02",
+      "nextAction": "Auditer la page stocks existante, décider le niveau canonique `logement`, `conciergerie` ou mixte, puis définir la V1 sur quantités, seuils, historique et réapprovisionnement suggéré.",
+      "validationCriteria": ["Chaque mouvement de stock possède un logement ou un périmètre clair", "Les seuils d'alerte sont configurables", "L'historique entrées-sorties reste lisible", "Le réapprovisionnement suggéré n'engage aucune commande automatique"],
+      "validatedCriteria": [],
+      "dependencies": ["PLS-DATA-003", "PLS-DEV-009", "PLS-TEST-001"],
+      "blocker": "Le produit possède déjà une surface stocks, mais son niveau de persistance, son modèle canonique et la couverture multi-rôle ne sont pas encore suffisamment prouvés pour en faire un module stabilisé.",
+      "routes": ["/dashboard/concierge/stocks", "/dashboard/concierge/logements"],
+      "files": ["src/app/dashboard/concierge/stocks/page.tsx", "src/app/dashboard/concierge/stocks/stocksHelpers.ts", "src/tests/concierge-alerts-stocks.test.mts"],
+      "progressLabel": "Un socle de page et de tests existe, mais la gouvernance complète des consommables et du réapprovisionnement reste à structurer.",
+      "source": "Demande produit du 2 septembre 2026 et audit Excel/code",
+      "evidence": ["src/app/dashboard/concierge/stocks/page.tsx", "src/app/dashboard/concierge/stocks/stocksHelpers.ts", "src/tests/concierge-alerts-stocks.test.mts"],
+      "missingWork": ["Décider le contrat de données canonique", "Qualifier les permissions owner/concierge", "Ajouter l'historique détaillé et les seuils persistés", "Tester les refus multi-rôle et l'état vide"],
+      "githubIssues": []
+    },
+    {
+      "id": "PLS-DATA-005",
+      "domain": "Dossier logement",
+      "title": "Carnet numérique centralisé du logement",
+      "summary": "Centraliser équipements, notices, garanties, contrats d'entretien, accès utiles selon permissions, historique d'interventions, incidents récurrents et documents liés au logement.",
+      "status": "TO_PLAN",
+      "priority": "P3",
+      "type": "feature",
+      "persona": "Owner, concierge, provider/artisan, admin",
+      "phase": "Connaissance logement",
+      "addedAt": "2026-09-02",
+      "updatedAt": "2026-09-02",
+      "nextAction": "Définir la frontière entre fiche logement actuelle, maintenance, clés, documents et informations sensibles, puis cadrer une V1 avec permissions explicites et pièces jointes maîtrisées.",
+      "validationCriteria": ["Chaque information a une catégorie et un niveau de visibilité explicite", "Les documents et historiques sont rattachés au bon logement", "Les données sensibles sont protégées par rôle et contexte", "Le carnet n'entre pas en conflit avec les modules clés, incidents ou contrats"],
+      "validatedCriteria": [],
+      "dependencies": ["PLS-DATA-003", "PLS-DEV-030", "PLS-SEC-003", "PLS-TEST-001"],
+      "blocker": "Les données logement restent encore dispersées entre JSON legacy, fiches, missions, maintenance et documents ; sans contrat canonique, un carnet unique risquerait de dupliquer l'existant.",
+      "routes": ["/dashboard/owner/logements", "/dashboard/concierge/logements", "/dashboard/concierge/maintenance"],
+      "files": ["src/types/housing.ts", "src/app/dashboard/owner/logements/", "src/app/dashboard/concierge/logements/", "src/app/dashboard/concierge/maintenance/"],
+      "progressLabel": "Le logement possède déjà plusieurs vues et données associées, mais aucun carnet numérique canonique avec permissions fines n'est encore structuré.",
+      "source": "Demande produit du 2 septembre 2026",
+      "evidence": ["src/types/housing.ts", "src/app/dashboard/concierge/logements/[id]/page.tsx", "src/app/dashboard/owner/logements/[id]/page.tsx", "src/app/dashboard/concierge/maintenance/page.tsx"],
+      "missingWork": ["Cartographier les informations utiles par rôle", "Définir les permissions fines", "Structurer le modèle de documents et historiques", "Prévoir les tests RLS et multi-tenant"],
+      "githubIssues": []
+    },
+    {
+      "id": "PLS-OPS-002",
+      "domain": "Urgences terrain",
+      "title": "Mode urgence avec prise en charge et preuves",
+      "summary": "Prévoir un mode urgence permettant de qualifier l'incident, trouver un professionnel disponible, prévenir le propriétaire, suivre la prise en charge et journaliser les décisions sans abus.",
+      "status": "TO_PLAN",
+      "priority": "P3",
+      "type": "feature",
+      "persona": "Concierge, owner, provider/artisan, admin",
+      "phase": "Réaction opérationnelle",
+      "addedAt": "2026-09-02",
+      "updatedAt": "2026-09-02",
+      "nextAction": "Auditer les surfaces urgences et maintenance existantes, définir les niveaux d'urgence, règles de validation, responsables et preuves, puis relier ce mode aux workflows demande, mission et intervention.",
+      "validationCriteria": ["Chaque urgence possède un type, un niveau et un responsable", "Le propriétaire est informé ou l'exception est tracée", "La prise en charge, les preuves et les décisions sont historisées", "Des règles limitent les usages abusifs ou hors cadre"],
+      "validatedCriteria": [],
+      "dependencies": ["PLS-DEV-029", "PLS-DEV-028", "PLS-SEC-004", "PLS-TEST-001"],
+      "blocker": "Des pages urgences et maintenance existent, mais le contrat canonique `urgence -> qualification -> prise en charge -> preuve -> clôture` n'est pas encore défini ni prouvé de bout en bout.",
+      "routes": ["/dashboard/concierge/urgences", "/dashboard/concierge/maintenance", "/dashboard/admin/controle"],
+      "files": ["src/app/dashboard/concierge/urgences/page.tsx", "src/app/dashboard/concierge/maintenance/page.tsx", "src/app/dashboard/admin/(operations)/controle/page.tsx"],
+      "progressLabel": "L'urgence est visible dans plusieurs cockpits, mais le mode métier sécurisé, ses garde-fous et son orchestration restent à formaliser.",
+      "source": "Demande produit du 2 septembre 2026",
+      "evidence": ["src/app/dashboard/concierge/urgences/page.tsx", "src/app/dashboard/concierge/maintenance/page.tsx", "src/app/dashboard/concierge/DashboardPage.tsx"],
+      "missingWork": ["Définir les niveaux et règles d'urgence", "Relier owner, concierge et provider", "Journaliser preuves et décisions", "Tester validation, refus et clôture"],
+      "githubIssues": []
+    },
+    {
+      "id": "PLS-PRO-001",
+      "domain": "Provider et artisan",
+      "title": "Espace provider/artisan enrichi et crédible",
+      "summary": "Faire évoluer l'espace provider/artisan avec profil détaillé, zones, disponibilités, certifications, assurances, portfolio, avis vérifiés, demandes de devis et preuves, sans copier un concurrent ni diluer le périmètre métier.",
+      "status": "TO_PLAN",
+      "priority": "P3",
+      "type": "improvement",
+      "persona": "Provider/artisan, concierge, owner",
+      "phase": "Réseau professionnel",
+      "addedAt": "2026-09-02",
+      "updatedAt": "2026-09-02",
+      "nextAction": "Distinguer ce qui relève du profil provider existant, du moteur de recherche, des devis, des interventions et des avis, puis choisir une V1 lisible avec preuves et disponibilités utiles.",
+      "validationCriteria": ["Le profil professionnel expose métier, zone, disponibilité, certifications et assurances de façon exploitable", "Le portfolio et les preuves restent vérifiables", "Les demandes de devis et le suivi d'intervention s'appuient sur les workflows existants", "Les avis éventuels sont clairement qualifiés comme vérifiés ou non"],
+      "validatedCriteria": [],
+      "dependencies": ["PLS-DEV-028", "PLS-DATA-003", "PLS-TEST-001"],
+      "blocker": "Le dashboard provider existe, mais le périmètre exact entre profil, réputation, distribution de demandes et preuve d'intervention n'est pas encore suffisamment découpé ni validé terrain.",
+      "routes": ["/dashboard/provider", "/dashboard/provider/settings", "/api/provider/workspace", "/api/profiles/providers"],
+      "files": ["src/app/dashboard/provider/", "src/app/api/provider/workspace/route.ts", "src/app/api/profiles/providers/route.ts", "src/tests/provider-profile-documents-contract.test.mts"],
+      "progressLabel": "Le socle provider/artisan est réel, mais l'espace professionnel complet avec réputation, portfolio et qualification des demandes reste à cadrer.",
+      "source": "Demande produit du 2 septembre 2026 et audit des parcours provider/artisan",
+      "evidence": ["src/app/api/provider/workspace/route.ts", "src/app/api/profiles/providers/route.ts", "e2e/provider-intervention-transaction.spec.ts", "src/tests/provider-profile-documents-contract.test.mts"],
+      "missingWork": ["Choisir la V1 du profil enrichi", "Définir les preuves et avis vérifiés", "Relier disponibilités et demandes qualifiées", "Tester visibilité et permissions multi-rôle"],
+      "githubIssues": []
+    },
+    {
+      "id": "PLS-BIZ-002",
+      "domain": "Rémunération concierge",
+      "title": "Rémunération flexible et périodicités de règlement",
+      "summary": "Formaliser les modèles heure, forfait mission, pourcentage location ou hybride, ainsi que les rythmes de règlement, en cohérence avec devis, contrats, missions, commissions, factures et paiements.",
+      "status": "IDEA",
+      "priority": "P4",
+      "type": "decision",
+      "persona": "Owner, concierge, admin",
+      "phase": "Évolution future",
+      "addedAt": "2026-09-02",
+      "updatedAt": "2026-09-02",
+      "nextAction": "Auditer les modèles déjà simulés dans le pilotage business et les workflows facturation existants, puis décider quels modèles méritent un cadrage produit explicite avant toute implémentation de paiement avancé.",
+      "validationCriteria": ["Chaque modèle de rémunération a ses règles, assiette et responsabilités explicites", "Les périodicités de règlement sont compatibles avec devis, mission, facture et paiement", "Les commissions et retenues sont calculables et auditables", "Aucune automatisation de versement n'est ouverte sans cadre contractuel et fiscal"],
+      "validatedCriteria": [],
+      "dependencies": ["PLS-BIZ-001", "PLS-BILL-001", "PLS-DEV-010"],
+      "blocker": "Des calculs de commission et de rentabilité existent, mais aucun modèle canonique de rémunération concierge multi-scénario n'est encore branché au produit ni validé juridiquement ou opérationnellement.",
+      "routes": ["/dashboard/admin/pilotage", "/dashboard/admin/modele-financier", "/dashboard/concierge/billing"],
+      "files": ["src/app/dashboard/admin/(business)/pilotage/economic-model/", "src/app/dashboard/admin/(business)/modele-financier/page.tsx", "src/tests/financial-management.test.mts"],
+      "progressLabel": "Sujet business à étudier ; les calculs existent, mais la rémunération flexible et ses règlements ne sont pas un workflow métier prouvé.",
+      "source": "Demande produit du 2 septembre 2026",
+      "evidence": ["src/app/dashboard/admin/(business)/pilotage/economic-model/", "src/tests/financial-management.test.mts", "docs/master-plan-planetls.md : note du 24 août 2026 sur l'absence de preuve métier suffisante"],
+      "missingWork": ["Comparer les modèles de rémunération", "Qualifier impacts juridiques et fiscaux", "Relier rémunération, facture et paiement", "Décider si ce sujet relève d'abord du pilotage ou du produit"],
+      "githubIssues": []
+    },
+    {
+      "id": "PLS-AI-002",
+      "domain": "IA décoration",
+      "title": "Simulations visuelles décoration clairement identifiées",
+      "summary": "Conserver comme extension future la génération de simulations visuelles déco à partir de photos, en les distinguant explicitement d'un rendu réel du logement.",
+      "status": "IDEA",
+      "priority": "P4",
+      "type": "feature",
+      "persona": "Concierge, owner",
+      "phase": "Évolution future",
+      "addedAt": "2026-09-02",
+      "updatedAt": "2026-09-02",
+      "nextAction": "Valider d'abord l'usage terrain du rapport déco actuel, puis cadrer les droits photo, le marquage des simulations, la conservation des images et le rôle exact de l'IA avant toute génération visuelle.",
+      "validationCriteria": ["Les simulations sont explicitement marquées comme projections", "Les droits sur les photos source et images générées sont définis", "Le rendu aide une décision concrète sans tromper le propriétaire", "Le rapport texte actuel a déjà prouvé sa valeur minimale"],
+      "validatedCriteria": [],
+      "dependencies": ["PLS-DEV-023", "PLS-SEC-004"],
+      "blocker": "L'assistant décoration actuel reste partiel et textuel ; ajouter de la simulation visuelle avant validation d'usage et cadre photo augmenterait le risque de confusion.",
+      "routes": ["/dashboard/concierge/decoration-ai"],
+      "files": ["src/app/dashboard/concierge/decoration-ai/", "src/app/api/concierge/decoration-assistant/route.ts", "supabase/migrations/20260718090000_decoration_ai_reports.sql"],
+      "progressLabel": "Extension future d'un assistant déco déjà partiel ; la simulation visuelle n'est ni prouvée ni cadrée dans le produit actuel.",
+      "source": "Demande produit du 2 septembre 2026 et audit de l'assistant décoration",
+      "evidence": ["src/app/dashboard/concierge/decoration-ai/DecorationAssistantPageClient.tsx", "src/app/api/concierge/decoration-assistant/route.ts", "docs/master-plan-planetls.md : Assistant décoration partiel"],
+      "missingWork": ["Valider le rapport texte sur le terrain", "Définir droits et conservation des images", "Marquer clairement les projections", "Décider si la simulation visuelle est un module premium ou une extension simple"],
       "githubIssues": []
     }
   ]
@@ -2905,7 +3135,7 @@ Dates : → signifie non planifié. Le responsable est un rôle, à remplacer pa
 | Fil professionnel V1                                       | 🔴 À faire  | P1 Prioritaire      | Moyen terme                      | Produit                 | Objets structurés, modération, expiration                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | Réputation/certifications                                  | 🟡 En cours | P1 Prioritaire      | Moyen terme                      | Produit + Admin         | « Déclaré », « vérifié » et « calculé » clairement distingués                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | SEO local et données structurées                           | 🟡 En cours | P1 Prioritaire      | Moyen terme                      | Growth + Front          | Pages par zone, OG, JSON-LD et conversion                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| PWA/push/offline                                           | 🔴 À faire  | P4 Évolution future | Long terme                       | Mobile + Backend        | Après persistance et E2E                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| PWA/push/offline                                           | 🔴 À faire  | P4 Idée / À étudier | Long terme                       | Mobile + Backend        | Après persistance et E2E                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | Assistant décoration : partage owner et image              | 🟠 Partiel  | P2 Important        | Moyen terme                      | Produit + Concierge     | Confirmer la valeur terrain, l’envoi traçable et la génération réelle d’images                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
 | Registre des automatisations et score d'opportunité | 🔴 À faire | P2 Important | Court terme | Produit + Admin + Data | Mettre en place dans le pilotage un registre unique des automatisations candidates avec statut Idée -> À analyser -> Validée -> À développer -> En test -> Active -> À optimiser, score d'opportunité /100, niveau de risque et KPI avant/après |

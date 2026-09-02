@@ -3,6 +3,7 @@ import { db } from "@/app/lib/dbServer";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { canAccessHousing } from "@/types/housing";
+import { guardHousingWriteAccess } from "@/app/lib/housingWriteGuards";
 
 const dbAny = asLooseSupabaseClient(db);
 
@@ -162,6 +163,17 @@ export async function PATCH(
         ...previousOwner,
         ...(updateObj.proprietaire as Record<string, unknown>),
       };
+
+      const guardedOwnership = guardHousingWriteAccess({
+        proprietaire: updateObj.proprietaire,
+        userId,
+        role,
+        isAdmin,
+      });
+      if (!guardedOwnership.ok) {
+        return NextResponse.json({ error: guardedOwnership.error }, { status: 403 });
+      }
+      updateObj.proprietaire = guardedOwnership.proprietaire;
     }
 
     if ("nom_logement" in updateObj) updateObj.nom_logement = cleanString(updateObj.nom_logement);

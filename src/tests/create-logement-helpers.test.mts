@@ -86,6 +86,13 @@ test("buildCreateLogementPayload maps the new manual form to legacy-compatible h
   assert.equal(((payload.menage as Record<string, unknown>).services as Array<Record<string, unknown>>)[0]?.label, "Menage hebdo");
 });
 
+test("createInitialManualForm keeps owner profile empty until a real owner is selected", () => {
+  const form = createInitialManualForm("manager-1");
+
+  assert.equal(form.owner.profileId, null);
+  assert.equal(form.owner.managerProfileId, "manager-1");
+});
+
 test("buildCreateLogementSummary exposes the premium guided preview", () => {
   const form = {
     ...createInitialManualForm("manager-1"),

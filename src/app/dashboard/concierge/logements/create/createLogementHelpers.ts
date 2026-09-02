@@ -144,7 +144,7 @@ function toManualFormState(
     photos: form.photos ?? (form.photo ? [form.photo] : []),
     owner: {
       ...createEmptyOwner(managerProfileId),
-      profileId: managerProfileId ?? null,
+      profileId: null,
       fullName: "Propriétaire à confirmer",
       email: managerProfileId ? `${managerProfileId}@pending.local` : "",
       source: "manual",

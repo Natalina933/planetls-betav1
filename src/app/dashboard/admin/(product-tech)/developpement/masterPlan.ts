@@ -15,7 +15,7 @@ export const MASTER_PLAN_PRIORITIES = [
   "P1 Prioritaire",
   "P2 Important",
   "P3 Confort",
-  "P4 Évolution future",
+  "P4 Idée / À étudier",
 ] as const;
 
 export const MASTER_PLAN_MATURITY_LEVELS = [
@@ -32,7 +32,7 @@ export const MASTER_PLAN_PRIORITY_GUIDE = [
   { priority: "P1 Prioritaire", scope: "Augmente fortement conversion, rétention ou efficacité opérationnelle" },
   { priority: "P2 Important", scope: "Améliore nettement le produit ou le pilotage, sans bloquer l’usage principal" },
   { priority: "P3 Confort", scope: "Amélioration, expérimentation ou confort non bloquant" },
-  { priority: "P4 Évolution future", scope: "Pari stratégique à valider avant industrialisation" },
+  { priority: "P4 Idée / À étudier", scope: "Tiroir d'idées à qualifier : hors roadmap active et sans engagement d'industrialisation" },
 ] as const;
 
 export const DEVELOPMENT_ITEM_STATUSES = [
@@ -137,6 +137,10 @@ export type DevelopmentRegistryItem = {
   routes: string[];
   files: string[];
   progressLabel: string;
+  userNeed: string;
+  potentialValue: string;
+  risks: string;
+  businessModel: string;
   source: string;
   evidence: string[];
   missingWork: string[];
@@ -200,6 +204,10 @@ const developmentRegistrySchema = z.object({
     routes: z.array(z.string().min(1)).default([]),
     files: z.array(z.string().min(1)).default([]),
     progressLabel: z.string().min(2),
+    userNeed: z.string().default(""),
+    potentialValue: z.string().default(""),
+    risks: z.string().default(""),
+    businessModel: z.string().default(""),
     source: z.string().min(2),
     evidence: z.array(z.string().min(1)).default([]),
     missingWork: z.array(z.string().min(2)).default([]),
@@ -535,7 +543,7 @@ function priorityLabelFromRegistry(priority: DevelopmentRegistryItem["priority"]
     case "P3":
       return "P3 Confort";
     case "P4":
-      return "P4 Évolution future";
+      return "P4 Idée / À étudier";
     default:
       return "P3 Confort";
   }

@@ -10,6 +10,7 @@ import {
   FiMessageSquare,
 } from "react-icons/fi";
 import { Avatar } from "@/components/ui/Avatar";
+import { toHousingPhotoUrl } from "@/app/lib/housingPhotoUrl";
 import styles from "./FicheLogement.module.scss";
 
 export type FicheLogementPlanningEvent = {
@@ -76,7 +77,7 @@ export default function FicheLogement({ logement }: { logement: FicheLogementDat
       <header className={styles.header}>
         <div className={styles.headerIdentity}>
           <Avatar
-            src={safePhotos[0] ?? null}
+            src={safePhotos[0] ? toHousingPhotoUrl(safePhotos[0], logement.id) : null}
             name={logement.name}
             alt={`Avatar du logement ${logement.name}`}
             size="lg"
@@ -164,7 +165,7 @@ export default function FicheLogement({ logement }: { logement: FicheLogementDat
             {safePhotos.map((src, index) => (
               <figure key={`${src}-${index}`} className={styles.photoItem}>
                 <Image
-                  src={src}
+                  src={toHousingPhotoUrl(src, logement.id)}
                   width={260}
                   height={180}
                   alt={`Photo du logement ${logement.name}`}

@@ -2,24 +2,27 @@
 
 import Image from "next/image";
 import { FiCamera, FiStar, FiTrash2 } from "react-icons/fi";
+import { toHousingPhotoUrl } from "@/app/lib/housingPhotoUrl";
 import styles from "./HousingPhotoManager.module.scss";
 
 type Props = {
   editing: boolean;
   photos: string[];
   primaryPhoto: string | null;
+  housingId: string | number;
   uploading?: boolean;
   title?: string;
   helperText?: string;
   onUpload: (files: FileList | null) => void | Promise<void>;
   onSetPrimary: (photo: string) => void;
-  onRemove: (photo: string) => void;
+  onRemove: (photo: string) => void | Promise<void>;
 };
 
 export default function HousingPhotoManager({
   editing,
   photos,
   primaryPhoto,
+  housingId,
   uploading = false,
   title = "Photos du logement",
   helperText = "Ajoutez plusieurs photos du logement et choisissez celle qui sera mise en avant.",
@@ -60,7 +63,7 @@ export default function HousingPhotoManager({
             return (
               <div className={styles.card} key={`${photo}-${index}`}>
                 <Image
-                  src={photo}
+                  src={toHousingPhotoUrl(photo, housingId)}
                   alt={`Photo ${index + 1} du logement`}
                   className={styles.image}
                   width={800}
@@ -78,7 +81,7 @@ export default function HousingPhotoManager({
                     <FiStar /> Principale
                   </button>
                   {editing ? (
-                    <button type="button" className={styles.danger} onClick={() => onRemove(photo)}>
+                    <button type="button" className={styles.danger} onClick={() => void onRemove(photo)}>
                       <FiTrash2 /> Retirer
                     </button>
                   ) : null}

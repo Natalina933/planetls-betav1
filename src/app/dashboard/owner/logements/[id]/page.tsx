@@ -51,6 +51,7 @@ import {
   Wifi,
 } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
+import { toHousingPhotoUrl } from "@/app/lib/housingPhotoUrl";
 import styles from "../../../concierge/logements/[id]/FicheLogement.module.scss";
 import type { ConciergeHousing, HousingBathroomInfo, HousingRow } from "@/types/housing";
 import {
@@ -945,11 +946,11 @@ export default function OwnerHousingDetailPage() {
         });
 
         const payload = await response.json().catch(() => ({}));
-        if (!response.ok || typeof payload?.url !== "string") {
+        if (!response.ok || typeof payload?.path !== "string") {
           throw new Error(typeof payload?.error === "string" ? payload.error : "Upload photo impossible.");
         }
 
-        uploadedUrls.push(payload.url);
+        uploadedUrls.push(payload.path);
       }
 
       const currentPhotos = draft.characteristics.photos ?? [];
@@ -1573,7 +1574,7 @@ export default function OwnerHousingDetailPage() {
                     </button>
                     <div className={styles.quickGalleryImageWrap}>
                       <Image
-                        src={activeGalleryPhoto}
+                        src={toHousingPhotoUrl(activeGalleryPhoto, id)}
                         alt={`Photo ${galleryIndex + 1} du logement`}
                         className={styles.quickGalleryImage}
                         width={800}
@@ -1630,7 +1631,7 @@ export default function OwnerHousingDetailPage() {
                           aria-label={`Afficher la photo ${index + 1}`}
                         >
                           <Image
-                            src={photo}
+                            src={toHousingPhotoUrl(photo, id)}
                             alt=""
                             className={styles.quickGalleryThumbImage}
                             width={160}

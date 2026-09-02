@@ -5,6 +5,7 @@ import type { Json } from "@/types/supabase";
 import type { ConciergeHousing, HousingInsert } from "@/types/housing";
 import { buildHousingMutationPayload, canAccessHousing } from "@/types/housing";
 import { EMPTY_HOUSING_STOCK_MANAGEMENT } from "@/app/lib/housingStock";
+import { guardHousingWriteAccess } from "@/app/lib/housingWriteGuards";
 
 const DEFAULT_LOGEMENT_PHOTO = "/images/default-logement.png";
 
@@ -180,7 +181,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, role } = await getApiAuthContext(req);
+    const { userId, role, isAdmin } = await getApiAuthContext(req);
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
@@ -194,6 +195,17 @@ export async function POST(req: NextRequest) {
     if (!cleanString(payload.nom_logement)) {
       return NextResponse.json({ error: "Le nom du logement est obligatoire." }, { status: 400 });
     }
+
+    const guardedOwnership = guardHousingWriteAccess({
+      proprietaire: payload.proprietaire,
+      userId,
+      role,
+      isAdmin,
+    });
+    if (!guardedOwnership.ok) {
+      return NextResponse.json({ error: guardedOwnership.error }, { status: 403 });
+    }
+    payload.proprietaire = guardedOwnership.proprietaire as Json;
 
     const { data, error } = await db.from("housing").insert(payload).select().single();
     if (error) {

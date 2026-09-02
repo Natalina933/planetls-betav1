@@ -28,3 +28,17 @@ test("la roadmap intelligente recalcule la prochaine fonctionnalité quand un ch
   assert.equal(afterCompletion.nextSuggestion?.title, "E2E transactionnel commercial");
   assert.equal(afterCompletion.readyItems.some((item) => item.title === "E2E transactionnel commercial"), true);
 });
+
+test("la roadmap active exclut les idees P4", () => {
+  const markdown = `# Plan
+## Maintenance
+| Domaine | Fonctionnalité | Profil concerné | Statut | Priorité | Preuves dans le code | Prochaine action |
+|---|---|---|---|---|---|---|
+| Produit | Socle actif | Admin | 🟡 En cours | P1 Prioritaire | Test | Le poursuivre |
+| IA | Idee future | Owner | 🟠 À faire | P4 Idée / À étudier | Hypothese | L'etudier |`;
+  const plan = parseMasterPlan(markdown, "2026-09-02T10:00:00.000Z");
+  const roadmap = buildRoadmapView(plan);
+
+  assert.equal(roadmap.items.some((item) => item.title === "Idee future"), false);
+  assert.equal(roadmap.items.some((item) => item.title === "Socle actif"), true);
+});
