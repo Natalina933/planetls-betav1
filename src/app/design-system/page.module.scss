@@ -139,13 +139,117 @@
 .componentGrid :global(article) { max-width: none; }
 .badgeRow { display: flex; flex-wrap: wrap; gap: var(--ds-space-2); }
 
+.auditSection {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto 2rem;
+  padding: var(--ds-space-6);
+  border: var(--ds-border-subtle);
+  border-radius: var(--ds-radius-xl);
+  background:
+    radial-gradient(circle at top right, rgba(184, 135, 70, 0.12), transparent 28%),
+    var(--ds-surface-raised);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.auditGrid,
+.workspaceGrid,
+.coverageGrid {
+  display: grid;
+  gap: var(--ds-space-4);
+  margin-top: var(--ds-space-5);
+}
+
+.auditGrid,
+.workspaceGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.coverageGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.auditCard,
+.workspaceCard {
+  display: grid;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-4);
+  border: var(--ds-border-subtle);
+  border-radius: var(--ds-radius-lg);
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.auditCard strong,
+.workspaceCard strong {
+  color: var(--ds-color-text-primary);
+  font: 700 0.95rem/1.3 var(--ds-font-ui);
+}
+
+.auditCard p,
+.workspaceCard p {
+  margin: 0;
+  color: var(--ds-color-text-secondary);
+  line-height: 1.5;
+}
+
+.workspaceCard {
+  text-decoration: none;
+  transition:
+    transform var(--ds-motion-fast),
+    border-color var(--ds-motion-fast),
+    box-shadow var(--ds-motion-fast);
+}
+
+.workspaceCard:hover,
+.workspaceCard:focus-visible {
+  border-color: var(--ds-color-border-strong);
+  box-shadow: var(--ds-shadow-sm);
+  transform: translateY(-1px);
+}
+
+.ruleList {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--ds-color-text-secondary);
+}
+
+.ruleList li + li {
+  margin-top: var(--ds-space-2);
+}
+
+.referenceRules {
+  display: grid;
+  gap: var(--ds-space-3);
+  margin-top: var(--ds-space-5);
+  padding: var(--ds-space-4);
+  border-left: 3px solid var(--ds-color-primary);
+  border-radius: 0 var(--ds-radius-md) var(--ds-radius-md) 0;
+  background: var(--ds-color-surface-soft);
+  color: var(--ds-color-text-primary);
+}
+
+.tableContract {
+  display: grid;
+  gap: var(--ds-space-3);
+  margin-top: var(--ds-space-4);
+  padding: var(--ds-space-4);
+  border: var(--ds-border-subtle);
+  border-radius: var(--ds-radius-lg);
+  background: color-mix(in srgb, var(--ds-color-primary) 7%, var(--ds-color-surface));
+}
+
+.tableContract a { color: var(--ds-color-primary-hover); font-weight: 800; }
+
 @media (max-width: 700px) {
   .visualReferenceCallout {
     align-items: stretch;
     flex-direction: column;
   }
 
-  .catalogue { padding: var(--ds-space-4); }
+  .catalogue,
+  .auditSection { padding: var(--ds-space-4); }
   .tokenGrid,
-  .componentGrid { grid-template-columns: 1fr; }
+  .componentGrid,
+  .auditGrid,
+  .workspaceGrid,
+  .coverageGrid { grid-template-columns: 1fr; }
 }

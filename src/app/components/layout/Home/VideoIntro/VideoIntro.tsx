@@ -70,10 +70,10 @@ export default function VideoIntro() {
         <ButtonLink
           href="/login"
           className={styles.CTAButton}
-          aria-label="Creer votre profil gratuitement sur PlanetLS"
+          aria-label="Créer votre profil gratuitement sur PlanetLS"
           variant="paper"
         >
-          Creer votre profil gratuitement
+          Créer votre profil gratuitement
         </ButtonLink>
 
         <p className={styles.joinMessage}>

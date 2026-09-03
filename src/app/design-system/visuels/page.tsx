@@ -41,6 +41,7 @@ import {
   CardFooter,
   CardHeader,
   Checkbox,
+  DataTable,
   Input,
   RequestStatusBadge,
   ServiceCategoryIcon,
@@ -48,6 +49,7 @@ import {
   StatsCard,
   TabButton,
   Tag,
+  TableFilters,
   Textarea,
 } from "@/components/ui";
 import {
@@ -136,6 +138,12 @@ const STATS_CARD_TONES = ["default", "soft", "dark"] as const;
 const TAG_TONES = ["default", "category", "status", "neutral", "gold", "dark"] as const;
 
 const FIELD_TONES = ["default", "soft", "dark"] as const;
+
+const TABLE_REFERENCE_ROWS = [
+  { id: "request-1", subject: "Check-in weekend", owner: "Villa Azur", status: "A confirmer", tone: "warning" as const },
+  { id: "mission-1", subject: "Controle linge", owner: "Le Petit Prince", status: "Planifiee", tone: "info" as const },
+  { id: "quote-1", subject: "Devis entretien", owner: "Maison Larralde", status: "A traiter", tone: "progress" as const },
+] as const;
 
 const SITE_MOCKUP_NAV_ITEMS = [
   { label: "Vue d'ensemble", icon: <DashboardGaugeIcon size={18} /> },
@@ -1642,6 +1650,37 @@ function SourceConsolidationSection() {
   );
 }
 
+function TableContractReferenceSection() {
+  return (
+    <section className={styles.section} id="table-filters-reference">
+      <div className={styles.sectionHeader}>
+        <div><p className={styles.eyebrow}>Contrat transverse</p><h2>Table + filtres</h2></div>
+        <span className={styles.smallText}>Le prototype concierge porte la demonstration interactive.</span>
+      </div>
+      <Card className={styles.guidelineCard}>
+        <CardHeader><div><h3>Demandes, missions et devis</h3><p>Caption, statuts, action principale et repli mobile preservant les informations.</p></div></CardHeader>
+        <CardBody>
+          <TableFilters resultCount={TABLE_REFERENCE_ROWS.length}>
+            <Input bare placeholder="Rechercher une demande" aria-label="Exemple recherche tableau" />
+            <Select bare aria-label="Exemple filtre statut"><option>Tous les statuts</option><option>A confirmer</option><option>Planifiee</option></Select>
+          </TableFilters>
+          <DataTable
+            caption="Exemple visuel de donnees de demonstration."
+            columns={[
+              { id: "subject", label: "Sujet", render: (row) => row.subject },
+              { id: "owner", label: "Logement", render: (row) => row.owner },
+              { id: "status", label: "Statut", render: (row) => <Badge variant={row.tone}>{row.status}</Badge> },
+            ]}
+            rows={TABLE_REFERENCE_ROWS}
+            getRowId={(row) => row.id}
+            renderRowAction={() => <Button variant="ghost" size="sm">Ouvrir</Button>}
+          />
+        </CardBody>
+      </Card>
+    </section>
+  );
+}
+
 export default async function VisualReferencePage() {
   const icons = await getPublicIcons();
   const categoryReferenceGroups = await getCategoryReferenceGroups();
@@ -1656,7 +1695,7 @@ export default async function VisualReferencePage() {
     <main className={styles.page}>
       <div className={styles.developmentNav}>
         <DevelopmentSectionNav active="design-system" />
-        <Link href="/design-system" className={styles.backToDesignSystem}>Retour au Design system</Link>
+        <Link href="/design-system" className={styles.backToDesignSystem}>Regles officielles du Design System</Link>
       </div>
 
       {/* ── Hero ── */}
@@ -1780,6 +1819,8 @@ export default async function VisualReferencePage() {
       <DesignTokenSection />
 
       <SourceConsolidationSection />
+
+      <TableContractReferenceSection />
 
       <CategoryReferenceSection groups={categoryReferenceGroups} />
 

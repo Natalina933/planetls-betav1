@@ -1,4 +1,4 @@
-﻿export type CompletionRequirement = {
+export type CompletionRequirement = {
   label: string;
   complete: boolean;
 };

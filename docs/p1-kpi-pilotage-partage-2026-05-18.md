@@ -1,4 +1,4 @@
-﻿# P1 - Pilotage KPI partagé (owner / concierge / artisan)
+# P1 - Pilotage KPI partagé (owner / concierge / artisan)
 
 _Date: 18 mai 2026_
 

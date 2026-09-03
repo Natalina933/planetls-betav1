@@ -1,4 +1,4 @@
-﻿# Module litiges - preuves horodatees (Proprietaire / Concierge)
+# Module litiges - preuves horodatees (Proprietaire / Concierge)
 
 ## 1) Maquette UX (par parcours)
 

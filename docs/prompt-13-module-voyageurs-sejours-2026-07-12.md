@@ -1,4 +1,4 @@
-﻿# Prompt 13 - Module Voyageurs et sejours
+# Prompt 13 - Module Voyageurs et sejours
 
 Date: 2026-07-12
 
@@ -26,7 +26,7 @@ Date: 2026-07-12
 - `AsyncState` pour loading, empty et error states.
 - Navigation dashboard existante dans `sidebarconfig.tsx`.
 - Command center dashboard existant dans `DashboardCommandCenter.tsx`.
-- IcÃ´nes `lucide-react` deja utilisees par le dashboard.
+- Icônes `lucide-react` deja utilisees par le dashboard.
 
 ### Types et modeles Supabase existants
 

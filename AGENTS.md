@@ -2,6 +2,13 @@
 
 ## Master Plan obligatoire
 
+### Encodage et langue
+
+- PlanetLS est un site francophone. Tous les fichiers texte doivent rester en `UTF-8 sans BOM`.
+- Les textes visibles par l'utilisateur doivent utiliser les accents français corrects. Il est interdit de supprimer les accents pour contourner un problème d'encodage.
+- Avant toute modification automatisée de texte, vérifier l'encodage réel du fichier et éviter les conversions globales ou doubles conversions.
+- Les routes, identifiants techniques et clés existantes ne doivent pas être renommés uniquement pour ajouter des accents.
+
 ### Definitions de gouvernance
 
 - Une **mission importante** modifie un parcours utilisateur, une regle metier, une API, un schema de donnees, une permission, une integration externe, une dependance majeure ou un risque produit/technique.

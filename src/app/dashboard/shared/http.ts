@@ -1,4 +1,4 @@
-﻿export async function fetchJsonOrThrow<T>(input: RequestInfo | URL, fallbackError: string) {
+export async function fetchJsonOrThrow<T>(input: RequestInfo | URL, fallbackError: string) {
   const response = await fetch(input, { cache: "no-store" });
   const payload = await response.json();
 

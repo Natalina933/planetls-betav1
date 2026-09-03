@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import Link from "next/link";
@@ -79,6 +79,7 @@ import {
   MASTER_PLAN_PRIORITIES,
   MASTER_PLAN_PRIORITY_GUIDE,
   MASTER_PLAN_STATUSES,
+  type DevelopmentRegistryItem,
   type MasterPlanPlanningItem,
   type MasterPlanSection,
   type MasterPlanUpdateEntry,
@@ -1768,7 +1769,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   }), [plan.planning]);
   const canonicalPriorityRows = useMemo(() => {
     const normalizedQuery = priorityQuery.trim().toLocaleLowerCase("fr");
-    const historicalP3Items = PRIORITY_TABLE_ROWS
+    const historicalP3Items: DevelopmentRegistryItem[] = PRIORITY_TABLE_ROWS
       .filter((row) => row.level === "P3")
       .map((row) => ({
         id: `PLS-HIST-${row.id.slice(3)}`,
@@ -1786,6 +1787,22 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
         nextAction: "Réévaluer le besoin terrain avant toute planification.",
         addedAt: "2026-08-24",
         updatedAt: "2026-08-24",
+        summary: "Entrée historique à réévaluer avant toute planification.",
+        status: "IDEA",
+        type: "improvement",
+        phase: "Historique",
+        validationCriteria: [],
+        validatedCriteria: [],
+        blocker: null,
+        routes: [],
+        files: [],
+        progressLabel: "Historique à réévaluer.",
+        userNeed: "À confirmer auprès du terrain.",
+        potentialValue: "À évaluer.",
+        risks: "Besoin, valeur et effort non validés.",
+        businessModel: "Non défini.",
+        missingWork: [],
+        githubIssues: [],
       }));
     return [...plan.registryItems, ...historicalP3Items].filter((item) => {
       const matchesQuery = !normalizedQuery || [

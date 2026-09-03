@@ -1,4 +1,4 @@
-﻿import { normalizeMissionStatus, type MissionStatus } from "./missionStatus.ts";
+import { normalizeMissionStatus, type MissionStatus } from "./missionStatus.ts";
 
 export type MaintenanceWorkflowStepId =
   | "incident"

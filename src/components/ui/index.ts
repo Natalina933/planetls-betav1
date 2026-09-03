@@ -65,3 +65,8 @@ export type { SectionIntroProps } from "./SectionIntro";
 
 export { ShowcaseFlipCard } from "./ShowcaseFlipCard";
 export type { ShowcaseFlipCardProps, ShowcaseFlipCardSize } from "./ShowcaseFlipCard";
+
+export { DataTable } from "./DataTable";
+export type { DataTableColumn, DataTableProps } from "./DataTable";
+export { TableFilters } from "./TableFilters";
+export type { TableFiltersProps } from "./TableFilters";

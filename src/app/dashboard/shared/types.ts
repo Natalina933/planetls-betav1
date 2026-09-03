@@ -1,4 +1,4 @@
-﻿export interface DashboardUserIdentity {
+export interface DashboardUserIdentity {
   firstName?: string | null;
   username?: string | null;
   role?: string | null;

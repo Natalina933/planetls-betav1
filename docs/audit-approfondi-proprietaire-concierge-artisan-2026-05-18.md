@@ -1,4 +1,4 @@
-﻿# Audit approfondi par catégorie - Propriétaire, Concierge, Artisan
+# Audit approfondi par catégorie - Propriétaire, Concierge, Artisan
 
 _Date: 18 mai 2026_
 _Dernière mise à jour: 18 mai 2026 (lot P0 messagerie provider)_

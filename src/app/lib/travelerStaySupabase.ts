@@ -1,4 +1,4 @@
-﻿import type { TravelerStayInput, TravelerStayMission } from "./travelerStayCenter";
+import type { TravelerStayInput, TravelerStayMission } from "./travelerStayCenter";
 
 export type TravelerStayMissionRow = {
   id: string;

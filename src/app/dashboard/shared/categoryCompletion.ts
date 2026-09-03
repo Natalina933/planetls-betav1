@@ -1,4 +1,4 @@
-﻿import {
+import {
   buildCompletionState,
   type CompletionState,
 } from "@/app/components/dashboard/profile/completion";

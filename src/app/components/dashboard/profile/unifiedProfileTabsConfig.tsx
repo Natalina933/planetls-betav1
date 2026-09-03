@@ -1,4 +1,4 @@
-﻿import type { IconType } from "react-icons";
+import type { IconType } from "react-icons";
 import { FiClipboard, FiFileText, FiMapPin, FiMessageSquare } from "react-icons/fi";
 import { DashboardGaugeIcon } from "@/components/ui/PublicIcon";
 import type { ProfileShellTab } from "./ProfilePageShell";

@@ -1,4 +1,4 @@
-﻿export const TRAVELER_STAY_STATUSES = [
+export const TRAVELER_STAY_STATUSES = [
   "to_prepare",
   "missing_information",
   "arrival_to_confirm",

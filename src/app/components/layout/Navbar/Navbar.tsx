@@ -414,7 +414,7 @@ export default function Navbar() {
 
   const workspaceHeaderText = isAuthenticated
     ? "Profils rattaches a votre compte"
-    : "Acces rapide aux espaces en cours de test";
+    : "Accès rapide aux espaces en cours de test";
 
   return (
     <>

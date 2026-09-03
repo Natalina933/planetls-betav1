@@ -1,4 +1,4 @@
-﻿import type { DashboardNavItem, DashboardQuickAction, DashboardShortcutItem } from "@/components/dashboard";
+import type { DashboardNavItem, DashboardQuickAction, DashboardShortcutItem } from "@/components/dashboard";
 
 export const OWNER_DASHBOARD_CONFIG = {
   title: "Tableau de bord",

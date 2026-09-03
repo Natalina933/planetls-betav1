@@ -1,4 +1,4 @@
-﻿-- Checkout inspections + dispute evidence module
+-- Checkout inspections + dispute evidence module
 -- Date: 2026-03-12
 
 BEGIN;

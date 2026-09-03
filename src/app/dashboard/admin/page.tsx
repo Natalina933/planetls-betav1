@@ -799,7 +799,7 @@ export default function AdminDashboard() {
       items.push({
         id: `problem-${problem.id}`,
         title: problem.title,
-        detail: `${formatProblemSeverity(problem.severity)} Â· ${formatProblemStatus(problem.status)} Â· ${problem.functional_owner}`,
+        detail: `${formatProblemSeverity(problem.severity)} · ${formatProblemStatus(problem.status)} · ${problem.functional_owner}`,
         href: "/dashboard/admin/controle",
         timestamp: problem.last_detected_at,
         kind: "problem",
@@ -981,7 +981,7 @@ export default function AdminDashboard() {
       label: `Nouveaux comptes (${period} j)`,
       value: String(recentUsers),
       source: "Profils admin + comptes Auth via /api/admin/overview",
-      formula: "Profils crees dans la fenetre selectionnee.",
+      formula: "Profils créés dans la fenêtre sélectionnée.",
       period: `${period} derniers jours`,
       state: adminOverview ? "Reel" : "Indisponible",
       href: "/dashboard/admin/utilisateurs",
@@ -1014,7 +1014,7 @@ export default function AdminDashboard() {
       label: `Demandes entrantes (${period} j)`,
       value: String(recentRequests),
       source: "service_requests via /api/admin/operations",
-      formula: "Demandes creees dans la fenetre selectionnee.",
+      formula: "Demandes créées dans la fenêtre sélectionnée.",
       period: `${period} derniers jours`,
       state: requests.length > 0 || sourceWarnings.length === 0 ? "Reel" : "Partiel ou indisponible",
       href: "/dashboard/admin/demandes",
@@ -1219,7 +1219,7 @@ export default function AdminDashboard() {
             <div className={styles.heroMeta}>
               <p>{summarySentence}</p>
 
-              <div className={styles.periodSwitch} role="group" aria-label="Periode d'analyse">
+              <div className={styles.periodSwitch} role="group" aria-label="Période d'analyse">
                 {PERIOD_OPTIONS.map((option) => (
                   <button
                     key={option.value}
@@ -1664,7 +1664,7 @@ export default function AdminDashboard() {
         sidebarSections={[
           {
             id: "activity",
-            title: "Activite recente",
+            title: "Activité récente",
             subtitle: "Les derniers mouvements utiles a relire",
             content:
               activitySpotlights.length > 0 ? (

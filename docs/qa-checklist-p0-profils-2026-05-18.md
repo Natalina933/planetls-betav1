@@ -1,4 +1,4 @@
-﻿# Checklist QA P0 - Propriétaire, Concierge, Artisan
+# Checklist QA P0 - Propriétaire, Concierge, Artisan
 
 _Date: 18 mai 2026_
 

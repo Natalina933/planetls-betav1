@@ -1,4 +1,4 @@
-﻿# 🎨 Système de Thèmes - Documentation
+# 🎨 Système de Thèmes - Documentation
 
 ## Vue d'ensemble
 

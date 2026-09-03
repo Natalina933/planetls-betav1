@@ -1,4 +1,4 @@
-﻿import type { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { AlertCircle, Sparkles } from "lucide-react";
 import styles from "./AsyncState.module.scss";
 
@@ -17,7 +17,7 @@ export function AsyncState({
   error = null,
   isEmpty = false,
   loadingLabel = "Chargement...",
-  emptyLabel = "Aucune donnee disponible.",
+  emptyLabel = "Aucune donnée disponible.",
   className = "",
   children,
 }: AsyncStateProps) {

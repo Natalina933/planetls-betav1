@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import type { Json } from "@/types/supabase";
 import { db } from "@/app/lib/dbServer";

@@ -1,4 +1,4 @@
-﻿import type { DeveloperLogCommit } from "./developerLog";
+import type { DeveloperLogCommit } from "./developerLog";
 import type { MasterPlanPlanningItem, MasterPlanView } from "./masterPlan";
 
 export type MissionControlHealthStatus = "healthy" | "warning" | "danger" | "unverifiable";

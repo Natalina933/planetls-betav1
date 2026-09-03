@@ -348,7 +348,7 @@ export default function ProviderDashboardPage() {
   );
 
   const quickActions = [
-    { label: "Creer devis", href: "/dashboard/provider/devis", icon: FileText },
+    { label: "Créer devis", href: "/dashboard/provider/devis", icon: FileText },
     { label: "Declarer mission terminee", href: "/dashboard/provider/interventions", icon: Wrench },
     { label: "Envoyer facture", href: "/dashboard/provider/devis", icon: Receipt },
     { label: "Contacter client", href: "/dashboard/provider/messages", icon: MessageSquareText },
@@ -621,7 +621,7 @@ export default function ProviderDashboardPage() {
             <article className={styles.panelCard}>
               <div className={styles.panelHeader}>
                 <div>
-                  <span className={styles.panelEyebrow}>Activite recente</span>
+                  <span className={styles.panelEyebrow}>Activité récente</span>
                   <h3>Ce qui a bouge dernierement</h3>
                 </div>
               </div>

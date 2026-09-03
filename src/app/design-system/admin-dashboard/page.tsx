@@ -33,7 +33,7 @@ export default function AdminDashboardPrototypePage() {
     <main className={styles.page}>
       <header className={styles.topbar}>
         <Link href="/design-system" className={styles.backLink}>Design System</Link>
-        <span>Prototype interne - aucune donnee reelle</span>
+        <span>Prototype historique admin - donnees de demonstration, sans logique metier</span>
       </header>
 
       <section className={styles.pageHeader} aria-labelledby="prototype-title">
@@ -98,7 +98,7 @@ export default function AdminDashboardPrototypePage() {
             <CardBody><BellRing size={22} aria-hidden="true" /><p>Controle du jour</p><strong>10 actions demandent une decision humaine.</strong><ButtonLink href="#priorities" variant="paper">Ouvrir le centre de controle</ButtonLink></CardBody>
           </Card>
           <Card tone="outlined" className={styles.activityCard}>
-            <CardHeader><div><p className={styles.sectionEyebrow}>En direct</p><h2>Activite recente</h2></div><Clock3 size={18} aria-hidden="true" /></CardHeader>
+            <CardHeader><div><p className={styles.sectionEyebrow}>En direct</p><h2>Activité récente</h2></div><Clock3 size={18} aria-hidden="true" /></CardHeader>
             <CardBody><ol className={styles.activityList}>{activity.map(([title, detail, date]) => <li key={title}><BadgeCheck size={17} aria-hidden="true" /><div><strong>{title}</strong><span>{detail}</span><small>{date}</small></div></li>)}</ol></CardBody>
           </Card>
           <Card tone="outlined" className={styles.quickCard}>

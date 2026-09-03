@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 import { FiArrowDown, FiArrowUp, FiDownload, FiMapPin, FiSave, FiShuffle } from "react-icons/fi";

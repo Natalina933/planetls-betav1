@@ -1,4 +1,4 @@
-# Suite de l'audit UX concierge — Persona simplicit� & Persona expert
+# Suite de l'audit UX concierge — Persona simplicité & Persona expert
 
 _Date: 26 avril 2026_
 
@@ -9,7 +9,7 @@ Transformer les constats de l'audit initial en **plan d'exécution produit**: pa
 
 ## 1) Parcours cible par persona (version opérationnelle)
 
-## A. Persona simplicit� (simplicité, confiance, proximité)
+## A. Persona simplicité (simplicité, confiance, proximité)
 
 ### Parcours cible (J0 → J7)
 1. **Inscription guidée avec stepper visible** ("Étape 1 sur 5").
@@ -21,7 +21,7 @@ Transformer les constats de l'audit initial en **plan d'exécution produit**: pa
    - publier 1 offre,
    - répondre à 1 demande.
 
-### Critères UX pour Persona simplicit�
+### Critères UX pour Persona simplicité
 - Temps de complétion onboarding < 8 min.
 - Taux d'abandon entre étapes < 12%.
 - Taux d'activation du mode lisibilité > 30% chez les profils débutants.
@@ -79,7 +79,7 @@ Transformer les constats de l'audit initial en **plan d'exécution produit**: pa
 - `concierge_first_asset_created`
 
 Propriétés clés:
-- `persona_hint` (`Persona simplicit�_like`, `Persona expert_like`),
+- `persona_hint` (`Persona simplicité_like`, `Persona expert_like`),
 - `experience_level`,
 - `onboarding_variant`,
 - `step_index`,
@@ -119,7 +119,7 @@ Propriétés clés:
 
 ## Décision produit recommandée
 Prioriser un **double démarrage persona-driven**:
-- **Parcours rassurant et lisible** pour profils type Persona simplicit�.
+- **Parcours rassurant et lisible** pour profils type Persona simplicité.
 - **Parcours express orienté business** pour profils type Persona expert.
 
 Ce choix maximise la conversion sans complexifier excessivement l'architecture existante.

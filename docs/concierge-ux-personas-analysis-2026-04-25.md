@@ -1,4 +1,4 @@
-# Analyse UX concierges orientée personas (Persona simplicit� & Persona expert)
+# Analyse UX concierges orientée personas (Persona simplicité & Persona expert)
 
 _Date: 25 avril 2026_
 
@@ -17,7 +17,7 @@ _Date: 25 avril 2026_
 
 ## 2) Lecture par persona: points de friction probables
 
-## Persona 1 — Persona simplicit� (50 ans, peu diplômée, contraintes visuelles, zone restreinte Vendôme)
+## Persona 1 — Persona simplicité (50 ans, peu diplômée, contraintes visuelles, zone restreinte Vendôme)
 
 ### Risques UX actuels
 1. **Charge cognitive trop élevée**
@@ -27,11 +27,11 @@ _Date: 25 avril 2026_
 3. **Accessibilité visuelle insuffisamment explicite**
    - Taille texte/contraste/raccourcis visuels non mis en avant comme réglage utilisateur.
 4. **Parcours non guidé**
-   - Persona simplicit� a besoin d'un "pas à pas" très concret (quoi faire aujourd'hui, puis demain).
+   - Persona simplicité a besoin d'un "pas à pas" très concret (quoi faire aujourd'hui, puis demain).
 5. **Contrainte de mobilité non centrale**
    - Son périmètre réduit doit devenir un paramètre "verrouillé" et rassurant.
 
-### Optimisations prioritaires pour Persona simplicit�
+### Optimisations prioritaires pour Persona simplicité
 - **Mode “Essentiel” (par défaut)**
   - 3 cartes max sur l'accueil: _Aujourd'hui_, _Mes missions proches_, _Mes messages urgents_.
 - **Checklist quotidienne simple**
@@ -121,7 +121,7 @@ _Date: 25 avril 2026_
 
 ## 5) Parcours ciblés à implémenter
 
-## Parcours Persona simplicit� (objectif: revenu d'appoint sans stress)
+## Parcours Persona simplicité (objectif: revenu d'appoint sans stress)
 1. Onboarding en 5 écrans max.
 2. Paramétrer rayon local + horaires disponibles.
 3. Recevoir missions proches uniquement.
@@ -163,7 +163,7 @@ _Date: 25 avril 2026_
 ## 7) Recommandation stratégique finale
 
 Ton produit est déjà **fonctionnellement mature**. Le prochain palier ne se joue pas sur “plus de features”, mais sur:
-1. **Simplifier pour Persona simplicit�** (confiance + accessibilité + guidage).
+1. **Simplifier pour Persona simplicité** (confiance + accessibilité + guidage).
 2. **Industrialiser pour Persona expert** (ops multi-biens + automatisations légères + pilotage business).
 
 Si tu veux, je peux te préparer ensuite:

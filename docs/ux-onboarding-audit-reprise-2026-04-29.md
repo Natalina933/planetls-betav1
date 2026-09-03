@@ -6,7 +6,7 @@ _Date: 29 avril 2026_
 
 Sources docs:
 - `docs/onboarding-gap-analysis-all-categories-2026-04-29.md`
-- `docs/concierge-signup-ux-audit-Persona simplicité-Persona expert-suite-2026-04-26.md`
+- `docs/concierge-signup-ux-audit-lynda-christa-suite-2026-04-26.md`
 - `docs/concierge-ux-personas-analysis-2026-04-25.md`
 
 Sources code:
@@ -43,7 +43,7 @@ Le tunnel repond donc mieux a l'objectif initial: eviter le gros formulaire uniq
 - Progressbar accessible sur l'etape 4 (`AccessPopup`) et l'etape 5 (`CompleteRegistrationPage`).
 - Correction recente: le `progressbar` de `AccessPopup` a maintenant un nom accessible via `aria-label`.
 
-### Concierge: personnalisation Persona simplicité / Persona expert
+### Concierge: personnalisation Persona simplicitÃ© / Persona expert
 - Choix de mode dans `AccessPopup`:
   - `simple`,
   - `express`,
@@ -91,7 +91,7 @@ Decision UX recommandee: creer un composant commun `OnboardingStepper` reutilise
 
 ### Mode lisibilite pas expose partout
 
-Le mode existe, mais il n'est visible que sur certaines etapes. Pour Persona simplicité, il doit rester disponible pendant tout le tunnel, surtout sur:
+Le mode existe, mais il n'est visible que sur certaines etapes. Pour Persona simplicitÃ©, il doit rester disponible pendant tout le tunnel, surtout sur:
 - `ExperiencePopup`,
 - `CategoryPopup`,
 - `AccessPopup`.

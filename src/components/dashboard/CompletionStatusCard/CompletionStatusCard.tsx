@@ -1,4 +1,4 @@
-﻿import { FiAlertCircle, FiCheckCircle, FiClock, FiEdit3 } from "react-icons/fi";
+import { FiAlertCircle, FiCheckCircle, FiClock, FiEdit3 } from "react-icons/fi";
 import { Button, ButtonLink } from "@/components/ui";
 import styles from "./CompletionStatusCard.module.scss";
 

@@ -1,4 +1,4 @@
-﻿import { createHash, randomUUID } from "crypto";
+import { createHash, randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { db } from "@/app/lib/dbServer";

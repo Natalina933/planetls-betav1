@@ -11,7 +11,7 @@ type WorkspaceDefinition = {
 };
 
 const WORKSPACES: WorkspaceDefinition[] = [
-  { key: "owner", role: "owner", label: "Proprietaire", href: "/dashboard/owner" },
+  { key: "owner", role: "owner", label: "Propriétaire", href: "/dashboard/owner" },
   { key: "concierge", role: "concierge", label: "Conciergerie", href: "/dashboard/concierge" },
   { key: "provider", role: "provider", label: "Artisan", href: "/dashboard/provider" },
   { key: "admin", role: "admin", label: "Administrateur", href: "/dashboard/admin" },

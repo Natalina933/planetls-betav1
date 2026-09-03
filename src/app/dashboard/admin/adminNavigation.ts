@@ -10,7 +10,7 @@ const ADMIN_OVERVIEW_ITEM: DashboardNavItem = {
 const SECTION_ITEMS: Record<AdminNavigationSection, DashboardNavItem[]> = {
   operations: [
     { label: "Utilisateurs", href: "/dashboard/admin/utilisateurs" },
-    { label: "Proprietaires", href: "/dashboard/admin/proprietaires" },
+    { label: "Propriétaires", href: "/dashboard/admin/proprietaires" },
     { label: "Conciergeries", href: "/dashboard/admin/conciergeries" },
     { label: "Artisans", href: "/dashboard/admin/artisans" },
     { label: "Demandes", href: "/dashboard/admin/demandes" },
@@ -23,7 +23,7 @@ const SECTION_ITEMS: Record<AdminNavigationSection, DashboardNavItem[]> = {
     { label: "Personas", href: "/dashboard/admin/personas" },
   ],
   productTech: [
-    { label: "Developpement", href: "/dashboard/admin/developpement" },
+    { label: "Développement", href: "/dashboard/admin/developpement" },
     { label: "Decisions architecture", href: "/dashboard/admin/decisions-architecture" },
   ],
 };
@@ -45,4 +45,3 @@ export function buildAdminShortcuts(...sections: AdminNavigationSection[]): Dash
     href: item.href,
   }));
 }
-

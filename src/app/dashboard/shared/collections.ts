@@ -1,4 +1,4 @@
-﻿export function takeFirst<T>(items: T[], limit: number) {
+export function takeFirst<T>(items: T[], limit: number) {
   return items.slice(0, limit);
 }
 

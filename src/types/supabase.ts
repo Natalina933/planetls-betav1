@@ -1975,7 +1975,7 @@ export type TablesInsert<T extends keyof Database['public']['Tables']> = Databas
 export type TablesUpdate<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];
 export type Enums<T extends keyof Database['public']['Enums']> = Database['public']['Enums'][T];
 
-// Custom types pour les tables spécifiques
+// Custom types pour les tables spÃ©cifiques
 export type ProfilesUpdate = TablesUpdate<'profiles'>;
 export type HousingUpdate = TablesUpdate<'housing'>;
 export type ServiceCatalogInsert = TablesInsert<'services_catalog'>;
