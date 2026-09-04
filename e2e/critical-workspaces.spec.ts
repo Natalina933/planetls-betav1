@@ -40,4 +40,14 @@ test.describe("parcours critiques par espace", () => {
     await expectApiAvailable(page, "/api/provider/messages?limit=5");
     await expectApiAvailable(page, "/api/provider/interventions?limit=5");
   });
+
+  test("admin : cockpit et vue d'ensemble restent accessibles", async ({ page, request }) => {
+    await loginWorkspace(page, request, "admin");
+    await expect(page.getByRole("main")).toBeVisible();
+
+    await page.goto("/dashboard/admin");
+    await expect(page).toHaveURL(/\/dashboard\/admin/);
+    await expect(page.getByRole("heading", { name: "Aujourd'hui sur PlanetLS", exact: true })).toBeVisible();
+    await expectApiAvailable(page, "/api/admin/overview");
+  });
 });

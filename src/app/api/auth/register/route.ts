@@ -107,6 +107,14 @@ const buildAvailabilityPayload = (data: {
 const resolveKnownLocation = async (location: string | null) => {
   if (!location) return null;
 
+  if (
+    process.env.LOCAL_E2E_MODE === "true" &&
+    process.env.NODE_ENV !== "production" &&
+    location.trim().toLowerCase() === "paris"
+  ) {
+    return "Paris";
+  }
+
   const url = new URL("https://nominatim.openstreetmap.org/search");
   url.searchParams.set("format", "jsonv2");
   url.searchParams.set("addressdetails", "1");
@@ -293,6 +301,8 @@ export async function POST(req: NextRequest) {
         website: data.businessLink,
         experience_level: data.experienceLevel,
         years_experience: mapYearsToInt(data.yearsExperience),
+        onboarding_complete: true,
+        onboarding_completed_at: new Date().toISOString(),
       });
 
     if (profileError) {

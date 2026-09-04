@@ -1,6 +1,6 @@
 import { expect, type APIRequestContext, type Page } from "@playwright/test";
 
-export type Workspace = "owner" | "concierge" | "provider";
+export type Workspace = "owner" | "concierge" | "provider" | "admin";
 
 type WorkspaceCredentials = {
   email: string;

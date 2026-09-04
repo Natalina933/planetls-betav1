@@ -41,6 +41,27 @@ const PLACE_TYPE_PRIORITY: Record<string, number> = {
   administrative: 10,
 };
 
+const isLocalE2EMode =
+  process.env.LOCAL_E2E_MODE === "true" && process.env.NODE_ENV !== "production";
+
+function getLocalE2ESuggestion(location: string) {
+  if (location.trim().toLowerCase() !== "paris") return null;
+
+  return {
+    placeId: "local-e2e:paris",
+    label: "Paris",
+    latitude: 48.8566,
+    longitude: 2.3522,
+    city: "Paris",
+    district: null,
+    postcode: "75000",
+    country: "France",
+    subtitle: "France",
+    displayName: "Paris, France",
+    placeType: "city",
+  };
+}
+
 function normalizeLargeCityDistrict(city: string, district: string): string {
   const cityLabel = city.trim();
   const districtLabel = district.trim();
@@ -240,6 +261,12 @@ export async function GET(request: Request) {
 
   if (!location) {
     return NextResponse.json({ error: "Paramètre 'q' manquant" }, { status: 400 });
+  }
+
+  const localSuggestion = isLocalE2EMode ? getLocalE2ESuggestion(location) : null;
+  if (localSuggestion) {
+    if (mode === "suggest") return NextResponse.json({ suggestions: [localSuggestion] });
+    return NextResponse.json(localSuggestion);
   }
 
   try {
