@@ -116,6 +116,103 @@
 - Blocage : Docker n'est pas requis. Aucun projet Supabase de test/branche ni jeton de gestion n'est configuré, et le projet lié ne peut pas être identifié avec certitude comme distinct de `planetls-beta-v2`. La migration n'est donc pas exécutée sans risque sur base fraîche ou existante. Le build reste bloqué séparément par l'erreur TypeScript préexistante de `MasterPlanViewer.tsx`.
 - Prochaine étape : fournir ou créer une instance Supabase de test isolée (ou une branche), ses accès de gestion et les URLs/cookies de fixture ; appliquer la migration, exécuter les scénarios connectés puis n'autoriser `dryRun=false` qu'après prévisualisation.
 
+### Mise à jour ciblée - Verrouillage RLS Storage de `PLS-SEC-003` du 3 septembre 2026
+
+- Statut : `🟡 En cours` ; priorité : `P0 Critique`.
+- Périmètre mis à jour : `supabase/migrations/20260903110000_restrict_housing_photo_storage_access.sql`, `src/tests/housing-photo-security-contract.test.mts`, `src/tests/housing-photo-supabase.integration.test.mts`, `scripts/local-supabase-env.mjs`, `scripts/run-local-dev.mjs`, `scripts/seed-housing-photo-security-fixtures.mjs`, `scripts/prepare-housing-photo-upgrade-fixture.mjs`, `scripts/run-housing-photo-security-local.mjs`, `docs/master-plan-planetls.md`.
+- Réalité code : le bucket `housing-photos` est privé et les accès légitimes restent exclusivement servis par `/api/housing/photos` après autorisation métier, via la clé de service et une URL signée courte. La migration de compatibilité documente explicitement que `storage.objects` appartient au rôle interne Supabase et ne doit pas être modifié par les migrations applicatives.
+- Réalité tests : le contrat local vérifie le caractère privé du bucket et l'absence de modification directe du schéma Storage. Le test connecté ajoute un contrôle de l’URL publique Storage, puis conserve les preuves `401` anonyme, `403` tenant voisin et `302` owner autorisé.
+- Décision de pilotage : le bucket privé et la route serveur constituent la frontière d'accès portable. Toute nouvelle policy Storage doit être évaluée explicitement, car le schéma Storage est géré par Supabase.
+- Contradictions détectées : la policy restrictive initialement envisagée ne peut pas être appliquée de façon portable : Supabase réserve la propriété de `storage.objects` à son rôle interne. Le test d’intégration prouve donc le comportement réel requis, sans modifier ce schéma système.
+- Limites connues : la migration et le test connecté sont validés sur une base locale fraîche et sur une base locale préremplie de fixtures. Ces données restent volontairement fictives ; elles ne remplacent pas une base existante anonymisée avec sauvegarde restaurable et rollback documenté.
+- Vérification : `npx supabase start` applique les `61` migrations sur une base vide. Avec `npm run dev:local`, `npm run seed:housing-photo:local` puis `npm run test:housing-photo:local`, le scénario connecté passe : URL Storage publique refusée, `401` anonyme, `403` voisin et `302` propriétaire avec URL signée. Sur la base locale préremplie, une sauvegarde `public` sans données distantes est créée, le bucket fictif est rendu temporairement public, `20260902113000` et `20260903110000` sont prévisualisées puis rejouées avec `supabase db push --local`, et le même test connecté repasse.
+- Résultat documenté : validation réussie sur une base Supabase locale fraîche ; visite anonyme refusée (`401`), compte d'un autre tenant refusé (`403`), propriétaire autorisé (`302`) vers une URL signée et accès public direct au Storage refusé. Aucune modification n'a été effectuée sur Supabase en ligne pendant cette validation.
+- Procédure et journal : [runbook local des photos de logement](runbooks/housing-photo-local-test.md) et [journal de développement](journal-developpement.md) conservent les commandes, résultats et conditions de fin de test reproductibles.
+- Prochaine étape recommandée : exécuter la migration sur une cible Supabase isolée ou existante représentative, rejouer le test connecté avec un owner et un tenant voisin réels, puis documenter la prévisualisation et le rollback avant tout nettoyage effectif des brouillons.
+
+### Mise à jour ciblée - Reproductibilité Supabase locale de `PLS-SEC-003` du 3 septembre 2026
+
+- Statut : `🟡 En cours` ; priorité : `P0 Critique`.
+- Réalité vérifiée : Docker Desktop démarre et `npx supabase start` applique désormais les `61` migrations sur une base locale vide. Le conteneur PostgreSQL est sain après l'exécution, y compris la migration Storage `20260903110000_restrict_housing_photo_storage_access.sql`.
+- Cause racine résolue : plusieurs migrations fondatrices n'étaient présentes que dans l'archive gelée `database/migrations`, alors que la CLI locale n'exécute que `supabase/migrations`. Un bootstrap idempotent de l'ancien socle et sept équivalents historiques ordonnés ont été ajoutés à la source canonique, sans modifier l'archive.
+- Décision de pilotage : ne pas créer manuellement les tables dans Docker et ne pas réécrire l'archive historique. Le schéma distant `public` a été exporté sans données, uniquement pour établir les dépendances antérieures au premier historique suivi. Le contrôle `check:migrations` exige maintenant les fichiers de bootstrap afin d'éviter une régression de reproductibilité.
+- Preuve distante en lecture seule : la CLI authentifiée confirme que les migrations suivies localement et à distance commencent toutes deux par `20260223192000`. Le schéma initial est donc antérieur à l'historique de migrations alors versionné ; aucune donnée métier n'a été lue ni modifiée.
+- Limite restante : la validation sur une base existante représentative, la prévisualisation et le rollback documentés restent à réaliser. La différence historique `services_pricing.id` entre le schéma distant actuel et la compatibilité des migrations archivées devra être évaluée avant toute synchronisation distante.
+- Prochaine étape recommandée : préparer une cible Supabase de test isolée avec une copie anonymisée et restaurable de base existante, comparer son schéma et ses données de référence, puis appliquer la migration avec prévisualisation et rollback documenté.
+
+### Mise à jour ciblée - Revalidation isolée de `PLS-SEC-003` du 4 septembre 2026
+
+- Statut : `🟡 En cours` ; priorité : `P0 Critique`.
+- Réalité vérifiée : sur l'instance PlanetLS isolée `http://127.0.0.1:3102`, reliée exclusivement à Supabase local, les fixtures fictives owner, tenant voisin, logement et photo confirment à nouveau la confidentialité de `housing-photos`. L'URL publique Storage est refusée, l'accès anonyme retourne `401`, le tenant voisin `403` et le propriétaire reçoit une redirection `302` vers une URL signée.
+- Correctif de reproductibilité : `scripts/run-housing-photo-security-local.mjs` accepte désormais `HOUSING_PHOTO_TEST_APP_URL`. Le test conserve `http://127.0.0.1:3000` par défaut, mais peut cibler une instance locale isolée sans interrompre un serveur de développement déjà ouvert.
+- Procédure d'upgrade vérifiée : `npm run verify:housing-photo:upgrade:local` crée une sauvegarde locale `public`, capture la cible de rollback Storage, prévisualise et rejoue réellement `20260902113000` sur les fixtures préexistantes, vérifie le rollback, puis réapplique la migration pour laisser le bucket privé. La réapplication a été exécutée deux fois le 4 septembre : après prévisualisation, puis après restauration du rollback.
+- Vérification : `npm run check:migrations` PASS ; `node --experimental-strip-types --test src/tests/housing-photo-security-contract.test.mts src/tests/housing-write-guards.test.mts` PASS `6/6` ; `HOUSING_PHOTO_TEST_APP_URL=http://127.0.0.1:3102 npm run test:housing-photo:local` PASS `1/1`.
+- Limite connue : Docker signale le redémarrage du service auxiliaire `vector`, non requis par cette chaîne (PostgreSQL, Auth, Storage et API sont sains). Cette preuve reste locale et fictive ; elle ne remplace pas la validation sur une copie anonymisée, restaurable et représentative d'une base existante.
+- Prochaine étape recommandée : préparer cette copie isolée, enregistrer la sauvegarde, la prévisualisation des migrations `20260902113000` et `20260903110000`, leur résultat et le rollback du bucket avant d'autoriser tout nettoyage effectif des brouillons.
+
+### Mise à jour ciblée - Cible staging en lecture seule de `PLS-SEC-003` du 4 septembre 2026
+
+- Statut : `🟡 En cours` ; priorité : `P0 Critique`.
+- Cible autorisée et isolée : `planetls-staging` (`rhvyvpuqnsgrgacbwwqf`), organisation `natalina933's projects`, région `West EU (Paris)`, créée le 3 septembre 2026. Elle est distincte de `planetls-beta-v2` (`dyqlixssykeecvtqmcxh`) et de `supabase-charcoal-ferry` (`oakplmwyhkmhppjeztoc`), qui restent hors périmètre.
+- État initial vérifié en lecture seule : aucune migration distante, table exposée, utilisateur Auth, bucket ou objet Storage, ni Edge Function. Aucun dépôt n'est lié à cette cible et aucune liaison permanente n'a été créée pendant l'audit.
+- Données prévues : uniquement les fixtures PlanetLS fictives owner, tenant voisin, logement et image de test déjà utilisées localement. Aucun utilisateur réel, mot de passe, token, clé, adresse, téléphone, message voyageur ou autre donnée personnelle ne sera copié.
+- Écritures prévues après confirmation explicite : sauvegarde `public` initiale de staging, prévisualisation `db push --dry-run --include-all --project-ref rhvyvpuqnsgrgacbwwqf`, application ordonnée des 61 migrations locales, puis création des seules fixtures fictives. La validation de compatibilité rejouera `20260902113000_private_housing_photos.sql` et `20260903110000_restrict_housing_photo_storage_access.sql`, avec capture de la configuration du bucket, rollback contrôlé et retour final au bucket privé.
+- Risque et rollback : aucune migration applicative n'a de rollback global automatisé pour une base entièrement vide. En cas d'échec pendant ce test isolé, aucun projet réel n'est affecté ; le rollback consiste à restaurer la sauvegarde `public` et l'état initial du bucket, ou à recréer le staging vide seulement après autorisation explicite.
+- Prochaine étape recommandée : attendre la confirmation explicite du plan avant toute écriture sur `planetls-staging`; ne jamais cibler `planetls-beta-v2`.
+
+### Mise à jour ciblée - Validation staging de `PLS-SEC-003` du 4 septembre 2026
+
+- Statut : `🟡 En cours` ; priorité : `P0 Critique`.
+- Cible effectivement utilisée : uniquement `planetls-staging` (`rhvyvpuqnsgrgacbwwqf`). Aucun appel n'a ciblé `planetls-beta-v2` (`dyqlixssykeecvtqmcxh`) ni `supabase-charcoal-ferry` (`oakplmwyhkmhppjeztoc`), et aucune liaison permanente du dépôt n'a été créée.
+- Données : deux comptes, un logement et une image sont des fixtures synthétiques dédiées. Aucune donnée personnelle, utilisateur réel, secret, adresse, téléphone ou message n'a été copié.
+- Migrations et sauvegarde : les 61 migrations locales ont été prévisualisées puis appliquées dans leur ordre sur le staging vide. Une sauvegarde `public` avant validation est conservée dans `supabase/.temp/planetls-staging-pls-sec-003-backup.sql`; l'état de rollback du bucket est capturé dans `supabase/.temp/planetls-staging-pls-sec-003-rollback-target.json`.
+- Résultats vérifiés : `housing-photos` est privé, limité à 8 Mo et aux formats PNG/JPEG/WebP. Avec PlanetLS local relié temporairement à staging : URL publique Storage refusée, anonyme `401`, tenant voisin `403`, propriétaire `302` vers une URL signée.
+- Rollback et limite : le bucket a été remis temporairement public puis restauré privé. La migration `20260902113000` ne peut pas être rejouée via `db push` après la migration ultérieure `20260903110000` déjà enregistrée ; son état final a été restauré et contrôlé, mais cela ne remplace pas la validation sur une copie anonymisée et restaurable d'une base existante représentative.
+- Prochaine étape recommandée : préparer, après autorisation explicite, une copie anonymisée d'une base existante sur staging, puis valider une restauration complète et un rollback SQL avant de clôturer `PLS-SEC-003`.
+
+### Mise à jour ciblée - Préparation historique locale de `PLS-SEC-003` du 4 septembre 2026
+
+- Statut : `🟡 En cours` ; priorité : `P0 Critique`.
+- Dépendances vérifiées : l'état historique requis s'arrête à `20260829162000_provider_intervention_reports.sql`. La table `public.housing` existe dès `20260219120000_bootstrap_legacy_core_schema.sql` et `storage.buckets` est fourni par Supabase local ; aucune migration antérieure supplémentaire n'est nécessaire pour `20260902113000_private_housing_photos.sql`.
+- Isolation préparée : `supabase/.temp/pls-sec-003-history/` contient uniquement 59 copies de migrations canoniques, un `project_id` distinct et les ports `55321` à `55329`. Les migrations canoniques n'ont été ni modifiées ni renommées.
+- Blocage exact : Docker a refusé de finaliser le téléchargement local de l'image `public.ecr.aws/supabase/postgres:17.6.1.017` après plusieurs minutes sans progression. Le processus a été interrompu avant la création de tout conteneur, fixture, sauvegarde de test ou application de migration.
+- Preuve d'absence d'impact : aucun conteneur `pls-sec-003-history` n'existe. L'instance locale habituelle `planetls-betav1` et les projets distants `planetls-beta-v2`, `planetls-staging` et `supabase-charcoal-ferry` n'ont reçu aucune commande Supabase ni aucun accès de données pendant cette tentative.
+- Prochaine étape recommandée : résoudre le téléchargement Docker local ou fournir l'image locale requise, puis reprendre la procédure avec les 59 migrations historiques, les seules fixtures fictives, la sauvegarde, le dry-run, l'application ordonnée, le rollback et la réapplication. Ne pas clôturer `PLS-SEC-003` avant cette preuve complète.
+
+### Mise à jour ciblée - Rollback historique local de `PLS-SEC-003` du 4 septembre 2026
+
+- Statut : `🟡 En cours` ; priorité : `P0 Critique`.
+- Preuves réussies : l'instance Docker isolée `pls-sec-003-history` a appliqué les 59 migrations antérieures, reçu uniquement deux comptes, un logement et une image fictifs, puis prévisualisé et appliqué dans l'ordre `20260902113000` et `20260903110000`. Le contrôle applicatif connecté passe `1/1` : URL publique refusée, anonyme `401`, voisin `403`, propriétaire `302`.
+- Rollback vérifié : le retrait des seules copies temporaires des deux migrations et `supabase db reset --local` ont ramené l'historique exactement aux 59 migrations antérieures. L'instance isolée a ensuite été arrêtée ; aucun conteneur historique ne subsiste.
+- Blocage exact : la sauvegarde générée avec `db dump --data-only --schema public` ne contient ni `auth.users`, ni `storage.objects`, ni `storage.buckets`. Elle ne peut pas restaurer les comptes Auth, le fichier Storage et la configuration publique initiale ; aucune recréation manuelle n'a été présentée comme rollback complet.
+- Prochaine étape recommandée : concevoir une sauvegarde/restauration locale synthétique complète, incluant explicitement le contenu Auth et Storage de test ou un mécanisme de seed déterministe attesté comme restauration, puis rejouer rollback, comparaison et seconde application avant toute clôture.
+
+### Mise à jour de fin de session - `PLS-SEC-003` du 4 septembre 2026
+
+- Statut maintenu : `🟡 En cours` ; priorité maintenue : `P0 Critique`.
+- Preuves acquises : sur `pls-sec-003-history`, les 59 migrations historiques, l'application ordonnée des deux migrations de septembre, le bucket privé à 8 Mo avec MIME PNG/JPEG/WebP, la conservation du logement et de l'image, ainsi que les contrôles connectés `401`, `403`, `302` et refus d'URL publique ont été validés avec des fixtures fictives.
+- Blocage exact : les dumps `public` et les archives de volumes Storage constituent des preuves utiles, mais ne restaurent pas de manière fonctionnelle l'ensemble des attributs internes attendus par Storage. Après restauration de volume, le fichier existe mais Storage retourne `ENODATA`; aucune donnée réelle, cible distante, migration canonique ou réparation d'historique n'a été utilisée.
+- Décision : abandonner la restauration brute du volume Storage comme méthode de rollback fonctionnel. Conserver les archives existantes dans `supabase/.temp/` comme preuves expérimentales et préparer un export/restauration par API locale des seuls objets fictifs, avec manifeste non sensible (bucket, chemin, taille, MIME, cache-control, SHA-256) et vérification de téléchargement après restauration.
+- Prochaine étape prioritaire : implémenter et prouver cette sauvegarde API locale complète (données PostgreSQL nécessaires, comptes Auth fictifs, bucket, objets, manifeste), puis rejouer rollback, comparaison, seconde application et seconde série `401/403/302` avant toute clôture.
+
+### Mise à jour ciblée - E2E multi-rôle de `PLS-DEV-001` du 3 septembre 2026
+
+- Statut : `🟡 En cours` ; priorité : `P1 Prioritaire`.
+- Réalité vérifiée : sur une base Supabase locale fraîchement initialisée, les comptes de développement owner, concierge, provider et admin se connectent chacun à leur cockpit. Les API contrôlées dans les parcours ne renvoient ni `401`, ni `403`, ni erreur serveur.
+- Correctif de reproductibilité : le bootstrap historique local de `profiles` est désormais aligné avec les colonnes utilisées par le profil courant. Il initialise aussi quatre catégories minimales et idempotentes, uniquement nécessaires aux fixtures multi-rôles locales.
+- Vérification : `npm run test:e2e -- e2e/critical-workspaces.spec.ts --project=chromium`, avec `E2E_BASE_URL=http://127.0.0.1:3100`, passe les quatre scénarios Chromium. La base et le serveur utilisés sont locaux ; aucune commande n'a ciblé Supabase en ligne.
+- Limite restante : cette preuve ne couvre pas encore le tunnel complet d'inscription ni tous les parcours legacy. Le bootstrap ajusté est validé sur base fraîche ; la validation sur une copie restaurable d'une base existante reste la prochaine preuve de gouvernance portée par `PLS-SEC-003`. `PLS-DEV-001` ne doit donc pas être marqué terminé.
+- Prochaine étape recommandée : compléter un E2E d'inscription représentatif, puis traiter les parcours legacy encore hors couverture.
+
+### Mise à jour ciblée - Inscription owner locale de `PLS-DEV-001` du 3 septembre 2026
+
+- Statut : `🟡 En cours` ; priorité : `P1 Prioritaire`.
+- Réalité vérifiée : le scénario part de la dernière étape d'inscription avec un contexte propriétaire, crée un compte local unique, se connecte automatiquement, redirige vers `/dashboard/owner` et relit le profil persisté. Le profil porte le rôle `owner` et `onboarding_complete=true`.
+- Décision technique : le serveur local ne déclenche le mode `LOCAL_E2E_MODE` que lorsqu'il est lancé avec `scripts/run-local-dev.mjs --e2e`. Ce mode accepte la fixture `Paris` dans les routes de géocodage et d'inscription, sans appel Internet et sans pouvoir être actif en production.
+- Vérification : `E2E_BASE_URL=http://127.0.0.1:3101 npm run test:e2e -- e2e/registration-owner.spec.ts --project=chromium` passe. Les logs confirment `POST /api/auth/register 201`, la connexion credentials, l'événement d'onboarding et l'accès au dashboard owner ; aucune commande n'a ciblé Supabase en ligne.
+- Limites connues : l'inscription concierge et artisan, ainsi que les derniers parcours legacy, ne sont pas encore couverts. `PLS-DEV-001` reste en cours.
+- Prochaine étape recommandée : étendre l'E2E d'inscription aux variantes concierge et artisan, puis évaluer les parcours legacy restants.
+
 ### Mise à jour ciblée - Audit des nouvelles idées produit et séparation P4 du 2 septembre 2026
 
 - Statut : `🟠 Partiel`
@@ -579,11 +676,12 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "type": "feature",
       "persona": "Tous",
       "phase": "Stabilisation du socle",
-      "updatedAt": "2026-08-24",
-      "nextAction": "Finaliser les derniers parcours legacy et exécuter un E2E complet d'authentification multi-rôle.",
+      "updatedAt": "2026-09-03",
+      "nextAction": "Étendre l'E2E d'inscription aux variantes concierge et artisan, puis finaliser les derniers parcours legacy.",
       "validationCriteria": [
         "Connexion owner, concierge, provider et admin vérifiée",
         "Guards serveur et API validés",
+        "Inscription propriétaire représentative couverte en E2E",
         "Parcours principal couvert en E2E"
       ],
       "dependencies": [
@@ -600,12 +698,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "src/app/login/",
         "src/app/register/"
       ],
-      "progressLabel": "Socle fonctionnel déjà riche, mais preuve E2E principale encore incomplète.",
+      "progressLabel": "Connexion E2E locale validée pour owner, concierge, provider et admin ; inscription owner validée, variantes concierge/artisan et parcours legacy encore incomplets.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
       "evidence": [
         "src/server/auth/authOptions.ts",
         "src/app/api/auth/",
-        "src/tests/"
+        "src/tests/",
+        "e2e/critical-workspaces.spec.ts",
+        "e2e/registration-owner.spec.ts",
+        "e2e/helpers/workspace.ts",
+        "scripts/run-local-dev.mjs",
+        "supabase/migrations/20260219120000_bootstrap_legacy_core_schema.sql"
       ]
     },
     {
@@ -1803,18 +1906,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "type": "bug",
       "persona": "Owner, concierge, admin",
       "phase": "Sécurité multi-tenant",
-      "updatedAt": "2026-09-02",
-      "nextAction": "Configurer une instance Supabase de test isolée ou une branche, appliquer la migration sur base fraîche et existante, exécuter `housing-photo-supabase.integration.test.mts` avec les fixtures `HOUSING_PHOTO_TEST_*`, puis lancer le nettoyage admin après prévisualisation.",
+      "updatedAt": "2026-09-04",
+      "nextAction": "Implémenter sur Docker isolé un export et une restauration API des seules fixtures fictives Storage (objets, manifeste SHA-256, bucket et comptes Auth), puis prouver rollback, comparaison et seconde application des migrations avant toute clôture.",
       "validationCriteria": ["POST/PATCH/DELETE logement refusent toute relation auteur-owner-manager illégitime", "Un upload photo exige l'accès au logement ciblé", "Les médias logement ne sont pas publics par défaut", "Tests d'intégration couvrent 401, 403 et tenant voisin"],
-      "validatedCriteria": ["POST/PATCH/DELETE logement refusent toute relation auteur-owner-manager illégitime", "Un upload photo exige l'accès au logement ciblé", "Les médias logement ne sont pas publics par défaut"],
+      "validatedCriteria": ["POST/PATCH/DELETE logement refusent toute relation auteur-owner-manager illégitime", "Un upload photo exige l'accès au logement ciblé", "Les médias logement ne sont pas publics par défaut", "Tests d'intégration couvrent 401, 403 et tenant voisin sur Supabase local"],
       "dependencies": ["PLS-DEV-013", "PLS-TEST-001"],
-      "blocker": "Les routes actuelles utilisent SUPABASE_SERVICE_ROLE_KEY, qui contourne les policies RLS housing ; la protection doit être explicitement appliquée dans le serveur.",
+      "blocker": "Les routes utilisent SUPABASE_SERVICE_ROLE_KEY, qui contourne les policies RLS housing. La base fraîche, l'upgrade local et les contrôles connectés sont validés, mais le rollback fonctionnel complet reste bloqué : les archives brutes du volume Storage ne restaurent pas tous les attributs internes attendus par Storage. L'export/restauration API locale des fixtures fictives doit être prouvé.",
       "routes": ["/api/housing", "/api/housing/[id]", "/api/housing/photos"],
-      "files": ["src/app/api/housing/route.ts", "src/app/api/housing/[id]/route.ts", "src/app/api/housing/photos/route.ts", "src/server/db/dbServer.ts", "supabase/migrations/20260404123000_resolve_remaining_security_advisors.sql"],
-      "progressLabel": "Lots 1 à 3 livrés le 2 septembre 2026 : mutations, uploads, lecture signée et suppression photo sont contrôlés ; les brouillons peuvent être prévisualisés puis nettoyés par un admin. Les preuves connectées attendent une cible Supabase isolée et ses fixtures.",
+      "files": ["src/app/api/housing/route.ts", "src/app/api/housing/[id]/route.ts", "src/app/api/housing/photos/route.ts", "src/server/db/dbServer.ts", "supabase/migrations/20260404123000_resolve_remaining_security_advisors.sql", "supabase/migrations/20260902113000_private_housing_photos.sql", "supabase/migrations/20260903110000_restrict_housing_photo_storage_access.sql", "scripts/local-supabase-env.mjs", "scripts/run-local-dev.mjs", "scripts/seed-housing-photo-security-fixtures.mjs", "scripts/prepare-housing-photo-upgrade-fixture.mjs", "scripts/run-housing-photo-security-local.mjs"],
+      "progressLabel": "Les mutations, uploads, lecture signée, refus Storage direct, les 61 migrations et les contrôles connectés sont prouvés localement. Le P0 reste ouvert uniquement pour le rollback fonctionnel complet : sauvegarde et restauration API des fixtures Storage fictives, comparaison SHA-256 puis seconde application.",
       "source": "Audit recherche, logements, profils, pages et workflows du 26 août 2026",
-      "evidence": ["src/server/db/dbServer.ts : SUPABASE_SERVICE_ROLE_KEY", "src/app/lib/housingWriteGuards.ts : cohérence serveur owner/manager selon le rôle connecté", "src/app/api/housing/route.ts : garde-fou appliqué avant insert", "src/app/api/housing/[id]/route.ts : garde-fou appliqué lors des mises à jour du bloc proprietaire", "src/app/api/housing/photos/route.ts : upload contrôlé, accès lecture vérifié et URL signée de 5 minutes", "src/app/lib/housingPhotoUrl.ts : compatibilité des URL publiques historiques sans exposer le bucket", "supabase/migrations/20260902113000_private_housing_photos.sql : bucket privé idempotent", "src/tests/housing-photo-security-contract.test.mts", "src/tests/housing-write-guards.test.mts", "src/tests/create-logement-helpers.test.mts", "supabase/migrations/20260404123000_resolve_remaining_security_advisors.sql : policies housing participants"],
-      "missingWork": ["Configurer une instance Supabase de test isolée ou une branche avec accès de gestion", "Valider la migration sur base fraîche et existante avec rollback documenté", "Exécuter les refus connectés 401/403/tenant voisin", "Planifier le nettoyage admin après une première prévisualisation"],
+      "evidence": ["src/server/db/dbServer.ts : SUPABASE_SERVICE_ROLE_KEY", "src/app/lib/housingWriteGuards.ts : cohérence serveur owner/manager selon le rôle connecté", "src/app/api/housing/route.ts : garde-fou appliqué avant insert", "src/app/api/housing/[id]/route.ts : garde-fou appliqué lors des mises à jour du bloc proprietaire", "src/app/api/housing/photos/route.ts : upload contrôlé, accès lecture vérifié et URL signée de 5 minutes", "src/app/lib/housingPhotoUrl.ts : compatibilité des URL publiques historiques sans exposer le bucket", "supabase/migrations/20260902113000_private_housing_photos.sql : bucket privé idempotent", "supabase/migrations/20260903110000_restrict_housing_photo_storage_access.sql : compatibilité avec le schéma Storage géré par Supabase", "src/tests/housing-photo-security-contract.test.mts", "src/tests/housing-photo-supabase.integration.test.mts", "scripts/seed-housing-photo-security-fixtures.mjs : fixtures locales isolées", "scripts/prepare-housing-photo-upgrade-fixture.mjs : simulation de bucket public avant migration", "scripts/run-housing-photo-security-local.mjs : test connecté automatisé", "Prévisualisation puis `supabase db push --local` des migrations 20260902113000 et 20260903110000 sur fixtures préexistantes", "src/tests/housing-write-guards.test.mts", "src/tests/create-logement-helpers.test.mts", "supabase/migrations/20260404123000_resolve_remaining_security_advisors.sql : policies housing participants"],
+      "missingWork": ["Exporter et restaurer via API locale les objets Storage fictifs avec manifeste SHA-256", "Sauvegarder et restaurer les comptes Auth fictifs et les données PostgreSQL nécessaires", "Prouver rollback, comparaison et seconde application sur l'instance Docker isolée", "Planifier le nettoyage admin après une première prévisualisation"],
       "githubIssues": []
     },
     {
