@@ -45,4 +45,6 @@ yarn-error.log*
 next-env.d.ts
 .env*.local
 /.next-e2e-debug/
+/.next-pls-sec-003-history/
+/DockerDesktopWSL/
 /debug.log
