@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "incremental": false },
+  "references": [],
+  "include": [
+    "next-env.d.ts",
+    "src/types/**/*.ts",
+    "src/app/dashboard/admin/(business)/personas/**/*",
+    "src/app/dashboard/admin/(product-tech)/developpement/personas/personas.ts",
+    "src/tests/personas.test.mts"
+  ],
+  "exclude": ["node_modules", "test-results", ".next", ".next-e2e"]
+}
