@@ -23,6 +23,11 @@ export function getLocalSupabaseEnv() {
     throw new Error("Supabase local n'est pas démarré. Lancez d'abord `npx supabase start`.");
   }
 
+  const url = new URL(status.API_URL);
+  if (url.protocol !== "http:" || url.hostname !== "127.0.0.1" || url.username || url.password) {
+    throw new Error("Tests locaux : seule une API Supabase http://127.0.0.1 est autorisée.");
+  }
+
   return {
     NEXT_PUBLIC_SUPABASE_URL: status.API_URL,
     SUPABASE_URL: status.API_URL,

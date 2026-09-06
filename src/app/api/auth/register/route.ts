@@ -2,7 +2,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { categoryToRole } from "@/app/utils/roles";
+
+// Public signup must never use the general role resolver (admin and PRO included).
+const publicCategorySchema = z.enum(["proprietaire", "concierge", "artisan"]);
+const PUBLIC_REGISTRATION_ROLES = {
+  proprietaire: "owner",
+  concierge: "concierge",
+  artisan: "provider",
+} as const satisfies Record<z.infer<typeof publicCategorySchema>, string>;
 
 const cleanString = (val?: string | null) =>
   val ? val.replace(/[<>]/g, "").trim().substring(0, 1000) : null;
@@ -169,7 +176,8 @@ const registerSchema = z.object({
   avatar_offset_x: z.number().optional().nullable(),
   avatar_offset_y: z.number().optional().nullable(),
   avatar_rotation: z.number().optional().nullable(),
-  category: z.string().optional().nullable().transform(cleanString),
+  category: publicCategorySchema,
+  role: z.never().optional(),
   search_target: z.string().optional().nullable().transform(cleanString),
   option: z.string().optional().nullable().transform(cleanString),
   location: z.string().optional().nullable().transform(cleanString),
@@ -195,23 +203,23 @@ const registerSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-
   try {
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
     const result = registerSchema.safeParse(body);
 
     if (!result.success) {
       return NextResponse.json(
-        { error: "Donnees invalides", details: result.error.format() },
+        { error: "Données d'inscription invalides.", details: result.error.format() },
         { status: 400 }
       );
     }
 
     const data = result.data;
+    const role = PUBLIC_REGISTRATION_ROLES[data.category];
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
     const resolvedLocation = await resolveKnownLocation(data.location ?? null);
     if (data.location && !resolvedLocation) {
       return NextResponse.json(
@@ -219,9 +227,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    const role = categoryToRole(data.category || "");
-    const isConcierge =
-      role === "concierge" || role === "concierge_pro" || data.category === "concierge";
+    const isConcierge = role === "concierge";
     const selectedServices = splitSelectedServices(data.option);
     const serviceRadiusKm = mapRadiusToInt(data.serviceRadiusKm);
     const availabilityHours = buildAvailabilityPayload({

@@ -1,11 +1,13 @@
 import { spawn } from "node:child_process";
 import { getLocalSupabaseEnv } from "./local-supabase-env.mjs";
-import { getStagingSupabaseEnv } from "./staging-supabase-env.mjs";
 
 const npx = process.platform === "win32" ? "npx.cmd" : "npx";
 const args = process.argv.slice(2);
 const staging = args.includes("--staging");
-const supabaseEnv = staging ? getStagingSupabaseEnv() : getLocalSupabaseEnv();
+if (staging && args.includes("--e2e")) throw new Error("Le rejeu E2E doit rester local.");
+const supabaseEnv = staging
+  ? (await import("./staging-supabase-env.mjs")).getStagingSupabaseEnv()
+  : getLocalSupabaseEnv();
 const isolated = args.includes("--isolated");
 const localE2E = args.includes("--e2e");
 const nextArgs = args.filter((arg) => arg !== "--isolated" && arg !== "--e2e" && arg !== "--staging");

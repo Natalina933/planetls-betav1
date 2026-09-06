@@ -2,6 +2,7 @@
   "name": "planetls-beta",
   "version": "0.1.0",
   "private": true,
+  "engines": { "node": ">=22.14.0 <23" },
   "type": "module",
   "scripts": {
     "dev": "next dev",
@@ -10,6 +11,9 @@
     "start": "next start",
     "lint": "eslint src e2e playwright.config.ts --ext .js,.jsx,.ts,.tsx,.mts",
     "test": "node --experimental-strip-types --test src/tests/*.test.mts",
+    "typecheck": "tsc --noEmit --incremental false && tsc --project tsconfig.playwright.json --noEmit --incremental false --composite false",
+    "test:registration:local": "node scripts/test-registration-local.mjs",
+    "test:e2e:local": "node scripts/run-local-e2e.mjs",
     "ensure:admin": "node scripts/ensure-admin-profile.mjs",
     "ensure:workspaces": "node scripts/ensure-workspace-profiles.mjs",
     "inspect:remote:admin-schema": "node scripts/inspect-remote-admin-schema.mjs",

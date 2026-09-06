@@ -3,7 +3,11 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const port = Number(process.env.E2E_PORT ?? 3100);
-const baseURL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:${port}`;
+if (process.env.E2E_BASE_URL) throw new Error("Les E2E connectés exigent un serveur local dédié ; E2E_BASE_URL est interdit.");
+const baseURL = `http://127.0.0.1:${port}`;
+if (process.env.E2E_STRIPE_SECRET_KEY && !process.env.E2E_STRIPE_SECRET_KEY.startsWith("sk_test_")) {
+  throw new Error("Seule une clé Stripe de test est autorisée pour les E2E.");
+}
 
 export default defineConfig({
   testDir: "./e2e",
@@ -26,12 +30,10 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: process.env.E2E_BASE_URL
-    ? undefined
-    : {
-        command: `npm run dev:webpack -- --hostname 127.0.0.1 --port ${port}`,
+  webServer: {
+        command: `node scripts/run-local-dev.mjs --isolated --e2e --webpack --hostname 127.0.0.1 --port ${port}`,
         url: baseURL,
-        reuseExistingServer: !process.env.CI,
+        reuseExistingServer: false,
         timeout: 120_000,
         env: {
           ...process.env,

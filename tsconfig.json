@@ -51,6 +51,7 @@
     "node_modules",
     "e2e",
     "playwright.config.ts",
+    "playwright.stabilization.config.ts",
     "test-results"
   ]
 }
