@@ -33,16 +33,18 @@ test("the same logical context produces a stable fingerprint", () => {
 });
 
 test("recording sends only structured minimal fields to the registry function", async () => {
-  let call: { name: string; args: Record<string, unknown> } | null = null;
+  const calls: { name: string; args: Record<string, unknown> }[] = [];
   const client = {
     rpc: async (name: string, args: Record<string, unknown>) => {
-      call = { name, args };
+      calls.push({ name, args });
       return { data: { id: "problem-id" }, error: null };
     },
   };
 
   const result = await createOrRedetectAdminProblem(client, detection);
   assert.equal(result.problem && (result.problem as { id: string }).id, "problem-id");
+  assert.equal(calls.length, 1);
+  const call = calls[0];
   assert.equal(call?.name, "create_or_redetect_admin_problem");
   assert.equal(call?.args.p_fingerprint, result.fingerprint);
   assert.equal("fingerprintContext" in (call?.args ?? {}), false);

@@ -8,16 +8,18 @@ export type TableFiltersProps = {
   activeCount?: number;
   onReset?: () => void;
   className?: string;
+  resultLabel?: string;
+  resetLabel?: string;
 };
 
-export function TableFilters({ children, resultCount, activeCount = 0, onReset, className = "" }: TableFiltersProps) {
+export function TableFilters({ children, resultCount, activeCount = 0, onReset, className = "", resultLabel, resetLabel = "Reinitialiser" }: TableFiltersProps) {
   return (
     <div className={[styles.filters, className].filter(Boolean).join(" ")} aria-label="Filtres du tableau">
       <div className={styles.controls}>{children}</div>
       <div className={styles.meta} aria-live="polite">
-        <span>{resultCount} resultat(s)</span>
+        <span>{resultLabel ?? `${resultCount} resultat(s)`}</span>
         {activeCount > 0 ? <span>{activeCount} filtre(s) actif(s)</span> : null}
-        {onReset && activeCount > 0 ? <Button variant="ghost" size="sm" onClick={onReset}>Reinitialiser</Button> : null}
+        {onReset && activeCount > 0 ? <Button variant="ghost" size="sm" onClick={onReset}>{resetLabel}</Button> : null}
       </div>
     </div>
   );

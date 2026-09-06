@@ -1,39 +1,38 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   AlertTriangle,
   ArrowRight,
-  CalendarClock,
-  CheckCircle2,
-  ClipboardList,
   Clock3,
   Home,
-  MessageSquareText,
   Plus,
   Send,
   Sparkles,
   Wrench,
 } from "lucide-react";
-import { AsyncState, Badge, Button, ButtonLink, Card, CardBody, CardHeader, DataTable, Input, Select, StatsCard, TableFilters } from "@/components/ui";
+import { Badge, Button, Card, CardBody, CardHeader, DataTable, Input, Select, TableFilters } from "@/components/ui";
+import { PrototypeState as AsyncState, StateControls } from "../_dashboards/PrototypeFrame";
 import styles from "./page.module.scss";
+import { RoleFollowUp } from "../_dashboards/RoleFollowUp";
+import { RoleContextCard, RoleVisualMetrics } from "../_dashboards/RoleVisualSummary";
+import { ArtDecoLiveDashboard } from "@/components/ui/ArtDecoWorkspace/ArtDecoWorkspace";
 
 type DemoState = "ready" | "loading" | "empty" | "error";
 
 const DEMO_MISSIONS = [
-  { time: "09:30", title: "Check-in Villa Azur", place: "Biarritz", status: "A confirmer", tone: "warning" as const },
-  { time: "11:00", title: "Controle linge", place: "Le Petit Prince", status: "Planifiee", tone: "info" as const },
-  { time: "15:30", title: "Depannage serrure", place: "Maison Larralde", status: "Urgente", tone: "danger" as const },
+  { time: "09:30", title: "Check-in Villa Azur", place: "Biarritz", status: "À confirmer", tone: "warning" as const },
+  { time: "11:00", title: "Contrôle linge", place: "Le Petit Prince", status: "Planifiée", tone: "info" as const },
+  { time: "15:30", title: "Dépannage serrure", place: "Maison Larralde", status: "Urgente", tone: "danger" as const },
 ] as const;
 
 const COMPARISON_ROWS = [
-  ["Accueil et KPI", "Cockpit adapte au mode et aux donnees reelles", "Conserver la priorite du jour, harmoniser les cartes KPI", "Conservation + harmonisation visuelle", "Faible"],
-  ["Radar et alertes", "Liste issue des demandes, messages et validations", "Regrouper par action attendue avant les indicateurs secondaires", "Amelioration UX", "Moyen"],
-  ["Missions et planning", "Liens vers planning, missions et demandes", "Faire du planning du jour la lecture principale", "Conservation + amelioration UX", "Faible"],
-  ["Personnalisation", "Widgets et mode co-hote sauvegardes localement", "Conserver le comportement, expliciter les reglages", "Dette technique", "Moyen"],
-  ["Bibliotheque inspiration", "Videos et recherches YouTube du profil concierge", "Garder hors du cockpit prioritaire et hors moodboard interne", "Decision produit necessaire", "Moyen"],
-  ["Tableaux et mobile", "Cartes et listes locales, styles Dashboard.module.scss", "Utiliser Card, Badge et defilement horizontal lorsque necessaire", "Correction responsive", "Faible"],
+  ["Accueil et KPI", "Cockpit adapté au mode et aux données réelles", "Conserver la priorité du jour, harmoniser les cartes KPI", "Conservation + harmonisation visuelle", "Faible"],
+  ["Radar et alertes", "Liste issue des demandes, messages et validations", "Regrouper par action attendue avant les indicateurs secondaires", "Amélioration UX", "Moyen"],
+  ["Missions et planning", "Liens vers planning, missions et demandes", "Faire du planning du jour la lecture principale", "Conservation + amélioration UX", "Faible"],
+  ["Personnalisation", "Widgets et mode co-hôte sauvegardés localement", "Conserver le comportement, expliciter les réglages", "Dette technique", "Moyen"],
+  ["Bibliothèque inspiration", "Vidéos et recherches YouTube du profil concierge", "Garder hors du cockpit prioritaire et hors moodboard interne", "Décision produit nécessaire", "Moyen"],
+  ["Tableaux et mobile", "Cartes et listes locales, styles Dashboard.module.scss", "Utiliser Card, Badge et défilement horizontal lorsque nécessaire", "Correction responsive", "Faible"],
 ] as const;
 
 const MISSION_COLUMNS = [
@@ -49,7 +48,7 @@ export default function ConciergeDashboardPrototype() {
   const [missionQuery, setMissionQuery] = useState("");
   const [missionStatus, setMissionStatus] = useState("all");
 
-  const showNotice = (label: string) => setNotice(`${label} est une action de demonstration.`);
+  const showNotice = (label: string) => setNotice(`${label} est une action de démonstration.`);
   const filteredMissions = useMemo(() => {
     const query = missionQuery.trim().toLowerCase();
     return DEMO_MISSIONS.filter((mission) => {
@@ -61,86 +60,62 @@ export default function ConciergeDashboardPrototype() {
 
   return (
     <main className={styles.page}>
-      <header className={styles.topbar}>
-        <Link href="/design-system" className={styles.backLink}>Design System</Link>
-        <span>Prototype concierge - donnees de demonstration, aucune action metier</span>
-      </header>
 
       <section className={styles.hero} aria-labelledby="concierge-prototype-title">
         <div>
-          <p className={styles.eyebrow}>Page temoin concierge</p>
-          <h1 id="concierge-prototype-title">La journee doit se lire en un regard.</h1>
+          <p className={styles.eyebrow}>Page témoin concierge</p>
+          <h1 id="concierge-prototype-title">La journée doit se lire en un regard.</h1>
           <p>
-            Une proposition de structure pour prioriser l&apos;urgent, les interventions du jour et les actions a effectuer,
-            sans remplacer le cockpit metier <code>/dashboard/concierge</code>.
+            Vos urgences, missions et rendez-vous du jour.
           </p>
         </div>
         <div className={styles.heroActions}>
-          <ButtonLink href="/dashboard/concierge" variant="outline">Voir le dashboard reel <ArrowRight size={16} /></ButtonLink>
           <Badge variant="progress">Prototype isolé</Badge>
         </div>
       </section>
 
-      <section className={styles.demoControls} aria-label="Etats de demonstration">
-        <div>
-          <strong>Etats du referentiel</strong>
-          <span>Ces controles existent uniquement pour verifier les etats de presentation.</span>
-        </div>
-        <div className={styles.stateButtons}>
-          {(["ready", "loading", "empty", "error"] as const).map((value) => (
-            <Button
-              key={value}
-              variant={state === value ? "primary" : "outline"}
-              size="sm"
-              aria-pressed={state === value}
-              onClick={() => setState(value)}
-            >
-              {{ ready: "Vue active", loading: "Chargement", empty: "Vide", error: "Erreur" }[value]}
-            </Button>
-          ))}
-        </div>
-      </section>
+      <StateControls state={state} onChange={(next) => { setState(next); setNotice(""); }} />
 
       <AsyncState
         loading={state === "loading"}
         isEmpty={state === "empty"}
-        error={state === "error" ? "Les donnees de demonstration ne sont pas disponibles. Reessayez ou revenez a la vue active." : null}
-        loadingLabel="Preparation de la journee de demonstration..."
-        emptyLabel="Aucune mission ni action a traiter dans cette simulation."
+        error={state === "error" ? "Les données de démonstration ne sont pas disponibles. Réessayez ou revenez à la vue active." : null}
+        loadingLabel="Préparation de la journée de démonstration..."
+        emptyLabel="Aucune mission ni action à traiter dans cette simulation."
       >
-        <section className={styles.kpis} aria-label="Indicateurs de demonstration">
-          <StatsCard label="Interventions du jour" value="3" hint="1 urgence a traiter" trend="Priorite" progress={72} visual={<CalendarClock size={25} />} visualLabel="Planning" />
-          <StatsCard label="Demandes a repondre" value="2" hint="Avant midi pour tenir le rythme" trend="A suivre" progress={48} visual={<MessageSquareText size={25} />} visualLabel="Demandes" />
-          <StatsCard label="Logements suivis" value="12" hint="10 prets, 2 a verifier" trend="Parc" progress={83} visual={<Home size={25} />} visualLabel="Logements" />
-          <StatsCard label="Devis a envoyer" value="1" hint="Opportunite en attente" trend="Action" progress={25} visual={<ClipboardList size={25} />} visualLabel="Devis" />
-        </section>
-
-        <section className={styles.dashboardGrid}>
-          <div className={styles.mainColumn}>
             <Card tone="soft" className={styles.priorityCard}>
               <CardHeader>
                 <div>
-                  <p className={styles.sectionEyebrow}>A traiter maintenant</p>
-                  <h2>Priorite du jour</h2>
+                  <p className={styles.sectionEyebrow}>À traiter maintenant</p>
+                  <h2>Priorité du jour</h2>
                 </div>
-                <Badge variant="danger">Urgent</Badge>
+                <Badge variant="danger">Urgence simulée</Badge>
               </CardHeader>
               <CardBody>
                 <div className={styles.priorityContent}>
                   <span className={styles.priorityIcon}><AlertTriangle size={24} aria-hidden="true" /></span>
                   <div>
-                    <strong>Depannage serrure avant l&apos;arrivee</strong>
-                    <p>Maison Larralde, Biarritz. Un voyageur arrive a 16:00 et une confirmation terrain est attendue.</p>
-                    <div className={styles.metaRow}><span><Clock3 size={14} /> Avant 15:30</span><span><Wrench size={14} /> Artisan a coordonner</span></div>
+                    <strong>Dépannage serrure avant l&apos;arrivée</strong>
+                    <p>Maison Larralde. Arrivée à 16 h ; confirmation terrain attendue avant 15 h 30.</p>
+                    <div className={styles.metaRow}><span><Clock3 size={14} /> Avant 15:30</span><span><Wrench size={14} /> Artisan à coordonner</span></div>
                   </div>
                 </div>
                 <div className={styles.actionRow}>
                   <Button onClick={() => showNotice("Ouvrir la mission")}>Ouvrir la mission</Button>
-                  <Button variant="outline" onClick={() => showNotice("Contacter l'artisan")}>Contacter l&apos;artisan</Button>
                 </div>
               </CardBody>
             </Card>
 
+        <ArtDecoLiveDashboard metrics={[
+          { label: "Interventions du jour", value: "3", icon: "missions" },
+          { label: "Demandes à traiter", value: "2", icon: "quote" },
+          { label: "Logements suivis", value: "12", icon: "homes" },
+          { label: "Devis à envoyer", value: "1", icon: "quote" },
+        ]} detail="Trois passages prévus ; priorité à la serrure avant l’arrivée. Ordre indicatif, aucun trajet calculé." />
+        <RoleVisualMetrics space="concierge" />
+
+        <section className={styles.dashboardGrid}>
+          <div className={styles.mainColumn}>
             <Card className={styles.missionsCard}>
               <CardHeader>
                 <div><p className={styles.sectionEyebrow}>Planning</p><h2>Interventions aujourd&apos;hui</h2></div>
@@ -149,19 +124,22 @@ export default function ConciergeDashboardPrototype() {
               <CardBody>
                 <TableFilters
                   resultCount={filteredMissions.length}
+                  resultLabel={`${filteredMissions.length} résultat(s)`}
+                  resetLabel="Réinitialiser"
                   activeCount={activeMissionFilters}
                   onReset={() => { setMissionQuery(""); setMissionStatus("all"); }}
                 >
                   <Input bare value={missionQuery} onChange={(event) => setMissionQuery(event.target.value)} placeholder="Rechercher une mission" aria-label="Rechercher une mission" />
                   <Select bare value={missionStatus} onChange={(event) => setMissionStatus(event.target.value)} aria-label="Filtrer les missions par statut">
                     <option value="all">Tous les statuts</option>
-                    <option value="warning">A confirmer</option>
-                    <option value="info">Planifiees</option>
+                    <option value="warning">À confirmer</option>
+                    <option value="info">Planifiées</option>
                     <option value="danger">Urgentes</option>
                   </Select>
                 </TableFilters>
                 <DataTable
-                  caption="Exemple de lecture priorisee des missions du jour. Donnees de demonstration."
+                  caption="Exemple de lecture priorisée des missions du jour. Données de démonstration."
+                  responsiveStrategy="cards"
                   columns={MISSION_COLUMNS}
                   rows={filteredMissions}
                   getRowId={(mission) => mission.title}
@@ -173,24 +151,7 @@ export default function ConciergeDashboardPrototype() {
           </div>
 
           <aside className={styles.sideColumn}>
-            <Card tone="dark" className={styles.alertCard}>
-              <CardBody>
-                <CheckCircle2 size={22} aria-hidden="true" />
-                <p>Cadence du jour</p>
-                <strong>2 actions attendent une reponse et 1 intervention doit etre securisee.</strong>
-                <Button variant="paper" onClick={() => showNotice("Afficher les alertes")}>Afficher les alertes</Button>
-              </CardBody>
-            </Card>
-            <Card tone="outlined" className={styles.scheduleCard}>
-              <CardHeader><div><p className={styles.sectionEyebrow}>Suite de journee</p><h2>Repere planning</h2></div></CardHeader>
-              <CardBody>
-                <ol>
-                  <li><time>11:00</time><span>Controle linge avant check-in</span></li>
-                  <li><time>15:30</time><span>Validation depannage serrure</span></li>
-                  <li><time>16:00</time><span>Arrivee voyageur a confirmer</span></li>
-                </ol>
-              </CardBody>
-            </Card>
+            <RoleContextCard space="concierge" />
             <Card tone="outlined" className={styles.quickActions}>
               <CardHeader><div><p className={styles.sectionEyebrow}>Actions rapides</p><h2>Créer ou relancer</h2></div></CardHeader>
               <CardBody>
@@ -201,19 +162,20 @@ export default function ConciergeDashboardPrototype() {
             </Card>
           </aside>
         </section>
+        <RoleFollowUp space="concierge" />
       </AsyncState>
 
       {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
 
       <section className={styles.comparison} aria-labelledby="comparison-title">
         <div className={styles.comparisonHeading}>
-          <div><p className={styles.eyebrow}>Matrice existant vers prototype</p><h2 id="comparison-title">Ce qui est conserve et ce qui reste a decider</h2></div>
+          <div><p className={styles.eyebrow}>Matrice existant vers prototype</p><h2 id="comparison-title">Ce qui est conservé et ce qui reste à décider</h2></div>
           <Sparkles size={22} aria-hidden="true" />
         </div>
         <div className={styles.tableWrap}>
           <table>
-            <caption>Audit de transition : la page reelle garde son comportement, le prototype ne propose qu'une hierarchie visuelle.</caption>
-            <thead><tr><th scope="col">Section actuelle</th><th scope="col">Objectif / composant actuel</th><th scope="col">Evolution proposee</th><th scope="col">Classement</th><th scope="col">Risque</th></tr></thead>
+            <caption>Audit de transition : la page réelle garde son comportement, le prototype ne propose qu'une hierarchie visuelle.</caption>
+            <thead><tr><th scope="col">Section actuelle</th><th scope="col">Objectif / composant actuel</th><th scope="col">Évolution proposée</th><th scope="col">Classement</th><th scope="col">Risque</th></tr></thead>
             <tbody>{COMPARISON_ROWS.map((row) => <tr key={row[0]}>{row.map((cell, index) => index === 0 ? <th key={cell} scope="row">{cell}</th> : <td key={cell}>{cell}</td>)}</tr>)}</tbody>
           </table>
         </div>

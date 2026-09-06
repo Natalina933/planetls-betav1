@@ -1,2 +1,2 @@
-export { DashboardPanel } from "./DashboardPanel";
-export type { DashboardPanelProps } from "./DashboardPanel";
+// Compatibilité des imports existants ; une seule implémentation.
+export * from "@/components/ui/dashboard/DashboardPanel/index";

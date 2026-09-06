@@ -37,6 +37,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
     { label: "Personas", path: "/dashboard/admin/personas", icon: FiUsers },
     { label: "Contrôle détaillé", path: "/dashboard/admin/controle", icon: FiBell },
     { label: "Développement", path: "/dashboard/admin/developpement", icon: FiBookOpen },
+    { label: "Design & maquettes", path: "/dashboard/admin/design", icon: FiImage },
   ],
 
   owner: [

@@ -217,7 +217,7 @@ test("le registre reel conserve des IDs uniques et un prochain numero exploitabl
   assert.equal(ids.every((id) => /^PLS-[A-Z]+-\d{3}$/.test(id)), true);
   assert.equal(plan.registryItems.find((item) => item.id === "PLS-BIZ-001")?.priority, "P1");
   assert.equal(plan.registryItems.find((item) => item.id === "PLS-QUAL-002")?.priority, "P1");
-  assert.equal(plan.registryItems.find((item) => item.id === "PLS-DS-001")?.priority, "P2");
+  assert.equal(plan.registryItems.find((item) => item.id === "PLS-DS-001")?.priority, "P1");
   assert.equal(plan.registryItems.find((item) => item.id === "PLS-SEC-004")?.priority, "P1");
   assert.equal(plan.registryItems.find((item) => item.id === "PLS-DEV-029")?.priority, "P1");
   assert.equal(plan.registryItems.find((item) => item.id === "PLS-DEV-029")?.status, "TO_PLAN");
@@ -235,7 +235,8 @@ test("le registre reel conserve des IDs uniques et un prochain numero exploitabl
   const githubIssues = plan.registryItems.flatMap((item) => item.githubIssues.map((issue) => issue.number));
   assert.equal(new Set(githubIssues).size, githubIssues.length);
   assert.deepEqual(githubIssues.sort((left, right) => left - right), [10, 11, 12, 13, 14, 15, 16, 17]);
-  assert.equal(plan.diagnostics.nextSuggestedId, "P0-008 · P1-021 · P2-016 · P3-009 · P4-006");
+  assert.equal(plan.registryItems.find((item) => item.id === "PLS-SEC-005")?.trackingId, "P0-008");
+  assert.equal(plan.diagnostics.nextSuggestedId, "P0-009 · P1-022 · P2-015 · P3-009 · P4-006");
 });
 
 test("le suivi par priorite reste unique et continu avec plusieurs prefixes de registre", () => {

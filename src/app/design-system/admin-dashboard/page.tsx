@@ -1,65 +1,62 @@
-import Link from "next/link";
-import type { ReactNode } from "react";
+"use client";
+
+
+import { useState } from "react";
+import { PrototypeFrame, PrototypeState, StateControls, type DemoState } from "../_dashboards/PrototypeFrame";
 import {
-  Activity,
   ArrowUpRight,
   BadgeCheck,
-  BellRing,
-  Building2,
   ChevronRight,
   CircleAlert,
   Clock3,
   FileWarning,
-  ShieldCheck,
   UsersRound,
 } from "lucide-react";
 import { Badge, ButtonLink, Card, CardBody, CardHeader } from "@/components/ui";
 import styles from "./page.module.scss";
+import { RoleFollowUp } from "../_dashboards/RoleFollowUp";
+import { RoleContextCard, RoleVisualMetrics } from "../_dashboards/RoleVisualSummary";
 
 const priorities = [
-  { title: "3 missions sans prestataire", detail: "Une intervention commence dans moins de 24 heures.", tone: "danger" as const, label: "Critique", action: "Voir les missions", href: "#requests" },
-  { title: "7 profils a verifier", detail: "Les justificatifs sont recus et attendent une decision.", tone: "warning" as const, label: "Attention", action: "Ouvrir le controle", href: "#requests" },
-  { title: "Activation en hausse", detail: "+12 % de proprietaires actifs sur les 7 derniers jours.", tone: "success" as const, label: "Information", action: "Voir les indicateurs", href: "#kpis" },
+  { title: "3 missions à relire", detail: "Le suivi des interventions attend votre contrôle.", tone: "info" as const, label: "Suivi", action: "Voir les missions", href: "#requests" },
+  { title: "7 profils à vérifier", detail: "Les profils attendent une relecture dans le centre de contrôle.", tone: "warning" as const, label: "Attention", action: "Ouvrir le contrôle", href: "#requests" },
+  { title: "Activation en hausse", detail: "+12 % de propriétaires actifs sur les 7 derniers jours.", tone: "success" as const, label: "Information", action: "Voir les indicateurs", href: "#kpis" },
 ];
 
 const activity = [
-  ["Nouvelle demande qualifiee", "Lyon 2e - menage et linge", "Il y a 8 min"],
-  ["Mission terminee", "Villa Azur - rapport et photos disponibles", "Il y a 23 min"],
-  ["Conciergerie verifiee", "Maison d'Hotes & Co", "Il y a 42 min"],
+  ["Nouvelle demande qualifiée", "Lyon 2e - ménage et linge", "Il y a 8 min"],
+  ["Mission terminée", "Villa Azur - rapport et photos disponibles", "Il y a 23 min"],
+  ["Conciergerie vérifiée", "Maison d'Hôtes & Co", "Il y a 42 min"],
 ];
 
 export default function AdminDashboardPrototypePage() {
+  const [state, setState] = useState<DemoState>("ready");
   return (
+    <PrototypeFrame space="admin">
     <main className={styles.page}>
-      <header className={styles.topbar}>
-        <Link href="/design-system" className={styles.backLink}>Design System</Link>
-        <span>Prototype historique admin - donnees de demonstration, sans logique metier</span>
-      </header>
 
       <section className={styles.pageHeader} aria-labelledby="prototype-title">
         <div>
           <p className={styles.eyebrow}>Centre de pilotage PlanetLS</p>
           <h1 id="prototype-title">Aujourd'hui sur PlanetLS</h1>
-          <p className={styles.headerLead}>Les signaux a traiter, l'activite du reseau et les operations qui demandent votre attention.</p>
+          <p className={styles.headerLead}>Les signaux à traiter, l'activité du réseau et les opérations qui demandent votre attention.</p>
         </div>
         <div className={styles.headerMeta}>
           <span>Vue des 30 derniers jours</span>
-          <ButtonLink href="#priorities">Traiter les priorites <ArrowUpRight size={16} aria-hidden="true" /></ButtonLink>
+          <ButtonLink href="#priorities">Traiter les priorités <ArrowUpRight size={16} aria-hidden="true" /></ButtonLink>
         </div>
       </section>
 
-      <section id="kpis" className={styles.kpis} aria-label="Indicateurs cles">
-        <Metric icon={<UsersRound />} label="Utilisateurs actifs" value="1 284" trend="+8,2 %" detail="sur 30 jours" />
-        <Metric icon={<Building2 />} label="Logements suivis" value="386" trend="+24" detail="ce mois-ci" />
-        <Metric icon={<Activity />} label="Missions en cours" value="47" trend="12 urgentes" detail="a surveiller" warning />
-        <Metric icon={<ShieldCheck />} label="Parcours sains" value="92 %" trend="+3 pts" detail="sans blocage" />
-      </section>
+      <StateControls state={state} onChange={setState} />
+      <PrototypeState loading={state === "loading"} isEmpty={state === "empty"} error={state === "error" ? "Les données de démonstration sont indisponibles. Réessayez avec la vue active." : null}>
+      <p className={styles.calm}>État calme simulé : aucune urgence critique dans cet exemple. Les contrôles ordinaires restent à suivre.</p>
+      <RoleVisualMetrics space="admin" />
 
       <section className={styles.contentGrid}>
         <div className={styles.mainColumn}>
           <Card id="priorities" className={styles.priorityCard} tone="soft">
             <CardHeader>
-              <div><p className={styles.sectionEyebrow}>A traiter maintenant</p><h2>Priorites operationnelles</h2></div>
+              <div><p className={styles.sectionEyebrow}>À traiter maintenant</p><h2>Priorités opérationnelles</h2></div>
               <Badge variant="gold">3 signaux</Badge>
             </CardHeader>
             <CardBody>
@@ -76,16 +73,16 @@ export default function AdminDashboardPrototypePage() {
           </Card>
 
           <Card id="requests" className={styles.tableCard} tone="elevated">
-            <CardHeader><div><p className={styles.sectionEyebrow}>Flux en cours</p><h2>Demandes a suivre</h2></div><ButtonLink href="#requests" variant="ghost">Voir tout</ButtonLink></CardHeader>
+            <CardHeader><div><p className={styles.sectionEyebrow}>Flux en cours</p><h2>Demandes à suivre</h2></div><ButtonLink href="#requests" variant="ghost">Voir tout</ButtonLink></CardHeader>
             <CardBody>
               <div className={styles.tableWrap}>
                 <table>
-                  <caption>Les trois demandes les plus importantes a suivre aujourd'hui.</caption>
+                  <caption>Les trois demandes les plus importantes à suivre aujourd'hui.</caption>
                   <thead><tr><th scope="col">Demande</th><th scope="col">Zone</th><th scope="col">Statut</th><th scope="col">Prochaine action</th></tr></thead>
                   <tbody>
                     <tr><th scope="row"><strong>Check-in weekend</strong><span>Ref. PL-2048</span></th><td>Biarritz</td><td><Badge variant="warning">En attente</Badge></td><td><ButtonLink href="#requests" variant="ghost" size="sm">Assigner</ButtonLink></td></tr>
-                    <tr><th scope="row"><strong>Maintenance climatiseur</strong><span>Ref. PL-2047</span></th><td>Montpellier</td><td><Badge variant="danger">Urgent</Badge></td><td><ButtonLink href="#requests" variant="ghost" size="sm">Voir la mission</ButtonLink></td></tr>
-                    <tr><th scope="row"><strong>Devis linge saison</strong><span>Ref. PL-2044</span></th><td>Annecy</td><td><Badge variant="info">Devis recu</Badge></td><td><ButtonLink href="#requests" variant="ghost" size="sm">Verifier</ButtonLink></td></tr>
+                    <tr><th scope="row"><strong>Maintenance climatiseur</strong><span>Ref. PL-2047</span></th><td>Montpellier</td><td><Badge variant="info">À suivre</Badge></td><td><ButtonLink href="#requests" variant="ghost" size="sm">Voir la mission</ButtonLink></td></tr>
+                    <tr><th scope="row"><strong>Devis linge saison</strong><span>Ref. PL-2044</span></th><td>Annecy</td><td><Badge variant="info">Devis reçu</Badge></td><td><ButtonLink href="#requests" variant="ghost" size="sm">Vérifier</ButtonLink></td></tr>
                   </tbody>
                 </table>
               </div>
@@ -94,23 +91,20 @@ export default function AdminDashboardPrototypePage() {
         </div>
 
         <aside className={styles.sideColumn}>
-          <Card tone="dark" className={styles.controlCard}>
-            <CardBody><BellRing size={22} aria-hidden="true" /><p>Controle du jour</p><strong>10 actions demandent une decision humaine.</strong><ButtonLink href="#priorities" variant="paper">Ouvrir le centre de controle</ButtonLink></CardBody>
-          </Card>
+          <RoleContextCard space="admin" />
           <Card tone="outlined" className={styles.activityCard}>
             <CardHeader><div><p className={styles.sectionEyebrow}>En direct</p><h2>Activité récente</h2></div><Clock3 size={18} aria-hidden="true" /></CardHeader>
             <CardBody><ol className={styles.activityList}>{activity.map(([title, detail, date]) => <li key={title}><BadgeCheck size={17} aria-hidden="true" /><div><strong>{title}</strong><span>{detail}</span><small>{date}</small></div></li>)}</ol></CardBody>
           </Card>
           <Card tone="outlined" className={styles.quickCard}>
-            <CardHeader><div><p className={styles.sectionEyebrow}>Gestion</p><h2>Actions frequentes</h2></div></CardHeader>
-            <CardBody><ButtonLink href="#requests" variant="ghost"><FileWarning size={17} aria-hidden="true" />Verifier les documents<ChevronRight size={15} aria-hidden="true" /></ButtonLink><ButtonLink href="#kpis" variant="ghost"><UsersRound size={17} aria-hidden="true" />Voir les nouvelles inscriptions<ChevronRight size={15} aria-hidden="true" /></ButtonLink></CardBody>
+            <CardHeader><div><p className={styles.sectionEyebrow}>Gestion</p><h2>Actions fréquentes</h2></div></CardHeader>
+            <CardBody><ButtonLink href="#requests" variant="ghost"><FileWarning size={17} aria-hidden="true" />Vérifier les documents<ChevronRight size={15} aria-hidden="true" /></ButtonLink><ButtonLink href="#kpis" variant="ghost"><UsersRound size={17} aria-hidden="true" />Voir les nouvelles inscriptions<ChevronRight size={15} aria-hidden="true" /></ButtonLink></CardBody>
           </Card>
         </aside>
       </section>
+      <RoleFollowUp space="admin" />
+      </PrototypeState>
     </main>
+    </PrototypeFrame>
   );
-}
-
-function Metric({ icon, label, value, trend, detail, warning = false }: { icon: ReactNode; label: string; value: string; trend: string; detail: string; warning?: boolean }) {
-  return <article className={styles.metric}><span className={warning ? styles.metricIconWarning : styles.metricIcon} aria-hidden="true">{icon}</span><p>{label}</p><strong>{value}</strong><div><span className={warning ? styles.warningText : styles.successText}>{trend}</span><small>{detail}</small></div></article>;
 }

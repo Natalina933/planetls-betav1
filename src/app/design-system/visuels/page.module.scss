@@ -7,6 +7,29 @@
   margin: 0 auto 1rem;
 }
 
+.galleryGroup {
+  max-width: var(--ds-layout-content);
+  margin: var(--ds-space-4) auto;
+  padding: var(--ds-space-4);
+  border: var(--ds-border-subtle);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface);
+}
+
+.galleryGroup > summary {
+  min-height: var(--ds-control-height-md);
+  padding: var(--ds-space-3);
+  cursor: pointer;
+  color: var(--ds-color-text-primary);
+  font: 700 var(--ds-text-base) var(--ds-font-ui);
+  overflow-wrap: anywhere;
+}
+
+.galleryGroup > summary:focus-visible {
+  outline: var(--ds-focus-outline);
+  outline-offset: var(--ds-space-1);
+}
+
 .backToDesignSystem {
   flex: 0 0 auto;
   padding: 0.65rem 0.85rem;

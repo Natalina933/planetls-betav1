@@ -1,0 +1,28 @@
+.panel {
+  position: relative;
+  min-width: 0;
+  padding: var(--ds-space-5);
+  border: 1px solid var(--ds-artdeco-line);
+  background: var(--ds-artdeco-surface);
+  color: var(--ds-artdeco-ink);
+  box-shadow: var(--ds-shadow-lg);
+}
+.panel::before { content: ""; position: absolute; inset: var(--ds-space-2); border: 1px solid var(--ds-artdeco-ornament); pointer-events: none; }
+.panel > * { position: relative; }
+.header { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-space-3); }
+.header > div { min-width: 0; }
+.header svg { flex-shrink: 0; }
+.eyebrow { color: var(--ds-artdeco-gold); font: 800 var(--ds-text-sm) var(--ds-font-ui); text-transform: uppercase; }
+.panel .title { margin: 0; color: var(--ds-artdeco-ink); font: 700 var(--ds-text-artdeco-panel) / 1.05 var(--ds-font-artdeco); overflow-wrap: anywhere; }
+.timeline { list-style: none; padding: 0; margin: var(--ds-space-4) 0 0; display: grid; gap: var(--ds-space-4); }
+.timeline li { display: grid; grid-template-columns: var(--ds-space-8) minmax(0, 1fr); align-items: start; gap: var(--ds-space-4); }
+.when { color: var(--ds-artdeco-gold); font-weight: 900; overflow-wrap: anywhere; }
+.timeline li > div { min-width: 0; display: grid; gap: var(--ds-space-2); border-left: 2px solid var(--ds-artdeco-gold); padding-left: var(--ds-space-4); }
+.timeline strong { color: var(--ds-artdeco-ink); line-height: 1.35; overflow-wrap: anywhere; }
+.timeline .status { border: 1px solid var(--ds-artdeco-line); padding: var(--ds-space-1) var(--ds-space-2); color: var(--ds-artdeco-ink); font-size: var(--ds-text-sm); }
+.status[data-tone="owner"] { background: var(--ds-artdeco-bluegray); }
+.status[data-tone="concierge"] { background: var(--ds-artdeco-sage); }
+.status[data-tone="artisan"] { background: var(--ds-artdeco-rose); }
+.panel .timeline p, .panel .note { color: var(--ds-artdeco-muted); font-size: var(--ds-text-sm); line-height: 1.6; margin: 0; }
+.panel .note { margin-top: var(--ds-space-4); }
+@media (max-width: 450px) { .panel { padding: var(--ds-space-4); }.timeline li { gap: var(--ds-space-2); }.timeline li > div { padding-left: var(--ds-space-3); } }

@@ -1,0 +1,20 @@
+/** Références CSS : les valeurs et variantes de thème restent dans tokens.css. */
+export const colors = {
+  primary: "var(--ds-color-primary)",
+  primaryHover: "var(--ds-color-primary-hover)",
+  secondary: "var(--ds-color-secondary)",
+  accent: "var(--ds-color-accent)",
+  background: "var(--ds-color-background)",
+  surface: "var(--ds-color-surface)",
+  surfaceSoft: "var(--ds-color-surface-soft)",
+  surfaceMuted: "var(--ds-color-surface-muted)",
+  textPrimary: "var(--ds-color-text-primary)",
+  textSecondary: "var(--ds-color-text-secondary)",
+  textMuted: "var(--ds-color-text-muted)",
+  textInverse: "var(--ds-color-text-inverse)",
+  border: "var(--ds-color-border)",
+  success: "var(--ds-color-success)",
+  warning: "var(--ds-color-warning)",
+  error: "var(--ds-color-error)",
+  info: "var(--ds-color-info)",
+} as const;

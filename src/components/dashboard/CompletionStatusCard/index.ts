@@ -1,2 +1,2 @@
-export { CompletionStatusCard } from "./CompletionStatusCard";
-export type { CompletionStatusCardProps } from "./CompletionStatusCard";
+// Compatibilité des imports existants ; une seule implémentation.
+export * from "@/components/ui/dashboard/CompletionStatusCard/index";

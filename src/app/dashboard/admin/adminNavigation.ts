@@ -24,6 +24,7 @@ const SECTION_ITEMS: Record<AdminNavigationSection, DashboardNavItem[]> = {
   ],
   productTech: [
     { label: "Développement", href: "/dashboard/admin/developpement" },
+    { label: "Design & maquettes", href: "/dashboard/admin/design" },
     { label: "Decisions architecture", href: "/dashboard/admin/decisions-architecture" },
   ],
 };

@@ -6,7 +6,7 @@
 - `/design-system/visuels` est l'atelier visuel : apercus, variantes, exemples par espace et inventaire des assets. Il ne fixe pas une API differente de celle de ce document.
 - `/design-system/admin-dashboard` est un prototype historique de composition admin, avec donnees fictives uniquement.
 - Ce README est la documentation technique des imports, APIs publiques et regles de migration. En cas de divergence, les types TypeScript et les composants exportes sont la preuve d'implementation.
-- Les nouveaux composants utilisent uniquement les tokens `--ds-*` definis dans `src/app/styles/abstracts/variables.css`.
+- Les nouveaux composants utilisent uniquement les tokens `--ds-*` définis dans `src/styles/tokens/tokens.css`, également disponibles via `@/styles/tokens` en TypeScript. L’organisation et les règles de contribution sont décrites dans `DESIGN_SYSTEM.md` à la racine.
 - `--ui-*` et `--dash-*` sont des alias de compatibilite : ils restent en place pour les ecrans existants, mais ne doivent plus etre choisis pour un nouveau developpement.
 - Police cible : `Montserrat` pour l'interface et `Open Sans` pour le contenu. `next/font` est la methode a adopter lors d'un lot dedie de chargement de polices ; aucune migration massive n'est incluse dans la Phase 1.
 - Icones officielles : `lucide-react`. `react-icons` reste supporte uniquement dans les ecrans non migres.

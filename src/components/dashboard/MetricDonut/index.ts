@@ -1,2 +1,2 @@
-export { MetricDonut } from "./MetricDonut";
-export type { MetricDonutProps } from "./MetricDonut";
+// Compatibilité des imports existants ; une seule implémentation.
+export * from "@/components/ui/dashboard/MetricDonut/index";

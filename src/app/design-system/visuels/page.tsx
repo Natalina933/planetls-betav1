@@ -64,21 +64,19 @@ import {
   DashboardPanel,
   MetricDonut,
   QuickActions,
-} from "@/components/dashboard";
+} from "@/components/ui/dashboard";
 import {
   DASHBOARD_MISSION_PACE_LEVELS,
   getDashboardMissionPaceMetaForLevel,
   DashboardMetricCard,
   DashboardStatusBadge,
-} from "@/app/components/dashboard/saas";
-import { sidebarConfig } from "@/app/components/dashboard/Sidebar/sidebarconfig";
-import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+} from "@/components/ui/dashboard/saas";
+import WorkflowStatusBadge from "@/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import {
   PROFILE_VISUAL_KITS,
   PROFILE_VISUAL_KIT_IMPORT,
   type VisualKitSlice,
-} from "@/app/lib/profileVisualKit";
-import { DevelopmentSectionNav } from "@/components/development/DevelopmentSectionNav";
+} from "@/styles/tokens/profileVisualKit";
 import styles from "./page.module.scss";
 
 export const dynamic = "force-dynamic";
@@ -307,7 +305,7 @@ const ELEMENT_STYLE_REFERENCES = [
   },
   {
     name: "DashboardMetricCard",
-    source: "@/app/components/dashboard/saas",
+    source: "@/components/ui/dashboard/saas",
     usage: "Compteurs SaaS avec icône, statut et badge visuel.",
   },
   {
@@ -317,7 +315,7 @@ const ELEMENT_STYLE_REFERENCES = [
   },
   {
     name: "MetricDonut",
-    source: "@/components/dashboard",
+    source: "@/components/ui/dashboard",
     usage: "Camembert/donut pour répartitions et complétude.",
   },
   {
@@ -457,13 +455,13 @@ const DONUT_USAGE_REFERENCES = [
 const COMPONENT_SOURCE_REFERENCES = [
   {
     title: "Cartes dashboard",
-    importPath: "@/components/dashboard",
+    importPath: "@/components/ui/dashboard",
     items: "DashboardPanel, QuickActions, ActivityFeed, MetricDonut, CompletionStatusCard",
     usage: "Blocs réutilisables pour les pages d'accueil propriétaire, concierge, artisan et admin.",
   },
   {
     title: "Cartes SaaS",
-    importPath: "@/app/components/dashboard/saas",
+    importPath: "@/components/ui/dashboard/saas",
     items: "DashboardMetricCard, DashboardStatusBadge, cadence missions",
     usage: "Compteurs courts du tableau de bord avec statut visuel cohérent.",
   },
@@ -487,7 +485,7 @@ const COMPONENT_SOURCE_REFERENCES = [
   },
   {
     title: "Kits profils",
-    importPath: "@/app/lib/profileVisualKit",
+    importPath: "@/styles/tokens/profileVisualKit",
     items: "PROFILE_VISUAL_KITS",
     usage: "Couleurs, surfaces, graphiques et composants nommés par profil.",
   },
@@ -693,7 +691,7 @@ function DesignTokenSection() {
           <p className={styles.eyebrow}>Couleurs & typos</p>
           <h2>Tokens nommés pour supprimer, remplacer ou réutiliser</h2>
         </div>
-        <code>variables.css + profileVisualKit.ts</code>
+        <code>styles/tokens : tokens.css + profileVisualKit.ts</code>
       </div>
       <div className={styles.tokenGroupGrid}>
         {DESIGN_TOKEN_GROUPS.map((group) => (
@@ -1694,8 +1692,7 @@ export default async function VisualReferencePage() {
   return (
     <main className={styles.page}>
       <div className={styles.developmentNav}>
-        <DevelopmentSectionNav active="design-system" />
-        <Link href="/design-system" className={styles.backToDesignSystem}>Regles officielles du Design System</Link>
+        <Link href="/design-system/fondations" className={styles.backToDesignSystem}>Règles officielles du Design System</Link>
       </div>
 
       {/* ── Hero ── */}
@@ -1716,6 +1713,8 @@ export default async function VisualReferencePage() {
       </section>
 
       {/* ── Par espace ── */}
+      <details className={styles.galleryGroup}>
+      <summary>Profils, thèmes et exemples d’écrans</summary>
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <div>
@@ -1771,18 +1770,10 @@ export default async function VisualReferencePage() {
 
               {group.id !== "common" ? (
                 <div className={styles.roleSidebarList}>
-                  {(group.id === "owner"
-                    ? sidebarConfig.owner
-                    : group.id === "concierge"
-                      ? sidebarConfig.concierge
-                      : sidebarConfig.provider
-                  )
-                    .slice(0, 6)
-                    .map((item) => {
-                      const Icon = item.icon;
+                  {group.items.slice(0, 6).map((item) => {
                       return (
-                        <span key={`${group.id}-${item.path}`}>
-                          {Icon ? <Icon size={16} /> : null}
+                        <span key={`${group.id}-${item.label}`}>
+                          {item.icon}
                           {item.label}
                         </span>
                       );
@@ -1807,12 +1798,18 @@ export default async function VisualReferencePage() {
 
       <ThemesAndBusinessVisualsSection />
 
+      </details>
+      <details className={styles.galleryGroup}>
+      <summary>Cartes, indicateurs et états des parcours</summary>
       <ElementNameDirectorySection />
 
       <DonutReferenceSection />
 
       <BusinessComponentsSection />
 
+      </details>
+      <details className={styles.galleryGroup}>
+      <summary>Règles et références techniques</summary>
       <StyleInventorySection />
 
       {/* ── Couleurs & typos ── */}
@@ -1822,7 +1819,9 @@ export default async function VisualReferencePage() {
 
       <TableContractReferenceSection />
 
-      <CategoryReferenceSection groups={categoryReferenceGroups} />
+      </details>
+      <details className={styles.galleryGroup}>
+      <summary>Logements et fenêtres de démonstration</summary>
 
       {/* ── Owner logements ── */}
       <OwnerLogementsSection />
@@ -1892,6 +1891,9 @@ export default async function VisualReferencePage() {
       )}
 
       {/* ── Composants de base ── */}
+      </details>
+      <details className={styles.galleryGroup}>
+      <summary>Boutons, badges et compositions de dashboard</summary>
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <div>
@@ -2098,6 +2100,10 @@ export default async function VisualReferencePage() {
       </section>
 
       {/* ── Services ── */}
+      </details>
+      <details className={styles.galleryGroup}>
+      <summary>Bibliothèque d’icônes et catégories de services</summary>
+      <CategoryReferenceSection groups={categoryReferenceGroups} />
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <div>
@@ -2194,6 +2200,9 @@ export default async function VisualReferencePage() {
       </section>
 
       {/* ── Règles simples ── */}
+      </details>
+      <details className={styles.galleryGroup}>
+      <summary>Conseils de réutilisation</summary>
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <div>
@@ -2225,6 +2234,7 @@ export default async function VisualReferencePage() {
         </div>
       </section>
 
+      </details>
     </main>
   );
 }
