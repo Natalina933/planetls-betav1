@@ -157,7 +157,10 @@ export default function OptimizedRoutePlanner({ missions }: { missions: RawMissi
 
   const selectedWarnings = selectedMissions
     .filter((mission) => !mission.address || !hasUsableCoordinates(mission))
-    .map((mission) => `${mission.title}: ${!mission.address ? "adresse manquante" : "coordonnées manquantes"}`);
+    .map((mission) => ({
+      missionId: mission.id,
+      message: `${mission.title}: ${!mission.address ? "adresse manquante" : "coordonnées manquantes"}`,
+    }));
 
   const toggleMission = (missionId: string) => {
     setSelectedIds((current) =>
@@ -335,7 +338,7 @@ export default function OptimizedRoutePlanner({ missions }: { missions: RawMissi
           {selectedWarnings.length > 0 ? (
             <div className={styles.warningBox} role="alert">
               {selectedWarnings.map((warning) => (
-                <p key={warning}>{warning}</p>
+                <p key={warning.missionId}>{warning.message}</p>
               ))}
             </div>
           ) : null}
@@ -374,8 +377,8 @@ export default function OptimizedRoutePlanner({ missions }: { missions: RawMissi
             ) : null}
             {route.warnings.length > 0 ? (
               <div className={styles.warningBox} role="alert">
-                {route.warnings.slice(0, 5).map((warning) => (
-                  <p key={warning}>{warning}</p>
+                {route.warnings.slice(0, 5).map((warning, index) => (
+                  <p key={`${index}:${warning}`}>{warning}</p>
                 ))}
               </div>
             ) : (
@@ -429,5 +432,4 @@ export default function OptimizedRoutePlanner({ missions }: { missions: RawMissi
     </section>
   );
 }
-
 
