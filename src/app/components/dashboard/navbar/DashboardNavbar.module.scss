@@ -1,6 +1,28 @@
 @use "../../../styles/abstracts/variables" as var;
 @use "sass:map";
 
+/* Variante optionnelle réservée à l’accueil propriétaire. */
+.dashNavbar.compact {
+  flex-wrap: nowrap;
+  .leftSection { flex: 1 1 auto; gap: 10px; }
+  .rightSection { flex: 0 1 auto; flex-wrap: nowrap; gap: 10px; }
+  .rightInfoBlock { gap: 8px; }
+  .greetingBlock, .userRole { display: none; }
+  .pageTitle { font-family: var(--ds-font-ui); font-size: 13px; color: var(--pls-text); }
+  .userNameInline { color: var(--pls-text-secondary); font-size: 12px; }
+  .themeTrigger, .iconButton { color: var(--pls-primary); background: var(--pls-white); border: 1px solid var(--pls-border); border-radius: var(--pls-radius-sm); min-height: 40px; box-shadow: none; }
+  @media (max-width: 1100px) {
+    .themeLabel { display: none; }
+    .themeTrigger { padding: 8px; min-width: 40px; }
+    button[aria-label="Ouvrir la recherche globale"] { width: 40px; min-width: 40px; padding: 8px; span, kbd { display: none; } }
+  }
+  @media (max-width: 680px) {
+    .titleBlock { display: none; }
+    .leftSection { flex: 0 0 auto; }
+    .rightSection { flex: 1 1 auto; gap: 8px; }
+  }
+}
+
 /* ==========================================================================
    NAVBAR
    ========================================================================== */

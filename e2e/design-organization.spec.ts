@@ -5,9 +5,13 @@ test("atelier : navigation commune, rubriques et menu mobile", async ({ page }) 
   page.on("pageerror", error => errors.push(error.message));
   await page.goto("/design-system");
   await expect(page.locator("main h1")).toHaveText("Design & maquettes");
-  await expect(page.locator("main a")).toHaveCount(3);
+  await expect(page.locator("main a")).toHaveCount(4);
+  await page.locator("main").getByRole("link", { name: /Modèles de pages/ }).click();
+  await expect(page).toHaveURL(/\/design-system\/pages$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Une identité, quatre usages");
+  await page.getByRole("navigation", { name: "Atelier Design" }).getByRole("link", { name: "Accueil", exact: true }).click();
   await page.locator("main").getByRole("link", { name: /Composants & visuels/ }).click();
-  const gallery = page.locator("main details");
+  const gallery = page.locator("main > details");
   await expect(gallery).toHaveCount(7);
   await gallery.filter({ has: page.locator("summary", { hasText: "Boutons, badges" }) }).locator("summary").click();
   await expect(page.getByRole("heading", { name: "Composants de base", exact: true })).toBeVisible();

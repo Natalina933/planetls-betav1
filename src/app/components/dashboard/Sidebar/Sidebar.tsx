@@ -15,6 +15,8 @@ import styles from "./Sidebar.module.scss";
 interface SidebarProps {
   isOpen: boolean;
   toggleSidebar: () => void;
+  className?: string;
+  mobileBreakpoint?: number;
 }
 
 const roleLabels: Record<string, string> = {
@@ -31,7 +33,7 @@ const roleThemeClasses: Record<string, string> = {
   provider: styles.providerTheme,
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = "", mobileBreakpoint = 900 }) => {
   const { userType } = useUserType();
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [notificationCounts, setNotificationCounts] = useState<Record<string, number>>({});
@@ -88,13 +90,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   }, [userType]);
 
   useEffect(() => {
-    const mobileQuery = window.matchMedia("(max-width: 900px)");
+    const mobileQuery = window.matchMedia(`(max-width: ${mobileBreakpoint}px)`);
     const syncViewport = () => setIsMobileViewport(mobileQuery.matches);
 
     syncViewport();
     mobileQuery.addEventListener("change", syncViewport);
     return () => mobileQuery.removeEventListener("change", syncViewport);
-  }, []);
+  }, [mobileBreakpoint]);
 
   useEffect(() => {
     if (isOpen && isMobileViewport) {
@@ -154,7 +156,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         />
       ) : null}
       <aside
-        className={`${styles.sidebar} ${isOpen ? styles.open : styles.closed} ${
+        className={`${styles.sidebar} ${className} ${isOpen ? styles.open : styles.closed} ${
           userType ? roleThemeClasses[userType] || "" : ""
         }`}
         aria-label="Sidebar"

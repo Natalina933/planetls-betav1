@@ -22,7 +22,7 @@ type RecommendedConcierge = {
   latest_review_comment: string | null;
 };
 
-export default function RecommendedConciergesSection() {
+export default function RecommendedConciergesSection({ editorial = false }: { editorial?: boolean }) {
   const [items, setItems] = useState<RecommendedConcierge[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -84,6 +84,7 @@ export default function RecommendedConciergesSection() {
       <div className={styles.grid}>
         {items.map((item) => (
           <ConciergePreviewCard
+            presentation={editorial ? "editorial" : "default"}
             key={item.id}
             id={item.id}
             avatarUrl={item.avatar_url}

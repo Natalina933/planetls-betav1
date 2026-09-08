@@ -20,6 +20,8 @@ import { DashboardCommandCenter } from "./DashboardCommandCenter";
 import styles from "./DashboardNavbar.module.scss";
 
 interface DashboardNavbarProps {
+  className?: string;
+  compact?: boolean;
   isSidebarOpen?: boolean;
   toggleSidebar: () => void;
   notificationCount?: number;
@@ -209,6 +211,8 @@ export default function DashboardNavbar({
   isSidebarOpen = false,
   toggleSidebar,
   notificationCount = 0,
+  className = "",
+  compact = false,
 }: DashboardNavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -593,7 +597,7 @@ export default function DashboardNavbar({
   const hasNotifications = liveNotificationCount > 0;
 
   return (
-    <header className={styles.dashNavbar} role="banner">
+    <header className={`${styles.dashNavbar} ${compact ? styles.compact : ""} ${className}`} role="banner">
       <div className={styles.leftSection}>
         <button
           type="button"

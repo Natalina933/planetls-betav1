@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState, useEffect, useMemo } from 'react';
+import React, { useCallback, useState, useEffect, useMemo } from "react";
 import {
   FiPlus,
   FiEdit2,
@@ -13,21 +13,27 @@ import {
   FiSearch,
   FiRefreshCw,
   FiCheck,
-} from 'react-icons/fi';
-import styles from './PricingGridManager.module.scss';
-import type { PricingModifierKey, PricingOverrideValue, PricingV2Config } from '@/app/components/tariffs/types';
-import { conciergeApiError } from '@/app/dashboard/concierge/conciergeFeedback';
+} from "react-icons/fi";
+import styles from "./PricingGridManager.module.scss";
+import type {
+  PricingModifierKey,
+  PricingOverrideValue,
+  PricingV2Config,
+} from "@/app/components/tariffs/types";
+import { conciergeApiError } from "@/app/dashboard/concierge/conciergeFeedback";
 
 /* -------------------------------------------------------------------------- */
 /*                                   TYPES                                    */
 /* -------------------------------------------------------------------------- */
-type PricingType = 'hourly' | 'fixed' | 'monthly' | 'custom';
+
+type PricingType = "hourly" | "fixed" | "monthly" | "custom";
+
 type PropertyType =
-  | 'appartement'
-  | 'maison'
-  | 'immeuble_multi_lots'
-  | 'villa_haut_de_gamme'
-  | 'residence_secondaire';
+  | "appartement"
+  | "maison"
+  | "immeuble_multi_lots"
+  | "villa_haut_de_gamme"
+  | "residence_secondaire";
 
 interface ServiceCatalogItem {
   id: string;
@@ -66,8 +72,6 @@ interface Pricing {
   amount: number;
   unit: string;
   service?: PricingServiceRelation | null;
-  
-  // Nouveaux champs pour la grille tarifaire
   property_type?: PropertyType;
   surface_min?: number;
   surface_max?: number;
@@ -80,8 +84,6 @@ interface PricingFormData {
   type: PricingType;
   amount: string;
   unit: string;
-  
-  // Nouveaux champs
   property_type: PropertyType;
   surface_min: string;
   surface_max: string;
@@ -89,15 +91,15 @@ interface PricingFormData {
 }
 
 const EMPTY_FORM: PricingFormData = {
-  service_id: '',
-  label: '',
-  type: 'hourly',
-  amount: '',
-  unit: 'EUR',
-  property_type: 'appartement',
-  surface_min: '',
-  surface_max: '',
-  estimated_duration: ''
+  service_id: "",
+  label: "",
+  type: "hourly",
+  amount: "",
+  unit: "EUR",
+  property_type: "appartement",
+  surface_min: "",
+  surface_max: "",
+  estimated_duration: "",
 };
 
 interface PricingGridManagerProps {
@@ -124,7 +126,9 @@ const PricingGridManager = ({
   showContextualHeader = true,
 }: PricingGridManagerProps) => {
   const [pricings, setPricings] = useState<Pricing[]>([]);
-  const [servicesCatalog, setServicesCatalog] = useState<ServicesCatalog>({ byCategory: {} });
+  const [servicesCatalog, setServicesCatalog] = useState<ServicesCatalog>({
+    byCategory: {},
+  });
   const [loading, setLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -132,26 +136,41 @@ const PricingGridManager = ({
   const [linkToPackage, setLinkToPackage] = useState(Boolean(linkedPackageId));
 
   // Filtres
-  const [filterPropertyType, setFilterPropertyType] = useState<PropertyType | ''>('');
-  const [filterPricingType, setFilterPricingType] = useState<PricingType | ''>('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedPricingIdsForPack, setSelectedPricingIdsForPack] = useState<string[]>([]);
-  const [linkedPricingPackages, setLinkedPricingPackages] = useState<LinkedPricingPackage[]>([]);
+  const [filterPropertyType, setFilterPropertyType] = useState<PropertyType | "">(
+    ""
+  );
+  const [filterPricingType, setFilterPricingType] = useState<PricingType | "">(
+    ""
+  );
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedPricingIdsForPack, setSelectedPricingIdsForPack] = useState<
+    string[]
+  >([]);
+  const [linkedPricingPackages, setLinkedPricingPackages] = useState<
+    LinkedPricingPackage[]
+  >([]);
   const [isLinkingSelected, setIsLinkingSelected] = useState(false);
   const [prioritySearch, setPrioritySearch] = useState("");
   const [showAdvancedPricingTools, setShowAdvancedPricingTools] = useState(false);
-  const [editingPriorityRows, setEditingPriorityRows] = useState<Record<string, boolean>>({});
-  const [contextualServiceScope, setContextualServiceScope] = useState<"missions" | "all">("missions");
-  const [feedback, setFeedback] = useState<{ tone: "success" | "error"; message: string } | null>(null);
+  const [editingPriorityRows, setEditingPriorityRows] = useState<
+    Record<string, boolean>
+  >({});
+  const [contextualServiceScope, setContextualServiceScope] = useState<
+    "missions" | "all"
+  >("missions");
+  const [feedback, setFeedback] = useState<{
+    tone: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const modifierColumns: Array<{
     key: PricingModifierKey;
     label: string;
   }> = [
-    { key: 'urgentPercent', label: 'Urgence' },
-    { key: 'nightPercent', label: 'Nuit' },
-    { key: 'weekendPercent', label: 'Week-end' },
-    { key: 'highSeasonPercent', label: 'Haute saison' },
+    { key: "urgentPercent", label: "Urgence" },
+    { key: "nightPercent", label: "Nuit" },
+    { key: "weekendPercent", label: "Week-end" },
+    { key: "highSeasonPercent", label: "Haute saison" },
   ];
 
   const normalizeServiceText = (value: string) =>
@@ -162,18 +181,18 @@ const PricingGridManager = ({
       .trim();
 
   const propertyTypes: Array<{ value: PropertyType; label: string }> = [
-    { value: 'appartement', label: 'Appartement' },
-    { value: 'maison', label: 'Maison' },
-    { value: 'immeuble_multi_lots', label: 'Immeuble multi-lots' },
-    { value: 'villa_haut_de_gamme', label: 'Villa haut de gamme' },
-    { value: 'residence_secondaire', label: 'Résidence secondaire' },
+    { value: "appartement", label: "Appartement" },
+    { value: "maison", label: "Maison" },
+    { value: "immeuble_multi_lots", label: "Immeuble multi-lots" },
+    { value: "villa_haut_de_gamme", label: "Villa haut de gamme" },
+    { value: "residence_secondaire", label: "Résidence secondaire" },
   ];
 
   const pricingTypes: Array<{ value: PricingType; label: string }> = [
-    { value: 'hourly', label: 'Horaire' },
-    { value: 'fixed', label: 'Forfait' },
-    { value: 'monthly', label: 'Mensuel' },
-    { value: 'custom', label: 'Personnalisé' }
+    { value: "hourly", label: "Horaire" },
+    { value: "fixed", label: "Forfait" },
+    { value: "monthly", label: "Mensuel" },
+    { value: "custom", label: "Personnalisé" },
   ];
 
   const suggestedPricingRules: Array<{
@@ -187,60 +206,61 @@ const PricingGridManager = ({
     note: string;
   }> = [
     {
-      label: 'Ménage appartement 2 pièces',
-      propertyType: 'appartement',
-      type: 'fixed',
-      surfaceMin: '0',
-      surfaceMax: '50',
-      amount: '45',
-      duration: '2',
-      note: 'Base simple pour petites surfaces.',
+      label: "Ménage appartement 2 pièces",
+      propertyType: "appartement",
+      type: "fixed",
+      surfaceMin: "0",
+      surfaceMax: "50",
+      amount: "45",
+      duration: "2",
+      note: "Base simple pour petites surfaces.",
     },
     {
-      label: 'Ménage maison familiale',
-      propertyType: 'maison',
-      type: 'fixed',
-      surfaceMin: '50',
-      surfaceMax: '120',
-      amount: '90',
-      duration: '3.5',
-      note: 'Forfait courant avant état des lieux.',
+      label: "Ménage maison familiale",
+      propertyType: "maison",
+      type: "fixed",
+      surfaceMin: "50",
+      surfaceMax: "120",
+      amount: "90",
+      duration: "3.5",
+      note: "Forfait courant avant état des lieux.",
     },
     {
-      label: 'Suivi immeuble multi-lots',
-      propertyType: 'immeuble_multi_lots',
-      type: 'monthly',
-      surfaceMin: '120',
-      surfaceMax: '500',
-      amount: '280',
-      duration: '6',
-      note: 'Pilotage récurrent par ensemble.',
+      label: "Suivi immeuble multi-lots",
+      propertyType: "immeuble_multi_lots",
+      type: "monthly",
+      surfaceMin: "120",
+      surfaceMax: "500",
+      amount: "280",
+      duration: "6",
+      note: "Pilotage récurrent par ensemble.",
     },
     {
-      label: 'Préparation villa haut de gamme',
-      propertyType: 'villa_haut_de_gamme',
-      type: 'fixed',
-      surfaceMin: '120',
-      surfaceMax: '300',
-      amount: '180',
-      duration: '5',
-      note: 'Niveau premium avec contrôle renforcé.',
+      label: "Préparation villa haut de gamme",
+      propertyType: "villa_haut_de_gamme",
+      type: "fixed",
+      surfaceMin: "120",
+      surfaceMax: "300",
+      amount: "180",
+      duration: "5",
+      note: "Niveau premium avec contrôle renforcé.",
     },
     {
-      label: 'Entretien résidence secondaire',
-      propertyType: 'residence_secondaire',
-      type: 'monthly',
-      surfaceMin: '60',
-      surfaceMax: '180',
-      amount: '160',
-      duration: '4',
-      note: 'Forfait mensuel de surveillance.',
+      label: "Entretien résidence secondaire",
+      propertyType: "residence_secondaire",
+      type: "monthly",
+      surfaceMin: "60",
+      surfaceMax: "180",
+      amount: "160",
+      duration: "4",
+      note: "Forfait mensuel de surveillance.",
     },
   ];
 
   /* -------------------------------------------------------------------------- */
   /*                                  EFFECTS                                   */
   /* -------------------------------------------------------------------------- */
+
   useEffect(() => {
     Promise.all([fetchPricings(), fetchServicesCatalog()]);
   }, []);
@@ -250,7 +270,7 @@ const PricingGridManager = ({
       try {
         const url = linkedPackageId
           ? `/api/services/pricing-packages?packageId=${encodeURIComponent(linkedPackageId)}`
-          : '/api/services/pricing-packages';
+          : "/api/services/pricing-packages";
         const res = await fetch(url);
         if (!res.ok) return;
         const data: LinkedPricingPackage[] = await res.json();
@@ -270,84 +290,105 @@ const PricingGridManager = ({
   /* -------------------------------------------------------------------------- */
   /*                                   FETCH                                    */
   /* -------------------------------------------------------------------------- */
+
   const fetchPricings = async () => {
     try {
-      const res = await fetch('/api/pricing');
-      if (!res.ok) throw new Error('Erreur API pricing');
+      const res = await fetch("/api/pricing");
+      if (!res.ok) throw new Error("Erreur API pricing");
       const data: Pricing[] = await res.json();
       setPricings(data);
     } catch (err) {
-      console.error('[Pricing] fetchPricings', err);
+      console.error("[Pricing] fetchPricings", err);
     }
   };
 
   const fetchServicesCatalog = async () => {
     try {
-      const res = await fetch('/api/services/services-catalog');
-      if (!res.ok) throw new Error('Erreur API catalog');
+      const res = await fetch("/api/services/services-catalog");
+      if (!res.ok) throw new Error("Erreur API catalog");
       const data: ServiceCatalogItem[] = await res.json();
 
-      const grouped = data.reduce<Record<string, ServiceCatalogItem[]>>((acc, item) => {
-        if (!acc[item.category]) acc[item.category] = [];
-        acc[item.category].push(item);
-        return acc;
-      }, {});
+      const grouped = data.reduce<Record<string, ServiceCatalogItem[]>>(
+        (acc, item) => {
+          if (!acc[item.category]) acc[item.category] = [];
+          acc[item.category].push(item);
+          return acc;
+        },
+        {}
+      );
 
       setServicesCatalog({ byCategory: grouped });
     } catch (err) {
-      console.error('[Pricing] fetchServicesCatalog', err);
+      console.error("[Pricing] fetchServicesCatalog", err);
     }
   };
 
   /* -------------------------------------------------------------------------- */
   /*                                   FORM                                     */
   /* -------------------------------------------------------------------------- */
+
   const handleSubmit = async () => {
     if (!formData.label || !formData.amount) {
-      setFeedback({ tone: "error", message: "Veuillez remplir tous les champs requis." });
+      setFeedback({
+        tone: "error",
+        message: "Veuillez remplir tous les champs requis.",
+      });
       return;
     }
-    
+
     setLoading(true);
     try {
-      const url = editingId ? `/api/pricing/${editingId}` : '/api/pricing';
-      const method = editingId ? 'PATCH' : 'POST';
-      
+      const url = editingId ? `/api/pricing/${editingId}` : "/api/pricing";
+      const method = editingId ? "PATCH" : "POST";
+
       const payload = {
         ...formData,
         amount: Number(formData.amount),
         service_id: formData.service_id || null,
         surface_min: formData.surface_min ? Number(formData.surface_min) : null,
         surface_max: formData.surface_max ? Number(formData.surface_max) : null,
-        estimated_duration: formData.estimated_duration ? Number(formData.estimated_duration) : null,
+        estimated_duration: formData.estimated_duration
+          ? Number(formData.estimated_duration)
+          : null,
       };
 
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err?.error || 'Erreur serveur');
+        throw new Error(err?.error || "Erreur serveur");
       }
 
       const savedPricing: Pricing | null = await res.json().catch(() => null);
       const previousPricing = editingId
         ? pricings.find((pricing) => pricing.id === editingId) ?? null
         : null;
-      const previousSignature = previousPricing ? getPricingSignature(previousPricing) : null;
-      const previousLooseSignature = previousPricing ? getLoosePricingSignature(previousPricing) : null;
+      const previousSignature = previousPricing
+        ? getPricingSignature(previousPricing)
+        : null;
+      const previousLooseSignature = previousPricing
+        ? getLoosePricingSignature(previousPricing)
+        : null;
       const previousLinkedRows = previousSignature
         ? linkedPricingMap[previousSignature] ??
-          (previousLooseSignature ? linkedPricingLooseMap[previousLooseSignature] ?? [] : [])
+          (previousLooseSignature
+            ? linkedPricingLooseMap[previousLooseSignature] ?? []
+            : [])
         : [];
 
-      if (!editingId && linkedPackageId && linkToPackage && savedPricing) {
-        const linkRes = await fetch('/api/services/pricing-packages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+      if (
+        !editingId &&
+        linkedPackageId &&
+        linkToPackage &&
+        savedPricing
+      ) {
+        const linkRes = await fetch("/api/services/pricing-packages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             package_id: linkedPackageId,
             label: savedPricing.label,
@@ -359,29 +400,38 @@ const PricingGridManager = ({
 
         if (!linkRes.ok) {
           const linkErr = await linkRes.json().catch(() => null);
-          console.warn('[Pricing] Link package warning', linkErr);
+          console.warn("[Pricing] Link package warning", linkErr);
         } else {
-          const linkedRow: LinkedPricingPackage | null = await linkRes.json().catch(() => null);
+          const linkedRow: LinkedPricingPackage | null =
+            await linkRes.json().catch(() => null);
           if (linkedRow) {
             setLinkedPricingPackages((prev) => [linkedRow, ...prev]);
           }
         }
       }
 
-      if (editingId && linkedPackageId && savedPricing && previousLinkedRows.length > 0) {
+      if (
+        editingId &&
+        linkedPackageId &&
+        savedPricing &&
+        previousLinkedRows.length > 0
+      ) {
         for (const linkedRow of previousLinkedRows) {
-          const deleteRes = await fetch(`/api/services/pricing-packages/${linkedRow.id}`, {
-            method: 'DELETE',
-          });
+          const deleteRes = await fetch(
+            `/api/services/pricing-packages/${linkedRow.id}`,
+            {
+              method: "DELETE",
+            }
+          );
           if (!deleteRes.ok) {
             const deleteErr = await deleteRes.json().catch(() => null);
-            console.warn('[Pricing] Unlink package warning', deleteErr);
+            console.warn("[Pricing] Unlink package warning", deleteErr);
           }
         }
 
-        const relinkRes = await fetch('/api/services/pricing-packages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const relinkRes = await fetch("/api/services/pricing-packages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             package_id: linkedPackageId,
             label: savedPricing.label,
@@ -393,12 +443,16 @@ const PricingGridManager = ({
 
         if (!relinkRes.ok) {
           const relinkErr = await relinkRes.json().catch(() => null);
-          console.warn('[Pricing] Relink package warning', relinkErr);
+          console.warn("[Pricing] Relink package warning", relinkErr);
         } else {
-          const relinkedRow: LinkedPricingPackage | null = await relinkRes.json().catch(() => null);
+          const relinkedRow: LinkedPricingPackage | null =
+            await relinkRes.json().catch(() => null);
           setLinkedPricingPackages((prev) => {
             const next = prev.filter(
-              (item) => !previousLinkedRows.some((linkedRow) => linkedRow.id === item.id),
+              (item) =>
+                !previousLinkedRows.some(
+                  (linkedRow) => linkedRow.id === item.id
+                )
             );
             return relinkedRow ? [relinkedRow, ...next] : next;
           });
@@ -407,7 +461,10 @@ const PricingGridManager = ({
 
       await fetchPricings();
       resetForm();
-      setFeedback({ tone: "success", message: editingId ? "Tarif mis à jour." : "Tarif ajouté." });
+      setFeedback({
+        tone: "success",
+        message: editingId ? "Tarif mis à jour." : "Tarif ajouté.",
+      });
     } catch (err) {
       const errorMessage =
         err instanceof Error
@@ -421,21 +478,23 @@ const PricingGridManager = ({
 
   const handleEdit = (pricing: Pricing) => {
     setFormData({
-      service_id: pricing.service_id || '',
+      service_id: pricing.service_id || "",
       label: pricing.label,
       type: pricing.type,
       amount: pricing.amount.toString(),
       unit: pricing.unit,
-      property_type: pricing.property_type || 'appartement',
-      surface_min: pricing.surface_min?.toString() || '',
-      surface_max: pricing.surface_max?.toString() || '',
-      estimated_duration: pricing.estimated_duration?.toString() || ''
+      property_type: pricing.property_type || "appartement",
+      surface_min: pricing.surface_min?.toString() || "",
+      surface_max: pricing.surface_max?.toString() || "",
+      estimated_duration: pricing.estimated_duration?.toString() || "",
     });
     setEditingId(pricing.id);
     setShowAddForm(true);
   };
 
-  const applySuggestedPricingRule = (rule: (typeof suggestedPricingRules)[number]) => {
+  const applySuggestedPricingRule = (
+    rule: (typeof suggestedPricingRules)[number]
+  ) => {
     setFormData((current) => ({
       ...current,
       label: rule.label,
@@ -449,15 +508,23 @@ const PricingGridManager = ({
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette règle tarifaire ?')) return;
-    
+    if (
+      !window.confirm(
+        "Êtes-vous sûr de vouloir supprimer cette règle tarifaire ?"
+      )
+    )
+      return;
+
     try {
-      await fetch(`/api/pricing/${id}`, { method: 'DELETE' });
+      await fetch(`/api/pricing/${id}`, { method: "DELETE" });
       await fetchPricings();
       setFeedback({ tone: "success", message: "Règle tarifaire supprimée." });
     } catch (err) {
-      console.error('[Pricing] handleDelete', err);
-      setFeedback({ tone: "error", message: conciergeApiError("Erreur lors de la suppression.") });
+      console.error("[Pricing] handleDelete", err);
+      setFeedback({
+        tone: "error",
+        message: conciergeApiError("Erreur lors de la suppression."),
+      });
     }
   };
 
@@ -489,98 +556,116 @@ const PricingGridManager = ({
         includePropertyType ? propertyType ?? "" : "",
       ].join("__");
     },
-    [],
+    []
   );
 
-  const getPricingSignature = useCallback((pricing: Pricing) =>
-    buildPricingSignature({
-      label: pricing.label,
-      type: pricing.type,
-      amount: pricing.amount,
-      propertyType: pricing.property_type ?? null,
-    }), [buildPricingSignature]);
+  const getPricingSignature = useCallback(
+    (pricing: Pricing) =>
+      buildPricingSignature({
+        label: pricing.label,
+        type: pricing.type,
+        amount: pricing.amount,
+        propertyType: pricing.property_type ?? null,
+      }),
+    [buildPricingSignature]
+  );
 
-  const getLoosePricingSignature = useCallback((pricing: Pricing) =>
-    buildPricingSignature({
-      label: pricing.label,
-      type: pricing.type,
-      amount: pricing.amount,
-      propertyType: pricing.property_type ?? null,
-      includePropertyType: false,
-    }), [buildPricingSignature]);
+  const getLoosePricingSignature = useCallback(
+    (pricing: Pricing) =>
+      buildPricingSignature({
+        label: pricing.label,
+        type: pricing.type,
+        amount: pricing.amount,
+        propertyType: pricing.property_type ?? null,
+        includePropertyType: false,
+      }),
+    [buildPricingSignature]
+  );
 
   const linkedPricingMap = useMemo(() => {
-    return linkedPricingPackages.reduce<Record<string, LinkedPricingPackage[]>>((acc, item) => {
-      const signature = buildPricingSignature({
-        label: item.label,
-        type: item.type,
-        amount: item.amount,
-        propertyType: item.property_type ?? null,
-      });
-      if (!acc[signature]) acc[signature] = [];
-      acc[signature].push(item);
-      return acc;
-    }, {});
+    return linkedPricingPackages.reduce<Record<string, LinkedPricingPackage[]>>(
+      (acc, item) => {
+        const signature = buildPricingSignature({
+          label: item.label,
+          type: item.type,
+          amount: item.amount,
+          propertyType: item.property_type ?? null,
+        });
+        if (!acc[signature]) acc[signature] = [];
+        acc[signature].push(item);
+        return acc;
+      },
+      {}
+    );
   }, [buildPricingSignature, linkedPricingPackages]);
 
   const linkedPricingLooseMap = useMemo(() => {
-    return linkedPricingPackages.reduce<Record<string, LinkedPricingPackage[]>>((acc, item) => {
-      const signature = buildPricingSignature({
-        label: item.label,
-        type: item.type,
-        amount: item.amount,
-        propertyType: item.property_type ?? null,
-        includePropertyType: false,
-      });
-      if (!acc[signature]) acc[signature] = [];
-      acc[signature].push(item);
-      return acc;
-    }, {});
+    return linkedPricingPackages.reduce<Record<string, LinkedPricingPackage[]>>(
+      (acc, item) => {
+        const signature = buildPricingSignature({
+          label: item.label,
+          type: item.type,
+          amount: item.amount,
+          propertyType: item.property_type ?? null,
+          includePropertyType: false,
+        });
+        if (!acc[signature]) acc[signature] = [];
+        acc[signature].push(item);
+        return acc;
+      },
+      {}
+    );
   }, [buildPricingSignature, linkedPricingPackages]);
 
   const linkedPricingSignatures = useMemo(
     () => new Set(Object.keys(linkedPricingMap)),
-    [linkedPricingMap],
+    [linkedPricingMap]
   );
 
   const allPricingPackageMap = useMemo(() => {
-    return linkedPricingPackages.reduce<Record<string, LinkedPricingPackage[]>>((acc, item) => {
-      const exactSignature = buildPricingSignature({
-        label: item.label,
-        type: item.type,
-        amount: item.amount,
-        propertyType: item.property_type ?? null,
-      });
-      const looseSignature = buildPricingSignature({
-        label: item.label,
-        type: item.type,
-        amount: item.amount,
-        propertyType: item.property_type ?? null,
-        includePropertyType: false,
-      });
+    return linkedPricingPackages.reduce<Record<string, LinkedPricingPackage[]>>(
+      (acc, item) => {
+        const exactSignature = buildPricingSignature({
+          label: item.label,
+          type: item.type,
+          amount: item.amount,
+          propertyType: item.property_type ?? null,
+        });
+        const looseSignature = buildPricingSignature({
+          label: item.label,
+          type: item.type,
+          amount: item.amount,
+          propertyType: item.property_type ?? null,
+          includePropertyType: false,
+        });
 
-      if (!acc[exactSignature]) acc[exactSignature] = [];
-      acc[exactSignature].push(item);
+        if (!acc[exactSignature]) acc[exactSignature] = [];
+        acc[exactSignature].push(item);
 
-      if (!acc[looseSignature]) acc[looseSignature] = [];
-      acc[looseSignature].push(item);
+        if (!acc[looseSignature]) acc[looseSignature] = [];
+        acc[looseSignature].push(item);
 
-      return acc;
-    }, {});
+        return acc;
+      },
+      {}
+    );
   }, [buildPricingSignature, linkedPricingPackages]);
 
-  const dedupeLinkedPricingRows = useCallback((rows: LinkedPricingPackage[]) => {
-    const seen = new Set<string>();
-    return rows.filter((row) => {
-      if (seen.has(row.id)) return false;
-      seen.add(row.id);
-      return true;
-    });
-  }, []);
+  const dedupeLinkedPricingRows = useCallback(
+    (rows: LinkedPricingPackage[]) => {
+      const seen = new Set<string>();
+      return rows.filter((row) => {
+        if (seen.has(row.id)) return false;
+        seen.add(row.id);
+        return true;
+      });
+    },
+    []
+  );
 
   const editingPricing = useMemo(
     () => pricings.find((pricing) => pricing.id === editingId) ?? null,
-    [editingId, pricings],
+    [editingId, pricings]
   );
 
   const editingPricingLinkedRows = useMemo(() => {
@@ -588,16 +673,22 @@ const PricingGridManager = ({
     return dedupeLinkedPricingRows(
       allPricingPackageMap[getPricingSignature(editingPricing)] ??
         allPricingPackageMap[getLoosePricingSignature(editingPricing)] ??
-        [],
+        []
     );
-  }, [allPricingPackageMap, dedupeLinkedPricingRows, editingPricing, getLoosePricingSignature, getPricingSignature]);
+  }, [
+    allPricingPackageMap,
+    dedupeLinkedPricingRows,
+    editingPricing,
+    getLoosePricingSignature,
+    getPricingSignature,
+  ]);
 
   const getPricingLinkedPackages = useCallback(
     (pricing: Pricing) => {
       const rows = dedupeLinkedPricingRows(
         allPricingPackageMap[getPricingSignature(pricing)] ??
           allPricingPackageMap[getLoosePricingSignature(pricing)] ??
-          [],
+          []
       );
 
       return rows.reduce<Array<{ id: string; name: string }>>((acc, row) => {
@@ -609,7 +700,12 @@ const PricingGridManager = ({
         return acc;
       }, []);
     },
-    [allPricingPackageMap, dedupeLinkedPricingRows, getLoosePricingSignature, getPricingSignature],
+    [
+      allPricingPackageMap,
+      dedupeLinkedPricingRows,
+      getLoosePricingSignature,
+      getPricingSignature,
+    ]
   );
 
   const getPricingLinkedRows = useCallback(
@@ -617,16 +713,21 @@ const PricingGridManager = ({
       dedupeLinkedPricingRows(
         allPricingPackageMap[getPricingSignature(pricing)] ??
           allPricingPackageMap[getLoosePricingSignature(pricing)] ??
-          [],
+          []
       ),
-    [allPricingPackageMap, dedupeLinkedPricingRows, getLoosePricingSignature, getPricingSignature],
+    [
+      allPricingPackageMap,
+      dedupeLinkedPricingRows,
+      getLoosePricingSignature,
+      getPricingSignature,
+    ]
   );
 
   const togglePricingSelectionForPack = (pricingId: string) => {
     setSelectedPricingIdsForPack((prev) =>
       prev.includes(pricingId)
         ? prev.filter((id) => id !== pricingId)
-        : [...prev, pricingId],
+        : [...prev, pricingId]
     );
   };
 
@@ -634,25 +735,28 @@ const PricingGridManager = ({
     if (!linkedPackageId || selectedPricingIdsForPack.length === 0) return;
 
     const selectedPricings = pricings.filter((pricing) =>
-      selectedPricingIdsForPack.includes(pricing.id),
+      selectedPricingIdsForPack.includes(pricing.id)
     );
     const toAttach = selectedPricings.filter(
       (pricing) =>
         !linkedPricingSignatures.has(getPricingSignature(pricing)) &&
-        !(getLoosePricingSignature(pricing) in linkedPricingLooseMap),
+        !(getLoosePricingSignature(pricing) in linkedPricingLooseMap)
     );
 
     if (toAttach.length === 0) {
-      setFeedback({ tone: "success", message: "Les tarifs sélectionnés sont déjà liés au pack." });
+      setFeedback({
+        tone: "success",
+        message: "Les tarifs sélectionnés sont déjà liés au pack.",
+      });
       return;
     }
 
     setIsLinkingSelected(true);
     try {
       for (const pricing of toAttach) {
-        const res = await fetch('/api/services/pricing-packages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const res = await fetch("/api/services/pricing-packages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             package_id: linkedPackageId,
             label: pricing.label,
@@ -665,14 +769,18 @@ const PricingGridManager = ({
           const err = await res.json().catch(() => null);
           throw new Error(err?.error || `Erreur liaison tarif ${pricing.label}`);
         }
-        const createdLink: LinkedPricingPackage | null = await res.json().catch(() => null);
+        const createdLink: LinkedPricingPackage | null =
+          await res.json().catch(() => null);
         if (createdLink) {
           setLinkedPricingPackages((prev) => [createdLink, ...prev]);
         }
       }
 
       setSelectedPricingIdsForPack([]);
-      setFeedback({ tone: "success", message: `${toAttach.length} tarif(s) lié(s) au pack.` });
+      setFeedback({
+        tone: "success",
+        message: `${toAttach.length} tarif(s) lié(s) au pack.`,
+      });
     } catch (err) {
       const errorMessage =
         err instanceof Error
@@ -693,18 +801,27 @@ const PricingGridManager = ({
 
     try {
       for (const linkedRow of linkedRows) {
-        const res = await fetch(`/api/services/pricing-packages/${linkedRow.id}`, {
-          method: 'DELETE',
-        });
+        const res = await fetch(
+          `/api/services/pricing-packages/${linkedRow.id}`,
+          {
+            method: "DELETE",
+          }
+        );
         if (!res.ok) {
           const err = await res.json().catch(() => null);
-          throw new Error(err?.error || `Erreur déliaison tarif ${pricing.label}`);
+          throw new Error(
+            err?.error || `Erreur déliaison tarif ${pricing.label}`
+          );
         }
       }
 
       const linkedIds = new Set(linkedRows.map((row) => row.id));
-      setLinkedPricingPackages((prev) => prev.filter((row) => !linkedIds.has(row.id)));
-      setSelectedPricingIdsForPack((prev) => prev.filter((id) => id !== pricing.id));
+      setLinkedPricingPackages((prev) =>
+        prev.filter((row) => !linkedIds.has(row.id))
+      );
+      setSelectedPricingIdsForPack((prev) =>
+        prev.filter((id) => id !== pricing.id)
+      );
       setFeedback({ tone: "success", message: "Tarif délié du pack." });
     } catch (err) {
       const errorMessage =
@@ -718,11 +835,13 @@ const PricingGridManager = ({
   const handleDetachPricingLink = async (linkId: string, pricingLabel: string) => {
     try {
       const res = await fetch(`/api/services/pricing-packages/${linkId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
       if (!res.ok) {
         const err = await res.json().catch(() => null);
-        throw new Error(err?.error || `Erreur déliaison tarif ${pricingLabel}`);
+        throw new Error(
+          err?.error || `Erreur déliaison tarif ${pricingLabel}`
+        );
       }
 
       setLinkedPricingPackages((prev) => prev.filter((row) => row.id !== linkId));
@@ -739,11 +858,17 @@ const PricingGridManager = ({
   /* -------------------------------------------------------------------------- */
   /*                                 FILTERING                                  */
   /* -------------------------------------------------------------------------- */
+
   const filteredPricings = useMemo(() => {
     return pricings.filter((p) => {
-      if (filterPropertyType && p.property_type !== filterPropertyType) return false;
+      if (filterPropertyType && p.property_type !== filterPropertyType)
+        return false;
       if (filterPricingType && p.type !== filterPricingType) return false;
-      if (searchTerm && !p.label.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+      if (
+        searchTerm &&
+        !p.label.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+        return false;
       return true;
     });
   }, [pricings, filterPropertyType, filterPricingType, searchTerm]);
@@ -751,46 +876,54 @@ const PricingGridManager = ({
   const hasActiveServiceFilter =
     (Array.isArray(activeServiceIds) && activeServiceIds.length > 0) ||
     (Array.isArray(activeServiceLabels) && activeServiceLabels.length > 0);
+
   const activeServiceIdSet = useMemo(
     () => new Set((activeServiceIds ?? []).filter(Boolean)),
-    [activeServiceIds],
+    [activeServiceIds]
   );
+
   const activeServiceLabelSet = useMemo(
     () =>
       new Set(
         (activeServiceLabels ?? [])
           .filter(Boolean)
-          .map((label) => normalizeServiceText(label)),
+          .map((label) => normalizeServiceText(label))
       ),
-    [activeServiceLabels],
+    [activeServiceLabels]
   );
+
   const selectableServicesByCategory = useMemo(() => {
     if (!hasActiveServiceFilter) return servicesCatalog.byCategory;
 
-    return Object.entries(servicesCatalog.byCategory).reduce<Record<string, ServiceCatalogItem[]>>(
-      (acc, [category, services]) => {
-        const filtered = services.filter(
-          (service) =>
-            activeServiceIdSet.has(service.id) ||
-            activeServiceLabelSet.has(normalizeServiceText(service.service)),
-        );
-        if (filtered.length > 0) {
-          acc[category] = filtered;
-        }
-        return acc;
-      },
-      {},
-    );
+    return Object.entries(servicesCatalog.byCategory).reduce<
+      Record<string, ServiceCatalogItem[]>
+    >((acc, [category, services]) => {
+      const filtered = services.filter(
+        (service) =>
+          activeServiceIdSet.has(service.id) ||
+          activeServiceLabelSet.has(normalizeServiceText(service.service))
+      );
+      if (filtered.length > 0) {
+        acc[category] = filtered;
+      }
+      return acc;
+    }, {});
   }, [
     hasActiveServiceFilter,
     servicesCatalog.byCategory,
     activeServiceIdSet,
     activeServiceLabelSet,
   ]);
+
   const selectableServiceCount = useMemo(
-    () => Object.values(selectableServicesByCategory).reduce((acc, items) => acc + items.length, 0),
-    [selectableServicesByCategory],
+    () =>
+      Object.values(selectableServicesByCategory).reduce(
+        (acc, items) => acc + items.length,
+        0
+      ),
+    [selectableServicesByCategory]
   );
+
   const visiblePricings = useMemo(() => {
     if (!hasActiveServiceFilter) return filteredPricings;
     return filteredPricings.filter(
@@ -799,8 +932,8 @@ const PricingGridManager = ({
         activeServiceIdSet.has(pricing.service_id) ||
         Boolean(
           pricing.service &&
-            activeServiceLabelSet.has(normalizeServiceText(pricing.service.service)),
-        ),
+            activeServiceLabelSet.has(normalizeServiceText(pricing.service.service))
+        )
     );
   }, [
     hasActiveServiceFilter,
@@ -812,49 +945,63 @@ const PricingGridManager = ({
   /* -------------------------------------------------------------------------- */
   /*                                 HELPERS                                    */
   /* -------------------------------------------------------------------------- */
+
   const getSurfaceLabel = (min?: number, max?: number) => {
-    if (!min && !max) return '-';
+    if (!min && !max) return "-";
     if (!max || max >= 1000) return `${min}m2 et plus`;
     return `${min}m2 - ${max}m2`;
   };
 
   const getPriceDisplay = (pricing: Pricing) => {
     const price = pricing.amount.toFixed(2);
-    if (pricing.type === 'fixed') {
+    if (pricing.type === "fixed") {
       return `${price} EUR forfait`;
     }
-    if (pricing.type === 'hourly' && pricing.estimated_duration) {
-      return `${price} EUR/h (~${Math.round(pricing.amount * pricing.estimated_duration)} EUR)`;
+    if (
+      pricing.type === "hourly" &&
+      pricing.estimated_duration
+    ) {
+      return `${price} EUR/h (~${Math.round(
+        pricing.amount * pricing.estimated_duration
+      )} EUR)`;
     }
     return `${price}${pricing.unit}`;
   };
 
   const getPropertyTypeLabel = (type?: PropertyType) => {
-    const found = propertyTypes.find(pt => pt.value === type);
-    return found ? found.label : '-';
+    const found = propertyTypes.find((pt) => pt.value === type);
+    return found ? found.label : "-";
   };
 
-  const hasFilters = Boolean(filterPropertyType || filterPricingType || searchTerm);
+  const hasFilters = Boolean(
+    filterPropertyType || filterPricingType || searchTerm
+  );
 
   const resetFilters = () => {
-    setFilterPropertyType('');
-    setFilterPricingType('');
-    setSearchTerm('');
+    setFilterPropertyType("");
+    setFilterPricingType("");
+    setSearchTerm("");
   };
 
   const averageFixedAmount = useMemo(() => {
-    const fixedPricings = visiblePricings.filter((pricing) => pricing.type === 'fixed');
+    const fixedPricings = visiblePricings.filter(
+      (pricing) => pricing.type === "fixed"
+    );
     if (fixedPricings.length === 0) return 0;
     return Math.round(
-      fixedPricings.reduce((acc, pricing) => acc + pricing.amount, 0) / fixedPricings.length,
+      fixedPricings.reduce((acc, pricing) => acc + pricing.amount, 0) /
+        fixedPricings.length
     );
   }, [visiblePricings]);
 
   const averageHourlyAmount = useMemo(() => {
-    const hourlyPricings = visiblePricings.filter((pricing) => pricing.type === 'hourly');
+    const hourlyPricings = visiblePricings.filter(
+      (pricing) => pricing.type === "hourly"
+    );
     if (hourlyPricings.length === 0) return 0;
     return Math.round(
-      hourlyPricings.reduce((acc, pricing) => acc + pricing.amount, 0) / hourlyPricings.length,
+      hourlyPricings.reduce((acc, pricing) => acc + pricing.amount, 0) /
+        hourlyPricings.length
     );
   }, [visiblePricings]);
 
@@ -877,11 +1024,13 @@ const PricingGridManager = ({
           category: match.category,
         };
       })
-      .filter((item): item is { id: string; label: string; category: string } => Boolean(item));
+      .filter(
+        (item): item is { id: string; label: string; category: string } =>
+          Boolean(item)
+      );
 
     if (rows.length > 0) return rows;
 
-    // Fallback affichage si l'ID n'est pas encore resolu (ne persiste pas d'override sans ID).
     return (activeServiceLabels ?? [])
       .filter(Boolean)
       .map((label) => ({
@@ -900,8 +1049,10 @@ const PricingGridManager = ({
           label: item.service,
           category: item.category,
         }))
-        .sort((a, b) => `${a.category} ${a.label}`.localeCompare(`${b.category} ${b.label}`)),
-    [servicesCatalog.byCategory],
+        .sort((a, b) =>
+          `${a.category} ${a.label}`.localeCompare(`${b.category} ${b.label}`)
+        ),
+    [servicesCatalog.byCategory]
   );
 
   const contextualServiceRows = useMemo(() => {
@@ -910,32 +1061,38 @@ const PricingGridManager = ({
   }, [contextualServiceScope, allCatalogRows, activeServiceRows]);
 
   useEffect(() => {
-    if (contextualServiceScope === "missions" && activeServiceRows.length === 0) {
+    if (
+      contextualServiceScope === "missions" &&
+      activeServiceRows.length === 0
+    ) {
       setContextualServiceScope("all");
     }
   }, [contextualServiceScope, activeServiceRows.length]);
 
   const isContextualMode = Boolean(
-    pricingV2 && onChangePricingV2 && contextualServiceRows.length > 0,
+    pricingV2 && onChangePricingV2 && contextualServiceRows.length > 0
   );
+
   const shouldShowAdvancedTools = !isContextualMode || showAdvancedPricingTools;
 
   const filteredContextualServiceRows = useMemo(() => {
     const q = normalizeServiceText(prioritySearch);
     if (!q) return contextualServiceRows;
     return contextualServiceRows.filter((row) =>
-      normalizeServiceText(`${row.label} ${row.category}`).includes(q),
+      normalizeServiceText(`${row.label} ${row.category}`).includes(q)
     );
   }, [contextualServiceRows, prioritySearch]);
 
-  const getServicePricingType = (serviceId: string): "hourly" | "fixed" => {
+  const getServicePricingType = (
+    serviceId: string
+  ): "hourly" | "fixed" => {
     if (!serviceId || !pricingV2) return "hourly";
     return pricingV2.serviceOverrides?.[serviceId]?.pricingType ?? "hourly";
   };
 
   const handleServicePricingTypeChange = (
     serviceId: string,
-    pricingType: "hourly" | "fixed",
+    pricingType: "hourly" | "fixed"
   ) => {
     if (!pricingV2 || !onChangePricingV2 || !serviceId) return;
     const currentOverride = pricingV2.serviceOverrides?.[serviceId];
@@ -969,10 +1126,11 @@ const PricingGridManager = ({
 
   const getEffectiveModifierPercent = (
     serviceId: string,
-    modifierKey: PricingModifierKey,
+    modifierKey: PricingModifierKey
   ): number => {
     const globalValue = pricingV2?.globalModifiers?.[modifierKey] ?? 0;
-    const override = pricingV2?.serviceOverrides?.[serviceId]?.modifierOverride?.[modifierKey];
+    const override =
+      pricingV2?.serviceOverrides?.[serviceId]?.modifierOverride?.[modifierKey];
     if (!override) return globalValue;
     return override.mode === "replace" ? override.value : globalValue + override.value;
   };
@@ -980,7 +1138,7 @@ const PricingGridManager = ({
   const updateServiceModifier = (
     serviceId: string,
     modifierKey: PricingModifierKey,
-    override: PricingOverrideValue | null,
+    override: PricingOverrideValue | null
   ) => {
     if (!pricingV2 || !onChangePricingV2 || !serviceId) return;
 
@@ -1014,7 +1172,7 @@ const PricingGridManager = ({
   const handlePriceOverrideChange = (
     serviceId: string,
     modifierKey: PricingModifierKey,
-    priceValue: string,
+    priceValue: string
   ) => {
     if (!pricingV2) return;
     const numericPrice = Number(priceValue);
@@ -1022,13 +1180,17 @@ const PricingGridManager = ({
 
     const base = Math.max(0, pricingV2.base.hourlyRate ?? 0);
     const normalized = Math.max(0, numericPrice);
-    const percent = base > 0 ? ((normalized / base) - 1) * 100 : 0;
-    updateServiceModifier(serviceId, modifierKey, { mode: "replace", value: percent });
+    const percent = base > 0 ? (normalized / base - 1) * 100 : 0;
+    updateServiceModifier(serviceId, modifierKey, {
+      mode: "replace",
+      value: percent,
+    });
   };
 
   /* -------------------------------------------------------------------------- */
   /*                                   RENDER                                   */
   /* -------------------------------------------------------------------------- */
+
   return (
     <div className={styles.root}>
       {/* HEADER & FILTERS */}
@@ -1037,17 +1199,17 @@ const PricingGridManager = ({
           <div className={styles.headingBlock}>
             <h3 className={styles.headingTitle}>
               {isContextualMode
-                ? "Tarification contextuelle simplifiee"
+                ? "Tarification contextuelle simplifiée"
                 : "Ma grille tarifaire personnalisée"}
             </h3>
             <p className={styles.headingText}>
               {isContextualMode
                 ? "Modifiez rapidement vos tarifs par service et par contexte."
-                : "Definissez vos tarifs selon le type de bien, la surface et la duree."}
+                : "Définissez vos tarifs selon le type de bien, la surface et la durée."}
             </p>
             {linkedPackageId && (
               <p className={styles.headingPackHint}>
-                Les nouveaux tarifs seront aussi liés au pack :{' '}
+                Les nouveaux tarifs seront aussi liés au pack :{" "}
                 <strong>{linkedPackageName ?? linkedPackageId}</strong>
               </p>
             )}
@@ -1099,7 +1261,9 @@ const PricingGridManager = ({
                 onClick={() => setShowAdvancedPricingTools((prev) => !prev)}
               >
                 <FiPlus size={16} aria-hidden="true" />
-                {showAdvancedPricingTools ? "Masquer options avancées" : "Options avancées"}
+                {showAdvancedPricingTools
+                  ? "Masquer options avancées"
+                  : "Options avancées"}
               </button>
             </>
           ) : (
@@ -1109,7 +1273,9 @@ const PricingGridManager = ({
                 <select
                   className={styles.selectControl}
                   value={filterPropertyType}
-                  onChange={(e) => setFilterPropertyType(e.target.value as PropertyType | '')}
+                  onChange={(e) =>
+                    setFilterPropertyType(e.target.value as PropertyType | "")
+                  }
                   aria-label="Filtrer par type de bien"
                 >
                   <option value="">Tous les types</option>
@@ -1123,7 +1289,9 @@ const PricingGridManager = ({
                 <select
                   className={styles.selectControl}
                   value={filterPricingType}
-                  onChange={(e) => setFilterPricingType(e.target.value as PricingType | '')}
+                  onChange={(e) =>
+                    setFilterPricingType(e.target.value as PricingType | "")
+                  }
                   aria-label="Filtrer par type de tarification"
                 >
                   <option value="">Toutes tarifications</option>
@@ -1163,7 +1331,7 @@ const PricingGridManager = ({
                 onClick={() => setShowAddForm((prev) => !prev)}
               >
                 <FiPlus size={16} aria-hidden="true" />
-                {showAddForm ? 'Fermer le formulaire' : 'Nouvelle règle'}
+                {showAddForm ? "Fermer le formulaire" : "Nouvelle règle"}
               </button>
             </>
           )}
@@ -1172,7 +1340,9 @@ const PricingGridManager = ({
 
       {feedback ? (
         <div
-          className={feedback.tone === "success" ? styles.feedbackSuccess : styles.feedbackError}
+          className={
+            feedback.tone === "success" ? styles.feedbackSuccess : styles.feedbackError
+          }
           role={feedback.tone === "success" ? "status" : "alert"}
         >
           <span>{feedback.message}</span>
@@ -1188,8 +1358,8 @@ const PricingGridManager = ({
             <div className={styles.priorityHeader}>
               <h4>Tarifs par service et contexte</h4>
               <p>
-                Modifiez vos tarifs directement ici (horaire ou forfait), puis ajustez
-                les contextes: urgence, nuit, week-end, haute saison.
+                Modifiez vos tarifs directement ici (horaire ou forfait), puis
+                ajustez les contextes : urgence, nuit, week-end, haute saison.
               </p>
             </div>
           )}
@@ -1216,18 +1386,24 @@ const PricingGridManager = ({
                   </tr>
                 )}
                 {filteredContextualServiceRows.map((serviceRow) => (
-                  <tr key={`${serviceRow.id || "label"}-${serviceRow.label}`}>
+                  <tr
+                    key={`${serviceRow.id || "label"}-${serviceRow.label}`}
+                  >
                     <td>
                       <div className={styles.priorityServiceCell}>
                         <div className={styles.priorityServiceTop}>
                           <strong>{serviceRow.label}</strong>
-                          {editingPriorityRows[serviceRow.id || `label:${serviceRow.label}`] ? (
+                          {editingPriorityRows[
+                            serviceRow.id || `label:${serviceRow.label}`
+                          ] ? (
                             <button
                               type="button"
                               className={`${styles.priorityEditButton} ${styles.prioritySaveButton}`}
                               disabled={!serviceRow.id}
                               onClick={() =>
-                                closePriorityRowEdit(serviceRow.id || `label:${serviceRow.label}`)
+                                closePriorityRowEdit(
+                                  serviceRow.id || `label:${serviceRow.label}`
+                                )
                               }
                               title="Valider les modifications"
                               aria-label={`Valider les tarifs de ${serviceRow.label}`}
@@ -1235,28 +1411,32 @@ const PricingGridManager = ({
                               <FiCheck size={14} />
                             </button>
                           ) : (
-                          <button
-                            type="button"
-                            className={styles.priorityEditButton}
-                            disabled={!serviceRow.id}
-                            onClick={() =>
-                              togglePriorityRowEdit(
-                                serviceRow.id || `label:${serviceRow.label}`,
-                              )
-                            }
-                            title={
-                              editingPriorityRows[serviceRow.id || `label:${serviceRow.label}`]
-                                ? "Terminer la modification"
-                                : "Modifier les tarifs"
-                            }
-                            aria-label={
-                              editingPriorityRows[serviceRow.id || `label:${serviceRow.label}`]
-                                ? `Terminer la modification de ${serviceRow.label}`
-                                : `Modifier les tarifs de ${serviceRow.label}`
-                            }
-                          >
-                            <FiEdit2 size={14} />
-                          </button>
+                            <button
+                              type="button"
+                              className={styles.priorityEditButton}
+                              disabled={!serviceRow.id}
+                              onClick={() =>
+                                togglePriorityRowEdit(
+                                  serviceRow.id || `label:${serviceRow.label}`
+                                )
+                              }
+                              title={
+                                editingPriorityRows[
+                                  serviceRow.id || `label:${serviceRow.label}`
+                                ]
+                                  ? "Terminer la modification"
+                                  : "Modifier les tarifs"
+                              }
+                              aria-label={
+                                editingPriorityRows[
+                                  serviceRow.id || `label:${serviceRow.label}`
+                                ]
+                                  ? `Terminer la modification de ${serviceRow.label}`
+                                  : `Modifier les tarifs de ${serviceRow.label}`
+                              }
+                            >
+                              <FiEdit2 size={14} />
+                            </button>
                           )}
                         </div>
                         <span>{serviceRow.category}</span>
@@ -1268,12 +1448,14 @@ const PricingGridManager = ({
                         value={getServicePricingType(serviceRow.id)}
                         disabled={
                           !serviceRow.id ||
-                          !editingPriorityRows[serviceRow.id || `label:${serviceRow.label}`]
+                          !editingPriorityRows[
+                            serviceRow.id || `label:${serviceRow.label}`
+                          ]
                         }
                         onChange={(e) =>
                           handleServicePricingTypeChange(
                             serviceRow.id,
-                            e.target.value as "hourly" | "fixed",
+                            e.target.value as "hourly" | "fixed"
                           )
                         }
                         aria-label={`Type de tarification pour ${serviceRow.label}`}
@@ -1289,31 +1471,44 @@ const PricingGridManager = ({
                           min="0"
                           step="0.01"
                           className={styles.priorityInput}
-                          value={Number(pricingV2?.base.hourlyRate ?? 0).toFixed(2)}
+                          value={Number(
+                            pricingV2?.base.hourlyRate ?? 0
+                          ).toFixed(2)}
                           aria-label={`Tarif de base pour ${serviceRow.label}`}
                           disabled
                           readOnly
                         />
                         <small>
-                          {getServicePricingType(serviceRow.id) === "fixed" ? "EUR" : "EUR/h"}
+                          {getServicePricingType(serviceRow.id) === "fixed"
+                            ? "EUR"
+                            : "EUR/h"}
                         </small>
                       </div>
                     </td>
                     {modifierColumns.map((column) => {
-                      const baseHourly = Number(pricingV2?.base.hourlyRate ?? 0);
+                      const baseHourly = Number(
+                        pricingV2?.base.hourlyRate ?? 0
+                      );
                       const effectivePercent = serviceRow.id
-                        ? getEffectiveModifierPercent(serviceRow.id, column.key)
+                        ? getEffectiveModifierPercent(
+                            serviceRow.id,
+                            column.key
+                          )
                         : pricingV2.globalModifiers[column.key] ?? 0;
                       const computedPrice = Math.max(
                         0,
-                        baseHourly * (1 + effectivePercent / 100),
+                        baseHourly * (1 + effectivePercent / 100)
                       );
                       const disabled =
                         !serviceRow.id ||
-                        !editingPriorityRows[serviceRow.id || `label:${serviceRow.label}`];
+                        !editingPriorityRows[
+                          serviceRow.id || `label:${serviceRow.label}`
+                        ];
 
                       return (
-                        <td key={`${serviceRow.id}-${column.key}`}>
+                        <td
+                          key={`${serviceRow.id}-${column.key}`}
+                        >
                           <div className={styles.priorityCell}>
                             <input
                               type="number"
@@ -1327,11 +1522,14 @@ const PricingGridManager = ({
                                 handlePriceOverrideChange(
                                   serviceRow.id,
                                   column.key,
-                                  e.target.value,
+                                  e.target.value
                                 )
                               }
                             />
-                            <small>{effectivePercent >= 0 ? "+" : ""}{effectivePercent.toFixed(0)}%</small>
+                            <small>
+                              {effectivePercent >= 0 ? "+" : ""}
+                              {effectivePercent.toFixed(0)}%
+                            </small>
                           </div>
                         </td>
                       );
@@ -1348,9 +1546,9 @@ const PricingGridManager = ({
       {shouldShowAdvancedTools && showAddForm && (
         <div className={styles.formCard}>
           <h4 className={styles.formTitle}>
-            {editingId ? 'Modifier la règle' : 'Nouvelle règle tarifaire'}
+            {editingId ? "Modifier la règle" : "Nouvelle règle tarifaire"}
           </h4>
-          
+
           <div className={styles.formLayout}>
             {/* Service (optionnel) */}
             <div>
@@ -1361,37 +1559,43 @@ const PricingGridManager = ({
                 <p className={styles.fieldHint}>
                   {selectableServiceCount > 0
                     ? "Seuls les services actifs dans l'onglet Missions sont proposés."
-                    : 'Aucun service actif: activez un service dans Missions ou laissez ce champ vide.'}
+                    : "Aucun service actif : activez un service dans Missions ou laissez ce champ vide."}
                 </p>
               )}
               <select
                 className={styles.inputControl}
                 value={formData.service_id}
-                onChange={(e) => setFormData({ ...formData, service_id: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, service_id: e.target.value })
+                }
                 aria-label="Service associé"
               >
                 <option value="">- Service personnalisé -</option>
-                {Object.entries(selectableServicesByCategory).map(([cat, services]) => (
-                  <optgroup key={cat} label={cat}>
-                    {services.map((s) => (
-                      <option key={s.id} value={s.id}>{s.service}</option>
-                    ))}
-                  </optgroup>
-                ))}
+                {Object.entries(selectableServicesByCategory).map(
+                  ([cat, services]) => (
+                    <optgroup key={cat} label={cat}>
+                      {services.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.service}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )
+                )}
               </select>
             </div>
 
-            {/* Libelle */}
+            {/* Libellé */}
             <div>
-              <label className={styles.fieldLabel}>
-                Libellé du tarif *
-              </label>
+              <label className={styles.fieldLabel}>Libellé du tarif *</label>
               <input
                 className={styles.inputControl}
                 type="text"
                 placeholder="Ex: Ménage appartement 2 pièces"
                 value={formData.label}
-                onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, label: e.target.value })
+                }
               />
             </div>
 
@@ -1399,7 +1603,10 @@ const PricingGridManager = ({
               <div className={styles.suggestedPricingBlock}>
                 <div className={styles.suggestedPricingHeader}>
                   <span>Tarifs proposés</span>
-                  <p>Préremplissez la règle avec un type de bien que vous pouvez gérer.</p>
+                  <p>
+                    Préremplissez la règle avec un type de bien que vous pouvez
+                    gérer.
+                  </p>
                 </div>
                 <div className={styles.suggestedPricingGrid}>
                   {suggestedPricingRules.map((rule) => (
@@ -1409,10 +1616,17 @@ const PricingGridManager = ({
                       className={styles.suggestedPricingCard}
                       onClick={() => applySuggestedPricingRule(rule)}
                     >
-                      <strong>{propertyTypes.find((type) => type.value === rule.propertyType)?.label}</strong>
+                      <strong>
+                        {
+                          propertyTypes.find(
+                            (type) => type.value === rule.propertyType
+                          )?.label
+                        }
+                      </strong>
                       <span>{rule.label}</span>
                       <small>
-                        {rule.amount} EUR · {rule.duration} h · {rule.surfaceMin}-{rule.surfaceMax} m²
+                        {rule.amount} EUR · {rule.duration} h · {rule.surfaceMin}
+                        -{rule.surfaceMax} m²
                       </small>
                       <em>{rule.note}</em>
                     </button>
@@ -1424,17 +1638,22 @@ const PricingGridManager = ({
             <div className={styles.formGrid}>
               {/* Type de bien */}
               <div>
-                <label className={styles.fieldLabel}>
-                  Type de bien
-                </label>
+                <label className={styles.fieldLabel}>Type de bien</label>
                 <select
                   className={styles.inputControl}
                   value={formData.property_type}
-                  onChange={(e) => setFormData({ ...formData, property_type: e.target.value as PropertyType })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      property_type: e.target.value as PropertyType,
+                    })
+                  }
                   aria-label="Type de bien"
                 >
-                  {propertyTypes.map(type => (
-                    <option key={type.value} value={type.value}>{type.label}</option>
+                  {propertyTypes.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -1447,25 +1666,32 @@ const PricingGridManager = ({
                 <select
                   className={styles.inputControl}
                   value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value as PricingType })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      type: e.target.value as PricingType,
+                    })
+                  }
                   aria-label="Type de tarification"
                 >
-                  {pricingTypes.map(type => (
-                    <option key={type.value} value={type.value}>{type.label}</option>
+                  {pricingTypes.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
                   ))}
                 </select>
               </div>
 
               {/* Surface min */}
               <div>
-                <label className={styles.fieldLabel}>
-                  Surface min (m²)
-                </label>
+                <label className={styles.fieldLabel}>Surface min (m²)</label>
                 <input
                   className={styles.inputControl}
                   type="number"
                   value={formData.surface_min}
-                  onChange={(e) => setFormData({ ...formData, surface_min: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, surface_min: e.target.value })
+                  }
                   aria-label="Surface minimum en mètres carrés"
                   placeholder="Ex: 0"
                   min="0"
@@ -1474,14 +1700,14 @@ const PricingGridManager = ({
 
               {/* Surface max */}
               <div>
-                <label className={styles.fieldLabel}>
-                  Surface max (m²)
-                </label>
+                <label className={styles.fieldLabel}>Surface max (m²)</label>
                 <input
                   className={styles.inputControl}
                   type="number"
                   value={formData.surface_max}
-                  onChange={(e) => setFormData({ ...formData, surface_max: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, surface_max: e.target.value })
+                  }
                   aria-label="Surface maximum en mètres carrés"
                   placeholder="Ex: 50"
                   min="0"
@@ -1491,13 +1717,17 @@ const PricingGridManager = ({
               {/* Prix */}
               <div>
                 <label className={styles.fieldLabel}>
-                  {formData.type === 'fixed' ? 'Prix forfait (EUR) *' : 'Tarif (EUR) *'}
+                  {formData.type === "fixed"
+                    ? "Prix forfait (EUR) *"
+                    : "Tarif (EUR) *"}
                 </label>
                 <input
                   className={styles.inputControl}
                   type="number"
                   value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, amount: e.target.value })
+                  }
                   aria-label="Montant du tarif en euros"
                   placeholder="Ex: 45"
                   min="0"
@@ -1505,16 +1735,19 @@ const PricingGridManager = ({
                 />
               </div>
 
-              {/* Duree estimee */}
+              {/* Durée estimée */}
               <div>
-                <label className={styles.fieldLabel}>
-                  Durée estimée (h)
-                </label>
+                <label className={styles.fieldLabel}>Durée estimée (h)</label>
                 <input
                   className={styles.inputControl}
                   type="number"
                   value={formData.estimated_duration}
-                  onChange={(e) => setFormData({ ...formData, estimated_duration: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      estimated_duration: e.target.value,
+                    })
+                  }
                   aria-label="Durée estimée en heures"
                   placeholder="Ex: 2.5"
                   min="0"
@@ -1532,7 +1765,8 @@ const PricingGridManager = ({
                     onChange={(e) => setLinkToPackage(e.target.checked)}
                   />
                   <span>
-                    Lier ce tarif au pack {linkedPackageName ?? linkedPackageId}
+                    Lier ce tarif au pack{" "}
+                    {linkedPackageName ?? linkedPackageId}
                   </span>
                 </label>
               </div>
@@ -1543,19 +1777,19 @@ const PricingGridManager = ({
                 <div className={styles.linkedNoticeContent}>
                   <strong>
                     {editingPricingLinkedRows.length > 0
-                      ? 'Tarif reli\u00E9 \u00E0'
-                      : 'Aucun pack reli\u00E9'}
+                      ? "Tarif relié à"
+                      : "Aucun pack relié"}
                   </strong>
                   <span>
                     {editingPricingLinkedRows.length > 0
                       ? Array.from(
                           new Set(
                             editingPricingLinkedRows
-                              .map((row) => row.package?.name ?? '')
-                              .filter(Boolean),
-                          ),
-                        ).join(', ')
-                      : "Cette r\u00E8gle tarifaire n'est rattach\u00E9e \u00E0 aucun pack pour le moment."}
+                              .map((row) => row.package?.name ?? "")
+                              .filter(Boolean)
+                          )
+                        ).join(", ")
+                      : "Cette règle tarifaire n'est rattachée à aucun pack pour le moment."}
                   </span>
                 </div>
                 {editingPricingLinkedRows.length > 0 ? (
@@ -1565,9 +1799,14 @@ const PricingGridManager = ({
                         key={row.id}
                         type="button"
                         className={styles.unlinkInlineButton}
-                        onClick={() => void handleDetachPricingLink(row.id, editingPricing?.label ?? row.label)}
+                        onClick={() =>
+                          void handleDetachPricingLink(
+                            row.id,
+                            editingPricing?.label ?? row.label
+                          )
+                        }
                       >
-                        {`D\u00E9lier ${row.package?.name ?? 'ce pack'}`}
+                        {`Délier ${row.package?.name ?? "ce pack"}`}
                       </button>
                     ))}
                   </div>
@@ -1583,7 +1822,7 @@ const PricingGridManager = ({
                 disabled={loading}
                 className={styles.successButton}
               >
-                {loading ? 'Enregistrement...' : (editingId ? 'Mettre à jour' : 'Ajouter')}
+                {loading ? "Enregistrement..." : editingId ? "Mettre à jour" : "Ajouter"}
               </button>
               <button
                 type="button"
@@ -1602,248 +1841,257 @@ const PricingGridManager = ({
       {shouldShowAdvancedTools && linkedPackageId && (
         <div className={styles.packageBar}>
           <p>
-                    Sélectionnez des tarifs existants puis intégrez-les au pack {linkedPackageName ?? linkedPackageId}.
+            Sélectionnez des tarifs existants puis intégrez-les au pack{" "}
+            {linkedPackageName ?? linkedPackageId}.
           </p>
           <button
             type="button"
             onClick={handleAttachSelectedToPack}
-            disabled={selectedPricingIdsForPack.length === 0 || isLinkingSelected}
+            disabled={
+              selectedPricingIdsForPack.length === 0 || isLinkingSelected
+            }
             className={styles.packLinkButton}
           >
             {isLinkingSelected
-              ? 'Intégration...'
+              ? "Intégration..."
               : `Intégrer au pack (${selectedPricingIdsForPack.length})`}
           </button>
         </div>
       )}
 
       {shouldShowAdvancedTools && (
-      <div className={styles.tableCard}>
-        <div className={styles.tableScroll}>
-        <table className={styles.pricingTable}>
-          <thead>
-            <tr className={styles.tableHeaderRow}>
-              <th className={styles.tableHeadCell}>
-                LIBELLE
-              </th>
-              <th className={styles.tableHeadCell}>
-                TYPE DE BIEN
-              </th>
-              <th className={styles.tableHeadCell}>
-                SURFACE
-              </th>
-              <th className={styles.tableHeadCell}>
-                TARIFICATION
-              </th>
-              <th className={styles.tableHeadCell}>
-                DUREE
-              </th>
-              <th className={`${styles.tableHeadCell} ${styles.tableHeadCellRight}`}>
-                ACTIONS
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {visiblePricings.length === 0 ? (
-              <tr>
-                <td colSpan={6} className={styles.emptyCell}>
-                  <p className={styles.emptyTitle}>
-                    {searchTerm || filterPropertyType || filterPricingType
-                      ? 'Aucun tarif ne correspond aux filtres'
-                      : 'Aucune règle tarifaire définie.'}
-                  </p>
-                  {(searchTerm || filterPropertyType || filterPricingType) && (
-                    <button
-                      type="button"
-                      className={styles.emptyAction}
-                      onClick={resetFilters}
-                    >
-                      Effacer les filtres
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ) : (
-              visiblePricings.map((pricing) => {
-                const linkedPackages = getPricingLinkedPackages(pricing);
-                const linkedRows = getPricingLinkedRows(pricing);
-                const isAlreadyLinkedToCurrentPack =
-                  linkedPackageId &&
-                  (
-                    linkedPricingSignatures.has(getPricingSignature(pricing)) ||
-                    Boolean(linkedPricingLooseMap[getLoosePricingSignature(pricing)])
-                  );
-                const isCheckedForPack = selectedPricingIdsForPack.includes(pricing.id);
-
-                return (
-                <tr
-                  key={pricing.id}
-                  className={styles.tableRow}
-                >
-                  <td className={styles.tableCell}>
-                    <div className={styles.labelCell}>
-                      <span className={styles.labelText}>{pricing.label}</span>
-                      <div className={styles.linkedPackMeta}>
-                        {linkedPackages.length > 0 ? (
-                          <div className={styles.linkedPackList}>
-                            <span>
-                              {"Reli\u00E9 \u00E0 : "}
-                              {linkedPackages
-                                .map((item: { id: string; name: string }) => item.name)
-                                .join(", ")}
-                            </span>
-                            {!linkedPackageId ? (
-                              <div className={styles.linkedPackActions}>
-                                {linkedRows.map((row) => (
-                                  <button
-                                    key={row.id}
-                                    type="button"
-                                    className={styles.inlineTextAction}
-                                    onClick={() => void handleDetachPricingLink(row.id, pricing.label)}
-                                  >
-                                    {`D\u00E9lier ${row.package?.name ?? 'ce pack'}`}
-                                  </button>
-                                ))}
-                              </div>
-                            ) : null}
-                          </div>
-                        ) : (
-                          <span>Aucun pack reli\u00E9</span>
-                        )}
-                      </div>
-                      {pricing.service && (
-                        <div className={styles.serviceMeta}>
-                          {pricing.service.category} {"->"} {pricing.service.service}
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td className={styles.tableCell}>
-                    <div className={styles.inlineCell}>
-                      <FiHome size={16} color="#6b7280" />
-                      <span>
-                        {getPropertyTypeLabel(pricing.property_type)}
-                      </span>
-                    </div>
-                  </td>
-                  <td className={styles.tableCell}>
-                    <div className={styles.inlineCell}>
-                      <FiSquare size={16} color="#6b7280" />
-                      <span>{getSurfaceLabel(pricing.surface_min, pricing.surface_max)}</span>
-                    </div>
-                  </td>
-                  <td className={styles.tableCell}>
-                    <div className={`${styles.inlineCell} ${styles.priceCell}`}>
-                      <FiDollarSign size={16} color="#10b981" />
-                      <span>
-                        {getPriceDisplay(pricing)}
-                      </span>
-                    </div>
-                  </td>
-                  <td className={styles.tableCell}>
-                    <div className={styles.inlineCell}>
-                      <FiClock size={16} color="#6b7280" />
-                      <span>{pricing.estimated_duration ? `${pricing.estimated_duration}h` : '-'}</span>
-                    </div>
-                  </td>
-                  <td className={`${styles.tableCell} ${styles.actionsCell}`}>
-                    <div className={styles.rowActions}>
-                      {linkedPackageId ? (
-                        isAlreadyLinkedToCurrentPack ? (
-                          <button
-                            type="button"
-                            onClick={() => handleDetachPricingFromPack(pricing)}
-                            aria-label={`Délier le tarif ${pricing.label} du pack`}
-                            title="Délier du pack"
-                            className={styles.inlineTextAction}
-                          >
-                            Délier
-                          </button>
-                        ) : (
-                          <label className={styles.packToggle}>
-                            <input
-                              type="checkbox"
-                              checked={isCheckedForPack}
-                              onChange={() => togglePricingSelectionForPack(pricing.id)}
-                            />
-                            <span className={styles.packToggleText}>
-                              {isCheckedForPack ? 'À lier' : 'Lier'}
-                            </span>
-                          </label>
-                        )
-                      ) : null}
-                      <button
-                        type="button"
-                        onClick={() => handleEdit(pricing)}
-                        aria-label={`Modifier le tarif ${pricing.label}`}
-                        title="Modifier"
-                        className={`${styles.iconActionButton} ${styles.iconActionEdit}`}
-                      >
-                        <FiEdit2 size={16} color="#6b7280" aria-hidden="true" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(pricing.id)}
-                        aria-label={`Supprimer le tarif ${pricing.label}`}
-                        title="Supprimer"
-                        className={`${styles.iconActionButton} ${styles.iconActionDelete}`}
-                      >
-                        <FiTrash2 size={16} color="#dc2626" aria-hidden="true" />
-                      </button>
-                    </div>
-                  </td>
+        <div className={styles.tableCard}>
+          <div className={styles.tableScroll}>
+            <table className={styles.pricingTable}>
+              <thead>
+                <tr className={styles.tableHeaderRow}>
+                  <th className={styles.tableHeadCell}>LIBELLE</th>
+                  <th className={styles.tableHeadCell}>TYPE DE BIEN</th>
+                  <th className={styles.tableHeadCell}>SURFACE</th>
+                  <th className={styles.tableHeadCell}>TARIFICATION</th>
+                  <th className={styles.tableHeadCell}>DUREE</th>
+                  <th
+                    className={`${styles.tableHeadCell} ${styles.tableHeadCellRight}`}
+                  >
+                    ACTIONS
+                  </th>
                 </tr>
-              )})
-            )}
-          </tbody>
-        </table>
-      </div>
-      </div>
-      )}
+              </thead>
+              <tbody>
+                {visiblePricings.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className={styles.emptyCell}>
+                      <p className={styles.emptyTitle}>
+                        {searchTerm || filterPropertyType || filterPricingType
+                          ? "Aucun tarif ne correspond aux filtres"
+                          : "Aucune règle tarifaire définie."}
+                      </p>
+                      {(searchTerm ||
+                        filterPropertyType ||
+                        filterPricingType) && (
+                        <button
+                          type="button"
+                          className={styles.emptyAction}
+                          onClick={resetFilters}
+                        >
+                          Effacer les filtres
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ) : (
+                  visiblePricings.map((pricing) => {
+                    const linkedPackages = getPricingLinkedPackages(pricing);
+                    const linkedRows = getPricingLinkedRows(pricing);
+                    const isAlreadyLinkedToCurrentPack =
+                      linkedPackageId &&
+                      (linkedPricingSignatures.has(getPricingSignature(pricing)) ||
+                        Boolean(
+                          linkedPricingLooseMap[getLoosePricingSignature(pricing)]
+                        ));
+                    const isCheckedForPack =
+                      selectedPricingIdsForPack.includes(pricing.id);
 
-      {/* QUICK STATS */}
-      {shouldShowAdvancedTools && showQuickStats && visiblePricings.length > 0 && (
-        <div className={styles.quickStatsCard}>
-          <h4 className={styles.quickStatsTitle}>
-            Statistiques rapides
-          </h4>
-          <div className={styles.quickStatsGrid}>
-            <div className={styles.quickStatItem}>
-              <div className={styles.quickStatLabel}>
-                Règles définies
-              </div>
-              <div className={styles.quickStatValue}>
-                {visiblePricings.length}
-              </div>
-            </div>
-                      <div className={styles.quickStatItem}>
-              <div className={styles.quickStatLabel}>
-                Tarif moyen forfait
-              </div>
-              <div className={styles.quickStatValue}>
-                {averageFixedAmount} EUR
-              </div>
-            </div>
-            <div className={styles.quickStatItem}>
-              <div className={styles.quickStatLabel}>
-                Tarif horaire moyen
-              </div>
-              <div className={styles.quickStatValue}>
-                {averageHourlyAmount} EUR/h
-              </div>
-            </div>
+                    return (
+                      <tr key={pricing.id} className={styles.tableRow}>
+                        <td className={styles.tableCell}>
+                          <div className={styles.labelCell}>
+                            <span className={styles.labelText}>
+                              {pricing.label}
+                            </span>
+                            <div className={styles.linkedPackMeta}>
+                              {linkedPackages.length > 0 ? (
+                                <div className={styles.linkedPackList}>
+                                  <span>
+                                    {"Relié à : "}
+                                    {linkedPackages
+                                      .map(
+                                        (item: { id: string; name: string }) =>
+                                          item.name
+                                      )
+                                      .join(", ")}
+                                  </span>
+                                  {!linkedPackageId ? (
+                                    <div className={styles.linkedPackActions}>
+                                      {linkedRows.map((row) => (
+                                        <button
+                                          key={row.id}
+                                          type="button"
+                                          className={styles.inlineTextAction}
+                                          onClick={() =>
+                                            void handleDetachPricingLink(
+                                              row.id,
+                                              pricing.label
+                                            )
+                                          }
+                                        >
+                                          {`Délier ${row.package?.name ?? "ce pack"}`}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  ) : null}
+                                </div>
+                              ) : (
+                                <span>Aucun pack relié</span>
+                              )}
+                            </div>
+                            {pricing.service && (
+                              <div className={styles.serviceMeta}>
+                                {pricing.service.category} {"->"}{" "}
+                                {pricing.service.service}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className={styles.tableCell}>
+                          <div className={styles.inlineCell}>
+                            <FiHome size={16} color="#6b7280" />
+                            <span>
+                              {getPropertyTypeLabel(pricing.property_type)}
+                            </span>
+                          </div>
+                        </td>
+                        <td className={styles.tableCell}>
+                          <div className={styles.inlineCell}>
+                            <FiSquare size={16} color="#6b7280" />
+                            <span>
+                              {getSurfaceLabel(
+                                pricing.surface_min,
+                                pricing.surface_max
+                              )}
+                            </span>
+                          </div>
+                        </td>
+                        <td className={styles.tableCell}>
+                          <div className={`${styles.inlineCell} ${styles.priceCell}`}>
+                            <FiDollarSign size={16} color="#10b981" />
+                            <span>{getPriceDisplay(pricing)}</span>
+                          </div>
+                        </td>
+                        <td className={styles.tableCell}>
+                          <div className={styles.inlineCell}>
+                            <FiClock size={16} color="#6b7280" />
+                            <span>
+                              {pricing.estimated_duration
+                                ? `${pricing.estimated_duration}h`
+                                : "-"}
+                            </span>
+                          </div>
+                        </td>
+                        <td
+                          className={`${styles.tableCell} ${styles.actionsCell}`}
+                        >
+                          <div className={styles.rowActions}>
+                            {linkedPackageId ? (
+                              isAlreadyLinkedToCurrentPack ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleDetachPricingFromPack(pricing)
+                                  }
+                                  aria-label={`Délier le tarif ${pricing.label} du pack`}
+                                  title="Délier du pack"
+                                  className={styles.inlineTextAction}
+                                >
+                                  Délier
+                                </button>
+                              ) : (
+                                <label className={styles.packToggle}>
+                                  <input
+                                    type="checkbox"
+                                    checked={isCheckedForPack}
+                                    onChange={() =>
+                                      togglePricingSelectionForPack(pricing.id)
+                                    }
+                                  />
+                                  <span className={styles.packToggleText}>
+                                    {isCheckedForPack ? "À lier" : "Lier"}
+                                  </span>
+                                </label>
+                              )
+                            ) : null}
+                            <button
+                              type="button"
+                              onClick={() => handleEdit(pricing)}
+                              aria-label={`Modifier le tarif ${pricing.label}`}
+                              title="Modifier"
+                              className={`${styles.iconActionButton} ${styles.iconActionEdit}`}
+                            >
+                              <FiEdit2 size={16} color="#6b7280" aria-hidden="true" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(pricing.id)}
+                              aria-label={`Supprimer le tarif ${pricing.label}`}
+                              title="Supprimer"
+                              className={`${styles.iconActionButton} ${styles.iconActionDelete}`}
+                            >
+                              <FiTrash2 size={16} color="#dc2626" aria-hidden="true" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
+
+      {/* QUICK STATS */}
+      {shouldShowAdvancedTools &&
+        showQuickStats &&
+        visiblePricings.length > 0 && (
+          <div className={styles.quickStatsCard}>
+            <h4 className={styles.quickStatsTitle}>Statistiques rapides</h4>
+            <div className={styles.quickStatsGrid}>
+              <div className={styles.quickStatItem}>
+                <div className={styles.quickStatLabel}>Règles définies</div>
+                <div className={styles.quickStatValue}>
+                  {visiblePricings.length}
+                </div>
+              </div>
+              <div className={styles.quickStatItem}>
+                <div className={styles.quickStatLabel}>Tarif moyen forfait</div>
+                <div className={styles.quickStatValue}>
+                  {averageFixedAmount} EUR
+                </div>
+              </div>
+              <div className={styles.quickStatItem}>
+                <div className={styles.quickStatLabel}>
+                  Tarif horaire moyen
+                </div>
+                <div className={styles.quickStatValue}>
+                  {averageHourlyAmount} EUR/h
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   );
 };
 
 export default PricingGridManager;
-
-
-
-
-
-
-

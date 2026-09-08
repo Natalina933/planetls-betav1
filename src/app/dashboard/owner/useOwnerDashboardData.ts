@@ -17,6 +17,11 @@ type OwnerHousingRow = {
   photo_principale?: string | null;
   infos?: {
     equipements?: string[];
+    property_type?: string;
+    guest_capacity?: number;
+    bedroom_count?: number;
+    bathroom_count?: number;
+    surface_sqm?: number;
   } | null;
 };
 

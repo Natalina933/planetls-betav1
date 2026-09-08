@@ -1,0 +1,21 @@
+.shell {
+  background: var(--pls-bg);
+  color: var(--pls-text);
+  font-family: var(--ds-font-body);
+  .main { min-width: 0; margin-left: var(--pls-sidebar-width); }
+  .mainClosed { margin-left: 0; }
+  .content { width: 100%; padding: var(--pls-page-padding); padding-top: calc(var(--pls-header-height) + 24px); background: var(--pls-bg); border: 0; box-shadow: none; min-width: 0; }
+  .sidebar { width: var(--pls-sidebar-width); background: var(--pls-white); border-right: 1px solid var(--pls-border); box-shadow: none; font-family: var(--ds-font-body); }
+  .sidebar > div:first-child { min-height: var(--pls-header-height); padding: 16px; background: var(--pls-white); border-color: var(--pls-border); > span { font-family: var(--ds-font-ui); color: var(--pls-primary); font-size: 16px; } }
+  .sidebar nav { padding: 12px 8px; a, button { min-height: 44px; font: 500 13px/1.4 var(--ds-font-body); border: 0; border-radius: var(--pls-radius-sm); background: transparent; color: var(--pls-text-secondary); box-shadow: none; padding: 10px 12px; svg { color: var(--pls-text-secondary); } &:hover, &:focus-visible { background: var(--pls-primary-light); color: var(--pls-primary); } } a[href="/dashboard/owner"] { color: var(--pls-primary); background: var(--pls-primary-soft); font-weight: 650; svg { color: var(--pls-primary); } } }
+  .header { position: fixed; left: var(--pls-sidebar-width); right: 0; top: 0; width: auto; min-height: var(--pls-header-height); padding: 10px 24px; gap: 12px; background: var(--pls-white); border-bottom: 1px solid var(--pls-border); box-shadow: none; color: var(--pls-text); }
+  .headerClosed { left: 0; }
+  .header > div { min-width: 0; }
+  .header button { box-shadow: none; }
+  .header button[aria-label] { border-color: var(--pls-border); }
+  .header a, .header span { font-family: var(--ds-font-body); }
+  .header > div:first-child > button { background: var(--pls-primary-soft); border-color: var(--pls-primary-soft); color: var(--pls-primary); }
+  a:focus-visible, button:focus-visible { outline: var(--ds-focus-outline); outline-offset: 2px; }
+}
+@media (max-width: 900px) and (min-width: 681px) { .shell { .sidebar { width: var(--pls-sidebar-compact); } .main { margin-left: var(--pls-sidebar-compact); } .mainClosed { margin-left: 0; } .header { left: var(--pls-sidebar-compact); } .headerClosed { left: 0; } .content { padding-left: 20px; padding-right: 20px; } } }
+@media (max-width: 680px) { .shell { .sidebar { width: min(86vw, 280px); z-index: 1300; } .main { margin-left: 0; } .header { left: 0; padding: 10px 12px; min-height: var(--pls-header-height); } .content { padding: 16px; padding-top: calc(var(--pls-header-height) + 24px); padding-bottom: 100px; } } }

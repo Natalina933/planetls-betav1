@@ -1,3 +1,4 @@
+import { SharedStatesShowcase } from "../_components/SharedStatesShowcase";
 import type { CSSProperties } from "react";
 import { readdir } from "fs/promises";
 import {
@@ -1805,6 +1806,7 @@ export default async function VisualReferencePage() {
 
       <DonutReferenceSection />
 
+      <SharedStatesShowcase />
       <BusinessComponentsSection />
 
       </details>

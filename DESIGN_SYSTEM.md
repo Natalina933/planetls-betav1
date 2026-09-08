@@ -18,6 +18,22 @@ Les idées Art déco reprises dans les quatre maquettes utilisent un rendu parta
 
 ## Architecture
 
+PlanetLS possède déjà un Design System substantiel. L’architecture validée le 7 septembre 2026 vise son harmonisation progressive, avec le dashboard Concierge comme pilote ; elle ne demande ni reconstruction ni nouvelle bibliothèque UI.
+
+| Source | Responsabilité |
+| --- | --- |
+| `src/styles/tokens/tokens.css` | Source de vérité des tokens modernes `--ds-*` : couleurs sémantiques, typographie, espacements, rayons, ombres, dimensions, focus et transitions |
+| Modules TypeScript de `src/styles/tokens/` | Exposent les variables CSS sans recopier leurs valeurs |
+| Sass legacy et anciens thèmes | Compatibilité ; conserver les imports, l’ordre de chargement et les thèmes existants. Les breakpoints restent dans la table Sass de `_legacy-variables.scss` |
+| `src/styles/tokens/profileVisualKit.ts` | Références visuelles et illustrations de démonstration, pas une deuxième source de tokens. Ses couleurs locales restent à harmoniser |
+| `src/components/ui/` | Primitives génériques disponibles, alimentées par leurs props |
+| `src/components/ui/dashboard/` | Composants partagés de présentation des dashboards |
+| `src/app/components/dashboard/unified/UnifiedRoleDashboard.tsx` | Composition partagée des dashboards réels, conservée avec compatibilité des consommateurs |
+| Pages Design System et prototypes | Documentation des vrais composants et compositions avec fixtures explicites, sans preuve de fonctionnement métier |
+| Pages, hooks et services métier | Données, calculs, sélection des priorités, permissions et actions persistantes |
+
+Les valeurs locales des pages, les palettes de `profileVisualKit.ts` et les valeurs Sass historiques restent des sources concurrentes à faire converger progressivement. Leur présence dans des dossiers centralisés ne signifie pas que leur harmonisation graphique est terminée.
+
 ```text
 src/app/design-system/
   layout.tsx                  # Navigation commune
@@ -53,7 +69,7 @@ Le vrai écran prestataire est extrait dans `components/features/provider`, avec
 
 ## Ajouter un token
 
-Définir la valeur une seule fois dans `src/styles/tokens/tokens.css`, sous un nom sémantique `--ds-*`. Ajouter si nécessaire une variante de thème dans `tokens/themes`, puis une référence `var(--ds-...)` dans le module TypeScript correspondant. Les exports TS ne recopient pas les valeurs hexadécimales : ils suivent ainsi le thème et les réglages d’accessibilité actifs.
+Définir la valeur une seule fois dans `src/styles/tokens/tokens.css`, sous un nom sémantique `--ds-*`, avec ses éventuelles surcharges de thème dans ce même fichier, puis une référence `var(--ds-...)` dans le module TypeScript correspondant. `tokens/themes` conserve les thèmes Sass historiques sans devenir une seconde définition des nouveaux tokens modernes. Les exports TS ne recopient pas les valeurs hexadécimales : ils suivent ainsi le thème et les réglages d’accessibilité actifs.
 
 ```tsx
 import { colors, spacing, typography } from "@/styles/tokens";
@@ -77,7 +93,62 @@ Avant de créer une primitive, chercher dans `components/ui` et réutiliser Butt
 
 Pour une composition métier, utiliser `components/features/<rôle>` et composer les primitives UI. Garder les accès aux données, autorisations et transitions dans les hooks/services existants. La page canonique peut devenir un simple point de composition, comme `app/dashboard/provider/page.tsx`. Ne jamais importer `components/features`, une route métier ou un client API depuis `app/design-system`. Les démos utilisent leurs propres fixtures ; la bibliothèque d’icônes lit seulement des assets et catalogues SQL statiques du dépôt.
 
+## Conventions de nommage
+
+Pour les nouveaux contrats de présentation :
+
+| Identifiant technique | Libellé français |
+| --- | --- |
+| `admin` | Administrateur |
+| `concierge` | Concierge ou Conciergerie |
+| `owner` | Propriétaire |
+| `provider` | Artisan ou Prestataire selon le contexte |
+
+Les identifiants techniques ne sont pas traduits. Aucun renommage global n’est engagé : `artisan` peut rester un alias historique temporaire, notamment dans `UnifiedRoleDashboard`. Une adaptation à la frontière de présentation préservera les consommateurs existants ; aucune traduction ne doit modifier les rôles, permissions, routes, API ou clés persistées.
+
+Les quatre espaces partagent le même socle. Les variantes portent sur la densité, la hiérarchie, les composants utiles et quelques accents sémantiques : admin structuré et dense, concierge opérationnel, propriétaire pédagogique, artisan lisible sur mobile. Un profil n’impose pas un thème distinct ; succès, attention et erreur conservent le même sens.
+
+## Contrat cible du cockpit — non implémenté dans le lot A
+
+Règle de la première zone : **« 1 urgence réelle ou état calme + 4 KPI maximum + 1 action principale »**. Ordre cible : en-tête court avec date et contexte, situation prioritaire, KPI, action principale, puis sections métier. Sur ordinateur, l’action peut être adjacente à la priorité ; l’ordre de lecture et de tabulation reste cohérent.
+
+`Alert` est disponible dans le code local sous `src/components/ui/Alert`, exporté par `@/components/ui` et utilisé par les états explicites d’`AsyncState`. `DashboardCockpit` reste seulement proposé pour le lot D et n’est pas implémenté. Le cockpit composera les primitives et cartes KPI existantes, avec rôle, densité, en-tête, état explicite, priorité fournie, jusqu’à quatre KPI identifiés et une action principale. Une date de mise à jour n’est affichée que si elle est connue ; les démonstrations signalent leurs fixtures.
+
+| État cible | Condition et présentation |
+| --- | --- |
+| `loading` | Récupération en cours ; aucune affirmation sur l’absence d’urgence |
+| `error` | Échec technique connu empêchant de conclure ; expliquer l’indisponibilité |
+| `empty` | Chargement réussi, mais aucune donnée pour constituer le cockpit ; proposer un démarrage adapté |
+| `calm` | Sources nécessaires disponibles et absence d’urgence établie par la couche métier |
+| `urgent` | Une urgence réelle sélectionnée par la couche métier, avec contexte et action |
+| `unavailable` | Fiabilité ou couverture inconnue ; annoncer une situation non vérifiable |
+
+Zéro est une valeur valide à afficher, avec son libellé. Une valeur inconnue n’est pas égale à zéro : afficher « Indisponible » ou « — ». Une erreur technique ne doit jamais devenir silencieusement un état calme. Une alerte métier décrit une situation à traiter ; une erreur technique décrit une impossibilité de connaître la situation. Une urgence connue peut rester visible si une autre source échoue, avec une indication de couverture partielle.
+
+Le composant de présentation ne sélectionne pas lui-même l’urgence : calculs, priorités et choix d’action restent métier. Les erreurs masquées du hook Concierge, le filtrage du planning après limitation et la provenance des arrivées/départs relèvent de lots métier séparés. Tant que les données ne permettent pas de certifier le calme, utiliser un état non vérifiable. Préserver widgets, bibliothèque vidéo et persistance pendant le lot visuel.
+
+## Responsive et accessibilité — critères des lots futurs
+
+Valider à **1600, 1366, 768 et 390 px** : ordre de lecture cohérent, navigation clavier, focus visible, statuts compréhensibles sans dépendre seulement de la couleur et zones tactiles principales d’au moins 44 px. Adapter les KPI sur une à quatre colonnes selon leur lisibilité, garder l’action proche de la priorité sur mobile et éviter tout débordement horizontal général ; le tableau peut défiler dans son propre conteneur. Respecter `prefers-reduced-motion`, y compris pour les déplacements non essentiels. Ces critères ne constituent pas une validation déjà obtenue du futur pilote.
+
+## Migration progressive validée le 7 septembre 2026
+
+Le lot A porte uniquement sur la documentation et les conventions. Cette planification décrit les lots envisagés à l’issue du lot A. Depuis, `Alert` et les états explicites d’`AsyncState` du lot C existent dans les modifications locales ; cela ne vaut pas achèvement des autres lots.
+
+| Lot futur | Périmètre et dépendance |
+| --- | --- |
+| B | Tokens et remplacement ciblé des valeurs locales, après A ; aucune migration globale des thèmes |
+| C | États partagés et primitive `Alert` présents dans les modifications locales, avec `AsyncState` ; généralisation métier non déclarée terminée |
+| D | Composant proposé `DashboardCockpit` dans le prototype Concierge, après B et C |
+| E | Intégration optionnelle au dashboard Concierge réel après validation de D, sans changer la logique métier ; fiabilité des sources à qualifier |
+| F | Validation responsive et accessibilité complète du pilote, en complément des contrôles visuels de chaque lot |
+| G | Propagation aux autres espaces un par un, après acceptation du pilote |
+
+Conserver les comportements existants par défaut pour permettre un retour arrière du pilote sans affecter les autres espaces. Les corrections de planning, réservations et remontée d’erreurs restent séparées ; elles peuvent conditionner la validation opérationnelle complète, même si la présentation est prête.
+
 ## Vérifier
+
+Pour un lot exclusivement documentaire : vérifier l’encodage, `git diff --check`, le périmètre des fichiers et les validateurs du Master Plan si celui-ci change. Les commandes applicatives ci-dessous concernent les lots de code ; aucun build complet n’est requis pour le lot A.
 
 ```powershell
 npm.cmd run typecheck

@@ -12,6 +12,7 @@ import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { DashboardBottomNav } from "@/components/dashboard/DashboardLayout/DashboardBottomNav";
 import { useOwnerDashboardData } from "./owner/useOwnerDashboardData";
 import "@/app/styles/abstracts/_dashboards.scss";
+import ownerShell from "@/features/owner-dashboard/OwnerDashboardShell.module.scss";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -20,6 +21,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, isAuthenticated } = useCurrentUser();
 
   const isOwnerPage = pathname?.startsWith("/dashboard/owner");
+  const isOwnerHome = pathname === "/dashboard/owner";
   const { draftCount, ongoingMissions, pendingInvoices, unreadConversationCount } = useOwnerDashboardData(
     Boolean(isAuthenticated && isOwnerPage),
   );
@@ -69,20 +71,20 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    const desktopQuery = window.matchMedia("(min-width: 901px)");
+    const desktopQuery = window.matchMedia(isOwnerHome ? "(min-width: 681px)" : "(min-width: 901px)");
     const syncSidebar = () => setIsSidebarOpen(desktopQuery.matches);
 
     syncSidebar();
     desktopQuery.addEventListener("change", syncSidebar);
     return () => desktopQuery.removeEventListener("change", syncSidebar);
-  }, []);
+  }, [isOwnerHome]);
 
   return (
-    <div className="dashboard-root">
-      <Sidebar isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
-      <div className={`dashboard-main ${isSidebarOpen ? "with-sidebar" : "no-sidebar"}`}>
-        <Navbar isSidebarOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
-        <div className={`headerBandeau ${isOwnerPage ? "ownerHeaderBandeau" : ""}`}>
+    <div className={`dashboard-root ${isOwnerHome ? ownerShell.shell : ""}`} data-owner-dashboard={isOwnerHome ? "" : undefined}>
+      <Sidebar className={isOwnerHome ? ownerShell.sidebar : undefined} mobileBreakpoint={isOwnerHome ? 680 : 900} isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
+      <div className={`dashboard-main ${isSidebarOpen ? "with-sidebar" : "no-sidebar"} ${isOwnerHome ? `${ownerShell.main} ${!isSidebarOpen ? ownerShell.mainClosed : ""}` : ""}`}>
+        <Navbar compact={isOwnerHome} className={isOwnerHome ? `${ownerShell.header} ${!isSidebarOpen ? ownerShell.headerClosed : ""}` : undefined} isSidebarOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
+        {pathname !== "/dashboard/owner" && <div className={`headerBandeau ${isOwnerPage ? "ownerHeaderBandeau" : ""}`}>
           <Image
             src="/images/generated/dashboard/dashboard-header-bandeau.png"
             alt="Bandeau chaleureux du tableau de bord"
@@ -123,11 +125,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               </div>
             ) : null}
           </div>
-        </div>
-        {isOwnerPage ? (
+        </div>}
+        {isOwnerPage && pathname !== "/dashboard/owner" ? (
           <DashboardBottomNav items={ownerBottomNavItems} ariaLabel="Navigation propriétaire" />
         ) : null}
-        <main className="dashboard-content">{children}</main>
+        <main className={`dashboard-content ${isOwnerHome ? ownerShell.content : ""}`}>{children}</main>
         <DashboardMobileExperience role={user?.role} pathname={pathname} />
       </div>
     </div>

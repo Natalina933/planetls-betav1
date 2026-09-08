@@ -19,6 +19,7 @@ const FirstVisit = () => {
   if (!isFirstVisit) return null;
 
   const handleContactClick = () => {
+    setIsFirstVisit(false);
     const contactElement = document.getElementById("contact");
     if (contactElement) {
       contactElement.scrollIntoView({ behavior: "smooth" });
@@ -35,14 +36,14 @@ const FirstVisit = () => {
         >
           x
         </button>
-        <h1>Bienvenue sur PlanetLS</h1>
+        <h2>Bienvenue sur PlanetLS</h2>
         <p>
-          Parcourez les services, explorez les concierges recommandes et lancez votre mise en
+          Parcourez les services, explorez les concierges recommandés et lancez votre mise en
           relation depuis un parcours plus clair, plus rapide et plus actionnable.
         </p>
         <div className={styles.actions}>
           <Button onClick={() => setIsFirstVisit(false)} variant="primary">
-            Decouvrir
+            Découvrir
           </Button>
           <Button onClick={handleContactClick} variant="secondary">
             Nous contacter

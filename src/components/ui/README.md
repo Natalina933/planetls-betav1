@@ -2,7 +2,7 @@
 
 ## Sources et responsabilites
 
-- `/design-system` est le referentiel officiel : regles, tokens, composants cibles et liens vers les catalogues.
+- `/design-system` est l’accueil de l’atelier : liens vers les fondations, le catalogue visuel et les maquettes. `DESIGN_SYSTEM.md` porte les règles générales ; ce README sert de guide pratique des composants disponibles.
 - `/design-system/visuels` est l'atelier visuel : apercus, variantes, exemples par espace et inventaire des assets. Il ne fixe pas une API differente de celle de ce document.
 - `/design-system/admin-dashboard` est un prototype historique de composition admin, avec donnees fictives uniquement.
 - Ce README est la documentation technique des imports, APIs publiques et regles de migration. En cas de divergence, les types TypeScript et les composants exportes sont la preuve d'implementation.
@@ -15,7 +15,10 @@
 
 - Primitives : `Button`, `ButtonLink`, `UILink`, `Card`, `Badge`, `Input`, `Select`, `Textarea`, `Checkbox`, `Tabs`, `TabButton`, `Tag`, `Avatar`, `Loader`, `AsyncState`, `Container`, `Section`, `SectionIntro`, `SearchBar`, `DataTable` et `TableFilters`.
 - Composants de repertoire : `PublicIcon`, `WorkspaceRoleIcon`, `ServiceCategoryIcon`, `ServiceCatalogPicker` et `ShowcaseFlipCard`. Ils sont officiels, mais specialises : ne pas les substituer a une primitive generique.
-- Dashboard reutilisable : `DashboardMetricCard`, `DashboardStatusBadge`, `DashboardEmptyState` et `UnifiedRoleDashboard` sous `src/app/components/dashboard`.
+- Dashboard réutilisable : `DashboardMetricCard`, `DashboardStatusBadge`, `DashboardEmptyState` et `DashboardSection` vivent dans `src/components/ui/dashboard/saas/`. Les anciens chemins `src/app/components/dashboard/saas/` les réexportent pour compatibilité. `UnifiedRoleDashboard` reste dans `src/app/components/dashboard/unified/UnifiedRoleDashboard.tsx`.
+- Tables disponibles : `src/components/ui/DataTable/DataTable.tsx` et `src/components/ui/TableFilters/TableFilters.tsx`, exportés par `@/components/ui` ; contrat pratique détaillé ci-dessous.
+- `Alert` est disponible dans le code local sous `src/components/ui/Alert`, exporté par `@/components/ui`. API : `tone` (`info | success | warning | danger`), `title`, `children`, `action`, `announcement` (`off | polite | assertive`) et `className`. Les états explicites d’`AsyncState` le réutilisent.
+- `DashboardCockpit` (lot D) reste seulement proposé et indisponible ; son contrat cible est décrit dans `DESIGN_SYSTEM.md`.
 - Statuts : utiliser `Badge` avec `success | warning | danger | info | neutral` pour un nouvel etat visuel. `gold`, `dark` et `progress` sont des variantes de presentation existantes ; `progress` est utilise par l'atelier visuel et ne porte pas de statut metier. Les badges metier gardent leur mapping existant vers ces variantes.
 - KPI : `DashboardMetricCard` devient la cible pour les nouveaux dashboards. `StatsCard` reste officiel hors dashboard lorsque son progress/hint est utile.
 
@@ -35,10 +38,10 @@
 
 - Tables : en-tete explicite, statut via badge semantique, actions regroupees, etats loading/empty, defilement horizontal sur mobile et pagination seulement au-dela d'un volume justifie.
 - Formulaires : label visible, aide ou erreur proche du champ, focus visible, etat disabled lisible et zone cliquable d'au moins 44px quand applicable.
-- Layout cible : `DashboardLayout` compose `Sidebar`, `Topbar`, `PageHeader`, `MainContent` et, sur mobile, une navigation adaptee. Les implementations actuelles restent en place jusqu'a leur lot de migration.
+- Layout actif : `src/app/dashboard/layout.tsx` compose la navigation existante, notamment `src/app/components/dashboard/Sidebar/Sidebar.tsx`. Le composant distinct `src/components/dashboard/DashboardLayout/DashboardLayout.tsx` ne doit pas lui être substitué automatiquement. La composition des dashboards réels reste `UnifiedRoleDashboard`.
 - Etats asynchrones : `AsyncState` est le composant officiel pour les etats loading, vide et erreur. Le contenu doit rester specifique au contexte metier ; ne pas masquer une erreur serveur sous un etat vide.
 - Alertes et confirmations : reutiliser `Badge` pour le niveau de severite et les composants de dialogue deja presents dans le parcours concerne. Il n'existe pas encore de modale generique officielle dans `src/components/ui`.
-- Filtres et pagination : `Select`, `Tabs` ou `TabButton` servent de primitives. Aucun composant de filtre ou de pagination generique n'est officiellement publie ; conserver les implementations metier jusqu'a un lot dedie.
+- Filtres et pagination : `TableFilters` est disponible pour composer les contrôles, le compteur et la réinitialisation ; `Select`, `Tabs` ou `TabButton` peuvent fournir ces contrôles. Aucune pagination générique n’est publiée ; recherche, tri, pagination et filtres métier restent pilotés par le parcours.
 - Responsive : les tableaux conservent un conteneur a defilement horizontal sur mobile. Les grilles de KPI passent a une colonne ou deux selon la largeur, sans masquer les informations prioritaires.
 - Table + filtres : `DataTable` fournit caption, colonnes, identifiants de lignes, alignement et action principale. `TableFilters` recoit des controles composes par la page et affiche resultats, filtres actifs et reinitialisation. Recherche, periode, tri, pagination et selection sont optionnels et restent pilotes par le parcours metier.
 - Table responsive : le defilement horizontal est la regle par defaut pour preserver colonnes et actions. Le mode `responsiveStrategy="cards"` est une exception documentee, reservee aux listes dont chaque ligne peut etre comprise sans l'alignement de colonnes.
@@ -50,7 +53,7 @@
 - Card `large`: largeur max 520px, usage profils/resultats detailles.
 - Avatars: `sm` 32px, `md` 48px, `lg` 72px.
 - Loader: `sm` 20px, `md` 32px, `lg` 48px.
-- Espacements: utiliser uniquement `--ui-space-*` ou `--ds-space-*`.
+- Espacements : utiliser `--ds-space-*` pour les nouveaux styles ; `--ui-space-*` reste un alias de compatibilité.
 - Layout page: `Container` pour la largeur, `Section` pour le rythme vertical.
 - Badges statuts: `Badge`.
 - Labels/categories: `Tag`.
@@ -74,8 +77,8 @@
 ## Couverture connue
 
 - Documentes et utilises : les primitives exportees par `@/components/ui`, dont `AsyncState` pour loading/vide/erreur et `StatsCard` pour les KPI hors dashboard.
-- Documentes mais specialises : `DashboardMetricCard`, `DashboardStatusBadge` et `DashboardEmptyState` vivent sous `src/app/components/dashboard` ; ils restent cibles pour les dashboards, mais ne sont pas des primitives de `@/components/ui`.
-- Utilises mais non generalises : les tableaux, filtres metier, modales, confirmations et pagination restent des implementations de parcours. Leur API ne doit pas etre copiee comme standard sans lot de consolidation.
+- Documentés mais spécialisés : `DashboardMetricCard`, `DashboardStatusBadge` et `DashboardEmptyState` vivent dans `src/components/ui/dashboard/saas/` ; ils restent les composants cibles des dashboards, distincts des primitives de `@/components/ui`.
+- Contrat table disponible : `DataTable` et `TableFilters` sont montrés dans les démonstrations. Leur présence ne signifie pas que les tableaux et filtres des pages métier ont été migrés. Modales, confirmations et pagination restent des implémentations de parcours.
 
 ## Interdictions
 
@@ -101,7 +104,7 @@
 - Etape 2: styles inline retires pour primitives boutons/cartes/badges/inputs dans ces zones.
 - Etape 3: variants centralises dans `src/components/ui/*`.
 - Etape 4: anciens composants `src/app/components/common/*` supprimes (aucun import restant).
-- Etape 5: ce document est la reference figee des regles UI.
+- Étape 5 : ce bilan décrit la migration historique ; les règles générales actuelles sont maintenues dans `DESIGN_SYSTEM.md` et les API disponibles dans ce README.
 
 ## Import
 

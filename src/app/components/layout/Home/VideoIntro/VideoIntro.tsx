@@ -28,33 +28,25 @@ export default function VideoIntro() {
             preload="metadata"
             width={900}
             height={510}
-            aria-describedby="video-intro-description"
+            aria-label="Présentation de PlanetLS"
           >
-            Votre navigateur ne supporte pas la lecture video.
+            Votre navigateur ne supporte pas la lecture vidéo.
           </video>
         ) : (
           <div className={styles.videoPlaceholder}>
             <Image
               src="/videos/Gemini_Generated_Image_mv7njvmv7njvmv7n.png"
-              alt="Apercu video PlanetLS"
+              alt="Aperçu vidéo PlanetLS"
               fill
               className={styles.videoPoster}
               priority
             />
-            <PlayCircle
-              size={64}
-              strokeWidth={2}
+            <button
+              type="button"
               className={styles.playButton}
-              role="button"
-              tabIndex={0}
-              aria-label="Lire la video de presentation"
+              aria-label="Lire la vidéo de présentation"
               onClick={handlePlayClick}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  handlePlayClick();
-                }
-              }}
-            />
+            ><PlayCircle size={64} strokeWidth={2} aria-hidden="true" /></button>
           </div>
         )}
       </div>
@@ -62,8 +54,8 @@ export default function VideoIntro() {
       <div className={styles.videoContent}>
         <SectionIntro
           titleId="video-intro-title"
-          title="Decouvrez PlanetLS en 1 minute"
-          description="Une plateforme simple, intuitive et professionnelle pour gerer votre activite locative saisonniere."
+          title="PlanetLS en 1 minute"
+          description="Un aperçu de votre espace pour organiser la vie de votre logement."
           className={styles.videoIntroHeader}
         />
 
@@ -77,7 +69,7 @@ export default function VideoIntro() {
         </ButtonLink>
 
         <p className={styles.joinMessage}>
-          Rejoignez PlanetLS pour structurer votre activite et trouver les bons partenaires.
+          Rejoignez PlanetLS pour structurer votre activité et trouver les bons partenaires.
         </p>
       </div>
     </section>

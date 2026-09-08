@@ -3,6 +3,7 @@ export const designSections = [
   { href: "/design-system/fondations", title: "Fondations", description: "Couleurs, typographies, espacements et composants de base." },
   { href: "/design-system/visuels", title: "Composants & visuels", description: "Icônes, cartes, formulaires et exemples de composition." },
   { href: "/design-system/dashboards", title: "Maquettes des espaces", description: "Comparer les quatre tableaux de bord avec des données fictives." },
+  { href: "/design-system/pages", title: "Modèles de pages", description: "Explorer quatre listes représentatives et leurs états." },
 ] as const;
 
 export const designSpaces = [

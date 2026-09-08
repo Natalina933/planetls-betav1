@@ -2,11 +2,11 @@
 // ============================================================
 // Composants de layout réutilisables pour PlanetLS
 
-// Hero
+// Hero - désactivé temporairement
 // export * from "./HeroSection";
 
 // Section
-export * from "./Section";
+export * from "./Section/index";
 
 // HeroSection (re-export)
-export * from "./HeroSection";
+export * from "./HeroSection/index";

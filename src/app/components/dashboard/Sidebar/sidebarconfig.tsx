@@ -1,4 +1,5 @@
 import { IconType } from "react-icons";
+import { ownerDashboardContent } from "@/features/owner-dashboard/ownerDashboardContent";
 import {
   FiBell,
   FiBookOpen,
@@ -42,8 +43,13 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
 
   owner: [
     { label: "Tableau de bord", path: "/dashboard/owner", icon: DashboardGaugeIcon },
+    { label: ownerDashboardContent.navigation.reservations, path: "/dashboard/owner/missions/voyageurs", icon: FiBookOpen },
+    { label: ownerDashboardContent.navigation.calendar, path: "/dashboard/owner/planning", icon: FiCalendar },
+    { label: ownerDashboardContent.navigation.messages, path: "/dashboard/owner/messages", icon: FiMessageSquare },
+    { label: ownerDashboardContent.navigation.documents, path: "/dashboard/owner/documents", icon: FiFileText },
+    { label: ownerDashboardContent.navigation.statistics, path: "/dashboard/owner/finances/overview", icon: DashboardGaugeIcon },
     {
-      label: "Logements",
+      label: ownerDashboardContent.navigation.properties,
       path: "/dashboard/owner/logements/overview",
       icon: DashboardHomeIcon,
       children: [
@@ -55,7 +61,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       ],
     },
     {
-      label: "Missions",
+      label: ownerDashboardContent.navigation.interventions,
       path: "/dashboard/owner/missions/overview",
       icon: FiCalendar,
       children: [
@@ -105,7 +111,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       ],
     },
     {
-      label: "Profil",
+      label: ownerDashboardContent.navigation.settings,
       path: "/dashboard/owner/settings?tab=overview",
       icon: FiUser,
       children: buildUnifiedProfileSidebarItems("/dashboard/owner/settings"),

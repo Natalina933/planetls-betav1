@@ -679,3 +679,12 @@ $bg: var(--background);
     }
   }
 }
+
+:global([data-home-heritage]) .navbar {
+  gap: 10px;
+  .menu { gap: 10px; }
+  .themeTrigger, .navButton, .loginButton, .workspaceTrigger, .dashboardButton, .logoutButton {
+    font: 500 .75rem system-ui, sans-serif; border: 1px solid #dfd3bf; border-radius: 6px; background: #fffdf8; color: #294b3e; box-shadow: none; padding: 10px 12px;
+  }
+  .themeTrigger { border-color: transparent; background: transparent; }
+}

@@ -72,3 +72,27 @@
     margin-left: 0.6rem;
   }
 }
+.heritage { position: sticky; top: 0; min-height: 76px; padding: 12px 28px; background: #fcf9f3; box-shadow: none; border-bottom: 1px solid #dfd3bf; gap: 24px; flex-wrap: wrap; .logo img { width: 150px; } }
+.homeLinks { display: flex; gap: 20px; flex: 1; justify-content: center; a { color: #294b3e; text-decoration: none; font: 500 .75rem system-ui, sans-serif; white-space: nowrap; } a:hover { text-decoration: underline; } }
+@media (max-width: 1250px) { .heritage { gap: 12px; } .homeLinks { order: 3; flex-basis: 100%; justify-content: flex-start; overflow-x: auto; padding: 8px 0; } }
+@media (max-width: 760px) { .heritage { padding: 10px 18px; } .homeLinks { gap: 22px; } }
+
+.homeMenuButton { display: none; }
+.heritage .homeLinks a { min-height: 44px; display: inline-flex; align-items: center; font-size: .875rem; }
+.heritage a:focus-visible, .homeMenuButton:focus-visible { outline: 3px solid #b68a43; outline-offset: 3px; }
+@media (max-width: 768px) {
+  .homeMenuButton { order: 3; width: 100%; display: flex; justify-content: space-between; align-items: center; min-height: 44px; border: 0; border-top: 1px solid #ebe3d7; background: transparent; color: #294b3e; font: 500 1rem system-ui, sans-serif; padding: 10px 0; }
+  .heritage .homeLinks { display: none; order: 4; overflow: visible; }
+  .heritage .homeLinksOpen { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; }
+  .heritage .homeLinks a { white-space: normal; }
+}
+.heritage {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 24px;
+  > nav:not(.homeLinks) { justify-self: end; }
+  .homeLinks { grid-column: 1 / -1; order: 3; justify-content: center; padding: 0; }
+  .homeMenuButton { grid-column: 1 / -1; }
+}
+@media (max-width: 768px) {
+  .heritage { gap: 4px 12px; }
+  .heritage .homeLinksOpen { order: 4; justify-content: stretch; padding-bottom: 12px; }
+}

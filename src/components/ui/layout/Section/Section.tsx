@@ -223,6 +223,7 @@ export function Section({
         {/* Motif 1900 optionnel */}
         {ornament && (
           <div className={styles.ornament}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={ornament === true ? "/ornements/ornement-left.svg" : ornament}
               alt="Ornement"

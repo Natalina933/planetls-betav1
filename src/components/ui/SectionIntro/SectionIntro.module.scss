@@ -145,3 +145,5 @@
 :global([data-theme="mucha-dark"]) .description {
   color: rgba(245, 242, 234, 0.88);
 }
+
+:global([data-home-heritage]) .title { border: 0; border-radius: 0; background: transparent; box-shadow: none; padding: 0; color: var(--home-green-dark); font-family: Georgia, serif; font-weight: 400; text-transform: none; letter-spacing: -.035em; }

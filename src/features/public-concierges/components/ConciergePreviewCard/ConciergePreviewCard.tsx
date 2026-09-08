@@ -28,6 +28,7 @@ export type ConciergePreviewCardProps = {
   primaryAction?: ReactNode;
   secondaryAction?: ReactNode;
   className?: string;
+  presentation?: "default" | "editorial";
 };
 
 function formatMoney(value: number | null | undefined, suffix: string) {
@@ -206,7 +207,9 @@ export function ConciergePreviewCard({
   primaryAction,
   secondaryAction,
   className = "",
+  presentation = "default",
 }: ConciergePreviewCardProps) {
+  const editorial = presentation === "editorial";
   const resolvedBadgeLabel = badgeLabel ?? (isPro ? "PRO" : "Standard");
   const resolvedBadgeVariant = badgeVariant ?? (isPro ? "warning" : "neutral");
   const location = getLocationLabel(city, serviceArea);
@@ -230,12 +233,12 @@ export function ConciergePreviewCard({
     <Card
       key={id}
       variant="large"
-      className={[styles.card, className].filter(Boolean).join(" ")}
-      interactive
+      className={[styles.card, editorial ? styles.editorial : "", className].filter(Boolean).join(" ")}
+      interactive={!editorial}
     >
       <div className={styles.cover}>
         <Image src={serviceVisual} alt="" fill sizes="(max-width: 768px) 100vw, 380px" loading="eager" />
-        {coverLabel ? <span>{coverLabel}</span> : null}
+        {!editorial && coverLabel ? <span>{coverLabel}</span> : null}
       </div>
 
       <div className={styles.header}>
@@ -246,16 +249,17 @@ export function ConciergePreviewCard({
             <p>{location}</p>
           </div>
         </div>
-        <Badge variant={resolvedBadgeVariant}>{resolvedBadgeLabel}</Badge>
+        {!editorial && <Badge variant={resolvedBadgeVariant}>{resolvedBadgeLabel}</Badge>}
       </div>
 
       <CardBody>
         <div className={styles.meta}>
           <span>{ratingLabel}</span>
           <span>{reviewsCount} avis</span>
-          <span>{experienceLabel}</span>
+          {!editorial && <span>{experienceLabel}</span>}
         </div>
 
+        {!editorial && <>
         <div className={styles.pricing}>
           <span>{formatMoney(hourlyRate, "/ h")}</span>
           <span>{formatMoney(monthlyRate, "/ mois")}</span>
@@ -267,7 +271,8 @@ export function ConciergePreviewCard({
           ))}
         </div>
 
-        {matchHighlights.length > 0 ? (
+        </>}
+        {!editorial && matchHighlights.length > 0 ? (
           <div className={styles.matchHighlights} aria-label="Raisons de correspondance">
             <strong>Pourquoi ce profil ?</strong>
             <div>
@@ -280,7 +285,7 @@ export function ConciergePreviewCard({
 
         <div className={styles.tags}>
           {cleanServices.length > 0 ? (
-            cleanServices.slice(0, 4).map((service) => (
+            cleanServices.slice(0, editorial ? 2 : 4).map((service) => (
               <Tag key={`${id}-${service}`} tone="category">
                 {service}
               </Tag>
@@ -290,7 +295,7 @@ export function ConciergePreviewCard({
           )}
         </div>
 
-        {latestReviewComment ? (
+        {!editorial && latestReviewComment ? (
           <blockquote className={styles.quote}>&ldquo;{latestReviewComment}&rdquo;</blockquote>
         ) : null}
       </CardBody>
@@ -298,7 +303,7 @@ export function ConciergePreviewCard({
       {primaryAction || secondaryAction ? (
         <CardFooter className={styles.footer}>
           {primaryAction}
-          {secondaryAction}
+          {!editorial && secondaryAction}
         </CardFooter>
       ) : null}
     </Card>

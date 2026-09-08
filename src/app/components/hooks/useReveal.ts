@@ -206,7 +206,7 @@ export function useParallax(speed: number = 0.1) {
     style: {
       transform: `translateY(${offset}px)`,
       willChange: "transform",
-      transition: `transform ${var(--ds-motion-slow)} ${var(--ds-ease-premium)}`,
+      transition: `transform 700ms cubic-bezier(0.22, 0.61, 0.36, 1)`,
     } as React.CSSProperties,
   };
 }

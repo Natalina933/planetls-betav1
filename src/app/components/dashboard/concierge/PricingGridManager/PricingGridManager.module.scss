@@ -1,5 +1,10 @@
 @use "@/app/styles/abstracts/variables" as var;
 
+
+/* ===========================
+   TOKENS & BASE
+   =========================== */
+
 .root {
   --ui-color-bg: #f4f6f8;
   --ui-color-surface: #ffffff;
@@ -7,36 +12,66 @@
   --ui-color-border: #d5dbdf;
   --ui-color-text: #2c3e50;
   --ui-color-text-muted: #5d6d7e;
+  --ui-color-heading: #0f172a;
   --ui-color-primary: #d4af37;
   --ui-color-primary-strong: #b5a642;
   --ui-color-accent: #1a2530;
+  --ui-color-success: #2d6a4f;
+  --ui-color-gold-text: #8a6a12;
+  --ui-color-input-border: #cbd5e1;
+  --ui-color-gold-soft: rgba(212, 175, 55, 0.14);
+  --ui-color-gold-border: rgba(212, 175, 55, 0.36);
   --ui-button-radius: 4px;
   --ui-input-radius: 4px;
   --ui-card-radius: 4px;
   --ui-shadow-sm: 0 4px 12px rgba(44, 62, 80, 0.05);
   --ui-shadow-md: 0 12px 24px rgba(44, 62, 80, 0.09);
-  --accent: var(--ui-color-primary-strong);
-  --accent-light: var(--ui-color-primary);
-  --accent-soft: rgba(212, 175, 55, 0.14);
-  --accent-border: rgba(212, 175, 55, 0.36);
+
   display: grid;
   gap: 1rem;
   color: var(--ui-color-text);
 }
 
+
+/* ===========================
+   TOOLBAR
+   =========================== */
+
 .toolbar {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-  border: 1px solid var(--accent-border);
-  border-radius: 14px;
-  padding: 0.8rem 0.9rem;
+  padding: 1rem;
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-card-radius);
   background:
-    radial-gradient(circle at 0% 0%, var(--accent-soft) 0%, rgba(212, 175, 55, 0.04) 52%, transparent 100%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 250, 248, 0.98));
+    radial-gradient(
+      circle at 0% 0%,
+      var(--ui-color-gold-soft) 0%,
+      rgba(212, 175, 55, 0.04) 52%,
+      transparent 100%
+    ),
+    var(--ui-color-surface);
+  box-shadow: var(--ui-shadow-sm);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    pointer-events: none;
+    border: 1px solid var(--ui-color-gold-border);
+    border-radius: var(--ui-card-radius);
+  }
 }
+
+
+/* ===========================
+   FEEDBACK
+   =========================== */
 
 .feedbackSuccess,
 .feedbackError {
@@ -76,25 +111,42 @@
   font-weight: 850;
 }
 
+
+/* ===========================
+   PRIORITY CARD
+   =========================== */
+
 .priorityCard {
-  border: 1px solid var(--accent-border);
-  border-radius: 14px;
-  background: linear-gradient(180deg, #ffffff, rgba(250, 250, 248, 0.98));
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--ui-color-gold-border);
+  border-radius: var(--ui-card-radius);
+  background:
+    linear-gradient(180deg, #ffffff, rgba(250, 250, 248, 0.98));
   padding: 0.95rem;
   box-shadow: 0 6px 14px rgba(17, 24, 39, 0.04);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    pointer-events: none;
+    border: 1px solid var(--ui-color-gold-border);
+    border-radius: var(--ui-card-radius);
+  }
 }
 
 .priorityHeader h4 {
   margin: 0;
   font-size: 1rem;
-  color: #0f172a;
+  color: var(--ui-color-heading);
 }
 
 .priorityHeader p {
   margin: 0.4rem 0 0;
   font-size: 0.86rem;
   line-height: 1.45;
-  color: #475569;
+  color: var(--ui-color-text-muted);
 }
 
 .priorityTableWrap {
@@ -111,7 +163,7 @@
 .priorityTable th,
 .priorityTable td {
   padding: 0.62rem;
-  border-bottom: 1px solid #eef2f7;
+  border-bottom: 1px solid var(--ui-color-border);
   text-align: left;
   vertical-align: middle;
 }
@@ -120,7 +172,7 @@
   font-size: 0.76rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: #64748b;
+  color: var(--ui-color-text-muted);
 }
 
 .priorityServiceCell {
@@ -137,17 +189,17 @@
 
 .priorityServiceCell strong {
   font-size: 0.9rem;
-  color: #0f172a;
+  color: var(--ui-color-heading);
 }
 
 .priorityServiceCell span {
   font-size: 0.76rem;
-  color: #64748b;
+  color: var(--ui-color-text-muted);
 }
 
 .basePriceValue {
   font-weight: 700;
-  color: #0f172a;
+  color: var(--ui-color-heading);
 }
 
 .priorityCell {
@@ -159,20 +211,20 @@
   width: 100%;
   min-width: 110px;
   padding: 0.45rem 0.5rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--ui-color-input-border);
   border-radius: 8px;
   font-size: 0.86rem;
-  color: #0f172a;
+  color: var(--ui-color-heading);
 }
 
 .priorityTypeSelect {
   width: 100%;
   min-width: 108px;
   padding: 0.4rem 0.45rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--ui-color-input-border);
   border-radius: 8px;
-  background: #fff;
-  color: #0f172a;
+  background: var(--ui-color-surface);
+  color: var(--ui-color-heading);
   font-size: 0.82rem;
 }
 
@@ -185,14 +237,14 @@
   border-radius: 8px;
   border: 1px solid #dbe3ee;
   background: #f8fafc;
-  color: #475569;
+  color: var(--ui-color-text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
 
   &:hover:not(:disabled) {
-    border-color: rgba(184, 148, 30, 0.5);
-    background: rgba(212, 175, 55, 0.14);
-    color: #8a6a12;
+    border-color: var(--ui-color-gold-border);
+    background: var(--ui-color-gold-soft);
+    color: var(--ui-color-gold-text);
   }
 
   &:disabled {
@@ -215,10 +267,14 @@
 
 .priorityCell small {
   font-size: 0.72rem;
-  color: #8a6a12;
+  color: var(--ui-color-gold-text);
   font-weight: 600;
 }
 
+
+/* ===========================
+   HEADING & STATS
+   =========================== */
 
 .headingBlock {
   flex: 1;
@@ -227,21 +283,24 @@
 
 .headingTitle {
   margin: 0;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #0f172a;
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: var(--ui-color-accent);
+  font-family: var.$font-elegant;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .headingText {
   margin: 0.45rem 0 0;
-  color: #475569;
+  color: var(--ui-color-text-muted);
   font-size: 0.92rem;
   line-height: 1.45;
 }
 
 .headingPackHint {
   margin: 0.4rem 0 0;
-  color: #8a6a12;
+  color: var(--ui-color-primary-strong);
   font-size: 0.84rem;
 }
 
@@ -258,11 +317,16 @@
   gap: 0.25rem;
   padding: 0.2rem 0.55rem;
   border: 1px solid rgba(184, 148, 30, 0.28);
-  border-radius: 999px;
-  background: rgba(212, 175, 55, 0.1);
+  border-radius: var(--ui-button-radius);
+  background: var(--ui-color-gold-soft);
   font-size: 0.78rem;
-  color: #8a6a12;
+  color: var(--ui-color-gold-text);
 }
+
+
+/* ===========================
+   CONTROLS & FILTERS
+   =========================== */
 
 .controlsPanel {
   display: flex;
@@ -272,7 +336,7 @@
   flex-wrap: wrap;
   border: 1px solid rgba(148, 163, 184, 0.34);
   background: rgba(255, 255, 255, 0.92);
-  border-radius: 12px;
+  border-radius: var(--ui-card-radius);
   padding: 0.5rem;
 }
 
@@ -282,22 +346,22 @@
   gap: 0.45rem;
   padding: 0.45rem;
   border: 1px solid rgba(148, 163, 184, 0.42);
-  border-radius: 10px;
+  border-radius: var(--ui-card-radius);
   background: rgba(249, 250, 251, 0.94);
 }
 
 .filterIcon {
-  color: #64748b;
+  color: var(--ui-color-text-muted);
 }
 
 .selectControl,
 .inputControl {
   width: 100%;
   padding: 0.6rem 0.7rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #0f172a;
+  border: 1px solid var(--ui-color-input-border);
+  border-radius: var(--ui-input-radius);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text);
   font-size: 0.9rem;
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
@@ -309,10 +373,12 @@
 
 .selectControl:focus,
 .inputControl:focus,
-.searchInput:focus {
+.searchInput:focus,
+.priorityInput:focus,
+.priorityTypeSelect:focus {
   outline: none;
-  border-color: rgba(184, 148, 30, 0.7);
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+  border-color: var(--ui-color-gold-border);
+  box-shadow: 0 0 0 3px var(--ui-color-gold-soft);
 }
 
 .togglePill {
@@ -320,16 +386,16 @@
   align-items: center;
   gap: 0.45rem;
   padding: 0.5rem 0.7rem;
-  border-radius: 999px;
+  border-radius: var(--ui-button-radius);
   border: 1px solid rgba(148, 163, 184, 0.42);
   background: rgba(249, 250, 251, 0.95);
-  color: #475569;
+  color: var(--ui-color-text-muted);
   font-size: 0.82rem;
   white-space: nowrap;
 }
 
 .togglePill input {
-  accent-color: var(--accent);
+  accent-color: var(--ui-color-primary);
 }
 
 .searchWrapper {
@@ -347,10 +413,10 @@
 .searchInput {
   width: 220px;
   padding: 0.58rem 0.6rem 0.58rem 2.1rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  border: 1px solid var(--ui-color-input-border);
+  border-radius: var(--ui-input-radius);
   font-size: 0.9rem;
-  background: #ffffff;
+  background: var(--ui-color-surface);
 }
 
 .buttonWithIcon {
@@ -359,12 +425,17 @@
   gap: 0.4rem;
 }
 
+
+/* ===========================
+   BUTTONS
+   =========================== */
+
 .primaryButton,
 .secondaryButton,
 .ghostButton,
 .successButton,
 .packLinkButton {
-  border-radius: 8px;
+  border-radius: var(--ui-button-radius);
   font-weight: 600;
   font-size: 0.86rem;
   transition: all 150ms ease;
@@ -375,23 +446,25 @@
 .primaryButton {
   padding: 0.58rem 0.9rem;
   background: linear-gradient(135deg, rgba(184, 148, 30, 0.98), rgba(212, 175, 55, 0.98));
-  border-color: rgba(184, 148, 30, 0.55);
+  border-color: var(--ui-color-gold-border);
   color: #ffffff;
-}
 
-.primaryButton:hover {
-  background: linear-gradient(135deg, rgba(177, 139, 23, 1), rgba(206, 168, 41, 1));
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(177, 139, 23, 1), rgba(206, 168, 41, 1));
+    box-shadow: var(--ui-shadow-md);
+    transform: translateY(-1px);
+  }
 }
 
 .ghostButton {
   padding: 0.58rem 0.78rem;
-  background: #ffffff;
+  background: var(--ui-color-surface);
   color: #334155;
   border-color: rgba(148, 163, 184, 0.52);
-}
 
-.ghostButton:hover:not(:disabled) {
-  background: #f8fafc;
+  &:hover:not(:disabled) {
+    background: #f8fafc;
+  }
 }
 
 .secondaryButton {
@@ -399,32 +472,36 @@
   background: #f1f5f9;
   color: #334155;
   border-color: #dbe3ee;
-}
 
-.secondaryButton:hover:not(:disabled) {
-  background: #e2e8f0;
+  &:hover:not(:disabled) {
+    background: #e2e8f0;
+  }
 }
 
 .successButton {
   padding: 0.72rem 1.2rem;
   background: linear-gradient(135deg, rgba(184, 148, 30, 0.98), rgba(212, 175, 55, 0.98));
-  border-color: rgba(184, 148, 30, 0.55);
+  border-color: var(--ui-color-gold-border);
   color: #ffffff;
-}
 
-.successButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(177, 139, 23, 1), rgba(206, 168, 41, 1));
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(177, 139, 23, 1), rgba(206, 168, 41, 1));
+    box-shadow: var(--ui-shadow-md);
+    transform: translateY(-1px);
+  }
 }
 
 .packLinkButton {
   padding: 0.55rem 0.88rem;
-  background: #8a6a12;
-  border-color: #8a6a12;
+  background: var(--ui-color-gold-text);
+  border-color: var(--ui-color-gold-text);
   color: #ffffff;
-}
 
-.packLinkButton:hover:not(:disabled) {
-  background: #74580f;
+  &:hover:not(:disabled) {
+    background: #74580f;
+    box-shadow: var(--ui-shadow-md);
+    transform: translateY(-1px);
+  }
 }
 
 .primaryButton:disabled,
@@ -436,18 +513,39 @@
   cursor: not-allowed;
 }
 
+
+/* ===========================
+   FORM CARD
+   =========================== */
+
 .formCard {
-  border: 1px solid var(--accent-border);
-  border-radius: 14px;
-  background: linear-gradient(180deg, #ffffff, rgba(250, 250, 248, 0.98));
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--ui-color-gold-border);
+  border-radius: var(--ui-card-radius);
+  background:
+    linear-gradient(180deg, #ffffff, rgba(250, 250, 248, 0.98));
   padding: 1.2rem;
   box-shadow: 0 6px 16px rgba(17, 24, 39, 0.05);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    pointer-events: none;
+    border: 1px solid var(--ui-color-gold-border);
+    border-radius: var(--ui-card-radius);
+  }
 }
 
 .formTitle {
   margin: 0 0 0.95rem;
-  font-size: 1rem;
-  color: #0f172a;
+  font-size: 1.25rem;
+  color: var(--ui-color-accent);
+  font-family: var.$font-elegant;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .formLayout {
@@ -472,8 +570,13 @@
 .fieldHint {
   margin: 0 0 0.45rem;
   font-size: 0.78rem;
-  color: #64748b;
+  color: var(--ui-color-text-muted);
 }
+
+
+/* ===========================
+   SUGGESTED PRICING
+   =========================== */
 
 .suggestedPricingBlock {
   display: grid;
@@ -482,28 +585,32 @@
   border: 1px solid var(--ui-color-border);
   border-radius: var(--ui-card-radius);
   background:
-    radial-gradient(circle at 100% 0%, rgba(212, 175, 55, 0.1), transparent 36%),
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(212, 175, 55, 0.1) 0%,
+      transparent 36%
+    ),
     var(--ui-color-surface);
 }
 
 .suggestedPricingHeader {
   display: grid;
   gap: 0.2rem;
-}
 
-.suggestedPricingHeader span {
-  color: var(--ui-color-accent);
-  font-family: var.$font-title;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
+  span {
+    color: var(--ui-color-accent);
+    font-family: var.$font-title;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
 
-.suggestedPricingHeader p {
-  margin: 0;
-  color: var(--ui-color-text-muted);
-  font-size: 0.84rem;
+  p {
+    margin: 0;
+    color: var(--ui-color-text-muted);
+    font-size: 0.84rem;
+  }
 }
 
 .suggestedPricingGrid {
@@ -523,36 +630,44 @@
   color: var(--ui-color-text);
   cursor: pointer;
   text-align: left;
-  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+
+  &:hover {
+    border-color: var(--ui-color-gold-border);
+    box-shadow: var(--ui-shadow-md);
+    transform: translateY(-2px);
+  }
+
+  strong {
+    color: var(--ui-color-accent);
+    font-size: 0.95rem;
+  }
+
+  span {
+    color: var(--ui-color-text);
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+
+  small,
+  em {
+    color: var(--ui-color-text-muted);
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  em {
+    font-style: normal;
+  }
 }
 
-.suggestedPricingCard:hover {
-  border-color: rgba(212, 175, 55, 0.62);
-  box-shadow: var(--ui-shadow-md);
-  transform: translateY(-2px);
-}
 
-.suggestedPricingCard strong {
-  color: var(--ui-color-accent);
-  font-size: 0.95rem;
-}
-
-.suggestedPricingCard span {
-  color: var(--ui-color-text);
-  font-size: 0.86rem;
-  font-weight: 700;
-}
-
-.suggestedPricingCard small,
-.suggestedPricingCard em {
-  color: var(--ui-color-text-muted);
-  font-size: 0.78rem;
-  line-height: 1.35;
-}
-
-.suggestedPricingCard em {
-  font-style: normal;
-}
+/* ===========================
+   CHECKBOXES & NOTICES
+   =========================== */
 
 .checkboxGroup {
   display: grid;
@@ -568,7 +683,7 @@
 }
 
 .checkboxRow input {
-  accent-color: var(--accent);
+  accent-color: var(--ui-color-primary);
 }
 
 .linkedNotice {
@@ -587,7 +702,7 @@
   gap: 0.2rem;
 
   strong {
-    color: #0f172a;
+    color: var(--ui-color-heading);
     font-size: 0.9rem;
   }
 
@@ -610,6 +725,11 @@
   flex-wrap: wrap;
 }
 
+
+/* ===========================
+   PACKAGE BAR
+   =========================== */
+
 .packageBar {
   display: flex;
   align-items: center;
@@ -623,16 +743,31 @@
 
 .packageBar p {
   margin: 0;
-  color: #475569;
+  color: var(--ui-color-text-muted);
   font-size: 0.88rem;
 }
 
+
+/* ===========================
+   TABLE CARD
+   =========================== */
+
 .tableCard {
-  border: 1px solid rgba(184, 148, 30, 0.23);
-  border-radius: 12px;
-  background: #ffffff;
+  position: relative;
   overflow: hidden;
-  box-shadow: 0 6px 14px rgba(17, 24, 39, 0.04);
+  border: 1px solid var(--ui-color-gold-border);
+  border-radius: var(--ui-card-radius);
+  background: var(--ui-color-surface);
+  box-shadow: var(--ui-shadow-sm);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    pointer-events: none;
+    border: 1px solid var(--ui-color-gold-border);
+    border-radius: var(--ui-card-radius);
+  }
 }
 
 .tableScroll {
@@ -646,8 +781,8 @@
 }
 
 .tableHeaderRow {
-  background: linear-gradient(180deg, rgba(250, 250, 248, 0.96), rgba(245, 247, 250, 0.96));
-  border-bottom: 1px solid rgba(184, 148, 30, 0.2);
+  background: var(--ui-color-surface-soft);
+  border-bottom: 1px solid var(--ui-color-gold-border);
 }
 
 .tableHeadCell {
@@ -655,8 +790,10 @@
   text-align: left;
   font-size: 0.78rem;
   font-weight: 700;
-  color: #6b7280;
+  color: var(--ui-color-text-muted);
   letter-spacing: 0.03em;
+  font-family: var.$font-title;
+  text-transform: uppercase;
 }
 
 .tableHeadCellRight {
@@ -664,12 +801,12 @@
 }
 
 .tableRow {
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--ui-color-border);
   transition: background-color 140ms ease;
-}
 
-.tableRow:hover {
-  background: rgba(250, 250, 248, 0.75);
+  &:hover {
+    background: rgba(212, 175, 55, 0.08);
+  }
 }
 
 .tableRowMuted {
@@ -690,11 +827,11 @@
 }
 
 .packToggle input {
-  accent-color: var(--accent);
+  accent-color: var(--ui-color-primary);
 }
 
 .packToggleText {
-  color: #475569;
+  color: var(--ui-color-text-muted);
   font-size: 0.78rem;
 }
 
@@ -704,7 +841,7 @@
   justify-content: center;
   min-width: 74px;
   padding: 0.42rem 0.7rem;
-  border-radius: 999px;
+  border-radius: var(--ui-button-radius);
   border: 1px solid rgba(200, 90, 90, 0.35);
   background: rgba(255, 241, 242, 0.96);
   color: #a54444;
@@ -726,12 +863,12 @@
 
 .labelText {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--ui-color-heading);
 }
 
 .linkedPackMeta {
   font-size: 0.78rem;
-  color: #8a6a12;
+  color: var(--ui-color-gold-text);
 }
 
 .linkedPackList {
@@ -750,14 +887,14 @@
   align-items: center;
   margin-left: 0.4rem;
   padding: 0.15rem 0.45rem;
-  border-radius: 999px;
+  border-radius: var(--ui-button-radius);
   font-size: 0.68rem;
   font-weight: 700;
 }
 
 .badgeDefault {
-  background: rgba(212, 175, 55, 0.18);
-  color: #8a6a12;
+  background: var(--ui-color-gold-soft);
+  color: var(--ui-color-gold-text);
 }
 
 .badgeWarning {
@@ -767,18 +904,18 @@
 
 .serviceMeta {
   font-size: 0.78rem;
-  color: #64748b;
+  color: var(--ui-color-text-muted);
 }
 
 .inlineCell {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  color: #475569;
+  color: var(--ui-color-text-muted);
 }
 
 .priceCell {
-  color: #059669;
+  color: var(--ui-color-success);
   font-weight: 600;
 }
 
@@ -803,10 +940,10 @@
   padding: 0.2rem 0.15rem;
   text-decoration: underline;
   text-underline-offset: 0.15rem;
-}
 
-.inlineTextAction:hover {
-  color: #8f3434;
+  &:hover {
+    color: #8f3434;
+  }
 }
 
 .iconActionButton {
@@ -815,7 +952,7 @@
   justify-content: center;
   width: 30px;
   height: 30px;
-  border-radius: 8px;
+  border-radius: var(--ui-button-radius);
   border: 1px solid transparent;
   background: #f8fafc;
   cursor: pointer;
@@ -823,20 +960,20 @@
 }
 
 .iconActionEdit {
-  border-color: #dbe3ee;
-}
+  border-color: var(--ui-color-border);
 
-.iconActionEdit:hover {
-  background: rgba(212, 175, 55, 0.14);
+  &:hover {
+    background: var(--ui-color-gold-soft);
+  }
 }
 
 .iconActionDelete {
   border-color: #fecaca;
   background: #fff1f2;
-}
 
-.iconActionDelete:hover {
-  background: #ffe4e6;
+  &:hover {
+    background: #ffe4e6;
+  }
 }
 
 .emptyCell {
@@ -847,31 +984,52 @@
 .emptyTitle {
   margin: 0;
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--ui-color-text-muted);
 }
 
 .emptyAction {
   margin-top: 0.6rem;
   border: none;
   background: none;
-  color: #8a6a12;
+  color: var(--ui-color-gold-text);
   font-size: 0.84rem;
   cursor: pointer;
   text-decoration: underline;
 }
 
+
+/* ===========================
+   QUICK STATS
+   =========================== */
+
 .quickStatsCard {
-  border: 1px solid rgba(184, 148, 30, 0.24);
-  border-radius: 12px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 250, 248, 0.96));
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--ui-color-gold-border);
+  border-radius: var(--ui-card-radius);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 250, 248, 0.96));
   padding: 1rem;
+  box-shadow: var(--ui-shadow-sm);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    pointer-events: none;
+    border: 1px solid var(--ui-color-gold-border);
+    border-radius: var(--ui-card-radius);
+  }
 }
 
 .quickStatsTitle {
   margin: 0 0 0.75rem;
   font-size: 0.92rem;
   font-weight: 700;
-  color: #8a6a12;
+  color: var(--ui-color-gold-text);
+  font-family: var.$font-elegant;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .quickStatsGrid {
@@ -881,23 +1039,39 @@
 }
 
 .quickStatItem {
-  border: 1px solid rgba(184, 148, 30, 0.2);
-  border-radius: 10px;
-  background: #ffffff;
+  border: 1px solid var(--ui-color-gold-border);
+  border-radius: var(--ui-card-radius);
+  background: var(--ui-color-surface);
   padding: 0.72rem;
 }
 
 .quickStatLabel {
   font-size: 0.78rem;
-  color: #64748b;
+  color: var(--ui-color-text-muted);
 }
 
 .quickStatValue {
   margin-top: 0.15rem;
   font-size: 1.15rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--ui-color-heading);
 }
+
+
+/* ===========================
+   FOCUS & ACCESSIBILITY
+   =========================== */
+
+.root :is(button, input, select, textarea, a):focus-visible {
+  outline: 3px solid var(--ui-color-accent);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px var(--ui-color-gold-soft);
+}
+
+
+/* ===========================
+   RESPONSIVE
+   =========================== */
 
 @media (max-width: 900px) {
   .controlsPanel {
@@ -942,190 +1116,13 @@
   }
 }
 
-/* Art deco pricing surface ------------------------------------------------- */
-.toolbar,
-.priorityCard,
-.formCard,
-.tableCard,
-.quickStatsCard {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-card-radius);
-  background: var(--ui-color-surface);
-  box-shadow: var(--ui-shadow-sm);
-}
-
-.toolbar::before,
-.formCard::before,
-.tableCard::before,
-.quickStatsCard::before {
-  content: "";
-  position: absolute;
-  inset: 8px;
-  pointer-events: none;
-  border: 1px solid rgba(212, 175, 55, 0.32);
-}
-
-.toolbar {
-  padding: 1rem;
-  background:
-    radial-gradient(circle at 0% 0%, var(--accent-soft) 0%, rgba(212, 175, 55, 0.04) 52%, transparent 100%),
-    var(--ui-color-surface);
-}
-
-.headingTitle,
-.priorityHeader h4,
-.formTitle,
-.quickStatsTitle {
-  color: var(--ui-color-accent);
-  font-family: var.$font-elegant;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.headingTitle {
-  font-size: 1.45rem;
-}
-
-.priorityHeader h4,
-.formTitle {
-  font-size: 1.25rem;
-}
-
-.headingText,
-.priorityHeader p,
-.fieldHint,
-.packageBar p,
-.serviceMeta,
-.packToggleText,
-.quickStatLabel,
-.linkedNoticeContent span {
-  color: var(--ui-color-text-muted);
-}
-
-.headingPackHint,
-.inlineStat,
-.linkedPackMeta,
-.emptyAction {
-  color: var(--ui-color-primary-strong);
-}
-
-.inlineStat,
-.togglePill,
-.badge,
-.unlinkInlineButton {
-  border-radius: var(--ui-button-radius);
-}
-
-.controlsPanel,
-.filterGroup,
-.linkedNotice,
-.packageBar,
-.quickStatItem,
-.priorityInput,
-.priorityTypeSelect,
-.selectControl,
-.inputControl,
-.searchInput {
-  border-color: var(--ui-color-border);
-  border-radius: var(--ui-input-radius);
-  background: var(--ui-color-surface);
-  color: var(--ui-color-text);
-}
-
-.controlsPanel,
-.filterGroup,
-.linkedNotice,
-.packageBar,
-.quickStatItem {
-  border-radius: var(--ui-card-radius);
-}
-
-.selectControl:focus,
-.inputControl:focus,
-.searchInput:focus,
-.priorityInput:focus,
-.priorityTypeSelect:focus {
-  outline: none;
-  border-color: rgba(212, 175, 55, 0.72);
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.16);
-}
-
-.primaryButton,
-.successButton {
-  border-color: var(--ui-color-accent);
-  border-radius: var(--ui-button-radius);
-  background: var(--ui-color-accent);
-  color: #ffffff;
-}
-
-.primaryButton:hover:not(:disabled),
-.successButton:hover:not(:disabled),
-.packLinkButton:hover:not(:disabled) {
-  box-shadow: var(--ui-shadow-md);
-  transform: translateY(-1px);
-}
-
-.secondaryButton,
-.ghostButton,
-.packLinkButton,
-.priorityEditButton,
-.iconActionButton {
-  border-color: var(--ui-color-border);
-  border-radius: var(--ui-button-radius);
-  background: var(--ui-color-surface);
-  color: var(--ui-color-accent);
-}
-
-.packLinkButton {
-  background: var(--ui-color-accent);
-  color: #ffffff;
-}
-
-.tableHeaderRow {
-  background: var(--ui-color-surface-soft);
-  border-bottom-color: rgba(212, 175, 55, 0.32);
-}
-
-.tableHeadCell,
-.priorityTable th {
-  color: var(--ui-color-text-muted);
-  font-family: var.$font-title;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.tableRow,
-.priorityTable th,
-.priorityTable td {
-  border-bottom-color: var(--ui-color-border);
-}
-
-.tableRow:hover {
-  background: rgba(212, 175, 55, 0.08);
-}
-
-.labelText,
-.priorityServiceCell strong,
-.basePriceValue,
-.quickStatValue {
-  color: var(--ui-color-accent);
-}
-
-.priceCell {
-  color: #2d6a4f;
-}
-
-.badgeDefault {
-  background: rgba(212, 175, 55, 0.16);
-  color: var(--ui-color-accent);
-}
-
-.root :is(button, input, select, a):focus-visible {
-  outline: 3px solid rgba(212, 175, 55, 0.32);
-  outline-offset: 2px;
+@media (prefers-reduced-motion: reduce) {
+  .root *,
+  .root *::before,
+  .root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
