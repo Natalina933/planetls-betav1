@@ -38,7 +38,7 @@ export default function OwnerObjectivesPageClient() {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch("/api/profiles/current", { cache: "no-store" });
+        const response = await fetch("/api/profiles/me", { cache: "no-store" });
         const payload = (await response.json()) as CurrentProfilePayload & { error?: string };
 
         if (!response.ok) {

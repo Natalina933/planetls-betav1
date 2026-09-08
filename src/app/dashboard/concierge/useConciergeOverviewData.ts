@@ -40,7 +40,7 @@ export function useConciergeOverviewData() {
           nextPricingRows,
           nextPackages,
         ] = await Promise.all([
-          fetchJsonOrFallback<Record<string, unknown> | null>("/api/profiles/current", null),
+          fetchJsonOrFallback<Record<string, unknown> | null>("/api/profiles/me", null),
           fetchJsonOrFallback<{ items?: ConciergeRequest[] }>(
             "/api/service-requests?view=concierge&limit=30",
             { items: [] },

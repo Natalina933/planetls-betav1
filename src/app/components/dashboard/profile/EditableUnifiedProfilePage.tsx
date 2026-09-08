@@ -53,6 +53,7 @@ export type UnifiedProfileForm = {
   instagram: string;
   additional_info: string;
   category: string;
+  skills: string;
   service_area: string;
   service_radius_km: string;
   availability_hours: string;
@@ -100,7 +101,7 @@ const SECTION_FIELDS: Record<string, Array<keyof UnifiedProfileForm>> = {
   [SECTION_IDS.SOCIALS]: ["website", "linkedin", "facebook", "instagram"],
   [SECTION_IDS.PRESENTATION]: ["additional_info"],
   [SECTION_IDS.PROFESSIONAL]: [
-    "category", "service_area", "service_radius_km", "availability_hours",
+    "category", "skills", "service_area", "service_radius_km", "availability_hours",
     "hourly_rate", "travel_fee", "years_experience", "experience_level",
     "legal_form", "siret", "insurance_company", "insurance_number",
     "certifications", "emergency_service",
@@ -131,6 +132,7 @@ const emptyForm: UnifiedProfileForm = {
   instagram: "",
   additional_info: "",
   category: "",
+  skills: "",
   service_area: "",
   service_radius_km: "",
   availability_hours: "",
@@ -189,7 +191,7 @@ export default function EditableUnifiedProfilePage({
       try {
         setError(null);
 
-        const response = await fetch("/api/profiles/current", { cache: "no-store" });
+        const response = await fetch("/api/profiles/me", { cache: "no-store" });
         const payload = await response.json();
 
         if (!response.ok) {
@@ -224,6 +226,7 @@ export default function EditableUnifiedProfilePage({
           instagram: toFormValue(profile.instagram),
           additional_info: toFormValue(profile.additional_info),
           category: toFormValue(profile.category),
+          skills: toFormValue(profile.skills),
           service_area: toFormValue(profile.service_area),
           service_radius_km: profile.service_radius_km?.toString() ?? "",
           availability_hours: toFormValue(profile.availability_hours),
@@ -387,6 +390,7 @@ export default function EditableUnifiedProfilePage({
         instagram: toFormValue(result.instagram),
         additional_info: toFormValue(result.additional_info),
         category: toFormValue(result.category),
+        skills: toFormValue(result.skills),
         service_area: toFormValue(result.service_area),
         service_radius_km: result.service_radius_km?.toString() ?? "",
         availability_hours: toFormValue(result.availability_hours),
@@ -477,6 +481,7 @@ export default function EditableUnifiedProfilePage({
     ? buildCompletionState([
         { label: "Identité et coordonnées", complete: basicProfileCompletion.percentage === 100 },
         { label: "Métier principal", complete: Boolean(form.category.trim()) },
+        { label: "Compétences/métiers", complete: Boolean(form.skills.trim()) },
         { label: "Zone d'intervention", complete: Boolean(form.service_area.trim()) },
         { label: "Rayon d'intervention", complete: Boolean(form.service_radius_km.trim()) },
         { label: "Disponibilités", complete: Boolean(form.availability_hours.trim()) },
@@ -593,6 +598,7 @@ export default function EditableUnifiedProfilePage({
       </p>
       <div className={conciergeStyles.fieldsGrid}>
         <EditableProfileField styles={conciergeStyles} label="Métier principal" name="category" value={form.category} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Compétences/métiers" name="skills" value={form.skills} isTextarea placeholder="Ex: Plomberie, Electricité, Menuiserie" isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Zone couverte" name="service_area" value={form.service_area} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Rayon (km)" name="service_radius_km" value={form.service_radius_km} type="number" inputProps={{ min: 0 }} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Disponibilités" name="availability_hours" value={form.availability_hours} isTextarea isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />

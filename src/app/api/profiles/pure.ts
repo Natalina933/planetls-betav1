@@ -55,6 +55,7 @@ const CONCIERGE_STRING_FIELDS = [
   "certifications",
   "service_area",
   "availability_hours",
+  "skills",
   "iban",
   "bic",
   // Legacy service field kept during transition.
@@ -84,6 +85,7 @@ const PROVIDER_STRING_FIELDS = [
   "vat_number",
   "location",
   "category",
+  "skills",
   "insurance_number",
   "insurance_company",
   "certifications",
@@ -157,6 +159,7 @@ export function getProfilePatchPolicy(role: string | null | undefined, isAdmin: 
         "certifications",
         "service_area",
         "availability_hours",
+        "skills",
         "iban",
         "bic",
       ]),

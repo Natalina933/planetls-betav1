@@ -43,7 +43,7 @@ export default function ConciergeSettingsPage() {
         setError(null);
 
         const [profileResponse, billingResponse] = await Promise.all([
-          fetch("/api/profiles/current", { cache: "no-store" }),
+          fetch("/api/profiles/me", { cache: "no-store" }),
           fetch("/api/billing/history", { cache: "no-store" }),
         ]);
 

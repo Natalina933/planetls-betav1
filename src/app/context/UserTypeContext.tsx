@@ -80,7 +80,7 @@ export function UserTypeProvider({ children }: { children: ReactNode }) {
 
     async function fetchUserType() {
       try {
-        const res = await fetch("/api/profiles/current");
+        const res = await fetch("/api/profiles/me");
         if (!res.ok) throw new Error("API error");
 
         const data = await res.json();

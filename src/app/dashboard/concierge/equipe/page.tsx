@@ -109,7 +109,7 @@ export default function EquipePage() {
       setLoading(true);
       setError(null);
       const [profileResponse, missionsResponse, teamResponse] = await Promise.all([
-        fetch("/api/profiles/current", { cache: "no-store" }),
+        fetch("/api/profiles/me", { cache: "no-store" }),
         fetch("/api/missions?scope=concierge&limit=80", { cache: "no-store" }),
         fetch("/api/concierge/team", { cache: "no-store" }),
       ]);

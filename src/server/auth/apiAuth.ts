@@ -95,23 +95,27 @@ export async function getApiAuthContext(req: NextRequest): Promise<ApiAuthContex
     return { ...resolved, isAdmin };
   }
 
-  const session = await auth();
-  const sessionUser = session?.user;
+  try {
+    const session = await auth();
+    const sessionUser = session?.user;
 
-  if (sessionUser?.id) {
-    const role = typeof sessionUser.role === "string" ? sessionUser.role : "";
-    const resolved = await resolveActiveProfile(req, {
-      userId: sessionUser.id,
-      email: typeof sessionUser.email === "string" ? sessionUser.email : undefined,
-      role,
-      sessionUserId: sessionUser.id,
-    });
-    const isAdmin = resolved.role === "admin" || resolved.role === "super_admin";
+    if (sessionUser?.id) {
+      const role = typeof sessionUser.role === "string" ? sessionUser.role : "";
+      const resolved = await resolveActiveProfile(req, {
+        userId: sessionUser.id,
+        email: typeof sessionUser.email === "string" ? sessionUser.email : undefined,
+        role,
+        sessionUserId: sessionUser.id,
+      });
+      const isAdmin = resolved.role === "admin" || resolved.role === "super_admin";
 
-    return {
-      ...resolved,
-      isAdmin,
-    };
+      return {
+        ...resolved,
+        isAdmin,
+      };
+    }
+  } catch (error) {
+    console.error("[getApiAuthContext] auth() error:", error);
   }
 
   return { userId: undefined, email: undefined, role: "", isAdmin: false };

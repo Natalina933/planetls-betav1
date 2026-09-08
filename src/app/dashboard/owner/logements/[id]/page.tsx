@@ -524,7 +524,7 @@ export default function OwnerHousingDetailPage() {
           fetch(`/api/housing/${id}`, { cache: "no-store" }),
           fetch("/api/missions?scope=owner&limit=200", { cache: "no-store" }),
           fetch("/api/service-requests?limit=100", { cache: "no-store" }),
-          fetch("/api/profiles/current", { cache: "no-store" }).catch(() => null),
+          fetch("/api/profiles/me", { cache: "no-store" }).catch(() => null),
         ]);
 
         const housingPayload = await housingResponse.json();

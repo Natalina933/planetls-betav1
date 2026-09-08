@@ -452,7 +452,7 @@ export default function OwnerConciergesPageClient() {
 
     async function loadProfileDefaults() {
       try {
-        const response = await fetch("/api/profiles/current", { cache: "no-store" });
+        const response = await fetch("/api/profiles/me", { cache: "no-store" });
         const payload = (await response.json()) as CurrentOwnerProfilePayload;
         if (!response.ok || cancelled) return;
 

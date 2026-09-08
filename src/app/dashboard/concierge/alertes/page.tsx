@@ -76,7 +76,7 @@ export default function ConciergeAlertesPage() {
             fetch("/api/missions?scope=all&limit=80", { cache: "no-store" }),
             fetch("/api/messages/conversations?role=concierge&limit=80", { cache: "no-store" }),
             fetch("/api/housing", { cache: "no-store" }),
-            fetch("/api/profiles/current", { cache: "no-store" }),
+            fetch("/api/profiles/me", { cache: "no-store" }),
           ]);
 
         const missionsPayload = await missionsResponse.json();

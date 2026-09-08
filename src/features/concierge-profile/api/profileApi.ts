@@ -9,7 +9,7 @@ function normalizeAvatarUrl(avatarUrl: string | null) {
 }
 
 export async function fetchCurrentConciergeProfile(): Promise<ConciergeProfile> {
-  const response = await fetch("/api/profiles/current", { cache: "no-store" });
+  const response = await fetch("/api/profiles/me", { cache: "no-store" });
   const data = (await response.json()) as ConciergeProfile | { error?: string };
 
   if (!response.ok || ("error" in data && typeof data.error === "string")) {
