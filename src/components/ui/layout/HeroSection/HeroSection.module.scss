@@ -1,0 +1,373 @@
+/* HeroSection - Styles
+ * ============================================================
+ * Composant de section hero réutilisable
+ * Implémente le design immersif PlanetLS
+ */
+
+.hero {
+  position: relative;
+  width: 100%;
+  display: flex;
+  isolation: isolate;
+  background: var(--ds-color-background);
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-body);
+  line-height: var(--ds-leading-body);
+  
+  /* Utilise les tokens d'espacement */
+  padding: var(--ds-space-9) max(
+    var(--ds-space-6),
+    calc((100vw - var(--ds-layout-max-width)) / 2)
+  );
+}
+
+/* Conteneur du contenu */
+.contentContainer {
+  position: relative;
+  z-index: 1;
+  max-width: var(--ds-layout-max-width);
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Background avec image */
+.background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Image de fond */
+.image {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+/* Overlay de gradient */
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Contenu principal */
+.content {
+  max-width: 700px;
+}
+
+/* Eyebrow/Kicker */
+.eyebrow {
+  font-size: var(--ds-text-eyebrow);
+  font-weight: var(--ds-text-eyebrow-weight);
+  letter-spacing: var(--ds-text-eyebrow-letter-spacing);
+  text-transform: var(--ds-text-eyebrow-transform);
+  color: var(--ds-color-primary);
+  margin: 0 0 var(--ds-space-4);
+  display: inline-block;
+}
+
+/* Titre principal - Serif pour l'élégance */
+.title {
+  font-family: var(--ds-font-heading);
+  font-size: clamp(var(--ds-text-3xl), 4.7vw, var(--ds-text-4xl));
+  font-weight: 400;
+  color: var(--ds-color-text-inverse);
+  line-height: var(--ds-leading-heading);
+  letter-spacing: -0.035em;
+  margin: 0 0 var(--ds-space-5);
+  
+  em {
+    font-weight: 400;
+    font-style: italic;
+  }
+}
+
+/* Sous-titre */
+.subtitle {
+  font-size: var(--ds-text-lg);
+  color: rgba(248, 243, 233, 0.85);
+  line-height: 1.7;
+  margin: 0 0 var(--ds-space-6);
+  max-width: 540px;
+}
+
+/* Actions (CTA) */
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ds-space-6);
+  margin-top: var(--ds-space-6);
+}
+
+/* Alignement du contenu */
+.align-left {
+  text-align: left;
+}
+
+.align-center {
+  text-align: center;
+  margin: 0 auto;
+}
+
+.align-right {
+  text-align: right;
+  margin-left: auto;
+}
+
+/* ==========================================================================
+   VARIANTS
+   ========================================================================== */
+
+/* Variant Immersive - Image en fond avec contenu par-dessus */
+.immersive {
+  min-height: 720px;
+  
+  .contentContainer {
+    padding-top: var(--ds-space-10);
+  }
+  
+  .background {
+    z-index: 0;
+  }
+  
+  .contentContainer {
+    z-index: 1;
+  }
+  
+  .title,
+  .subtitle,
+  .eyebrow {
+    color: var(--ds-color-text-inverse);
+  }
+  
+  .eyebrow {
+    color: rgba(228, 207, 170, 0.9);
+  }
+  
+  .subtitle {
+    color: rgba(242, 238, 229, 0.9);
+  }
+}
+
+/* Variant Split - Contenu à gauche, image à droite */
+.split {
+  min-height: auto;
+  padding: var(--ds-space-8);
+  gap: var(--ds-space-8);
+  align-items: center;
+  
+  .background {
+    display: none;
+  }
+  
+  .contentContainer {
+    padding: 0;
+    display: flex;
+    gap: var(--ds-space-8);
+    align-items: center;
+  }
+  
+  .splitLeft {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .splitRight {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* Variant Centered - Contenu centré sur image */
+.centered {
+  min-height: 720px;
+  
+  .contentContainer {
+    padding-top: var(--ds-space-10);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .content {
+    max-width: 800px;
+  }
+  
+  .title,
+  .subtitle,
+  .eyebrow {
+    color: var(--ds-color-text-inverse);
+  }
+}
+
+/* ==========================================================================
+   ORNEMENT 1900
+   ========================================================================== */
+
+.ornament {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 260px;
+  height: 260px;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.12;
+  
+  /* Animation subtile du motif */
+  .namentImage {
+    animation: ornament-move 60s linear infinite;
+  }
+}
+
+.ornamentImage {
+  object-fit: contain;
+  object-position: right bottom;
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes ornament-move {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-10px, -5px);
+  }
+}
+
+/* ==========================================================================
+   ANIMATIONS
+   ========================================================================== */
+
+/* Animation reveal-up */
+.ds-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.ds-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--ds-motion-slow) var(--ds-ease-premium),
+    transform var(--ds-motion-slow) var(--ds-ease-premium);
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .hero {
+    padding: var(--ds-space-8) var(--ds-space-6);
+    min-height: 600px;
+  }
+  
+  .immersive .contentContainer {
+    padding-top: var(--ds-space-8);
+  }
+  
+  .centered .contentContainer {
+    padding-top: var(--ds-space-8);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: var(--ds-space-8) var(--ds-space-4);
+    min-height: 500px;
+  }
+  
+  .immersive .contentContainer {
+    padding-top: var(--ds-space-8);
+  }
+  
+  .centered .contentContainer {
+    padding-top: var(--ds-space-8);
+  }
+  
+  /* Split devient une colonne sur mobile */
+  .split {
+    flex-direction: column;
+    text-align: center;
+    
+    .contentContainer {
+      flex-direction: column;
+      gap: var(--ds-space-6);
+    }
+    
+    .splitLeft,
+    .splitRight {
+      width: 100%;
+      max-width: 100%;
+    }
+  }
+  
+  .title {
+    font-size: clamp(var(--ds-text-2xl), 7vw, var(--ds-text-3xl));
+  }
+  
+  .subtitle {
+    font-size: var(--ds-text-base);
+  }
+  
+  .actions {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ds-space-4);
+    
+    > * {
+      width: 100%;
+      max-width: 400px;
+    }
+  }
+  
+  /* Masquer l'ornement sur mobile pour performance */
+  .ornament {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: var(--ds-space-6) var(--ds-space-4);
+    min-height: 450px;
+  }
+  
+  .immersive .contentContainer {
+    padding-top: var(--ds-space-6);
+  }
+  
+  .centered .contentContainer {
+    padding-top: var(--ds-space-6);
+  }
+  
+  .title {
+    font-size: clamp(var(--ds-text-xl), 8vw, var(--ds-text-2xl));
+  }
+}
+
+/* ==========================================================================
+   REDUCED MOTION
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .hero,
+  .hero *,
+  .hero *::before,
+  .hero *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  .ds-reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

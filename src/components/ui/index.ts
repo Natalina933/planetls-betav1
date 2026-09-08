@@ -34,6 +34,17 @@ export type { ContainerProps } from "./Container";
 export { Section } from "./Section";
 export type { SectionProps } from "./Section";
 
+// Layout Components (PHASE 2)
+export { HeroSection, SimpleHero, HomeHero } from "./layout/HeroSection";
+export type { HeroSectionProps } from "./layout/HeroSection";
+export { 
+  BorderedSection, 
+  HomeSection, 
+  CreamSection,
+  StorySection 
+} from "./layout/Section";
+export type { StorySectionProps } from "./layout/Section";
+
 export { Input } from "./Input";
 export type { InputProps } from "./Input";
 
@@ -44,7 +55,9 @@ export { Loader } from "./Loader";
 export type { LoaderProps } from "./Loader";
 
 export { AsyncState } from "./AsyncState";
-export type { AsyncStateProps } from "./AsyncState";
+export type { AsyncStateProps, AsyncStateValue } from "./AsyncState";
+export { Alert } from "./Alert";
+export type { AlertProps } from "./Alert";
 
 export { Checkbox } from "./Checkbox";
 export type { CheckboxProps } from "./Checkbox";
