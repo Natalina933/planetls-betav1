@@ -31,7 +31,7 @@ interface UseRevealOptions {
 }
 
 interface UseRevealReturn {
-  ref: RefObject<HTMLDivElement>;
+  ref: RefObject<HTMLDivElement | null>;
   isVisible: boolean;
   className: string;
 }

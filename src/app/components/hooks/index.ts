@@ -13,5 +13,3 @@ export {
   useParallax,
   useReducedMotion,
 } from "./useReveal";
-
-export type { UseRevealOptions, UseRevealReturn } from "./useReveal";
