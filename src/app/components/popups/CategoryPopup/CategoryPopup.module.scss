@@ -40,6 +40,8 @@
     border-color: #d4af37;
     transform: translateY(-1px);
   }
+
+  @include common.closeButton;
 }
 
 .introText {
@@ -65,7 +67,7 @@
   border-radius: 14px;
   background: rgba(80, 103, 170, 0.08);
 
-  > div:first-child {
+  >div:first-child {
     display: grid;
     gap: 0.2rem;
   }
@@ -91,7 +93,7 @@
   border-radius: 14px;
   background: rgba(64, 120, 87, 0.08);
 
-  > div:first-child {
+  >div:first-child {
     display: grid;
     gap: 0.2rem;
   }

@@ -50,6 +50,7 @@ import {
   type ConciergeOwnerProfile,
 } from "./useConciergeDashboardData";
 import ConciergeDashboardModeControls from "./ConciergeDashboardModeControls";
+import ConciergeRoutePreview from "./ConciergeRoutePreview";
 import {
   CONCIERGE_OPERATING_MODE_CONFIG,
   CONCIERGE_WIDGET_STORAGE_KEY,
@@ -319,7 +320,7 @@ function ConciergeInspirationPanel({
 
       const payload = (await response.json()) as { error?: string };
       if (!response.ok) {
-        throw new Error(payload.error || "Impossible d'enregistrer la bibliotheque d'inspiration.");
+        throw new Error(payload.error || "Impossible d'enregistrer la bibliothèque d'inspiration.");
       }
 
       setVideos(nextVideos);
@@ -380,7 +381,7 @@ function ConciergeInspirationPanel({
           <div className={styles.panelHeader}>
             <div>
               <span className={styles.panelEyebrow}>Ajout progressif</span>
-              <h4>Alimenter la bibliotheque</h4>
+              <h4>Alimenter la bibliothèque</h4>
             </div>
             <Link href="/dashboard/concierge/profile?tab=fiche#Videos_d_inspiration" className={styles.inlineLink}>
               Ouvrir la fiche
@@ -403,11 +404,11 @@ function ConciergeInspirationPanel({
               onClick={addVideos}
               disabled={saving || videoDraft.trim().length === 0}
             >
-              {saving ? "Enregistrement..." : "Ajouter ces videos"}
+              {saving ? "Enregistrement..." : "Ajouter ces vidéos"}
             </button>
 
             <label className={styles.inspirationField}>
-              <span>Recherche a memoriser</span>
+              <span>Recherche à mémoriser</span>
               <div className={styles.searchDraftRow}>
                 <input
                   type="text"
@@ -421,7 +422,7 @@ function ConciergeInspirationPanel({
                   onClick={addSearch}
                   disabled={saving || searchDraft.trim().length === 0}
                 >
-                  Memoriser
+                  Mémoriser
                 </button>
               </div>
             </label>
@@ -442,7 +443,7 @@ function ConciergeInspirationPanel({
                 type="search"
                 value={filter}
                 onChange={(event) => setFilter(event.target.value)}
-                placeholder="Rechercher dans la bibliotheque"
+                placeholder="Rechercher dans la bibliothèque"
               />
             </label>
           </div>
@@ -477,7 +478,7 @@ function ConciergeInspirationPanel({
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`}
-                      alt={`Apercu YouTube ${video.id}`}
+                      alt={`Aperçu YouTube ${video.id}`}
                       loading="lazy"
                       />
                       <span className={styles.inspirationPlayBadge}>Lecture</span>
@@ -499,7 +500,7 @@ function ConciergeInspirationPanel({
             </div>
           ) : (
             <DashboardEmptyState
-              title="Aucune video visible"
+              title="Aucune vidéo visible"
               copy="Ajoutez des liens YouTube ou enregistrez quelques recherches pour enrichir votre veille."
             />
           )}
@@ -1160,6 +1161,7 @@ export default function DashboardPage() {
     <div className="theme-concierge">
       <UnifiedRoleDashboard
         role="concierge"
+        className="concierge-dashboard"
         title={`${getGreetingLabel()} ${conciergeName}, voici votre cockpit ${operatingModeConfig.shortLabel.toLowerCase()} du jour.`}
         subtitle={`${operatingModeConfig.dashboardLead} ${housings.length} actif(s), ${openMissionCount} mission(s), ${todayArrivals} moment(s) du jour et ${quotesToSend.length} opportunité(s) à traiter.`}
         experienceBadge={user?.years_experience ? `${user.years_experience} ans d'expérience` : operatingModeConfig.badge}
@@ -1229,7 +1231,9 @@ export default function DashboardPage() {
           },
         ]}
         leftPrimary={
-          <div className={styles.primaryGrid}>
+          <div className={styles.leftPrimaryStack}>
+            <ConciergeRoutePreview events={todayPlanning} />
+            <div className={styles.primaryGrid}>
             <article className={styles.priorityHeroCard}>
               <div className={styles.priorityTop}>
                 <DashboardStatusBadge
@@ -1344,6 +1348,7 @@ export default function DashboardPage() {
                   )}
                 </div>
               </section>
+            </div>
             </div>
           </div>
         }

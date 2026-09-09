@@ -5,6 +5,7 @@
  */
 
 .hero {
+  box-sizing: border-box;
   position: relative;
   width: 100%;
   display: flex;
@@ -111,11 +112,13 @@
 .align-center {
   text-align: center;
   margin: 0 auto;
+  .content { margin-inline: auto; }
 }
 
 .align-right {
   text-align: right;
   margin-left: auto;
+  .content { margin-left: auto; }
 }
 
 /* ==========================================================================
@@ -127,7 +130,7 @@
   min-height: 720px;
   
   .contentContainer {
-    padding-top: var(--ds-space-10);
+    padding-top: 0;
   }
   
   .background {
@@ -155,6 +158,8 @@
 
 /* Variant Split - Contenu à gauche, image à droite */
 .split {
+  .title { color: var(--ds-color-text-primary); }
+  .subtitle { color: var(--ds-color-text-secondary); }
   min-height: auto;
   padding: var(--ds-space-8);
   gap: var(--ds-space-8);
@@ -187,7 +192,7 @@
   min-height: 720px;
   
   .contentContainer {
-    padding-top: var(--ds-space-10);
+    padding-top: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -220,8 +225,8 @@
   opacity: 0.12;
   
   /* Animation subtile du motif */
-  .namentImage {
-    animation: ornament-move 60s linear infinite;
+  .ornamentImage {
+    animation: ornament-move 4s ease-in-out 1;
   }
 }
 

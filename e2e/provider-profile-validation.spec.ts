@@ -1,13 +1,12 @@
 import { test, expect } from "@playwright/test";
-import { loginAs } from "./test-utils/auth";
-import { mockProviderProfiles, mockProviderProfileWithDocuments } from "./test-utils/mocks";
+import { loginWorkspace } from "./helpers/workspace";
 
 // Tests pour la Phase 2: Profil Artisan - Édition, Validation et Densité locale
 
 test.describe("Provider Profile - Phase 2", () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, request }) => {
     // Se connecter en tant que provider/artisan
-    await loginAs(page, "provider");
+    await loginWorkspace(page, request, "provider");
   });
 
   test.describe("Édition du profil artisan", () => {
@@ -53,9 +52,9 @@ test.describe("Provider Profile - Phase 2", () => {
 });
 
 test.describe("Validation admin des profils artisans", () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, request }) => {
     // Se connecter en tant qu'admin
-    await loginAs(page, "admin");
+    await loginWorkspace(page, request, "admin");
   });
 
   test("devrait afficher la page de validation des artisans", async ({ page }) => {
@@ -108,7 +107,7 @@ test.describe("Validation admin des profils artisans", () => {
 });
 
 test.describe("API Provider Profile", () => {
-  test("devrait retourner le profil provider avec la complétude", async ({ request }) => {
+  test("devrait retourner le profil provider avec la complétude", async () => {
     // Cela serait un test API direct, mais Playwright est surtout pour les tests E2E
     // On vérifie plutôt que l'API est appelée correctement depuis le frontend
     

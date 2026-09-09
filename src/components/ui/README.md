@@ -1,4 +1,49 @@
-# Design System PlanetLS - Phase 1
+# Design System PlanetLS
+
+## Layout et animations — phase 2
+
+Utiliser les imports directs pour distinguer `layout/Section` de l’ancien composant `ui/Section` :
+
+```tsx
+import { HeroSection } from "@/components/ui/layout/HeroSection/HeroSection";
+import { Section, StorySection } from "@/components/ui/layout/Section/Section";
+import { ButtonLink } from "@/components/ui";
+
+<HeroSection
+  backgroundImage="/images/hero-warmv2.jpg"
+  backgroundImageAlt="Un intérieur lumineux"
+  title="Prenez soin de votre logement"
+  animated={false}
+  actions={<ButtonLink href="/parcours">Découvrir PlanetLS</ButtonLink>}
+/>
+<Section variant="soft" title="Une gestion plus simple">
+  <p>Les informations utiles au même endroit.</p>
+</Section>
+```
+
+`HeroSection` : variantes `immersive`, `centered`, `split` ; `rightContent` pour le split ; `overlay` accepte `dark`, `light`, `gold`, `none` ou un gradient CSS. `title` génère un h1 : ne pas multiplier les titres principaux d’une page. Sans `minHeight`, les règles responsive s’appliquent ; une valeur explicite les remplace. `priority` est réservé au visuel principal au-dessus de la ligne de flottaison. `children` est optionnel. `HomeHero` et `SimpleHero` sont des raccourcis.
+
+`Section` : variantes `default`, `soft`, `muted`, `transparent`, `gold`, `green`. `title` génère un h2. `maxWidth`, `paddingY`, `paddingX`, `gap` remplacent explicitement les valeurs responsive ; sinon les styles du composant s’appliquent. `ornament` active le motif existant ou une URL personnalisée. `StorySection` reçoit `textContent`, `visualContent` et `order` (`text-first` ou `visual-first`) ; l’ordre du DOM suit l’ordre demandé, y compris sur mobile.
+
+```tsx
+import {
+  useReveal,
+  useStaggeredReveal,
+  useParallax,
+} from "@/components/ui/motion";
+
+// Dans un composant client : appliquer ref et className sur le même élément.
+const reveal = useReveal({ animation: "reveal-down" });
+const cascade = useStaggeredReveal(2, 100);
+const decor = useParallax(0.1);
+// <div ref={reveal.ref} className={reveal.className}>Contenu</div>
+// <div ref={cascade.ref} className={cascade.className}>Contenu suivant</div>
+// <div ref={decor.ref} style={decor.style} aria-hidden="true">Décor</div>
+```
+
+Les reveals n’occultent pas le contenu initial. Le délai en cascade est plafonné à 2 secondes et annulé au démontage. La réduction des animations interrompt les délais et mouvements ; le parallax se limite à 48 px et aux éléments décoratifs. Les classes CSS globales sont gérées par les hooks : ne pas ajouter manuellement une classe masquant le contenu.
+
+Validation reproductible : `npm run lint`, `npm run typecheck`, `npm run build`, puis `npx playwright test --config e2e/home-heritage.config.ts`. Cette suite vérifie le socle et la Home avec API simulées, pas les permissions d’une base réelle.
 
 ## Sources et responsabilites
 

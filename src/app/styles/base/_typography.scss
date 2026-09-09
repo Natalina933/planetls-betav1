@@ -2,26 +2,39 @@
 // Applique les styles typographiques de base aux éléments HTML.
 
 body {
-    font-family: var(--font-main);
-    font-size: var(--font-size-base);
-    line-height: var(--line-height);
-    font-weight: var(--font-weight-normal);
+    font-family: var(--ds-font-body);
+    font-size: var(--ds-text-base);
+    line-height: var(--ds-leading-body);
+    font-weight: 400;
 }
 
-h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-title);
-    font-weight: var(--font-weight-bold);
-    line-height: 1.2;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--ds-font-heading);
+    font-weight: 700;
+    line-height: var(--ds-leading-heading);
 }
 
-h1 { font-size: var(--font-size-title-xl); }
-h2 { font-size: var(--font-size-title); }
-h3 { font-size: var(--font-size-title-md); }
+h1 {
+    font-size: var(--ds-text-4xl);
+}
+
+h2 {
+    font-size: var(--ds-text-2xl);
+}
+
+h3 {
+    font-size: var(--ds-text-xl);
+}
 
 a {
-    color: var(--color-primary);
+    color: var(--ds-color-accent);
     text-decoration: none;
-    
+
     &:hover {
         text-decoration: underline;
     }

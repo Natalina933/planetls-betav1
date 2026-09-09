@@ -2,7 +2,7 @@
 
 .card {
   display: grid;
-  gap: var(--ui-space-4);
+  gap: var(--ds-space-4);
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -25,23 +25,21 @@
 }
 
 .dark {
-  background: linear-gradient(
-    145deg,
-    var(--ds-color-dark-soft),
-    var(--ds-color-dark)
-  );
+  background: linear-gradient(145deg,
+      var(--ds-color-dark-soft),
+      var(--ds-color-dark));
   border-color: color-mix(in srgb, var(--ds-color-gold) 42%, transparent);
   color: var(--ds-color-text-inverse);
   box-shadow: var(--ds-shadow-md);
 }
 
 .small {
-  max-width: var(--ui-card);
+  max-width: 100%;
   padding: var(--ds-space-4);
 }
 
 .large {
-  max-width: var(--ui-card-large-max);
+  max-width: 100%;
   padding: var(--ds-space-5);
   gap: var(--ds-space-5);
 }
@@ -59,9 +57,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--ui-space-3);
-  padding-bottom: var(--ui-space-3);
-  border-bottom: 1px solid color-mix(in srgb, var(--ds-color-gold) 16%, var(--ds-color-border));
+  gap: var(--ds-space-3);
+  padding-bottom: var(--ds-space-3);
+  border-bottom: 1px solid color-mix(in srgb, var(--ds-color-primary) 16%, var(--ds-color-border));
   position: relative;
 }
 
@@ -73,19 +71,19 @@
   width: 68px;
   height: 2px;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--ds-color-gold), transparent);
+  background: linear-gradient(90deg, var(--ds-color-primary), transparent);
 }
 
 .body {
   display: grid;
-  gap: var(--ui-space-3);
+  gap: var(--ds-space-3);
 }
 
 .footer {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--ui-space-3);
+  gap: var(--ds-space-3);
 }
 
 :global([data-theme="art-deco"]) .card::after,
@@ -104,6 +102,7 @@
 }
 
 @media (max-width: 768px) {
+
   .small,
   .large {
     max-width: 100%;

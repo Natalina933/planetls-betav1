@@ -1,4 +1,62 @@
 # Master Plan PlanetLS
+
+### Harmonisation visuelle transverse — 9 septembre 2026
+
+- `PLS-DS-001` reste **🟡 En cours — P1 Prioritaire**. Le socle visuel partagé a été harmonisé pour les pages et popups qui réutilisent les primitives existantes, sans déclarer la refonte de chaque écran métier terminée.
+- Réalisation : `src/styles/tokens/_legacy-root.scss` devient une couche de compatibilité dynamique vers les tokens `--ds-*` ; la typographie globale, les espacements et le layout commun les utilisent directement. `Button`, `Card`, `StatsCard`, le shell dashboard, la sidebar, la navbar et les trois popups publics (`AccessPopup`, `CategoryPopup`, `ExperiencePopup`) convergent vers les surfaces, rayons, ombres, couleurs et transitions canoniques déjà définis. Les hooks de mouvement disposent désormais d'une façade `src/components/ui/motion.ts` utilisée par l'atelier Design System.
+- Décision : conserver les accents de rôle existants dans la navigation, mais supprimer les palettes concurrentes pour la structure commune. Les contrats TypeScript, routes, permissions, données persistées et variantes de props restent inchangés. Aucun composant métier n'a été remplacé par une maquette et aucune dépendance n'a été ajoutée.
+- Vérifications : compilation SCSS réussie, `npm.cmd run lint` réussi, `npm.cmd run typecheck` réussi, test d'architecture Design System `2/2` réussi, snapshot UI régénéré uniquement pour les fichiers UI concernés et suite globale `333 réussis, 1 ignoré, 0 échec`. La page `/design-system/fondations` a été relue dans le navigateur à 390 px : largeur document 375 px et scrollWidth 375 px, sans débordement horizontal.
+- Limites : les dashboards réels redirigent vers `/login` sans session partagée dans le navigateur intégré ; leurs captures connectées et leurs popups métier ne sont donc pas certifiées dans ce lot. Les styles locaux historiques persistent dans plusieurs pages et modales spécialisées.
+- Supabase/RLS : aucune migration, permission, API, lecture/écriture Supabase ou parcours serveur n'a été modifié. La vérification RLS n'est pas applicable à ce lot de styles et reste celle des chantiers métier concernés.
+- Prochaines actions : reprendre les modales métier spécialisées et les pages réelles une par une après ouverture d'une session de recette, puis exécuter la matrice visuelle 1600/1366/768/390 px, le clavier, `prefers-reduced-motion` et les états loading/erreur/vide. Ne pas déclarer la convergence totale avant ces preuves.
+
+### Prototype tournée concierge — 9 septembre 2026
+
+- `PLS-DS-001` reste **🟡 En cours — P1 Prioritaire**. Un prototype Design System autonome est disponible sur `/design-system/trajets` pour tester la tournée du jour avant toute intégration dans les pages métier.
+- Réalisation : `src/app/design-system/trajets/routeTourData.ts` centralise six arrêts fictifs au Barcarès ; `RouteTourPrototype.tsx` compose l’état principal, la mission suivante, quatre KPI, la progression, l’alerte de retard, la carte mock sélectionnable, la timeline et les onglets Tournée/Planning. Les styles restent dans `RouteTourPrototype.module.scss` et réutilisent les tokens `--ds-*`.
+- Réutilisation : `Button`, `Card`, `Badge`, `Alert`, `StatsCard` et `Tabs` existants. Aucun doublon de carte cartographique ni dépendance ajoutée ; Leaflet déjà présent dans le projet n’est pas requis par ce prototype.
+- Décision : conserver une carte CSS fictive pour garder l’atelier autonome, préparer une future abstraction cartographique et éviter toute API de géolocalisation ou donnée Supabase. Les actions Démarrer, Itinéraire et Réorganiser restent des simulations visuelles.
+- Vérifications : typecheck réussi, compilation SCSS réussie, route rendue dans le navigateur, absence de débordement à 390, 768, 1366 et 1600 px, interactions tabs/sélection carte/réorganisation vérifiées sur mobile. Les zones cliquables et labels de statut utilisent des textes et états accessibles, pas la couleur seule.
+- Limites : la carte ne représente pas encore un fond géographique réel ni un calcul d’itinéraire ; les données sont explicitement fictives ; aucune vraie page concierge, planning, mission ou trajet n’a été modifiée. La recette visuelle desktop complète et les tests Playwright dédiés restent à ajouter si ce prototype est validé.
+- Prochaines candidates, sans intégration dans ce lot : dashboard concierge, missions du jour, planning concierge, détail d’une mission, puis une future vue trajet/tournée ; supervision admin seulement après validation du parcours concierge.
+
+### Première intégration cockpit concierge — 9 septembre 2026
+
+- `PLS-DS-001` reste **🟡 En cours — P1 Prioritaire**. Le dashboard réel `/dashboard/concierge` intègre désormais une prévisualisation de tournée sans remplacer sa composition métier ni son chargement de données.
+- Réalisation : `ConciergeRoutePreview.tsx` et `ConciergeRoutePreview.module.scss` consomment `todayPlanning` issu de `useConciergeDashboardData`. Le cockpit affiche la prochaine étape, la progression indicative, l’ordre chronologique, les rappels prioritaires et un lien vers le planning complet. L’état vide reste explicite quand aucune mission réelle n’est planifiée.
+- Décision : ne pas injecter `routeTourData.ts` ni la carte CSS fictive du Design System dans la production. Les distances et adresses ne sont pas inventées ; elles restent dans le planificateur métier existant. Le composant reste une couche de présentation et ne modifie aucune API, permission, donnée persistée ou règle de tournée.
+- Réutilisation : tokens `--ds-*`, icônes `lucide-react`, conventions de statut et navigation existante. L’action principale renvoie vers `/dashboard/concierge/planning` pour conserver le parcours métier canonique.
+- Vérifications : lint ciblé réussi, typecheck application/Playwright réussi, compilation SCSS réussie. Page connectée vérifiée sur desktop : aperçu visible, lien planning présent, aucun débordement. Mobile vérifié à 390 px : viewport effectif 375 px, scrollWidth 375 px, état vide rendu sans débordement lorsque les données réseau ne remontent pas d’étape.
+- Limites : la progression est indicative car l’API dashboard ne fournit pas encore un statut de tournée consolidé ; les distances, la carte réelle et la réorganisation restent dans le planificateur. Aucun test E2E dédié au nouveau bloc n’a été ajouté dans ce lot.
+
+### Phase 2 — socle consolidé et documenté — 9 septembre 2026
+
+- **✅ Terminé — P1 Prioritaire**, pour le périmètre confirmé : 2.1 tokens, 2.2 `HeroSection`/`Section`, 2.3 hooks d’animation, 2.4 documentation, 2.5 validation technique. `PLS-DS-001` reste globalement **🟡 En cours — P1 Prioritaire** : la phase 3 est intégrée mais sa recette complète et ses mesures de production restent ouvertes.
+- Tokens : alias Home reliés au DS, ajout du sauge canonique, exports `spacing` complets de 0 à 10 et `motion` sans duplication des valeurs. Les thèmes locaux sont conservés. Les contrastes de toutes les combinaisons historiques ne sont pas déclarés certifiés.
+- Composants : les valeurs par défaut de `Section` ne bloquent plus les media queries ; `StorySection` respecte l’ordre demandé dans le DOM ; le motif pointe sur un fichier existant avec un alt vide. Hero split lisible sur fond clair, contenu centré/droit effectivement aligné. Aucun composant générique supplémentaire hors périmètre ni nouvelle dépendance.
+- Motion : reveal/cascade unifiés avec contenu initial lisible, variantes montante/descendante, délai plafonné et annulé au démontage. Parallax décoratif borné à 48 px, calcul regroupé par frame, arrêt des écouteurs et remise à zéro lors de l’activation de la réduction des animations. Ornemente animés une seule fois. Le hero Home conserve `animated={false}`.
+- Documentation : `DESIGN_SYSTEM.md`, `src/components/ui/README.md` et `docs/webdesign/04-roadmap-mise-en-oeuvre.md` actualisés. Exemples interactifs publics dans `/design-system/fondations` (volet « Sections partagées et animations »), sans données métier. Contradiction résolue : la roadmap affichait les phases 2/3 en attente malgré le code intégré ; les tableaux détaillés initiaux sont identifiés comme plan historique, distinct du périmètre courant.
+- Preuves finales : lint global, TypeScript application/Playwright et build production réussis (187 pages statiques). Cinq scénarios Playwright/Edge réussis : variantes partagées, cinq largeurs, ordre DOM, réduction dynamique des animations, lecture sans JavaScript, Home et interactions existantes, cartes publiques avec réponses simulées. Capture `test-results/design-system-section-mobile.png` relue. Encodage UTF-8 sans BOM et diff contrôlés. La suite réutilise le serveur de recette existant ; l’indisponibilité agent-browser constatée précédemment reste contournée par Edge/Playwright.
+- Roadmap/limites : poursuivre la recette utilisateur de la Home, l’audit WCAG complet et les mesures LCP/CLS/INP en production. Migration globale des polices et optimisation de tous les anciens assets hors socle courant, pas déclarées terminées. Aucune nouvelle idée hors demande. Pas de migration, de nouvelle lecture Supabase ou de changement de permission ; vérification RLS connectée des intégrations existantes toujours distincte des tests UI simulés.
+
+### Déblocage des contrôles globaux — validation des prestataires — 9 septembre 2026
+
+- Correction des prédicats de filtrage TypeScript dans l’API admin : clés contrôlées par `satisfies`, accès aux champs sans assertion et rôle nullable conforme au schéma. La requête sélectionne désormais `website`, `legal_form` et `siret`, déjà comptés dans les 15 champs de complétude mais auparavant absents ; un profil entièrement renseigné peut atteindre 100 % au lieu d’être plafonné à 80 %. Ces champs ne sont pas ajoutés à la réponse JSON.
+- Nettoyage des imports, paramètres et callbacks inutilisés dans la page de validation et son fichier E2E. L’import E2E inexistant `test-utils/auth` est remplacé par le helper partagé `loginWorkspace`. La sélection d’une carte expose `aria-pressed` et fonctionne au clavier avec Entrée/Espace. Aucun changement de règle de validation des justificatifs ni de filtre métier.
+- Déblocage technique **✅ Terminé — P1 Prioritaire**. Vérifications finales : `npm.cmd run lint`, `npm.cmd run typecheck` (application et Playwright) et `npm.cmd run build` réussis, 187 pages statiques générées. Quatre tests de contrat des justificatifs professionnels, contrôle global d’encodage et `git diff --check` réussis. Aucun test E2E connecté ni contrôle RLS sur base réelle déclaré réussi dans cette correction.
+- Permissions/RLS : revue du garde `requireApiRole` avant toute requête (admin/super_admin autorisés, absence de session 401, autres rôles 403) ; parcours serveur avec clé de service. Politique des justificatifs relue : lecture par propriétaire du profil ou service, autres profils exclus. Vérifications dynamiques d’accès autorisé/refus entre rôles et tenants encore à rejouer sur base de recette. Aucun changement de politique ni migration.
+- Pilotage : priorité globale `PLS-DS-001` maintenue **P1 Prioritaire — 🟡 En cours** ; le déblocage technique ne clôt pas la recette visuelle et les mesures de performance de la Home. Pas de nouvelle idée ni de document redondant. Contradiction levée : les blocages build/lint/TypeScript cités dans l’entrée précédente sont désormais historiques et résolus par cette correction.
+
+### Phase 3 — intégration de la Home au Design System — 9 septembre 2026
+
+- `PLS-DS-001` reste **P1 Prioritaire — 🟡 En cours** : intégration de `HeroSection` et `Section` dans `/home`, hero photographique avec gradient personnalisé et motif floral animé une seule fois, sections de fonctionnement et profils animées, aperçu produit responsive en HTML et copyright. Les blocs existants, vidéo, liens et composants de données publiques sont conservés. Aucune dépendance ajoutée.
+- Décisions : le hero est visible immédiatement pour éviter une attente liée au reveal ; les sections intégrées restent lisibles avant hydratation et sans JavaScript. Le mode de réduction des animations force leur visibilité. Le showcase est une illustration explicitement légendée, pas une capture d’un compte ni un tableau de données inventées. Pas de parallax continu ajouté ; les guides et outils restent en préparation.
+- Consolidation de la phase 2 : overlay personnalisé auparavant ignoré, hauteur inline empêchant le responsive, nom de classe du motif incorrect, `children` obligatoire dans les variantes simplifiées, export de `HeroSectionProps` absent et typage de `StorySection` corrigés. Le callback `RoleFollowUp` transmet désormais l’action du devis sélectionné. Le bilan antérieur « phase 2 terminée, seul RoleFollowUp bloque » était incomplet au regard du code et des contrôles actuels.
+- Preuves : lint ciblé réussi ; trois scénarios Playwright/Edge réussis sur la Home avec API interceptées (1600, 1366, 1024, 768 et 390 px, absence de débordement, navigation mobile, volets, vidéo au clavier, première visite et cartes publiques). Un quatrième scénario réussi vérifie la réduction des animations et la lecture sans JavaScript. Captures desktop/mobile relues. Agent-browser échoue à se connecter (erreur 10060), recours à Edge/Playwright. Contrôle d’encodage global et `git diff --check` réussis.
+- Limites : build compilé puis bloqué par le typage préexistant de `src/app/api/admin/providers/validation/route.ts` (prédicats et rôle nullable). Le lint global relève aussi des erreurs préexistantes dans la page et les tests de validation des prestataires. Ces fichiers sont hors périmètre de cette refonte. Aucun build global réussi ni déploiement déclaré.
+- Prochaines actions : recette visuelle utilisateur, mesures LCP/CLS/INP sur un build de production débloqué, audit WCAG AA complet. La phase 3 n’est pas déclarée entièrement validée sur ces critères. Roadmap métier et priorité inchangées ; aucun audit redondant ni nouvelle idée hors demande.
+- Supabase : aucune API, permission, migration ou nouvelle lecture/écriture modifiée. La Home réutilise l’API publique existante ; tests UI avec réponses simulées uniquement. Checklist RLS sur base réelle toujours ouverte : lecture publique autorisée, refus des données privées entre rôles/tenants et parcours serveur. Aucune migration à tester.
+
 ### Home Belle Époque revisitée — consolidation du brief visuel du 8 septembre 2026
 
 - `PLS-DS-001` reste **P1 Prioritaire — 🟡 En cours**. Audit préalable : les 14 blocs cibles sont présents ; photos humaines, intérieur, vidéo réelle, palette `--home-*`, serif/sans-serif, arabesque `ornement-right.svg` et composants métier sont conservés. Aucune section supprimée ou fusionnée dans ce complément. Les parcours détaillés, services et profils du réseau restent dans les volets existants ; le récit expose toujours réservations, missions, interventions, documents, dépenses et prestataires.
@@ -7,6 +65,7 @@
 - Contradiction éditoriale : aucune route de conseils publiés n’existe. Le CTA demandé « Voir tous les conseils » est affiché désactivé avec explication associée « En préparation ». Aucun article, kit, avis, professionnel ou mécanisme de réseau fictif introduit. La vidéo et les routes existantes sont conservées.
 - Vérifications : lint ciblé réussi, contrôle UTF-8 sans BOM et diff sans erreurs ; TypeScript global toujours limité par l’erreur préexistante `RoleFollowUp.tsx`/`ArtDecoQuote`. Tests Playwright sur la vraie page Next.js avec API interceptées : 1600/1366/1024/768/390, photos, absence de débordement, navigation mobile, volets, vidéo au clavier, première visite, rendu des données publiques et cartes éditoriales. Captures sous `test-results/home-heritage-*`, `home-viewport-*` et `home-concierges-*`. Résultat final des scénarios à confirmer après la dernière correction de couleur. Agent-browser reste indisponible (canal CDP) ; Edge/Playwright utilisé. Aucun build global ni déploiement validé.
 - Limites et pilotage : aucune permission, API ou migration modifiée ; pas de nouvelle lecture Supabase. Vérifications connectées des profils publics et RLS (autorisé/refus/données non publiques/parcours serveur) toujours à rejouer sur une base disponible, distinctes de ces tests UI. Priorités et roadmap métier inchangées ; revue visuelle utilisateur et publication future des ressources restent ouvertes. Aucune nouvelle idée en doublon.
+
 ### Home éditoriale Belle Époque — 8 septembre 2026
 
 - `PLS-DS-001` reste **P1 Prioritaire — 🟡 En cours**. Refonte de `/home` demandée : photographie immersive, palette crème/vert/doré, titres serif, sections aérées, récit du logement, trois profils, professionnels, réseau local, valeurs, carnet et outils en préparation. Texte séparé dans `home.content.ts`, palette `--home-*` isolée dans les tokens canoniques, présentation dans `HomePage.module.scss`. Aucune nouvelle dépendance.
@@ -102,12 +161,12 @@ Décision du 6 septembre 2026 — Unifier l’atelier visuel, centraliser les so
 - Réutilisation : `TableFilters` reçoit deux libellés optionnels pour les accents dans les prototypes ; ses valeurs par défaut restent inchangées. Seule son empreinte UI est actualisée dans ce lot après relecture, sans renouvellement global des snapshots. Les changements de sécurité, Personas et navigation présents séparément dans l'espace de travail sont préservés.
 - Validation navigateur : **6 tests réussis**, dont les quatre espaces, la comparaison et le test existant du référentiel. HTTP 200, JavaScript chargé, bascules réelles chargement/vide/erreur/actif, recherche et filtres, réinitialisation, clavier, focus, menu mobile, boutons ≥44 px, aucune erreur console/React, aucune mutation réseau observée. Les mutations sont bloquées par le test. Pas de nouveau défaut d'hydratation : le défaut historique d'attente prématurée n'est pas reproduit.
 
-| Prototype | 1600 px | 1366 px | 768 px | 390 px | Surface réduite équivalente à 200 % |
-| --- | --- | --- | --- | --- | --- |
-| Admin | Réussi | Réussi | Réussi | Réussi, table à défilement interne | Réussi à 683 px |
-| Propriétaire | Réussi | Réussi | Réussi | Réussi, cartes complètes | Réussi à 683 px |
-| Concierge | Réussi | Réussi | Réussi | Réussi, action prioritaire visible | Réussi à 683 px |
-| Artisan | Réussi | Réussi | Réussi | Réussi, action prioritaire visible | Réussi à 683 px |
+| Prototype    | 1600 px | 1366 px | 768 px | 390 px                             | Surface réduite équivalente à 200 % |
+| ------------ | ------- | ------- | ------ | ---------------------------------- | ----------------------------------- |
+| Admin        | Réussi  | Réussi  | Réussi | Réussi, table à défilement interne | Réussi à 683 px                     |
+| Propriétaire | Réussi  | Réussi  | Réussi | Réussi, cartes complètes           | Réussi à 683 px                     |
+| Concierge    | Réussi  | Réussi  | Réussi | Réussi, action prioritaire visible | Réussi à 683 px                     |
+| Artisan      | Réussi  | Réussi  | Réussi | Réussi, action prioritaire visible | Réussi à 683 px                     |
 
 - Preuves locales : `test-results/dashboard-prototypes-report.json`, 16 captures dans `test-results/dashboard-prototypes/`, contraste attaché au rapport ; scripts `e2e/dashboard-prototypes.spec.ts` et `e2e/dashboard-prototypes.config.ts`. Contrôles ciblés UI/pilotage **12/12**, ESLint ciblé et UTF-8 réussis ; compilation isolée réussie avec 177 pages générées (`test-results/design-system-build.log`). Le serveur utilisateur reste ouvert ; la pile Docker de tests de sécurité a été arrêtée en conservant ses volumes pour libérer la mémoire.
 - Incidents résolus : Chromium Playwright absent, remplacement par Edge installé ; test de focus corrigé pour utiliser Tab/Shift+Tab ; légende mobile trop étroite corrigée ; action concierge initialement située sous la première fenêtre remontée ; test de numérotation mis à jour après le passage P2 → P1 demandé. Pas de masquage d'erreurs React ni d'affaiblissement des contrôles de mutations.
@@ -152,12 +211,12 @@ Décision du 6 septembre 2026 — Retirer le blocage d'infrastructure de PLS-SEC
 
 Objectif de travail : deux personnes par cible externe, soit six sessions, puis une session interne avec Nathalie. Ce volume sert à organiser une première vague qualitative ; ce n’est ni un échantillon représentatif ni un seuil automatique de validation. Sessions non planifiées à ce jour. Responsable de la sélection et de l’observation : direction produit, accompagnée si nécessaire d’un observateur prenant les notes.
 
-| Cible du référentiel | Situation à rechercher | Consigne d’observation, sans suggérer la solution | Hypothèses à confronter | Lots concernés |
-| --- | --- | --- | --- | --- |
-| Sophie — `owner-individual` | Une personne gérant seule 1–2 logements et une personne déléguant effectivement | « Montrez comment vous avez préparé votre dernier séjour, choisi qui intervient et vérifié que le logement était prêt. » | Autonomie ou délégation réellement pratiquée ; responsable identifié ; valeur d’une preuve ; modalités d’accès et de règlement | `PLS-DEV-009`, `PLS-DEV-008`, `PLS-DEV-030`, `PLS-SEC-003`, `PLS-DEV-010` |
-| Claire — `concierge-independent` | Deux indépendantes travaillant personnellement sur les opérations, idéalement à des volumes différents dans le segment 5–15 logements | « Reconstituez votre dernière journée chargée, puis montrez comment vous avez traité un changement de dernière minute. » | Priorisation personnelle, dispersion des consignes, temps administratif, accès au logement et preuve de travail | `PLS-DEV-004`, `PLS-DEV-009`, `PLS-DEV-015`, `PLS-CAP-006`, `PLS-DEV-030`, `PLS-DEV-029` |
-| Karim — `provider` | Deux indépendants intervenant pour des propriétaires/conciergeries, avec des métiers ou rythmes différents | « Reprenez une intervention récente, du premier contact jusqu’au règlement, et montrez où vous avez dû demander une précision. » | Canal d’acquisition réel, périmètre avant acceptation, responsable, payeur et preuve du règlement final | `PLS-DEV-005`, `PLS-DEV-007`, `PLS-CAP-006`, `PLS-DEV-010` |
-| Nathalie — `admin` | Une session d’usage interne réel, datée | « Retrouvez un blocage technique actuel, sa preuve, puis expliquez la décision que vous prenez et ce qui vous manque. » | Distinguer traitement administratif quotidien, arbitrage produit et indicateurs réellement observés | `PLS-DEV-006`, `PLS-DEV-014`, `PLS-ADM-001`, `PLS-KPI-001`, `PLS-BIZ-001` |
+| Cible du référentiel             | Situation à rechercher                                                                                                                | Consigne d’observation, sans suggérer la solution                                                                                | Hypothèses à confronter                                                                                                        | Lots concernés                                                                           |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Sophie — `owner-individual`      | Une personne gérant seule 1–2 logements et une personne déléguant effectivement                                                       | « Montrez comment vous avez préparé votre dernier séjour, choisi qui intervient et vérifié que le logement était prêt. »         | Autonomie ou délégation réellement pratiquée ; responsable identifié ; valeur d’une preuve ; modalités d’accès et de règlement | `PLS-DEV-009`, `PLS-DEV-008`, `PLS-DEV-030`, `PLS-SEC-003`, `PLS-DEV-010`                |
+| Claire — `concierge-independent` | Deux indépendantes travaillant personnellement sur les opérations, idéalement à des volumes différents dans le segment 5–15 logements | « Reconstituez votre dernière journée chargée, puis montrez comment vous avez traité un changement de dernière minute. »         | Priorisation personnelle, dispersion des consignes, temps administratif, accès au logement et preuve de travail                | `PLS-DEV-004`, `PLS-DEV-009`, `PLS-DEV-015`, `PLS-CAP-006`, `PLS-DEV-030`, `PLS-DEV-029` |
+| Karim — `provider`               | Deux indépendants intervenant pour des propriétaires/conciergeries, avec des métiers ou rythmes différents                            | « Reprenez une intervention récente, du premier contact jusqu’au règlement, et montrez où vous avez dû demander une précision. » | Canal d’acquisition réel, périmètre avant acceptation, responsable, payeur et preuve du règlement final                        | `PLS-DEV-005`, `PLS-DEV-007`, `PLS-CAP-006`, `PLS-DEV-010`                               |
+| Nathalie — `admin`               | Une session d’usage interne réel, datée                                                                                               | « Retrouvez un blocage technique actuel, sa preuve, puis expliquez la décision que vous prenez et ce qui vous manque. »          | Distinguer traitement administratif quotidien, arbitrage produit et indicateurs réellement observés                            | `PLS-DEV-006`, `PLS-DEV-014`, `PLS-ADM-001`, `PLS-KPI-001`, `PLS-BIZ-001`                |
 
 Thomas, Nicolas et Inès restent secondaires ; noter les besoins d’équipe qui émergent sans les assimiler à ceux du prestataire indépendant. Élodie et Voyageur restent hors pilote. Une personne recrutée ne porte pas le nom fictif du persona : utiliser un identifiant de participant pseudonymisé, par exemple `P-001`, sans inscrire ses coordonnées dans le dépôt.
 
@@ -174,17 +233,17 @@ L’enregistrement audio/vidéo n’est pas obligatoire ; demander l’accord de
 
 Copier ce modèle uniquement lorsqu’une session a eu lieu ; les champs vides ne valent pas « zéro » ou « validé ». Aucun enregistrement d’observation n’est créé dans cette préparation.
 
-| Champ | Contenu attendu |
-| --- | --- |
-| Identifiant / dates | Identifiant de session, date réelle de l’observation, date du cas raconté si différente, date de saisie |
-| Participant / observateur | Identifiant pseudonymisé, rôle réel et personne ayant pris les notes ; usage interne ou externe |
-| Persona et contexte | ID du persona, segment réellement constaté, mode de collaboration, fréquence déclarée ou observée |
-| Source / nature | Référence vers une note ou trace accessible à la direction produit ; entretien déclaré, action observée, test de maquette ou test applicatif |
-| Tâche et environnement | Objectif donné, outil ou version testée, données fictives ou éléments de pratique montrés, étapes réellement parcourues |
-| Résultat factuel | Actions réalisées, résultat, erreurs, aide fournie, durée si mesurée ; indiquer « non mesuré » sinon |
-| Besoin et première valeur | Besoin spontané ou induit, valeur effectivement obtenue ou seulement attendue, contre-exemples et limites |
-| Interprétation séparée | Hypothèse confirmée, contredite ou indéterminée, avec justification ; ne pas transformer l’interprétation en verbatim |
-| Relations et suite | ID du besoin dans `personas.ts`, lots PLS concernés, prochaine vérification, responsable ; aucune nouvelle priorité automatique |
+| Champ                     | Contenu attendu                                                                                                                              |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Identifiant / dates       | Identifiant de session, date réelle de l’observation, date du cas raconté si différente, date de saisie                                      |
+| Participant / observateur | Identifiant pseudonymisé, rôle réel et personne ayant pris les notes ; usage interne ou externe                                              |
+| Persona et contexte       | ID du persona, segment réellement constaté, mode de collaboration, fréquence déclarée ou observée                                            |
+| Source / nature           | Référence vers une note ou trace accessible à la direction produit ; entretien déclaré, action observée, test de maquette ou test applicatif |
+| Tâche et environnement    | Objectif donné, outil ou version testée, données fictives ou éléments de pratique montrés, étapes réellement parcourues                      |
+| Résultat factuel          | Actions réalisées, résultat, erreurs, aide fournie, durée si mesurée ; indiquer « non mesuré » sinon                                         |
+| Besoin et première valeur | Besoin spontané ou induit, valeur effectivement obtenue ou seulement attendue, contre-exemples et limites                                    |
+| Interprétation séparée    | Hypothèse confirmée, contredite ou indéterminée, avec justification ; ne pas transformer l’interprétation en verbatim                        |
+| Relations et suite        | ID du besoin dans `personas.ts`, lots PLS concernés, prochaine vérification, responsable ; aucune nouvelle priorité automatique              |
 
 #### Règles de décision et mise à jour du référentiel
 
@@ -227,17 +286,17 @@ Dernier contrôle Windows : SVM est actif et les deux composants WSL/VirtualMach
 - Cœur produit cible : **logement → besoin/séjour → responsable → mission → exécution → preuve → validation → paiement → historique**. La présence d’un écran ou le statut terminé d’un lot ne prouve pas la couverture complète de cette chaîne pour chaque persona.
 - Couverture : 23 besoins reliés à leurs étapes, avec évaluations documentaires explicitement déclarées, sources, limites et date de revue. Les statuts DEV/DATA/SEC sont relus par le parseur du registre existant ; les capacités CAP sont lues dans leurs lignes de cartographie, avec leurs statuts bruts. Aucun taux ni score de couverture calculé depuis un statut. Référence absente, document indisponible ou évaluation absente restent visibles comme inconnus. Les appréciations de couverture nécessitent une nouvelle revue après évolution du code.
 
-| Persona | Besoins et liens PLS vérifiés | Rupture principale conservée |
-| --- | --- | --- |
-| Sophie | Séjour : `PLS-DEV-009`, `PLS-DATA-003` ; responsable et accès : `PLS-DEV-008`, `PLS-DEV-030`, `PLS-SEC-003` ; preuve et règlement : `PLS-CAP-006`, `PLS-DEV-010` | La création de réservation owner exige encore une concierge. Autonomie, aide ponctuelle, délégation partielle/régulière et remplacement sont des modes cibles, pas cinq workflows livrés. |
-| Thomas | Portefeuille : `PLS-DEV-003`, `PLS-DATA-003` ; responsabilités : `PLS-DEV-008`, `PLS-SEC-003` ; résultats : `PLS-CAP-012`, `PLS-DEV-010` | Import de portefeuille indisponible selon l’audit transmis ; segment unique retenu : 5 logements ou plus. |
-| Claire | Journée personnelle : `PLS-DEV-004`, `PLS-DEV-009` ; exécution et accès : `PLS-DEV-015`, `PLS-DEV-030`, `PLS-CAP-006` ; demandes : `PLS-DEV-008`, `PLS-DEV-029` | Continuité séjour → tâche → accès → preuve encore partielle. |
-| Nicolas | Accès équipe : `PLS-CAP-013`, `PLS-DEV-001` ; charge : `PLS-CAP-004`, `PLS-DEV-009` ; contrôle : `PLS-CAP-006`, `PLS-DEV-004` | Créer un membre avec `linked_profile_id` optionnel ne fournit pas un accès personnel complet. |
-| Inès | Compte et périmètre autorisé : `PLS-CAP-013`, `PLS-DEV-001` ; consignes et accès : `PLS-DEV-009`, `PLS-DEV-030` ; preuve : `PLS-CAP-006` | Invitation → compte → missions autorisées incomplet. Salariée/collaboratrice de conciergerie, distincte de Karim. |
-| Karim | Acquisition/profil : `PLS-DEV-005`, `PLS-DEV-007` ; intervention : `PLS-CAP-006` ; paiement : `PLS-DEV-010` | Acquisition, payeur et règlement final à clarifier ; paiement d’une facture owner ne prouve pas le versement au prestataire. |
-| Nathalie | Administration quotidienne : `PLS-DEV-006`, `PLS-DEV-011`, `PLS-ADM-001` ; arbitrage fondatrice : `PLS-DEV-014`, `PLS-BIZ-001` ; provenance : `PLS-KPI-001`, `PLS-ADM-001` | Cockpit encore partiel ; données estimées et sources techniques manquantes ne doivent pas devenir des observations. |
-| Élodie | Aucun lot de marketplace fournisseurs identifié ; ne pas créer de relation artificielle avec les stocks | Rôle et parcours commercial futurs, hors pilote. |
-| Voyageur | `PLS-DEV-009` uniquement comme contexte du séjour | Aucun espace voyageur autonome engagé dans le MVP ; couverture directe inconnue. |
+| Persona  | Besoins et liens PLS vérifiés                                                                                                                                              | Rupture principale conservée                                                                                                                                                              |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sophie   | Séjour : `PLS-DEV-009`, `PLS-DATA-003` ; responsable et accès : `PLS-DEV-008`, `PLS-DEV-030`, `PLS-SEC-003` ; preuve et règlement : `PLS-CAP-006`, `PLS-DEV-010`           | La création de réservation owner exige encore une concierge. Autonomie, aide ponctuelle, délégation partielle/régulière et remplacement sont des modes cibles, pas cinq workflows livrés. |
+| Thomas   | Portefeuille : `PLS-DEV-003`, `PLS-DATA-003` ; responsabilités : `PLS-DEV-008`, `PLS-SEC-003` ; résultats : `PLS-CAP-012`, `PLS-DEV-010`                                   | Import de portefeuille indisponible selon l’audit transmis ; segment unique retenu : 5 logements ou plus.                                                                                 |
+| Claire   | Journée personnelle : `PLS-DEV-004`, `PLS-DEV-009` ; exécution et accès : `PLS-DEV-015`, `PLS-DEV-030`, `PLS-CAP-006` ; demandes : `PLS-DEV-008`, `PLS-DEV-029`            | Continuité séjour → tâche → accès → preuve encore partielle.                                                                                                                              |
+| Nicolas  | Accès équipe : `PLS-CAP-013`, `PLS-DEV-001` ; charge : `PLS-CAP-004`, `PLS-DEV-009` ; contrôle : `PLS-CAP-006`, `PLS-DEV-004`                                              | Créer un membre avec `linked_profile_id` optionnel ne fournit pas un accès personnel complet.                                                                                             |
+| Inès     | Compte et périmètre autorisé : `PLS-CAP-013`, `PLS-DEV-001` ; consignes et accès : `PLS-DEV-009`, `PLS-DEV-030` ; preuve : `PLS-CAP-006`                                   | Invitation → compte → missions autorisées incomplet. Salariée/collaboratrice de conciergerie, distincte de Karim.                                                                         |
+| Karim    | Acquisition/profil : `PLS-DEV-005`, `PLS-DEV-007` ; intervention : `PLS-CAP-006` ; paiement : `PLS-DEV-010`                                                                | Acquisition, payeur et règlement final à clarifier ; paiement d’une facture owner ne prouve pas le versement au prestataire.                                                              |
+| Nathalie | Administration quotidienne : `PLS-DEV-006`, `PLS-DEV-011`, `PLS-ADM-001` ; arbitrage fondatrice : `PLS-DEV-014`, `PLS-BIZ-001` ; provenance : `PLS-KPI-001`, `PLS-ADM-001` | Cockpit encore partiel ; données estimées et sources techniques manquantes ne doivent pas devenir des observations.                                                                       |
+| Élodie   | Aucun lot de marketplace fournisseurs identifié ; ne pas créer de relation artificielle avec les stocks                                                                    | Rôle et parcours commercial futurs, hors pilote.                                                                                                                                          |
+| Voyageur | `PLS-DEV-009` uniquement comme contexte du séjour                                                                                                                          | Aucun espace voyageur autonome engagé dans le MVP ; couverture directe inconnue.                                                                                                          |
 
 - Roadmap et dépendances : sécurité inscription/rôles, sessions/permissions, migrations reproductibles, CI/TypeScript/E2E, Stripe et `PLS-SEC-003` restent prioritaires et non clôturés. Aucune priorité ni statut du registre structuré modifié par ce lot ; aucun nouveau P0 créé. Les déclarations de couverture n’effacent pas les limites d’application des migrations et des RLS déjà consignées.
 - Extensions : assistant éditorial (`PLS-AI-001`), images déco (`PLS-AI-002`) et PWA complète (`PLS-DEV-027`) restent P4. Marketplace fournisseurs et espace voyageur restent des idées futures sans nouveau lot artificiel. **Contradiction signalée avant toute modification** : tournées (`PLS-DEV-020`) et compte rendu vocal (`PLS-DEV-021`) sont historiquement P2 ; ils restent hors prérequis MVP dans la lecture Personas, mais leurs priorités ne sont pas rétrogradées silencieusement en P4. Un éventuel reclassement demande un arbitrage distinct.
@@ -347,6 +406,7 @@ Dernier contrôle Windows : SVM est actif et les deux composants WSL/VirtualMach
 - Vérification : `node --experimental-strip-types --test src/tests/mission-checklist-persistence-contract.test.mts src/tests/mission-object-center.test.mts` PASS `4/4`; `npx eslint src/app/api/missions/[id]/route.ts src/tests/mission-checklist-persistence-contract.test.mts` PASS; `npm test` PASS `274/274`; `npm run check:migrations` PASS; `npm run development:check` PASS.
 - Limites connues : `npx tsc --noEmit --pretty false` reste bloqué par des erreurs existantes dans `src/tests/admin-problems.test.mts` lignes 46-50, sans erreur dans les fichiers de ce lot. `supabase db push --local` n'a pas pu valider la migration sur base existante car aucun Postgres Supabase local ne répondait sur `127.0.0.1:54322`.
 - Prochaine étape recommandée : ce lot checklist est maintenant complété par le lot compte-rendu prestataire du même jour ; valider l'ensemble P0-006 sur Supabase local frais + existant avec E2E connecté.
+
 ### Mise à jour ciblée - Lot 1 de la priorité cockpit P0-007 `PLS-SEC-003` du 2 septembre 2026
 
 - Statut : `🟡 En cours`
@@ -873,12 +933,12 @@ Ce document remplace les nouveaux audits transverses comme support de pilotage. 
 
 ### Definitions de gouvernance
 
-| Terme | Definition operationnelle |
-| --- | --- |
-| Mission importante | Modification d'un parcours utilisateur, d'une regle metier, d'une API, d'un schema de donnees, d'une permission, d'une integration externe, d'une dependance majeure ou d'un risque produit/technique. |
-| Evolution significative | Modification susceptible de changer le statut, la priorite, les preuves, les dependances, les limites connues ou la roadmap d'un sujet du Master Plan. |
-| Audit | Analyse factuelle et datee du code, des migrations, des tests et, si applicable, des donnees ou integrations. Il produit des preuves, ecarts et prochaines actions sans remplacer le Master Plan. |
-| Workflow | Chaine de transitions metier ou techniques avec declencheur, acteur ou systeme responsable, permissions, donnees persistantes, erreurs et resultat attendu. |
+| Terme                   | Definition operationnelle                                                                                                                                                                              |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Mission importante      | Modification d'un parcours utilisateur, d'une regle metier, d'une API, d'un schema de donnees, d'une permission, d'une integration externe, d'une dependance majeure ou d'un risque produit/technique. |
+| Evolution significative | Modification susceptible de changer le statut, la priorite, les preuves, les dependances, les limites connues ou la roadmap d'un sujet du Master Plan.                                                 |
+| Audit                   | Analyse factuelle et datee du code, des migrations, des tests et, si applicable, des donnees ou integrations. Il produit des preuves, ecarts et prochaines actions sans remplacer le Master Plan.      |
+| Workflow                | Chaine de transitions metier ou techniques avec declencheur, acteur ou systeme responsable, permissions, donnees persistantes, erreurs et resultat attendu.                                            |
 
 ### Regles migrations et permissions Supabase
 
@@ -891,13 +951,13 @@ Ce document remplace les nouveaux audits transverses comme support de pilotage. 
 
 Les decisions significatives sont ajoutees dans la section `10. Journal du projet`. Le format obligatoire y rend explicites la date, la decision, sa justification, les alternatives rejetees et son impact :
 
-| Champ | Contenu attendu |
-| --- | --- |
-| Date | Date de la decision ou de sa confirmation. |
-| Decision | Arbitrage retenu, formule de maniere actionnable. |
-| Justification | Preuves, risque ou besoin qui motive l'arbitrage. |
-| Alternatives rejetees | Options ecartees et raison concise. |
-| Impact | Fichiers, fonctionnalites, dependances, priorites ou limites touches. |
+| Champ                 | Contenu attendu                                                       |
+| --------------------- | --------------------------------------------------------------------- |
+| Date                  | Date de la decision ou de sa confirmation.                            |
+| Decision              | Arbitrage retenu, formule de maniere actionnable.                     |
+| Justification         | Preuves, risque ou besoin qui motive l'arbitrage.                     |
+| Alternatives rejetees | Options ecartees et raison concise.                                   |
+| Impact                | Fichiers, fonctionnalites, dependances, priorites ou limites touches. |
 
 Les limites connues doivent etre consignees soit dans la mise a jour ciblee du lot, soit dans la section de la fonctionnalite concernee. Chaque limite indique son perimetre, son impact, la preuve disponible et la prochaine action ou condition de levee.
 
@@ -951,21 +1011,10 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Inscription propriétaire représentative couverte en E2E",
         "Parcours principal couvert en E2E"
       ],
-      "dependencies": [
-        "PLS-DEV-013",
-        "PLS-SEC-005"
-      ],
+      "dependencies": ["PLS-DEV-013", "PLS-SEC-005"],
       "blocker": null,
-      "routes": [
-        "/login",
-        "/register",
-        "/api/auth"
-      ],
-      "files": [
-        "src/server/auth/",
-        "src/app/login/",
-        "src/app/register/"
-      ],
+      "routes": ["/login", "/register", "/api/auth"],
+      "files": ["src/server/auth/", "src/app/login/", "src/app/register/"],
       "progressLabel": "Connexion E2E locale validée pour owner, concierge, provider et admin ; inscription owner validée, variantes concierge/artisan et parcours legacy encore incomplets.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
       "evidence": [
@@ -996,23 +1045,13 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Événements d'onboarding exploitables",
         "Aucune étape legacy bloquante"
       ],
-      "dependencies": [
-        "PLS-DEV-001"
-      ],
+      "dependencies": ["PLS-DEV-001"],
       "blocker": null,
-      "routes": [
-        "/onboarding"
-      ],
-      "files": [
-        "src/app/onboarding/",
-        "src/features/onboarding-assistant/"
-      ],
+      "routes": ["/onboarding"],
+      "files": ["src/app/onboarding/", "src/features/onboarding-assistant/"],
       "progressLabel": "Concierge plus mûr que owner/provider ; convergence encore nécessaire.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
-      "evidence": [
-        "src/app/onboarding/",
-        "src/features/onboarding-assistant/"
-      ]
+      "evidence": ["src/app/onboarding/", "src/features/onboarding-assistant/"]
     },
     {
       "id": "PLS-DEV-003",
@@ -1031,15 +1070,9 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Priorités, missions et séjours lisibles",
         "Parcours finances owner documenté et vérifié"
       ],
-      "dependencies": [
-        "PLS-DEV-008",
-        "PLS-DEV-013"
-      ],
+      "dependencies": ["PLS-DEV-008", "PLS-DEV-013"],
       "blocker": null,
-      "routes": [
-        "/dashboard/owner",
-        "/dashboard/owner/finances/overview"
-      ],
+      "routes": ["/dashboard/owner", "/dashboard/owner/finances/overview"],
       "files": [
         "src/app/dashboard/owner/",
         "src/components/dashboard/unified/"
@@ -1054,7 +1087,10 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Documenter la séparation entre fiche owner et préférences de collaboration, puis vérifier le parcours connecté en bout en bout."
       ],
       "githubIssues": [
-        { "number": 14, "url": "https://github.com/Natalina933/planetls-betav1/issues/14" }
+        {
+          "number": 14,
+          "url": "https://github.com/Natalina933/planetls-betav1/issues/14"
+        }
       ]
     },
     {
@@ -1074,19 +1110,10 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Données critiques persistées",
         "Flux terrain priorisés vérifiés"
       ],
-      "dependencies": [
-        "PLS-DEV-008",
-        "PLS-DEV-009"
-      ],
+      "dependencies": ["PLS-DEV-008", "PLS-DEV-009"],
       "blocker": null,
-      "routes": [
-        "/dashboard/concierge",
-        "/dashboard/concierge/planning"
-      ],
-      "files": [
-        "src/app/dashboard/concierge/",
-        "src/app/api/concierge/"
-      ],
+      "routes": ["/dashboard/concierge", "/dashboard/concierge/planning"],
+      "files": ["src/app/dashboard/concierge/", "src/app/api/concierge/"],
       "progressLabel": "Base très avancée, mais une part du métier reste encore semi-structurée.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
       "evidence": [
@@ -1111,19 +1138,10 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Profil métier persistant",
         "Preuves et facture liées vérifiées"
       ],
-      "dependencies": [
-        "PLS-DEV-008",
-        "PLS-DEV-010",
-        "PLS-DEV-013"
-      ],
+      "dependencies": ["PLS-DEV-008", "PLS-DEV-010", "PLS-DEV-013"],
       "blocker": null,
-      "routes": [
-        "/dashboard/provider"
-      ],
-      "files": [
-        "src/app/dashboard/provider/",
-        "src/app/api/provider/"
-      ],
+      "routes": ["/dashboard/provider"],
+      "files": ["src/app/dashboard/provider/", "src/app/api/provider/"],
       "progressLabel": "Fonctionnel en profondeur, mais une revalidation globale est nécessaire après les derniers lots transverses.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
       "evidence": [
@@ -1134,7 +1152,10 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Revalider l'enchaînement profil, documents privés, devis, intervention et facture avec un compte provider réel."
       ],
       "githubIssues": [
-        { "number": 13, "url": "https://github.com/Natalina933/planetls-betav1/issues/13" }
+        {
+          "number": 13,
+          "url": "https://github.com/Natalina933/planetls-betav1/issues/13"
+        }
       ]
     },
     {
@@ -1154,10 +1175,7 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Pages contrôle, pilotage et développement reliées",
         "Lecture dégradée explicite quand une source manque"
       ],
-      "dependencies": [
-        "PLS-DEV-012",
-        "PLS-DEV-013"
-      ],
+      "dependencies": ["PLS-DEV-012", "PLS-DEV-013"],
       "blocker": null,
       "routes": [
         "/dashboard/admin",
@@ -1165,10 +1183,7 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "/dashboard/admin/pilotage",
         "/dashboard/admin/developpement"
       ],
-      "files": [
-        "src/app/dashboard/admin/",
-        "src/app/api/admin/"
-      ],
+      "files": ["src/app/dashboard/admin/", "src/app/api/admin/"],
       "progressLabel": "Structure premium et partagée en place ; la fiabilité de certaines lectures reste encore à sécuriser.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
       "evidence": [
@@ -1193,29 +1208,21 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Signaux de confiance cohérents",
         "Règles d'ouverture publique explicites"
       ],
-      "dependencies": [
-        "PLS-DEV-001"
-      ],
+      "dependencies": ["PLS-DEV-001"],
       "blocker": null,
-      "routes": [
-        "/dashboard/provider/profile",
-        "/concierges/[id]"
-      ],
-      "files": [
-        "src/app/dashboard/provider/",
-        "src/app/concierges/"
-      ],
+      "routes": ["/dashboard/provider/profile", "/concierges/[id]"],
+      "files": ["src/app/dashboard/provider/", "src/app/concierges/"],
       "progressLabel": "Les profils avancent, mais le niveau de preuve reste encore inégal selon les rôles.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
-      "evidence": [
-        "src/app/concierges/[id]/",
-        "src/app/dashboard/provider/"
-      ],
+      "evidence": ["src/app/concierges/[id]/", "src/app/dashboard/provider/"],
       "missingWork": [
         "Formaliser la cible de chaque persona et une matrice de données publiables, éditables et réservées."
       ],
       "githubIssues": [
-        { "number": 10, "url": "https://github.com/Natalina933/planetls-betav1/issues/10" }
+        {
+          "number": 10,
+          "url": "https://github.com/Natalina933/planetls-betav1/issues/10"
+        }
       ]
     },
     {
@@ -1240,15 +1247,9 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Transitions serveur validées",
         "Parcours principal prouvé avec données persistées"
       ],
-      "dependencies": [
-        "PLS-DEV-001",
-        "PLS-DEV-013"
-      ],
+      "dependencies": ["PLS-DEV-001", "PLS-DEV-013"],
       "blocker": null,
-      "routes": [
-        "/dashboard/owner/demandes",
-        "/dashboard/concierge/demandes"
-      ],
+      "routes": ["/dashboard/owner/demandes", "/dashboard/concierge/demandes"],
       "files": [
         "src/app/api/service-requests/",
         "src/app/api/quotes/",
@@ -1280,15 +1281,9 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Planning exploitable",
         "Affectation et preuve documentées"
       ],
-      "dependencies": [
-        "PLS-DEV-008",
-        "PLS-DEV-013"
-      ],
+      "dependencies": ["PLS-DEV-008", "PLS-DEV-013"],
       "blocker": null,
-      "routes": [
-        "/dashboard/concierge/planning",
-        "/dashboard/owner/planning"
-      ],
+      "routes": ["/dashboard/concierge/planning", "/dashboard/owner/planning"],
       "files": [
         "src/app/api/reservations/",
         "src/app/dashboard/concierge/planning/",
@@ -1318,14 +1313,9 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Facture synchronisée",
         "Parcours transactionnel vérifié"
       ],
-      "dependencies": [
-        "PLS-DEV-008",
-        "PLS-DEV-013"
-      ],
+      "dependencies": ["PLS-DEV-008", "PLS-DEV-013"],
       "blocker": "La preuve E2E locale dépend encore des secrets Stripe de test et d'une validation connectée.",
-      "routes": [
-        "/api/billing/webhook"
-      ],
+      "routes": ["/api/billing/webhook"],
       "files": [
         "src/app/api/billing/",
         "src/app/api/quotes/",
@@ -1333,10 +1323,7 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       ],
       "progressLabel": "Le socle est avancé mais la preuve transactionnelle doit rester explicitement vérifiée.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
-      "evidence": [
-        "src/app/api/billing/",
-        "src/tests/"
-      ]
+      "evidence": ["src/app/api/billing/", "src/tests/"]
     },
     {
       "id": "PLS-DEV-011",
@@ -1360,10 +1347,7 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Transitions et historique tracés",
         "Zone À traiter alimentée sans doublon"
       ],
-      "dependencies": [
-        "PLS-DEV-006",
-        "PLS-DEV-013"
-      ],
+      "dependencies": ["PLS-DEV-006", "PLS-DEV-013"],
       "blocker": null,
       "evidence": [
         "supabase/migrations/20260824110000_admin_problems_lot1.sql",
@@ -1373,9 +1357,7 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "src/tests/admin-control-tower-actions.test.mts",
         "e2e/admin-control-actions.spec.ts"
       ],
-      "routes": [
-        "/dashboard/admin/controle"
-      ],
+      "routes": ["/dashboard/admin/controle"],
       "files": [
         "src/app/dashboard/admin/(operations)/controle/",
         "src/app/api/admin/"
@@ -1409,9 +1391,7 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       ],
       "dependencies": [],
       "blocker": null,
-      "routes": [
-        "/dashboard/admin"
-      ],
+      "routes": ["/dashboard/admin"],
       "files": [
         "src/app/dashboard/admin/layout.tsx",
         "src/app/dashboard/admin/adminAccess.ts",
@@ -1448,14 +1428,8 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       ],
       "dependencies": [],
       "blocker": null,
-      "routes": [
-        "/dashboard/admin/developpement"
-      ],
-      "files": [
-        "src/tests/",
-        "e2e/",
-        "package.json"
-      ],
+      "routes": ["/dashboard/admin/developpement"],
+      "files": ["src/tests/", "e2e/", "package.json"],
       "progressLabel": "331 tests réussis, 1 connecté ignoré ; TypeScript, lint et build validés. CI Node 22 préparée, 5 E2E détectés mais non rejoués ; sessions et base isolée restent ouvertes.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
       "evidence": [
@@ -1482,14 +1456,9 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Commande de contrôle en échec clair sur données invalides",
         "État de synchronisation visible dans la page"
       ],
-      "dependencies": [
-        "PLS-DEV-006",
-        "PLS-DEV-013"
-      ],
+      "dependencies": ["PLS-DEV-006", "PLS-DEV-013"],
       "blocker": null,
-      "routes": [
-        "/dashboard/admin/developpement"
-      ],
+      "routes": ["/dashboard/admin/developpement"],
       "files": [
         "docs/master-plan-planetls.md",
         "src/app/dashboard/admin/(product-tech)/developpement/"
@@ -1518,22 +1487,16 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Les responsabilités et preuves restent persistées",
         "La routine reste exploitable sur mobile"
       ],
-      "dependencies": [
-        "PLS-DEV-009"
-      ],
+      "dependencies": ["PLS-DEV-009"],
       "blocker": null,
-      "routes": [
-        "/dashboard/concierge/planning"
-      ],
+      "routes": ["/dashboard/concierge/planning"],
       "files": [
         "src/app/dashboard/concierge/planning/",
         "src/app/api/reservations/"
       ],
       "progressLabel": "Idée priorisée : transformer les répétitions opérationnelles en gabarits persistants et traçables.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
-      "evidence": [
-        "Analyse vidéo Les Astuces de Margaux, 24 août 2026"
-      ]
+      "evidence": ["Analyse vidéo Les Astuces de Margaux, 24 août 2026"]
     },
     {
       "id": "PLS-DEV-016",
@@ -1552,23 +1515,13 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Le nombre d'actions simultanées est limité",
         "La progression est mesurable par événements persistés"
       ],
-      "dependencies": [
-        "PLS-DEV-002",
-        "PLS-DEV-013"
-      ],
+      "dependencies": ["PLS-DEV-002", "PLS-DEV-013"],
       "blocker": null,
-      "routes": [
-        "/onboarding"
-      ],
-      "files": [
-        "src/app/onboarding/",
-        "src/features/onboarding-assistant/"
-      ],
+      "routes": ["/onboarding"],
+      "files": ["src/app/onboarding/", "src/features/onboarding-assistant/"],
       "progressLabel": "Idée à spécifier : guider la première valeur par un rythme réaliste plutôt que multiplier les tâches d'onboarding.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
-      "evidence": [
-        "Analyse vidéo Les Astuces de Margaux, 24 août 2026"
-      ]
+      "evidence": ["Analyse vidéo Les Astuces de Margaux, 24 août 2026"]
     },
     {
       "id": "PLS-DEV-017",
@@ -1587,10 +1540,7 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "La lecture aide à détecter une tendance en quelques secondes",
         "La vue n'induit pas d'interprétation financière ou opérationnelle trompeuse"
       ],
-      "dependencies": [
-        "PLS-DEV-009",
-        "PLS-DEV-013"
-      ],
+      "dependencies": ["PLS-DEV-009", "PLS-DEV-013"],
       "blocker": "Les séries métier doivent être suffisamment complètes avant toute visualisation annuelle.",
       "routes": [
         "/dashboard/owner",
@@ -1604,9 +1554,7 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       ],
       "progressLabel": "Idée exploratoire inspirée de l'année en pixels : rendre les tendances visibles sans alourdir le cockpit.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
-      "evidence": [
-        "Analyse vidéo Les Astuces de Margaux, 24 août 2026"
-      ]
+      "evidence": ["Analyse vidéo Les Astuces de Margaux, 24 août 2026"]
     },
     {
       "id": "PLS-DEV-018",
@@ -1625,15 +1573,9 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Les documents et preuves sont rattachés au logement",
         "Le lien avec mission ou incident reste explicite"
       ],
-      "dependencies": [
-        "PLS-DEV-008",
-        "PLS-DEV-009"
-      ],
+      "dependencies": ["PLS-DEV-008", "PLS-DEV-009"],
       "blocker": null,
-      "routes": [
-        "/dashboard/owner",
-        "/dashboard/concierge"
-      ],
+      "routes": ["/dashboard/owner", "/dashboard/concierge"],
       "files": [
         "src/app/dashboard/owner/",
         "src/app/dashboard/concierge/",
@@ -1641,9 +1583,7 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       ],
       "progressLabel": "Idée à valider : une page projet légère pour éviter la dispersion des informations de travaux et maintenance.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
-      "evidence": [
-        "Analyse vidéo Les Astuces de Margaux, 24 août 2026"
-      ]
+      "evidence": ["Analyse vidéo Les Astuces de Margaux, 24 août 2026"]
     },
     {
       "id": "PLS-DEV-019",
@@ -1662,10 +1602,7 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Les repères visuels restent accessibles et non décoratifs",
         "Le comportement est cohérent sur desktop et mobile"
       ],
-      "dependencies": [
-        "PLS-DEV-006",
-        "PLS-DEV-012"
-      ],
+      "dependencies": ["PLS-DEV-006", "PLS-DEV-012"],
       "blocker": null,
       "routes": [
         "/dashboard/owner",
@@ -1673,15 +1610,10 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "/dashboard/provider",
         "/dashboard/admin"
       ],
-      "files": [
-        "src/components/dashboard/",
-        "src/app/dashboard/"
-      ],
+      "files": ["src/components/dashboard/", "src/app/dashboard/"],
       "progressLabel": "Idée à spécifier : améliorer l'orientation et la continuité d'usage avec des repères simples, utiles et persistants.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
-      "evidence": [
-        "Analyse vidéo Les Astuces de Margaux, 24 août 2026"
-      ]
+      "evidence": ["Analyse vidéo Les Astuces de Margaux, 24 août 2026"]
     },
     {
       "id": "PLS-DEV-020",
@@ -1695,14 +1627,24 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Exécution terrain",
       "updatedAt": "2026-09-02",
       "nextAction": "Définir un premier mode `Ma journée` lisible sans optimisation automatique obligatoire, vérifier la fiabilité des adresses, horaires et urgences, puis cadrer une suggestion de parcours toujours modifiable.",
-      "validationCriteria": ["Les missions du jour sont visibles dans un ordre exploitable", "Le concierge peut réordonner et confirmer les étapes", "Un retard ou un problème peut être signalé sans quitter le flux", "La suggestion de tournée reste explicable et modifiable", "Aucune mission n'est déplacée automatiquement sans validation"],
+      "validationCriteria": [
+        "Les missions du jour sont visibles dans un ordre exploitable",
+        "Le concierge peut réordonner et confirmer les étapes",
+        "Un retard ou un problème peut être signalé sans quitter le flux",
+        "La suggestion de tournée reste explicable et modifiable",
+        "Aucune mission n'est déplacée automatiquement sans validation"
+      ],
       "dependencies": ["PLS-DEV-009", "PLS-DEV-015"],
       "blocker": "Les données de géolocalisation et contraintes terrain doivent être normalisées.",
       "routes": ["/dashboard/concierge/planning"],
       "files": ["src/app/dashboard/concierge/planning/"],
       "progressLabel": "La page planning expose déjà urgences, horaires et optimisation locale, mais le vrai parcours `Ma journée` avec confirmations d'étapes, retards et incidents reste à spécifier.",
       "source": "Historique P2-020 enrichi par l'audit produit du 2 septembre 2026",
-      "evidence": ["Master Plan historique : P2-020, 14 août 2026", "src/app/dashboard/concierge/planning/page.tsx", "src/app/dashboard/concierge/planning/OptimizedRoutePlanner.tsx"]
+      "evidence": [
+        "Master Plan historique : P2-020, 14 août 2026",
+        "src/app/dashboard/concierge/planning/page.tsx",
+        "src/app/dashboard/concierge/planning/OptimizedRoutePlanner.tsx"
+      ]
     },
     {
       "id": "PLS-DEV-021",
@@ -1716,14 +1658,27 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Exécution terrain",
       "updatedAt": "2026-09-02",
       "nextAction": "Spécifier le flux dictée ou transcription -> proposition structurée -> ajout de photos ou preuves -> validation -> notification owner, avec gestion explicite des anomalies et travaux à prévoir.",
-      "validationCriteria": ["Aucune écriture sans validation humaine", "Le rapport est lié à une mission, un séjour ou une intervention", "L'état du logement, les anomalies, les éléments manquants et actions recommandées sont structurés", "Les photos ou preuves restent rattachables au rapport", "La notification owner reste explicite et réversible"],
+      "validationCriteria": [
+        "Aucune écriture sans validation humaine",
+        "Le rapport est lié à une mission, un séjour ou une intervention",
+        "L'état du logement, les anomalies, les éléments manquants et actions recommandées sont structurés",
+        "Les photos ou preuves restent rattachables au rapport",
+        "La notification owner reste explicite et réversible"
+      ],
       "dependencies": ["PLS-DEV-009", "PLS-DEV-015"],
       "blocker": null,
-      "routes": ["/dashboard/concierge/missions", "/dashboard/concierge/sejours"],
+      "routes": [
+        "/dashboard/concierge/missions",
+        "/dashboard/concierge/sejours"
+      ],
       "files": ["src/app/dashboard/concierge/", "src/app/api/workflow-events/"],
       "progressLabel": "Piste historique toujours non implémentée ; le besoin est maintenant cadré aussi pour les interventions et la notification propriétaire, sans laisser l'IA écrire seule.",
       "source": "Historique P2-021 enrichi par l'audit produit du 2 septembre 2026",
-      "evidence": ["Master Plan historique : P2-021, 14 août 2026", "src/app/dashboard/concierge/sejours/page.tsx", "src/app/dashboard/concierge/missions/page.tsx"]
+      "evidence": [
+        "Master Plan historique : P2-021, 14 août 2026",
+        "src/app/dashboard/concierge/sejours/page.tsx",
+        "src/app/dashboard/concierge/missions/page.tsx"
+      ]
     },
     {
       "id": "PLS-DEV-022",
@@ -1737,14 +1692,24 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Workflow métier",
       "updatedAt": "2026-08-24",
       "nextAction": "Définir les transitions automatisables, les exceptions, les permissions et le journal d'exécution avant tout développement.",
-      "validationCriteria": ["Transitions serveur explicites", "Historique d'automatisation", "Validation humaine sur les cas sensibles"],
+      "validationCriteria": [
+        "Transitions serveur explicites",
+        "Historique d'automatisation",
+        "Validation humaine sur les cas sensibles"
+      ],
       "dependencies": ["PLS-DEV-008", "PLS-DEV-013"],
       "blocker": null,
       "routes": ["/dashboard/owner/demandes", "/dashboard/concierge/demandes"],
-      "files": ["src/app/api/service-requests/", "src/app/api/quotes/", "src/app/api/missions/"],
+      "files": [
+        "src/app/api/service-requests/",
+        "src/app/api/quotes/",
+        "src/app/api/missions/"
+      ],
       "progressLabel": "Consolide les pistes historiques P2-022 et P2-023 sans les déclarer actives.",
       "source": "docs/master-plan-planetls.md#mises-a-jour-ciblees-historiques-p2-022-p2-023",
-      "evidence": ["Master Plan historique : automatisations opérationnelles, 14 août 2026"]
+      "evidence": [
+        "Master Plan historique : automatisations opérationnelles, 14 août 2026"
+      ]
     },
     {
       "id": "PLS-DEV-023",
@@ -1758,14 +1723,23 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Gouvernance IA et automatisation",
       "updatedAt": "2026-08-24",
       "nextAction": "Faire converger le registre AUT existant vers une source persistante avant d'ouvrir des automatisations critiques supplémentaires.",
-      "validationCriteria": ["Niveau d'autonomie explicite", "Responsables renseignés", "KPI et interrupteur d'activation définis"],
+      "validationCriteria": [
+        "Niveau d'autonomie explicite",
+        "Responsables renseignés",
+        "KPI et interrupteur d'activation définis"
+      ],
       "dependencies": ["PLS-DEV-006", "PLS-DEV-013"],
       "blocker": null,
       "routes": ["/dashboard/admin/developpement"],
-      "files": ["src/app/dashboard/admin/(product-tech)/developpement/automationWorkspace.ts"],
+      "files": [
+        "src/app/dashboard/admin/(product-tech)/developpement/automationWorkspace.ts"
+      ],
       "progressLabel": "Consolide les priorités historiques P2-024 à P2-034 ; registre UI présent, persistance et gouvernance complète à faire.",
       "source": "docs/master-plan-planetls.md#registre-des-automatisations-et-cadrage-par-role",
-      "evidence": ["automationWorkspace.ts", "Master Plan historique : P2-024 à P2-034"]
+      "evidence": [
+        "automationWorkspace.ts",
+        "Master Plan historique : P2-024 à P2-034"
+      ]
     },
     {
       "id": "PLS-DEV-024",
@@ -1779,14 +1753,23 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Séjours et planning",
       "updatedAt": "2026-08-24",
       "nextAction": "Décider entre import manuel, connecteur partenaire ou synchronisation API après validation des contraintes fournisseurs et données.",
-      "validationCriteria": ["Source de réservation identifiable", "Conflits visibles", "Aucune écriture externe non maîtrisée"],
+      "validationCriteria": [
+        "Source de réservation identifiable",
+        "Conflits visibles",
+        "Aucune écriture externe non maîtrisée"
+      ],
       "dependencies": ["PLS-DEV-009"],
       "blocker": "Le mode d'intégration et les accès partenaires ne sont pas encore décidés.",
       "routes": ["/dashboard/owner/planning"],
-      "files": ["src/app/api/reservations/", "src/app/dashboard/owner/planning/"],
+      "files": [
+        "src/app/api/reservations/",
+        "src/app/dashboard/owner/planning/"
+      ],
       "progressLabel": "Besoin owner identifié dans les audits, non couvert par une intégration externe vérifiée.",
       "source": "Cahier des charges Développement et audit des parcours owner",
-      "evidence": ["docs/audit-complet-parcours-metier-proprietaire-concierge-2026-06-06.md"]
+      "evidence": [
+        "docs/audit-complet-parcours-metier-proprietaire-concierge-2026-06-06.md"
+      ]
     },
     {
       "id": "PLS-DEV-025",
@@ -1800,14 +1783,22 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Valeur financière owner",
       "updatedAt": "2026-09-02",
       "nextAction": "Auditer la qualité des séries de réservation, définir des vues comparaison de périodes et jours vacants, puis limiter la V1 à des recommandations d'aide à la décision sur prix, durée minimale, promotions ou communication.",
-      "validationCriteria": ["Le taux d'occupation et les jours vacants sont calculables de façon explicable", "Les périodes comparées et la source des réservations restent visibles", "Les recommandations sont présentées comme aides à la décision et non comme garanties de revenus", "Les jours difficiles à remplir sont identifiables sans prédiction opaque"],
+      "validationCriteria": [
+        "Le taux d'occupation et les jours vacants sont calculables de façon explicable",
+        "Les périodes comparées et la source des réservations restent visibles",
+        "Les recommandations sont présentées comme aides à la décision et non comme garanties de revenus",
+        "Les jours difficiles à remplir sont identifiables sans prédiction opaque"
+      ],
       "dependencies": ["PLS-DEV-024", "PLS-DEV-017"],
       "blocker": "Les données externes et historiques doivent être consolidées avant une recommandation.",
       "routes": ["/dashboard/owner"],
       "files": ["src/app/dashboard/owner/"],
       "progressLabel": "Piste owner toujours exploratoire ; aucune recommandation tarifaire ou garantie de remplissage n'est actuellement prouvée dans le produit.",
       "source": "Cahier des charges Développement enrichi par l'audit produit du 2 septembre 2026",
-      "evidence": ["Analyse besoins owner, août 2026", "Demande produit du 2 septembre 2026"]
+      "evidence": [
+        "Analyse besoins owner, août 2026",
+        "Demande produit du 2 septembre 2026"
+      ]
     },
     {
       "id": "PLS-DEV-026",
@@ -1821,14 +1812,23 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Qualité d'expérience",
       "updatedAt": "2026-08-24",
       "nextAction": "Transformer les recommandations non closes en scénarios de test mobile/accessibilité priorisés, puis vérifier les termes publics restants.",
-      "validationCriteria": ["Parcours critiques testés sur mobile", "Libellés métier cohérents", "Critères d'accessibilité tracés"],
+      "validationCriteria": [
+        "Parcours critiques testés sur mobile",
+        "Libellés métier cohérents",
+        "Critères d'accessibilité tracés"
+      ],
       "dependencies": ["PLS-DEV-013", "PLS-DEV-019"],
       "blocker": null,
       "routes": ["/", "/parcours", "/onboarding"],
-      "files": ["docs/guide-audit-ux-plateforme-mise-en-relation.md", "src/app/home/"],
+      "files": [
+        "docs/guide-audit-ux-plateforme-mise-en-relation.md",
+        "src/app/home/"
+      ],
       "progressLabel": "Recommandations d'audit encore à revalider face au code actuel, sans réintroduire les corrections déjà livrées.",
       "source": "docs/guide-audit-ux-plateforme-mise-en-relation.md",
-      "evidence": ["Audit UX : contrôles mobile/accessibilité et recommandations suivantes"]
+      "evidence": [
+        "Audit UX : contrôles mobile/accessibilité et recommandations suivantes"
+      ]
     },
     {
       "id": "PLS-DATA-001",
@@ -1842,16 +1842,40 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Gouvernance des données",
       "updatedAt": "2026-08-24",
       "nextAction": "Produire une matrice colonne par colonne entre profiles, availability_hours, onboarding et écrans consommateurs avant toute migration.",
-      "validationCriteria": ["Chaque champ possède une source canonique", "Les champs legacy sont identifiés", "Les lecteurs et écrivains sont connus"],
+      "validationCriteria": [
+        "Chaque champ possède une source canonique",
+        "Les champs legacy sont identifiés",
+        "Les lecteurs et écrivains sont connus"
+      ],
       "dependencies": ["PLS-DEV-007", "PLS-DEV-013"],
       "blocker": "Le schéma initial de profiles n'est pas versionné dans supabase/migrations, ce qui empêche un inventaire historique entièrement prouvé.",
-      "routes": ["/api/profiles", "/dashboard/owner/settings", "/dashboard/provider/settings"],
-      "files": ["src/app/api/profiles/pure.ts", "src/types/supabase.generated.ts", "supabase/migrations/"],
+      "routes": [
+        "/api/profiles",
+        "/dashboard/owner/settings",
+        "/dashboard/provider/settings"
+      ],
+      "files": [
+        "src/app/api/profiles/pure.ts",
+        "src/types/supabase.generated.ts",
+        "supabase/migrations/"
+      ],
       "progressLabel": "La politique de patch documente les champs modifiables, mais aucune cartographie canonique des champs et héritages n'existe encore.",
       "source": "GitHub Issue #11",
-      "evidence": ["src/app/api/profiles/pure.ts", "src/types/profile.ts", "supabase/migrations/20260517133000_profiles_public_card_image.sql"],
-      "missingWork": ["Créer la cartographie de colonnes et de JSON", "Identifier les données réellement présentes en production avant migration"],
-      "githubIssues": [{ "number": 11, "url": "https://github.com/Natalina933/planetls-betav1/issues/11" }]
+      "evidence": [
+        "src/app/api/profiles/pure.ts",
+        "src/types/profile.ts",
+        "supabase/migrations/20260517133000_profiles_public_card_image.sql"
+      ],
+      "missingWork": [
+        "Créer la cartographie de colonnes et de JSON",
+        "Identifier les données réellement présentes en production avant migration"
+      ],
+      "githubIssues": [
+        {
+          "number": 11,
+          "url": "https://github.com/Natalina933/planetls-betav1/issues/11"
+        }
+      ]
     },
     {
       "id": "PLS-DATA-002",
@@ -1865,16 +1889,37 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Gouvernance des données",
       "updatedAt": "2026-08-24",
       "nextAction": "Définir le schéma cible, un script de prévisualisation et une migration idempotente, puis valider les comptes de test avant écriture.",
-      "validationCriteria": ["Migration réversible ou sauvegardée", "Prévisualisation des données impactées", "Compatibilité lecture pendant la transition", "Validation sur jeu de données représentatif"],
+      "validationCriteria": [
+        "Migration réversible ou sauvegardée",
+        "Prévisualisation des données impactées",
+        "Compatibilité lecture pendant la transition",
+        "Validation sur jeu de données représentatif"
+      ],
       "dependencies": ["PLS-DATA-001", "PLS-DEV-013"],
       "blocker": "Aucune migration dédiée ni inventaire de données réelles ne prouve aujourd'hui la faisabilité sans risque.",
       "routes": ["/api/profiles"],
-      "files": ["src/features/owner-preferences/profilePreferences.ts", "src/app/api/profiles/route.ts", "supabase/migrations/"],
+      "files": [
+        "src/features/owner-preferences/profilePreferences.ts",
+        "src/app/api/profiles/route.ts",
+        "supabase/migrations/"
+      ],
       "progressLabel": "La lecture et l'écriture des préférences owner préservent le JSON existant, mais ce mécanisme n'est pas une stratégie de migration de données.",
       "source": "GitHub Issue #12",
-      "evidence": ["src/features/owner-preferences/profilePreferences.ts", "src/tests/owner-profile-preferences.test.mts"],
-      "missingWork": ["Décider des colonnes cibles", "Écrire la migration et son rollback", "Tester la migration sur données anonymisées"],
-      "githubIssues": [{ "number": 12, "url": "https://github.com/Natalina933/planetls-betav1/issues/12" }]
+      "evidence": [
+        "src/features/owner-preferences/profilePreferences.ts",
+        "src/tests/owner-profile-preferences.test.mts"
+      ],
+      "missingWork": [
+        "Décider des colonnes cibles",
+        "Écrire la migration et son rollback",
+        "Tester la migration sur données anonymisées"
+      ],
+      "githubIssues": [
+        {
+          "number": 12,
+          "url": "https://github.com/Natalina933/planetls-betav1/issues/12"
+        }
+      ]
     },
     {
       "id": "PLS-SEC-001",
@@ -1888,16 +1933,38 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Sécurité et cohérence",
       "updatedAt": "2026-08-24",
       "nextAction": "Décider si les politiques Set actuelles deviennent des schémas Zod partagés, puis couvrir les contraintes de format et de longueur manquantes.",
-      "validationCriteria": ["Règles par rôle explicites", "Formats métier validés", "Erreurs lisibles par l'API", "Schémas partagés entre serveur et formulaires lorsque pertinent"],
+      "validationCriteria": [
+        "Règles par rôle explicites",
+        "Formats métier validés",
+        "Erreurs lisibles par l'API",
+        "Schémas partagés entre serveur et formulaires lorsque pertinent"
+      ],
       "dependencies": ["PLS-DEV-001", "PLS-DATA-001"],
       "blocker": null,
       "routes": ["/api/profiles"],
-      "files": ["src/app/api/profiles/pure.ts", "src/app/api/profiles/route.ts", "src/tests/profile-patch-policy.test.mts"],
+      "files": [
+        "src/app/api/profiles/pure.ts",
+        "src/app/api/profiles/route.ts",
+        "src/tests/profile-patch-policy.test.mts"
+      ],
       "progressLabel": "Une whitelist par rôle, des contrôles de types et des bornes numériques existent ; les schémas complets de format et de validation partagés restent à formaliser.",
       "source": "GitHub Issue #15",
-      "evidence": ["src/app/api/profiles/pure.ts", "src/tests/profile-patch-policy.test.mts", "commit 4dd74358"],
-      "missingWork": ["Formaliser les schémas par rôle", "Ajouter les validations de format et de longueur", "Exposer les erreurs de champ au client"],
-      "githubIssues": [{ "number": 15, "url": "https://github.com/Natalina933/planetls-betav1/issues/15" }]
+      "evidence": [
+        "src/app/api/profiles/pure.ts",
+        "src/tests/profile-patch-policy.test.mts",
+        "commit 4dd74358"
+      ],
+      "missingWork": [
+        "Formaliser les schémas par rôle",
+        "Ajouter les validations de format et de longueur",
+        "Exposer les erreurs de champ au client"
+      ],
+      "githubIssues": [
+        {
+          "number": 15,
+          "url": "https://github.com/Natalina933/planetls-betav1/issues/15"
+        }
+      ]
     },
     {
       "id": "PLS-SEC-002",
@@ -1911,16 +1978,40 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Sécurité et cohérence",
       "updatedAt": "2026-08-24",
       "nextAction": "Extraire la matrice des ensembles de champs de pure.ts et comparer chaque écran éditable à cette source serveur.",
-      "validationCriteria": ["Matrice publiée dans le pilotage", "Aucun champ UI non autorisé", "Toute exception admin est explicitement documentée"],
+      "validationCriteria": [
+        "Matrice publiée dans le pilotage",
+        "Aucun champ UI non autorisé",
+        "Toute exception admin est explicitement documentée"
+      ],
       "dependencies": ["PLS-SEC-001", "PLS-DEV-007"],
       "blocker": null,
-      "routes": ["/api/profiles", "/dashboard/owner/settings", "/dashboard/provider/settings", "/dashboard/concierge/profile"],
-      "files": ["src/app/api/profiles/pure.ts", "src/app/components/dashboard/profile/EditableUnifiedProfilePage.tsx"],
+      "routes": [
+        "/api/profiles",
+        "/dashboard/owner/settings",
+        "/dashboard/provider/settings",
+        "/dashboard/concierge/profile"
+      ],
+      "files": [
+        "src/app/api/profiles/pure.ts",
+        "src/app/components/dashboard/profile/EditableUnifiedProfilePage.tsx"
+      ],
       "progressLabel": "La matrice existe en code sous forme de Sets par rôle, mais elle n'est pas encore documentée ni vérifiée contre tous les formulaires.",
       "source": "GitHub Issue #16",
-      "evidence": ["src/app/api/profiles/pure.ts", "src/tests/profile-patch-policy.test.mts"],
-      "missingWork": ["Publier la matrice canonique", "Vérifier les champs envoyés par chaque formulaire", "Documenter les différences owner_pro et admin"],
-      "githubIssues": [{ "number": 16, "url": "https://github.com/Natalina933/planetls-betav1/issues/16" }]
+      "evidence": [
+        "src/app/api/profiles/pure.ts",
+        "src/tests/profile-patch-policy.test.mts"
+      ],
+      "missingWork": [
+        "Publier la matrice canonique",
+        "Vérifier les champs envoyés par chaque formulaire",
+        "Documenter les différences owner_pro et admin"
+      ],
+      "githubIssues": [
+        {
+          "number": 16,
+          "url": "https://github.com/Natalina933/planetls-betav1/issues/16"
+        }
+      ]
     },
     {
       "id": "PLS-TEST-001",
@@ -1934,16 +2025,38 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Qualité et sécurité",
       "updatedAt": "2026-08-24",
       "nextAction": "Ajouter des tests de route authentifiés pour owner, concierge, provider et admin, puis un scénario E2E pour les préférences owner et le profil provider.",
-      "validationCriteria": ["Rejets 401 et 403 vérifiés", "Champs interdits non persistés", "Champs autorisés persistés", "Parcours owner/provider vérifiés en intégration"],
+      "validationCriteria": [
+        "Rejets 401 et 403 vérifiés",
+        "Champs interdits non persistés",
+        "Champs autorisés persistés",
+        "Parcours owner/provider vérifiés en intégration"
+      ],
       "dependencies": ["PLS-SEC-001", "PLS-SEC-002", "PLS-DEV-001"],
       "blocker": "Les tests actuels sont majoritairement unitaires ou contractuels ; une base authentifiée de test est nécessaire pour prouver les permissions de bout en bout.",
       "routes": ["/api/profiles", "/api/provider/profile-documents"],
-      "files": ["src/tests/profile-patch-policy.test.mts", "src/tests/owner-profile-preferences.test.mts", "src/tests/provider-profile-documents-contract.test.mts"],
+      "files": [
+        "src/tests/profile-patch-policy.test.mts",
+        "src/tests/owner-profile-preferences.test.mts",
+        "src/tests/provider-profile-documents-contract.test.mts"
+      ],
       "progressLabel": "La politique de patch, les préférences owner et les documents provider ont des tests ciblés, mais les permissions de profils ne sont pas prouvées en intégration multi-rôle.",
       "source": "GitHub Issue #17",
-      "evidence": ["src/tests/profile-patch-policy.test.mts", "src/tests/owner-profile-preferences.test.mts", "src/tests/provider-profile-documents-contract.test.mts"],
-      "missingWork": ["Créer les fixtures authentifiées par rôle", "Tester PATCH /api/profiles en intégration", "Ajouter un E2E de préférence owner et profil provider"],
-      "githubIssues": [{ "number": 17, "url": "https://github.com/Natalina933/planetls-betav1/issues/17" }]
+      "evidence": [
+        "src/tests/profile-patch-policy.test.mts",
+        "src/tests/owner-profile-preferences.test.mts",
+        "src/tests/provider-profile-documents-contract.test.mts"
+      ],
+      "missingWork": [
+        "Créer les fixtures authentifiées par rôle",
+        "Tester PATCH /api/profiles en intégration",
+        "Ajouter un E2E de préférence owner et profil provider"
+      ],
+      "githubIssues": [
+        {
+          "number": 17,
+          "url": "https://github.com/Natalina933/planetls-betav1/issues/17"
+        }
+      ]
     },
     {
       "id": "PLS-DATA-004",
@@ -1958,15 +2071,44 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "addedAt": "2026-08-27",
       "updatedAt": "2026-08-27",
       "nextAction": "Poursuivre séparément PLS-DATA-003 sur le schéma cible et l'élimination progressive des contrats legacy.",
-      "validationCriteria": ["La résolution canonique `housing` / `properties` est partagée", "Les dashboards, missions, demandes et réservations utilisent la même référence", "Les identifiants legacy non numériques ne provoquent pas de requête `housing` instable", "Les contrats des helpers et réservations sont couverts par tests"],
-      "validatedCriteria": ["La résolution canonique `housing` / `properties` est partagée", "Les dashboards, missions, demandes et réservations utilisent la même référence", "Les identifiants legacy non numériques ne provoquent pas de requête `housing` instable", "Les contrats des helpers et réservations sont couverts par tests"],
+      "validationCriteria": [
+        "La résolution canonique `housing` / `properties` est partagée",
+        "Les dashboards, missions, demandes et réservations utilisent la même référence",
+        "Les identifiants legacy non numériques ne provoquent pas de requête `housing` instable",
+        "Les contrats des helpers et réservations sont couverts par tests"
+      ],
+      "validatedCriteria": [
+        "La résolution canonique `housing` / `properties` est partagée",
+        "Les dashboards, missions, demandes et réservations utilisent la même référence",
+        "Les identifiants legacy non numériques ne provoquent pas de requête `housing` instable",
+        "Les contrats des helpers et réservations sont couverts par tests"
+      ],
       "dependencies": [],
       "blocker": null,
-      "routes": ["/api/owner/reservations", "/api/concierge/reservations", "/api/concierge/stays", "/api/service-requests", "/dashboard/owner", "/dashboard/concierge"],
-      "files": ["src/app/lib/listingReferences.ts", "src/app/api/owner/reservations/route.ts", "src/app/api/concierge/reservations/route.ts", "src/app/api/concierge/stays/route.ts", "src/tests/listing-references.test.mts", "src/tests/reservations-api-contract.test.mts"],
+      "routes": [
+        "/api/owner/reservations",
+        "/api/concierge/reservations",
+        "/api/concierge/stays",
+        "/api/service-requests",
+        "/dashboard/owner",
+        "/dashboard/concierge"
+      ],
+      "files": [
+        "src/app/lib/listingReferences.ts",
+        "src/app/api/owner/reservations/route.ts",
+        "src/app/api/concierge/reservations/route.ts",
+        "src/app/api/concierge/stays/route.ts",
+        "src/tests/listing-references.test.mts",
+        "src/tests/reservations-api-contract.test.mts"
+      ],
       "progressLabel": "Terminé : le pont de lecture `housing` / `properties` est mutualisé et branché sur les surfaces métier concernées. La dette de modèle de données plus large reste suivie dans PLS-DATA-003.",
       "source": "Clôture de la priorité historique P0-005, 27 août 2026",
-      "evidence": ["src/app/lib/listingReferences.ts", "src/tests/listing-references.test.mts", "src/tests/reservations-api-contract.test.mts", "21/21 tests ciblés verts le 27 août 2026"],
+      "evidence": [
+        "src/app/lib/listingReferences.ts",
+        "src/tests/listing-references.test.mts",
+        "src/tests/reservations-api-contract.test.mts",
+        "21/21 tests ciblés verts le 27 août 2026"
+      ],
       "missingWork": [],
       "githubIssues": []
     },
@@ -1983,16 +2125,33 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "addedAt": "2026-08-27",
       "updatedAt": "2026-08-27",
       "nextAction": "Rejouer le build depuis un environnement propre puis le rendre obligatoire dans la CI avant de clôturer le risque et figer la preuve hors artefacts locaux.",
-      "validationCriteria": ["Build Next.js vert depuis un clone propre", "Aucune erreur TypeScript dans les types de routes générés", "Régression couverte ou cause documentée"],
-      "validatedCriteria": ["Aucune erreur TypeScript dans les types de routes générés"],
+      "validationCriteria": [
+        "Build Next.js vert depuis un clone propre",
+        "Aucune erreur TypeScript dans les types de routes générés",
+        "Régression couverte ou cause documentée"
+      ],
+      "validatedCriteria": [
+        "Aucune erreur TypeScript dans les types de routes générés"
+      ],
       "dependencies": [],
       "blocker": null,
       "routes": ["/dashboard/admin/developpement"],
-      "files": [".next/dev/types/routes.d.ts", "src/app/dashboard/admin/(product-tech)/developpement/masterPlan.ts"],
+      "files": [
+        ".next/dev/types/routes.d.ts",
+        "src/app/dashboard/admin/(product-tech)/developpement/masterPlan.ts"
+      ],
       "progressLabel": "Le build Next.js est vert le 27 août 2026 après stabilisation des références `housing` / `properties` dans les dashboards owner/concierge, le détail mission et les demandes de service ; la reproductibilité hors artefacts locaux et le garde-fou CI restent à confirmer.",
       "source": "Audit code, rôles, PRO et paiements du 25 août 2026",
-      "evidence": ["npm run build du 25 août 2026 : BUILD_ID régénéré à 20:04:35", "Échec précédent observé sur `.next/dev/types/routes.d.ts:307`", "npm test : 260/260 PASS", "npm run build du 27 août 2026 : compilation, TypeScript et génération de 171 pages statiques réussies"],
-      "missingWork": ["Vérifier le build depuis un cache `.next` neuf ou un clone propre", "Ajouter une vérification CI de build"],
+      "evidence": [
+        "npm run build du 25 août 2026 : BUILD_ID régénéré à 20:04:35",
+        "Échec précédent observé sur `.next/dev/types/routes.d.ts:307`",
+        "npm test : 260/260 PASS",
+        "npm run build du 27 août 2026 : compilation, TypeScript et génération de 171 pages statiques réussies"
+      ],
+      "missingWork": [
+        "Vérifier le build depuis un cache `.next` neuf ou un clone propre",
+        "Ajouter une vérification CI de build"
+      ],
       "githubIssues": []
     },
     {
@@ -2007,16 +2166,43 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Monétisation",
       "updatedAt": "2026-08-25",
       "nextAction": "Décider les offres réellement vendues, créer une source canonique d'abonnement, puis imposer chaque droit premium côté serveur, RLS et E2E.",
-      "validationCriteria": ["Chaque offre a une page, un prix et un parcours Stripe explicites", "Le statut d'abonnement est synchronisé par webhook dans une source canonique", "Chaque capacité premium est refusée côté serveur et RLS hors abonnement", "Un E2E couvre souscription, renouvellement, annulation et expiration"],
-      "validatedCriteria": ["Checkout et page Concierge PRO existent", "Webhook Stripe et journal `stripe_events` existent"],
+      "validationCriteria": [
+        "Chaque offre a une page, un prix et un parcours Stripe explicites",
+        "Le statut d'abonnement est synchronisé par webhook dans une source canonique",
+        "Chaque capacité premium est refusée côté serveur et RLS hors abonnement",
+        "Un E2E couvre souscription, renouvellement, annulation et expiration"
+      ],
+      "validatedCriteria": [
+        "Checkout et page Concierge PRO existent",
+        "Webhook Stripe et journal `stripe_events` existent"
+      ],
       "dependencies": ["PLS-DEV-010", "PLS-DEV-013", "PLS-QUAL-001"],
       "blocker": null,
-      "routes": ["/abonnement/concierge-pro", "/dashboard/concierge/billing", "/api/billing/checkout", "/api/billing/webhook"],
-      "files": ["src/app/api/billing/checkout/route.ts", "src/app/api/billing/webhook/route.ts", "src/app/components/dashboard/concierge/ProToolsSection.tsx", "supabase/migrations/20260228183000_create_stripe_events.sql"],
+      "routes": [
+        "/abonnement/concierge-pro",
+        "/dashboard/concierge/billing",
+        "/api/billing/checkout",
+        "/api/billing/webhook"
+      ],
+      "files": [
+        "src/app/api/billing/checkout/route.ts",
+        "src/app/api/billing/webhook/route.ts",
+        "src/app/components/dashboard/concierge/ProToolsSection.tsx",
+        "supabase/migrations/20260228183000_create_stripe_events.sql"
+      ],
       "progressLabel": "Concierge PRO a un flux Stripe réel, mais les restrictions premium restent principalement UI et les autres rôles PRO ne possèdent pas de monétisation complète.",
       "source": "Audit code, rôles, PRO et paiements du 25 août 2026",
-      "evidence": ["src/app/api/billing/checkout/route.ts", "src/app/api/billing/webhook/route.ts", "src/tests/billing-api-shared.test.mts", "supabase/migrations/20260228183000_create_stripe_events.sql"],
-      "missingWork": ["Créer une table ou projection canonique des abonnements", "Définir les droits payants par rôle", "Ajouter les rejets serveur/RLS et les E2E de cycle de vie"],
+      "evidence": [
+        "src/app/api/billing/checkout/route.ts",
+        "src/app/api/billing/webhook/route.ts",
+        "src/tests/billing-api-shared.test.mts",
+        "supabase/migrations/20260228183000_create_stripe_events.sql"
+      ],
+      "missingWork": [
+        "Créer une table ou projection canonique des abonnements",
+        "Définir les droits payants par rôle",
+        "Ajouter les rejets serveur/RLS et les E2E de cycle de vie"
+      ],
       "githubIssues": []
     },
     {
@@ -2031,16 +2217,33 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Fiabilité des données",
       "updatedAt": "2026-08-26",
       "nextAction": "Vérifier l'amorçage KPI persistant sur les environnements partagés, confirmer que le fallback ne peut jamais s'exécuter hors localhost, puis définir l'état vide J+7 avant de retirer les cohortes synthétiques.",
-      "validationCriteria": ["Les environnements partagés utilisent uniquement des données KPI persistées", "Le fallback synthétique est impossible hors localhost et couvert par test", "L'absence de cohorte J+7 affiche un état vide explicite sans KPI inventé"],
+      "validationCriteria": [
+        "Les environnements partagés utilisent uniquement des données KPI persistées",
+        "Le fallback synthétique est impossible hors localhost et couvert par test",
+        "L'absence de cohorte J+7 affiche un état vide explicite sans KPI inventé"
+      ],
       "validatedCriteria": [],
       "dependencies": ["PLS-DEV-006", "PLS-DEV-013"],
       "blocker": "Les cohortes KPI réelles doivent être suffisamment amorcées avant de retirer le garde-fou local sans dégrader la lisibilité du cockpit.",
       "routes": ["/dashboard/admin", "/api/kpis/overview"],
-      "files": ["src/app/api/kpis/overview/route.ts", "src/app/dashboard/admin/page.tsx", "scripts/seed-admin-workspace-kpis.mjs"],
+      "files": [
+        "src/app/api/kpis/overview/route.ts",
+        "src/app/dashboard/admin/page.tsx",
+        "scripts/seed-admin-workspace-kpis.mjs"
+      ],
       "progressLabel": "Un fallback déterministe maintient les KPI lisibles en local, mais il doit devenir temporaire pour ne pas confondre démonstration et données métier observées.",
       "source": "Décision de pilotage, 26 août 2026",
-      "evidence": ["src/app/api/kpis/overview/route.ts : canUseWorkspaceFallback et buildWorkspaceFallbackPayload", "src/app/dashboard/admin/page.tsx : bandeau Mode dégradé", "docs/master-plan-planetls.md : seed KPI persistant documenté"],
-      "missingWork": ["Valider le seed KPI persistant sur les environnements partagés", "Ajouter un test garantissant l'interdiction du fallback hors localhost", "Concevoir et vérifier l'état vide de maturation J+7", "Retirer les cohortes synthétiques après stabilisation des données réelles"],
+      "evidence": [
+        "src/app/api/kpis/overview/route.ts : canUseWorkspaceFallback et buildWorkspaceFallbackPayload",
+        "src/app/dashboard/admin/page.tsx : bandeau Mode dégradé",
+        "docs/master-plan-planetls.md : seed KPI persistant documenté"
+      ],
+      "missingWork": [
+        "Valider le seed KPI persistant sur les environnements partagés",
+        "Ajouter un test garantissant l'interdiction du fallback hors localhost",
+        "Concevoir et vérifier l'état vide de maturation J+7",
+        "Retirer les cohortes synthétiques après stabilisation des données réelles"
+      ],
       "githubIssues": []
     },
     {
@@ -2055,16 +2258,44 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Fiabilité du pilotage",
       "updatedAt": "2026-08-26",
       "nextAction": "Brancher des sources fiables pour les jobs, mails, déploiements et sauvegardes, puis étendre les métadonnées de provenance au détail /dashboard/admin/controle.",
-      "validationCriteria": ["Chaque KPI affiché expose source, formule, période et état", "Un Control Tower unverifiable dégrade explicitement le niveau de confiance", "Les problèmes du registre admin remontent dans l'activité récente", "Les sources techniques complémentaires sont branchées avant de déclarer la supervision complète"],
-      "validatedCriteria": ["Chaque KPI affiché expose source, formule, période et état", "Un Control Tower unverifiable dégrade explicitement le niveau de confiance", "Les problèmes du registre admin remontent dans l'activité récente"],
+      "validationCriteria": [
+        "Chaque KPI affiché expose source, formule, période et état",
+        "Un Control Tower unverifiable dégrade explicitement le niveau de confiance",
+        "Les problèmes du registre admin remontent dans l'activité récente",
+        "Les sources techniques complémentaires sont branchées avant de déclarer la supervision complète"
+      ],
+      "validatedCriteria": [
+        "Chaque KPI affiché expose source, formule, période et état",
+        "Un Control Tower unverifiable dégrade explicitement le niveau de confiance",
+        "Les problèmes du registre admin remontent dans l'activité récente"
+      ],
       "dependencies": ["PLS-KPI-001", "PLS-DEV-013"],
       "blocker": "Les contrôles de sauvegardes, déploiements, mails transactionnels, disponibilité infra et tâches planifiées ne disposent pas encore de backend exploitable par le cockpit.",
-      "routes": ["/dashboard/admin", "/dashboard/admin/controle", "/api/admin/control-tower", "/api/kpis/overview"],
-      "files": ["src/app/dashboard/admin/page.tsx", "src/app/dashboard/admin/AdminDashboard.module.scss", "src/app/api/admin/control-tower/route.ts", "src/tests/admin-dashboard-contract.test.mts"],
+      "routes": [
+        "/dashboard/admin",
+        "/dashboard/admin/controle",
+        "/api/admin/control-tower",
+        "/api/kpis/overview"
+      ],
+      "files": [
+        "src/app/dashboard/admin/page.tsx",
+        "src/app/dashboard/admin/AdminDashboard.module.scss",
+        "src/app/api/admin/control-tower/route.ts",
+        "src/tests/admin-dashboard-contract.test.mts"
+      ],
       "progressLabel": "La page admin explicite désormais la fiabilité de ses KPI et du contrôle technique existant, mais ne constitue pas encore une supervision complète de l'infrastructure.",
       "source": "Mise à jour ciblée - Cockpit admin : provenance KPI et santé technique du 26 août 2026",
-      "evidence": ["src/app/dashboard/admin/page.tsx : Cadre de lecture des KPI et Sante technique", "src/tests/admin-dashboard-contract.test.mts", "node --experimental-strip-types --test src/tests/admin-dashboard-contract.test.mts src/tests/kpis-overview-contract.test.mts : PASS le 26 août 2026", "npm run build : PASS le 26 août 2026"],
-      "missingWork": ["Connecter les sources jobs, mails, déploiements et sauvegardes", "Définir les seuils et la fréquence des contrôles techniques", "Étendre la provenance et les alertes au détail Control Tower"],
+      "evidence": [
+        "src/app/dashboard/admin/page.tsx : Cadre de lecture des KPI et Sante technique",
+        "src/tests/admin-dashboard-contract.test.mts",
+        "node --experimental-strip-types --test src/tests/admin-dashboard-contract.test.mts src/tests/kpis-overview-contract.test.mts : PASS le 26 août 2026",
+        "npm run build : PASS le 26 août 2026"
+      ],
+      "missingWork": [
+        "Connecter les sources jobs, mails, déploiements et sauvegardes",
+        "Définir les seuils et la fréquence des contrôles techniques",
+        "Étendre la provenance et les alertes au détail Control Tower"
+      ],
       "githubIssues": []
     },
     {
@@ -2079,16 +2310,41 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Stratégie et monétisation",
       "updatedAt": "2026-08-26",
       "nextAction": "Définir les données business canoniques à persister, relier les hypothèses à leurs sources et tests terrain, puis distinguer strictement les offres Stripe réelles des scénarios de travail.",
-      "validationCriteria": ["Chaque hypothèse financière expose une source, une date et un niveau de confiance", "Les offres réellement vendues sont distinguées des scénarios de travail", "Le registre de risques possède un modèle persistant, des responsables et un historique", "Les décisions de pricing sont appuyées par des retours terrain ou des données observées"],
-      "validatedCriteria": ["Le modèle financier possède une page admin et un référentiel partagé", "Les offres Stripe existantes sont distinguées des scénarios de travail dans les écrans concernés"],
+      "validationCriteria": [
+        "Chaque hypothèse financière expose une source, une date et un niveau de confiance",
+        "Les offres réellement vendues sont distinguées des scénarios de travail",
+        "Le registre de risques possède un modèle persistant, des responsables et un historique",
+        "Les décisions de pricing sont appuyées par des retours terrain ou des données observées"
+      ],
+      "validatedCriteria": [
+        "Le modèle financier possède une page admin et un référentiel partagé",
+        "Les offres Stripe existantes sont distinguées des scénarios de travail dans les écrans concernés"
+      ],
       "dependencies": ["PLS-BILL-001", "PLS-KPI-001", "PLS-DEV-006"],
       "blocker": "Les chiffres business actuels restent principalement des hypothèses ou des benchmarks ; aucun modèle persistant de risques, d'hypothèses et de décisions n'est encore branché sur des données observées.",
-      "routes": ["/dashboard/admin/pilotage", "/dashboard/admin/modele-financier"],
-      "files": ["src/app/dashboard/admin/(business)/pilotage/", "src/app/dashboard/admin/(business)/modele-financier/", "src/app/dashboard/admin/(business)/pilotage/economic-model/sharedFinancialReference.ts"],
+      "routes": [
+        "/dashboard/admin/pilotage",
+        "/dashboard/admin/modele-financier"
+      ],
+      "files": [
+        "src/app/dashboard/admin/(business)/pilotage/",
+        "src/app/dashboard/admin/(business)/modele-financier/",
+        "src/app/dashboard/admin/(business)/pilotage/economic-model/sharedFinancialReference.ts"
+      ],
       "progressLabel": "Les espaces admin de pilotage business et de modèle financier existent, mais ils restent majoritairement documentaires et doivent être reliés à des décisions, sources et données observées traçables.",
       "source": "Mises à jour Pilotage Business et modèle financier des 3, 6, 7, 13 et 14 août 2026",
-      "evidence": ["src/app/dashboard/admin/(business)/pilotage/risk-register/", "src/app/dashboard/admin/(business)/modele-financier/page.tsx", "src/app/dashboard/admin/(business)/pilotage/economic-model/sharedFinancialReference.ts", "docs/master-plan-planetls.md : mises à jour Pilotage Business et modèle financier"],
-      "missingWork": ["Définir le schéma canonique des risques, hypothèses et décisions", "Ajouter provenance, date et niveau de confiance aux données", "Connecter les métriques observées pertinentes", "Valider la tarification et les offres avec des entretiens terrain"],
+      "evidence": [
+        "src/app/dashboard/admin/(business)/pilotage/risk-register/",
+        "src/app/dashboard/admin/(business)/modele-financier/page.tsx",
+        "src/app/dashboard/admin/(business)/pilotage/economic-model/sharedFinancialReference.ts",
+        "docs/master-plan-planetls.md : mises à jour Pilotage Business et modèle financier"
+      ],
+      "missingWork": [
+        "Définir le schéma canonique des risques, hypothèses et décisions",
+        "Ajouter provenance, date et niveau de confiance aux données",
+        "Connecter les métriques observées pertinentes",
+        "Valider la tarification et les offres avec des entretiens terrain"
+      ],
       "githubIssues": []
     },
     {
@@ -2103,16 +2359,41 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Qualité produit",
       "updatedAt": "2026-08-26",
       "nextAction": "Faire un inventaire ciblé des derniers libellés visibles incohérents, distinguer les clés techniques à conserver des textes à corriger, puis verrouiller les cas détectés par le contrôle d'encodage.",
-      "validationCriteria": ["Les textes visibles critiques sont encodés en UTF-8 valide", "Le contrôle d'encodage bloque les régressions connues", "Les derniers libellés français visibles sont cohérents", "Les exceptions techniques documentées ne sont pas traitées comme des régressions"],
-      "validatedCriteria": ["Les textes visibles critiques ont été corrigés dans les surfaces ciblées", "Le contrôle d'encodage est exécuté dans le dépôt"],
+      "validationCriteria": [
+        "Les textes visibles critiques sont encodés en UTF-8 valide",
+        "Le contrôle d'encodage bloque les régressions connues",
+        "Les derniers libellés français visibles sont cohérents",
+        "Les exceptions techniques documentées ne sont pas traitées comme des régressions"
+      ],
+      "validatedCriteria": [
+        "Les textes visibles critiques ont été corrigés dans les surfaces ciblées",
+        "Le contrôle d'encodage est exécuté dans le dépôt"
+      ],
       "dependencies": ["PLS-DEV-013"],
       "blocker": "Le Master Plan et certaines zones semi-documentaires conservent des traces historiques ; elles doivent être triées avant toute normalisation pour éviter de modifier des clés ou des preuves techniques.",
-      "routes": ["/dashboard/admin", "/dashboard/admin/pilotage", "/dashboard/admin/developpement"],
-      "files": ["scripts/check-encoding.mjs", "src/app/layout.tsx", "src/app/dashboard/", "docs/master-plan-planetls.md"],
+      "routes": [
+        "/dashboard/admin",
+        "/dashboard/admin/pilotage",
+        "/dashboard/admin/developpement"
+      ],
+      "files": [
+        "scripts/check-encoding.mjs",
+        "src/app/layout.tsx",
+        "src/app/dashboard/",
+        "docs/master-plan-planetls.md"
+      ],
       "progressLabel": "Un garde-fou UTF-8 et plusieurs corrections visibles existent ; la cohérence sémantique des reliquats doit encore être vérifiée et documentée.",
       "source": "Mise à jour ciblée - Hygiène UTF-8 pour le site français du 13 août 2026",
-      "evidence": ["scripts/check-encoding.mjs", "package.json : npm run check:encoding", "docs/master-plan-planetls.md : vérifications encodage et build du 13 août 2026"],
-      "missingWork": ["Inventorier les libellés visibles restants", "Documenter les exceptions de clés techniques", "Ajouter des contrôles ciblés pour les régressions identifiées"],
+      "evidence": [
+        "scripts/check-encoding.mjs",
+        "package.json : npm run check:encoding",
+        "docs/master-plan-planetls.md : vérifications encodage et build du 13 août 2026"
+      ],
+      "missingWork": [
+        "Inventorier les libellés visibles restants",
+        "Documenter les exceptions de clés techniques",
+        "Ajouter des contrôles ciblés pour les régressions identifiées"
+      ],
       "githubIssues": []
     },
     {
@@ -2127,16 +2408,68 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Cohérence de l'expérience",
       "updatedAt": "2026-09-07",
       "nextAction": "Soumettre le lot B ciblé sur les tokens et valeurs locales à l'accord de Nathalie après le lot A documentaire ; faire valider le prototype Concierge avant son intégration au dashboard réel et conserver les contrôles métier et sécurité séparés.",
-      "validationCriteria": ["Les tokens visuels canoniques sont documentés et réutilisables", "Les composants partagés possèdent une convention d'usage claire", "Les écrans prioritaires convergent sans perte de comportement métier", "Les migrations sont vérifiées sur desktop et mobile"],
-      "validatedCriteria": ["Les tokens --ds-* et leurs alias de compatibilité sont définis", "Le catalogue /design-system et la documentation des composants existent", "Le prototype admin a été intégré de manière contrôlée au cockpit réel"],
-      "dependencies": ["PLS-DEV-003", "PLS-DEV-004", "PLS-DEV-005", "PLS-DEV-006", "PLS-DEV-013"],
+      "validationCriteria": [
+        "Les tokens visuels canoniques sont documentés et réutilisables",
+        "Les composants partagés possèdent une convention d'usage claire",
+        "Les écrans prioritaires convergent sans perte de comportement métier",
+        "Les migrations sont vérifiées sur desktop et mobile"
+      ],
+      "validatedCriteria": [
+        "Les tokens --ds-* et leurs alias de compatibilité sont définis",
+        "Le catalogue /design-system et la documentation des composants existent",
+        "Le prototype admin a été intégré de manière contrôlée au cockpit réel"
+      ],
+      "dependencies": [
+        "PLS-DEV-003",
+        "PLS-DEV-004",
+        "PLS-DEV-005",
+        "PLS-DEV-006",
+        "PLS-DEV-013"
+      ],
       "blocker": "Des styles, composants et bibliothèques historiques restent présents ; une migration globale augmenterait le risque de régression. La fiabilité des erreurs remontées, du planning du jour et des arrivées/départs issus des réservations doit être traitée dans des lots métier séparés ; aucune donnée incertaine ne permet de certifier un état calme.",
-      "routes": ["/design-system", "/design-system/fondations", "/design-system/visuels", "/design-system/dashboards", "/design-system/admin-dashboard", "/design-system/owner-dashboard", "/design-system/concierge-dashboard", "/design-system/provider-dashboard", "/dashboard/admin/design", "/dashboard/admin"],
-      "files": ["src/styles/tokens/", "src/styles/_variables.scss", "src/components/ui/", "src/app/design-system/", "src/components/features/provider/ProviderDashboard.tsx", "src/app/dashboard/", "DESIGN_SYSTEM.md"],
+      "routes": [
+        "/design-system",
+        "/design-system/fondations",
+        "/design-system/visuels",
+        "/design-system/dashboards",
+        "/design-system/admin-dashboard",
+        "/design-system/owner-dashboard",
+        "/design-system/concierge-dashboard",
+        "/design-system/provider-dashboard",
+        "/dashboard/admin/design",
+        "/dashboard/admin"
+      ],
+      "files": [
+        "src/styles/tokens/",
+        "src/styles/_variables.scss",
+        "src/components/ui/",
+        "src/app/design-system/",
+        "src/components/features/provider/ProviderDashboard.tsx",
+        "src/app/dashboard/",
+        "DESIGN_SYSTEM.md"
+      ],
       "progressLabel": "7 septembre 2026 : audit réalisé et architecture cible validée sur un Design System déjà substantiel. Lot A documentaire réalisé dans DESIGN_SYSTEM.md, le README UI et cette entrée : sources, nommage et contrat cible du cockpit clarifiés. Décision : harmonisation progressive avec le Concierge comme pilote, sans reconstruction. Les maquettes existantes sont conservées ; l'implémentation visuelle de ce nouveau programme n'a pas commencé. Alert et DashboardCockpit restent proposés, les lots B à G non commencés, les validations responsive du pilote à réaliser.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
-      "evidence": ["src/styles/tokens/tokens.css", "DESIGN_SYSTEM.md", "src/components/ui/README.md", "src/app/design-system/layout.tsx", "src/app/design-system/page.tsx", "src/tests/design-architecture.test.mts", "e2e/design-organization.spec.ts", "e2e/dashboard-prototypes.spec.ts", "Lot A du 7 septembre 2026 : development:check réussi (56 éléments), tests ciblés registre/mises à jour/encodage/architecture 13/13, git diff --check et contrôle UTF-8 sans BOM réussis ; seuls les trois documents autorisés sont modifiés. Aucun build ni test navigateur relancé pour ce lot documentaire."],
-      "missingWork": ["B : harmoniser progressivement les tokens et valeurs locales après accord", "C : états partagés et Alert proposé", "D : DashboardCockpit proposé dans le prototype Concierge", "E : intégrer le pilote Concierge réel après validation, en préservant widgets et bibliothèque vidéo persistés", "F : vérifier responsive et accessibilité du pilote à 1600, 1366, 768 et 390 px", "G : propager espace par espace après acceptation du pilote", "Traiter planning, réservations et remontée d'erreurs dans des lots métier séparés"],
+      "evidence": [
+        "src/styles/tokens/tokens.css",
+        "DESIGN_SYSTEM.md",
+        "src/components/ui/README.md",
+        "src/app/design-system/layout.tsx",
+        "src/app/design-system/page.tsx",
+        "src/tests/design-architecture.test.mts",
+        "e2e/design-organization.spec.ts",
+        "e2e/dashboard-prototypes.spec.ts",
+        "Lot A du 7 septembre 2026 : development:check réussi (56 éléments), tests ciblés registre/mises à jour/encodage/architecture 13/13, git diff --check et contrôle UTF-8 sans BOM réussis ; seuls les trois documents autorisés sont modifiés. Aucun build ni test navigateur relancé pour ce lot documentaire."
+      ],
+      "missingWork": [
+        "B : harmoniser progressivement les tokens et valeurs locales après accord",
+        "C : états partagés et Alert proposé",
+        "D : DashboardCockpit proposé dans le prototype Concierge",
+        "E : intégrer le pilote Concierge réel après validation, en préservant widgets et bibliothèque vidéo persistés",
+        "F : vérifier responsive et accessibilité du pilote à 1600, 1366, 768 et 390 px",
+        "G : propager espace par espace après acceptation du pilote",
+        "Traiter planning, réservations et remontée d'erreurs dans des lots métier séparés"
+      ],
       "githubIssues": []
     },
     {
@@ -2151,16 +2484,35 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Évolution future",
       "updatedAt": "2026-09-02",
       "nextAction": "Mesurer le besoin terrain pendant le pilote puis cadrer un MVP PWA limité à l'installation, au manifeste, à l'icône, aux mises à jour et à quelques lectures ou brouillons offline avant toute notification push.",
-      "validationCriteria": ["Le besoin d'installation est confirmé sur desktop ou mobile", "Le manifeste, l'icône et l'expérience responsive sont cohérents avec l'identité PlanetLS", "La stratégie offline est limitée aux usages réellement utiles", "Les conflits de synchronisation et la sécurité des médias sont définis", "Les notifications push restent séparées et étudiées plus tard"],
+      "validationCriteria": [
+        "Le besoin d'installation est confirmé sur desktop ou mobile",
+        "Le manifeste, l'icône et l'expérience responsive sont cohérents avec l'identité PlanetLS",
+        "La stratégie offline est limitée aux usages réellement utiles",
+        "Les conflits de synchronisation et la sécurité des médias sont définis",
+        "Les notifications push restent séparées et étudiées plus tard"
+      ],
       "validatedCriteria": [],
       "dependencies": ["PLS-DEV-009", "PLS-DEV-013"],
       "blocker": "Aucune validation terrain ni modèle offline sécurisé ne permet de l'industrialiser avant le pilote.",
       "routes": ["/dashboard/concierge/missions", "/dashboard/provider"],
-      "files": ["docs/master-plan-planetls.md", "src/app/dashboard/concierge/", "src/app/dashboard/provider/"],
+      "files": [
+        "docs/master-plan-planetls.md",
+        "src/app/dashboard/concierge/",
+        "src/app/dashboard/provider/"
+      ],
       "progressLabel": "Sujet futur confirmé, à isoler du flux prioritaire tant que l'installation, l'offline limité et les mises à jour ne sont pas cadrés sur des usages terrain prouvés.",
       "source": "docs/master-plan-planetls.md#roadmap-produit-et-technique",
-      "evidence": ["Master Plan : PWA/push/offline à faire, P4 Idée / À étudier", "public/manifest.json déjà présent mais non traité comme PWA métier complète"],
-      "missingWork": ["Interviewer les utilisateurs terrain", "Définir le périmètre installable et offline", "Dessiner l'icône PlanetLS dédiée", "Prévoir les tests de synchronisation et de conflit", "Étudier séparément les notifications push"],
+      "evidence": [
+        "Master Plan : PWA/push/offline à faire, P4 Idée / À étudier",
+        "public/manifest.json déjà présent mais non traité comme PWA métier complète"
+      ],
+      "missingWork": [
+        "Interviewer les utilisateurs terrain",
+        "Définir le périmètre installable et offline",
+        "Dessiner l'icône PlanetLS dédiée",
+        "Prévoir les tests de synchronisation et de conflit",
+        "Étudier séparément les notifications push"
+      ],
       "githubIssues": []
     },
     {
@@ -2175,16 +2527,62 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Sécurité multi-tenant",
       "updatedAt": "2026-09-04",
       "nextAction": "Implémenter sur Docker isolé un export et une restauration API des seules fixtures fictives Storage (objets, manifeste SHA-256, bucket et comptes Auth), puis prouver rollback, comparaison et seconde application des migrations avant toute clôture.",
-      "validationCriteria": ["POST/PATCH/DELETE logement refusent toute relation auteur-owner-manager illégitime", "Un upload photo exige l'accès au logement ciblé", "Les médias logement ne sont pas publics par défaut", "Tests d'intégration couvrent 401, 403 et tenant voisin"],
-      "validatedCriteria": ["POST/PATCH/DELETE logement refusent toute relation auteur-owner-manager illégitime", "Un upload photo exige l'accès au logement ciblé", "Les médias logement ne sont pas publics par défaut", "Tests d'intégration couvrent 401, 403 et tenant voisin sur Supabase local"],
+      "validationCriteria": [
+        "POST/PATCH/DELETE logement refusent toute relation auteur-owner-manager illégitime",
+        "Un upload photo exige l'accès au logement ciblé",
+        "Les médias logement ne sont pas publics par défaut",
+        "Tests d'intégration couvrent 401, 403 et tenant voisin"
+      ],
+      "validatedCriteria": [
+        "POST/PATCH/DELETE logement refusent toute relation auteur-owner-manager illégitime",
+        "Un upload photo exige l'accès au logement ciblé",
+        "Les médias logement ne sont pas publics par défaut",
+        "Tests d'intégration couvrent 401, 403 et tenant voisin sur Supabase local"
+      ],
       "dependencies": ["PLS-DEV-013", "PLS-TEST-001"],
       "blocker": "Les routes utilisent SUPABASE_SERVICE_ROLE_KEY, qui contourne les policies RLS housing. La base fraîche, l'upgrade local et les contrôles connectés sont validés, mais le rollback fonctionnel complet reste bloqué : les archives brutes du volume Storage ne restaurent pas tous les attributs internes attendus par Storage. L'export/restauration API locale des fixtures fictives doit être prouvé.",
       "routes": ["/api/housing", "/api/housing/[id]", "/api/housing/photos"],
-      "files": ["src/app/api/housing/route.ts", "src/app/api/housing/[id]/route.ts", "src/app/api/housing/photos/route.ts", "src/server/db/dbServer.ts", "supabase/migrations/20260404123000_resolve_remaining_security_advisors.sql", "supabase/migrations/20260902113000_private_housing_photos.sql", "supabase/migrations/20260903110000_restrict_housing_photo_storage_access.sql", "scripts/local-supabase-env.mjs", "scripts/run-local-dev.mjs", "scripts/seed-housing-photo-security-fixtures.mjs", "scripts/prepare-housing-photo-upgrade-fixture.mjs", "scripts/run-housing-photo-security-local.mjs"],
+      "files": [
+        "src/app/api/housing/route.ts",
+        "src/app/api/housing/[id]/route.ts",
+        "src/app/api/housing/photos/route.ts",
+        "src/server/db/dbServer.ts",
+        "supabase/migrations/20260404123000_resolve_remaining_security_advisors.sql",
+        "supabase/migrations/20260902113000_private_housing_photos.sql",
+        "supabase/migrations/20260903110000_restrict_housing_photo_storage_access.sql",
+        "scripts/local-supabase-env.mjs",
+        "scripts/run-local-dev.mjs",
+        "scripts/seed-housing-photo-security-fixtures.mjs",
+        "scripts/prepare-housing-photo-upgrade-fixture.mjs",
+        "scripts/run-housing-photo-security-local.mjs"
+      ],
       "progressLabel": "Les mutations, uploads, lecture signée, refus Storage direct, les 61 migrations et les contrôles connectés sont prouvés localement. Le P0 reste ouvert uniquement pour le rollback fonctionnel complet : sauvegarde et restauration API des fixtures Storage fictives, comparaison SHA-256 puis seconde application.",
       "source": "Audit recherche, logements, profils, pages et workflows du 26 août 2026",
-      "evidence": ["src/server/db/dbServer.ts : SUPABASE_SERVICE_ROLE_KEY", "src/app/lib/housingWriteGuards.ts : cohérence serveur owner/manager selon le rôle connecté", "src/app/api/housing/route.ts : garde-fou appliqué avant insert", "src/app/api/housing/[id]/route.ts : garde-fou appliqué lors des mises à jour du bloc proprietaire", "src/app/api/housing/photos/route.ts : upload contrôlé, accès lecture vérifié et URL signée de 5 minutes", "src/app/lib/housingPhotoUrl.ts : compatibilité des URL publiques historiques sans exposer le bucket", "supabase/migrations/20260902113000_private_housing_photos.sql : bucket privé idempotent", "supabase/migrations/20260903110000_restrict_housing_photo_storage_access.sql : compatibilité avec le schéma Storage géré par Supabase", "src/tests/housing-photo-security-contract.test.mts", "src/tests/housing-photo-supabase.integration.test.mts", "scripts/seed-housing-photo-security-fixtures.mjs : fixtures locales isolées", "scripts/prepare-housing-photo-upgrade-fixture.mjs : simulation de bucket public avant migration", "scripts/run-housing-photo-security-local.mjs : test connecté automatisé", "Prévisualisation puis `supabase db push --local` des migrations 20260902113000 et 20260903110000 sur fixtures préexistantes", "src/tests/housing-write-guards.test.mts", "src/tests/create-logement-helpers.test.mts", "supabase/migrations/20260404123000_resolve_remaining_security_advisors.sql : policies housing participants"],
-      "missingWork": ["Exporter et restaurer via API locale les objets Storage fictifs avec manifeste SHA-256", "Sauvegarder et restaurer les comptes Auth fictifs et les données PostgreSQL nécessaires", "Prouver rollback, comparaison et seconde application sur l'instance Docker isolée", "Planifier le nettoyage admin après une première prévisualisation"],
+      "evidence": [
+        "src/server/db/dbServer.ts : SUPABASE_SERVICE_ROLE_KEY",
+        "src/app/lib/housingWriteGuards.ts : cohérence serveur owner/manager selon le rôle connecté",
+        "src/app/api/housing/route.ts : garde-fou appliqué avant insert",
+        "src/app/api/housing/[id]/route.ts : garde-fou appliqué lors des mises à jour du bloc proprietaire",
+        "src/app/api/housing/photos/route.ts : upload contrôlé, accès lecture vérifié et URL signée de 5 minutes",
+        "src/app/lib/housingPhotoUrl.ts : compatibilité des URL publiques historiques sans exposer le bucket",
+        "supabase/migrations/20260902113000_private_housing_photos.sql : bucket privé idempotent",
+        "supabase/migrations/20260903110000_restrict_housing_photo_storage_access.sql : compatibilité avec le schéma Storage géré par Supabase",
+        "src/tests/housing-photo-security-contract.test.mts",
+        "src/tests/housing-photo-supabase.integration.test.mts",
+        "scripts/seed-housing-photo-security-fixtures.mjs : fixtures locales isolées",
+        "scripts/prepare-housing-photo-upgrade-fixture.mjs : simulation de bucket public avant migration",
+        "scripts/run-housing-photo-security-local.mjs : test connecté automatisé",
+        "Prévisualisation puis `supabase db push --local` des migrations 20260902113000 et 20260903110000 sur fixtures préexistantes",
+        "src/tests/housing-write-guards.test.mts",
+        "src/tests/create-logement-helpers.test.mts",
+        "supabase/migrations/20260404123000_resolve_remaining_security_advisors.sql : policies housing participants"
+      ],
+      "missingWork": [
+        "Exporter et restaurer via API locale les objets Storage fictifs avec manifeste SHA-256",
+        "Sauvegarder et restaurer les comptes Auth fictifs et les données PostgreSQL nécessaires",
+        "Prouver rollback, comparaison et seconde application sur l'instance Docker isolée",
+        "Planifier le nettoyage admin après une première prévisualisation"
+      ],
       "githubIssues": []
     },
     {
@@ -2199,16 +2597,42 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Gouvernance des données",
       "updatedAt": "2026-08-26",
       "nextAction": "Produire l'inventaire des données et traitements de demande, la matrice d'accès, les durées de conservation, les règles de préférences de contact et le parcours de demande d'accès ou suppression.",
-      "validationCriteria": ["Chaque donnée de demande possède une finalité, un responsable et une durée de conservation documentés", "Les droits d'accès, rectification, suppression et export disposent d'un parcours traçable", "Les notifications et relances respectent les préférences de contact et journalisent leur décision", "Les accès autorisés et refusés entre tenants sont prouvés", "Les preuves de conformité et incidents sont consultables par les rôles habilités"],
+      "validationCriteria": [
+        "Chaque donnée de demande possède une finalité, un responsable et une durée de conservation documentés",
+        "Les droits d'accès, rectification, suppression et export disposent d'un parcours traçable",
+        "Les notifications et relances respectent les préférences de contact et journalisent leur décision",
+        "Les accès autorisés et refusés entre tenants sont prouvés",
+        "Les preuves de conformité et incidents sont consultables par les rôles habilités"
+      ],
       "validatedCriteria": [],
       "dependencies": ["PLS-SEC-003", "PLS-DATA-003", "PLS-TEST-001"],
       "blocker": "Le contrat canonique des données de demande, les règles de rétention et la politique de notification ne sont pas encore définis de façon opérationnelle.",
-      "routes": ["/api/service-requests", "/dashboard/owner", "/dashboard/concierge", "/dashboard/admin/developpement"],
-      "files": ["src/app/api/service-requests/route.ts", "src/app/api/_shared/workflowEvents.ts", "src/app/dashboard/admin/(product-tech)/developpement/automationWorkspace.ts", "docs/master-plan-planetls.md"],
+      "routes": [
+        "/api/service-requests",
+        "/dashboard/owner",
+        "/dashboard/concierge",
+        "/dashboard/admin/developpement"
+      ],
+      "files": [
+        "src/app/api/service-requests/route.ts",
+        "src/app/api/_shared/workflowEvents.ts",
+        "src/app/dashboard/admin/(product-tech)/developpement/automationWorkspace.ts",
+        "docs/master-plan-planetls.md"
+      ],
       "progressLabel": "Les contrôles d'accès et le journal de workflow existent par endroits, mais la conformité des demandes automatisées n'a pas encore de contrat complet ni de preuve multi-rôle.",
       "source": "Exercice d'automatisation adapté à PlanetLS, 26 août 2026",
-      "evidence": ["e2e/owner-concierge-service-request.spec.ts : parcours transactionnel owner -> paiement", "src/app/api/_shared/workflowEvents.ts : événements persistés", "Audit du 26 août 2026 : aucune livraison email/push ni E2E de notification prouvée"],
-      "missingWork": ["Cartographier les traitements et données personnelles", "Définir les durées de conservation et purges", "Concevoir les demandes d'accès, export et suppression", "Définir les préférences de contact et preuves de notification", "Ajouter les tests RLS et multi-tenant de conformité"],
+      "evidence": [
+        "e2e/owner-concierge-service-request.spec.ts : parcours transactionnel owner -> paiement",
+        "src/app/api/_shared/workflowEvents.ts : événements persistés",
+        "Audit du 26 août 2026 : aucune livraison email/push ni E2E de notification prouvée"
+      ],
+      "missingWork": [
+        "Cartographier les traitements et données personnelles",
+        "Définir les durées de conservation et purges",
+        "Concevoir les demandes d'accès, export et suppression",
+        "Définir les préférences de contact et preuves de notification",
+        "Ajouter les tests RLS et multi-tenant de conformité"
+      ],
       "githubIssues": []
     },
     {
@@ -2223,16 +2647,48 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Fiabilisation opérationnelle",
       "updatedAt": "2026-08-26",
       "nextAction": "Définir les états de demande, règles d'urgence, SLA, responsable, événements, préférences de contact et conditions anti-doublon, puis concevoir un pilote assisté sans activation automatique irréversible.",
-      "validationCriteria": ["Une demande complète obtient un identifiant et un accusé de réception ou une erreur explicite", "Une urgence est journalisée et portée au responsable défini", "Une demande incomplète ou ambiguë bascule vers une reprise humaine", "Les relances empêchent les doublons et respectent les préférences de contact", "La clôture conserve les preuves requises puis applique la politique de rétention", "Les scénarios autorisés, refusés et en échec sont couverts en intégration et E2E"],
+      "validationCriteria": [
+        "Une demande complète obtient un identifiant et un accusé de réception ou une erreur explicite",
+        "Une urgence est journalisée et portée au responsable défini",
+        "Une demande incomplète ou ambiguë bascule vers une reprise humaine",
+        "Les relances empêchent les doublons et respectent les préférences de contact",
+        "La clôture conserve les preuves requises puis applique la politique de rétention",
+        "Les scénarios autorisés, refusés et en échec sont couverts en intégration et E2E"
+      ],
       "validatedCriteria": [],
-      "dependencies": ["PLS-SEC-003", "PLS-SEC-004", "PLS-DATA-003", "PLS-TEST-001"],
+      "dependencies": [
+        "PLS-SEC-003",
+        "PLS-SEC-004",
+        "PLS-DATA-003",
+        "PLS-TEST-001"
+      ],
       "blocker": "Les états canoniques de demande, SLA, règles anti-doublon, préférences de contact et politique d'archivage ne sont pas encore spécifiés ni testés.",
-      "routes": ["/api/service-requests", "/dashboard/owner", "/dashboard/concierge", "/dashboard/admin/developpement"],
-      "files": ["src/app/api/service-requests/route.ts", "src/app/api/_shared/workflowEvents.ts", "src/app/dashboard/admin/(product-tech)/developpement/automationWorkspace.ts", "e2e/owner-concierge-service-request.spec.ts"],
+      "routes": [
+        "/api/service-requests",
+        "/dashboard/owner",
+        "/dashboard/concierge",
+        "/dashboard/admin/developpement"
+      ],
+      "files": [
+        "src/app/api/service-requests/route.ts",
+        "src/app/api/_shared/workflowEvents.ts",
+        "src/app/dashboard/admin/(product-tech)/developpement/automationWorkspace.ts",
+        "e2e/owner-concierge-service-request.spec.ts"
+      ],
       "progressLabel": "Le flux devis accepté -> mission est déjà couvert, mais la réception, les urgences, les relances et l'archivage des demandes restent à industrialiser de manière native et contrôlée.",
       "source": "Exercice d'automatisation adapté à PlanetLS, 26 août 2026",
-      "evidence": ["e2e/owner-concierge-service-request.spec.ts", "src/app/api/service-requests/route.ts", "src/app/dashboard/admin/(product-tech)/developpement/automationWorkspace.ts : PROC-001, AUT-020 et AUT-024 cartographiés"],
-      "missingWork": ["Spécifier le modèle d'état et les transitions", "Définir les SLA et escalades", "Créer le contrat de notifications et relances", "Définir l'archivage et la rétention", "Implémenter un pilote assisté et ses tests multi-rôle"],
+      "evidence": [
+        "e2e/owner-concierge-service-request.spec.ts",
+        "src/app/api/service-requests/route.ts",
+        "src/app/dashboard/admin/(product-tech)/developpement/automationWorkspace.ts : PROC-001, AUT-020 et AUT-024 cartographiés"
+      ],
+      "missingWork": [
+        "Spécifier le modèle d'état et les transitions",
+        "Définir les SLA et escalades",
+        "Créer le contrat de notifications et relances",
+        "Définir l'archivage et la rétention",
+        "Implémenter un pilote assisté et ses tests multi-rôle"
+      ],
       "githubIssues": []
     },
     {
@@ -2247,16 +2703,47 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Liquidité du réseau",
       "updatedAt": "2026-09-02",
       "nextAction": "Définir le contrat de visibilité par rôle, déplacer les filtres et le tri en base, ajouter curseur/total fiable, puis décider quelles briques de l'espace artisan relèvent du profil, du devis, de l'intervention, des avis ou des preuves.",
-      "validationCriteria": ["Chaque recherche a son contrat de données visible et masquée", "Filtres, tri et pagination sont exécutés côté base", "Un concierge ne reçoit les coordonnées owner que selon une règle explicite", "Les leads owner sont distingués des comptes Auth et convertibles par invitation", "États vide, erreur et résultats sont couverts par E2E"],
-      "validatedCriteria": ["Recherche owner -> concierge avec filtres métier et demande existe", "Recherche concierge -> owner avec conversation existe", "Intervention provider est prouvée en E2E"],
+      "validationCriteria": [
+        "Chaque recherche a son contrat de données visible et masquée",
+        "Filtres, tri et pagination sont exécutés côté base",
+        "Un concierge ne reçoit les coordonnées owner que selon une règle explicite",
+        "Les leads owner sont distingués des comptes Auth et convertibles par invitation",
+        "États vide, erreur et résultats sont couverts par E2E"
+      ],
+      "validatedCriteria": [
+        "Recherche owner -> concierge avec filtres métier et demande existe",
+        "Recherche concierge -> owner avec conversation existe",
+        "Intervention provider est prouvée en E2E"
+      ],
       "dependencies": ["PLS-SEC-003", "PLS-DEV-001", "PLS-DATA-003"],
       "blocker": "Les routes actuelles lisent via service role, filtrent partiellement en mémoire et ne portent pas de politique unifiée de visibilité ni de pagination.",
-      "routes": ["/dashboard/owner/concierges", "/dashboard/concierge/recherche", "/api/profiles/concierges", "/api/profiles/housing/owners"],
-      "files": ["src/app/api/profiles/concierges/route.ts", "src/app/api/profiles/concierges/shared.ts", "src/app/dashboard/concierge/recherche/page.tsx", "src/app/api/profiles/housing/owners/route.ts"],
+      "routes": [
+        "/dashboard/owner/concierges",
+        "/dashboard/concierge/recherche",
+        "/api/profiles/concierges",
+        "/api/profiles/housing/owners"
+      ],
+      "files": [
+        "src/app/api/profiles/concierges/route.ts",
+        "src/app/api/profiles/concierges/shared.ts",
+        "src/app/dashboard/concierge/recherche/page.tsx",
+        "src/app/api/profiles/housing/owners/route.ts"
+      ],
       "progressLabel": "Les deux surfaces de recherche sont utilisables, mais la recherche artisan autonome, la pagination, le contrat de confidentialité et le périmètre d'un vrai espace artisan restent incomplets.",
       "source": "Audit recherche, logements, profils, pages et workflows du 26 août 2026",
-      "evidence": ["src/tests/owner-concierges-search.test.mts", "src/tests/search-client.test.mts", "e2e/provider-intervention-transaction.spec.ts", "src/app/api/profiles/housing/owners/route.ts"],
-      "missingWork": ["Concevoir l'annuaire artisan", "Ajouter pagination/cursor et tri serveur", "Écrire les règles de contact", "Découper le futur espace artisan entre profil, avis, devis et preuves", "Créer les tests multi-rôle de visibilité et de conversion lead"],
+      "evidence": [
+        "src/tests/owner-concierges-search.test.mts",
+        "src/tests/search-client.test.mts",
+        "e2e/provider-intervention-transaction.spec.ts",
+        "src/app/api/profiles/housing/owners/route.ts"
+      ],
+      "missingWork": [
+        "Concevoir l'annuaire artisan",
+        "Ajouter pagination/cursor et tri serveur",
+        "Écrire les règles de contact",
+        "Découper le futur espace artisan entre profil, avis, devis et preuves",
+        "Créer les tests multi-rôle de visibilité et de conversion lead"
+      ],
       "githubIssues": []
     },
     {
@@ -2271,16 +2758,55 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Gouvernance des données",
       "updatedAt": "2026-08-27",
       "nextAction": "Publier un schéma cible et une matrice lecteurs-écrivains, inventorier les contrats JSON transitoires, puis migrer progressivement avec rollback avant de supprimer les formats legacy.",
-      "validationCriteria": ["Chaque donnée critique possède une table ou un contrat JSON versionné", "Validations partagées serveur/formulaire couvrent les champs métier", "Migration testée sur base fraîche et existante représentative", "RLS et accès service-role sont rejoués sur le modèle cible"],
-      "validatedCriteria": ["Whitelist de patch par rôle existe", "Helpers de validation logement existent", "RLS participants housing et demandes existent dans les migrations", "Le pont canonique `housing` / `properties` couvre dashboards owner/concierge, détail mission, demandes et routes réservation"],
-      "dependencies": ["PLS-DATA-001", "PLS-DATA-002", "PLS-SEC-003", "PLS-SEC-002"],
+      "validationCriteria": [
+        "Chaque donnée critique possède une table ou un contrat JSON versionné",
+        "Validations partagées serveur/formulaire couvrent les champs métier",
+        "Migration testée sur base fraîche et existante représentative",
+        "RLS et accès service-role sont rejoués sur le modèle cible"
+      ],
+      "validatedCriteria": [
+        "Whitelist de patch par rôle existe",
+        "Helpers de validation logement existent",
+        "RLS participants housing et demandes existent dans les migrations",
+        "Le pont canonique `housing` / `properties` couvre dashboards owner/concierge, détail mission, demandes et routes réservation"
+      ],
+      "dependencies": [
+        "PLS-DATA-001",
+        "PLS-DATA-002",
+        "PLS-SEC-003",
+        "PLS-SEC-002"
+      ],
       "blocker": "Le schéma initial profiles/housing n'est pas entièrement versionné et les formats availability_hours/proprietaire/infos se chevauchent ; une migration sans inventaire serait risquée.",
-      "routes": ["/api/profiles", "/api/housing", "/dashboard/owner/settings", "/dashboard/concierge/profile", "/dashboard/provider/settings"],
-      "files": ["src/app/api/profiles/pure.ts", "src/types/housing.ts", "src/app/dashboard/concierge/logements/create/createLogementHelpers.ts", "supabase/migrations/20260404123000_resolve_remaining_security_advisors.sql"],
+      "routes": [
+        "/api/profiles",
+        "/api/housing",
+        "/dashboard/owner/settings",
+        "/dashboard/concierge/profile",
+        "/dashboard/provider/settings"
+      ],
+      "files": [
+        "src/app/api/profiles/pure.ts",
+        "src/types/housing.ts",
+        "src/app/dashboard/concierge/logements/create/createLogementHelpers.ts",
+        "supabase/migrations/20260404123000_resolve_remaining_security_advisors.sql"
+      ],
       "progressLabel": "Le produit valide plusieurs champs côté helpers et API ; le helper partagé résout désormais les références mixtes `housing` / `properties` dans les dashboards owner/concierge, le détail mission, les demandes de service et les routes de réservation, mais les données complexes restent dispersées dans des JSON legacy sans preuve d'intégration multi-rôle ni migration SQL unifiée.",
       "source": "Audit recherche, logements, profils, pages et workflows du 26 août 2026",
-      "evidence": ["src/tests/profile-patch-policy.test.mts", "src/tests/create-logement-helpers.test.mts", "src/tests/logement-helpers.test.mts", "src/tests/owner-profile-preferences.test.mts", "src/app/lib/listingReferences.ts", "src/tests/listing-references.test.mts", "src/tests/reservations-api-contract.test.mts"],
-      "missingWork": ["Inventorier les données production anonymisées", "Versionner les contrats JSON transitoires", "Créer les migrations et rollbacks", "Ajouter les tests connectés profil/logement par rôle"],
+      "evidence": [
+        "src/tests/profile-patch-policy.test.mts",
+        "src/tests/create-logement-helpers.test.mts",
+        "src/tests/logement-helpers.test.mts",
+        "src/tests/owner-profile-preferences.test.mts",
+        "src/app/lib/listingReferences.ts",
+        "src/tests/listing-references.test.mts",
+        "src/tests/reservations-api-contract.test.mts"
+      ],
+      "missingWork": [
+        "Inventorier les données production anonymisées",
+        "Versionner les contrats JSON transitoires",
+        "Créer les migrations et rollbacks",
+        "Ajouter les tests connectés profil/logement par rôle"
+      ],
       "githubIssues": []
     },
     {
@@ -2295,16 +2821,49 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Fiabilisation opérationnelle",
       "updatedAt": "2026-08-27",
       "nextAction": "Définir la V1 contrat signé -> en attente des accès -> remise ou provisionnement -> actif -> restitution -> clôture, avec les modes de transmission, les preuves, les permissions, les incidents et les règles de désactivation.",
-      "validationCriteria": ["Chaque accès possède un identifiant neutre, un type, un état et un logement de rattachement", "Un contrat signé reste en attente des accès et ne devient actif qu'après réception physique confirmée ou provisionnement numérique confirmé", "Le propriétaire choisit un mode de remise et de restitution parmi remise directe, intermédiaire mandaté, point relais, envoi suivi, boîte à clés ou serrure connectée", "La remise initiale et la restitution finale sont signées et historisées avec les preuves adaptées au mode choisi", "Toute transmission intermédiaire entre concierge et équipe terrain est traçable avec détenteur, motif et heure", "Une perte, un vol ou un accès non restitué déclenche un incident et une action de remplacement ou désactivation", "La clôture d'un contrat concierge bloque tant que les accès attendus ne sont pas restitués ou neutralisés", "Les accès autorisés, refusés et la confidentialité inter-tenant sont couverts par tests serveur et RLS lorsque la persistance est ajoutée"],
+      "validationCriteria": [
+        "Chaque accès possède un identifiant neutre, un type, un état et un logement de rattachement",
+        "Un contrat signé reste en attente des accès et ne devient actif qu'après réception physique confirmée ou provisionnement numérique confirmé",
+        "Le propriétaire choisit un mode de remise et de restitution parmi remise directe, intermédiaire mandaté, point relais, envoi suivi, boîte à clés ou serrure connectée",
+        "La remise initiale et la restitution finale sont signées et historisées avec les preuves adaptées au mode choisi",
+        "Toute transmission intermédiaire entre concierge et équipe terrain est traçable avec détenteur, motif et heure",
+        "Une perte, un vol ou un accès non restitué déclenche un incident et une action de remplacement ou désactivation",
+        "La clôture d'un contrat concierge bloque tant que les accès attendus ne sont pas restitués ou neutralisés",
+        "Les accès autorisés, refusés et la confidentialité inter-tenant sont couverts par tests serveur et RLS lorsque la persistance est ajoutée"
+      ],
       "validatedCriteria": [],
-      "dependencies": ["PLS-DEV-009", "PLS-SEC-003", "PLS-DATA-003", "PLS-TEST-001"],
+      "dependencies": [
+        "PLS-DEV-009",
+        "PLS-SEC-003",
+        "PLS-DATA-003",
+        "PLS-TEST-001"
+      ],
       "blocker": "Aucun modèle canonique n'existe encore pour les accès physiques et numériques, les états de mise en attente ou d'activation du contrat, les modes de remise/restitution, leurs signatures, leurs incidents et leurs règles de clôture.",
-      "routes": ["/dashboard/owner/logements", "/dashboard/concierge/logements", "/dashboard/concierge/missions", "/dashboard/admin/developpement"],
-      "files": ["docs/master-plan-planetls.md", "src/app/dashboard/owner/logements/", "src/app/dashboard/concierge/logements/", "src/app/api/housing/"],
+      "routes": [
+        "/dashboard/owner/logements",
+        "/dashboard/concierge/logements",
+        "/dashboard/concierge/missions",
+        "/dashboard/admin/developpement"
+      ],
+      "files": [
+        "docs/master-plan-planetls.md",
+        "src/app/dashboard/owner/logements/",
+        "src/app/dashboard/concierge/logements/",
+        "src/app/api/housing/"
+      ],
       "progressLabel": "Besoin métier prioritaire formalisé, sans implémentation produit ni persistance structurée à ce stade.",
       "source": "Mise à jour ciblée - Cadrage de la gestion des clés et accès du 27 août 2026",
-      "evidence": ["Cadrage métier du 27 août 2026 : inventaire des accès, bordereau signé, historique des remises/restitutions, activation conditionnée à la réception et clôture sécurisée"],
-      "missingWork": ["Définir le schéma des accès, bordereaux, preuves et états du contrat", "Choisir la stratégie de signature, d'archivage et de confirmation de réception", "Définir les modes de remise et restitution à distance avec leurs responsabilités", "Définir les règles de perte, duplication et remplacement", "Prévoir la rotation des codes et la révocation des accès connectés", "Ajouter les tests multi-rôle et RLS liés aux accès"],
+      "evidence": [
+        "Cadrage métier du 27 août 2026 : inventaire des accès, bordereau signé, historique des remises/restitutions, activation conditionnée à la réception et clôture sécurisée"
+      ],
+      "missingWork": [
+        "Définir le schéma des accès, bordereaux, preuves et états du contrat",
+        "Choisir la stratégie de signature, d'archivage et de confirmation de réception",
+        "Définir les modes de remise et restitution à distance avec leurs responsabilités",
+        "Définir les règles de perte, duplication et remplacement",
+        "Prévoir la rotation des codes et la révocation des accès connectés",
+        "Ajouter les tests multi-rôle et RLS liés aux accès"
+      ],
       "githubIssues": []
     },
     {
@@ -2319,16 +2878,61 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Activation et rétention",
       "updatedAt": "2026-08-27",
       "nextAction": "Auditer la popup existante repérée, valider les trois actions d'activation par rôle, définir le comportement de reprise et l'emplacement du bloc latéral, puis instrumenter les événements métier et popup avant toute évolution.",
-      "validationCriteria": ["La popup existante est auditée avant d'être déclarée disponible, modifiée ou remplacée", "Chaque rôle voit un guidage court, compréhensible et skippable après inscription ou première arrivée dashboard", "Le bloc latéral `Finalisez votre setup` affiche les trois actions métier adaptées au rôle avec progression visible", "L'utilisateur arrive directement dans sa vue de travail et reçoit seulement une orientation contextualisée non bloquante si nécessaire", "L'activation est validée seulement après l'enregistrement des trois actions métier définies pour le rôle, jamais par une ouverture ou un clic de popup", "Les événements `activation_popup_viewed`, `activation_popup_action_clicked` et `activation_popup_dismissed` sont distincts des événements métier d'activation", "Le parcours peut être repris plus tard sans perdre l'état d'avancement", "Aucune étape n'impose une promesse ou une donnée inexistante dans le produit réel"],
+      "validationCriteria": [
+        "La popup existante est auditée avant d'être déclarée disponible, modifiée ou remplacée",
+        "Chaque rôle voit un guidage court, compréhensible et skippable après inscription ou première arrivée dashboard",
+        "Le bloc latéral `Finalisez votre setup` affiche les trois actions métier adaptées au rôle avec progression visible",
+        "L'utilisateur arrive directement dans sa vue de travail et reçoit seulement une orientation contextualisée non bloquante si nécessaire",
+        "L'activation est validée seulement après l'enregistrement des trois actions métier définies pour le rôle, jamais par une ouverture ou un clic de popup",
+        "Les événements `activation_popup_viewed`, `activation_popup_action_clicked` et `activation_popup_dismissed` sont distincts des événements métier d'activation",
+        "Le parcours peut être repris plus tard sans perdre l'état d'avancement",
+        "Aucune étape n'impose une promesse ou une donnée inexistante dans le produit réel"
+      ],
       "validatedCriteria": [],
-      "dependencies": ["PLS-DEV-002", "PLS-DEV-003", "PLS-DEV-004", "PLS-KPI-001"],
+      "dependencies": [
+        "PLS-DEV-002",
+        "PLS-DEV-003",
+        "PLS-DEV-004",
+        "PLS-KPI-001"
+      ],
       "blocker": "La popup repérée n'est pas auditée. PlanetLS ne dispose pas encore d'une définition canonique des trois jalons d'activation par rôle ni d'une instrumentation suffisante pour savoir quelles premières actions corrèlent avec la rétention.",
-      "routes": ["/register", "/onboarding", "/dashboard/owner", "/dashboard/concierge", "/dashboard/provider", "/dashboard/admin"],
-      "files": ["docs/master-plan-planetls.md", "src/app/register/", "src/app/onboarding/", "src/app/dashboard/owner/", "src/app/dashboard/concierge/", "src/app/dashboard/provider/", "src/app/dashboard/admin/"],
+      "routes": [
+        "/register",
+        "/onboarding",
+        "/dashboard/owner",
+        "/dashboard/concierge",
+        "/dashboard/provider",
+        "/dashboard/admin"
+      ],
+      "files": [
+        "docs/master-plan-planetls.md",
+        "src/app/register/",
+        "src/app/onboarding/",
+        "src/app/dashboard/owner/",
+        "src/app/dashboard/concierge/",
+        "src/app/dashboard/provider/",
+        "src/app/dashboard/admin/"
+      ],
       "progressLabel": "À vérifier — Popup existante repérée, mais non auditée. Définition des critères d'activation et instrumentation analytique requises avant validation ou évolution.",
       "source": "Inspiration Todoist adaptée à PlanetLS, 27 août 2026",
-      "evidence": ["Popup existante repérée, fonctionnement non audité", "Jalons proposés propriétaire : ajouter un logement (`property_created`), inviter ou sélectionner une concierge (`concierge_invited`), puis créer une première demande (`service_request_created`) ou accepter un contrat (`contract_accepted`)", "Jalons proposés concierge : compléter le profil professionnel (`professional_profile_completed`), accepter un contrat (`contract_accepted`), puis accepter (`mission_accepted`) ou réaliser (`mission_completed`) une première mission", "Jalons proposés artisan : compléter le profil et les services (`professional_profile_completed`), répondre à une demande ou soumettre un devis (`quote_submitted`), puis terminer une première intervention (`mission_completed`)", "Jalons proposés administrateur : vérifier un professionnel, traiter une anomalie, puis résoudre ou clôturer un dossier (`admin_problem_resolved`)", "Événements popup distincts : `activation_popup_viewed`, `activation_popup_action_clicked`, `activation_popup_dismissed` ; ils ne valident aucune activation", "Référence d'inspiration observée le 27 août 2026 dans Todoist"],
-      "missingWork": ["Auditer la popup repérée et ses conditions d'affichage", "Valider les trois jalons d'activation par rôle", "Instrumenter `property_created`, `concierge_invited`, `contract_accepted`, `access_handover_confirmed`, `service_request_created`, `mission_accepted`, `mission_completed`, `professional_profile_completed`, `quote_submitted` et `admin_problem_resolved`", "Instrumenter séparément `activation_popup_viewed`, `activation_popup_action_clicked` et `activation_popup_dismissed`", "Décider si la vidéo vit dans la popup ou dans une aide réouvrable", "Définir les règles d'affichage du bloc latéral et de masquage après complétion", "Tester le caractère non bloquant et mobile du parcours"],
+      "evidence": [
+        "Popup existante repérée, fonctionnement non audité",
+        "Jalons proposés propriétaire : ajouter un logement (`property_created`), inviter ou sélectionner une concierge (`concierge_invited`), puis créer une première demande (`service_request_created`) ou accepter un contrat (`contract_accepted`)",
+        "Jalons proposés concierge : compléter le profil professionnel (`professional_profile_completed`), accepter un contrat (`contract_accepted`), puis accepter (`mission_accepted`) ou réaliser (`mission_completed`) une première mission",
+        "Jalons proposés artisan : compléter le profil et les services (`professional_profile_completed`), répondre à une demande ou soumettre un devis (`quote_submitted`), puis terminer une première intervention (`mission_completed`)",
+        "Jalons proposés administrateur : vérifier un professionnel, traiter une anomalie, puis résoudre ou clôturer un dossier (`admin_problem_resolved`)",
+        "Événements popup distincts : `activation_popup_viewed`, `activation_popup_action_clicked`, `activation_popup_dismissed` ; ils ne valident aucune activation",
+        "Référence d'inspiration observée le 27 août 2026 dans Todoist"
+      ],
+      "missingWork": [
+        "Auditer la popup repérée et ses conditions d'affichage",
+        "Valider les trois jalons d'activation par rôle",
+        "Instrumenter `property_created`, `concierge_invited`, `contract_accepted`, `access_handover_confirmed`, `service_request_created`, `mission_accepted`, `mission_completed`, `professional_profile_completed`, `quote_submitted` et `admin_problem_resolved`",
+        "Instrumenter séparément `activation_popup_viewed`, `activation_popup_action_clicked` et `activation_popup_dismissed`",
+        "Décider si la vidéo vit dans la popup ou dans une aide réouvrable",
+        "Définir les règles d'affichage du bloc latéral et de masquage après complétion",
+        "Tester le caractère non bloquant et mobile du parcours"
+      ],
       "githubIssues": []
     },
     {
@@ -2343,16 +2947,40 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "phase": "Monétisation",
       "updatedAt": "2026-08-27",
       "nextAction": "Attendre la clarification des offres PRO, du gating serveur et des KPI d'activation, puis définir le bon moment de déclenchement d'un essai gratuit ou d'une offre contextuelle.",
-      "validationCriteria": ["L'offre proposée correspond à une capacité premium réellement disponible et protégée côté serveur", "Le déclenchement intervient après un usage utile prouvé plutôt qu'immédiatement après inscription", "Le message, la durée d'essai et le pricing sont cohérents avec le rôle ciblé", "Les conversions et abandons sont mesurés sans brouiller l'activation produit"],
+      "validationCriteria": [
+        "L'offre proposée correspond à une capacité premium réellement disponible et protégée côté serveur",
+        "Le déclenchement intervient après un usage utile prouvé plutôt qu'immédiatement après inscription",
+        "Le message, la durée d'essai et le pricing sont cohérents avec le rôle ciblé",
+        "Les conversions et abandons sont mesurés sans brouiller l'activation produit"
+      ],
       "validatedCriteria": [],
       "dependencies": ["PLS-BILL-001", "PLS-DEV-031", "PLS-KPI-001"],
       "blocker": "Le produit ne prouve aujourd'hui qu'un flux Stripe Concierge PRO partiel ; déclencher un essai Pro avant clarification des offres et des droits payants créerait plus de confusion que de valeur.",
-      "routes": ["/dashboard/concierge", "/dashboard/owner", "/dashboard/provider", "/abonnement/concierge-pro"],
-      "files": ["docs/master-plan-planetls.md", "src/app/api/billing/", "src/app/dashboard/concierge/", "src/app/dashboard/owner/", "src/app/dashboard/provider/"],
+      "routes": [
+        "/dashboard/concierge",
+        "/dashboard/owner",
+        "/dashboard/provider",
+        "/abonnement/concierge-pro"
+      ],
+      "files": [
+        "docs/master-plan-planetls.md",
+        "src/app/api/billing/",
+        "src/app/dashboard/concierge/",
+        "src/app/dashboard/owner/",
+        "src/app/dashboard/provider/"
+      ],
       "progressLabel": "Hypothèse de monétisation volontairement repoussée après validation de la valeur, de l'activation et du périmètre premium réel.",
       "source": "Inspiration Todoist adaptée à PlanetLS, 27 août 2026",
-      "evidence": ["Idée produit : popup `Essayez Pro gratuit` observée le 27 août 2026 dans Todoist", "Audit du 25 août 2026 : seul Concierge PRO possède un flux Stripe réel partiel"],
-      "missingWork": ["Finaliser les offres PRO réellement vendues", "Définir les moments d'usage qui justifient un upsell", "Créer une expérimentation propre par rôle", "Mesurer conversion, annulation et effet sur la rétention"],
+      "evidence": [
+        "Idée produit : popup `Essayez Pro gratuit` observée le 27 août 2026 dans Todoist",
+        "Audit du 25 août 2026 : seul Concierge PRO possède un flux Stripe réel partiel"
+      ],
+      "missingWork": [
+        "Finaliser les offres PRO réellement vendues",
+        "Définir les moments d'usage qui justifient un upsell",
+        "Créer une expérimentation propre par rôle",
+        "Mesurer conversion, annulation et effet sur la rétention"
+      ],
       "githubIssues": []
     },
     {
@@ -2368,20 +2996,41 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "addedAt": "2026-09-02",
       "updatedAt": "2026-09-02",
       "nextAction": "Vérifier les cas d'usage réellement répétés par rôle, définir les contenus autorisés, puis décider si la valeur relève d'un module produit, d'une bibliothèque de prompts ou d'une option premium.",
-      "validationCriteria": ["Les cas d'usage sont prouvés par des besoins terrain récurrents", "Le contenu généré reste modifiable avant publication", "Les sources, ton et données sensibles sont cadrés", "Le positionnement premium correspond à une valeur réellement perçue"],
+      "validationCriteria": [
+        "Les cas d'usage sont prouvés par des besoins terrain récurrents",
+        "Le contenu généré reste modifiable avant publication",
+        "Les sources, ton et données sensibles sont cadrés",
+        "Le positionnement premium correspond à une valeur réellement perçue"
+      ],
       "validatedCriteria": [],
       "dependencies": ["PLS-DEV-023", "PLS-BILL-001", "PLS-KPI-001"],
       "blocker": "Aucune preuve terrain ne confirme encore quels acteurs paieraient vraiment pour cet usage ni quelles données PlanetLS devraient alimenter la génération.",
-      "routes": ["/dashboard/admin/pilotage", "/dashboard/concierge", "/dashboard/owner"],
-      "files": ["docs/master-plan-planetls.md", "src/server/prompt-library/", "src/app/dashboard/admin/(business)/pilotage/ai-center/"],
+      "routes": [
+        "/dashboard/admin/pilotage",
+        "/dashboard/concierge",
+        "/dashboard/owner"
+      ],
+      "files": [
+        "docs/master-plan-planetls.md",
+        "src/server/prompt-library/",
+        "src/app/dashboard/admin/(business)/pilotage/ai-center/"
+      ],
       "progressLabel": "Idée stratégique à étudier ; aucune surface éditoriale métier ni monétisation premium n'est prouvée dans PlanetLS aujourd'hui.",
       "userNeed": "Réduire le temps et la difficulté de production de contenus utiles à la commercialisation des logements, services et interventions.",
       "potentialValue": "Aider chaque rôle à produire des contenus cohérents, adaptables et validés humainement, sans publication automatique en V1.",
       "risks": "Permissions sur les données source, qualité et exactitude des contenus, conformité RGPD, preuve de disposition à payer et absence d'intégration sociale automatique en V1.",
       "businessModel": "Option premium ou payante à confirmer uniquement après mesure de valeur et retours terrain.",
       "source": "Demande produit du 2 septembre 2026",
-      "evidence": ["src/server/prompt-library/index.ts", "src/app/dashboard/admin/(business)/pilotage/ai-center/PromptLibraryCenter.tsx"],
-      "missingWork": ["Qualifier les usages par rôle", "Définir garde-fous éditoriaux et RGPD", "Décider la place du premium", "Mesurer le gain réel avant industrialisation"],
+      "evidence": [
+        "src/server/prompt-library/index.ts",
+        "src/app/dashboard/admin/(business)/pilotage/ai-center/PromptLibraryCenter.tsx"
+      ],
+      "missingWork": [
+        "Qualifier les usages par rôle",
+        "Définir garde-fous éditoriaux et RGPD",
+        "Décider la place du premium",
+        "Mesurer le gain réel avant industrialisation"
+      ],
       "githubIssues": []
     },
     {
@@ -2397,16 +3046,37 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "addedAt": "2026-09-02",
       "updatedAt": "2026-09-02",
       "nextAction": "Auditer la page stocks existante, décider le niveau canonique `logement`, `conciergerie` ou mixte, puis définir la V1 sur quantités, seuils, historique et réapprovisionnement suggéré.",
-      "validationCriteria": ["Chaque mouvement de stock possède un logement ou un périmètre clair", "Les seuils d'alerte sont configurables", "L'historique entrées-sorties reste lisible", "Le réapprovisionnement suggéré n'engage aucune commande automatique"],
+      "validationCriteria": [
+        "Chaque mouvement de stock possède un logement ou un périmètre clair",
+        "Les seuils d'alerte sont configurables",
+        "L'historique entrées-sorties reste lisible",
+        "Le réapprovisionnement suggéré n'engage aucune commande automatique"
+      ],
       "validatedCriteria": [],
       "dependencies": ["PLS-DATA-003", "PLS-DEV-009", "PLS-TEST-001"],
       "blocker": "Le produit possède déjà une surface stocks, mais son niveau de persistance, son modèle canonique et la couverture multi-rôle ne sont pas encore suffisamment prouvés pour en faire un module stabilisé.",
-      "routes": ["/dashboard/concierge/stocks", "/dashboard/concierge/logements"],
-      "files": ["src/app/dashboard/concierge/stocks/page.tsx", "src/app/dashboard/concierge/stocks/stocksHelpers.ts", "src/tests/concierge-alerts-stocks.test.mts"],
+      "routes": [
+        "/dashboard/concierge/stocks",
+        "/dashboard/concierge/logements"
+      ],
+      "files": [
+        "src/app/dashboard/concierge/stocks/page.tsx",
+        "src/app/dashboard/concierge/stocks/stocksHelpers.ts",
+        "src/tests/concierge-alerts-stocks.test.mts"
+      ],
       "progressLabel": "Un socle de page et de tests existe, mais la gouvernance complète des consommables et du réapprovisionnement reste à structurer.",
       "source": "Demande produit du 2 septembre 2026 et audit Excel/code",
-      "evidence": ["src/app/dashboard/concierge/stocks/page.tsx", "src/app/dashboard/concierge/stocks/stocksHelpers.ts", "src/tests/concierge-alerts-stocks.test.mts"],
-      "missingWork": ["Décider le contrat de données canonique", "Qualifier les permissions owner/concierge", "Ajouter l'historique détaillé et les seuils persistés", "Tester les refus multi-rôle et l'état vide"],
+      "evidence": [
+        "src/app/dashboard/concierge/stocks/page.tsx",
+        "src/app/dashboard/concierge/stocks/stocksHelpers.ts",
+        "src/tests/concierge-alerts-stocks.test.mts"
+      ],
+      "missingWork": [
+        "Décider le contrat de données canonique",
+        "Qualifier les permissions owner/concierge",
+        "Ajouter l'historique détaillé et les seuils persistés",
+        "Tester les refus multi-rôle et l'état vide"
+      ],
       "githubIssues": []
     },
     {
@@ -2422,16 +3092,45 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "addedAt": "2026-09-02",
       "updatedAt": "2026-09-02",
       "nextAction": "Définir la frontière entre fiche logement actuelle, maintenance, clés, documents et informations sensibles, puis cadrer une V1 avec permissions explicites et pièces jointes maîtrisées.",
-      "validationCriteria": ["Chaque information a une catégorie et un niveau de visibilité explicite", "Les documents et historiques sont rattachés au bon logement", "Les données sensibles sont protégées par rôle et contexte", "Le carnet n'entre pas en conflit avec les modules clés, incidents ou contrats"],
+      "validationCriteria": [
+        "Chaque information a une catégorie et un niveau de visibilité explicite",
+        "Les documents et historiques sont rattachés au bon logement",
+        "Les données sensibles sont protégées par rôle et contexte",
+        "Le carnet n'entre pas en conflit avec les modules clés, incidents ou contrats"
+      ],
       "validatedCriteria": [],
-      "dependencies": ["PLS-DATA-003", "PLS-DEV-030", "PLS-SEC-003", "PLS-TEST-001"],
+      "dependencies": [
+        "PLS-DATA-003",
+        "PLS-DEV-030",
+        "PLS-SEC-003",
+        "PLS-TEST-001"
+      ],
       "blocker": "Les données logement restent encore dispersées entre JSON legacy, fiches, missions, maintenance et documents ; sans contrat canonique, un carnet unique risquerait de dupliquer l'existant.",
-      "routes": ["/dashboard/owner/logements", "/dashboard/concierge/logements", "/dashboard/concierge/maintenance"],
-      "files": ["src/types/housing.ts", "src/app/dashboard/owner/logements/", "src/app/dashboard/concierge/logements/", "src/app/dashboard/concierge/maintenance/"],
+      "routes": [
+        "/dashboard/owner/logements",
+        "/dashboard/concierge/logements",
+        "/dashboard/concierge/maintenance"
+      ],
+      "files": [
+        "src/types/housing.ts",
+        "src/app/dashboard/owner/logements/",
+        "src/app/dashboard/concierge/logements/",
+        "src/app/dashboard/concierge/maintenance/"
+      ],
       "progressLabel": "Le logement possède déjà plusieurs vues et données associées, mais aucun carnet numérique canonique avec permissions fines n'est encore structuré.",
       "source": "Demande produit du 2 septembre 2026",
-      "evidence": ["src/types/housing.ts", "src/app/dashboard/concierge/logements/[id]/page.tsx", "src/app/dashboard/owner/logements/[id]/page.tsx", "src/app/dashboard/concierge/maintenance/page.tsx"],
-      "missingWork": ["Cartographier les informations utiles par rôle", "Définir les permissions fines", "Structurer le modèle de documents et historiques", "Prévoir les tests RLS et multi-tenant"],
+      "evidence": [
+        "src/types/housing.ts",
+        "src/app/dashboard/concierge/logements/[id]/page.tsx",
+        "src/app/dashboard/owner/logements/[id]/page.tsx",
+        "src/app/dashboard/concierge/maintenance/page.tsx"
+      ],
+      "missingWork": [
+        "Cartographier les informations utiles par rôle",
+        "Définir les permissions fines",
+        "Structurer le modèle de documents et historiques",
+        "Prévoir les tests RLS et multi-tenant"
+      ],
       "githubIssues": []
     },
     {
@@ -2447,16 +3146,43 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "addedAt": "2026-09-02",
       "updatedAt": "2026-09-02",
       "nextAction": "Auditer les surfaces urgences et maintenance existantes, définir les niveaux d'urgence, règles de validation, responsables et preuves, puis relier ce mode aux workflows demande, mission et intervention.",
-      "validationCriteria": ["Chaque urgence possède un type, un niveau et un responsable", "Le propriétaire est informé ou l'exception est tracée", "La prise en charge, les preuves et les décisions sont historisées", "Des règles limitent les usages abusifs ou hors cadre"],
+      "validationCriteria": [
+        "Chaque urgence possède un type, un niveau et un responsable",
+        "Le propriétaire est informé ou l'exception est tracée",
+        "La prise en charge, les preuves et les décisions sont historisées",
+        "Des règles limitent les usages abusifs ou hors cadre"
+      ],
       "validatedCriteria": [],
-      "dependencies": ["PLS-DEV-029", "PLS-DEV-028", "PLS-SEC-004", "PLS-TEST-001"],
+      "dependencies": [
+        "PLS-DEV-029",
+        "PLS-DEV-028",
+        "PLS-SEC-004",
+        "PLS-TEST-001"
+      ],
       "blocker": "Des pages urgences et maintenance existent, mais le contrat canonique `urgence -> qualification -> prise en charge -> preuve -> clôture` n'est pas encore défini ni prouvé de bout en bout.",
-      "routes": ["/dashboard/concierge/urgences", "/dashboard/concierge/maintenance", "/dashboard/admin/controle"],
-      "files": ["src/app/dashboard/concierge/urgences/page.tsx", "src/app/dashboard/concierge/maintenance/page.tsx", "src/app/dashboard/admin/(operations)/controle/page.tsx"],
+      "routes": [
+        "/dashboard/concierge/urgences",
+        "/dashboard/concierge/maintenance",
+        "/dashboard/admin/controle"
+      ],
+      "files": [
+        "src/app/dashboard/concierge/urgences/page.tsx",
+        "src/app/dashboard/concierge/maintenance/page.tsx",
+        "src/app/dashboard/admin/(operations)/controle/page.tsx"
+      ],
       "progressLabel": "L'urgence est visible dans plusieurs cockpits, mais le mode métier sécurisé, ses garde-fous et son orchestration restent à formaliser.",
       "source": "Demande produit du 2 septembre 2026",
-      "evidence": ["src/app/dashboard/concierge/urgences/page.tsx", "src/app/dashboard/concierge/maintenance/page.tsx", "src/app/dashboard/concierge/DashboardPage.tsx"],
-      "missingWork": ["Définir les niveaux et règles d'urgence", "Relier owner, concierge et provider", "Journaliser preuves et décisions", "Tester validation, refus et clôture"],
+      "evidence": [
+        "src/app/dashboard/concierge/urgences/page.tsx",
+        "src/app/dashboard/concierge/maintenance/page.tsx",
+        "src/app/dashboard/concierge/DashboardPage.tsx"
+      ],
+      "missingWork": [
+        "Définir les niveaux et règles d'urgence",
+        "Relier owner, concierge et provider",
+        "Journaliser preuves et décisions",
+        "Tester validation, refus et clôture"
+      ],
       "githubIssues": []
     },
     {
@@ -2472,16 +3198,41 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "addedAt": "2026-09-02",
       "updatedAt": "2026-09-02",
       "nextAction": "Distinguer ce qui relève du profil provider existant, du moteur de recherche, des devis, des interventions et des avis, puis choisir une V1 lisible avec preuves et disponibilités utiles.",
-      "validationCriteria": ["Le profil professionnel expose métier, zone, disponibilité, certifications et assurances de façon exploitable", "Le portfolio et les preuves restent vérifiables", "Les demandes de devis et le suivi d'intervention s'appuient sur les workflows existants", "Les avis éventuels sont clairement qualifiés comme vérifiés ou non"],
+      "validationCriteria": [
+        "Le profil professionnel expose métier, zone, disponibilité, certifications et assurances de façon exploitable",
+        "Le portfolio et les preuves restent vérifiables",
+        "Les demandes de devis et le suivi d'intervention s'appuient sur les workflows existants",
+        "Les avis éventuels sont clairement qualifiés comme vérifiés ou non"
+      ],
       "validatedCriteria": [],
       "dependencies": ["PLS-DEV-028", "PLS-DATA-003", "PLS-TEST-001"],
       "blocker": "Le dashboard provider existe, mais le périmètre exact entre profil, réputation, distribution de demandes et preuve d'intervention n'est pas encore suffisamment découpé ni validé terrain.",
-      "routes": ["/dashboard/provider", "/dashboard/provider/settings", "/api/provider/workspace", "/api/profiles/providers"],
-      "files": ["src/app/dashboard/provider/", "src/app/api/provider/workspace/route.ts", "src/app/api/profiles/providers/route.ts", "src/tests/provider-profile-documents-contract.test.mts"],
+      "routes": [
+        "/dashboard/provider",
+        "/dashboard/provider/settings",
+        "/api/provider/workspace",
+        "/api/profiles/providers"
+      ],
+      "files": [
+        "src/app/dashboard/provider/",
+        "src/app/api/provider/workspace/route.ts",
+        "src/app/api/profiles/providers/route.ts",
+        "src/tests/provider-profile-documents-contract.test.mts"
+      ],
       "progressLabel": "Le socle provider/artisan est réel, mais l'espace professionnel complet avec réputation, portfolio et qualification des demandes reste à cadrer.",
       "source": "Demande produit du 2 septembre 2026 et audit des parcours provider/artisan",
-      "evidence": ["src/app/api/provider/workspace/route.ts", "src/app/api/profiles/providers/route.ts", "e2e/provider-intervention-transaction.spec.ts", "src/tests/provider-profile-documents-contract.test.mts"],
-      "missingWork": ["Choisir la V1 du profil enrichi", "Définir les preuves et avis vérifiés", "Relier disponibilités et demandes qualifiées", "Tester visibilité et permissions multi-rôle"],
+      "evidence": [
+        "src/app/api/provider/workspace/route.ts",
+        "src/app/api/profiles/providers/route.ts",
+        "e2e/provider-intervention-transaction.spec.ts",
+        "src/tests/provider-profile-documents-contract.test.mts"
+      ],
+      "missingWork": [
+        "Choisir la V1 du profil enrichi",
+        "Définir les preuves et avis vérifiés",
+        "Relier disponibilités et demandes qualifiées",
+        "Tester visibilité et permissions multi-rôle"
+      ],
       "githubIssues": []
     },
     {
@@ -2497,16 +3248,38 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "addedAt": "2026-09-02",
       "updatedAt": "2026-09-02",
       "nextAction": "Auditer les modèles déjà simulés dans le pilotage business et les workflows facturation existants, puis décider quels modèles méritent un cadrage produit explicite avant toute implémentation de paiement avancé.",
-      "validationCriteria": ["Chaque modèle de rémunération a ses règles, assiette et responsabilités explicites", "Les périodicités de règlement sont compatibles avec devis, mission, facture et paiement", "Les commissions et retenues sont calculables et auditables", "Aucune automatisation de versement n'est ouverte sans cadre contractuel et fiscal"],
+      "validationCriteria": [
+        "Chaque modèle de rémunération a ses règles, assiette et responsabilités explicites",
+        "Les périodicités de règlement sont compatibles avec devis, mission, facture et paiement",
+        "Les commissions et retenues sont calculables et auditables",
+        "Aucune automatisation de versement n'est ouverte sans cadre contractuel et fiscal"
+      ],
       "validatedCriteria": [],
       "dependencies": ["PLS-BIZ-001", "PLS-BILL-001", "PLS-DEV-010"],
       "blocker": "Des calculs de commission et de rentabilité existent, mais aucun modèle canonique de rémunération concierge multi-scénario n'est encore branché au produit ni validé juridiquement ou opérationnellement.",
-      "routes": ["/dashboard/admin/pilotage", "/dashboard/admin/modele-financier", "/dashboard/concierge/billing"],
-      "files": ["src/app/dashboard/admin/(business)/pilotage/economic-model/", "src/app/dashboard/admin/(business)/modele-financier/page.tsx", "src/tests/financial-management.test.mts"],
+      "routes": [
+        "/dashboard/admin/pilotage",
+        "/dashboard/admin/modele-financier",
+        "/dashboard/concierge/billing"
+      ],
+      "files": [
+        "src/app/dashboard/admin/(business)/pilotage/economic-model/",
+        "src/app/dashboard/admin/(business)/modele-financier/page.tsx",
+        "src/tests/financial-management.test.mts"
+      ],
       "progressLabel": "Sujet business à étudier ; les calculs existent, mais la rémunération flexible et ses règlements ne sont pas un workflow métier prouvé.",
       "source": "Demande produit du 2 septembre 2026",
-      "evidence": ["src/app/dashboard/admin/(business)/pilotage/economic-model/", "src/tests/financial-management.test.mts", "docs/master-plan-planetls.md : note du 24 août 2026 sur l'absence de preuve métier suffisante"],
-      "missingWork": ["Comparer les modèles de rémunération", "Qualifier impacts juridiques et fiscaux", "Relier rémunération, facture et paiement", "Décider si ce sujet relève d'abord du pilotage ou du produit"],
+      "evidence": [
+        "src/app/dashboard/admin/(business)/pilotage/economic-model/",
+        "src/tests/financial-management.test.mts",
+        "docs/master-plan-planetls.md : note du 24 août 2026 sur l'absence de preuve métier suffisante"
+      ],
+      "missingWork": [
+        "Comparer les modèles de rémunération",
+        "Qualifier impacts juridiques et fiscaux",
+        "Relier rémunération, facture et paiement",
+        "Décider si ce sujet relève d'abord du pilotage ou du produit"
+      ],
       "githubIssues": []
     },
     {
@@ -2522,16 +3295,34 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "addedAt": "2026-09-02",
       "updatedAt": "2026-09-02",
       "nextAction": "Valider d'abord l'usage terrain du rapport déco actuel, puis cadrer les droits photo, le marquage des simulations, la conservation des images et le rôle exact de l'IA avant toute génération visuelle.",
-      "validationCriteria": ["Les simulations sont explicitement marquées comme projections", "Les droits sur les photos source et images générées sont définis", "Le rendu aide une décision concrète sans tromper le propriétaire", "Le rapport texte actuel a déjà prouvé sa valeur minimale"],
+      "validationCriteria": [
+        "Les simulations sont explicitement marquées comme projections",
+        "Les droits sur les photos source et images générées sont définis",
+        "Le rendu aide une décision concrète sans tromper le propriétaire",
+        "Le rapport texte actuel a déjà prouvé sa valeur minimale"
+      ],
       "validatedCriteria": [],
       "dependencies": ["PLS-DEV-023", "PLS-SEC-004"],
       "blocker": "L'assistant décoration actuel reste partiel et textuel ; ajouter de la simulation visuelle avant validation d'usage et cadre photo augmenterait le risque de confusion.",
       "routes": ["/dashboard/concierge/decoration-ai"],
-      "files": ["src/app/dashboard/concierge/decoration-ai/", "src/app/api/concierge/decoration-assistant/route.ts", "supabase/migrations/20260718090000_decoration_ai_reports.sql"],
+      "files": [
+        "src/app/dashboard/concierge/decoration-ai/",
+        "src/app/api/concierge/decoration-assistant/route.ts",
+        "supabase/migrations/20260718090000_decoration_ai_reports.sql"
+      ],
       "progressLabel": "Extension future d'un assistant déco déjà partiel ; la simulation visuelle n'est ni prouvée ni cadrée dans le produit actuel.",
       "source": "Demande produit du 2 septembre 2026 et audit de l'assistant décoration",
-      "evidence": ["src/app/dashboard/concierge/decoration-ai/DecorationAssistantPageClient.tsx", "src/app/api/concierge/decoration-assistant/route.ts", "docs/master-plan-planetls.md : Assistant décoration partiel"],
-      "missingWork": ["Valider le rapport texte sur le terrain", "Définir droits et conservation des images", "Marquer clairement les projections", "Décider si la simulation visuelle est un module premium ou une extension simple"],
+      "evidence": [
+        "src/app/dashboard/concierge/decoration-ai/DecorationAssistantPageClient.tsx",
+        "src/app/api/concierge/decoration-assistant/route.ts",
+        "docs/master-plan-planetls.md : Assistant décoration partiel"
+      ],
+      "missingWork": [
+        "Valider le rapport texte sur le terrain",
+        "Définir droits et conservation des images",
+        "Marquer clairement les projections",
+        "Décider si la simulation visuelle est un module premium ou une extension simple"
+      ],
       "githubIssues": []
     },
     {
@@ -2547,16 +3338,43 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "addedAt": "2026-09-05",
       "updatedAt": "2026-09-06",
       "nextAction": "Corriger les privilèges/RLS de profiles et la revalidation serveur des sessions, puis rejouer les tests connectés locaux sans déploiement.",
-      "validationCriteria": ["Catégories publiques fermées et rôle attribué côté serveur", "Tests négatifs sans appel externe et trois rôles publics validés", "Inscriptions, connexion et persistance Auth/profiles validées sur base isolée", "Parcours Auth, profil et permissions validés sur une base isolée", "Sessions existantes refusées après suspension ou suppression et droits retirés après rétrogradation", "Correction vérifiée sur un environnement publié après autorisation distincte"],
-      "validatedCriteria": ["Catégories publiques fermées et rôle attribué côté serveur", "Tests négatifs sans appel externe et trois rôles publics validés", "Inscriptions, connexion et persistance Auth/profiles validées sur base isolée"],
+      "validationCriteria": [
+        "Catégories publiques fermées et rôle attribué côté serveur",
+        "Tests négatifs sans appel externe et trois rôles publics validés",
+        "Inscriptions, connexion et persistance Auth/profiles validées sur base isolée",
+        "Parcours Auth, profil et permissions validés sur une base isolée",
+        "Sessions existantes refusées après suspension ou suppression et droits retirés après rétrogradation",
+        "Correction vérifiée sur un environnement publié après autorisation distincte"
+      ],
+      "validatedCriteria": [
+        "Catégories publiques fermées et rôle attribué côté serveur",
+        "Tests négatifs sans appel externe et trois rôles publics validés",
+        "Inscriptions, connexion et persistance Auth/profiles validées sur base isolée"
+      ],
       "dependencies": [],
       "blocker": null,
       "routes": ["/api/auth/register", "/register"],
-      "files": ["src/app/api/auth/register/route.ts", "src/tests/registration-security.test.mts", "scripts/test-registration-local.mjs"],
+      "files": [
+        "src/app/api/auth/register/route.ts",
+        "src/tests/registration-security.test.mts",
+        "scripts/test-registration-local.mjs"
+      ],
       "progressLabel": "Validation réelle locale : 41 contrôles réussis, 14 échoués. Inscription et persistance correctes ; élévation via profiles et défauts de révocation confirmés. Fixtures nettoyées.",
       "source": "Autorisation utilisateur du 5 septembre 2026 : correctif P0 sans déploiement",
-      "evidence": ["src/app/api/auth/register/route.ts", "src/tests/registration-security.test.mts", "scripts/test-registration-local.mjs", "test-results/registration-local.json : 41 PASS / 14 FAIL le 6 septembre 2026 ; nettoyage SQL 0 Auth / 0 profiles"],
-      "missingWork": ["Interdire les écritures anonymes et les modifications non autorisées de rôle propre ou voisin dans profiles", "Corriger et retester les trois défauts de révocation de session", "Valider toute migration sur base fraîche et existante représentative", "Réussir tous les contrôles connectés et le rejeu E2E", "Restaurer un bootstrap canonique reproductible pour la CI", "Déployer et vérifier uniquement dans une mission autorisée distincte"],
+      "evidence": [
+        "src/app/api/auth/register/route.ts",
+        "src/tests/registration-security.test.mts",
+        "scripts/test-registration-local.mjs",
+        "test-results/registration-local.json : 41 PASS / 14 FAIL le 6 septembre 2026 ; nettoyage SQL 0 Auth / 0 profiles"
+      ],
+      "missingWork": [
+        "Interdire les écritures anonymes et les modifications non autorisées de rôle propre ou voisin dans profiles",
+        "Corriger et retester les trois défauts de révocation de session",
+        "Valider toute migration sur base fraîche et existante représentative",
+        "Réussir tous les contrôles connectés et le rejeu E2E",
+        "Restaurer un bootstrap canonique reproductible pour la CI",
+        "Déployer et vérifier uniquement dans une mission autorisée distincte"
+      ],
       "githubIssues": []
     }
   ]
@@ -2675,13 +3493,13 @@ Le point d'entrée peut varier par acteur, mais le produit doit converger vers u
 | Missions                             | En cours         |     N3 | CRUD, permissions, statuts, détails riches, fichiers, événements et affectations ; plusieurs données riches sont en `metadata`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | Missions urgentes                    | En cours         |     N3 | Publication/acceptation et surfaces owner/concierge présentes ; liquidité réelle et règles d'attribution à éprouver                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | Planning                             | En cours         |     N3 | Pages owner/concierge/provider, calendrier et statuts ; planification après paiement validée E2E owner/concierge ; garde anti-chevauchement actif ; charge quotidienne visible ; table équipe, RLS et API ajoutées avec repli local ; migration Supabase à appliquer avant persistance réelle, puis drag-and-drop et temps de trajet à consolider                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| Logements                            | En cours         |     N3 | Création, édition, photos, vues owner/concierge et collaborations ; un helper partagé résout désormais les références mixtes `housing`/`properties` sur les dashboards owner/concierge, le détail mission et les demandes de service, mais la normalisation du schéma et des routes réservation reste à terminer                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Logements                            | En cours         |     N3 | Création, édition, photos, vues owner/concierge et collaborations ; un helper partagé résout désormais les références mixtes `housing`/`properties` sur les dashboards owner/concierge, le détail mission et les demandes de service, mais la normalisation du schéma et des routes réservation reste à terminer                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | Messagerie owner/concierge           | En cours         |     N3 | Conversations/messages et UI des deux rôles ; temps réel, notifications et parcours E2E à confirmer                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | Messagerie provider                  | En cours         |     N3 | API et UI présentes, synchronisation du dernier message durcie ; QA fermeture/réouverture et chaîne client-intervention incomplètes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | Notifications et alertes             | En cours         |     N2 | Centre de notifications, alertes concierge/provider et événements existent ; distribution uniforme, push et préférences manquent                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Factures et paiements                | En cours         |     N3 | Factures, documents, checkout/sync/webhook, acompte/solde modélisés ; paiement owner relié à Stripe avec checkout hébergé, synchronisation retour navigateur, webhook signé et scénario E2E critique ; visualisation des échecs, remboursements, commissionnement et ledger admin restent incomplets ; build global non refermé au 25 août 2026                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Tarification, packs, contrats et PRO | En cours         |     N2 | Pricing, segments, règles, scénarios, packs et modèles de contrat présents ; l'offre payante réellement implémentée côté produit est aujourd'hui `Concierge PRO` via le plan Stripe `concierge_pro_monthly` et l'historique `stripe_events` ; `owner_pro`, `provider_pro` et `artisan_pro` existent comme rôles/UI/hypothèses mais sans workflow Stripe, sans garde serveur dédiée de fonctionnalités premium et sans preuve E2E équivalente                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Clés et accès sous contrat concierge  | 🔴 Non commencée |     N0 | Aucun module canonique n'inventorie encore les clés, badges, télécommandes ou codes par logement/contrat ; le contrat ne dispose pas de l'état `Signé - en attente des accès` ni d'une activation conditionnée à la réception ou au provisionnement ; pas de bordereau signé de remise/restitution, de modes de transmission à distance, d'historique nominatif des détenteurs, de gestion d'incident perte/vol ni de blocage de clôture de contrat sur les accès restants                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Factures et paiements                | En cours         |     N3 | Factures, documents, checkout/sync/webhook, acompte/solde modélisés ; paiement owner relié à Stripe avec checkout hébergé, synchronisation retour navigateur, webhook signé et scénario E2E critique ; visualisation des échecs, remboursements, commissionnement et ledger admin restent incomplets ; build global non refermé au 25 août 2026                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Tarification, packs, contrats et PRO | En cours         |     N2 | Pricing, segments, règles, scénarios, packs et modèles de contrat présents ; l'offre payante réellement implémentée côté produit est aujourd'hui `Concierge PRO` via le plan Stripe `concierge_pro_monthly` et l'historique `stripe_events` ; `owner_pro`, `provider_pro` et `artisan_pro` existent comme rôles/UI/hypothèses mais sans workflow Stripe, sans garde serveur dédiée de fonctionnalités premium et sans preuve E2E équivalente                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Clés et accès sous contrat concierge | 🔴 Non commencée |     N0 | Aucun module canonique n'inventorie encore les clés, badges, télécommandes ou codes par logement/contrat ; le contrat ne dispose pas de l'état `Signé - en attente des accès` ni d'une activation conditionnée à la réception ou au provisionnement ; pas de bordereau signé de remise/restitution, de modes de transmission à distance, d'historique nominatif des détenteurs, de gestion d'incident perte/vol ni de blocage de clôture de contrat sur les accès restants                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | CRM propriétaires                    | En cours         |     N2 | Helper et page contacts enrichie ; consolidation utile, mais persistance dédiée et timeline unifiée non finalisées                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | Équipe et affectations               | En cours         |     N2 | Modèle métier, page et action d'affectation ; tables spécialisées, permissions fines et persistance complète manquent                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | Réservations et séjours voyageurs    | En cours         |     N2 | Moteur, API réservations, API séjours, page concierge et tests ; données principalement via missions/`metadata`, pas d'espace voyageur ; la route `/api/reservations/[id]` s'aligne maintenant sur le type partagé `TravelerStayMissionRow` au lieu d'un cast générique ; clarification métier formalisée le mercredi 29 juillet 2026 : la réservation ou le séjour doit devenir l'objet canonique partagé entre propriétaire et conciergerie, les missions restant des actions d'exécution liées, avec interventions artisans en troisième niveau                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
@@ -2766,103 +3584,103 @@ L'Excel historique est utile comme mémoire métier, pas comme cible de reproduc
 
 #### Inventaire du produit réel
 
-| Domaine cible | Capacité réelle observée | État | Preuves principales | Tests |
-| ------------- | ------------------------ | ---- | ------------------- | ----- |
-| PlanetLS Owner | Réservations owner, missions, factures, documents, alertes | `🟡 En cours` | `src/app/api/owner/reservations/route.ts`, `src/app/dashboard/owner/*`, `src/app/api/billing/*`, `src/app/api/invoices/*` | `reservations-api-contract`, `e2e-owner-checkout-contract`, `owner-crm`, `financial-management` |
-| PlanetLS Concierge | Cockpit, planning, logements, équipe, maintenance, finances, demandes, messages | `🟡 En cours` | `src/app/dashboard/concierge/*`, `src/app/api/missions/*`, `src/app/api/service-requests/*`, `supabase/migrations/20260504113000_create_concierge_absences.sql` | `team-management`, `mission-*`, `maintenance-*`, `concierge-*` |
-| PlanetLS Pro | Workspace provider, interventions, documents, devis/facturation liés | `🟠 Partiel` | `src/app/api/provider/workspace/route.ts`, `src/app/api/provider/interventions/*`, `src/app/api/provider/profile-documents/*` | `provider-profile-documents-contract`, `payment-workflow`, `maintenance-workflow` |
-| PlanetLS Platform | Auth NextAuth + Supabase, proxy, guards API, CSRF, rôles et RLS | `🟡 En cours` | `src/server/auth/*`, `src/proxy.ts`, `src/server/security/csrf.ts`, migrations RLS | `business-authorization`, `csrf-protection`, `profile-patch-policy` |
-| PlanetLS Intelligence | Prompt library, assistant déco, surfaces admin d'automatisation/pilotage | `🟠 Partiel` | `src/server/prompt-library/index.ts`, `src/app/dashboard/admin/(business)/pilotage/*`, `supabase/migrations/20260718090000_decoration_ai_reports.sql` | `prompt-library`, `decoration-assistant`, `project-advisor` |
-| PlanetLS Network | Profils publics, recherche, matching initial, invitations owner | `🟡 En cours` | `src/app/api/profiles/public-concierges/route.ts`, `src/features/public-concierges/*`, `src/app/api/owner-invitations/*` | `public-concierges`, `owner-concierges-search`, `public-profile-*` |
+| Domaine cible         | Capacité réelle observée                                                        | État          | Preuves principales                                                                                                                                             | Tests                                                                                           |
+| --------------------- | ------------------------------------------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| PlanetLS Owner        | Réservations owner, missions, factures, documents, alertes                      | `🟡 En cours` | `src/app/api/owner/reservations/route.ts`, `src/app/dashboard/owner/*`, `src/app/api/billing/*`, `src/app/api/invoices/*`                                       | `reservations-api-contract`, `e2e-owner-checkout-contract`, `owner-crm`, `financial-management` |
+| PlanetLS Concierge    | Cockpit, planning, logements, équipe, maintenance, finances, demandes, messages | `🟡 En cours` | `src/app/dashboard/concierge/*`, `src/app/api/missions/*`, `src/app/api/service-requests/*`, `supabase/migrations/20260504113000_create_concierge_absences.sql` | `team-management`, `mission-*`, `maintenance-*`, `concierge-*`                                  |
+| PlanetLS Pro          | Workspace provider, interventions, documents, devis/facturation liés            | `🟠 Partiel`  | `src/app/api/provider/workspace/route.ts`, `src/app/api/provider/interventions/*`, `src/app/api/provider/profile-documents/*`                                   | `provider-profile-documents-contract`, `payment-workflow`, `maintenance-workflow`               |
+| PlanetLS Platform     | Auth NextAuth + Supabase, proxy, guards API, CSRF, rôles et RLS                 | `🟡 En cours` | `src/server/auth/*`, `src/proxy.ts`, `src/server/security/csrf.ts`, migrations RLS                                                                              | `business-authorization`, `csrf-protection`, `profile-patch-policy`                             |
+| PlanetLS Intelligence | Prompt library, assistant déco, surfaces admin d'automatisation/pilotage        | `🟠 Partiel`  | `src/server/prompt-library/index.ts`, `src/app/dashboard/admin/(business)/pilotage/*`, `supabase/migrations/20260718090000_decoration_ai_reports.sql`           | `prompt-library`, `decoration-assistant`, `project-advisor`                                     |
+| PlanetLS Network      | Profils publics, recherche, matching initial, invitations owner                 | `🟡 En cours` | `src/app/api/profiles/public-concierges/route.ts`, `src/features/public-concierges/*`, `src/app/api/owner-invitations/*`                                        | `public-concierges`, `owner-concierges-search`, `public-profile-*`                              |
 
 #### Matrice Excel historique ↔ PlanetLS actuel
 
-| Concept historique Excel | Besoin métier reconstruit | Réalité PlanetLS actuelle | Décision de pilotage |
-| ------------------------ | ------------------------- | ------------------------- | -------------------- |
-| Tableau de bord | Vue synthétique opérationnelle et décisionnelle | Très présent, surtout côté `concierge` et `admin`, plus partiel côté owner | `Conserver` |
-| Propriétaires / fiche logement | Référentiel propriétaire + logement + consignes | Présent via logements/profils, mais encore hétérogène selon les rôles | `Conserver et unifier` |
-| Réservations | Canon séjours / voyageurs / dates / canal | Présent avec tables, API et helpers ; encore à densifier côté propagation métier | `Conserver prioritaire` |
-| Suivi journalier arrivées / départs / recouches | Vue terrain quotidienne | Couvert partiellement via séjours owner, planning concierge et missions ; pas encore un centre canonique unique | `Fusionner dans le moteur séjour/planning` |
-| Carte intervention | Géographie des missions et trajets | Présente partiellement dans planning/optimisation de tournée ; pas encore un module canonique complet | `Conserver plus tard` |
-| Équipes / secteurs | Affectation interne par zone | Présent partiellement avec équipe concierge et zone lock | `Conserver prioritaire` |
-| Absences / vacances / maladie | Continuité de service et couverture | Socle DB présent `concierge_absences`, mais pas encore analyse complète d'impact | `Conserver prioritaire` |
-| Prestataires | Répertoire pro et coordination | Présent côté provider/public profiles/interventions | `Conserver` |
-| Checklist | Standardiser l'exécution et la preuve | Présente dans missions et mobile local, mais encore partiellement en `metadata` | `Conserver et persister proprement` |
-| Stock & produits | Consommables et besoins logement | Déjà visible dans logement/alerts/services catalog, mais non canonique | `Reporter en P1/P2` |
-| Achats / notes de frais | Dépenses opérationnelles et remboursements | Partiel dans housing purchase needs + finances ; pas encore bout en bout | `Conserver sans élargir tout de suite` |
-| Réclamations | Gestion insatisfaction / litige distincte de l'incident | Disputes et incidents existent mais séparation produit encore floue | `Conserver comme décision ouverte` |
-| Rapports fin de location | Qualité séjour et clôture | Couvert indirectement par preuves, missions, séjours, disputes | `Fusionner avec clôture séjour` |
-| Calendrier entretien | Maintenance préventive logement | Idée présente, incident/maintenance en place, préventif pas encore structuré | `Conserver P2` |
-| Facturation prestation / frais | Boucle mission -> facture -> paiement | Très présente dans le code, encore incomplète sur visibilité et relances | `Conserver prioritaire` |
-| Paramètres / restrictions | Permissions fines et périmètres de vue | Rôles et guards présents ; permissions granulaires organisationnelles encore limitées | `Conserver comme évolution structurelle` |
+| Concept historique Excel                        | Besoin métier reconstruit                               | Réalité PlanetLS actuelle                                                                                       | Décision de pilotage                       |
+| ----------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Tableau de bord                                 | Vue synthétique opérationnelle et décisionnelle         | Très présent, surtout côté `concierge` et `admin`, plus partiel côté owner                                      | `Conserver`                                |
+| Propriétaires / fiche logement                  | Référentiel propriétaire + logement + consignes         | Présent via logements/profils, mais encore hétérogène selon les rôles                                           | `Conserver et unifier`                     |
+| Réservations                                    | Canon séjours / voyageurs / dates / canal               | Présent avec tables, API et helpers ; encore à densifier côté propagation métier                                | `Conserver prioritaire`                    |
+| Suivi journalier arrivées / départs / recouches | Vue terrain quotidienne                                 | Couvert partiellement via séjours owner, planning concierge et missions ; pas encore un centre canonique unique | `Fusionner dans le moteur séjour/planning` |
+| Carte intervention                              | Géographie des missions et trajets                      | Présente partiellement dans planning/optimisation de tournée ; pas encore un module canonique complet           | `Conserver plus tard`                      |
+| Équipes / secteurs                              | Affectation interne par zone                            | Présent partiellement avec équipe concierge et zone lock                                                        | `Conserver prioritaire`                    |
+| Absences / vacances / maladie                   | Continuité de service et couverture                     | Socle DB présent `concierge_absences`, mais pas encore analyse complète d'impact                                | `Conserver prioritaire`                    |
+| Prestataires                                    | Répertoire pro et coordination                          | Présent côté provider/public profiles/interventions                                                             | `Conserver`                                |
+| Checklist                                       | Standardiser l'exécution et la preuve                   | Présente dans missions et mobile local, mais encore partiellement en `metadata`                                 | `Conserver et persister proprement`        |
+| Stock & produits                                | Consommables et besoins logement                        | Déjà visible dans logement/alerts/services catalog, mais non canonique                                          | `Reporter en P1/P2`                        |
+| Achats / notes de frais                         | Dépenses opérationnelles et remboursements              | Partiel dans housing purchase needs + finances ; pas encore bout en bout                                        | `Conserver sans élargir tout de suite`     |
+| Réclamations                                    | Gestion insatisfaction / litige distincte de l'incident | Disputes et incidents existent mais séparation produit encore floue                                             | `Conserver comme décision ouverte`         |
+| Rapports fin de location                        | Qualité séjour et clôture                               | Couvert indirectement par preuves, missions, séjours, disputes                                                  | `Fusionner avec clôture séjour`            |
+| Calendrier entretien                            | Maintenance préventive logement                         | Idée présente, incident/maintenance en place, préventif pas encore structuré                                    | `Conserver P2`                             |
+| Facturation prestation / frais                  | Boucle mission -> facture -> paiement                   | Très présente dans le code, encore incomplète sur visibilité et relances                                        | `Conserver prioritaire`                    |
+| Paramètres / restrictions                       | Permissions fines et périmètres de vue                  | Rôles et guards présents ; permissions granulaires organisationnelles encore limitées                           | `Conserver comme évolution structurelle`   |
 
 #### Matrice Master Plan ↔ code
 
-| Cas | Constat |
-| --- | ------- |
-| Documenté et réellement présent | Auth/rôles, dashboards multi-rôles, demandes/devis/missions, réservations, incidents de maintenance, facturation, pilotage admin |
-| Documenté mais encore partiel | Performance owner, profil provider complet, litiges E2E, planning avancé, notifications structurées, automations pilotées |
+| Cas                                                             | Constat                                                                                                                                                            |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Documenté et réellement présent                                 | Auth/rôles, dashboards multi-rôles, demandes/devis/missions, réservations, incidents de maintenance, facturation, pilotage admin                                   |
+| Documenté mais encore partiel                                   | Performance owner, profil provider complet, litiges E2E, planning avancé, notifications structurées, automations pilotées                                          |
 | Codé mais encore sous-documenté comme capacité produit autonome | `concierge_absences`, `reservationPlanningEngine`, `travelerStayCenter`, `provider profile documents`, `workflow_events`, mini-surfaces publiques de CTA/analytics |
-| Présent dans l'Excel mais non canonisé dans PlanetLS | Recouches explicites, note de frais bout en bout, secteurs d'équipe lisibles partout, calendrier entretien, mode vacances avec analyse d'impact |
-| Doublons ou confusions à réduire | `tâche / mission / intervention`, `incident / réclamation / litige`, `artisan / provider / prestataire`, `donnée réelle / simulation / hypothèse` |
+| Présent dans l'Excel mais non canonisé dans PlanetLS            | Recouches explicites, note de frais bout en bout, secteurs d'équipe lisibles partout, calendrier entretien, mode vacances avec analyse d'impact                    |
+| Doublons ou confusions à réduire                                | `tâche / mission / intervention`, `incident / réclamation / litige`, `artisan / provider / prestataire`, `donnée réelle / simulation / hypothèse`                  |
 
 #### Registre de traçabilité des capacités
 
 Taxonomie documentaire retenue : `DISCOVERED`, `DOCUMENTED`, `PLANNED`, `IN_PROGRESS`, `PARTIAL`, `IMPLEMENTED`, `VALIDATED`, `DEFERRED`, `REJECTED`, `DUPLICATE`, `NEEDS_DECISION`. Elle complète les statuts de pilotage visuels (`✅`, `🟡`, `🟠`, `🔴`, `⏸️`, `❌`) sans les remplacer. `IMPLEMENTED` signifie qu'une preuve de code existe ; `VALIDATED` exige en plus une validation d'usage ou E2E pertinente.
 
-| ID | Domaine / persona | Capacité et besoin | Sources / preuve | État réel | Priorité / dépendances | Décision suivante |
-| -- | ----------------- | ------------------ | ---------------- | --------- | ---------------------- | ----------------- |
-| `PLS-CAP-001` | Owner, Concierge | Réservation/séjour comme déclencheur opérationnel | `EXCEL_HISTORIQUE`, `CODE_EXISTANT` : `src/app/api/owner/reservations/route.ts`, Master Plan | `PARTIAL` | `P0` ; modèle séjour, événements, idempotence | Canoniser la propagation vers planning et missions avant toute synchronisation externe. |
-| `PLS-CAP-002` | Owner, Pro, Concierge | Demande -> devis -> mission -> preuve -> facture/paiement | `CODE_EXISTANT`, `MASTER_PLAN` : APIs demandes, missions, factures, tests workflow | `IMPLEMENTED` | `P0` ; permissions, Stripe, documents | Obtenir la preuve E2E Stripe manquante puis valider sur pilote. |
-| `PLS-CAP-003` | Concierge | Planning quotidien : arrivées, départs, recouches, ménages et urgences | `EXCEL_HISTORIQUE`, `CODE_EXISTANT` : planning concierge, missions | `PARTIAL` | `P1` ; `PLS-CAP-001`, affectations, statuts homogènes | Concevoir un mode `Ma journée`, pas un dashboard supplémentaire. |
-| `PLS-CAP-004` | Concierge | Affectation équipe, secteur, disponibilité et charge | `EXCEL_HISTORIQUE`, `CODE_EXISTANT` : équipe, zone lock, migrations absences | `PARTIAL` | `P0` ; organisation, permissions, planning | Relier les affectations aux séjours et aux conflits de charge. |
-| `PLS-CAP-005` | Concierge, Network | Absence et continuité de service | `EXCEL_HISTORIQUE`, `CODE_EXISTANT` : `concierge_absences` | `PARTIAL` | `P1` ; `PLS-CAP-001`, `PLS-CAP-004`, réseau de confiance | Décider le périmètre MVP : visualisation d'impact et solution manuelle d'abord. |
-| `PLS-CAP-006` | Concierge, Pro | Intervention, checklist, photos et compte-rendu | `EXCEL_HISTORIQUE`, `CODE_EXISTANT` : missions, interventions, médias privés, `mission_checklist_items`, `provider_intervention_reports` | `IN_PROGRESS` | `P0` ; stockage privé, droits d'accès, validation migration, E2E connecté | Appliquer et valider les migrations checklist + compte-rendu sur base locale fraîche et existante, régénérer les types Supabase, puis rejouer le workflow provider/concierge/owner en E2E connecté avec preuves terrain. |
-| `PLS-CAP-007` | Owner, Concierge | Facture, dépense, justificatif et paiement | `EXCEL_HISTORIQUE`, `CODE_EXISTANT` : billing, invoices, checkout | `IN_PROGRESS` | `P0` ; `PLS-CAP-002`, Stripe, règles comptables | Séparer explicitement frais owner, concierge, mission et plateforme. |
-| `PLS-CAP-008` | Concierge | Incident, réclamation, litige et clôture séjour | `EXCEL_HISTORIQUE`, `CODE_EXISTANT`, `MASTER_PLAN` : maintenance/disputes | `NEEDS_DECISION` | `P1` ; vocabulaire, preuve, workflow paiement | Produire une machine d'états métier avant d'ouvrir de nouveaux écrans. |
-| `PLS-CAP-009` | Concierge, Owner | Carnet d'entretien préventif logement | `EXCEL_HISTORIQUE`, `MASTER_PLAN` | `DOCUMENTED` | `P2` ; équipements, échéances, `PLS-CAP-006` | Garder comme extension après stabilisation maintenance corrective. |
-| `PLS-CAP-010` | Concierge | Stocks, linge, consommables, achats et seuils | `EXCEL_HISTORIQUE`, `MASTER_PLAN`, code logement partiel | `PLANNED` | `P2` ; logements, séjours, dépenses | Partir de règles déterministes et d'un périmètre logement, sans marketplace fournisseur. |
-| `PLS-CAP-011` | Network, Pro | Répertoire, confiance et matching professionnel | `CODE_EXISTANT`, `MASTER_PLAN` : profils publics, recherche, invitations | `PARTIAL` | `P1` ; profils vérifiés, zones, disponibilité | Valider la densité locale avant mur des missions et score automatisé. |
-| `PLS-CAP-012` | Owner | Performance, rentabilité et simulateur | `CODE_EXISTANT`, `MASTER_PLAN` : finances owner | `PARTIAL` | `P1` ; données réelles réservations/factures/coûts | Étiqueter chaque indicateur `réel`, `estimé` ou `démonstration`; simulateur en `DEFERRED`. |
-| `PLS-CAP-013` | Platform | Organisation + rôle + permission + périmètre | `EXCEL_HISTORIQUE`, `CODE_EXISTANT` : auth, guards, RLS, CSRF | `PARTIAL` | `P0` ; multi-tenant, audit, données sensibles | Conserver les rôles actuels et cadrer la granularité avant refactorisation. |
-| `PLS-CAP-014` | Intelligence, Platform | Notifications, automatisations observables et IA assistive | `MASTER_PLAN`, `CODE_EXISTANT` : workflow events, prompts, admin | `PLANNED` | `P2` ; événements fiables, consentement, mode dégradé | Ne garder l'IA que pour résumé/structuration/recommandation avec validation humaine. |
-| `PLS-CAP-015` | Platform | PWA, mobile terrain et accès dégradé | `MASTER_PLAN`, `CODE_EXISTANT` | `DEFERRED` | `P3` ; parcours mobile validés, sécurité médias, offline | Ne pas industrialiser l'offline avant validation terrain du parcours mission. |
+| ID            | Domaine / persona      | Capacité et besoin                                                     | Sources / preuve                                                                                                                         | État réel        | Priorité / dépendances                                                    | Décision suivante                                                                                                                                                                                                        |
+| ------------- | ---------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `PLS-CAP-001` | Owner, Concierge       | Réservation/séjour comme déclencheur opérationnel                      | `EXCEL_HISTORIQUE`, `CODE_EXISTANT` : `src/app/api/owner/reservations/route.ts`, Master Plan                                             | `PARTIAL`        | `P0` ; modèle séjour, événements, idempotence                             | Canoniser la propagation vers planning et missions avant toute synchronisation externe.                                                                                                                                  |
+| `PLS-CAP-002` | Owner, Pro, Concierge  | Demande -> devis -> mission -> preuve -> facture/paiement              | `CODE_EXISTANT`, `MASTER_PLAN` : APIs demandes, missions, factures, tests workflow                                                       | `IMPLEMENTED`    | `P0` ; permissions, Stripe, documents                                     | Obtenir la preuve E2E Stripe manquante puis valider sur pilote.                                                                                                                                                          |
+| `PLS-CAP-003` | Concierge              | Planning quotidien : arrivées, départs, recouches, ménages et urgences | `EXCEL_HISTORIQUE`, `CODE_EXISTANT` : planning concierge, missions                                                                       | `PARTIAL`        | `P1` ; `PLS-CAP-001`, affectations, statuts homogènes                     | Concevoir un mode `Ma journée`, pas un dashboard supplémentaire.                                                                                                                                                         |
+| `PLS-CAP-004` | Concierge              | Affectation équipe, secteur, disponibilité et charge                   | `EXCEL_HISTORIQUE`, `CODE_EXISTANT` : équipe, zone lock, migrations absences                                                             | `PARTIAL`        | `P0` ; organisation, permissions, planning                                | Relier les affectations aux séjours et aux conflits de charge.                                                                                                                                                           |
+| `PLS-CAP-005` | Concierge, Network     | Absence et continuité de service                                       | `EXCEL_HISTORIQUE`, `CODE_EXISTANT` : `concierge_absences`                                                                               | `PARTIAL`        | `P1` ; `PLS-CAP-001`, `PLS-CAP-004`, réseau de confiance                  | Décider le périmètre MVP : visualisation d'impact et solution manuelle d'abord.                                                                                                                                          |
+| `PLS-CAP-006` | Concierge, Pro         | Intervention, checklist, photos et compte-rendu                        | `EXCEL_HISTORIQUE`, `CODE_EXISTANT` : missions, interventions, médias privés, `mission_checklist_items`, `provider_intervention_reports` | `IN_PROGRESS`    | `P0` ; stockage privé, droits d'accès, validation migration, E2E connecté | Appliquer et valider les migrations checklist + compte-rendu sur base locale fraîche et existante, régénérer les types Supabase, puis rejouer le workflow provider/concierge/owner en E2E connecté avec preuves terrain. |
+| `PLS-CAP-007` | Owner, Concierge       | Facture, dépense, justificatif et paiement                             | `EXCEL_HISTORIQUE`, `CODE_EXISTANT` : billing, invoices, checkout                                                                        | `IN_PROGRESS`    | `P0` ; `PLS-CAP-002`, Stripe, règles comptables                           | Séparer explicitement frais owner, concierge, mission et plateforme.                                                                                                                                                     |
+| `PLS-CAP-008` | Concierge              | Incident, réclamation, litige et clôture séjour                        | `EXCEL_HISTORIQUE`, `CODE_EXISTANT`, `MASTER_PLAN` : maintenance/disputes                                                                | `NEEDS_DECISION` | `P1` ; vocabulaire, preuve, workflow paiement                             | Produire une machine d'états métier avant d'ouvrir de nouveaux écrans.                                                                                                                                                   |
+| `PLS-CAP-009` | Concierge, Owner       | Carnet d'entretien préventif logement                                  | `EXCEL_HISTORIQUE`, `MASTER_PLAN`                                                                                                        | `DOCUMENTED`     | `P2` ; équipements, échéances, `PLS-CAP-006`                              | Garder comme extension après stabilisation maintenance corrective.                                                                                                                                                       |
+| `PLS-CAP-010` | Concierge              | Stocks, linge, consommables, achats et seuils                          | `EXCEL_HISTORIQUE`, `MASTER_PLAN`, code logement partiel                                                                                 | `PLANNED`        | `P2` ; logements, séjours, dépenses                                       | Partir de règles déterministes et d'un périmètre logement, sans marketplace fournisseur.                                                                                                                                 |
+| `PLS-CAP-011` | Network, Pro           | Répertoire, confiance et matching professionnel                        | `CODE_EXISTANT`, `MASTER_PLAN` : profils publics, recherche, invitations                                                                 | `PARTIAL`        | `P1` ; profils vérifiés, zones, disponibilité                             | Valider la densité locale avant mur des missions et score automatisé.                                                                                                                                                    |
+| `PLS-CAP-012` | Owner                  | Performance, rentabilité et simulateur                                 | `CODE_EXISTANT`, `MASTER_PLAN` : finances owner                                                                                          | `PARTIAL`        | `P1` ; données réelles réservations/factures/coûts                        | Étiqueter chaque indicateur `réel`, `estimé` ou `démonstration`; simulateur en `DEFERRED`.                                                                                                                               |
+| `PLS-CAP-013` | Platform               | Organisation + rôle + permission + périmètre                           | `EXCEL_HISTORIQUE`, `CODE_EXISTANT` : auth, guards, RLS, CSRF                                                                            | `PARTIAL`        | `P0` ; multi-tenant, audit, données sensibles                             | Conserver les rôles actuels et cadrer la granularité avant refactorisation.                                                                                                                                              |
+| `PLS-CAP-014` | Intelligence, Platform | Notifications, automatisations observables et IA assistive             | `MASTER_PLAN`, `CODE_EXISTANT` : workflow events, prompts, admin                                                                         | `PLANNED`        | `P2` ; événements fiables, consentement, mode dégradé                     | Ne garder l'IA que pour résumé/structuration/recommandation avec validation humaine.                                                                                                                                     |
+| `PLS-CAP-015` | Platform               | PWA, mobile terrain et accès dégradé                                   | `MASTER_PLAN`, `CODE_EXISTANT`                                                                                                           | `DEFERRED`       | `P3` ; parcours mobile validés, sécurité médias, offline                  | Ne pas industrialiser l'offline avant validation terrain du parcours mission.                                                                                                                                            |
 
 #### Conflits à arbitrer
 
-| Sujet | Versions constatées | Recommandation de consolidation |
-| ----- | ------------------- | ------------------------------- |
-| Maturité owner / rentabilité | Certaines surfaces affichent des KPI et simulations ; les flux réels restent incomplets selon la donnée disponible | Conserver la capacité en `PARTIAL` et imposer les libellés `réel`, `estimé`, `démonstration`. |
-| Workflow opérationnel | Le produit utilise à la fois réservation, séjour, planning, tâche, mission et intervention | Adopter `séjour` comme contexte, `mission` comme unité de travail, `intervention` comme exécution terrain ; maintenir les anciens noms de code jusqu'à décision de migration. |
-| Professionnels | `artisan`, `prestataire` et `provider` coexistent dans l'UX, les documents et le code | Employer `prestataire` dans l'UX française ; garder `provider` comme terme technique courant tant qu'il reste majoritaire dans le code. |
-| Pilotage | Master Plan, vue Développement et certains cockpits admin offrent des lectures qui peuvent se recouper | Le Master Plan reste la source stratégique ; les écrans sont des vues dérivées et ne doivent pas devenir des backlogs parallèles. |
-| Tarification | Abonnement, commission et modèles par persona ont été étudiés à différents moments | Marquer ces scénarios comme hypothèses jusqu'à validation commerciale ; aucun ne doit être présenté comme politique définitive. |
+| Sujet                        | Versions constatées                                                                                                | Recommandation de consolidation                                                                                                                                               |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Maturité owner / rentabilité | Certaines surfaces affichent des KPI et simulations ; les flux réels restent incomplets selon la donnée disponible | Conserver la capacité en `PARTIAL` et imposer les libellés `réel`, `estimé`, `démonstration`.                                                                                 |
+| Workflow opérationnel        | Le produit utilise à la fois réservation, séjour, planning, tâche, mission et intervention                         | Adopter `séjour` comme contexte, `mission` comme unité de travail, `intervention` comme exécution terrain ; maintenir les anciens noms de code jusqu'à décision de migration. |
+| Professionnels               | `artisan`, `prestataire` et `provider` coexistent dans l'UX, les documents et le code                              | Employer `prestataire` dans l'UX française ; garder `provider` comme terme technique courant tant qu'il reste majoritaire dans le code.                                       |
+| Pilotage                     | Master Plan, vue Développement et certains cockpits admin offrent des lectures qui peuvent se recouper             | Le Master Plan reste la source stratégique ; les écrans sont des vues dérivées et ne doivent pas devenir des backlogs parallèles.                                             |
+| Tarification                 | Abonnement, commission et modèles par persona ont été étudiés à différents moments                                 | Marquer ces scénarios comme hypothèses jusqu'à validation commerciale ; aucun ne doit être présenté comme politique définitive.                                               |
 
 #### Glossaire métier canonique
 
-| Terme UX recommandé | Définition / persona | Différence et nom de code courant |
-| ------------------- | ------------------- | --------------------------------- |
-| `Séjour` | Période réservée dans un logement ; owner, concierge | Contexte opérationnel d'une réservation. Code : `reservation`, `travelerStayCenter`. |
-| `Mission` | Unité de travail planifiable et facturable ; owner, concierge, pro | Ne désigne pas une simple note ni toute l'exécution physique. Code : `missions`. |
-| `Intervention` | Exécution terrain d'une mission, avec statut et preuves ; concierge, pro | Peut être multiple pour une mission. Code : `provider_interventions`, maintenance. |
-| `Tâche` | Action atomique d'une checklist ; équipe terrain | Sous-élément d'une mission, à ne pas confondre avec la mission elle-même. |
-| `Incident` | Anomalie opérationnelle constatée | Différent d'une contestation client et d'un litige financier. Code : maintenance/incidents. |
-| `Réclamation` | Insatisfaction formulée par une partie prenante | Peut devenir un litige, sans l'être automatiquement. |
-| `Litige` | Désaccord nécessitant arbitrage, preuve ou impact financier | État possible après incident/réclamation ; code : `disputes`. |
-| `Prestataire` | Professionnel qui exécute une prestation ; pro, concierge | UX française recommandée. Code : `provider`; `artisan` est un sous-type métier. |
-| `Absence` | Indisponibilité déclarée, ponctuelle ou récurrente | `Congé`, `maladie` et `vacances` sont des motifs d'absence. Code : `concierge_absences`. |
-| `Dépense` | Coût assorti d'un justificatif et d'un payeur | `Achat` est l'acte d'acquisition ; `note de frais` est le dossier de remboursement. |
+| Terme UX recommandé | Définition / persona                                                     | Différence et nom de code courant                                                           |
+| ------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `Séjour`            | Période réservée dans un logement ; owner, concierge                     | Contexte opérationnel d'une réservation. Code : `reservation`, `travelerStayCenter`.        |
+| `Mission`           | Unité de travail planifiable et facturable ; owner, concierge, pro       | Ne désigne pas une simple note ni toute l'exécution physique. Code : `missions`.            |
+| `Intervention`      | Exécution terrain d'une mission, avec statut et preuves ; concierge, pro | Peut être multiple pour une mission. Code : `provider_interventions`, maintenance.          |
+| `Tâche`             | Action atomique d'une checklist ; équipe terrain                         | Sous-élément d'une mission, à ne pas confondre avec la mission elle-même.                   |
+| `Incident`          | Anomalie opérationnelle constatée                                        | Différent d'une contestation client et d'un litige financier. Code : maintenance/incidents. |
+| `Réclamation`       | Insatisfaction formulée par une partie prenante                          | Peut devenir un litige, sans l'être automatiquement.                                        |
+| `Litige`            | Désaccord nécessitant arbitrage, preuve ou impact financier              | État possible après incident/réclamation ; code : `disputes`.                               |
+| `Prestataire`       | Professionnel qui exécute une prestation ; pro, concierge                | UX française recommandée. Code : `provider`; `artisan` est un sous-type métier.             |
+| `Absence`           | Indisponibilité déclarée, ponctuelle ou récurrente                       | `Congé`, `maladie` et `vacances` sont des motifs d'absence. Code : `concierge_absences`.    |
+| `Dépense`           | Coût assorti d'un justificatif et d'un payeur                            | `Achat` est l'acte d'acquisition ; `note de frais` est le dossier de remboursement.         |
 
 #### Priorisation consolidée et éléments volontairement différés
 
-| Niveau | Capacités | Justification |
-| ------ | ---------- | ------------- |
-| `P0 Critique` | `PLS-CAP-001`, `002`, `004`, `006`, `007`, `013` | Chaîne de valeur, sécurité et traçabilité minimales sans lesquelles un pilote fiable n'est pas démontrable. |
-| `P1 Prioritaire` | `PLS-CAP-003`, `005`, `008`, `011`, `012` | Forte valeur opérationnelle ou différenciation, après socle séjour/mission/facture fiable. |
-| `P2 Important` | `PLS-CAP-009`, `010`, `014` | Extensions utiles dépendantes de données et processus canoniques. |
-| `P3 Confort` | `PLS-CAP-015` | Amélioration de canal et d'usage, non fondatrice pour la validation du modèle. |
-| `HOLD` | Rémunération concierge multi-modèles, réseau de remplacement complet, optimisation de parcours, marketplace fournisseurs, automatisations décisionnelles | Décisions business, densité ou données insuffisamment validées. |
-| `REJECTED` | Reproduction du classeur historique comme suite de CRUD, tarification externe automatisée sans validation, IA pour règles déterministes | Crée de la complexité sans valeur validée ni garde-fou suffisant. |
+| Niveau           | Capacités                                                                                                                                                | Justification                                                                                               |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `P0 Critique`    | `PLS-CAP-001`, `002`, `004`, `006`, `007`, `013`                                                                                                         | Chaîne de valeur, sécurité et traçabilité minimales sans lesquelles un pilote fiable n'est pas démontrable. |
+| `P1 Prioritaire` | `PLS-CAP-003`, `005`, `008`, `011`, `012`                                                                                                                | Forte valeur opérationnelle ou différenciation, après socle séjour/mission/facture fiable.                  |
+| `P2 Important`   | `PLS-CAP-009`, `010`, `014`                                                                                                                              | Extensions utiles dépendantes de données et processus canoniques.                                           |
+| `P3 Confort`     | `PLS-CAP-015`                                                                                                                                            | Amélioration de canal et d'usage, non fondatrice pour la validation du modèle.                              |
+| `HOLD`           | Rémunération concierge multi-modèles, réseau de remplacement complet, optimisation de parcours, marketplace fournisseurs, automatisations décisionnelles | Décisions business, densité ou données insuffisamment validées.                                             |
+| `REJECTED`       | Reproduction du classeur historique comme suite de CRUD, tarification externe automatisée sans validation, IA pour règles déterministes                  | Crée de la complexité sans valeur validée ni garde-fou suffisant.                                           |
 
 #### Capability map par domaine
 
@@ -2922,80 +3740,80 @@ Objectif : relier clairement `réservation/séjour -> planning -> affectation ->
 
 #### Diagnostic de l'Admin actuel
 
-| Espace actuel | Objectif et données réelles | Actions / limites constatées | Décision d'architecture |
-| ------------- | --------------------------- | ---------------------------- | ----------------------- |
-| `/dashboard/admin` | Cockpit global : profils/Auth, onboarding, activité 24 h / 7 j, demandes, missions, factures, santé Control Tower et activation J+7 via `/api/admin/overview`, `/api/admin/operations`, `/api/admin/control-tower`, `/api/kpis/overview` | Centralise déjà les signaux utiles mais risque de répéter les listes et graphiques de pages spécialisées ; certains KPI peuvent basculer en mode dégradé documenté | Garder comme `Vue d'ensemble`, limitée à santé, tendance et priorités actionnables. |
-| `/dashboard/admin/controle` | Centre des anomalies : onboarding, missions, conversations, incidents maintenance, factures liées, disponibilité des sources | Actions persistantes `pris en compte`, `escaladé`, `clos` ; l'assignation, la cause racine et le SLA ne sont pas encore structurés | Garder comme `Centre de contrôle`, unique endroit de qualification et escalade. |
-| `/dashboard/admin/demandes` et `/missions` | Listes de suivi du workflow demande -> devis -> mission -> facture, issues, statuts, filtres et liens de contexte | Navigation vers les objets, contrôles de cohérence ; les mêmes alertes peuvent remonter dans le cockpit et Contrôle | Rattacher à `Opérations`; conserver le détail ici, pas dans la vue d'ensemble. |
-| `/dashboard/admin/utilisateurs`, `/proprietaires`, `/conciergeries`, `/artisans` | Profils, Auth, onboarding, dernière connexion, complétude et actions administratives sur les comptes | Les données d'activité sont réelles, mais l'activation au sens valeur nécessite les événements métier calculés par `/api/kpis/overview` | Regrouper conceptuellement dans `Utilisateurs`, avec vues par persona plutôt que quatre sources de vérité. |
-| `/dashboard/admin/pilotage` | Mélange de quelques données live (utilisateurs, opérations, activation) et de benchmark, hypothèses tarifaires, risques, expérimentation et stratégie | Plusieurs blocs sont documentaires/statiques ; ne doivent pas être lus comme revenus, rétention ou traction observés | Conserver comme `Pilotage stratégique`, avec étiquettes systématiques `réel`, `calculé`, `hypothèse`, `à valider`. |
-| `/dashboard/admin/modele-financier` | Grille cible, benchmark et unit economics documentaires | Aucune source Stripe/abonnement agrégée connectée ; la page l'indique déjà explicitement | Ne pas appeler cette page `Finance` tant que les chiffres transactionnels réels ne sont pas disponibles. |
-| `/dashboard/admin/developpement` et `/decisions-architecture` | Master Plan, roadmap dérivée, Git, état du dépôt, tests/CI détectables, santé Supabase, dette et décisions | Le Master Plan est lu à la source ; certaines informations de santé dépendent de l'environnement et sont `unverifiable` sans secrets | Garder comme `Développement`, source de lecture technique et produit, non comme second backlog. |
+| Espace actuel                                                                    | Objectif et données réelles                                                                                                                                                                                                              | Actions / limites constatées                                                                                                                                       | Décision d'architecture                                                                                            |
+| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `/dashboard/admin`                                                               | Cockpit global : profils/Auth, onboarding, activité 24 h / 7 j, demandes, missions, factures, santé Control Tower et activation J+7 via `/api/admin/overview`, `/api/admin/operations`, `/api/admin/control-tower`, `/api/kpis/overview` | Centralise déjà les signaux utiles mais risque de répéter les listes et graphiques de pages spécialisées ; certains KPI peuvent basculer en mode dégradé documenté | Garder comme `Vue d'ensemble`, limitée à santé, tendance et priorités actionnables.                                |
+| `/dashboard/admin/controle`                                                      | Centre des anomalies : onboarding, missions, conversations, incidents maintenance, factures liées, disponibilité des sources                                                                                                             | Actions persistantes `pris en compte`, `escaladé`, `clos` ; l'assignation, la cause racine et le SLA ne sont pas encore structurés                                 | Garder comme `Centre de contrôle`, unique endroit de qualification et escalade.                                    |
+| `/dashboard/admin/demandes` et `/missions`                                       | Listes de suivi du workflow demande -> devis -> mission -> facture, issues, statuts, filtres et liens de contexte                                                                                                                        | Navigation vers les objets, contrôles de cohérence ; les mêmes alertes peuvent remonter dans le cockpit et Contrôle                                                | Rattacher à `Opérations`; conserver le détail ici, pas dans la vue d'ensemble.                                     |
+| `/dashboard/admin/utilisateurs`, `/proprietaires`, `/conciergeries`, `/artisans` | Profils, Auth, onboarding, dernière connexion, complétude et actions administratives sur les comptes                                                                                                                                     | Les données d'activité sont réelles, mais l'activation au sens valeur nécessite les événements métier calculés par `/api/kpis/overview`                            | Regrouper conceptuellement dans `Utilisateurs`, avec vues par persona plutôt que quatre sources de vérité.         |
+| `/dashboard/admin/pilotage`                                                      | Mélange de quelques données live (utilisateurs, opérations, activation) et de benchmark, hypothèses tarifaires, risques, expérimentation et stratégie                                                                                    | Plusieurs blocs sont documentaires/statiques ; ne doivent pas être lus comme revenus, rétention ou traction observés                                               | Conserver comme `Pilotage stratégique`, avec étiquettes systématiques `réel`, `calculé`, `hypothèse`, `à valider`. |
+| `/dashboard/admin/modele-financier`                                              | Grille cible, benchmark et unit economics documentaires                                                                                                                                                                                  | Aucune source Stripe/abonnement agrégée connectée ; la page l'indique déjà explicitement                                                                           | Ne pas appeler cette page `Finance` tant que les chiffres transactionnels réels ne sont pas disponibles.           |
+| `/dashboard/admin/developpement` et `/decisions-architecture`                    | Master Plan, roadmap dérivée, Git, état du dépôt, tests/CI détectables, santé Supabase, dette et décisions                                                                                                                               | Le Master Plan est lu à la source ; certaines informations de santé dépendent de l'environnement et sont `unverifiable` sans secrets                               | Garder comme `Développement`, source de lecture technique et produit, non comme second backlog.                    |
 
 #### Architecture Admin recommandée
 
 La navigation cible doit suivre la progression `Résumé -> Priorités -> Tendance -> Détail -> Action`, et non une collection de graphiques. Les rôles ci-dessous sont des responsabilités futures, pas des rôles applicatifs à créer maintenant.
 
-| Section cible | Question à laquelle elle répond | Public conceptuel | Contenu autorisé |
-| ------------- | ------------------------------ | ----------------- | ---------------- |
-| `Vue d'ensemble` | PlanetLS fonctionne-t-il, progresse-t-il, faut-il agir maintenant ? | Direction, admin opérationnel | 5 à 8 indicateurs, santé des sources, 3 à 5 priorités, tendance courte. |
-| `Opérations` | Les demandes, séjours, missions et incidents avancent-ils ? | Admin opérationnel | Demandes, devis, missions, séjours quand canoniques, incidents et détails de workflow. |
-| `Utilisateurs` | Qui est activé, bloqué ou doit être accompagné ? | Admin opérationnel, direction | Personas, onboarding, complétude, première valeur, activité et rétention quand instrumentée. |
-| `Contrôle` | Quel problème faut-il qualifier, attribuer ou escalader ? | Admin opérationnel, support, tech | Anomalies normalisées, sévérité, contexte, propriétaire, historique et action. |
-| `Finance` | Les flux financiers réels sont-ils sains ? | Finance, direction | Seulement abonnements, paiements, remboursements, factures, commissions et alertes issus de sources réelles. |
-| `Pilotage` | La stratégie, l'acquisition et les expériences progressent-elles ? | Direction | KPI business validés, hypothèses explicitement étiquetées, décisions et expérimentations. |
-| `Développement` | Le produit est-il sain et que doit faire l'équipe ensuite ? | Tech, direction | Master Plan, roadmap dérivée, qualité, déploiements, tests, incidents, dette et décisions d'architecture. |
-| `Contenus` | Les ressources sont-elles publiables, fiables et à jour ? | Support, direction | Guides, sources, dates de revue et validations ; `à créer seulement quand le besoin éditorial est confirmé`. |
-| `Paramètres` | Qui peut faire quoi et quelles règles plateforme sont actives ? | Direction, admin habilité | Configuration, permissions et automatisations observables ; `à créer après modèle organisationnel stabilisé`. |
+| Section cible    | Question à laquelle elle répond                                     | Public conceptuel                 | Contenu autorisé                                                                                              |
+| ---------------- | ------------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `Vue d'ensemble` | PlanetLS fonctionne-t-il, progresse-t-il, faut-il agir maintenant ? | Direction, admin opérationnel     | 5 à 8 indicateurs, santé des sources, 3 à 5 priorités, tendance courte.                                       |
+| `Opérations`     | Les demandes, séjours, missions et incidents avancent-ils ?         | Admin opérationnel                | Demandes, devis, missions, séjours quand canoniques, incidents et détails de workflow.                        |
+| `Utilisateurs`   | Qui est activé, bloqué ou doit être accompagné ?                    | Admin opérationnel, direction     | Personas, onboarding, complétude, première valeur, activité et rétention quand instrumentée.                  |
+| `Contrôle`       | Quel problème faut-il qualifier, attribuer ou escalader ?           | Admin opérationnel, support, tech | Anomalies normalisées, sévérité, contexte, propriétaire, historique et action.                                |
+| `Finance`        | Les flux financiers réels sont-ils sains ?                          | Finance, direction                | Seulement abonnements, paiements, remboursements, factures, commissions et alertes issus de sources réelles.  |
+| `Pilotage`       | La stratégie, l'acquisition et les expériences progressent-elles ?  | Direction                         | KPI business validés, hypothèses explicitement étiquetées, décisions et expérimentations.                     |
+| `Développement`  | Le produit est-il sain et que doit faire l'équipe ensuite ?         | Tech, direction                   | Master Plan, roadmap dérivée, qualité, déploiements, tests, incidents, dette et décisions d'architecture.     |
+| `Contenus`       | Les ressources sont-elles publiables, fiables et à jour ?           | Support, direction                | Guides, sources, dates de revue et validations ; `à créer seulement quand le besoin éditorial est confirmé`.  |
+| `Paramètres`     | Qui peut faire quoi et quelles règles plateforme sont actives ?     | Direction, admin habilité         | Configuration, permissions et automatisations observables ; `à créer après modèle organisationnel stabilisé`. |
 
 #### Dashboard principal recommandé
 
 Le dashboard principal ne doit garder que des indicateurs disponibles ou explicitement indisponibles :
 
-| Indicateur limité | État de donnée | Raison et destination de l'action |
-| ----------------- | -------------- | --------------------------------- |
-| Santé des sources critiques | Disponible avec mode dégradé | Répond à `PlanetLS fonctionne-t-il ?`; renvoie vers Contrôle ou Développement. |
-| Priorités ouvertes | Disponible, à dédupliquer | 3 à 5 maximum : mission bloquée/non planifiée, onboarding bloqué, paiement ou source indisponible. |
-| Utilisateurs actifs 7 jours et inscriptions récentes | Disponible via Auth/profils | Répond à la progression ; détail dans Utilisateurs. |
-| Activation J+7 par persona | Disponible mais dépend de cohortes suffisantes | Indicateur de première valeur ; afficher `donnée insuffisante` plutôt qu'un zéro artificiel. |
-| Demandes et missions à risque | Disponible via opérations / Control Tower | Répond à l'intervention immédiate ; détail dans Opérations ou Contrôle. |
-| Incidents / problèmes ouverts | Partiel, actuellement onboarding, missions, messages, maintenance | Répond à la santé opérationnelle ; détail uniquement dans Contrôle. |
-| Paiements problématiques | Partiel : factures liées et Stripe existent, pas d'agrégat admin fiable | Ne l'afficher qu'après source finance canonique ; en attendant, une alerte de couverture, pas un faux KPI. |
-| Revenu mensuel / MRR | Non disponible de façon canonique | Ne pas afficher avant agrégation réelle de Stripe et règles de reconnaissance de revenu validées. |
+| Indicateur limité                                    | État de donnée                                                          | Raison et destination de l'action                                                                          |
+| ---------------------------------------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Santé des sources critiques                          | Disponible avec mode dégradé                                            | Répond à `PlanetLS fonctionne-t-il ?`; renvoie vers Contrôle ou Développement.                             |
+| Priorités ouvertes                                   | Disponible, à dédupliquer                                               | 3 à 5 maximum : mission bloquée/non planifiée, onboarding bloqué, paiement ou source indisponible.         |
+| Utilisateurs actifs 7 jours et inscriptions récentes | Disponible via Auth/profils                                             | Répond à la progression ; détail dans Utilisateurs.                                                        |
+| Activation J+7 par persona                           | Disponible mais dépend de cohortes suffisantes                          | Indicateur de première valeur ; afficher `donnée insuffisante` plutôt qu'un zéro artificiel.               |
+| Demandes et missions à risque                        | Disponible via opérations / Control Tower                               | Répond à l'intervention immédiate ; détail dans Opérations ou Contrôle.                                    |
+| Incidents / problèmes ouverts                        | Partiel, actuellement onboarding, missions, messages, maintenance       | Répond à la santé opérationnelle ; détail uniquement dans Contrôle.                                        |
+| Paiements problématiques                             | Partiel : factures liées et Stripe existent, pas d'agrégat admin fiable | Ne l'afficher qu'après source finance canonique ; en attendant, une alerte de couverture, pas un faux KPI. |
+| Revenu mensuel / MRR                                 | Non disponible de façon canonique                                       | Ne pas afficher avant agrégation réelle de Stripe et règles de reconnaissance de revenu validées.          |
 
 #### Centre de contrôle et escalade futurs
 
 Un problème doit devenir un objet de pilotage unique : `sévérité -> type -> entité -> contexte/preuve -> responsable -> statut -> action/historique`. Les niveaux sont `information`, `vigilance`, `prioritaire`, `critique`; les statuts cibles sont `nouveau`, `pris en compte`, `en résolution`, `escaladé`, `clos`.
 
-| Type de problème | Responsable initial | Escalade | Données déjà présentes / manquantes |
-| ---------------- | ------------------ | -------- | ----------------------------------- |
-| Demande, mission, séjour, incident opérationnel | Admin opérationnel | Direction si litige sensible ou blocage récurrent | Missions, demandes, maintenance et actions de contrôle existent ; séjour canonique et SLA manquent. |
-| Compte, onboarding, support | Admin opérationnel / support | Tech pour défaut produit, direction pour exception métier | Profils, Auth, étapes onboarding et dernière connexion existent ; tickets support structurés manquent. |
-| Paiement, facture, remboursement | Finance | Direction pour exception, tech pour webhook | Factures et événements Stripe existent ; vue admin de réconciliation, remboursements et commissions manque. |
-| Erreur technique, intégration, sécurité | Tech | Direction si impact business ou sécurité | Santé Supabase, Git, workflow CI et sources dégradées existent ; logs de production et déploiements canoniques manquent. |
-| Décision commerciale, tarification, risque stratégique | Direction | Aucun, décision tracée dans Master Plan | Registre de décision et hypothèses existent ; données commerciales observées restent incomplètes. |
+| Type de problème                                       | Responsable initial          | Escalade                                                  | Données déjà présentes / manquantes                                                                                      |
+| ------------------------------------------------------ | ---------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Demande, mission, séjour, incident opérationnel        | Admin opérationnel           | Direction si litige sensible ou blocage récurrent         | Missions, demandes, maintenance et actions de contrôle existent ; séjour canonique et SLA manquent.                      |
+| Compte, onboarding, support                            | Admin opérationnel / support | Tech pour défaut produit, direction pour exception métier | Profils, Auth, étapes onboarding et dernière connexion existent ; tickets support structurés manquent.                   |
+| Paiement, facture, remboursement                       | Finance                      | Direction pour exception, tech pour webhook               | Factures et événements Stripe existent ; vue admin de réconciliation, remboursements et commissions manque.              |
+| Erreur technique, intégration, sécurité                | Tech                         | Direction si impact business ou sécurité                  | Santé Supabase, Git, workflow CI et sources dégradées existent ; logs de production et déploiements canoniques manquent. |
+| Décision commerciale, tarification, risque stratégique | Direction                    | Aucun, décision tracée dans Master Plan                   | Registre de décision et hypothèses existent ; données commerciales observées restent incomplètes.                        |
 
 #### Données disponibles, manquantes et à ne pas collecter
 
-| Domaine | Réellement disponible aujourd'hui | Manque prioritaire | Coût / risque |
-| ------- | -------------------------------- | ----------------- | ------------- |
-| Utilisateurs | Profils, rôles, inscriptions, email confirmé, dernière connexion, onboarding, activité métier et activation J+7 | Première valeur explicite par persona, rétention 30/90 jours, motif d'inactivité | `P1`; minimiser les données comportementales et conserver des finalités produit explicites. |
-| Opérations | Demandes, devis, missions, planning, factures liées, conversations, incidents partiels | États séjour canoniques, SLA, cause racine, assignation/escalade, taux réponse marketplace robuste | `P0/P1`; qualité de données et vocabulaire avant instrumentation supplémentaire. |
-| Finance | Checkout Stripe, événements Stripe, abonnements sur profil, factures et paiements liés | Ledger admin, statut webhook consolidé, remboursements, commissions, MRR/ARR/churn/ARPU définis | `P1`; données financières sensibles et règles comptables à valider. |
-| Technique | Git, statut de travail, workflow E2E, santé Supabase et résultats de vérifications documentés | Dernier déploiement, erreurs production, santé Stripe/notifs, traces et alertes durables | `P1`; ne jamais exposer secrets, PII ou détails d'attaque à tous les admins. |
-| Contenu / conformité | Documents et prompts internes | Source réglementaire, propriétaire de revue, date d'expiration et validation | `P2`; risque de contenu juridique obsolète. |
+| Domaine              | Réellement disponible aujourd'hui                                                                               | Manque prioritaire                                                                                 | Coût / risque                                                                               |
+| -------------------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Utilisateurs         | Profils, rôles, inscriptions, email confirmé, dernière connexion, onboarding, activité métier et activation J+7 | Première valeur explicite par persona, rétention 30/90 jours, motif d'inactivité                   | `P1`; minimiser les données comportementales et conserver des finalités produit explicites. |
+| Opérations           | Demandes, devis, missions, planning, factures liées, conversations, incidents partiels                          | États séjour canoniques, SLA, cause racine, assignation/escalade, taux réponse marketplace robuste | `P0/P1`; qualité de données et vocabulaire avant instrumentation supplémentaire.            |
+| Finance              | Checkout Stripe, événements Stripe, abonnements sur profil, factures et paiements liés                          | Ledger admin, statut webhook consolidé, remboursements, commissions, MRR/ARR/churn/ARPU définis    | `P1`; données financières sensibles et règles comptables à valider.                         |
+| Technique            | Git, statut de travail, workflow E2E, santé Supabase et résultats de vérifications documentés                   | Dernier déploiement, erreurs production, santé Stripe/notifs, traces et alertes durables           | `P1`; ne jamais exposer secrets, PII ou détails d'attaque à tous les admins.                |
+| Contenu / conformité | Documents et prompts internes                                                                                   | Source réglementaire, propriétaire de revue, date d'expiration et validation                       | `P2`; risque de contenu juridique obsolète.                                                 |
 
 Ne pas collecter par défaut : frappes clavier, suivi de navigation exhaustif, géolocalisation permanente des équipes, contenu intégral de messages pour la seule analytique, métriques sans décision associée, ou données voyageurs qui ne servent plus au séjour. Une donnée ne doit être ajoutée que si sa finalité, sa rétention et son accès sont définis.
 
 #### Matrice conceptuelle des permissions futures
 
-| Domaine | Admin opérationnel | Finance | Tech | Direction |
-| ------- | ------------------ | ------- | ---- | --------- |
-| Utilisateurs et opérations | Lire, qualifier, corriger dans le périmètre autorisé | Lecture limitée au lien financier | Lecture diagnostic limitée | Lecture globale, exceptions sensibles |
-| Contrôle et escalades | Créer, traiter, escalader | Traiter incidents financiers | Traiter incidents techniques | Arbitrer les critiques et sensibles |
-| Finance, revenus, marges, rémunérations | Aucun accès par défaut, seulement contexte nécessaire | Lecture/traitement complet selon délégation | Diagnostic technique sans montants détaillés | Lecture globale et décisions |
-| Développement, secrets, logs sensibles | Santé lisible sans secrets | Santé lisible sans secrets | Lecture technique contrôlée | Synthèse et risques, pas secrets par défaut |
-| Pilotage, stratégie, tarification | Lecture sélective | Contribution financière | Contribution faisabilité | Lecture et arbitrage complet |
+| Domaine                                 | Admin opérationnel                                    | Finance                                     | Tech                                         | Direction                                   |
+| --------------------------------------- | ----------------------------------------------------- | ------------------------------------------- | -------------------------------------------- | ------------------------------------------- |
+| Utilisateurs et opérations              | Lire, qualifier, corriger dans le périmètre autorisé  | Lecture limitée au lien financier           | Lecture diagnostic limitée                   | Lecture globale, exceptions sensibles       |
+| Contrôle et escalades                   | Créer, traiter, escalader                             | Traiter incidents financiers                | Traiter incidents techniques                 | Arbitrer les critiques et sensibles         |
+| Finance, revenus, marges, rémunérations | Aucun accès par défaut, seulement contexte nécessaire | Lecture/traitement complet selon délégation | Diagnostic technique sans montants détaillés | Lecture globale et décisions                |
+| Développement, secrets, logs sensibles  | Santé lisible sans secrets                            | Santé lisible sans secrets                  | Lecture technique contrôlée                  | Synthèse et risques, pas secrets par défaut |
+| Pilotage, stratégie, tarification       | Lecture sélective                                     | Contribution financière                     | Contribution faisabilité                     | Lecture et arbitrage complet                |
 
 #### Doublons, principes UX et roadmap Admin
 
@@ -3006,13 +3824,13 @@ Ne pas collecter par défaut : frappes clavier, suivi de navigation exhaustif, g
 - Une aide contextuelle future doit traduire chaque terme technique (`MRR`, `churn`, `5xx`) par définition, importance et interprétation simple.
 - Sur mobile, réserver l'accès rapide aux alertes, priorités, incidents, missions et paiements importants ; analyses, tableaux longs et décisions stratégiques restent desktop-first.
 
-| Priorité | Évolution Admin à documenter, pas à développer dans ce lot |
-| -------- | ---------------------------------------------------------- |
-| `P0 Critique` | Consolider la source de priorités entre cockpit, Opérations et Contrôle ; normaliser problème, sévérité, responsable, statut et historique. |
+| Priorité         | Évolution Admin à documenter, pas à développer dans ce lot                                                                                                                              |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `P0 Critique`    | Consolider la source de priorités entre cockpit, Opérations et Contrôle ; normaliser problème, sévérité, responsable, statut et historique.                                             |
 | `P1 Prioritaire` | Créer la source finance admin canonique à partir de Stripe/factures ; instrumenter première valeur, rétention et santé technique réelle ; appliquer les permissions par responsabilité. |
-| `P2 Important` | Centre Contenus avec revue réglementaire, morning brief à 3-5 actions, glossaire contextuel non technique, observabilité d'automations. |
-| `P3 Confort` | Vues mobile enrichies, rapports avancés, tendances longues et exports. |
-| `HOLD` | Prédictions, scoring IA, monitoring exhaustif, tableaux de bord par rôle applicatif, tant que données, gouvernance et usages ne sont pas validés. |
+| `P2 Important`   | Centre Contenus avec revue réglementaire, morning brief à 3-5 actions, glossaire contextuel non technique, observabilité d'automations.                                                 |
+| `P3 Confort`     | Vues mobile enrichies, rapports avancés, tendances longues et exports.                                                                                                                  |
+| `HOLD`           | Prédictions, scoring IA, monitoring exhaustif, tableaux de bord par rôle applicatif, tant que données, gouvernance et usages ne sont pas validés.                                       |
 
 #### Ce qu'il ne faut pas développer maintenant
 
@@ -3035,28 +3853,28 @@ Objectif futur : fournir une source canonique et persistée pour les problèmes 
 
 **Résultat utilisateur attendu.** Une personne habilitée voit une liste courte, fiable et dédupliquée de problèmes à traiter, comprend pourquoi chacun existe, sait qui doit agir, peut le prendre en charge ou l'escalader, puis retrouve un historique justifiant sa clôture. Les pages Opérations gardent le détail de la demande ou de la mission : le registre ne devient pas un second CRM.
 
-| Périmètre du lot | Inclus à terme | Explicitement exclu |
-| ---------------- | -------------- | ------------------- |
-| Détection | Connecter les signaux déjà existants : onboarding bloqué, mission sans affectation/planning, facture incohérente ou échue, incident maintenance ouvert, source technique indisponible | Prédiction IA, corrélation opaque, surveillance individuelle ou création de faux incidents |
-| Registre | Une entrée canonique avec cycle de vie, sévérité, type, objet lié, contexte, responsable, échéance et journal | Réécrire les tables demande, mission, facture, incident ou réservation |
-| Priorités | Alimenter une zone `À traiter` de 3 à 5 entrées sur la Vue d'ensemble par lien vers le registre | Dupliquer les listes longues dans le dashboard principal |
-| Escalade | Assigner une responsabilité fonctionnelle et tracer la transmission | Créer immédiatement de nouveaux rôles Auth ou envoyer automatiquement email/SMS/push |
-| Résolution | Prise en charge, commentaire, fermeture motivée, réouverture contrôlée | Modifier automatiquement l'état métier d'une mission, facture ou réservation |
+| Périmètre du lot | Inclus à terme                                                                                                                                                                        | Explicitement exclu                                                                        |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Détection        | Connecter les signaux déjà existants : onboarding bloqué, mission sans affectation/planning, facture incohérente ou échue, incident maintenance ouvert, source technique indisponible | Prédiction IA, corrélation opaque, surveillance individuelle ou création de faux incidents |
+| Registre         | Une entrée canonique avec cycle de vie, sévérité, type, objet lié, contexte, responsable, échéance et journal                                                                         | Réécrire les tables demande, mission, facture, incident ou réservation                     |
+| Priorités        | Alimenter une zone `À traiter` de 3 à 5 entrées sur la Vue d'ensemble par lien vers le registre                                                                                       | Dupliquer les listes longues dans le dashboard principal                                   |
+| Escalade         | Assigner une responsabilité fonctionnelle et tracer la transmission                                                                                                                   | Créer immédiatement de nouveaux rôles Auth ou envoyer automatiquement email/SMS/push       |
+| Résolution       | Prise en charge, commentaire, fermeture motivée, réouverture contrôlée                                                                                                                | Modifier automatiquement l'état métier d'une mission, facture ou réservation               |
 
 ##### Modèle fonctionnel cible
 
-| Champ conceptuel | Règle produit | Source / note d'implémentation future |
-| ---------------- | ------------- | ------------------------------------- |
-| `problem_id` | Identifiant stable, non dérivé de l'interface | Nouvelle entité ou extension gouvernée à décider ; ne pas réutiliser un UUID d'objet métier. |
-| `fingerprint` | Clé de déduplication : `type + entité + règle active` | Évite qu'un même défaut mission/facture crée plusieurs alertes ouvertes. |
-| `type` | `onboarding`, `operation`, `finance`, `support`, `technical`, `security`, `content`, `strategy` | Les sous-types restent versionnés et lisibles ; `incident` métier conserve sa propre table. |
-| `severity` | `information`, `vigilance`, `prioritaire`, `critique` | Calcul initial déterministe, surcharge manuelle tracée avec motif. |
-| `entity_ref` | Type, ID et lien vers l'objet source | Une entrée peut viser une mission, un utilisateur, une facture, une réservation ou un système. |
-| `summary` / `context` | Résumé non technique, règle déclenchée, éléments de preuve minimaux | Ne jamais copier des secrets, le contenu complet de messages ou des données voyageurs inutiles. |
-| `owner_responsibility` | `operations`, `support`, `finance`, `tech`, `direction` | Responsabilité, pas nouveau rôle applicatif. L'assigné nominatif reste optionnel tant que l'organisation n'est pas modélisée. |
-| `status` | `new`, `acknowledged`, `in_progress`, `escalated`, `resolved`, `closed`, `reopened` | `closed` exige un compte rendu ; les transitions doivent être journalisées et idempotentes. |
-| `due_at` / `resolved_at` | Échéance seulement si la règle ou la prise en charge le justifie | Aucun faux SLA ; l'heure de détection, de prise en charge et de résolution restent mesurables. |
-| `history` | Création, détection, changement de sévérité, commentaire, assignation, escalade, fermeture, réouverture | Évoluer depuis les événements `admin_control_*` sans perdre l'historique existant. |
+| Champ conceptuel         | Règle produit                                                                                           | Source / note d'implémentation future                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `problem_id`             | Identifiant stable, non dérivé de l'interface                                                           | Nouvelle entité ou extension gouvernée à décider ; ne pas réutiliser un UUID d'objet métier.                                  |
+| `fingerprint`            | Clé de déduplication : `type + entité + règle active`                                                   | Évite qu'un même défaut mission/facture crée plusieurs alertes ouvertes.                                                      |
+| `type`                   | `onboarding`, `operation`, `finance`, `support`, `technical`, `security`, `content`, `strategy`         | Les sous-types restent versionnés et lisibles ; `incident` métier conserve sa propre table.                                   |
+| `severity`               | `information`, `vigilance`, `prioritaire`, `critique`                                                   | Calcul initial déterministe, surcharge manuelle tracée avec motif.                                                            |
+| `entity_ref`             | Type, ID et lien vers l'objet source                                                                    | Une entrée peut viser une mission, un utilisateur, une facture, une réservation ou un système.                                |
+| `summary` / `context`    | Résumé non technique, règle déclenchée, éléments de preuve minimaux                                     | Ne jamais copier des secrets, le contenu complet de messages ou des données voyageurs inutiles.                               |
+| `owner_responsibility`   | `operations`, `support`, `finance`, `tech`, `direction`                                                 | Responsabilité, pas nouveau rôle applicatif. L'assigné nominatif reste optionnel tant que l'organisation n'est pas modélisée. |
+| `status`                 | `new`, `acknowledged`, `in_progress`, `escalated`, `resolved`, `closed`, `reopened`                     | `closed` exige un compte rendu ; les transitions doivent être journalisées et idempotentes.                                   |
+| `due_at` / `resolved_at` | Échéance seulement si la règle ou la prise en charge le justifie                                        | Aucun faux SLA ; l'heure de détection, de prise en charge et de résolution restent mesurables.                                |
+| `history`                | Création, détection, changement de sévérité, commentaire, assignation, escalade, fermeture, réouverture | Évoluer depuis les événements `admin_control_*` sans perdre l'historique existant.                                            |
 
 ##### Règles de cycle de vie et de déduplication
 
@@ -3070,25 +3888,25 @@ Objectif futur : fournir une source canonique et persistée pour les problèmes 
 
 ##### Première couverture de règles
 
-| Règle / source existante | Sévérité initiale recommandée | Responsable initial | Dépendance |
-| ------------------------ | ------------------------------ | ------------------- | ---------- |
-| Onboarding incomplet, email non confirmé ou absence de première connexion après seuil | `vigilance`, puis `prioritaire` si délai défini | `operations` / `support` | Profils + Auth déjà disponibles |
-| Mission active sans affectation ou planning incohérent | `prioritaire` | `operations` | `PLS-CAP-004`, règles Mission Health existantes |
-| Mission terminée avec incident maintenance ouvert | `prioritaire` | `operations` | `PLS-CAP-006`, `PLS-CAP-008` |
-| Facture échue ou incohérente liée à une mission | `prioritaire` | `finance` | `PLS-CAP-007`, source Stripe/facture canonique |
-| Source Supabase / Auth / Stripe / notification indisponible | `critique` si parcours bloqué, sinon `vigilance` | `tech` | `PLS-CAP-014`, santé actuelle et observabilité future |
-| Webhook Stripe non traité ou divergence paiement | `critique` | `finance` puis `tech` | Événements Stripe, réconciliation future |
-| Contenu réglementaire à revoir | `vigilance` | `direction` / `support` | Propriétaire éditorial et échéance de revue à instrumenter |
+| Règle / source existante                                                              | Sévérité initiale recommandée                    | Responsable initial      | Dépendance                                                 |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------ | ---------------------------------------------------------- |
+| Onboarding incomplet, email non confirmé ou absence de première connexion après seuil | `vigilance`, puis `prioritaire` si délai défini  | `operations` / `support` | Profils + Auth déjà disponibles                            |
+| Mission active sans affectation ou planning incohérent                                | `prioritaire`                                    | `operations`             | `PLS-CAP-004`, règles Mission Health existantes            |
+| Mission terminée avec incident maintenance ouvert                                     | `prioritaire`                                    | `operations`             | `PLS-CAP-006`, `PLS-CAP-008`                               |
+| Facture échue ou incohérente liée à une mission                                       | `prioritaire`                                    | `finance`                | `PLS-CAP-007`, source Stripe/facture canonique             |
+| Source Supabase / Auth / Stripe / notification indisponible                           | `critique` si parcours bloqué, sinon `vigilance` | `tech`                   | `PLS-CAP-014`, santé actuelle et observabilité future      |
+| Webhook Stripe non traité ou divergence paiement                                      | `critique`                                       | `finance` puis `tech`    | Événements Stripe, réconciliation future                   |
+| Contenu réglementaire à revoir                                                        | `vigilance`                                      | `direction` / `support`  | Propriétaire éditorial et échéance de revue à instrumenter |
 
 ##### Permissions et confidentialité
 
-| Action | Operations / support | Finance | Tech | Direction |
-| ------ | -------------------- | ------- | ---- | --------- |
-| Voir un problème de son périmètre | Oui | Oui pour finance | Oui pour technique | Oui |
-| Prendre en charge / commenter | Oui | Oui pour finance | Oui pour technique | Oui |
-| Modifier sévérité / responsable | Dans son périmètre, avec trace | Finance uniquement pour finance | Tech uniquement pour technique | Oui |
-| Clôturer | Avec motif, dans son périmètre | Avec motif, finance | Avec motif, technique | Oui |
-| Voir montants, marges, secrets ou PII élargie | Non par défaut | Montants nécessaires uniquement | Aucun secret en UI | Selon habilitation explicite |
+| Action                                        | Operations / support           | Finance                         | Tech                           | Direction                    |
+| --------------------------------------------- | ------------------------------ | ------------------------------- | ------------------------------ | ---------------------------- |
+| Voir un problème de son périmètre             | Oui                            | Oui pour finance                | Oui pour technique             | Oui                          |
+| Prendre en charge / commenter                 | Oui                            | Oui pour finance                | Oui pour technique             | Oui                          |
+| Modifier sévérité / responsable               | Dans son périmètre, avec trace | Finance uniquement pour finance | Tech uniquement pour technique | Oui                          |
+| Clôturer                                      | Avec motif, dans son périmètre | Avec motif, finance             | Avec motif, technique          | Oui                          |
+| Voir montants, marges, secrets ou PII élargie | Non par défaut                 | Montants nécessaires uniquement | Aucun secret en UI             | Selon habilitation explicite |
 
 Les rôles applicatifs actuels restent `admin` / `super_admin` jusqu'à ce que `PLS-CAP-013` fournisse une gouvernance organisationnelle cohérente. Cette matrice est une règle de conception future et non une autorisation actuelle.
 
@@ -3116,50 +3934,50 @@ Cette analyse est fondée sur le code actuel : `workflow_events` est un journal 
 
 **1. État courant du registre : table dédiée ou événements existants ?**
 
-| Option | Avantages | Inconvénients / risques | Compatibilité et complexité |
-| ------ | --------- | ----------------------- | --------------------------- |
-| `A. workflow_events + metadata` | Réutilise immédiatement l'écriture `admin_control_*`, les liens demande/devis/mission/réservation et une partie des tests existants. Pas de nouveau modèle d'état au départ. | Un journal append-only ne donne pas un état courant fiable sans reconstruction coûteuse ; `metadata` devient vite non typé ; impossible de gérer proprement `fingerprint`, responsable, échéance et réouverture. Ses politiques RLS sont conçues pour les participants métier, pas pour un registre Admin. | Très compatible à court terme, complexité faible ; dette structurelle et risque de requêtes lentes/ambiguës élevés. |
-| `B. Table problems dédiée + workflow_events comme journal` | Sépare l'état courant de l'historique, indexe les priorités ouvertes et impose un schéma stable. Préserve les événements existants et les liens métier. Facilite les permissions, la déduplication et les tableaux admin. | Nouvelle migration, politiques RLS et contrat API à concevoir ; nécessite une stratégie de synchronisation entre problème et événement. | Très compatible : le Control Tower reste une source de détection et l'historique actuel peut être conservé. Complexité moyenne, risque maîtrisable par petits lots. |
-| `C. Vue/projection SQL de workflow_events` | Lecture agrégée sans dupliquer de données au départ ; utile pour prototyper une liste. | Une vue ne résout pas l'écriture, l'assignation, les transitions ni la déduplication ; une vue matérialisée ajoute rafraîchissement et cohérence différée. | Compatibilité moyenne, complexité moyenne à élevée ; reporte la décision sans enlever le besoin de table dédiée. |
+| Option                                                     | Avantages                                                                                                                                                                                                                 | Inconvénients / risques                                                                                                                                                                                                                                                                                    | Compatibilité et complexité                                                                                                                                         |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `A. workflow_events + metadata`                            | Réutilise immédiatement l'écriture `admin_control_*`, les liens demande/devis/mission/réservation et une partie des tests existants. Pas de nouveau modèle d'état au départ.                                              | Un journal append-only ne donne pas un état courant fiable sans reconstruction coûteuse ; `metadata` devient vite non typé ; impossible de gérer proprement `fingerprint`, responsable, échéance et réouverture. Ses politiques RLS sont conçues pour les participants métier, pas pour un registre Admin. | Très compatible à court terme, complexité faible ; dette structurelle et risque de requêtes lentes/ambiguës élevés.                                                 |
+| `B. Table problems dédiée + workflow_events comme journal` | Sépare l'état courant de l'historique, indexe les priorités ouvertes et impose un schéma stable. Préserve les événements existants et les liens métier. Facilite les permissions, la déduplication et les tableaux admin. | Nouvelle migration, politiques RLS et contrat API à concevoir ; nécessite une stratégie de synchronisation entre problème et événement.                                                                                                                                                                    | Très compatible : le Control Tower reste une source de détection et l'historique actuel peut être conservé. Complexité moyenne, risque maîtrisable par petits lots. |
+| `C. Vue/projection SQL de workflow_events`                 | Lecture agrégée sans dupliquer de données au départ ; utile pour prototyper une liste.                                                                                                                                    | Une vue ne résout pas l'écriture, l'assignation, les transitions ni la déduplication ; une vue matérialisée ajoute rafraîchissement et cohérence différée.                                                                                                                                                 | Compatibilité moyenne, complexité moyenne à élevée ; reporte la décision sans enlever le besoin de table dédiée.                                                    |
 
 **Recommandation : `B`.** Créer à terme `admin_problems` pour l'état courant et conserver des événements append-only, idéalement dédiés au registre plutôt que de surcharger les événements de workflow métier. Le lot 1 peut lire les règles déjà présentes dans Control Tower ; aucune migration ni réécriture de l'historique n'est requise avant l'implémentation.
 
 **2. SLA : faut-il définir des délais maintenant ?**
 
-| Option | Avantages | Inconvénients / risques | Compatibilité et complexité |
-| ------ | --------- | ----------------------- | --------------------------- |
-| `A. SLA universels codés en dur` | Très lisible et rapide à afficher ; fournit immédiatement des alertes de retard. | Fausse précision : urgence opérationnelle, finance et technique n'ont pas les mêmes fenêtres ; la règle devient difficile à changer et peut produire du bruit. | Compatible techniquement, complexité faible ; risque produit élevé. |
-| `B. Aucun SLA, seulement les dates observées` | Aucun engagement artificiel ; permet d'apprendre des délais réels de détection, prise en charge et résolution. | Les priorités peuvent rester sans échéance claire et l'admin ne sait pas toujours quoi traiter avant. | Très compatible avec les timestamps existants, complexité faible ; valeur de pilotage limitée. |
-| `C. Politique progressive par type/sévérité, versionnée et explicable` | Commence par des cibles de traitement, pas des promesses externes ; permet une exception motivée et une évolution après données terrain. | Demande une configuration métier et des tests de calcul ; risque de dérive si trop de cas sont ouverts dès le début. | Compatible avec `severity`, `type`, `created_at` et future `due_at`; complexité moyenne. |
+| Option                                                                 | Avantages                                                                                                                                | Inconvénients / risques                                                                                                                                        | Compatibilité et complexité                                                                    |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `A. SLA universels codés en dur`                                       | Très lisible et rapide à afficher ; fournit immédiatement des alertes de retard.                                                         | Fausse précision : urgence opérationnelle, finance et technique n'ont pas les mêmes fenêtres ; la règle devient difficile à changer et peut produire du bruit. | Compatible techniquement, complexité faible ; risque produit élevé.                            |
+| `B. Aucun SLA, seulement les dates observées`                          | Aucun engagement artificiel ; permet d'apprendre des délais réels de détection, prise en charge et résolution.                           | Les priorités peuvent rester sans échéance claire et l'admin ne sait pas toujours quoi traiter avant.                                                          | Très compatible avec les timestamps existants, complexité faible ; valeur de pilotage limitée. |
+| `C. Politique progressive par type/sévérité, versionnée et explicable` | Commence par des cibles de traitement, pas des promesses externes ; permet une exception motivée et une évolution après données terrain. | Demande une configuration métier et des tests de calcul ; risque de dérive si trop de cas sont ouverts dès le début.                                           | Compatible avec `severity`, `type`, `created_at` et future `due_at`; complexité moyenne.       |
 
 **Recommandation : `C`, avec démarrage prudent.** Au premier lot, persister `detected_at`, `acknowledged_at`, `resolved_at` et éventuellement une `target_due_at` calculée uniquement pour les niveaux critiques/prioritaires. Afficher des `cibles internes` et non des SLA contractuels ; revoir les seuils après un pilote. Les SLA finance doivent attendre la réconciliation Stripe, et les SLA séjour attendent le pivot séjour canonique `PLS-CAP-001`.
 
 **3. Assignation : responsabilité fonctionnelle, personne ou équipe ?**
 
-| Option | Avantages | Inconvénients / risques | Compatibilité et complexité |
-| ------ | --------- | ----------------------- | --------------------------- |
-| `A. Responsabilité fonctionnelle seule` | S'aligne sur les quatre responsabilités de l'audit (`operations`, `support`, `finance`, `tech`, `direction`) sans créer de rôle applicatif. Fonctionne même sans équipe Admin modélisée. | Pas de redevabilité nominative ; les problèmes peuvent rester dans une file abstraite. | Très compatible avec le code actuel ; complexité faible. |
-| `B. assigned_profile_id` direct vers `profiles` | Donne un responsable nominatif et exploite les profils déjà existants. | Les admins PlanetLS ne sont pas aujourd'hui une équipe/organisation structurée ; une affectation à un profil ne représente ni relais ni absence, et peut exposer inutilement un nom. | Compatible techniquement, complexité moyenne ; fragilité organisationnelle. |
-| `C. Responsabilité obligatoire + assignation nominative optionnelle` | Donne une file stable par responsabilité tout en permettant une prise en charge individuelle. Prépare l'arrivée future d'organisation, délégation et continuité sans la bloquer. | Deux champs à maintenir ; demande une règle de fallback quand la personne devient indisponible. | Compatible avec `profiles`; ne pas utiliser `concierge_team_members`, qui est hors périmètre Admin. Complexité moyenne. |
+| Option                                                               | Avantages                                                                                                                                                                                | Inconvénients / risques                                                                                                                                                              | Compatibilité et complexité                                                                                             |
+| -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `A. Responsabilité fonctionnelle seule`                              | S'aligne sur les quatre responsabilités de l'audit (`operations`, `support`, `finance`, `tech`, `direction`) sans créer de rôle applicatif. Fonctionne même sans équipe Admin modélisée. | Pas de redevabilité nominative ; les problèmes peuvent rester dans une file abstraite.                                                                                               | Très compatible avec le code actuel ; complexité faible.                                                                |
+| `B. assigned_profile_id` direct vers `profiles`                      | Donne un responsable nominatif et exploite les profils déjà existants.                                                                                                                   | Les admins PlanetLS ne sont pas aujourd'hui une équipe/organisation structurée ; une affectation à un profil ne représente ni relais ni absence, et peut exposer inutilement un nom. | Compatible techniquement, complexité moyenne ; fragilité organisationnelle.                                             |
+| `C. Responsabilité obligatoire + assignation nominative optionnelle` | Donne une file stable par responsabilité tout en permettant une prise en charge individuelle. Prépare l'arrivée future d'organisation, délégation et continuité sans la bloquer.         | Deux champs à maintenir ; demande une règle de fallback quand la personne devient indisponible.                                                                                      | Compatible avec `profiles`; ne pas utiliser `concierge_team_members`, qui est hors périmètre Admin. Complexité moyenne. |
 
 **Recommandation : `C`.** Le problème est toujours orienté vers une responsabilité fonctionnelle ; `assigned_profile_id` reste facultatif, réservé à une personne habilitée et journalisé. Aucune relation vers une équipe n'est introduite dans `PLS-CAP-016`; le modèle organisationnel de `PLS-CAP-013` décidera plus tard des files, délégations et remplacements.
 
 **4. Vérité financière : Stripe, facture interne ou réconciliation ?**
 
-| Option | Avantages | Inconvénients / risques | Compatibilité et complexité |
-| ------ | --------- | ----------------------- | --------------------------- |
-| `A. Stripe comme source unique` | Les événements paiement et abonnement sont fournis par le processeur ; le webhook est signé et `stripe_events` conserve le payload. | Stripe ne porte pas seul le sens métier PlanetLS : lien mission, statut de facture interne, remboursement, commission ou reconnaissance de revenu peuvent diverger. Les événements actuels sont partiels. | Compatible avec webhook et `stripe_events`; complexité faible au début, risque de mauvaise lecture métier élevé. |
-| `B. invoices comme source unique` | Les montants dus, payés, échéances et liens mission sont directement exploitables dans PlanetLS et déjà utilisés par Mission Health. | Une facture interne ne prouve pas à elle seule qu'un paiement Stripe est reçu ; abonnements Concierge Pro et échecs webhook sont hors de ce modèle. | Très compatible avec Control Tower ; complexité faible, couverture financière insuffisante. |
-| `C. Réconciliation par question financière` | Définit Stripe comme vérité de l'événement processeur et `invoices` comme vérité de l'obligation métier ; une divergence devient un problème explicite. Prépare remboursements et commissions sans les simuler. | Nécessite des identifiants de rapprochement, des règles d'idempotence et une lecture admin dédiée ; plus de tests de cas limites. | Compatible avec les deux sources existantes ; complexité moyenne à élevée, mais seule option fiable pour la finance Admin. |
+| Option                                      | Avantages                                                                                                                                                                                                       | Inconvénients / risques                                                                                                                                                                                   | Compatibilité et complexité                                                                                                |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `A. Stripe comme source unique`             | Les événements paiement et abonnement sont fournis par le processeur ; le webhook est signé et `stripe_events` conserve le payload.                                                                             | Stripe ne porte pas seul le sens métier PlanetLS : lien mission, statut de facture interne, remboursement, commission ou reconnaissance de revenu peuvent diverger. Les événements actuels sont partiels. | Compatible avec webhook et `stripe_events`; complexité faible au début, risque de mauvaise lecture métier élevé.           |
+| `B. invoices comme source unique`           | Les montants dus, payés, échéances et liens mission sont directement exploitables dans PlanetLS et déjà utilisés par Mission Health.                                                                            | Une facture interne ne prouve pas à elle seule qu'un paiement Stripe est reçu ; abonnements Concierge Pro et échecs webhook sont hors de ce modèle.                                                       | Très compatible avec Control Tower ; complexité faible, couverture financière insuffisante.                                |
+| `C. Réconciliation par question financière` | Définit Stripe comme vérité de l'événement processeur et `invoices` comme vérité de l'obligation métier ; une divergence devient un problème explicite. Prépare remboursements et commissions sans les simuler. | Nécessite des identifiants de rapprochement, des règles d'idempotence et une lecture admin dédiée ; plus de tests de cas limites.                                                                         | Compatible avec les deux sources existantes ; complexité moyenne à élevée, mais seule option fiable pour la finance Admin. |
 
 **Recommandation : `C`, par étapes.** Avant tout KPI MRR/ARR/churn, définir un contrat de rapprochement minimal : `Stripe event / objet Stripe`, `invoice interne éventuelle`, `profile`, `montant`, `devise`, `statut`, `occurred_at`, `source`. Dans le premier lot `PLS-CAP-016`, ne créer que les problèmes de divergence ou d'échec webhook démontrables ; ne pas afficher de revenu consolidé, remboursement ou commission tant que leur modèle n'est pas complet.
 
 **5. Rétention, anonymisation et visibilité des journaux Admin**
 
-| Option | Avantages | Inconvénients / risques | Compatibilité et complexité |
-| ------ | --------- | ----------------------- | --------------------------- |
-| `A. Conserver indéfiniment tout le contexte` | Simplicité, historique complet pour le débogage. | Risque élevé de conservation excessive de PII, messages, données voyageurs et payloads Stripe ; accès trop large et coût croissant. | Facile car les événements actuels stockent déjà `metadata`/`payload`; incompatible avec le principe de minimisation. |
-| `B. Supprimer tous les journaux avec une durée unique` | Politique simple, surface de données réduite. | Détruit potentiellement l'audit sécurité/finance nécessaire ; une durée unique ne respecte pas les finalités différentes. | Faisable, complexité moyenne ; risque légal et opérationnel si appliqué aveuglément. |
+| Option                                                            | Avantages                                                                                                                                                                    | Inconvénients / risques                                                                                                             | Compatibilité et complexité                                                                                                                          |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `A. Conserver indéfiniment tout le contexte`                      | Simplicité, historique complet pour le débogage.                                                                                                                             | Risque élevé de conservation excessive de PII, messages, données voyageurs et payloads Stripe ; accès trop large et coût croissant. | Facile car les événements actuels stockent déjà `metadata`/`payload`; incompatible avec le principe de minimisation.                                 |
+| `B. Supprimer tous les journaux avec une durée unique`            | Politique simple, surface de données réduite.                                                                                                                                | Détruit potentiellement l'audit sécurité/finance nécessaire ; une durée unique ne respecte pas les finalités différentes.           | Faisable, complexité moyenne ; risque légal et opérationnel si appliqué aveuglément.                                                                 |
 | `C. Politique par classe de données, minimisation dès l'écriture` | Conserve le registre utile tout en séparant contexte opérationnel, PII, finance, sécurité et contenu sensible. Permet pseudonymisation/masquage et droits de lecture ciblés. | Demande un inventaire, un propriétaire de traitement, des mécanismes de purge et une validation juridique avant durées définitives. | Compatible avec les tables existantes si les nouveaux problèmes n'enregistrent que des références et un résumé minimal. Complexité moyenne à élevée. |
 
 **Recommandation : `C`.** Le registre ne doit stocker que le minimum : référence d'entité, règle, statut, responsabilité, dates et commentaire administratif sans PII superflue. Les données source restent dans leurs domaines avec leurs droits propres. Avant mise en production, définir avec la direction/conseil approprié une politique par classe (opérationnel, sécurité, finance, support), les durées, masquages, accès et procédure d'effacement. Ne jamais recopier des payloads Stripe ni le contenu intégral de messages dans `admin_problems`.
@@ -3208,11 +4026,11 @@ Ces éléments ne sont pas tous N4 ; "terminés" signifie ici qu'ils ne doivent 
 | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | Parcours E2E par rôle               | Aucun scénario automatisé complet                                                                                                                                       | Owner et concierge : inscription/connexion -> demande -> devis -> mission -> paiement ; provider : mission -> intervention -> preuve -> facture |
 | Sécurité CSRF en environnement réel | La défense centrale existe côté proxy, mais la validation E2E multi-origines et le contrôle des exemptions signées restent à confirmer en conditions proches production | Vérifications navigateur/API sur mutations protégées, exemptions Stripe et appels serveur-à-serveur documentées et rejouées                     |
-| Offre PRO et monétisation réelle    | Le code produit ne prouve qu'un abonnement `concierge_pro_monthly`, alors que les rôles `owner_pro` et `provider_pro` sont déjà visibles dans l'UI et le pilotage    | Décision produit explicite, périmètre premium borné par rôle, gating serveur + client, règles RLS, Stripe, webhooks et E2E dédiés par offre   |
+| Offre PRO et monétisation réelle    | Le code produit ne prouve qu'un abonnement `concierge_pro_monthly`, alors que les rôles `owner_pro` et `provider_pro` sont déjà visibles dans l'UI et le pilotage       | Décision produit explicite, périmètre premium borné par rôle, gating serveur + client, règles RLS, Stripe, webhooks et E2E dédiés par offre     |
 | Persistance des modules récents     | `metadata` et local storage pour équipe, maintenance, mobile, réservations                                                                                              | Tables, RLS, Storage, types générés, migration et tests d'intégration                                                                           |
 | Gouvernance Supabase                | Deux sources de migrations, types incomplets                                                                                                                            | Source canonique, inventaire appliqué, types régénérés, suppression progressive des casts loose                                                 |
 | Qualité CI                          | Baseline UI à maintenir après revue                                                                                                                                     | Snapshot portable LF/CRLF, mise à jour volontaire après évolution acceptée                                                                      |
-| Fiabilité build production          | `next build` échoue encore le 25 août 2026 sur `.next/dev/types/routes.d.ts`                                                                                           | Build vert sans dépendre d'un artefact `.next/dev` corrompu ni d'une génération de routes invalide                                             |
+| Fiabilité build production          | `next build` échoue encore le 25 août 2026 sur `.next/dev/types/routes.d.ts`                                                                                            | Build vert sans dépendre d'un artefact `.next/dev` corrompu ni d'une génération de routes invalide                                              |
 | Observabilité produit               | KPI de conversion/activation incomplets                                                                                                                                 | èvénements fiables et dashboard funnel par rôle/zone                                                                                            |
 | Profil artisan                      | Identité métier et confiance incomplètes                                                                                                                                | Métiers, spécialités, zone, disponibilité, documents, portfolio, complétude                                                                     |
 
@@ -3264,16 +4082,16 @@ Ces éléments ne sont pas tous N4 ; "terminés" signifie ici qu'ils ne doivent 
 
 ### Court terme -> stabiliser et prouver (0 à 8 semaines)
 
-| Ordre | Lot                                                             | Valeur     | Effort | Résultat mesurable                                                    |
-| ----: | --------------------------------------------------------------- | ---------- | ------ | --------------------------------------------------------------------- |
-|     1 | Remettre CI au vert et figer une baseline                       | Haute      | Faible | Tests, lint, build et snapshot acceptés                               |
-|     2 | Automatiser deux parcours E2E critiques + un provider           | Très haute | Moyen  | 3 scénarios exécutables en CI, preuves et données de test maîtrisées  |
-|     3 | Canoniser migrations/types Supabase                             | Très haute | Moyen  | Une source, types alignés, inventaire des tables/RLS                  |
-|     4 | Persister maintenance, équipe, réservations et rapports terrain | Très haute | èlevé  | Plus de donnée critique uniquement locale/`metadata`                  |
+| Ordre | Lot                                                             | Valeur     | Effort | Résultat mesurable                                                                                                                                  |
+| ----: | --------------------------------------------------------------- | ---------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+|     1 | Remettre CI au vert et figer une baseline                       | Haute      | Faible | Tests, lint, build et snapshot acceptés                                                                                                             |
+|     2 | Automatiser deux parcours E2E critiques + un provider           | Très haute | Moyen  | 3 scénarios exécutables en CI, preuves et données de test maîtrisées                                                                                |
+|     3 | Canoniser migrations/types Supabase                             | Très haute | Moyen  | Une source, types alignés, inventaire des tables/RLS                                                                                                |
+|     4 | Persister maintenance, équipe, réservations et rapports terrain | Très haute | èlevé  | Plus de donnée critique uniquement locale/`metadata`                                                                                                |
 |     5 | Cadrer la V1 clés et accès sous contrat concierge               | Très haute | Moyen  | États `Signé - en attente des accès` / `Actif`, modes de remise et restitution, inventaire, bordereau signé, preuves et règle de clôture documentés |
-|     6 | Finaliser profil artisan et confiance                           | Très haute | Moyen  | Profil publiable et filtrable, complétude mesurée                     |
-|     7 | Instrumenter activation et funnel                               | Très haute | Moyen  | Inscription -> profil -> demande/mission -> paiement par rôle et zone |
-|     8 | Pilote d'acquisition dans une zone                              | Très haute | Moyen  | Premier noyau local actif et missions réelles                         |
+|     6 | Finaliser profil artisan et confiance                           | Très haute | Moyen  | Profil publiable et filtrable, complétude mesurée                                                                                                   |
+|     7 | Instrumenter activation et funnel                               | Très haute | Moyen  | Inscription -> profil -> demande/mission -> paiement par rôle et zone                                                                               |
+|     8 | Pilote d'acquisition dans une zone                              | Très haute | Moyen  | Premier noyau local actif et missions réelles                                                                                                       |
 
 ### Moyen terme -> créer la liquidité et la rétention (2 à 6 mois)
 
@@ -3550,37 +4368,37 @@ Ouvrir une nouvelle zone seulement lorsque la précédente atteint des seuils : 
 
 Dates : → signifie non planifié. Le responsable est un rôle, à remplacer par un nom lors de l'engagement du lot.
 
-| Fonctionnalité / action                                    | Statut      | Priorité            | Date cible                       | Responsable             | Commentaires / preuve attendue                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| ---------------------------------------------------------- | ----------- | ------------------- | -------------------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Baseline tests/lint/build/snapshot                         | ✅ Terminé  | P0 Critique         | 2026-07-19                       | Tech lead               | 202/202 tests, lint ciblé et build Next.js de 168 pages au vert                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| E2E owner complet                                          | ⏸️ Reporté  | P0 Critique         | À reprendre avec clé Stripe test | QA + Produit            | Demande → devis → mission → facture payée par webhook signé PASS ; scénario Checkout hébergé, carte test, retour owner et synchronisation prêts ; aucune E2E_STRIPE_SECRET_KEY locale disponible pour la preuve finale                                                                                                                                                                                                                                                                                |
-| E2E concierge complet                                      | 🟠 Partiel  | P0 Critique         | Court terme                      | QA + Produit            | Réception → devis envoyé → mission → facture payée → créneau planifié et relu owner PASS ; Checkout hébergé reste à valider                                                                                                                                                                                                                                                                                                                                                                           |
-| E2E provider complet                                       | ✅ Terminé  | P0 Critique         | 2026-07-18                       | QA + Provider           | Mission → intervention → preuve média privée → facture liée PASS ; prochaine évolution : paiement Stripe test                                                                                                                                                                                                                                                                                                                                                                                         |
-| Source canonique migrations                                | 🟠 Partiel  | P0 Critique         | Court terme                      | Backend                 | supabase/migrations canonique ; 20 fichiers historiques figés dans database/migrations ; contrôle CI ajouté ; inventaire distant bloqué sans token                                                                                                                                                                                                                                                                                                                                                    |
-| Types Supabase régénérés                                   | 🟡 En cours | P0 Critique         | Court terme                      | Backend                 | Tables actives entièrement typées ; le build du 2026-07-28 a nécessité un helper non typé temporaire dans /api/admin/control-tower car onboarding_events, service_requests et workflow_events ne sont pas encore couverts par les types générés                                                                                                                                                                                                                                                       |
-| Persistance maintenance                                    | 🟠 Partiel  | P0 Critique         | Court terme                      | Backend + Concierge     | Incidents et médias/RLS, API CRUD partiel, transitions, affectation, preuves privées SHA-256 et URL signées, contrat 6/6 ; migrations distantes et E2E restent à faire                                                                                                                                                                                                                                                                                                                                |
-| Persistance équipe/affectations                            | 🟡 En cours | P0 Critique         | Court terme                      | Backend + Concierge     | Permissions fines incluses                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| Persistance réservations/terrain                           | 🟡 En cours | P0 Critique         | Court terme                      | Backend + Mobile        | Photos, signatures et checklists Storage                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| Profil artisan complet                                     | 🟠 Partiel  | P0 Critique         | Court terme                      | Produit + Provider      | Édition métier persistante et complétude dédiée ; justificatifs privés PDF/images avec SHA-256, statuts de vérification et liens signés livrés ; migration distante, validation admin, avis et vue publique détaillée restent à finaliser                                                                                                                                                                                                                                                             |
-| KPI activation/funnel                                      | ✅ Terminé  | P0 Critique         | Court terme                      | Data + Produit          | Définitions J+7, groupes, séries et zones validés sur l’API connectée ; seuils par rôle, alerte faible échantillon, baisse de groupe et actions admin visibles                                                                                                                                                                                                                                                                                                                                        |
-| Paiement consolidé mission                                 | 🟡 En cours | P1 Prioritaire      | Moyen terme                      | Backend + Produit       | Acompte, solde, échec et relance visibles                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Notifications structurées                                  | 🟡 En cours | P1 Prioritaire      | Moyen terme                      | Produit + Backend       | Préférences et événements utiles                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| Automatisations productivité et tâches récurrentes         | 🔴 À faire  | P2 Important        | Moyen terme                      | Produit + Backend + Ops | Workflows réversibles pour relances de devis, rappels de paiement, confirmations de RDV, emails de bienvenue, anniversaires client, onboarding client/collaborateur et pré-remplissage de contrat ; validation humaine et journalisation obligatoires sur les actions sensibles                                                                                                                                                                                                                       |
-| Reporting automatisé, veille et prévisionnel de trésorerie | 🔴 À faire  | P2 Important        | Moyen terme                      | Admin + Data + Finance  | Consolider statistiques d’entreprise, prévisionnel de trésorerie, reporting réseaux sociaux/concurrents et veille sectorielle dans un cockpit exploitable sans tableurs parallèles                                                                                                                                                                                                                                                                                                                    |
-| Performance & rentabilité locative owner-first             | 🟠 Partiel  | P1 Prioritaire      | Moyen terme                      | Produit + Owner + Data  | Prototype de pilotage livré dans /dashboard/owner/finances/overview avec KPI de démonstration, scénarios comparés, décomposition de rentabilité, audit de données, risques et roadmap MVP/V1/V2 ; le cockpit owner principal remonte aussi cette brique dans « À traiter maintenant » depuis /dashboard/owner ; prochaine étape : brancher un premier owner pilote sur reservations + invoices + housing, persister les coûts variables utiles et distinguer proprement réel / estimé / démonstration |
-| Gestion des clés et accès sous contrat concierge | 🔴 À faire | P1 Prioritaire | Court terme | Produit + Ops + Sécurité | Contrat `Signé - en attente des accès` jusqu'à remise ou provisionnement confirmé ; choix documenté du mode de transmission/restitution, inventaire, bordereau signé, preuves, historique des détenteurs, incident perte/vol, rotation des codes et blocage de clôture tant que les accès attendus ne sont pas restitués ou désactivés |
-| Prospection automatisée et gestion des leads               | 🔴 À faire  | P2 Important        | Moyen terme                      | Growth + CRM + Produit  | Collecte de prospects, enrichissement, premier email personnalisé, relances, séquences de prospection et suivi de conversion reliés au CRM PlanetLS                                                                                                                                                                                                                                                                                                                                                   |
-| Communication marketing assistée                           | 🔴 À faire  | P3 Confort          | Moyen terme                      | Growth + Marketing      | Publication sur les réseaux sociaux, newsletters, articles, slides, pré-réponses email et médias personnalisés ; à cadrer d’abord comme accélérateur de contenu et non comme promesse d’automatisation aveugle                                                                                                                                                                                                                                                                                        |
-| Litiges/preuves E2E                                        | 🟡 En cours | P1 Prioritaire      | Moyen terme                      | Produit + QA            | Parcours post-checkout validé                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Accessibilité parcours critiques                           | 🟡 En cours | P1 Prioritaire      | Court terme                      | Front + QA              | Clavier, focus, contraste, 360/768/1280                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Pilote acquisition local                                   | 🔴 À faire  | P0 Critique         | Court terme                      | Growth + Direction      | Zone, ancres, offre, seuils et suivi hebdomadaire                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Mur des missions V1                                        | 🔴 À faire  | P1 Prioritaire      | Moyen terme                      | Produit + Tech          | Géolocalisé, expirant, candidature simple                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Carte réseau V1                                            | 🔴 À faire  | P1 Prioritaire      | Moyen terme                      | Produit + Front         | Confidentialité et liste synchronisée                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| Fil professionnel V1                                       | 🔴 À faire  | P1 Prioritaire      | Moyen terme                      | Produit                 | Objets structurés, modération, expiration                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Réputation/certifications                                  | 🟡 En cours | P1 Prioritaire      | Moyen terme                      | Produit + Admin         | « Déclaré », « vérifié » et « calculé » clairement distingués                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| SEO local et données structurées                           | 🟡 En cours | P1 Prioritaire      | Moyen terme                      | Growth + Front          | Pages par zone, OG, JSON-LD et conversion                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| PWA/push/offline                                           | 🔴 À faire  | P4 Idée / À étudier | Long terme                       | Mobile + Backend        | Après persistance et E2E                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| Assistant décoration : partage owner et image              | 🟠 Partiel  | P2 Important        | Moyen terme                      | Produit + Concierge     | Confirmer la valeur terrain, l’envoi traçable et la génération réelle d’images                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Fonctionnalité / action                                    | Statut      | Priorité            | Date cible                       | Responsable              | Commentaires / preuve attendue                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ---------------------------------------------------------- | ----------- | ------------------- | -------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Baseline tests/lint/build/snapshot                         | ✅ Terminé  | P0 Critique         | 2026-07-19                       | Tech lead                | 202/202 tests, lint ciblé et build Next.js de 168 pages au vert                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| E2E owner complet                                          | ⏸️ Reporté  | P0 Critique         | À reprendre avec clé Stripe test | QA + Produit             | Demande → devis → mission → facture payée par webhook signé PASS ; scénario Checkout hébergé, carte test, retour owner et synchronisation prêts ; aucune E2E_STRIPE_SECRET_KEY locale disponible pour la preuve finale                                                                                                                                                                                                                                                                                |
+| E2E concierge complet                                      | 🟠 Partiel  | P0 Critique         | Court terme                      | QA + Produit             | Réception → devis envoyé → mission → facture payée → créneau planifié et relu owner PASS ; Checkout hébergé reste à valider                                                                                                                                                                                                                                                                                                                                                                           |
+| E2E provider complet                                       | ✅ Terminé  | P0 Critique         | 2026-07-18                       | QA + Provider            | Mission → intervention → preuve média privée → facture liée PASS ; prochaine évolution : paiement Stripe test                                                                                                                                                                                                                                                                                                                                                                                         |
+| Source canonique migrations                                | 🟠 Partiel  | P0 Critique         | Court terme                      | Backend                  | supabase/migrations canonique ; 20 fichiers historiques figés dans database/migrations ; contrôle CI ajouté ; inventaire distant bloqué sans token                                                                                                                                                                                                                                                                                                                                                    |
+| Types Supabase régénérés                                   | 🟡 En cours | P0 Critique         | Court terme                      | Backend                  | Tables actives entièrement typées ; le build du 2026-07-28 a nécessité un helper non typé temporaire dans /api/admin/control-tower car onboarding_events, service_requests et workflow_events ne sont pas encore couverts par les types générés                                                                                                                                                                                                                                                       |
+| Persistance maintenance                                    | 🟠 Partiel  | P0 Critique         | Court terme                      | Backend + Concierge      | Incidents et médias/RLS, API CRUD partiel, transitions, affectation, preuves privées SHA-256 et URL signées, contrat 6/6 ; migrations distantes et E2E restent à faire                                                                                                                                                                                                                                                                                                                                |
+| Persistance équipe/affectations                            | 🟡 En cours | P0 Critique         | Court terme                      | Backend + Concierge      | Permissions fines incluses                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Persistance réservations/terrain                           | 🟡 En cours | P0 Critique         | Court terme                      | Backend + Mobile         | Photos, signatures et checklists Storage                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Profil artisan complet                                     | 🟠 Partiel  | P0 Critique         | Court terme                      | Produit + Provider       | Édition métier persistante et complétude dédiée ; justificatifs privés PDF/images avec SHA-256, statuts de vérification et liens signés livrés ; migration distante, validation admin, avis et vue publique détaillée restent à finaliser                                                                                                                                                                                                                                                             |
+| KPI activation/funnel                                      | ✅ Terminé  | P0 Critique         | Court terme                      | Data + Produit           | Définitions J+7, groupes, séries et zones validés sur l’API connectée ; seuils par rôle, alerte faible échantillon, baisse de groupe et actions admin visibles                                                                                                                                                                                                                                                                                                                                        |
+| Paiement consolidé mission                                 | 🟡 En cours | P1 Prioritaire      | Moyen terme                      | Backend + Produit        | Acompte, solde, échec et relance visibles                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Notifications structurées                                  | 🟡 En cours | P1 Prioritaire      | Moyen terme                      | Produit + Backend        | Préférences et événements utiles                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Automatisations productivité et tâches récurrentes         | 🔴 À faire  | P2 Important        | Moyen terme                      | Produit + Backend + Ops  | Workflows réversibles pour relances de devis, rappels de paiement, confirmations de RDV, emails de bienvenue, anniversaires client, onboarding client/collaborateur et pré-remplissage de contrat ; validation humaine et journalisation obligatoires sur les actions sensibles                                                                                                                                                                                                                       |
+| Reporting automatisé, veille et prévisionnel de trésorerie | 🔴 À faire  | P2 Important        | Moyen terme                      | Admin + Data + Finance   | Consolider statistiques d’entreprise, prévisionnel de trésorerie, reporting réseaux sociaux/concurrents et veille sectorielle dans un cockpit exploitable sans tableurs parallèles                                                                                                                                                                                                                                                                                                                    |
+| Performance & rentabilité locative owner-first             | 🟠 Partiel  | P1 Prioritaire      | Moyen terme                      | Produit + Owner + Data   | Prototype de pilotage livré dans /dashboard/owner/finances/overview avec KPI de démonstration, scénarios comparés, décomposition de rentabilité, audit de données, risques et roadmap MVP/V1/V2 ; le cockpit owner principal remonte aussi cette brique dans « À traiter maintenant » depuis /dashboard/owner ; prochaine étape : brancher un premier owner pilote sur reservations + invoices + housing, persister les coûts variables utiles et distinguer proprement réel / estimé / démonstration |
+| Gestion des clés et accès sous contrat concierge           | 🔴 À faire  | P1 Prioritaire      | Court terme                      | Produit + Ops + Sécurité | Contrat `Signé - en attente des accès` jusqu'à remise ou provisionnement confirmé ; choix documenté du mode de transmission/restitution, inventaire, bordereau signé, preuves, historique des détenteurs, incident perte/vol, rotation des codes et blocage de clôture tant que les accès attendus ne sont pas restitués ou désactivés                                                                                                                                                                |
+| Prospection automatisée et gestion des leads               | 🔴 À faire  | P2 Important        | Moyen terme                      | Growth + CRM + Produit   | Collecte de prospects, enrichissement, premier email personnalisé, relances, séquences de prospection et suivi de conversion reliés au CRM PlanetLS                                                                                                                                                                                                                                                                                                                                                   |
+| Communication marketing assistée                           | 🔴 À faire  | P3 Confort          | Moyen terme                      | Growth + Marketing       | Publication sur les réseaux sociaux, newsletters, articles, slides, pré-réponses email et médias personnalisés ; à cadrer d’abord comme accélérateur de contenu et non comme promesse d’automatisation aveugle                                                                                                                                                                                                                                                                                        |
+| Litiges/preuves E2E                                        | 🟡 En cours | P1 Prioritaire      | Moyen terme                      | Produit + QA             | Parcours post-checkout validé                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Accessibilité parcours critiques                           | 🟡 En cours | P1 Prioritaire      | Court terme                      | Front + QA               | Clavier, focus, contraste, 360/768/1280                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Pilote acquisition local                                   | 🔴 À faire  | P0 Critique         | Court terme                      | Growth + Direction       | Zone, ancres, offre, seuils et suivi hebdomadaire                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Mur des missions V1                                        | 🔴 À faire  | P1 Prioritaire      | Moyen terme                      | Produit + Tech           | Géolocalisé, expirant, candidature simple                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Carte réseau V1                                            | 🔴 À faire  | P1 Prioritaire      | Moyen terme                      | Produit + Front          | Confidentialité et liste synchronisée                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Fil professionnel V1                                       | 🔴 À faire  | P1 Prioritaire      | Moyen terme                      | Produit                  | Objets structurés, modération, expiration                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Réputation/certifications                                  | 🟡 En cours | P1 Prioritaire      | Moyen terme                      | Produit + Admin          | « Déclaré », « vérifié » et « calculé » clairement distingués                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| SEO local et données structurées                           | 🟡 En cours | P1 Prioritaire      | Moyen terme                      | Growth + Front           | Pages par zone, OG, JSON-LD et conversion                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| PWA/push/offline                                           | 🔴 À faire  | P4 Idée / À étudier | Long terme                       | Mobile + Backend         | Après persistance et E2E                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Assistant décoration : partage owner et image              | 🟠 Partiel  | P2 Important        | Moyen terme                      | Produit + Concierge      | Confirmer la valeur terrain, l’envoi traçable et la génération réelle d’images                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
 | Registre des automatisations et score d'opportunité | 🔴 À faire | P2 Important | Court terme | Produit + Admin + Data | Mettre en place dans le pilotage un registre unique des automatisations candidates avec statut Idée -> À analyser -> Validée -> À développer -> En test -> Active -> À optimiser, score d'opportunité /100, niveau de risque et KPI avant/après |
 | Audit terrain, cartographie AS-IS et validation utilisateur | 🟠 Partiel | P2 Important | Court terme | Produit + Recherche + Admin | Passe code-first et Excel historique consolidée le 24/08/2026 dans ce Master Plan ; restent à mener questionnaires, entretiens, observations terrain et validation utilisateur avant conception TO-BE puis industrialisation des automatisations sensibles ; documenter aussi les exceptions Oui, sauf quand... |
@@ -3605,9 +4423,9 @@ Une ligne ne passe à `✅` que si :
 
 ### Format obligatoire
 
-| Date       | Type                                    | Décision / évolution | Justification        | Alternatives rejetées                | Impact                               | Responsable |
-| ---------- | --------------------------------------- | -------------------- | -------------------- | ------------------------------------ | ------------------------------------ | ----------- |
-| AAAA-MM-JJ | Produit / Technique / UX / Go-to-market | Formulation courte   | Données ou arbitrage | Options écartées et raison concise   | Code, données, roadmap, utilisateurs | Nom/rôle    |
+| Date       | Type                                    | Décision / évolution | Justification        | Alternatives rejetées              | Impact                               | Responsable |
+| ---------- | --------------------------------------- | -------------------- | -------------------- | ---------------------------------- | ------------------------------------ | ----------- |
+| AAAA-MM-JJ | Produit / Technique / UX / Go-to-market | Formulation courte   | Données ou arbitrage | Options écartées et raison concise | Code, données, roadmap, utilisateurs | Nom/rôle    |
 
 ### Journal consolidé
 
@@ -3627,8 +4445,8 @@ Décision technique du 5 septembre 2026 — L'inscription publique utilise une l
 
 | Date       | Type                 | Décision / évolution                                                                                                       | Motif                                                                                                                                                                                                                                         | Impact                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Responsable                |
 | ---------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| 2026-08-29 | Technique/Produit    | Ajouter les comptes rendus structurés de fin d'intervention à `PLS-CAP-006`                                                 | Les preuves provider ne devaient plus rester uniquement dans `provider_interventions.metadata`, et le cockpit mission doit pouvoir relire un rapport terrain exploitable par owner, concierge et provider                                      | Ajout de `provider_intervention_reports`, backfill des notes historiques de preuve, RLS provider/owner/concierge, helper partagé d'upsert/lecture, exposition `completion_report` dans les APIs provider et mission, champs dédiés sur `/dashboard/provider/interventions`, et contrat E2E enrichi. Le statut reste `IN_PROGRESS` car Supabase local/Docker n'était pas disponible pour appliquer les migrations sur base fraîche/existante, régénérer les types et rejouer l'E2E connecté multi-rôle.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Produit/Tech               |
-| 2026-08-29 | Technique/Produit    | Traiter `PLS-CAP-006` par lots et rendre les checklists mission/intervention persistées hors `metadata`                    | La capacité P0 couvre checklist, preuves, photos et compte-rendu ; tout fermer en une seule passe créerait trop de risque sans validation Supabase locale disponible                                                                           | Ajout de `mission_checklist_items`, backfill depuis `missions.metadata.checklist`, RLS participants/provider, lecture prioritaire dans `/api/missions/[id]` et écriture canonique via `update_checklist`. Ce lot est complété le même jour par le lot compte-rendu prestataire ; le statut global reste `IN_PROGRESS` tant que les migrations ne sont pas appliquées sur base fraîche/existante, que les types Supabase ne sont pas régénérés et que le workflow multi-rôle n'est pas rejoué en E2E connecté.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Produit/Tech               |
+| 2026-08-29 | Technique/Produit    | Ajouter les comptes rendus structurés de fin d'intervention à `PLS-CAP-006`                                                | Les preuves provider ne devaient plus rester uniquement dans `provider_interventions.metadata`, et le cockpit mission doit pouvoir relire un rapport terrain exploitable par owner, concierge et provider                                     | Ajout de `provider_intervention_reports`, backfill des notes historiques de preuve, RLS provider/owner/concierge, helper partagé d'upsert/lecture, exposition `completion_report` dans les APIs provider et mission, champs dédiés sur `/dashboard/provider/interventions`, et contrat E2E enrichi. Le statut reste `IN_PROGRESS` car Supabase local/Docker n'était pas disponible pour appliquer les migrations sur base fraîche/existante, régénérer les types et rejouer l'E2E connecté multi-rôle.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Produit/Tech               |
+| 2026-08-29 | Technique/Produit    | Traiter `PLS-CAP-006` par lots et rendre les checklists mission/intervention persistées hors `metadata`                    | La capacité P0 couvre checklist, preuves, photos et compte-rendu ; tout fermer en une seule passe créerait trop de risque sans validation Supabase locale disponible                                                                          | Ajout de `mission_checklist_items`, backfill depuis `missions.metadata.checklist`, RLS participants/provider, lecture prioritaire dans `/api/missions/[id]` et écriture canonique via `update_checklist`. Ce lot est complété le même jour par le lot compte-rendu prestataire ; le statut global reste `IN_PROGRESS` tant que les migrations ne sont pas appliquées sur base fraîche/existante, que les types Supabase ne sont pas régénérés et que le workflow multi-rôle n'est pas rejoué en E2E connecté.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Produit/Tech               |
 | 2026-08-17 | Produit/Pilotage     | Structurer officiellement `Performance & rentabilite locative` comme brique owner-first du pilotage PlanetLS               | Le produit possede deja reservations, missions, devis, factures et quelques informations logement, mais aucun cadre unifie ne disait encore comment transformer ces briques en cockpit economique lisible, testable et monetisable            | Le Master Plan ajoute une section strategique dediée `vision, workflow cible, données existantes/calculées/manquantes/externes, MVP/V1/V2, hypothèse business et règles de gouvernance`; l'espace `/dashboard/owner/finances/overview` embarque un premier module de pilotage avec KPI de demonstration Barcarès, rentabilite cible, scénarios compares, recommandations, risques, audit des données et prochaines actions, et le cockpit principal `/dashboard/owner` remonte maintenant cette brique dans `A traiter maintenant` pour la rendre visible sans passer par le pilotage business admin                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Produit/Direction          |
 | 2026-08-17 | Produit/Pilotage     | Integrer un axe officiel `automatisation, reporting et prospection assistée` dans le Master Plan                           | Plusieurs idées utiles revenaient autour des taches repetitives, du tracking/reporting, de la relation client et de la prospection ; elles devaient etre dedoublonnées puis raccrochées aux priorites existantes sur l'IA et l'automatisation | Ajout de quatre idées strategiques dans le registre vivant `automatisation administrative reversible, cockpit reporting/veille/tresorerie, prospection assistée, communication et contenu assistes` et de quatre lignes dans la checklist permanente `automatisations productivite`, `reporting/veille/tresorerie`, `prospection automatisée`, `communication marketing assistée` ; ces pistes restent non developpées et dependantes d'un cadrage métier, de données fiables et de garde-fous humains                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Produit/Direction          |
 | 2026-08-17 | Produit/Pilotage     | Transformer les idées d'automatisation en methode de priorisation et en flux cibles par role                               | Le cadrage initial listait des opportunites utiles, mais il manquait une discipline de selection pour eviter la sur-automatisation et des flux suffisamment concrets pour guider les futurs lots                                              | Ajout d'un `Registre des automatisations PlanetLS`, d'une régle a trois niveaux `Automatique / Automatique + validation / Humain obligatoire`, d'une grille `anti-sur-automatisation` et de nouvelles priorites `P2-030` a `P2-034` couvrant les flux owner, concierge, artisan et admin                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Produit/Direction          |
@@ -3644,7 +4462,7 @@ Décision technique du 5 septembre 2026 — L'inscription publique utilise une l
 | 2026-08-17 | Produit/Formation    | Choisir `AUT-001` comme automatisation centrale la plus defendable pour l'exercice                                         | Pour un livrable de formation, il fallait une automatisation simple a expliquer, directement liée a la valeur de PlanetLS et sans dependre d'une stack externe type Make ou n8n                                                               | Le cadrage retient `Devis accepte -> creation et planification automatique d'une mission` comme automatisation de réfèrence : problème initial, objectifs mesurables, distinction explicite entre `processus métier global` et `automatisation ciblée`, données necessaires, chemins d'erreur, tracabilite et absence d'IA necessaire sur la régle déterministe principale                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Produit/Direction          |
 | 2026-08-17 | Produit/Recherche    | Poser l'audit terrain comme préalable aux automatisations majeures                                                         | PlanetLS sert plusieurs métiers que l'equipe ne pratique pas tous directement ; les workflows ne doivent pas etre cartographies uniquement depuis des hypothèses internes                                                                     | Ajout d'une idée strategique `Audit terrain et cartographie AS-IS -> TO-BE`, d'une ligne de pilotage `Audit terrain, cartographie AS-IS et validation utilisateur` et des priorites `P2-035` a `P2-037` pour cadrer questionnaires, entretiens, observation, validation des exceptions et conception `TO-BE`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Produit/Direction          |
 | 2026-08-17 | Produit/Audit        | Etablir une première cartographie `AS-IS` des processus existants a partir du code et des specifications internes          | Avant d'aller sur le terrain, il fallait deja figer une lecture honnete du produit réel `ce qui est branche, ce qui est partiel, ce qui est encore hybride` pour ne pas interviewer les utilisateurs sur une representation floue du systeme  | Ajout d'une mise a jour ciblée `Audit et cartographie AS-IS des processus existants` : flux métier `demande -> devis -> mission`, `reservation/sejour -> taches`, `incident -> artisan`, `facture -> paiement`, flux support `onboarding, pilotage, messagerie/notifications`, exceptions majeures et contradictions entre modele cible et implementation encore hybride                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Produit/Direction          |
-| 2026-08-07 | Technique/Sécurité   | Centraliser la défense CSRF sur les mutations API via le proxy applicatif                                                  | Les cookies Auth.js en `SameSite=Lax` réduisaient le risque, mais les routes métier `POST/PATCH/PUT/DELETE` n'avaient pas encore de garde CSRF explicite ni de politique d'exemption centralisée                                              | Nouveau helper `src/server/security/csrf.ts`, contrôle `Origin` puis repli `Referer` contre l'origine courante/configurée, blocage JSON `403` pour les mutations `/api` non fiables, exemptions explicites pour `/api/auth`, `/api/billing/webhook` et appels serveur-à-serveur porteurs d'en-têtes de confiance, tests dédiés `src/tests/csrf-protection.test.mts` `6/6 PASS`; build alternatif `.next-csrf-check` bloqué par un problème TypeScript préexistant hors lot dans `src/app/dashboard/admin/(business)/pilotage/page.tsx`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Tech/Sécurité/QA           |
+| 2026-08-07 | Technique/Sécurité   | Centraliser la défense CSRF sur les mutations API via le proxy applicatif                                                  | Les cookies Auth.js en `SameSite=Lax` réduisaient le risque, mais les routes métier `POST/PATCH/PUT/DELETE` n'avaient pas encore de garde CSRF explicite ni de politique d'exemption centralisée                                              | Nouveau helper `src/server/security/csrf.ts`, contrôle `Origin` puis repli `Referer` contre l'origine courante/configurée, blocage JSON `403` pour les mutations `/api` non fiables, exemptions explicites pour `/api/auth`, `/api/billing/webhook` et appels serveur-à-serveur porteurs d'en-têtes de confiance, tests dédiés `src/tests/csrf-protection.test.mts` `6/6 PASS`; build alternatif `.next-csrf-check` bloqué par un problème TypeScript préexistant hors lot dans `src/app/dashboard/admin/(business)/pilotage/page.tsx`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Tech/Sécurité/QA           |
 | 2026-08-07 | Produit/Acquisition  | Étendre le profil public concierge avec une mini-surface type Linktree plutôt que créer un produit séparé                  | Le besoin réel est d'augmenter l'actionnabilité publique des profils partagés via réseaux, bouche-à-oreille ou QR code, sans ouvrir une nouvelle dette produit ou data                                                                        | `/api/profiles/public/[id]` expose désormais aussi `website`, `linkedin`, `instagram`, `facebook` ; `/concierges/[id]` affiche un bloc `Liens utiles`, un CTA `Visiter le site`, une section `Actions recommandées` et poste maintenant les clics vers `/api/profiles/public/[id]/track` pour journaliser des événements `public_profile_cta_clicked` ; helpers purs de normalisation / structuration des liens et CTA + tests dédiés ; cadrage produit consigné dans `docs/spec-profils-publics-linktree-2026-08-07.md` ; décision explicite de ne pas ouvrir encore cette mécanique aux profils provider                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Produit/Tech               |
 | 2026-07-29 | Tech/Admin           | Diagnostiquer puis rendre l'admin compatible avec le schéma distant `missions` réellement exposé                           | Le séed KPI connecté a réussi, mais la base distante cassait encore certaines lectures admin car `missions.title`, `missions.request_id` et `missions.provider_profile_id` ne sont pas publiés par PostgREST alors que le repo les attend     | Nouveau script `npm run inspect:remote:admin-schema` / `scripts/inspect-remote-admin-schema.mjs` pour sonder le schéma REST distant ; constat vérifié le mercredi 29 juillet 2026 : `missions` expose `id, owner_profile_id, concierge_profile_id, status, created_at`, mais pas `title`, `request_id` ni `provider_profile_id` ; correctifs admin branchés : `/api/admin/control-tower` retente désormais une lecture `missions` compatible sans `title` et reconstruit un libellé via `metadata.mission_title/service_label/property_label`, `/api/admin/operations` affiche aussi un titre déduit au lieu de laisser `null`, `npm run build` PASS après ces ajustements ; correctif structurel préparé ensuite dans `docs/sql/2026-07-29-align-remote-missions-schema.sql` avec note d'application `docs/remote-missions-schema-realignment-2026-07-29.md` pour réaligner la base distante sans casser les données existantes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Admin/Tech                 |
 | 2026-07-29 | Produit/Architecture | Clarifier le modèle métier contrat -> réservation -> tâches -> intervention                                                | Le flux cible propriétaire/conciergerie risquait de confondre réservation voyageur, mission opérationnelle et intervention artisan, ce qui aurait fragilisé planning, statuts, facturation et UX                                              | Nouvelle spécification `docs/spec-reservations-sejours-operations-2026-07-29.md` : un devis ou contrat signé ouvre la collaboration, la réservation ou le séjour devient l'objet canonique partagé dans les deux plannings, les consignes et besoins se rattachent au séjour, les tâches concierge en dérivent, et les artisans interviennent via des interventions liées plutôt que via une confusion générale autour de `missions`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Produit/Tech               |
@@ -3895,16 +4713,16 @@ Statut : `🟠 Partiel` - le code produit prouve une offre opérationnelle `Conc
 
 #### Section PRO / Payante - état réel vérifié le 25 août 2026
 
-| Élément | Statut réel | Preuves code / tests / migrations | Écart principal | Prochaine action |
-| --- | --- | --- | --- | --- |
-| Page d'abonnement `Concierge PRO` | `🟠 Partiel` | `src/app/abonnement/concierge-pro/page.tsx`, `ConciergeProSubscriptionPageClient.tsx` | UX présente avec états succès/annulation/sync, mais centrée sur le rôle courant et sans preuve E2E dédiée de souscription concierge | Ajouter un scénario E2E abonnement concierge, plus un contrôle d'accès explicite si la page doit être réservée aux concierges |
-| Création de session Stripe abonnement | `✅ Terminé` | `src/app/api/billing/checkout/route.ts`, test `src/tests/billing-api-shared.test.mts` pour la lecture des métadonnées ; garde de rôle `concierge/concierge_pro/admin/super_admin` | Une seule offre supportée `concierge_pro_monthly` | Garder cette route comme source canonique tant qu'aucune autre offre n'est réellement lancée |
-| Synchronisation retour navigateur abonnement | `🟠 Partiel` | `src/app/api/billing/sync/route.ts`, `src/app/lib/stripeHistory.ts` | Met à jour surtout `profiles.role` et `additional_info`; pas de table d'abonnement métier dédiée ni de dates de période facturable | Introduire une vue métier plus robuste si churn, renouvellement et support deviennent critiques |
-| Webhook abonnement Stripe | `🟡 En cours` | `src/app/api/billing/webhook/route.ts`, `src/tests/billing-api-shared.test.mts`, `src/tests/csrf-protection.test.mts`, migration `supabase/migrations/20260228183000_create_stripe_events.sql` | Gère `checkout.session.completed`, `customer.subscription.updated/deleted`, `invoice.payment_failed`, mais seulement pour `concierge_pro_monthly` et via mutation de rôle `profiles.role` | Compléter l'observabilité admin, les relances, et distinguer clairement statut métier, statut Stripe et incidents webhook |
-| Historique et lecture du statut PRO | `🟠 Partiel` | `/api/billing/history`, `src/app/dashboard/concierge/settings/page.tsx`, `settingsHelpers.ts`, `stripe_events` avec RLS `auth.uid() = profile_id` | Lecture disponible pour le concierge connecté, mais pas de cockpit admin de MRR/churn/erreurs ni de piste d'audit financière consolidée | Ajouter une lecture admin consolidée `abonnements + événements + erreurs` |
-| Gating fonctionnel Concierge PRO | `🟠 Partiel` | `src/app/dashboard/concierge/dashboardSections.tsx`, `src/app/dashboard/concierge/alertes/alertesHelpers.ts`, `src/app/dashboard/concierge/settings/page.tsx` | Le badge et certaines CTA changent selon `concierge_pro`, mais le verrouillage reste surtout UI ; peu de routes métier exclusives aux abonnés PRO | Décider quelles fonctions sont vraiment premium et les fermer aussi côté serveur |
-| Paiement des factures owner | `🟡 En cours` | `src/app/api/billing/invoices/[id]/checkout/route.ts`, `src/app/api/billing/invoices/[id]/sync/route.ts`, webhook Stripe, `src/tests/payment-workflow.test.mts`, `e2e/owner-concierge-service-request.spec.ts` | Parcours transactionnel prouvé, mais gestion visible des échecs, remboursements et ledger admin encore incomplète | Ajouter surfaces admin et owner pour statuts d'échec, relance, remboursement, rapprochement |
-| `owner_pro` / `provider_pro` / `artisan_pro` | `🔴 À faire` pour la monétisation réelle | Rôles présents dans `src/types/supabase.ts`, `src/app/api/profiles/pure.ts`, labels UI, filtres, dashboards et pilotage business | Aucun checkout Stripe, aucune page d'abonnement dédiée, aucun webhook ou gating premium équivalent prouvé | Soit retirer la promesse produit implicite, soit livrer un vrai périmètre PRO par rôle |
+| Élément                                      | Statut réel                              | Preuves code / tests / migrations                                                                                                                                                                              | Écart principal                                                                                                                                                                           | Prochaine action                                                                                                              |
+| -------------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Page d'abonnement `Concierge PRO`            | `🟠 Partiel`                             | `src/app/abonnement/concierge-pro/page.tsx`, `ConciergeProSubscriptionPageClient.tsx`                                                                                                                          | UX présente avec états succès/annulation/sync, mais centrée sur le rôle courant et sans preuve E2E dédiée de souscription concierge                                                       | Ajouter un scénario E2E abonnement concierge, plus un contrôle d'accès explicite si la page doit être réservée aux concierges |
+| Création de session Stripe abonnement        | `✅ Terminé`                             | `src/app/api/billing/checkout/route.ts`, test `src/tests/billing-api-shared.test.mts` pour la lecture des métadonnées ; garde de rôle `concierge/concierge_pro/admin/super_admin`                              | Une seule offre supportée `concierge_pro_monthly`                                                                                                                                         | Garder cette route comme source canonique tant qu'aucune autre offre n'est réellement lancée                                  |
+| Synchronisation retour navigateur abonnement | `🟠 Partiel`                             | `src/app/api/billing/sync/route.ts`, `src/app/lib/stripeHistory.ts`                                                                                                                                            | Met à jour surtout `profiles.role` et `additional_info`; pas de table d'abonnement métier dédiée ni de dates de période facturable                                                        | Introduire une vue métier plus robuste si churn, renouvellement et support deviennent critiques                               |
+| Webhook abonnement Stripe                    | `🟡 En cours`                            | `src/app/api/billing/webhook/route.ts`, `src/tests/billing-api-shared.test.mts`, `src/tests/csrf-protection.test.mts`, migration `supabase/migrations/20260228183000_create_stripe_events.sql`                 | Gère `checkout.session.completed`, `customer.subscription.updated/deleted`, `invoice.payment_failed`, mais seulement pour `concierge_pro_monthly` et via mutation de rôle `profiles.role` | Compléter l'observabilité admin, les relances, et distinguer clairement statut métier, statut Stripe et incidents webhook     |
+| Historique et lecture du statut PRO          | `🟠 Partiel`                             | `/api/billing/history`, `src/app/dashboard/concierge/settings/page.tsx`, `settingsHelpers.ts`, `stripe_events` avec RLS `auth.uid() = profile_id`                                                              | Lecture disponible pour le concierge connecté, mais pas de cockpit admin de MRR/churn/erreurs ni de piste d'audit financière consolidée                                                   | Ajouter une lecture admin consolidée `abonnements + événements + erreurs`                                                     |
+| Gating fonctionnel Concierge PRO             | `🟠 Partiel`                             | `src/app/dashboard/concierge/dashboardSections.tsx`, `src/app/dashboard/concierge/alertes/alertesHelpers.ts`, `src/app/dashboard/concierge/settings/page.tsx`                                                  | Le badge et certaines CTA changent selon `concierge_pro`, mais le verrouillage reste surtout UI ; peu de routes métier exclusives aux abonnés PRO                                         | Décider quelles fonctions sont vraiment premium et les fermer aussi côté serveur                                              |
+| Paiement des factures owner                  | `🟡 En cours`                            | `src/app/api/billing/invoices/[id]/checkout/route.ts`, `src/app/api/billing/invoices/[id]/sync/route.ts`, webhook Stripe, `src/tests/payment-workflow.test.mts`, `e2e/owner-concierge-service-request.spec.ts` | Parcours transactionnel prouvé, mais gestion visible des échecs, remboursements et ledger admin encore incomplète                                                                         | Ajouter surfaces admin et owner pour statuts d'échec, relance, remboursement, rapprochement                                   |
+| `owner_pro` / `provider_pro` / `artisan_pro` | `🔴 À faire` pour la monétisation réelle | Rôles présents dans `src/types/supabase.ts`, `src/app/api/profiles/pure.ts`, labels UI, filtres, dashboards et pilotage business                                                                               | Aucun checkout Stripe, aucune page d'abonnement dédiée, aucun webhook ou gating premium équivalent prouvé                                                                                 | Soit retirer la promesse produit implicite, soit livrer un vrai périmètre PRO par rôle                                        |
 
 Décision de pilotage du 25 août 2026 : considérer `Concierge PRO` comme la seule offre payante réellement branchée au produit tant qu'une autre offre n'a pas sa propre page, son propre checkout, ses webhooks, son statut métier, son gating serveur et sa preuve E2E.
 
@@ -3927,12 +4745,12 @@ Statut : `🟠 Partiel` - une veille comparative sourcée est affichée dans `/d
 
 Mise à jour du 24 août 2026 : les concurrents historiques du pilotage business ont été repris depuis leurs sources officielles. La veille ne conclut pas que PlanetLS doit copier leurs produits ; elle isole quatre propositions à confronter au terrain :
 
-| Concurrent | Offre observée | Opportunité PlanetLS | Priorité | Horizon | Limite / prochaine validation |
-| --- | --- | --- | --- | --- | --- |
-| Airbnb | Réseau de co-hôtes, responsabilités et permissions différenciées | Annuaire local de concierges qualifiés, avec zone, disponibilité et périmètre d'intervention | P2 Important | Pilote | Ne pas lancer de marketplace avant preuve de densité locale, vérification des profils et règles de paiement. |
-| Lodgify | Tâches liées aux séjours, attribution, checklist et preuve photo | Consolider le cycle `séjour -> mission -> checklist -> preuve -> contrôle` | P1 Prioritaire | MVP | Le flux doit rester traçable par le propriétaire ; la présence des écrans ne prouve pas encore l'E2E connecté. |
-| Hostaway | Écosystème d'intégrations : opérations, finance, sécurité, automatisation, marketing et expérience voyageur | Cadrer des connecteurs demandés par les pilotes, par exemple serrures, tarification, identité ou comptabilité | P2 Important | Après pilote | Aucun catalogue, API publique ou partenaire n'est engagé sans besoin mesuré et contrat d'intégration. |
-| Smoobu | Guide voyageur avec check-in, recommandations locales et extras réservables | Tester un guide de séjour avec consignes, urgences et services locaux optionnels | P2 Important | Pilote | Les extras doivent avoir prestataire, prix, consentement, responsabilité et suivi explicites. |
+| Concurrent | Offre observée                                                                                              | Opportunité PlanetLS                                                                                          | Priorité       | Horizon      | Limite / prochaine validation                                                                                  |
+| ---------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | -------------- | ------------ | -------------------------------------------------------------------------------------------------------------- |
+| Airbnb     | Réseau de co-hôtes, responsabilités et permissions différenciées                                            | Annuaire local de concierges qualifiés, avec zone, disponibilité et périmètre d'intervention                  | P2 Important   | Pilote       | Ne pas lancer de marketplace avant preuve de densité locale, vérification des profils et règles de paiement.   |
+| Lodgify    | Tâches liées aux séjours, attribution, checklist et preuve photo                                            | Consolider le cycle `séjour -> mission -> checklist -> preuve -> contrôle`                                    | P1 Prioritaire | MVP          | Le flux doit rester traçable par le propriétaire ; la présence des écrans ne prouve pas encore l'E2E connecté. |
+| Hostaway   | Écosystème d'intégrations : opérations, finance, sécurité, automatisation, marketing et expérience voyageur | Cadrer des connecteurs demandés par les pilotes, par exemple serrures, tarification, identité ou comptabilité | P2 Important   | Après pilote | Aucun catalogue, API publique ou partenaire n'est engagé sans besoin mesuré et contrat d'intégration.          |
+| Smoobu     | Guide voyageur avec check-in, recommandations locales et extras réservables                                 | Tester un guide de séjour avec consignes, urgences et services locaux optionnels                              | P2 Important   | Pilote       | Les extras doivent avoir prestataire, prix, consentement, responsabilité et suivi explicites.                  |
 
 Sources vérifiées le 24 août 2026 : [Airbnb Co-Host Network](https://www.airbnb.com/host/co-hosts), [Lodgify Task Management](https://www.lodgify.com/task-management/), [Hostaway Marketplace](https://www.hostaway.com/marketplace/), [Smoobu Guest Guide](https://support.smoobu.com/hc/en-us/articles/360017241879-Set-up-your-digital-Guest-Guide).
 

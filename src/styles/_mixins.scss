@@ -1,5 +1,5 @@
 @mixin ui-focus-ring {
-  outline: 2px solid color-mix(in srgb, var(--ds-color-gold) 58%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--ds-color-primary) 58%, transparent);
   outline-offset: 2px;
   box-shadow: var(--ds-shadow-focus);
 }
@@ -7,26 +7,26 @@
 @mixin ui-card-shell {
   background: var(--ds-surface-raised, var(--ds-color-surface));
   border: var(--ds-border-subtle);
-  border-radius: var(--ui-card-radius, var(--ds-radius-card));
+  border-radius: var(--ds-radius-card);
   box-shadow: var(--ds-shadow-sm);
-  color: var(--ds-color-text);
+  color: var(--ds-color-text-primary);
 }
 
 @mixin ui-panel-shell {
   background: var(--ds-surface-premium, var(--ds-color-surface));
   border: 1px solid color-mix(in srgb, var(--ds-color-border) 86%, transparent);
-  border-radius: var(--ui-panel-radius, var(--ds-radius-panel));
+  border-radius: var(--ds-radius-panel);
   box-shadow: var(--ds-shadow-sm);
-  color: var(--ds-color-text);
+  color: var(--ds-color-text-primary);
 }
 
 @mixin ui-control-shell {
   width: 100%;
   min-height: var(--ds-control-height-md);
   border: var(--ds-border-subtle);
-  border-radius: var(--ui-input-radius, var(--ds-radius-control));
+  border-radius: var(--ds-radius-control);
   background: var(--ds-color-surface);
-  color: var(--ds-color-text);
+  color: var(--ds-color-text-primary);
   font: 400 0.92rem / 1.35 var(--ds-font-body);
   transition:
     border-color var(--ds-motion-fast),
@@ -35,12 +35,12 @@
 }
 
 @mixin ui-control-focus {
-  border-color: color-mix(in srgb, var(--ds-color-gold) 58%, var(--ds-color-border));
+  border-color: color-mix(in srgb, var(--ds-color-primary) 58%, var(--ds-color-border));
   @include ui-focus-ring;
 }
 
 @mixin ui-label {
-  color: var(--ds-color-text-soft);
+  color: var(--ds-color-text-secondary);
   font-family: var(--ds-font-ui);
   font-size: 0.76rem;
   font-weight: 800;

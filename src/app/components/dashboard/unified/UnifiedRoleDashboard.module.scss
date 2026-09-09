@@ -42,6 +42,10 @@
   color: var(--theme-text);
 }
 
+:global(.concierge-dashboard) .heroCard {
+  display: none;
+}
+
 :global(.theme-concierge) .dashboardRoot {
   --theme-accent: #0f8b62;
   --theme-accent-strong: #0b6d4d;

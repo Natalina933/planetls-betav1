@@ -3,6 +3,7 @@
     from {
       opacity: 0;
     }
+
     to {
       opacity: 1;
     }
@@ -13,6 +14,7 @@
       transform: translateY(15px) scale(0.98);
       opacity: 0;
     }
+
     to {
       transform: translateY(0) scale(1);
       opacity: 1;
@@ -23,6 +25,7 @@
     from {
       transform: translateY(100%);
     }
+
     to {
       transform: translateY(0);
     }
@@ -37,14 +40,13 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(31, 41, 55, 0.8));
-  backdrop-filter: blur(10px);
-  padding: env(safe-area-inset-top) env(safe-area-inset-right)
-    env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background: color-mix(in srgb, var(--ds-color-text-primary) 68%, transparent);
+  backdrop-filter: blur(8px);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   overflow-x: hidden;
   overflow-y: auto;
   z-index: $z-index;
-  animation: popupFadeIn 0.25s ease forwards;
+  animation: popupFadeIn var(--ds-motion-fast) var(--ds-ease-standard) forwards;
 }
 
 @mixin container($max-width: 520px, $padding: 1.4rem) {
@@ -53,26 +55,22 @@
   max-height: 90dvh;
   display: flex;
   flex-direction: column;
-  background: #f7f4ee;
-  color: #111827;
-  border: 2px solid rgba(212, 175, 55, 0.22);
-  border-radius: 24px;
+  background: var(--ds-color-surface);
+  color: var(--ds-color-text-primary);
+  border: var(--ds-border-subtle);
+  border-radius: var(--ds-radius-xl);
   padding: $padding;
   overflow-x: hidden;
   overflow-y: auto;
-  animation: popupPopIn 0.35s ease-out;
-  box-shadow:
-    0 25px 60px rgba(0, 0, 0, 0.25),
-    0 0 0 1px rgba(212, 175, 55, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  animation: popupPopIn var(--ds-motion-normal) var(--ds-ease-premium);
+  box-shadow: var(--ds-shadow-xl);
 
   &::before {
     content: "";
     position: absolute;
     inset: 0;
-    background-image: url("/textures/mucha-background-pattern.png");
-    background-size: 280px;
-    opacity: 0.05;
+    background: var(--ds-color-primary-pale);
+    opacity: 0.35;
     pointer-events: none;
   }
 
@@ -83,25 +81,16 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, transparent, #d4af37, #f4d03f, #d4af37, transparent);
+    background: linear-gradient(90deg, transparent, var(--ds-color-primary), transparent);
   }
 
-  > * {
+  >* {
     position: relative;
     z-index: 1;
   }
 
   scrollbar-width: thin;
-  scrollbar-color: rgba(212, 175, 55, 0.75) transparent;
-
-  @media (prefers-color-scheme: dark) {
-    background: linear-gradient(135deg, #1e222a, #23272f);
-    color: #f8fafc;
-    border-color: rgba(212, 175, 55, 0.28);
-    box-shadow:
-      0 12px 40px rgba(0, 0, 0, 0.35),
-      0 0 0 1px rgba(212, 175, 55, 0.2);
-  }
+  scrollbar-color: var(--ds-color-primary) transparent;
 }
 
 @mixin mobileOverlay {
@@ -114,7 +103,7 @@
 @mixin mobileBottomSheet($padding: 1.2rem) {
   @media (max-width: 600px) {
     width: 100%;
-    border-radius: 16px 16px 0 0;
+    border-radius: var(--ds-radius-xl) var(--ds-radius-xl) 0 0;
     height: calc(100dvh - env(safe-area-inset-top));
     max-height: calc(100dvh - env(safe-area-inset-top));
     padding: $padding;
@@ -127,10 +116,30 @@
   text-align: center;
   font-size: clamp(1.18rem, 2.4vw, 1.45rem);
   font-weight: 700;
-  color: #4a3410;
+  color: var(--ds-color-secondary);
 
-  @media (prefers-color-scheme: dark) {
-    color: #f8e7a5;
+}
+
+@mixin closeButton {
+  width: 40px;
+  height: 40px;
+  border: var(--ds-border-subtle);
+  border-radius: var(--ds-radius-control);
+  background: var(--ds-color-surface);
+  color: var(--ds-color-text-secondary);
+  cursor: pointer;
+  transition:
+    background-color var(--ds-motion-fast) var(--ds-ease-premium),
+    border-color var(--ds-motion-fast) var(--ds-ease-premium),
+    color var(--ds-motion-fast) var(--ds-ease-premium),
+    transform var(--ds-motion-fast) var(--ds-ease-premium);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--ds-color-primary-pale);
+    border-color: var(--ds-color-primary);
+    color: var(--ds-color-primary-hover);
+    transform: translateY(-1px);
   }
 }
 
@@ -140,25 +149,25 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.85rem 0.95rem;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #111827;
-  border: 1.5px solid rgba(212, 175, 55, 0.22);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface-soft);
+  color: var(--ds-color-text-primary);
+  border: var(--ds-border-subtle);
+  box-shadow: var(--ds-shadow-sm);
   cursor: pointer;
   transition: all 0.25s ease;
 
   &:hover {
-    background: #fff9e6;
-    border-color: #d4af37;
+    background: var(--ds-color-primary-pale);
+    border-color: var(--ds-color-primary);
   }
 
   input {
     appearance: none;
     width: 18px;
     height: 18px;
-    border: 2px solid #d4af37;
-    border-radius: if($check-shape == "square", 4px, 999px);
+    border: 2px solid var(--ds-color-primary);
+    border-radius: if($check-shape =="square", 4px, 999px);
     display: grid;
     place-content: center;
     margin: 0;
@@ -167,8 +176,8 @@
       content: "";
       width: 9px;
       height: 9px;
-      background: linear-gradient(135deg, #d4af37, #e7c65a);
-      border-radius: if($check-shape == "square", 2px, 999px);
+      background: var(--ds-color-primary);
+      border-radius: if($check-shape =="square", 2px, 999px);
       transform: scale(0);
       transition: transform 0.15s ease;
     }
@@ -179,26 +188,9 @@
   }
 
   &:has(input:checked) {
-    border-color: #c89f2d;
-    background: #fff7dd;
-    box-shadow: 0 6px 18px rgba(212, 175, 55, 0.18);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    background: #1a1f2b;
-    border-color: #3a4254;
-    color: #f8fafc;
-
-    &:hover {
-      background: #252c3b;
-      border-color: #f0cd67;
-    }
-
-    &:has(input:checked) {
-      background: #252a39;
-      border-color: #f0cd67;
-      box-shadow: 0 6px 18px rgba(240, 205, 103, 0.2);
-    }
+    border-color: var(--ds-color-primary-hover);
+    background: var(--ds-color-primary-pale);
+    box-shadow: var(--ds-shadow-sm);
   }
 }
 
@@ -213,6 +205,7 @@
 
   @media (max-width: 480px) {
     flex-direction: column;
+
     button {
       width: 100%;
     }
@@ -259,4 +252,3 @@
     transform: scale(0.98);
   }
 }
-

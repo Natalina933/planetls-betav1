@@ -4,110 +4,110 @@
 
 :root {
     // --- COULEURS PRIMAIRES ---
-    --color-primary: #d4af37;
-    --color-primary-rgb: 212, 175, 55;
-    --color-primary-hover: #b99b2e;
-    --color-primary-light: #ffe099;
+    --color-primary: var(--ds-color-primary);
+    --color-primary-rgb: 139, 106, 45;
+    --color-primary-hover: var(--ds-color-primary-hover);
+    --color-primary-light: var(--ds-color-primary-soft);
 
     // --- ARRIÈRE-PLANS ---
-    --background: #ffffff;
-    --background-secondary: #f5f7fa;
-    --background-tertiary: #eef1f5;
-    --color-bg: #f4f6f8;
+    --background: var(--ds-color-background);
+    --background-secondary: var(--ds-color-background-soft);
+    --background-tertiary: var(--ds-color-surface-muted);
+    --color-bg: var(--ds-color-background);
 
     // --- TEXTE ---
-    --color-text: #1a1a1a;
-    --color-text-secondary: #555555;
-    --color-text-muted: rgba(0, 0, 0, 0.6);
-    --color-text-light: rgba(0, 0, 0, 0.5);
-    --color-text-on-light: #111111;
-    --color-text-on-dark: #f8f5ef;
-    --color-text-gold: #d4af37;
-    --foreground: #171717;
+    --color-text: var(--ds-color-text-primary);
+    --color-text-secondary: var(--ds-color-text-secondary);
+    --color-text-muted: var(--ds-color-text-muted);
+    --color-text-light: var(--ds-color-text-muted);
+    --color-text-on-light: var(--ds-color-text-primary);
+    --color-text-on-dark: var(--ds-color-text-inverse);
+    --color-text-gold: var(--ds-color-primary);
+    --foreground: var(--ds-color-text-primary);
 
     // --- BORDURES ---
-    --color-border: #e0e6ed;
-    --color-border-light: #ececec;
-    --color-border-dark: #d0d0d0;
+    --color-border: var(--ds-color-border);
+    --color-border-light: var(--ds-color-border-soft);
+    --color-border-dark: var(--ds-color-border-strong);
 
     // --- ACCENTS & FEEDBACK ---
-    --color-accent: #ffc107;
-    --color-accent-light: #fff9e6;
-    --color-success: #4caf50;
-    --color-error: #e53935;
-    --color-warning: #ff9800;
-    --color-info: #2196f3;
+    --color-accent: var(--ds-color-accent);
+    --color-accent-light: var(--ds-color-accent-soft);
+    --color-success: var(--ds-color-success);
+    --color-error: var(--ds-color-error);
+    --color-warning: var(--ds-color-warning);
+    --color-info: var(--ds-color-info);
 
     // --- OVERLAY & OMBRES ---
-    --color-overlay: rgba(0, 0, 0, 0.5);
-    --color-shadow: rgba(0, 0, 0, 0.1);
-    --color-focus-ring: #ffe09b;
+    --color-overlay: color-mix(in srgb, var(--ds-color-text-primary) 68%, transparent);
+    --color-shadow: var(--ds-shadow-sm);
+    --color-focus-ring: var(--ds-color-primary-soft);
 
     // --- BOUTONS ---
-    --button-primary-bg: #d4af37;
-    --button-primary-text: #111111;
-    --button-primary-hover: #b99b2e;
+    --button-primary-bg: var(--ds-color-primary);
+    --button-primary-text: var(--ds-color-text-inverse);
+    --button-primary-hover: var(--ds-color-primary-hover);
     --button-secondary-bg: transparent;
-    --button-secondary-border: #d4af37;
-    --button-secondary-text: #d4af37;
+    --button-secondary-border: var(--ds-color-primary);
+    --button-secondary-text: var(--ds-color-primary);
 
     // --- LIENS ---
-    --link-color: #2196f3;
-    --link-hover: #1976d2;
-    --link-visited: #7c4dff;
+    --link-color: var(--ds-color-accent);
+    --link-hover: var(--ds-color-accent-hover);
+    --link-visited: var(--ds-color-secondary);
 
     // --- INPUT ---
-    --input-bg: #ffffff;
-    --input-border: #d0d0d0;
-    --input-text: #1a1a1a;
-    --input-placeholder: #999999;
-    --input-focus-ring: rgba(212, 175, 55, 0.3);
+    --input-bg: var(--ds-color-surface);
+    --input-border: var(--ds-color-border);
+    --input-text: var(--ds-color-text-primary);
+    --input-placeholder: var(--ds-color-text-muted);
+    --input-focus-ring: var(--ds-shadow-focus);
 
     // --- Typographie ---
     // Familles de polices (déjà chargées dans layout.tsx)
-    --font-title: "Montserrat", sans-serif;
-    --font-primary: "Cormorant Garamond", serif;
-    --font-text: "Open Sans", sans-serif;
-    --font-main: var(--font-text); // Variable principale pour le body
-    --font-elegant: "Cormorant Garamond", serif;
+    --font-title: var(--ds-font-heading);
+    --font-primary: var(--ds-font-heading);
+    --font-text: var(--ds-font-body);
+    --font-main: var(--ds-font-body);
+    --font-elegant: var(--ds-font-heading);
 
     // Tailles de police
-    --font-size-base: 1rem; // 16px par défaut
-    --font-size-title-xl: 2.5rem; // Titres H1
-    --font-size-title: 2rem; // Titres H2
-    --font-size-title-md: 1.5rem; // Titres H3
-    --font-size-small: 0.9rem;
+    --font-size-base: var(--ds-text-base);
+    --font-size-title-xl: var(--ds-text-4xl);
+    --font-size-title: var(--ds-text-2xl);
+    --font-size-title-md: var(--ds-text-xl);
+    --font-size-small: var(--ds-text-sm);
 
     // Interlignage et graisse
-    --line-height: 1.5;
+    --line-height: var(--ds-leading-body);
     --font-weight-normal: 400;
     --font-weight-bold: 700;
     --font-weight-light: 300;
 
     // --- Espacements ---
-    --spacing-xs: 0.25rem;
-    --spacing-sm: 0.5rem;
-    --spacing-md: 1rem;
-    --spacing-lg: 2rem;
-    --spacing-xl: 4rem;
+    --spacing-xs: var(--ds-space-1);
+    --spacing-sm: var(--ds-space-2);
+    --spacing-md: var(--ds-space-4);
+    --spacing-lg: var(--ds-space-6);
+    --spacing-xl: var(--ds-space-8);
 
     // --- Rayons (Border Radius) ---
-    --radius: 4px;
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 24px;
-    --radius-pill: 500px;
+    --radius: var(--ds-radius-sm);
+    --radius-sm: var(--ds-radius-sm);
+    --radius-md: var(--ds-radius-md);
+    --radius-lg: var(--ds-radius-lg);
+    --radius-xl: var(--ds-radius-xl);
+    --radius-pill: var(--ds-radius-pill);
 
     // --- Transitions ---
-    --transition-fast: 0.15s ease;
-    --transition-base: 0.3s ease;
-    --transition-slow: 0.5s ease;
-    --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: var(--ds-motion-fast) var(--ds-ease-premium);
+    --transition-base: var(--ds-motion-normal) var(--ds-ease-premium);
+    --transition-slow: var(--ds-motion-slow) var(--ds-ease-premium);
+    --transition-smooth: var(--ds-motion-normal) var(--ds-ease-premium);
 
     // --- Ombres ---
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
-    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
-    --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.2);
+    --shadow-sm: var(--ds-shadow-sm);
+    --shadow-md: var(--ds-shadow-md);
+    --shadow-lg: var(--ds-shadow-lg);
+    --shadow-xl: var(--ds-shadow-xl);
 }

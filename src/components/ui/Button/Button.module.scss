@@ -4,11 +4,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--ui-space-2);
+  gap: var(--ds-space-2);
   min-height: var(--ds-control-height-md);
   position: relative;
   isolation: isolate;
-  border-radius: var(--ui-button-radius, var(--ds-radius-control));
+  border-radius: var(--ds-radius-button);
   border: 1px solid transparent;
   padding: 0.62rem 1rem;
   font-family: var(--ds-font-ui);
@@ -40,51 +40,51 @@
 }
 
 .primary {
-  background: linear-gradient(135deg, var(--ds-color-gold), var(--ds-color-gold-strong));
+  background: var(--ds-color-primary);
   color: var(--ds-color-text-inverse);
   box-shadow: var(--ds-shadow-sm);
 }
 
 .primary:not(:disabled):hover {
-  background: var(--ds-color-gold-strong);
+  background: var(--ds-color-primary-hover);
   box-shadow: var(--ds-shadow-md);
 }
 
 .secondary {
   background: var(--ds-surface-premium, var(--ds-color-surface-soft));
   border-color: var(--ds-color-border);
-  color: var(--ds-color-text);
+  color: var(--ds-color-text-primary);
 }
 
 .secondary:not(:disabled):hover {
   background: color-mix(in srgb, var(--ds-color-surface-soft) 72%, white);
-  border-color: color-mix(in srgb, var(--ds-color-gold) 34%, var(--ds-color-border));
+  border-color: color-mix(in srgb, var(--ds-color-primary) 34%, var(--ds-color-border));
 }
 
 .outline {
   background: transparent;
-  border-color: color-mix(in srgb, var(--ds-color-gold) 64%, transparent);
-  color: var(--ds-color-gold-strong);
+  border-color: color-mix(in srgb, var(--ds-color-primary) 64%, transparent);
+  color: var(--ds-color-primary-hover);
 }
 
 .outline:not(:disabled):hover {
-  background: color-mix(in srgb, var(--ds-color-gold) 10%, transparent);
+  background: color-mix(in srgb, var(--ds-color-primary) 10%, transparent);
 }
 
 .ghost {
   background: transparent;
-  color: var(--ds-color-text-soft);
+  color: var(--ds-color-text-secondary);
 }
 
 .ghost:not(:disabled):hover {
-  color: var(--ds-color-text);
+  color: var(--ds-color-text-primary);
   background: color-mix(in srgb, var(--ds-color-text) 7%, transparent);
 }
 
 .paper {
-  background: var(--ds-color-ivory);
-  border-color: color-mix(in srgb, var(--ds-color-gold) 24%, transparent);
-  color: var(--ds-color-brown);
+  background: var(--ds-color-surface-premium);
+  border-color: color-mix(in srgb, var(--ds-color-primary) 24%, transparent);
+  color: var(--ds-color-secondary);
   box-shadow: var(--ds-shadow-sm);
 }
 

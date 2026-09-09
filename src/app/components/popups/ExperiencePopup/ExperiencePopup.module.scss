@@ -40,6 +40,8 @@
     border-color: #d4af37;
     transform: translateY(-1px);
   }
+
+  @include common.closeButton;
 }
 
 .introText {

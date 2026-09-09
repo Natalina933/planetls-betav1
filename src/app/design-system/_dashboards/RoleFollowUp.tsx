@@ -24,7 +24,7 @@ export function RoleFollowUp({ space }: { space: keyof typeof roleFollowUp }) {
           tone: index === 0 ? "owner" : index === 1 ? "concierge" : "artisan",
         }))}
         note={space === "concierge" || space === "provider" ? "Ordre indicatif de démonstration ; aucun itinéraire ni temps de trajet calculé." : "Parcours illustratif ; aucune validation ni réalisation confirmée."} />
-      <ArtDecoQuotes title={workspace.quoteTitle} options={workspace.quotes} onAction={show} />
+      <ArtDecoQuotes title={workspace.quoteTitle} options={workspace.quotes} onAction={(quote) => show(quote.action)} />
       <Card className={styles.message}><CardBody><div className={styles.messageContent}><MessageSquareText size={26} aria-hidden="true" /><div><h3>{data.messageTitle}</h3><p className={styles.context}>{data.context}</p><p>{data.message}</p></div><Button variant="outline" onClick={() => show(data.messageAction)}>{data.messageAction}</Button></div></CardBody></Card>
     </div>
     {notice && <p className={styles.notice} role="status">{notice}</p>}

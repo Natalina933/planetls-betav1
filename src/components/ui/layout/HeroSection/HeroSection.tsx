@@ -36,7 +36,7 @@ export interface HeroSectionProps {
    * Contenu principal (titre, sous-titre, description, CTA)
    * Accepte ReactNode ou objet structuré
    */
-  children: ReactNode;
+  children?: ReactNode;
   
   /**
    * Eyebrow/Kicker - texte court en haut du titre
@@ -166,8 +166,7 @@ export function HeroSection({
   const defaultAlign = align ?? (variant === "centered" ? "center" : "left");
   
   // Détermine la hauteur minimale
-  const heroMinHeight = minHeight ?? 
-    (variant === "centered" ? "720px" : "720px");
+  const heroMinHeight = minHeight;
 
   // Détermine l'overlay
   const getOverlay = () => {
@@ -179,14 +178,10 @@ export function HeroSection({
       case "gold":
         return "linear-gradient(180deg, rgba(139, 106, 45, 0.3) 0%, rgba(139, 106, 45, 0.1) 100%)";
       case "dark":
-      default:
         return "linear-gradient(180deg, rgba(41, 40, 35, 0.8) 0%, rgba(41, 40, 35, 0.4) 100%)";
+      default:
+        return overlay;
     }
-    // Si c'est une string personnalisée
-    if (typeof overlay === "string") {
-      return overlay;
-    }
-    return "none";
   };
 
   // Contenu principal
@@ -224,10 +219,10 @@ export function HeroSection({
             <div className={styles.ornament}>
               <Image
                 src={ornament === true ? "/ornements/ornement-right.svg" : ornament}
-                alt="Ornement"
+                alt=""
                 fill
                 className={styles.ornamentImage}
-                sizes="auto"
+                sizes="260px"
               />
             </div>
           )}
@@ -266,10 +261,10 @@ export function HeroSection({
             <div className={styles.ornament}>
               <Image
                 src={ornament === true ? "/ornements/ornement-right.svg" : ornament}
-                alt="Ornement"
+                alt=""
                 fill
                 className={styles.ornamentImage}
-                sizes="auto"
+                sizes="260px"
               />
             </div>
           )}
@@ -309,10 +304,10 @@ export function HeroSection({
             <div className={styles.ornament}>
               <Image
                 src={ornament === true ? "/ornements/ornement-right.svg" : ornament}
-                alt="Ornement"
+                alt=""
                 fill
                 className={styles.ornamentImage}
-                sizes="auto"
+                sizes="260px"
               />
             </div>
           )}

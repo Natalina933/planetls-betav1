@@ -1,33 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, RefObject } from "react";
-
-/**
- * Hook pour gérer les animations de reveal au scroll
- * Utilise IntersectionObserver pour détecter quand un élément entre dans le viewport
- * Respecte prefers-reduced-motion automatiquement
- * 
- * @param options - Options de configuration
- * @param options.threshold - Seuil d'intersection (0.0 à 1.0)
- * @param options.rootMargin - Marge supplémentaire autour du viewport
- * @param options.disabled - Désactive l'observation (utile pour reduced motion)
- * @param options.animation - Type d'animation à appliquer
- * @returns RefObject et état de visibilité
- * 
- * @example
- * ```tsx
- * function MyComponent() {
- *   const { ref, isVisible } = useReveal({ threshold: 0.1 });
- *   return <div ref={ref} className={isVisible ? 'visible' : ''}>Content</div>;
- * }
- * ```
- */
+import { useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 
 interface UseRevealOptions {
   threshold?: number;
   rootMargin?: string;
   disabled?: boolean;
   animation?: "fade" | "reveal-up" | "reveal-down" | "scale";
+  delay?: number;
 }
 
 interface UseRevealReturn {
@@ -36,198 +16,127 @@ interface UseRevealReturn {
   className: string;
 }
 
-const DEFAULT_OPTIONS: Required<Omit<UseRevealOptions, "disabled" | "animation">> = {
-  threshold: 0.1,
-  rootMargin: "0px 0px -48px 0px",
-};
+const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 
-export function useReveal(options: UseRevealOptions = {}): UseRevealReturn {
-  const { threshold, rootMargin, disabled, animation = "reveal-up" } = options;
-  const [isVisible, setIsVisible] = useState(false);
+/** Une entrée animée, sans masquer le HTML avant hydratation. */
+export function useReveal({
+  threshold = 0.1,
+  rootMargin = "0px 0px -48px 0px",
+  disabled = false,
+  animation = "reveal-up",
+  delay = 0,
+}: UseRevealOptions = {}): UseRevealReturn {
   const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [animate, setAnimate] = useState(false);
 
   useEffect(() => {
-    // Respect de prefers-reduced-motion
-    if (typeof window !== "undefined") {
-      const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-      if (mediaQuery.matches) {
-        setIsVisible(true);
-        return;
-      }
-    }
-
-    if (disabled) {
+    const media = window.matchMedia(REDUCED_MOTION);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const stop = () => {
+      observer?.disconnect();
+      clearTimeout(timer);
+    };
+    const showWithoutMotion = () => {
+      stop();
       setIsVisible(true);
+      setAnimate(false);
+    };
+    const onPreferenceChange = () => {
+      if (media.matches) showWithoutMotion();
+    };
+
+    if (disabled || media.matches || !("IntersectionObserver" in window)) {
+      setIsVisible(true);
+      setAnimate(false);
       return;
     }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry?.isIntersecting) return;
+      observer?.disconnect();
+      timer = setTimeout(() => {
+        setIsVisible(true);
+        setAnimate(!media.matches);
+      }, Math.min(2000, Math.max(0, delay)));
+    }, { threshold, rootMargin });
+    if (ref.current) observer.observe(ref.current);
+    media.addEventListener("change", onPreferenceChange);
+    return () => {
+      stop();
+      media.removeEventListener("change", onPreferenceChange);
+    };
+  }, [threshold, rootMargin, disabled, delay]);
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.unobserve(entry.target);
-        }
-      },
-      {
-        threshold: threshold ?? DEFAULT_OPTIONS.threshold,
-        rootMargin: rootMargin ?? DEFAULT_OPTIONS.rootMargin,
-      }
-    );
-
-    const current = ref.current;
-    if (current) {
-      observer.observe(current);
-      return () => observer.unobserve(current);
-    }
-
-    return undefined;
-  }, [threshold, rootMargin, disabled]);
-
-  // Génère la classe en fonction de l'animation
-  const getAnimationClass = () => {
-    if (!isVisible) {
-      switch (animation) {
-        case "fade":
-          return "ds-fade";
-        case "reveal-down":
-          return "ds-reveal ds-reveal-down";
-        case "scale":
-          return "ds-scale";
-        case "reveal-up":
-        default:
-          return "ds-reveal";
-      }
-    }
-    return "";
-  };
-
-  const className = getAnimationClass();
-
-  return { ref, isVisible, className };
+  const baseClass = animation === "fade" ? "ds-fade"
+    : animation === "scale" ? "ds-scale"
+    : animation === "reveal-down" ? "ds-reveal ds-reveal-down" : "ds-reveal";
+  return { ref, isVisible, className: !disabled && animate ? baseClass + " visible" : "" };
 }
 
-/**
- * Hook simplifié pour reveal sans configuration
- * @returns RefObject et état de visibilité
- */
 export function useSimpleReveal(): UseRevealReturn {
   return useReveal();
 }
 
-/**
- * Hook pour reveal avec délai (animation en cascade)
- * @param index - Index de l'élément pour calculer le délai
- * @param delayPerItem - Délai entre chaque élément en ms
- * @returns RefObject et état de visibilité
- */
-export function useStaggeredReveal(
-  index: number,
-  delayPerItem: number = 100
-): UseRevealReturn {
-  const [isVisible, setIsVisible] = useState(false);
+/** Cascade plafonnée à deux secondes ; délai annulé au démontage. */
+export function useStaggeredReveal(index: number, delayPerItem = 100): UseRevealReturn {
+  return useReveal({ delay: index * delayPerItem });
+}
+
+/** Décor seulement : déplacement borné à 48 px, une mesure par frame. */
+export function useParallax(speed = 0.1) {
   const ref = useRef<HTMLDivElement>(null);
+  const [offset, setOffset] = useState(0);
 
   useEffect(() => {
-    // Respect de prefers-reduced-motion
-    if (typeof window !== "undefined") {
-      const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-      if (mediaQuery.matches) {
-        setIsVisible(true);
+    const media = window.matchMedia(REDUCED_MOTION);
+    const boundedSpeed = Number.isFinite(speed) ? Math.min(1, Math.max(0, speed)) : 0;
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      if (!ref.current || media.matches) return;
+      const rect = ref.current.getBoundingClientRect();
+      if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+      const progress = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / (window.innerHeight + rect.height)));
+      setOffset(-Math.min(48, boundedSpeed * progress * rect.height));
+    };
+    const schedule = () => {
+      if (!frame && !media.matches) frame = requestAnimationFrame(measure);
+    };
+    const stop = () => {
+      cancelAnimationFrame(frame);
+      frame = 0;
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+    const syncPreference = () => {
+      stop();
+      if (media.matches || !boundedSpeed) {
+        setOffset(0);
         return;
       }
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          // Applique un délai basé sur l'index
-          const timeout = setTimeout(() => {
-            setIsVisible(true);
-          }, index * delayPerItem);
-          
-          observer.unobserve(entry.target);
-          return () => clearTimeout(timeout);
-        }
-      },
-      {
-        threshold: 0.1,
-        rootMargin: "0px 0px -48px 0px",
-      }
-    );
-
-    const current = ref.current;
-    if (current) {
-      observer.observe(current);
-      return () => observer.unobserve(current);
-    }
-
-    return undefined;
-  }, [index, delayPerItem]);
-
-  const className = isVisible ? "" : "ds-reveal";
-
-  return { ref, isVisible, className };
-}
-
-/**
- * Hook pour parallax léger
- * @param speed - Vitesse du parallax (0.0 à 1.0)
- * @returns Style à appliquer à l'élément
- */
-export function useParallax(speed: number = 0.1) {
-  const [offset, setOffset] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!ref.current) return;
-      
-      const rect = ref.current.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const elementTop = rect.top + window.scrollY;
-      const elementHeight = rect.height;
-      
-      // Position relative dans le viewport
-      const relativePosition = (window.scrollY - elementTop + viewportHeight) / (elementHeight + viewportHeight);
-      
-      // Calcul de l'offset avec vitesse
-      const newOffset = -speed * relativePosition * elementHeight;
-      setOffset(newOffset);
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", schedule);
+      schedule();
     };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll(); // Initial calculation
-    
-    return () => window.removeEventListener("scroll", handleScroll);
+    media.addEventListener("change", syncPreference);
+    syncPreference();
+    return () => {
+      stop();
+      media.removeEventListener("change", syncPreference);
+    };
   }, [speed]);
 
-  return {
-    ref,
-    style: {
-      transform: `translateY(${offset}px)`,
-      willChange: "transform",
-      transition: `transform 700ms cubic-bezier(0.22, 0.61, 0.36, 1)`,
-    } as React.CSSProperties,
-  };
+  return { ref, style: { transform: "translateY(" + offset + "px)" } as CSSProperties };
 }
 
-/**
- * Hook pour vérifier si reduced motion est activé
- * @returns Boolean indiquant si reduced motion est activé
- */
 export function useReducedMotion() {
   const [reducedMotion, setReducedMotion] = useState(false);
-
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-      setReducedMotion(mediaQuery.matches);
-      
-      const handler = () => setReducedMotion(mediaQuery.matches);
-      mediaQuery.addEventListener("change", handler);
-      return () => mediaQuery.removeEventListener("change", handler);
-    }
+    const media = window.matchMedia(REDUCED_MOTION);
+    const update = () => setReducedMotion(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
   }, []);
-
   return reducedMotion;
 }

@@ -36,10 +36,10 @@ $themes: (
   min-height: 100vh;
   width: 100%;
   min-width: 0;
-  background: var(--background);
-  font-family: var.$font-text;
-  color: var(--color-text);
-  transition: var.$transition;
+  background: var(--ds-color-background);
+  font-family: var(--ds-font-body);
+  color: var(--ds-color-text-primary);
+  transition: background-color var(--ds-motion-normal) var(--ds-ease-premium), color var(--ds-motion-normal) var(--ds-ease-premium);
 }
 
 .dashboard-main {
@@ -47,7 +47,7 @@ $themes: (
   min-width: 0;
   display: flex;
   flex-direction: column;
-  transition: var.$transition;
+  transition: margin-left var(--ds-motion-normal) var(--ds-ease-premium);
 
   &.with-sidebar {
     margin-left: 280px;
@@ -66,10 +66,10 @@ $themes: (
   width: 100%;
   min-width: 0;
   overflow-x: clip;
-  padding: clamp(0.75rem, 1.8vw, var.$spacing-sm);
-  background: var(--background-secondary);
-  border: 1px solid var(--color-border);
-  box-shadow: 0 10px 24px var(--color-shadow);
+  padding: var(--ds-space-page);
+  background: var(--ds-color-background-soft);
+  border: 0;
+  box-shadow: none;
 
   @media (max-width: map.get(var.$breakpoints, sm)) {
     width: 100%;
@@ -94,6 +94,7 @@ $themes: (
   overflow: hidden;
   border-radius: 0;
   height: clamp(126px, 10.5vw, 152px);
+  border-bottom: 1px solid color-mix(in srgb, var(--ds-color-primary) 20%, transparent);
 }
 
 .headerBandeau img {
@@ -108,8 +109,8 @@ $themes: (
 }
 
 .ownerHeaderBandeau {
-  border-bottom: 1px solid rgba(92, 67, 36, 0.14);
-  box-shadow: 0 14px 36px rgba(88, 62, 28, 0.1);
+  border-bottom-color: color-mix(in srgb, var(--ds-color-primary) 24%, transparent);
+  box-shadow: var(--ds-shadow-md);
 }
 
 .headerOverlay {
@@ -655,4 +656,78 @@ body.dark {
       border-bottom: 1px solid rgba(213, 219, 223, 0.8);
     }
   }
+}
+
+.dashboard-root.concierge-design {
+  background: var(--ds-color-background);
+
+  .dashboard-content {
+    padding: clamp(1rem, 2.2vw, 2rem);
+    background: var(--ds-color-background);
+  }
+}
+
+.conciergeHeaderHero {
+  width: min(100%, 1180px);
+  min-height: 100%;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  padding: clamp(1rem, 2vw, 2rem);
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(90deg, rgba(25, 30, 25, 0.72), rgba(25, 30, 25, 0.2) 72%, transparent);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.conciergeHeaderHero .headerIdentity {
+  align-items: center;
+}
+
+.conciergeHeaderHero .headerAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 248, 232, 0.18);
+}
+
+.conciergeHeaderHero .headerCopy h1 {
+  font-size: clamp(1.6rem, 3vw, 2.7rem);
+  line-height: 1.05;
+}
+
+.conciergeHeaderHero .headerCopy p {
+  display: block;
+  max-width: 42ch;
+  font-size: clamp(0.85rem, 1.2vw, 1rem);
+  -webkit-line-clamp: unset;
+}
+
+.headerActionRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--ds-space-2);
+}
+
+.headerActionRow a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border-radius: var(--ds-radius-control);
+  font-size: var(--ds-text-sm);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.headerActionPrimary {
+  background: var(--ds-color-accent);
+  color: var(--ds-color-text-inverse);
+}
+
+.headerActionSecondary {
+  border: 1px solid rgba(255, 255, 255, 0.46);
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
 }

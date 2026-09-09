@@ -1,36 +1,52 @@
 # Design System PlanetLS
 
+## Socle de la phase 2 — 9 septembre 2026
+
+Le périmètre courant comprend les tokens, `layout/HeroSection`, `layout/Section`, les hooks de mouvement et leur documentation. La Home réutilise ces composants ; les autres pages migrent progressivement. Les démonstrations sont accessibles dans `/design-system/fondations`, volet **Sections partagées et animations**.
+
+- Palette canonique : crème `--ds-color-background`, surfaces `--ds-color-surface*`, laiton `--ds-color-primary` comme accent et vert `--ds-color-accent`. Les alias `--home-*` référencent les tokens DS ; les surcharges des thèmes restent locales. `--ds-color-text-muted` et le sauge servent aux usages décoratifs ou doivent être contrôlés sur leur fond ; ils ne constituent pas une garantie de contraste AA pour du petit texte.
+- Espacements : `--ds-space-0` à `--ds-space-10` correspondent à 0, 4, 8, 12, 16, 24, 32, 48, 64, 96 et 128 px avec une racine de 16 px. Les exports `spacing` couvrent toute l’échelle, sans dupliquer les valeurs CSS.
+- Mouvement : 160/320/700 ms (`fast`, `normal`, `slow`), easing `--ds-ease-premium`. L’export `motion` fournit les références CSS. Le hero de la Home reste non animé pour afficher son contenu immédiatement.
+- `useReveal` anime une seule entrée ; le HTML reste visible avant hydratation, sans JavaScript ou sans IntersectionObserver. `useStaggeredReveal` partage ce comportement et annule son délai au démontage. `reveal-down`, `reveal-up`, `fade` et `scale` sont disponibles.
+- `useParallax` est réservé aux décors : vitesse entre 0 et 1, déplacement plafonné à 48 px, écoute passive et mesures regroupées par frame. Il ne doit pas déplacer un texte, un formulaire ou un CTA. Un changement de `prefers-reduced-motion` arrête le mouvement et remet le décalage à zéro.
+- Les ornements sont décoratifs (`alt=""`) ; leur animation est finie. Les réglages d’accessibilité du système sont prioritaires sur les effets visuels.
+
+Les contrats détaillés et exemples d’import sont dans `src/components/ui/README.md`. Une validation technique ne vaut pas certification WCAG ni mesure des Core Web Vitals en production. La migration des polices vers `next/font` et l’optimisation globale des anciens assets ne sont pas incluses dans ce socle ; elles restent à évaluer séparément pour éviter de modifier tous les écrans.
+
 L’atelier possède une seule entrée : `/design-system`. La barre latérale admin **Design & maquettes** y conduit via `/dashboard/admin/design`, qui conserve sa garde admin avant redirection. L’atelier reste une bibliothèque de démonstration publique, sans données privées.
 
 ## Navigation
 
-| Page | Contenu |
-| --- | --- |
-| `/design-system` | Accueil court : trois rubriques |
-| `/design-system/fondations` | Palette, typographies, espacements, primitives et exemple Art déco repliable |
-| `/design-system/visuels` | Sept rubriques repliables de composants, illustrations et références |
-| `/design-system/dashboards` | Comparaison des quatre maquettes |
-| `/design-system/{admin,owner,concierge,provider}-dashboard` | Maquettes interactives : données fictives, aucun enregistrement |
+| Page                                                        | Contenu                                                                      |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `/design-system`                                            | Accueil court : trois rubriques                                              |
+| `/design-system/fondations`                                 | Palette, typographies, espacements, primitives et exemple Art déco repliable |
+| `/design-system/visuels`                                    | Sept rubriques repliables de composants, illustrations et références         |
+| `/design-system/dashboards`                                 | Comparaison des quatre maquettes                                             |
+| `/design-system/trajets`                                    | Prototype concierge de tournée, trajets, progression et optimisation fictive |
+| `/design-system/{admin,owner,concierge,provider}-dashboard` | Maquettes interactives : données fictives, aucun enregistrement              |
 
 Les adresses antérieures des maquettes sont conservées. Le layout partage une seule navigation, avec menu mobile et indication de la page active. Le bandeau public et la carte de recherche ne sont pas montés dans l’atelier.
 
 Les idées Art déco reprises dans les quatre maquettes utilisent un rendu partagé, `app/design-system/_dashboards/RoleFollowUp.tsx`, et des contenus par rôle dans `roleFollowUpData.ts`. Modifier les styles communs une seule fois ; modifier les fixtures du rôle concerné pour ses parcours, offres, preuves attendues et échanges contextualisés. Le propriétaire compare des prestations ; le concierge prépare ses passages ; le prestataire précise ses devis et comptes rendus ; l’administrateur examine les dossiers et traces de décision. Les boutons changent un aperçu ou affichent un retour de simulation, sans envoi ni sauvegarde.
 
+Le prototype `/design-system/trajets` utilise des fixtures dédiées dans `src/app/design-system/trajets/routeTourData.ts`. Sa carte est un mock visuel sans API ni géolocalisation réelle ; la page teste l’état principal, quatre KPI, la progression, une timeline, les retards, l’ordre optimisé et les vues Tournée/Planning. Elle ne remplace aucune page métier et ne lit ni n’écrit Supabase.
+
 ## Architecture
 
 PlanetLS possède déjà un Design System substantiel. L’architecture validée le 7 septembre 2026 vise son harmonisation progressive, avec le dashboard Concierge comme pilote ; elle ne demande ni reconstruction ni nouvelle bibliothèque UI.
 
-| Source | Responsabilité |
-| --- | --- |
-| `src/styles/tokens/tokens.css` | Source de vérité des tokens modernes `--ds-*` : couleurs sémantiques, typographie, espacements, rayons, ombres, dimensions, focus et transitions |
-| Modules TypeScript de `src/styles/tokens/` | Exposent les variables CSS sans recopier leurs valeurs |
-| Sass legacy et anciens thèmes | Compatibilité ; conserver les imports, l’ordre de chargement et les thèmes existants. Les breakpoints restent dans la table Sass de `_legacy-variables.scss` |
-| `src/styles/tokens/profileVisualKit.ts` | Références visuelles et illustrations de démonstration, pas une deuxième source de tokens. Ses couleurs locales restent à harmoniser |
-| `src/components/ui/` | Primitives génériques disponibles, alimentées par leurs props |
-| `src/components/ui/dashboard/` | Composants partagés de présentation des dashboards |
-| `src/app/components/dashboard/unified/UnifiedRoleDashboard.tsx` | Composition partagée des dashboards réels, conservée avec compatibilité des consommateurs |
-| Pages Design System et prototypes | Documentation des vrais composants et compositions avec fixtures explicites, sans preuve de fonctionnement métier |
-| Pages, hooks et services métier | Données, calculs, sélection des priorités, permissions et actions persistantes |
+| Source                                                          | Responsabilité                                                                                                                                               |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/styles/tokens/tokens.css`                                  | Source de vérité des tokens modernes `--ds-*` : couleurs sémantiques, typographie, espacements, rayons, ombres, dimensions, focus et transitions             |
+| Modules TypeScript de `src/styles/tokens/`                      | Exposent les variables CSS sans recopier leurs valeurs                                                                                                       |
+| Sass legacy et anciens thèmes                                   | Compatibilité ; conserver les imports, l’ordre de chargement et les thèmes existants. Les breakpoints restent dans la table Sass de `_legacy-variables.scss` |
+| `src/styles/tokens/profileVisualKit.ts`                         | Références visuelles et illustrations de démonstration, pas une deuxième source de tokens. Ses couleurs locales restent à harmoniser                         |
+| `src/components/ui/`                                            | Primitives génériques disponibles, alimentées par leurs props                                                                                                |
+| `src/components/ui/dashboard/`                                  | Composants partagés de présentation des dashboards                                                                                                           |
+| `src/app/components/dashboard/unified/UnifiedRoleDashboard.tsx` | Composition partagée des dashboards réels, conservée avec compatibilité des consommateurs                                                                    |
+| Pages Design System et prototypes                               | Documentation des vrais composants et compositions avec fixtures explicites, sans preuve de fonctionnement métier                                            |
+| Pages, hooks et services métier                                 | Données, calculs, sélection des priorités, permissions et actions persistantes                                                                               |
 
 Les valeurs locales des pages, les palettes de `profileVisualKit.ts` et les valeurs Sass historiques restent des sources concurrentes à faire converger progressivement. Leur présence dans des dossiers centralisés ne signifie pas que leur harmonisation graphique est terminée.
 
@@ -74,7 +90,13 @@ Définir la valeur une seule fois dans `src/styles/tokens/tokens.css`, sous un n
 ```tsx
 import { colors, spacing, typography } from "@/styles/tokens";
 
-<div style={{ color: colors.textPrimary, gap: spacing[4], fontFamily: typography.body }} />
+<div
+  style={{
+    color: colors.textPrimary,
+    gap: spacing[4],
+    fontFamily: typography.body,
+  }}
+/>;
 ```
 
 En SCSS : `padding: var(--ds-space-4); color: var(--ds-color-text-primary);`. Les tokens CSS ne s’utilisent pas comme nombres pour les calculs JavaScript ou les media queries. Conserver les breakpoints Sass centralisés pour ces dernières. Le projet utilise SCSS ; aucun système Tailwind supplémentaire n’est ajouté.
@@ -97,12 +119,12 @@ Pour une composition métier, utiliser `components/features/<rôle>` et composer
 
 Pour les nouveaux contrats de présentation :
 
-| Identifiant technique | Libellé français |
-| --- | --- |
-| `admin` | Administrateur |
-| `concierge` | Concierge ou Conciergerie |
-| `owner` | Propriétaire |
-| `provider` | Artisan ou Prestataire selon le contexte |
+| Identifiant technique | Libellé français                         |
+| --------------------- | ---------------------------------------- |
+| `admin`               | Administrateur                           |
+| `concierge`           | Concierge ou Conciergerie                |
+| `owner`               | Propriétaire                             |
+| `provider`            | Artisan ou Prestataire selon le contexte |
 
 Les identifiants techniques ne sont pas traduits. Aucun renommage global n’est engagé : `artisan` peut rester un alias historique temporaire, notamment dans `UnifiedRoleDashboard`. Une adaptation à la frontière de présentation préservera les consommateurs existants ; aucune traduction ne doit modifier les rôles, permissions, routes, API ou clés persistées.
 
@@ -114,14 +136,14 @@ Règle de la première zone : **« 1 urgence réelle ou état calme + 4 KPI maxi
 
 `Alert` est disponible dans le code local sous `src/components/ui/Alert`, exporté par `@/components/ui` et utilisé par les états explicites d’`AsyncState`. `DashboardCockpit` reste seulement proposé pour le lot D et n’est pas implémenté. Le cockpit composera les primitives et cartes KPI existantes, avec rôle, densité, en-tête, état explicite, priorité fournie, jusqu’à quatre KPI identifiés et une action principale. Une date de mise à jour n’est affichée que si elle est connue ; les démonstrations signalent leurs fixtures.
 
-| État cible | Condition et présentation |
-| --- | --- |
-| `loading` | Récupération en cours ; aucune affirmation sur l’absence d’urgence |
-| `error` | Échec technique connu empêchant de conclure ; expliquer l’indisponibilité |
-| `empty` | Chargement réussi, mais aucune donnée pour constituer le cockpit ; proposer un démarrage adapté |
-| `calm` | Sources nécessaires disponibles et absence d’urgence établie par la couche métier |
-| `urgent` | Une urgence réelle sélectionnée par la couche métier, avec contexte et action |
-| `unavailable` | Fiabilité ou couverture inconnue ; annoncer une situation non vérifiable |
+| État cible    | Condition et présentation                                                                       |
+| ------------- | ----------------------------------------------------------------------------------------------- |
+| `loading`     | Récupération en cours ; aucune affirmation sur l’absence d’urgence                              |
+| `error`       | Échec technique connu empêchant de conclure ; expliquer l’indisponibilité                       |
+| `empty`       | Chargement réussi, mais aucune donnée pour constituer le cockpit ; proposer un démarrage adapté |
+| `calm`        | Sources nécessaires disponibles et absence d’urgence établie par la couche métier               |
+| `urgent`      | Une urgence réelle sélectionnée par la couche métier, avec contexte et action                   |
+| `unavailable` | Fiabilité ou couverture inconnue ; annoncer une situation non vérifiable                        |
 
 Zéro est une valeur valide à afficher, avec son libellé. Une valeur inconnue n’est pas égale à zéro : afficher « Indisponible » ou « — ». Une erreur technique ne doit jamais devenir silencieusement un état calme. Une alerte métier décrit une situation à traiter ; une erreur technique décrit une impossibilité de connaître la situation. Une urgence connue peut rester visible si une autre source échoue, avec une indication de couverture partielle.
 
@@ -135,14 +157,14 @@ Valider à **1600, 1366, 768 et 390 px** : ordre de lecture cohérent, navigatio
 
 Le lot A porte uniquement sur la documentation et les conventions. Cette planification décrit les lots envisagés à l’issue du lot A. Depuis, `Alert` et les états explicites d’`AsyncState` du lot C existent dans les modifications locales ; cela ne vaut pas achèvement des autres lots.
 
-| Lot futur | Périmètre et dépendance |
-| --- | --- |
-| B | Tokens et remplacement ciblé des valeurs locales, après A ; aucune migration globale des thèmes |
-| C | États partagés et primitive `Alert` présents dans les modifications locales, avec `AsyncState` ; généralisation métier non déclarée terminée |
-| D | Composant proposé `DashboardCockpit` dans le prototype Concierge, après B et C |
-| E | Intégration optionnelle au dashboard Concierge réel après validation de D, sans changer la logique métier ; fiabilité des sources à qualifier |
-| F | Validation responsive et accessibilité complète du pilote, en complément des contrôles visuels de chaque lot |
-| G | Propagation aux autres espaces un par un, après acceptation du pilote |
+| Lot futur | Périmètre et dépendance                                                                                                                       |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| B         | Tokens et remplacement ciblé des valeurs locales, après A ; aucune migration globale des thèmes                                               |
+| C         | États partagés et primitive `Alert` présents dans les modifications locales, avec `AsyncState` ; généralisation métier non déclarée terminée  |
+| D         | Composant proposé `DashboardCockpit` dans le prototype Concierge, après B et C                                                                |
+| E         | Intégration optionnelle au dashboard Concierge réel après validation de D, sans changer la logique métier ; fiabilité des sources à qualifier |
+| F         | Validation responsive et accessibilité complète du pilote, en complément des contrôles visuels de chaque lot                                  |
+| G         | Propagation aux autres espaces un par un, après acceptation du pilote                                                                         |
 
 Conserver les comportements existants par défaut pour permettre un retour arrière du pilote sans affecter les autres espaces. Les corrections de planning, réservations et remontée d’erreurs restent séparées ; elles peuvent conditionner la validation opérationnelle complète, même si la présentation est prête.
 

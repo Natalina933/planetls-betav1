@@ -1,15 +1,15 @@
 .ui-page-container {
-  width: min(1200px, 100% - 2rem);
+  width: min(var(--ds-layout-max-width), 100% - (2 * var(--ds-space-4)));
   margin-inline: auto;
 }
 
 .ui-section-stack {
   display: grid;
-  gap: var(--ui-space-6);
+  gap: var(--ds-space-6);
 }
 
 .ui-grid-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: var(--ui-space-5);
+  gap: var(--ds-space-5);
 }

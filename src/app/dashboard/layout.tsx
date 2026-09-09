@@ -22,6 +22,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const isOwnerPage = pathname?.startsWith("/dashboard/owner");
   const isOwnerHome = pathname === "/dashboard/owner";
+  const isConciergePage = pathname?.startsWith("/dashboard/concierge");
   const { draftCount, ongoingMissions, pendingInvoices, unreadConversationCount } = useOwnerDashboardData(
     Boolean(isAuthenticated && isOwnerPage),
   );
@@ -80,7 +81,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [isOwnerHome]);
 
   return (
-    <div className={`dashboard-root ${isOwnerHome ? ownerShell.shell : ""}`} data-owner-dashboard={isOwnerHome ? "" : undefined}>
+    <div className={`dashboard-root ${isOwnerHome ? ownerShell.shell : ""} ${isConciergePage ? "concierge-design" : ""}`} data-owner-dashboard={isOwnerHome ? "" : undefined}>
       <Sidebar className={isOwnerHome ? ownerShell.sidebar : undefined} mobileBreakpoint={isOwnerHome ? 680 : 900} isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
       <div className={`dashboard-main ${isSidebarOpen ? "with-sidebar" : "no-sidebar"} ${isOwnerHome ? `${ownerShell.main} ${!isSidebarOpen ? ownerShell.mainClosed : ""}` : ""}`}>
         <Navbar compact={isOwnerHome} className={isOwnerHome ? `${ownerShell.header} ${!isSidebarOpen ? ownerShell.headerClosed : ""}` : undefined} isSidebarOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
@@ -93,22 +94,24 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             priority={isOwnerPage}
           />
           <div className="headerOverlay">
-            {isOwnerPage ? (
-              <div className="headerHero">
+            {isOwnerPage || isConciergePage ? (
+              <div className={`headerHero ${isConciergePage ? "conciergeHeaderHero" : ""}`}>
                 <div className="headerIdentity">
                   <span className="headerAvatar" aria-hidden="true">
                     <Compass size={22} />
                   </span>
                   <div className="headerCopy">
-                    <span className="headerEyebrow">Cap du jour</span>
-                    <h1>{currentOwnerSectionLabel}</h1>
-                    <p>
-                      Retrouvez en un coup d&apos;œil vos priorités, vos points de vigilance et la prochaine action utile
-                      pour faire avancer votre parc.
-                    </p>
+                    <span className="headerEyebrow">{isConciergePage ? "Espace conciergerie" : "Cap du jour"}</span>
+                    <h1>{isConciergePage ? `Bonjour ${user?.firstName || user?.company_name || ""},` : currentOwnerSectionLabel}</h1>
+                    <p>{isConciergePage ? "Une nouvelle journée pour faire la différence." : "Retrouvez en un coup d&apos;œil vos priorités, vos points de vigilance et la prochaine action utile pour faire avancer votre parc."}</p>
                   </div>
                 </div>
-                <div className="headerMetrics" aria-label="Indicateurs rapides">
+                {isConciergePage ? (
+                  <div className="headerActionRow">
+                    <a href="/dashboard/concierge/planning" className="headerActionPrimary">Voir le planning</a>
+                    <a href="/dashboard/concierge/demandes" className="headerActionSecondary">Ouvrir les demandes</a>
+                  </div>
+                ) : <div className="headerMetrics" aria-label="Indicateurs rapides">
                   {ownerHeaderMetrics.map((metric) => {
                     const Icon = metric.icon;
                     return (
@@ -121,7 +124,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                       </article>
                     );
                   })}
-                </div>
+                </div>}
               </div>
             ) : null}
           </div>

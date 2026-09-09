@@ -1,6 +1,7 @@
 "use client";
 
 import React, { ReactNode } from "react";
+import Image from "next/image";
 import { useReveal } from "@/app/components/hooks/useReveal";
 import styles from "./Section.module.scss";
 
@@ -173,12 +174,10 @@ export function Section({
   // Style calculé
   const sectionStyle: React.CSSProperties = {
     ...style,
-    maxWidth: maxWidth ?? "var(--ds-layout-max-width)",
-    paddingTop: paddingY ?? "var(--ds-space-9)",
-    paddingBottom: paddingY ?? "var(--ds-space-9)",
-    paddingLeft: paddingX ?? "var(--ds-space-page)",
-    paddingRight: paddingX ?? "var(--ds-space-page)",
-    gap: gap ?? "var(--ds-space-6)",
+    ...(maxWidth !== undefined && { maxWidth }),
+    ...(paddingY !== undefined && { paddingTop: paddingY, paddingBottom: paddingY }),
+    ...(paddingX !== undefined && { paddingLeft: paddingX, paddingRight: paddingX }),
+    ...(gap !== undefined && { gap }),
   };
 
   return (
@@ -223,10 +222,11 @@ export function Section({
         {/* Motif 1900 optionnel */}
         {ornament && (
           <div className={styles.ornament}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={ornament === true ? "/ornements/ornement-left.svg" : ornament}
-              alt="Ornement"
+            <Image
+              src={ornament === true ? "/ornements/ornement-right.svg" : ornament}
+              alt=""
+              width={200}
+              height={200}
               className={styles.ornamentImage}
             />
           </div>
@@ -301,6 +301,7 @@ export function CreamSection({
  * Avec layout asymétrique
  */
 export interface StorySectionProps extends Omit<SectionProps, "children"> {
+  children?: ReactNode;
   /** Contenu à gauche (texte) */
   textContent?: ReactNode;
   /** Contenu à droite (image/visuel) */
@@ -323,12 +324,15 @@ export function StorySection({
       {...props}
     >
       <div className={`${styles.storyGrid} ${styles[order]}`}>
+        {order === "visual-first" && visualContent && (
+          <div className={styles.storyVisual}>{visualContent}</div>
+        )}
         {textContent && (
           <div className={styles.storyText}>
             {textContent}
           </div>
         )}
-        {visualContent && (
+        {order === "text-first" && visualContent && (
           <div className={styles.storyVisual}>
             {visualContent}
           </div>

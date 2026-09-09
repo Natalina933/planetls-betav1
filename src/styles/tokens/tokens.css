@@ -43,6 +43,7 @@
   --ds-color-accent: #416b59;           /* Vert PlanetLS - couleur de marque */
   --ds-color-accent-hover: #294b3e;    /* Vert plus foncé */
   --ds-color-accent-soft: #e5eee8;     /* Vert très clair */
+  --ds-color-sage: #91a997;            /* Décor végétal */
   
   /* Couleurs de fond */
   --ds-color-background: #f8f3e9;      /* Crème principal - fond de page */
@@ -515,9 +516,9 @@
   --home-cream: var(--ds-color-surface-soft);   /* #f8f5ea */
   
   --home-green: var(--ds-color-accent);         /* #416b59 - Vert PlanetLS */
-  --home-green-dark: #294b3e;                   /* Vert foncé */
+  --home-green-dark: var(--ds-color-accent-hover);
   --home-green-soft: var(--ds-color-accent-soft); /* #e5eee8 */
-  --home-sage: #91a997;
+  --home-sage: var(--ds-color-sage);
   
   --home-gold: var(--ds-color-primary);         /* #8b6a2d - Doré/laiton */
   --home-gold-dark: var(--ds-color-primary-hover); /* #6d5422 */
@@ -641,6 +642,10 @@
   animation: ds-reveal-up var(--ds-motion-slow) var(--ds-ease-premium) forwards;
 }
 
+.ds-reveal-down.visible {
+  animation-name: ds-reveal-down;
+}
+
 .ds-fade {
   opacity: 0;
 }
@@ -660,4 +665,12 @@
 /* Optimisation pour les éléments animés */
 .ds-animate {
   will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-reveal, .ds-fade, .ds-scale {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
 }

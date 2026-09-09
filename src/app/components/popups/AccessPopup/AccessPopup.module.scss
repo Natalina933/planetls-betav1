@@ -41,6 +41,8 @@
     border-color: #d4af37;
     transform: translateY(-1px);
   }
+
+  @include common.closeButton;
 }
 
 .introText {
@@ -309,7 +311,7 @@
   border: 1.5px solid rgba(64, 120, 87, 0.28);
   background: linear-gradient(135deg, rgba(64, 120, 87, 0.1), rgba(212, 175, 55, 0.12));
 
-  > span {
+  >span {
     display: grid;
     gap: 0.18rem;
     color: #163923;
@@ -450,7 +452,7 @@
     border-color: rgba(112, 168, 132, 0.34);
     background: linear-gradient(135deg, rgba(112, 168, 132, 0.14), rgba(212, 175, 55, 0.12));
 
-    > span,
+    >span,
     small {
       color: #ffffff;
     }

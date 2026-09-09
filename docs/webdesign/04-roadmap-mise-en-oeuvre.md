@@ -1,8 +1,21 @@
 # PlanetLS - Roadmap de Mise en Œuvre UX/UI
 
-*Date : 8 septembre 2026*
-*Version : 1.0*
-*Statut : Prêt pour validation*
+*Mise à jour : 9 septembre 2026*
+*Version : 1.1*
+*Statut : socle validé techniquement ; Home intégrée*
+
+Le périmètre courant de phase 2 est celui confirmé par l’utilisateur : 2.1 tokens, 2.2 `HeroSection` et `Section`, 2.3 hooks d’animation, 2.4 documentation, 2.5 validation. Le Master Plan reste la référence de statut. Les estimations et listes détaillées d’origine ci-dessous constituent le plan initial, pas une preuve de livraison ni une demande d’ajouter tous les composants envisagés.
+
+| Lot courant | État au 9 septembre 2026 | Preuves |
+| --- | --- | --- |
+| 2.1 Couleurs, motion, alias Home, espacements | ✅ Terminé | `tokens.css`, exports `spacing` et `motion` ; source CSS unique |
+| 2.2 HeroSection et Section | ✅ Terminé | Variantes, responsive, ornements décoratifs, ordre de StorySection |
+| 2.3 Hooks d’animation | ✅ Terminé | Reveal progressif, cascade nettoyée, parallax borné et arrêt dynamique |
+| 2.4 Documentation | ✅ Terminé | `DESIGN_SYSTEM.md`, `src/components/ui/README.md`, exemples dans les fondations |
+| 2.5 Validation technique | ✅ Terminé | Cinq tests navigateur réussis ; lint, TypeScript et build réussis (187 pages statiques) |
+| Phase 3 Home | 🟡 En cours | Structure intégrée ; recette utilisateur, WCAG complet et performances production restent distincts |
+
+Les composants additionnels imaginés dans le plan initial, la migration globale des polices et le traitement de tous les anciens assets restent hors du socle courant. Les ressources éditoriales non publiées restent affichées « en préparation ».
 
 ---
 
@@ -19,8 +32,8 @@ Ce document décrit le **plan de mise en œuvre progressif** de la direction UX/
 | Phase | Période | Périmètre | Statut | Livrables |
 |-------|---------|-----------|--------|-----------|
 | **PHASE 1** | Semaine 1 | Audit + Règles Globales | ✅ **Terminé** | 01-brief.md, 02-audit-existant.md, 03-regles-globales.md |
-| **PHASE 2** | Semaines 2-4 | Design System / Composants Fondamentaux | ⏸️ **Prêt** | Tokens mis à jour, composants partagés, documentation |
-| **PHASE 3** | Semaines 5-7 | Refonte Home | ⏸️ **En attente** | Nouvelle Home immersive et animée |
+| **PHASE 2** | Semaines 2-4 | Design System / Composants Fondamentaux | ✅ Terminé | Socle courant documenté et validé techniquement |
+| **PHASE 3** | Semaines 5-7 | Refonte Home | 🟡 En cours | Home intégrée, recette et mesures à compléter |
 | **PHASE 4** | Semaines 8-12 | Pages Publiques | ⏸️ **En attente** | Parcours, About, Contact, Landing |
 | **PHASE 5** | Semaines 13-16 | Dashboards | ⏸️ **En attente** | Owner, Concierge, Provider dashboards |
 
@@ -538,7 +551,7 @@ Pour chaque dashboard :
 
 ## Prochaines Étapes
 
-### Pour Démarrer la PHASE 2
+### Préparation initiale de la phase 2 (historique)
 
 1. **Valider** les documents de la PHASE 1
 2. **Prioriser** les tâches de la PHASE 2
@@ -553,7 +566,7 @@ Pour chaque dashboard :
 - [x] **03-regles-globales.md** - Règles globales ✅
 - [x] **04-roadmap-mise-en-oeuvre.md** - Roadmap ✅
 
-### Actions Suivantes
+### Actions initialement prévues (historique)
 
 1. **Approuver** les documents de la PHASE 1
 2. **Démarrer** la PHASE 2 avec la mise à jour des tokens
@@ -568,21 +581,21 @@ Pour chaque dashboard :
 ### Statuts
 
 - ✅ **PHASE 1** : Audit + Règles Globales - **TERMINÉ**
-- 🟡 **PHASE 2** : Design System - **EN ATTENTE**
-- ⏸️ **PHASE 3** : Home - **EN ATTENTE**
+- ✅ **PHASE 2** : Socle Design System courant - **TERMINÉ**
+- 🟡 **PHASE 3** : Home - **EN COURS**
 - ⏸️ **PHASE 4** : Pages Publiques - **EN ATTENTE**
 - ⏸️ **PHASE 5** : Dashboards - **EN ATTENTE**
 
 ### Priorités
 
-- **P0** : PHASE 2 (Design System) - Bloquant pour les autres phases
+- **P1** : PHASE 2 (Design System) - Consolidation du socle
 - **P1** : PHASE 3 (Home) - Prioritaire après Phase 2
 - **P2** : PHASE 4 (Pages Publiques)
 - **P3** : PHASE 5 (Dashboards)
 
 ### Prochaine Action
 
-**Démarrer la PHASE 2 : Mise à jour du Design System avec les nouvelles règles globales.**
+**Poursuivre la recette utilisateur, l’audit WCAG complet et les mesures de production de la Home.**
 
 ---
 
@@ -606,7 +619,7 @@ Pour chaque dashboard :
 - [Brief Initial](01-brief.md)
 - [Audit Existant](02-audit-existant.md)
 - [Règles Globales](03-regles-globales.md)
-- [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md)
+- [DESIGN_SYSTEM.md](../../DESIGN_SYSTEM.md)
 - [src/components/ui/README.md](../../src/components/ui/README.md)
 
 ### Annexe C : Contacts

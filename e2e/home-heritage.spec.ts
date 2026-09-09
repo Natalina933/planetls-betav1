@@ -1,4 +1,55 @@
 import { test, expect } from '@playwright/test';
+test('socle phase 2 : variantes, responsive et préférences motion', async ({ page }) => {
+ const errors: string[] = [];
+ page.on('pageerror', error => errors.push(error.message));
+ await page.route('**/api/**', route => route.fulfill({ json: route.request().url().includes('/auth/session') ? null : { items: [] } }));
+ await page.goto('/design-system/fondations');
+ await page.getByText('Sections partagées et animations', { exact: true }).click();
+ const split = page.locator('#ds-hero-split');
+ await expect(split.locator('p').first()).toHaveCSS('color', 'rgb(104, 100, 92)');
+ const centered = page.locator('#ds-hero-centered');
+ await expect(centered.locator('h3')).toHaveCSS('text-align', 'center');
+ await expect(centered.locator('[style*="linear-gradient"]')).toHaveCSS('background-image', 'linear-gradient(90deg, rgb(41, 75, 62), rgb(65, 107, 89))');
+ await expect(page.locator('#ds-story-example p').first()).toHaveText('Visuel en premier');
+ for (const width of [1600, 1366, 1024, 768, 390]) {
+  await page.setViewportSize({ width, height: 960 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+ }
+ await expect(page.locator('#ds-section-example')).toHaveCSS('padding-top', '24px');
+ await expect(page.locator('#ds-section-example img')).toHaveAttribute('src', '/ornements/ornement-right.svg');
+ await page.locator('[data-motion="parallax"]').scrollIntoViewIfNeeded();
+ await page.getByRole('button', { name: 'Rejouer les animations' }).click();
+ await page.locator('[data-motion="reveal"]').scrollIntoViewIfNeeded();
+ await expect(page.locator('[data-motion="reveal"]')).toHaveClass(/ds-reveal-down/);
+ await page.emulateMedia({ reducedMotion: 'reduce' });
+ await expect(page.locator('[data-motion="parallax"] [aria-hidden]')).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)');
+ await expect(page.locator('[data-motion="reveal"]')).toHaveCSS('opacity', '1');
+ await page.getByRole('button', { name: 'Masquer les exemples animés' }).click();
+ await page.getByRole('button', { name: 'Afficher les exemples animés' }).click();
+ await expect(page.locator('[data-motion="stagger"]')).toHaveCSS('opacity', '1');
+ await page.locator('#ds-section-example').screenshot({ path: 'test-results/design-system-section-mobile.png' });
+ expect(errors).toEqual([]);
+});
+test('phase 3 reste lisible sans animation et sans JavaScript', async ({ page, context, browser }) => {
+ await context.addCookies([{ name: 'hasVisited', value: 'true', url: 'http://127.0.0.1:3106' }]);
+ await page.emulateMedia({ reducedMotion: 'reduce' });
+ await page.route('**/api/**', route => route.fulfill({ json: route.request().url().includes('/auth/session') ? null : { items: [] } }));
+ await page.goto('/home');
+ for (const selector of ['#fonctionnement', '#apercu', '#profils']) {
+  await page.locator(selector).scrollIntoViewIfNeeded();
+  await expect(page.locator(selector)).toHaveCSS('opacity', '1');
+  await expect(page.locator(selector)).toHaveCSS('transform', 'none');
+ }
+ await expect(page.locator('#preview-caption')).toBeVisible();
+ await page.locator('#apercu').screenshot({ path: 'test-results/home-phase3-showcase.png' });
+ const noJs = await browser.newContext({ javaScriptEnabled: false });
+ try {
+  const fallback = await noJs.newPage();
+  await fallback.goto('http://127.0.0.1:3106/home');
+  await expect(fallback.locator('#home-title')).toBeVisible();
+  await expect(fallback.locator('#apercu')).toHaveCSS('opacity', '1');
+ } finally { await noJs.close(); }
+});
 test('home responsive et interactions existantes', async ({ page, context }) => {
  await context.addCookies([{ name: 'hasVisited', value: 'true', url: 'http://127.0.0.1:3106' }]);
  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));

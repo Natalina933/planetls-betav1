@@ -126,7 +126,15 @@ function ProviderValidationCard({
     <article
       className={`${styles.card} ${isSelected ? styles.selected : ""}`}
       onClick={onSelect}
-      aria-selected={isSelected}
+      role="button"
+      tabIndex={0}
+      aria-pressed={isSelected}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect();
+        }
+      }}
     >
       <div className={styles.cardHeader}>
         <div className={styles.cardIdentity}>
@@ -318,19 +326,6 @@ function ProviderValidationContent() {
     if (filter === "complete") return provider.pending_documents_count === 0 && provider.verified_documents_count > 0;
     return true;
   });
-
-  const refreshProvider = useCallback(async (providerId: string) => {
-    await loadProviders();
-  }, [loadProviders]);
-
-  const Skeleton = () => (
-    <div className={styles.container}>
-      <FiLoader className={styles.spinner} />
-      <p>Chargement des profils artisans à valider...</p>
-    </div>
-  );
-  
-  Skeleton.displayName = "ProviderValidationSkeleton";
 
   const stats = {
     total: providers.length,

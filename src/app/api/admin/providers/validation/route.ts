@@ -15,6 +15,9 @@ type ProfileRow = {
   email: string;
   phone: string | null;
   company_name: string | null;
+  website: string | null;
+  legal_form: string | null;
+  siret: string | null;
   city: string | null;
   postal_code: string | null;
   service_area: string | null;
@@ -26,7 +29,7 @@ type ProfileRow = {
   created_at: string | null;
   updated_at: string | null;
   onboarding_complete: boolean;
-  role: string;
+  role: string | null;
 };
 
 type ValidationFilter = "all" | "pending" | "partial" | "complete";
@@ -36,24 +39,22 @@ function calculateProfileCompleteness(profile: ProfileRow): number {
   const requiredFields = [
     "first_name", "last_name", "phone", "city", 
     "service_area", "category", "experience_level"
-  ] as const;
+  ] as const satisfies readonly (keyof ProfileRow)[];
   
   const optionalFields = [
     "company_name", "postal_code", "service_radius_km", 
     "years_experience", "hourly_rate",
     "website", "legal_form", "siret",
-  ] as const;
-  
-  type ProfileKey = keyof ProfileRow;
+  ] as const satisfies readonly (keyof ProfileRow)[];
   
   const totalFields = requiredFields.length + optionalFields.length;
   const filledFields = [
-    ...requiredFields.filter((f): f is ProfileKey => {
-      const val = profile[f as keyof ProfileRow];
+    ...requiredFields.filter((f) => {
+      const val = profile[f];
       return val !== null && val !== undefined && val !== "";
     }),
-    ...optionalFields.filter((f): f is ProfileKey => {
-      const val = profile[f as keyof ProfileRow];
+    ...optionalFields.filter((f) => {
+      const val = profile[f];
       return val !== null && val !== undefined && val !== "";
     })
   ].length;
@@ -73,7 +74,7 @@ export async function GET(req: NextRequest) {
     // Récupérer tous les profils provider/artisan
     const { data: profiles, error } = await db
       .from("profiles")
-      .select("id, first_name, last_name, username, email, phone, company_name, city, postal_code, service_area, service_radius_km, category, experience_level, years_experience, hourly_rate, created_at, updated_at, onboarding_complete, role")
+      .select("id, first_name, last_name, username, email, phone, company_name, website, legal_form, siret, city, postal_code, service_area, service_radius_km, category, experience_level, years_experience, hourly_rate, created_at, updated_at, onboarding_complete, role")
       .in("role", Array.from(PROVIDER_ROLES))
       .order("created_at", { ascending: false });
 
