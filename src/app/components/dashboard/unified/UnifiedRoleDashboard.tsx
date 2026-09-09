@@ -76,6 +76,7 @@ interface UnifiedRoleDashboardProps {
   mainSections?: DashboardSectionBlock[];
   sidebarSections?: DashboardSectionBlock[];
   disclosures?: DashboardDisclosureItem[];
+  customLayout?: ReactNode;
   className?: string;
   visualVariant?: "admin-prototype";
 }
@@ -165,6 +166,7 @@ export default function UnifiedRoleDashboard({
   mainSections = [],
   sidebarSections = [],
   disclosures = [],
+  customLayout,
   className,
   visualVariant,
 }: UnifiedRoleDashboardProps) {
@@ -176,37 +178,40 @@ export default function UnifiedRoleDashboard({
 
   return (
     <main className={rootClassName}>
-      <section className={styles.heroCard}>
-        <div className={styles.heroOrnament} aria-hidden="true" />
-        <div className={styles.heroCopy}>
-          <span className={styles.heroEyebrow}>{roleMeta.eyebrow}</span>
-          <div className={styles.heroHeadline}>
-            <div className={styles.heroTitleWrap}>
-              <h1>{title}</h1>
-              <p>{subtitle}</p>
+      {customLayout ? customLayout : null}
+      {!customLayout ? <>
+        <section className={styles.heroCard}>
+          <div className={styles.heroOrnament} aria-hidden="true" />
+          <div className={styles.heroCopy}>
+            <span className={styles.heroEyebrow}>{roleMeta.eyebrow}</span>
+            <div className={styles.heroHeadline}>
+              <div className={styles.heroTitleWrap}>
+                <h1>{title}</h1>
+                <p>{subtitle}</p>
+              </div>
+              <div className={styles.heroBadges}>
+                <DashboardStatusBadge
+                  label={experienceBadge}
+                  tone={experienceBadgeTone}
+                  icon={<Sparkles size={14} />}
+                  className={styles.experienceBadge}
+                />
+                <DashboardStatusBadge label={statusLabel} tone={statusTone} className={styles.statusBadge} />
+              </div>
             </div>
-            <div className={styles.heroBadges}>
-              <DashboardStatusBadge
-                label={experienceBadge}
-                tone={experienceBadgeTone}
-                icon={<Sparkles size={14} />}
-                className={styles.experienceBadge}
-              />
-              <DashboardStatusBadge label={statusLabel} tone={statusTone} className={styles.statusBadge} />
-            </div>
+            <p className={styles.heroLead}>{roleMeta.lead}</p>
+            {heroSupplement ? <div className={styles.heroSupplement}>{heroSupplement}</div> : null}
           </div>
-          <p className={styles.heroLead}>{roleMeta.lead}</p>
-          {heroSupplement ? <div className={styles.heroSupplement}>{heroSupplement}</div> : null}
-        </div>
 
-        <div className={styles.heroActions}>
-          {actions.map((action) => (
-            <ActionButton key={action.id} action={action} />
-          ))}
-        </div>
-      </section>
+          <div className={styles.heroActions}>
+            {actions.map((action) => (
+              <ActionButton key={action.id} action={action} />
+            ))}
+          </div>
+        </section>
+      </> : null}
 
-      <section
+      {!customLayout ? <section
         className={styles.kpiSection}
         aria-label="Indicateurs principaux"
         style={{ ["--kpi-count" as string]: String(kpiCount) }}
@@ -226,9 +231,9 @@ export default function UnifiedRoleDashboard({
             href={kpi.href}
           />
         ))}
-      </section>
+      </section> : null}
 
-      <section className={styles.dashboardGrid}>
+      {!customLayout ? <section className={styles.dashboardGrid}>
         <div className={styles.mainColumn}>
           <DashboardSection
             eyebrow="Pilotage métier"
@@ -320,7 +325,7 @@ export default function UnifiedRoleDashboard({
             </div>
           </DashboardSection>
         </aside>
-      </section>
+      </section> : null}
     </main>
   );
 }

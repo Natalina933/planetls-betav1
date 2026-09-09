@@ -1,0 +1,496 @@
+.referenceDashboard {
+    display: grid;
+    gap: 12px;
+    padding: 14px 20px 30px;
+    color: var(--theme-text);
+}
+
+.kpiGrid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.mainGrid {
+    display: grid;
+    grid-template-columns: minmax(300px, .95fr) minmax(400px, 1.35fr) minmax(240px, .75fr);
+    gap: 12px;
+    align-items: start;
+}
+
+.leftColumn,
+.centerColumn,
+.rightColumn {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+}
+
+.card {
+    background: #fffdf8;
+    border: 1px solid #e8e1d5;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgb(30 40 35 / 5%);
+}
+
+.cardHeader {
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 16px;
+    border-bottom: 1px solid #e8e1d5;
+}
+
+.cardHeader h2 {
+    margin: 0;
+    font: 650 21px/1.1 var(--ds-font-heading);
+    color: #173f35;
+}
+
+.eyebrow {
+    display: block;
+    color: #9b7434;
+    font: 800 10px var(--ds-font-ui);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.cardLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #276a58;
+    font-size: 10px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.nextMission {
+    padding-bottom: 16px;
+}
+
+.nextContent {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 16px;
+    padding: 16px;
+}
+
+.nextImage {
+    display: grid;
+    place-items: center;
+    min-height: 142px;
+    border-radius: 8px;
+    background: linear-gradient(145deg, #d9e8df, #b9d0c1);
+    color: #276a58;
+}
+
+.nextDetails {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    min-width: 0;
+}
+
+.missionTime {
+    color: #1e5648;
+    font: 650 27px/1 var(--ds-font-heading);
+}
+
+.nextDetails h3 {
+    margin: 2px 0 0;
+    color: #1e5648;
+    font: 650 21px/1.05 var(--ds-font-heading);
+}
+
+.nextDetails p,
+.empty {
+    margin: 0;
+    color: #5f665f;
+    font-size: 12px;
+}
+
+.detailList {
+    display: grid;
+    gap: 7px;
+    margin-top: 7px;
+    font-size: 12px;
+}
+
+.detailList span {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #5f665f;
+}
+
+.actionRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.primaryButton,
+.secondaryButton,
+.alertButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.primaryButton {
+    background: linear-gradient(135deg, #276a58, #1e5648);
+    color: #fff;
+}
+
+.secondaryButton {
+    border: 1px solid #387d6a;
+    background: #fff;
+    color: #1e5648;
+}
+
+.alertButton {
+    border: 1px solid #d9a096;
+    color: #ad3026;
+    background: #fff8f4;
+}
+
+.steps {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 16px;
+    list-style: none;
+}
+
+.steps li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 30px 50px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-height: 55px;
+    padding-bottom: 10px;
+}
+
+.steps li:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    top: 29px;
+    bottom: -2px;
+    left: 14px;
+    width: 1px;
+    background: #387d6a;
+}
+
+.stepNumber {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 29px;
+    height: 29px;
+    border-radius: 50%;
+    background: #276a58;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.stepTime {
+    font: 700 13px var(--ds-font-heading);
+}
+
+.stepContent {
+    display: grid;
+    min-width: 0;
+}
+
+.stepContent strong {
+    overflow: hidden;
+    color: #1c211f;
+    font: 650 13px var(--ds-font-heading);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.stepContent small {
+    color: #5f665f;
+    font-size: 9px;
+}
+
+.centerColumn> :global(.routePreview) {
+    min-width: 0;
+}
+
+.tableCard {
+    overflow: hidden;
+}
+
+.tableWrap {
+    overflow-x: auto;
+    padding: 0 16px 12px;
+}
+
+.tableWrap table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+}
+
+.tableWrap th {
+    padding: 10px 8px;
+    background: #f8f6f1;
+    color: #5f665f;
+    text-align: left;
+    font-size: 9px;
+}
+
+.tableWrap td {
+    padding: 9px 8px;
+    border-bottom: 1px solid #e8e1d5;
+    vertical-align: middle;
+}
+
+.optimization {
+    padding: 15px;
+    background: linear-gradient(135deg, #fffef9, #fcfaf3);
+}
+
+.optimization h2,
+.alert h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: #276a58;
+    font: 650 17px var(--ds-font-heading);
+}
+
+.optimization p,
+.alert p {
+    margin: 12px 0;
+    color: #5f665f;
+    font: 13px/1.45 var(--ds-font-heading);
+}
+
+.alert {
+    padding: 15px;
+    background: linear-gradient(135deg, #fff7f4, #fce8e3);
+    border-color: #f2cbc3;
+}
+
+.alert h2,
+.alert strong {
+    color: #ad3026;
+}
+
+.alert strong {
+    display: block;
+    margin-top: 8px;
+    font: 700 16px var(--ds-font-heading);
+}
+
+.quickCard {
+    padding-bottom: 12px;
+}
+
+.quickGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    padding: 12px;
+}
+
+.quickGrid a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 66px;
+    padding: 8px;
+    border: 1px solid #e8e1d5;
+    border-radius: 8px;
+    color: #1c211f;
+    font-size: 9px;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+}
+
+.quickGrid a:hover {
+    background: #fbf8f1;
+    border-color: #ddc492;
+}
+
+.messages {
+    padding-bottom: 10px;
+}
+
+.message {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-bottom: 1px solid #e8e1d5;
+    color: inherit;
+    text-decoration: none;
+}
+
+.message:last-child {
+    border-bottom: 0;
+}
+
+.avatar {
+    display: grid;
+    place-items: center;
+    width: 29px;
+    height: 29px;
+    border-radius: 50%;
+    background: #e3f0eb;
+    color: #276a58;
+}
+
+.message>span:nth-child(2) {
+    display: grid;
+    min-width: 0;
+}
+
+.message strong {
+    overflow: hidden;
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.message small,
+.message time {
+    overflow: hidden;
+    color: #5f665f;
+    font-size: 9px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.priorityBar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 16px;
+    background: #fff7f4;
+    border-color: #f2cbc3;
+}
+
+.priorityBar span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #ad3026;
+    font: 700 16px var(--ds-font-heading);
+}
+
+.priorityBar p {
+    margin: 0;
+    color: #5f665f;
+    font-size: 11px;
+}
+
+.priorityBar a {
+    color: #ad3026;
+    font-size: 10px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.footerNote {
+    margin: 0;
+    color: #858a84;
+    font-size: 10px;
+    text-align: right;
+}
+
+@media (max-width:1200px) {
+    .mainGrid {
+        grid-template-columns: minmax(300px, 1fr) minmax(380px, 1.4fr);
+    }
+
+    .rightColumn {
+        grid-column: 1/-1;
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width:780px) {
+    .referenceDashboard {
+        padding: 12px;
+    }
+
+    .kpiGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .mainGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .rightColumn {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .nextContent {
+        grid-template-columns: 90px 1fr;
+    }
+
+    .nextImage {
+        min-height: 125px;
+    }
+
+    .priorityBar {
+        grid-template-columns: 1fr;
+        align-items: start;
+    }
+}
+
+@media (max-width:480px) {
+    .nextContent {
+        grid-template-columns: 1fr;
+    }
+
+    .nextImage {
+        min-height: 95px;
+    }
+
+    .actionRow {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .primaryButton,
+    .secondaryButton {
+        width: 100%;
+    }
+
+    .steps li {
+        grid-template-columns: 30px 48px minmax(0, 1fr);
+    }
+
+    .steps li> :last-child {
+        grid-column: 3;
+        justify-self: start;
+    }
+}

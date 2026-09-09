@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import { useUserType } from "@/app/context/UserTypeContext";
 import {
   getOwnerReplySignature,
@@ -17,6 +18,7 @@ interface SidebarProps {
   toggleSidebar: () => void;
   className?: string;
   mobileBreakpoint?: number;
+  conciergeBranding?: boolean;
 }
 
 const roleLabels: Record<string, string> = {
@@ -33,8 +35,9 @@ const roleThemeClasses: Record<string, string> = {
   provider: styles.providerTheme,
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = "", mobileBreakpoint = 900 }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = "", mobileBreakpoint = 900, conciergeBranding = false }) => {
   const { userType } = useUserType();
+  const isConciergeWorkspace = conciergeBranding || userType?.toLowerCase().includes("concierge") || false;
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [notificationCounts, setNotificationCounts] = useState<Record<string, number>>({});
   const [refreshTick, setRefreshTick] = useState(0);
@@ -156,11 +159,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
         />
       ) : null}
       <aside
-        className={`${styles.sidebar} ${className} ${isOpen ? styles.open : styles.closed} ${
-          userType ? roleThemeClasses[userType] || "" : ""
-        }`}
+        className={`${styles.sidebar} ${className} ${isOpen ? styles.open : styles.closed} ${userType ? roleThemeClasses[userType] || "" : ""
+          }`}
         aria-label="Sidebar"
       >
+        {isConciergeWorkspace ? (
+          <div className={styles.conciergeBrand}>
+            <Image src="/icons/logoCompletv2-gold.svg" alt="PlanetLS" width={132} height={42} priority />
+            <span>Conciergerie</span>
+          </div>
+        ) : null}
         <div className={styles.header}>
           <span className={styles.title}>
             {userType ? `Espace ${roleLabels[userType] || userType}` : "Chargement..."}
@@ -198,6 +206,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
             ))
           )}
         </nav>
+
+        {isConciergeWorkspace ? (
+          <div className={styles.conciergeSidebarBottom}>
+            <div className={styles.conciergeDecoration} aria-hidden="true">
+              <span>⌂</span>
+            </div>
+            <p>Des séjours<br />sereins,<br />des logements<br />préservés</p>
+          </div>
+        ) : null}
 
       </aside>
     </>

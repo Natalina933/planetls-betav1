@@ -731,3 +731,56 @@ body.dark {
   background: rgba(255, 255, 255, 0.14);
   color: #fff;
 }
+
+.conciergeHeaderHero .headerCopy blockquote {
+  margin: var(--ds-space-4) 0 0;
+  padding-left: var(--ds-space-4);
+  border-left: 1px solid var(--ds-color-primary-soft);
+  color: #fff8e8;
+  font: italic 1rem / 1.25 var(--ds-font-heading);
+}
+
+.conciergeHeaderAside {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.conciergeWeather {
+  display: grid;
+  min-width: 154px;
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border: 1px solid rgb(255 255 255 / 0.62);
+  border-radius: var(--ds-radius-md);
+  background: rgb(255 252 244 / 0.9);
+  color: var(--ds-color-text-primary);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.conciergeWeather strong {
+  font: 700 1.2rem var(--ds-font-heading);
+}
+
+.conciergeWeather span,
+.conciergeWeather small {
+  color: var(--ds-color-text-secondary);
+  font-size: 0.68rem;
+}
+
+.conciergeWeather b {
+  margin-top: var(--ds-space-2);
+  color: var(--ds-color-primary);
+  font-size: 1.3rem;
+}
+
+.conciergeWeather em {
+  color: var(--ds-color-text-primary);
+  font: 1.35rem var(--ds-font-heading);
+  font-style: normal;
+}
+
+.headerActionLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--ds-space-2);
+}

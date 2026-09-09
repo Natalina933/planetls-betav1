@@ -51,6 +51,7 @@ import {
 } from "./useConciergeDashboardData";
 import ConciergeDashboardModeControls from "./ConciergeDashboardModeControls";
 import ConciergeRoutePreview from "./ConciergeRoutePreview";
+import ConciergeReferenceDashboard from "./ConciergeReferenceDashboard";
 import {
   CONCIERGE_OPERATING_MODE_CONFIG,
   CONCIERGE_WIDGET_STORAGE_KEY,
@@ -1162,6 +1163,21 @@ export default function DashboardPage() {
       <UnifiedRoleDashboard
         role="concierge"
         className="concierge-dashboard"
+        customLayout={
+          <ConciergeReferenceDashboard
+            events={todayPlanning}
+            missionCount={todayPlanningCount}
+            housingCount={housings.length}
+            housingActionsCount={housingActionsCount}
+            pendingValidationCount={pendingValidationCount}
+            unreadConversationCount={unreadConversationCount}
+            urgentCount={urgentMissionCount + urgentRequests.length}
+            priorityTitle={priorityRequest?.property_name || priorityRequest?.title || "Aucune priorité terrain"}
+            priorityDetail={priorityRequest ? `${priorityRequest.title} · ${priorityRequest.city || "Ville à préciser"}` : "Aucun point prioritaire détecté."}
+            priorityHref={priorityRequest ? getRequestHref(priorityRequest) : "/dashboard/concierge/planning"}
+            activityItems={activityItems.map((item) => ({ id: item.id, title: item.title, detail: item.detail, meta: item.meta || "Récent" }))}
+          />
+        }
         title={`${getGreetingLabel()} ${conciergeName}, voici votre cockpit ${operatingModeConfig.shortLabel.toLowerCase()} du jour.`}
         subtitle={`${operatingModeConfig.dashboardLead} ${housings.length} actif(s), ${openMissionCount} mission(s), ${todayArrivals} moment(s) du jour et ${quotesToSend.length} opportunité(s) à traiter.`}
         experienceBadge={user?.years_experience ? `${user.years_experience} ans d'expérience` : operatingModeConfig.badge}

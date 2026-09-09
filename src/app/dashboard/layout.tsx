@@ -82,7 +82,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className={`dashboard-root ${isOwnerHome ? ownerShell.shell : ""} ${isConciergePage ? "concierge-design" : ""}`} data-owner-dashboard={isOwnerHome ? "" : undefined}>
-      <Sidebar className={isOwnerHome ? ownerShell.sidebar : undefined} mobileBreakpoint={isOwnerHome ? 680 : 900} isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
+      <Sidebar className={isOwnerHome ? ownerShell.sidebar : undefined} conciergeBranding={Boolean(isConciergePage)} mobileBreakpoint={isOwnerHome ? 680 : 900} isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
       <div className={`dashboard-main ${isSidebarOpen ? "with-sidebar" : "no-sidebar"} ${isOwnerHome ? `${ownerShell.main} ${!isSidebarOpen ? ownerShell.mainClosed : ""}` : ""}`}>
         <Navbar compact={isOwnerHome} className={isOwnerHome ? `${ownerShell.header} ${!isSidebarOpen ? ownerShell.headerClosed : ""}` : undefined} isSidebarOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
         {pathname !== "/dashboard/owner" && <div className={`headerBandeau ${isOwnerPage ? "ownerHeaderBandeau" : ""}`}>
@@ -104,12 +104,21 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     <span className="headerEyebrow">{isConciergePage ? "Espace conciergerie" : "Cap du jour"}</span>
                     <h1>{isConciergePage ? `Bonjour ${user?.firstName || user?.company_name || ""},` : currentOwnerSectionLabel}</h1>
                     <p>{isConciergePage ? "Une nouvelle journée pour faire la différence." : "Retrouvez en un coup d&apos;œil vos priorités, vos points de vigilance et la prochaine action utile pour faire avancer votre parc."}</p>
+                    {isConciergePage ? <blockquote>« Prendre soin des lieux,<br />c&apos;est prendre soin des gens »</blockquote> : null}
                   </div>
                 </div>
                 {isConciergePage ? (
-                  <div className="headerActionRow">
-                    <a href="/dashboard/concierge/planning" className="headerActionPrimary">Voir le planning</a>
-                    <a href="/dashboard/concierge/demandes" className="headerActionSecondary">Ouvrir les demandes</a>
+                  <div className="headerActionRow conciergeHeaderAside">
+                    <div className="conciergeWeather">
+                      <strong>Mardi</strong>
+                      <span>9 septembre 2026</span>
+                      <b>☼ <em>24°C</em></b>
+                      <small>Le Barcarès</small>
+                    </div>
+                    <div className="headerActionLinks">
+                      <a href="/dashboard/concierge/planning" className="headerActionPrimary">Voir le planning</a>
+                      <a href="/dashboard/concierge/demandes" className="headerActionSecondary">Ouvrir les demandes</a>
+                    </div>
                   </div>
                 ) : <div className="headerMetrics" aria-label="Indicateurs rapides">
                   {ownerHeaderMetrics.map((metric) => {

@@ -29,6 +29,30 @@
 - Vérifications : lint ciblé réussi, typecheck application/Playwright réussi, compilation SCSS réussie. Page connectée vérifiée sur desktop : aperçu visible, lien planning présent, aucun débordement. Mobile vérifié à 390 px : viewport effectif 375 px, scrollWidth 375 px, état vide rendu sans débordement lorsque les données réseau ne remontent pas d’étape.
 - Limites : la progression est indicative car l’API dashboard ne fournit pas encore un statut de tournée consolidé ; les distances, la carte réelle et la réorganisation restent dans le planificateur. Aucun test E2E dédié au nouveau bloc n’a été ajouté dans ce lot.
 
+### Alignement visuel concierge sur la référence — 9 septembre 2026
+
+- `PLS-DS-001` reste **🟡 En cours — P1 Prioritaire**. Le shell réel concierge reprend maintenant la composition validée de la référence : bandeau d’accueil visuel, salutation et actions rapides, sidebar crème/laiton, puis KPI et tournée.
+- Réalisation : `src/app/dashboard/layout.tsx` ajoute le contexte visuel concierge au bandeau sans modifier les données ; `src/app/styles/abstracts/_dashboards.scss` porte les actions et la hiérarchie du hero ; `Sidebar.module.scss` applique la variante crème/laiton ; le hero générique redondant de `UnifiedRoleDashboard` est masqué uniquement via `.concierge-dashboard`.
+- Décision : préserver `UnifiedRoleDashboard` pour les autres espaces et ne pas propager cette variante aux dashboards admin, propriétaire ou artisan avant recette dédiée. Le bandeau réutilise `dashboard-header-bandeau.png`, déjà présent dans le projet ; aucune image externe, donnée fictive ou API supplémentaire n’a été ajoutée.
+- Vérifications : diagnostics VS Code sans erreur sur les six fichiers touchés, typecheck application/Playwright réussi, Sass compilé, page connectée vérifiée à 1366 px sans débordement, bandeau visible, hero générique effectivement masqué et tournée conservée en premier bloc métier.
+- Limites : la capture mobile complète reste à rejouer avec une session de recette stable ; le lint global a été interrompu par le terminal partagé pendant cette itération, tandis que les diagnostics et validations ciblées du code React restent propres. Les autres espaces ne sont pas concernés.
+
+### Reprise de la référence visuelle concierge — 9 septembre 2026
+
+- `PLS-DS-001` reste **🟡 En cours — P1 Prioritaire**. Le dashboard concierge reprend les textes et repères principaux de la référence fournie : branding PlanetLS/Conciergerie, accroche de sidebar, citation, météo, palette crème/vert/laiton et grille opérationnelle compacte.
+- Réalisation : logo SVG existant dans la sidebar, décoration architecturale CSS locale, hero avec citation et carte météo, actions planning/demandes, KPI et grille trois zones desktop. Les composants métier et la tournée réelle restent alimentés par leurs données actuelles.
+- Décision : les assets spécifiques `le-barcares-hero.jpg` et `concierge-door.jpg` n’existant pas dans le dépôt, le bandeau PlanetLS existant est conservé et la décoration sidebar est produite en CSS ; aucun faux asset externe n’a été ajouté.
+- Vérifications : typecheck réussi, Sass compilé, lint ciblé React exécuté sans erreur lorsque le terminal va au bout, route connectée vérifiée à 1366 px et 390 px sans débordement. Le logo est chargé dans le DOM, la citation, la météo et la tournée sont visibles.
+- Limites : les blocs secondaires exacts de la référence (tableau missions, messages, raccourcis dédiés) restent composés à partir des sections existantes du cockpit ; leur alignement pixel-perfect fera l’objet d’un lot séparé. Aucun autre rôle n’a été modifié.
+
+### Composition concierge dédiée — 9 septembre 2026
+
+- `PLS-DS-001` reste **🟡 En cours — P1 Prioritaire**. La composition de production du dashboard concierge reprend désormais les zones opérationnelles de la référence sans remplacer les données, APIs, permissions ou parcours existants.
+- Réalisation : `ConciergeReferenceDashboard.tsx` et son module SCSS composent la prochaine mission, les étapes de tournée, la tournée du jour, le tableau des missions, l’optimisation, l’alerte, les raccourcis et les messages. `UnifiedRoleDashboard` accepte une composition optionnelle ; `DashboardPage` lui transmet les props réelles de `useConciergeDashboardData`. Les autres rôles conservent le cockpit partagé.
+- Décision : aucun chiffre, itinéraire, adresse ou statut fictif n’est injecté en production. Les valeurs absentes du contrat actuel restent affichées comme états vides ; la distance, la durée, la carte réelle et les lignes détaillées seront ajoutées avec les données métier correspondantes.
+- Vérifications : diagnostics ciblés sans erreur, Sass compilé, suite de tests précédente à 333 réussis, 1 ignoré et 0 échec ; contrôle navigateur desktop et mobile réussi, ancien hero générique absent, sections attendues présentes et aucune largeur supérieure au viewport. Le contrôle TypeScript relancé est bloqué par `.next/dev/types/routes.d.ts`, fichier généré mal formé hors périmètre.
+- Limites et prochaines actions : le lint global et le typecheck doivent être rejoués après régénération propre des types Next.js ; compléter ensuite le contrat de tournée et ajouter un test E2E connecté dédié. Aucune migration Supabase, API, permission ou règle RLS n’a été modifiée.
+
 ### Phase 2 — socle consolidé et documenté — 9 septembre 2026
 
 - **✅ Terminé — P1 Prioritaire**, pour le périmètre confirmé : 2.1 tokens, 2.2 `HeroSection`/`Section`, 2.3 hooks d’animation, 2.4 documentation, 2.5 validation technique. `PLS-DS-001` reste globalement **🟡 En cours — P1 Prioritaire** : la phase 3 est intégrée mais sa recette complète et ses mesures de production restent ouvertes.
