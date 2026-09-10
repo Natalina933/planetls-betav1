@@ -1,10 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Compass, Home, MessageSquareText, Receipt } from "lucide-react";
+import { Compass, Sun } from "lucide-react";
 import Sidebar from "@/app/components/dashboard/Sidebar/Sidebar";
 import Navbar from "@/app/components/dashboard/navbar/DashboardNavbar";
 import { DashboardMobileExperience } from "@/app/components/dashboard/mobile/DashboardMobileExperience";
@@ -12,17 +13,22 @@ import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { DashboardBottomNav } from "@/components/dashboard/DashboardLayout/DashboardBottomNav";
 import { useOwnerDashboardData } from "./owner/useOwnerDashboardData";
 import "@/app/styles/abstracts/_dashboards.scss";
-import ownerShell from "@/features/owner-dashboard/OwnerDashboardShell.module.scss";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const mainRef = useRef<HTMLDivElement>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [sidebarBreakpoint, setSidebarBreakpoint] = useState(0);
 
   const { user, isAuthenticated } = useCurrentUser();
 
   const isOwnerPage = pathname?.startsWith("/dashboard/owner");
   const isOwnerHome = pathname === "/dashboard/owner";
+  const isConciergeHome = pathname === "/dashboard/concierge";
   const isConciergePage = pathname?.startsWith("/dashboard/concierge");
+  const isAdminPage = pathname?.startsWith("/dashboard/admin");
+  const isProviderPage = pathname?.startsWith("/dashboard/provider");
+  const showHeaderBandeau = isOwnerPage || isConciergePage || isAdminPage || isProviderPage;
   const { draftCount, ongoingMissions, pendingInvoices, unreadConversationCount } = useOwnerDashboardData(
     Boolean(isAuthenticated && isOwnerPage),
   );
@@ -50,42 +56,43 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     return "Pilotage propriétaire";
   }, [isOwnerPage, pathname]);
 
-  const ownerHeaderMetrics = useMemo(
-    () => [
-      {
-        label: "Annonces à finaliser",
-        value: `${draftCount}`,
-        icon: Home,
-      },
-      {
-        label: "Factures à traiter",
-        value: `${pendingInvoices.length}`,
-        icon: Receipt,
-      },
-      {
-        label: "Messages non lus",
-        value: `${unreadConversationCount}`,
-        icon: MessageSquareText,
-      },
-    ],
-    [draftCount, pendingInvoices.length, unreadConversationCount],
-  );
-
   useEffect(() => {
-    const desktopQuery = window.matchMedia(isOwnerHome ? "(min-width: 681px)" : "(min-width: 901px)");
+    const main = mainRef.current;
+    if (!main) return;
+    const breakpoint = Number.parseFloat(getComputedStyle(main).getPropertyValue("--ds-breakpoint-dashboard-nav"));
+    if (!Number.isFinite(breakpoint)) return;
+    setSidebarBreakpoint(breakpoint);
+    const desktopQuery = window.matchMedia(`(min-width: ${breakpoint + 1}px)`);
     const syncSidebar = () => setIsSidebarOpen(desktopQuery.matches);
 
     syncSidebar();
     desktopQuery.addEventListener("change", syncSidebar);
     return () => desktopQuery.removeEventListener("change", syncSidebar);
-  }, [isOwnerHome]);
+  }, []);
+
+  useEffect(() => {
+    if (!showHeaderBandeau) return;
+    const main = mainRef.current;
+    const navbar = main?.querySelector<HTMLElement>(":scope > header");
+    if (!main || !navbar) return;
+    const updateHeaderHeight = () => {
+      main.style.setProperty("--dashboard-nav-height", `${navbar.getBoundingClientRect().height}px`);
+    };
+    updateHeaderHeight();
+    const observer = new ResizeObserver(updateHeaderHeight);
+    observer.observe(navbar);
+    return () => {
+      observer.disconnect();
+      main.style.removeProperty("--dashboard-nav-height");
+    };
+  }, [showHeaderBandeau]);
 
   return (
-    <div className={`dashboard-root ${isOwnerHome ? ownerShell.shell : ""} ${isConciergePage ? "concierge-design" : ""}`} data-owner-dashboard={isOwnerHome ? "" : undefined}>
-      <Sidebar className={isOwnerHome ? ownerShell.sidebar : undefined} conciergeBranding={Boolean(isConciergePage)} mobileBreakpoint={isOwnerHome ? 680 : 900} isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
-      <div className={`dashboard-main ${isSidebarOpen ? "with-sidebar" : "no-sidebar"} ${isOwnerHome ? `${ownerShell.main} ${!isSidebarOpen ? ownerShell.mainClosed : ""}` : ""}`}>
-        <Navbar compact={isOwnerHome} className={isOwnerHome ? `${ownerShell.header} ${!isSidebarOpen ? ownerShell.headerClosed : ""}` : undefined} isSidebarOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
-        {pathname !== "/dashboard/owner" && <div className={`headerBandeau ${isOwnerPage ? "ownerHeaderBandeau" : ""}`}>
+    <div className="dashboard-root" data-dashboard-hero={showHeaderBandeau ? "" : undefined} data-concierge-home={isConciergeHome ? "" : undefined} data-owner-dashboard={isOwnerPage ? "" : undefined}>
+      <Sidebar conciergeBranding={Boolean(isConciergePage)} mobileBreakpoint={sidebarBreakpoint} isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
+      <div ref={mainRef} className={`dashboard-main ${isSidebarOpen ? "with-sidebar" : "no-sidebar"}`}>
+        <Navbar isSidebarOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
+        {showHeaderBandeau ? <div className={`headerBandeau ${isOwnerPage ? "ownerHeaderBandeau" : ""}`}>
           <Image
             src="/images/generated/dashboard/dashboard-header-bandeau.png"
             alt="Bandeau chaleureux du tableau de bord"
@@ -94,59 +101,60 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             priority={isOwnerPage}
           />
           <div className="headerOverlay">
-            {isOwnerPage || isConciergePage ? (
-              <div className={`headerHero ${isConciergePage ? "conciergeHeaderHero" : ""}`}>
-                <div className="headerIdentity">
-                  <span className="headerAvatar" aria-hidden="true">
-                    <Compass size={22} />
-                  </span>
-                  <div className="headerCopy">
-                    <span className="headerEyebrow">{isConciergePage ? "Espace conciergerie" : "Cap du jour"}</span>
-                    <h1>{isConciergePage ? `Bonjour ${user?.firstName || user?.company_name || ""},` : currentOwnerSectionLabel}</h1>
-                    <p>{isConciergePage ? "Une nouvelle journée pour faire la différence." : "Retrouvez en un coup d&apos;œil vos priorités, vos points de vigilance et la prochaine action utile pour faire avancer votre parc."}</p>
-                    {isConciergePage ? <blockquote>« Prendre soin des lieux,<br />c&apos;est prendre soin des gens »</blockquote> : null}
-                  </div>
+            <div className="headerHero conciergeHeaderHero">
+              <div className="headerIdentity">
+                <span className="headerAvatar" aria-hidden="true">
+                  <Compass size={22} />
+                </span>
+                <div className="headerCopy">
+                  <span className="headerEyebrow">{isConciergePage ? "Espace conciergerie" : isOwnerPage ? "Espace propriétaire" : isAdminPage ? "Espace administrateur" : "Espace artisan"}</span>
+                  <h1>{isConciergePage ? `Bonjour ${user?.firstName || user?.company_name || ""},` : isOwnerPage ? (isOwnerHome ? `Bonjour ${user?.firstName || user?.company_name || "Propriétaire"} 👋` : currentOwnerSectionLabel) : `Bonjour ${user?.firstName || user?.company_name || ""},`}</h1>
+                  <p>{isConciergePage ? "Une nouvelle journée pour faire la différence." : isOwnerPage ? "Vos logements créent de beaux souvenirs, suivez-les en un coup d'œil." : isAdminPage ? "Gardez une vision claire de la plateforme et de son activité." : "Des interventions bien préparées, des clients satisfaits."}</p>
+                  <blockquote>{isConciergePage ? <>« Prendre soin des lieux,<br />c&apos;est prendre soin des gens »</> : isOwnerPage ? <>« Des séjours sereins,<br />des logements qui performent »</> : isAdminPage ? <>« Une plateforme fiable,<br />des équipes accompagnées »</> : <>« Des interventions soignées,<br />une confiance qui dure »</>}</blockquote>
                 </div>
-                {isConciergePage ? (
-                  <div className="headerActionRow conciergeHeaderAside">
-                    <div className="conciergeWeather">
-                      <strong>Mardi</strong>
-                      <span>9 septembre 2026</span>
-                      <b>☼ <em>24°C</em></b>
-                      <small>Le Barcarès</small>
-                    </div>
-                    <div className="headerActionLinks">
+              </div>
+              <div className="headerActionRow conciergeHeaderAside">
+                <div className="conciergeWeather">
+                  <strong>{(isConciergeHome || isOwnerHome || isAdminPage || isProviderPage) ? new Intl.DateTimeFormat("fr-FR", { weekday: "long" }).format(new Date()) : "Mardi"}</strong>
+                  <span>{(isConciergeHome || isOwnerHome || isAdminPage || isProviderPage) ? new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" }).format(new Date()) : "9 septembre 2026"}</span>
+                  {(isConciergeHome || isOwnerHome || isAdminPage || isProviderPage) && <hr className="conciergeWeatherDivider" />}<b><Sun size={30} strokeWidth={1.5} aria-hidden="true" /> <em>24°C</em></b>
+                  <small>Le Barcarès{(isConciergeHome || isOwnerHome) && <span className="conciergeWeatherExample">Exemple météo</span>}</small>
+                </div>
+                <div className="headerActionLinks">
+                  {isConciergePage ? (
+                    <>
                       <a href="/dashboard/concierge/planning" className="headerActionPrimary">Voir le planning</a>
                       <a href="/dashboard/concierge/demandes" className="headerActionSecondary">Ouvrir les demandes</a>
-                    </div>
-                  </div>
-                ) : <div className="headerMetrics" aria-label="Indicateurs rapides">
-                  {ownerHeaderMetrics.map((metric) => {
-                    const Icon = metric.icon;
-                    return (
-                      <article key={metric.label} className="headerMetricCard">
-                        <span className="headerMetricIcon" aria-hidden="true">
-                          <Icon size={16} />
-                        </span>
-                        <strong>{metric.value}</strong>
-                        <span>{metric.label}</span>
-                      </article>
-                    );
-                  })}
-                </div>}
+                    </>
+                  ) : isOwnerPage ? (
+                    <>
+                      <Link href="/dashboard/owner/planning" className="headerActionPrimary">Voir mes réservations</Link>
+                      <Link href="/dashboard/owner/logements" className="headerActionSecondary">Ouvrir mes logements</Link>
+                    </>
+                  ) : isAdminPage ? (
+                    <>
+                      <Link href="/dashboard/admin" className="headerActionPrimary">Voir le pilotage</Link>
+                      <Link href="/dashboard/admin/developpement" className="headerActionSecondary">Ouvrir le registre</Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link href="/dashboard/provider/planning" className="headerActionPrimary">Voir mon planning</Link>
+                      <Link href="/dashboard/provider/devis" className="headerActionSecondary">Ouvrir mes devis</Link>
+                    </>
+                  )}
+                </div>
               </div>
-            ) : null}
+            </div>
           </div>
-        </div>}
+        </div> : null}
         {isOwnerPage && pathname !== "/dashboard/owner" ? (
           <DashboardBottomNav items={ownerBottomNavItems} ariaLabel="Navigation propriétaire" />
         ) : null}
-        <main className={`dashboard-content ${isOwnerHome ? ownerShell.content : ""}`}>{children}</main>
+        <main className="dashboard-content">{children}</main>
         <DashboardMobileExperience role={user?.role} pathname={pathname} />
       </div>
     </div>
   );
 }
-
 
 

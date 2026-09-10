@@ -8,7 +8,7 @@
   --op-radius: 8px;
   --op-shadow: var(--dash-shadow-sm, 0 16px 34px rgba(41, 28, 13, 0.1));
   display: grid;
-  gap: 1rem;
+  gap: var(--ds-space-4);
   width: min(1180px, 100%);
   margin: 0 auto;
   padding: 0.85rem 0.85rem 5.6rem;
@@ -16,8 +16,8 @@
 
 .simpleHeader {
   display: grid;
-  gap: 1rem;
-  padding: 1rem;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-4);
   border: 1px solid var(--op-border);
   border-radius: var(--op-radius);
   background:
@@ -35,7 +35,7 @@
   width: fit-content;
   min-height: 30px;
   padding: 0.28rem 0.6rem;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   background: color-mix(in srgb, var(--op-accent) 14%, transparent);
   color: var(--op-accent-strong);
   font-size: 0.75rem;
@@ -71,7 +71,7 @@
   justify-content: center;
   min-height: 40px;
   padding: 0.55rem 0.9rem;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   border: 1px solid color-mix(in srgb, var(--op-accent) 34%, var(--op-border));
   text-decoration: none;
   font-size: 0.84rem;
@@ -101,9 +101,9 @@
 .visualBrief {
   display: grid;
   grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
-  gap: 1rem;
+  gap: var(--ds-space-4);
   align-items: center;
-  padding: 1rem;
+  padding: var(--ds-space-4);
   border: 1px solid var(--op-border);
   border-radius: var(--op-radius);
   background:
@@ -156,7 +156,7 @@
   top: 1rem;
   width: 58px;
   height: 58px;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   color: #2f6f9c;
 }
 
@@ -202,9 +202,9 @@
   justify-content: center;
   gap: 0.35rem;
   min-height: 38px;
-  padding: 0.5rem 0.8rem;
+  padding: var(--ds-space-2) 0.8rem;
   border: 1px solid color-mix(in srgb, var(--op-accent) 36%, var(--op-border));
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   background: var(--op-bg);
   color: var(--op-text);
   font-size: 0.84rem;
@@ -227,7 +227,7 @@
 .metricsGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
 }
 
 .metricCard,
@@ -292,7 +292,7 @@
   min-height: 34px;
   padding: 0.4rem 0.7rem;
   border: 1px solid color-mix(in srgb, var(--op-accent) 34%, var(--op-border));
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   background: var(--op-bg);
   color: var(--op-accent-strong);
   cursor: pointer;
@@ -304,7 +304,7 @@
 .attentionGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
-  gap: 1rem;
+  gap: var(--ds-space-4);
   align-items: stretch;
 }
 
@@ -348,7 +348,7 @@
   align-items: center;
   gap: 0.35rem;
   width: fit-content;
-  margin-top: 0.75rem;
+  margin-top: var(--ds-space-3);
   color: var(--op-accent-strong);
   font-weight: 900;
   text-decoration: none;
@@ -357,13 +357,13 @@
 .riskRail {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
 }
 
 .riskBody {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
   align-items: center;
 }
 
@@ -405,7 +405,7 @@
 .cadenceList {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
 }
 
 .cadenceList div,
@@ -438,7 +438,7 @@
 
 .extraContent {
   display: grid;
-  gap: 1rem;
+  gap: var(--ds-space-4);
 }
 
 .detailsIntro {
@@ -482,7 +482,7 @@
 
 .detailItem {
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
   align-items: center;
 }
 
@@ -496,7 +496,7 @@
 .detailTopline span {
   flex: 0 0 auto;
   padding: 0.18rem 0.48rem;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   background: color-mix(in srgb, var(--op-accent) 14%, transparent);
   color: var(--op-accent-strong);
   font-size: 0.72rem;
@@ -530,7 +530,7 @@
   }
 
   .visualBrief {
-    padding: 0.75rem;
+    padding: var(--ds-space-3);
   }
 
   .visualScene {

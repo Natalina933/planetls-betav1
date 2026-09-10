@@ -1,44 +1,38 @@
 .dashboardRoot {
-  --theme-accent: #11845b;
-  --theme-accent-strong: #0d6a49;
-  --theme-secondary: #f0b44c;
-  --theme-secondary-strong: #ca8a18;
-  --theme-soft: #607067;
-  --theme-soft-surface: #ffffff;
-  --theme-muted-surface: #f8fbfa;
+  --theme-accent: var(--ds-color-primary);
+  --theme-accent-strong: var(--ds-color-primary-hover);
+  --theme-secondary: var(--ds-color-gold);
+  --theme-secondary-strong: var(--ds-color-gold-strong);
+  --theme-soft: var(--ds-color-text-secondary);
+  --theme-soft-surface: var(--ds-color-surface);
+  --theme-muted-surface: var(--ds-color-background-soft);
   --theme-badge-surface: rgba(17, 132, 91, 0.08);
-  --theme-text: #18251f;
-  --theme-text-soft: #607067;
-  --theme-border: rgba(17, 132, 91, 0.14);
+  --theme-text: var(--ds-color-text-primary);
+  --theme-text-soft: var(--ds-color-text-secondary);
+  --theme-border: var(--ds-color-border);
   --theme-shadow: rgba(17, 37, 29, 0.08);
   --theme-glow: rgba(17, 132, 91, 0.12);
   --theme-panel-highlight: rgba(255, 255, 255, 0.92);
-  --paper-ivory: #f8fbfa;
-  --paper-warm: #f4f7f6;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --dashboard-motion: 250ms cubic-bezier(0.16, 1, 0.3, 1);
+  --paper-ivory: var(--ds-color-background-soft);
+  --paper-warm: var(--ds-color-background);
+  --radius-md: var(--ds-radius-control);
+  --radius-lg: var(--ds-radius-card);
+  --dashboard-motion: var(--ds-motion-fast) var(--ds-ease-standard);
   --color-primary: var(--theme-accent);
-  --color-success: #1f8b4d;
-  --color-warning: #d48a1f;
-  --color-danger: #d64545;
-  --color-info: #2f7cf6;
+  --color-success: var(--ds-color-success);
+  --color-warning: var(--ds-color-warning);
+  --color-danger: var(--ds-color-error);
+  --color-info: var(--ds-color-info);
   --color-bg: var(--paper-warm);
   --color-surface: var(--theme-soft-surface);
   --color-text: var(--theme-text);
-  --radius-lg-token: 24px;
-  --shadow-soft: 0 18px 42px rgba(17, 37, 29, 0.08);
+  --radius-lg-token: var(--ds-radius-card);
+  --shadow-soft: var(--ds-shadow-sm);
 
   display: grid;
-  gap: clamp(1rem, 2vw, 1.5rem);
-  padding: clamp(1rem, 2vw, 1.75rem);
-  background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.94), transparent 30%),
-    radial-gradient(circle at 88% 8%, rgba(242, 185, 75, 0.2), transparent 24%),
-    radial-gradient(circle at 12% 82%, rgba(20, 154, 104, 0.12), transparent 26%),
-    linear-gradient(180deg, rgba(255, 251, 245, 0.76), rgba(255, 255, 255, 0.3)),
-    url("/textures/elegant-fibers.png"),
-    var(--paper-warm);
+  gap: var(--ds-space-section);
+  padding: 0;
+  background: var(--ds-color-background);
   color: var(--theme-text);
 }
 
@@ -46,27 +40,27 @@
   display: none;
 }
 
-:global(.concierge-dashboard) {
-  --theme-accent: #276a58;
-  --theme-accent-strong: #1e5648;
-  --theme-secondary: #b38a45;
-  --theme-text: #1c211f;
-  --theme-text-soft: #5f665f;
-  --theme-border: #e8e1d5;
-  --theme-soft-surface: #fffdf8;
-  --theme-muted-surface: #f2eee4;
-  background: #f7f3ea;
+.dashboardRoot:global(.concierge-dashboard) {
+  --theme-accent: var(--ds-color-primary);
+  --theme-accent-strong: var(--ds-color-primary-hover);
+  --theme-secondary: var(--ds-color-gold);
+  --theme-text: var(--ds-color-text-primary);
+  --theme-text-soft: var(--ds-color-text-secondary);
+  --theme-border: var(--ds-color-border);
+  --theme-soft-surface: var(--ds-color-surface);
+  --theme-muted-surface: var(--ds-color-background-soft);
+  background: var(--ds-color-background);
   padding: 14px 20px 30px;
 }
 
 :global(.concierge-dashboard) .kpiSection {
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-3);
 }
 
 :global(.concierge-dashboard) .dashboardGrid {
   grid-template-columns: minmax(310px, 0.95fr) minmax(400px, 1.35fr) minmax(240px, 0.75fr);
-  gap: 12px;
+  gap: var(--ds-space-3);
 }
 
 :global(.concierge-dashboard) .mainColumn {
@@ -93,13 +87,13 @@
 :global(.concierge-dashboard) .priorityHeroCard,
 :global(.concierge-dashboard) .panelCard,
 :global(.concierge-dashboard) .embeddedModule {
-  border-radius: 12px;
+  border-radius: var(--ds-radius-card);
   box-shadow: 0 4px 12px rgb(30 40 35 / 0.05);
 }
 
 :global(.concierge-dashboard) .primaryGrid {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 12px;
+  gap: var(--ds-space-3);
 }
 
 @media (max-width: 1200px) {
@@ -114,8 +108,8 @@
 }
 
 @media (max-width: 780px) {
-  :global(.concierge-dashboard) {
-    padding: 12px;
+  .dashboardRoot:global(.concierge-dashboard) {
+    padding: var(--ds-space-3);
   }
 
   :global(.concierge-dashboard) .dashboardGrid,
@@ -129,73 +123,6 @@
   :global(.concierge-dashboard) .sidebarColumn {
     grid-column: auto;
   }
-}
-
-:global(.theme-concierge) .dashboardRoot {
-  --theme-accent: #0f8b62;
-  --theme-accent-strong: #0b6d4d;
-  --theme-secondary: #f0b44c;
-  --theme-secondary-strong: #ca8a18;
-  --theme-soft: #5f716a;
-  --theme-soft-surface: #ffffff;
-  --theme-muted-surface: #f8fbfa;
-  --theme-badge-surface: rgba(15, 139, 98, 0.08);
-  --theme-text: #162720;
-  --theme-text-soft: #607067;
-  --theme-border: rgba(15, 139, 98, 0.14);
-  --theme-shadow: rgba(17, 37, 29, 0.08);
-  --theme-glow: rgba(15, 139, 98, 0.14);
-}
-
-:global(.theme-owner) .dashboardRoot {
-  --theme-accent: #149a68;
-  --theme-accent-strong: #0d6a49;
-  --theme-secondary: #f2b94b;
-  --theme-secondary-strong: #cf8a18;
-  --theme-soft: #65736b;
-  --theme-soft-surface: #ffffff;
-  --theme-muted-surface: #fffaf1;
-  --theme-badge-surface: rgba(20, 154, 104, 0.12);
-  --theme-text: #1f2b24;
-  --theme-text-soft: #64736b;
-  --theme-border: rgba(20, 154, 104, 0.16);
-  --theme-shadow: rgba(100, 64, 15, 0.08);
-  --theme-glow: rgba(242, 185, 75, 0.24);
-  --theme-panel-highlight: rgba(255, 250, 240, 0.95);
-  --paper-ivory: #fff8ec;
-  --paper-warm: #fdf5e7;
-}
-
-:global(.theme-artisan) .dashboardRoot {
-  --theme-accent: #15805d;
-  --theme-accent-strong: #0f674a;
-  --theme-secondary: #ed9f3b;
-  --theme-secondary-strong: #c77918;
-  --theme-soft: #67766f;
-  --theme-soft-surface: #fffdfb;
-  --theme-muted-surface: #f7fbf9;
-  --theme-badge-surface: rgba(21, 128, 93, 0.1);
-  --theme-text: #1c2722;
-  --theme-text-soft: #607067;
-  --theme-border: rgba(21, 128, 93, 0.14);
-  --theme-shadow: rgba(17, 37, 29, 0.08);
-  --theme-glow: rgba(21, 128, 93, 0.14);
-}
-
-:global(.theme-admin) .dashboardRoot {
-  --theme-accent: var(--ds-color-accent);
-  --theme-accent-strong: var(--ds-color-secondary);
-  --theme-secondary: var(--ds-color-primary);
-  --theme-secondary-strong: var(--ds-color-primary-hover);
-  --theme-soft: var(--ds-color-text-secondary);
-  --theme-soft-surface: var(--ds-color-surface);
-  --theme-muted-surface: var(--ds-color-surface-soft);
-  --theme-badge-surface: color-mix(in srgb, var(--ds-color-accent) 10%, transparent);
-  --theme-text: var(--ds-color-text-primary);
-  --theme-text-soft: var(--ds-color-text-secondary);
-  --theme-border: var(--ds-color-border);
-  --theme-shadow: rgba(26, 37, 48, 0.06);
-  --theme-glow: color-mix(in srgb, var(--ds-color-accent) 12%, transparent);
 }
 
 .heroCard,
@@ -214,7 +141,7 @@
 
 .heroCard {
   display: grid;
-  gap: 1rem;
+  gap: var(--ds-space-4);
   padding: clamp(1.25rem, 2.4vw, 2rem);
   border-radius: calc(var(--radius-lg) + 8px);
   background:
@@ -313,8 +240,8 @@
   justify-content: space-between;
   gap: 0.8rem;
   min-height: 48px;
-  padding: 0.85rem 1rem;
-  border-radius: 999px;
+  padding: 0.85rem var(--ds-space-4);
+  border-radius: var(--ds-radius-pill);
   border: 1px solid transparent;
   font-weight: 700;
   text-decoration: none;
@@ -362,14 +289,14 @@
 
 .dashboardGrid {
   display: grid;
-  gap: 1rem;
+  gap: var(--ds-space-4);
   grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
 .mainColumn,
 .sidebarColumn {
   display: grid;
-  gap: 1rem;
+  gap: var(--ds-space-4);
 }
 
 .mainColumn {
@@ -429,7 +356,7 @@
 .disclosureCard summary {
   display: grid;
   gap: 0.18rem;
-  padding: 0.95rem 1rem;
+  padding: 0.95rem var(--ds-space-4);
   list-style: none;
   cursor: pointer;
 }
@@ -444,7 +371,7 @@
 }
 
 .disclosureBody {
-  padding: 0 1rem 1rem;
+  padding: 0 var(--ds-space-4) var(--ds-space-4);
 }
 
 .disclosureList {
@@ -532,25 +459,25 @@
 
 /* Premium workspace refresh */
 .dashboardRoot {
-  --theme-border: rgba(17, 24, 39, 0.1);
+  --theme-border: var(--ds-color-border);
   --theme-shadow: rgba(15, 23, 42, 0.06);
-  --theme-muted-surface: #f7f8fa;
-  --paper-warm: #f5f6f8;
-  --radius-md: 8px;
-  --radius-lg: 8px;
-  --radius-lg-token: 8px;
-  --shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.06);
-  gap: 1rem;
-  padding: clamp(0.85rem, 1.8vw, 1.25rem);
-  background: #f5f6f8;
+  --theme-muted-surface: var(--ds-color-background-soft);
+  --paper-warm: var(--ds-color-background);
+  --radius-md: var(--ds-radius-control);
+  --radius-lg: var(--ds-radius-card);
+  --radius-lg-token: var(--ds-radius-card);
+  --shadow-soft: var(--ds-shadow-sm);
+  gap: var(--ds-space-4);
+  padding: 0;
+  background: var(--ds-color-background);
 }
 
 .heroCard,
 .embeddedModule,
 .disclosureCard {
-  border-color: rgba(17, 24, 39, 0.1);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-  background: #ffffff;
+  border-color: var(--ds-color-border);
+  box-shadow: var(--ds-shadow-sm);
+  background: var(--ds-color-surface);
 }
 
 .heroCard {
@@ -558,7 +485,7 @@
   align-items: end;
   gap: 1.25rem;
   padding: clamp(1rem, 1.8vw, 1.35rem);
-  border-radius: 8px;
+  border-radius: var(--ds-radius-control);
   border-left: 4px solid var(--theme-accent);
 }
 
@@ -579,7 +506,7 @@
 
 .heroEyebrow,
 .panelEyebrow {
-  color: #6b7280;
+  color: var(--ds-color-text-secondary);
   font-size: 0.68rem;
   letter-spacing: 0.08em;
 }
@@ -589,7 +516,7 @@
 }
 
 .heroTitleWrap h1 {
-  color: #111827;
+  color: var(--ds-color-text-primary);
   font-size: clamp(1.45rem, 2vw, 2.05rem);
   line-height: 1.08;
   letter-spacing: 0;
@@ -602,7 +529,7 @@
 .embeddedHeader span,
 .disclosureCard summary small,
 .disclosureBody {
-  color: #667085;
+  color: var(--ds-color-text-secondary);
   line-height: 1.45;
 }
 
@@ -613,11 +540,8 @@
 /* The Admin cockpit follows the validated prototype without changing shared role layouts. */
 .adminPrototype {
   gap: var(--ds-space-section);
-  padding: var(--ds-space-page);
-  background:
-    radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--ds-color-primary) 16%, transparent), transparent 24%),
-    radial-gradient(circle at 0% 20%, color-mix(in srgb, var(--ds-color-accent) 9%, transparent), transparent 26%),
-    var(--ds-color-background);
+  padding: 0;
+  background: var(--ds-color-background);
 }
 
 .adminPrototype .heroCard {
@@ -627,9 +551,7 @@
   border: var(--ds-border-subtle);
   border-left: 4px solid var(--ds-color-primary);
   border-radius: var(--ds-radius-xl);
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--ds-color-primary) 18%, transparent), transparent 30%),
-    linear-gradient(135deg, var(--ds-color-surface-soft), var(--ds-color-surface) 62%);
+  background: var(--ds-color-surface);
   box-shadow: var(--ds-shadow-md);
 }
 
@@ -672,7 +594,7 @@
 
 .adminPrototype .kpiSection {
   gap: var(--ds-space-4);
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .adminPrototype .dashboardGrid {
@@ -713,9 +635,7 @@
   border: var(--ds-border-subtle);
   border-left: 4px solid var(--ds-color-primary);
   border-radius: var(--ds-radius-xl);
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--ds-color-primary) 18%, transparent), transparent 30%),
-    linear-gradient(135deg, var(--ds-color-surface-soft), var(--ds-color-surface) 62%);
+  background: var(--ds-color-surface);
   box-shadow: var(--ds-shadow-md);
 }
 
@@ -731,7 +651,7 @@
 
 .adminPrototype .kpiSection {
   gap: var(--ds-space-4);
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .adminPrototype .dashboardGrid {
@@ -801,7 +721,7 @@
 .actionButton {
   min-height: 42px;
   padding: 0.65rem 0.8rem;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-control);
   font-size: 0.86rem;
 }
 
@@ -818,23 +738,23 @@
 .secondaryAction,
 .ghostAction {
   border-color: rgba(17, 24, 39, 0.12);
-  background: #ffffff;
-  color: #111827;
+  background: var(--ds-color-surface);
+  color: var(--ds-color-text-primary);
 }
 
 .kpiSection {
-  gap: 0.75rem;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--ds-space-3);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
 }
 
 .dashboardGrid {
-  gap: 1rem;
+  gap: var(--ds-space-4);
   grid-template-columns: minmax(0, 1fr) minmax(320px, 0.42fr);
 }
 
 .mainColumn,
 .sidebarColumn {
-  gap: 1rem;
+  gap: var(--ds-space-4);
 }
 
 .mainColumn,
@@ -843,20 +763,20 @@
 }
 
 .embeddedModule {
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
   padding: 0.85rem;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-control);
   min-height: auto;
 }
 
 .embeddedHeader h3 {
-  color: #111827;
+  color: var(--ds-color-text-primary);
   font-size: 0.98rem;
   letter-spacing: 0;
 }
 
 .disclosureCard {
-  border-radius: 8px;
+  border-radius: var(--ds-radius-control);
 }
 
 .disclosureCard[open] {
@@ -868,7 +788,7 @@
 }
 
 .disclosureCard summary span {
-  color: #111827;
+  color: var(--ds-color-text-primary);
 }
 
 .disclosureBody {
@@ -897,7 +817,7 @@
 
 @media (max-width: 560px) {
   .dashboardRoot {
-    padding: 0.75rem;
+    padding: var(--ds-space-3);
   }
 
   .kpiSection {

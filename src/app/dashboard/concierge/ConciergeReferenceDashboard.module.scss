@@ -1,6 +1,8 @@
+@use "../../styles/abstracts/variables" as var;
+@use "sass:map";
 .referenceDashboard {
     display: grid;
-    gap: 12px;
+    gap: var(--ds-space-3);
     padding: 14px 20px 30px;
     color: var(--theme-text);
 }
@@ -8,13 +10,13 @@
 .kpiGrid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
+    gap: var(--ds-space-3);
 }
 
 .mainGrid {
     display: grid;
     grid-template-columns: minmax(300px, .95fr) minmax(400px, 1.35fr) minmax(240px, .75fr);
-    gap: 12px;
+    gap: var(--ds-space-3);
     align-items: start;
 }
 
@@ -22,14 +24,14 @@
 .centerColumn,
 .rightColumn {
     display: grid;
-    gap: 12px;
+    gap: var(--ds-space-3);
     min-width: 0;
 }
 
 .card {
-    background: #fffdf8;
-    border: 1px solid #e8e1d5;
-    border-radius: 12px;
+    background: var(--ds-color-surface);
+    border: 1px solid var(--ds-color-border);
+    border-radius: var(--ds-radius-card);
     box-shadow: 0 4px 12px rgb(30 40 35 / 5%);
 }
 
@@ -38,20 +40,20 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 0 16px;
-    border-bottom: 1px solid #e8e1d5;
+    gap: var(--ds-space-3);
+    padding: 0 var(--ds-space-4);
+    border-bottom: 1px solid var(--ds-color-border);
 }
 
 .cardHeader h2 {
     margin: 0;
     font: 650 21px/1.1 var(--ds-font-heading);
-    color: #173f35;
+    color: var(--ds-color-primary-hover);
 }
 
 .eyebrow {
     display: block;
-    color: #9b7434;
+    color: var(--ds-color-gold-strong);
     font: 800 10px var(--ds-font-ui);
     letter-spacing: .12em;
     text-transform: uppercase;
@@ -60,8 +62,8 @@
 .cardLink {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    color: #276a58;
+    gap: var(--ds-space-1);
+    color: var(--ds-color-primary);
     font-size: 10px;
     font-weight: 800;
     text-decoration: none;
@@ -74,17 +76,17 @@
 .nextContent {
     display: grid;
     grid-template-columns: 120px 1fr;
-    gap: 16px;
-    padding: 16px;
+    gap: var(--ds-space-4);
+    padding: var(--ds-space-4);
 }
 
 .nextImage {
     display: grid;
     place-items: center;
     min-height: 142px;
-    border-radius: 8px;
+    border-radius: var(--ds-radius-control);
     background: linear-gradient(145deg, #d9e8df, #b9d0c1);
-    color: #276a58;
+    color: var(--ds-color-primary);
 }
 
 .nextDetails {
@@ -95,20 +97,20 @@
 }
 
 .missionTime {
-    color: #1e5648;
+    color: var(--ds-color-primary-hover);
     font: 650 27px/1 var(--ds-font-heading);
 }
 
 .nextDetails h3 {
     margin: 2px 0 0;
-    color: #1e5648;
+    color: var(--ds-color-primary-hover);
     font: 650 21px/1.05 var(--ds-font-heading);
 }
 
 .nextDetails p,
 .empty {
     margin: 0;
-    color: #5f665f;
+    color: var(--ds-color-text-secondary);
     font-size: 12px;
 }
 
@@ -123,13 +125,13 @@
     display: flex;
     align-items: center;
     gap: 7px;
-    color: #5f665f;
+    color: var(--ds-color-text-secondary);
 }
 
 .actionRow {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--ds-space-2);
     margin-top: 10px;
 }
 
@@ -149,19 +151,19 @@
 }
 
 .primaryButton {
-    background: linear-gradient(135deg, #276a58, #1e5648);
+    background: linear-gradient(135deg, var(--ds-color-primary), var(--ds-color-primary-hover));
     color: #fff;
 }
 
 .secondaryButton {
     border: 1px solid #387d6a;
     background: #fff;
-    color: #1e5648;
+    color: var(--ds-color-primary-hover);
 }
 
 .alertButton {
     border: 1px solid #d9a096;
-    color: #ad3026;
+    color: var(--ds-color-error);
     background: #fff8f4;
 }
 
@@ -169,7 +171,7 @@
     display: grid;
     gap: 0;
     margin: 0;
-    padding: 16px;
+    padding: var(--ds-space-4);
     list-style: none;
 }
 
@@ -178,7 +180,7 @@
     display: grid;
     grid-template-columns: 30px 50px minmax(0, 1fr) auto;
     align-items: center;
-    gap: 8px;
+    gap: var(--ds-space-2);
     min-height: 55px;
     padding-bottom: 10px;
 }
@@ -201,7 +203,7 @@
     width: 29px;
     height: 29px;
     border-radius: 50%;
-    background: #276a58;
+    background: var(--ds-color-primary);
     color: #fff;
     font-size: 11px;
     font-weight: 800;
@@ -218,14 +220,14 @@
 
 .stepContent strong {
     overflow: hidden;
-    color: #1c211f;
+    color: var(--ds-color-text-primary);
     font: 650 13px var(--ds-font-heading);
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .stepContent small {
-    color: #5f665f;
+    color: var(--ds-color-text-secondary);
     font-size: 9px;
 }
 
@@ -239,7 +241,7 @@
 
 .tableWrap {
     overflow-x: auto;
-    padding: 0 16px 12px;
+    padding: 0 var(--ds-space-4) var(--ds-space-3);
 }
 
 .tableWrap table {
@@ -249,16 +251,16 @@
 }
 
 .tableWrap th {
-    padding: 10px 8px;
+    padding: 10px var(--ds-space-2);
     background: #f8f6f1;
-    color: #5f665f;
+    color: var(--ds-color-text-secondary);
     text-align: left;
     font-size: 9px;
 }
 
 .tableWrap td {
-    padding: 9px 8px;
-    border-bottom: 1px solid #e8e1d5;
+    padding: 9px var(--ds-space-2);
+    border-bottom: 1px solid var(--ds-color-border);
     vertical-align: middle;
 }
 
@@ -271,16 +273,16 @@
 .alert h2 {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--ds-space-2);
     margin: 0;
-    color: #276a58;
+    color: var(--ds-color-primary);
     font: 650 17px var(--ds-font-heading);
 }
 
 .optimization p,
 .alert p {
-    margin: 12px 0;
-    color: #5f665f;
+    margin: var(--ds-space-3) 0;
+    color: var(--ds-color-text-secondary);
     font: 13px/1.45 var(--ds-font-heading);
 }
 
@@ -292,12 +294,12 @@
 
 .alert h2,
 .alert strong {
-    color: #ad3026;
+    color: var(--ds-color-error);
 }
 
 .alert strong {
     display: block;
-    margin-top: 8px;
+    margin-top: var(--ds-space-2);
     font: 700 16px var(--ds-font-heading);
 }
 
@@ -308,8 +310,8 @@
 .quickGrid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    padding: 12px;
+    gap: var(--ds-space-2);
+    padding: var(--ds-space-3);
 }
 
 .quickGrid a {
@@ -319,10 +321,10 @@
     justify-content: center;
     gap: 7px;
     min-height: 66px;
-    padding: 8px;
-    border: 1px solid #e8e1d5;
-    border-radius: 8px;
-    color: #1c211f;
+    padding: var(--ds-space-2);
+    border: 1px solid var(--ds-color-border);
+    border-radius: var(--ds-radius-control);
+    color: var(--ds-color-text-primary);
     font-size: 9px;
     font-weight: 700;
     text-align: center;
@@ -330,7 +332,7 @@
 }
 
 .quickGrid a:hover {
-    background: #fbf8f1;
+    background: var(--ds-color-background-soft);
     border-color: #ddc492;
 }
 
@@ -342,9 +344,9 @@
     display: grid;
     grid-template-columns: 30px minmax(0, 1fr) auto;
     align-items: center;
-    gap: 8px;
-    padding: 9px 12px;
-    border-bottom: 1px solid #e8e1d5;
+    gap: var(--ds-space-2);
+    padding: 9px var(--ds-space-3);
+    border-bottom: 1px solid var(--ds-color-border);
     color: inherit;
     text-decoration: none;
 }
@@ -359,8 +361,8 @@
     width: 29px;
     height: 29px;
     border-radius: 50%;
-    background: #e3f0eb;
-    color: #276a58;
+    background: var(--ds-color-primary-soft);
+    color: var(--ds-color-primary);
 }
 
 .message>span:nth-child(2) {
@@ -378,7 +380,7 @@
 .message small,
 .message time {
     overflow: hidden;
-    color: #5f665f;
+    color: var(--ds-color-text-secondary);
     font-size: 9px;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -388,8 +390,8 @@
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 12px;
-    padding: 13px 16px;
+    gap: var(--ds-space-3);
+    padding: 13px var(--ds-space-4);
     background: #fff7f4;
     border-color: #f2cbc3;
 }
@@ -398,18 +400,18 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: #ad3026;
+    color: var(--ds-color-error);
     font: 700 16px var(--ds-font-heading);
 }
 
 .priorityBar p {
     margin: 0;
-    color: #5f665f;
+    color: var(--ds-color-text-secondary);
     font-size: 11px;
 }
 
 .priorityBar a {
-    color: #ad3026;
+    color: var(--ds-color-error);
     font-size: 10px;
     font-weight: 800;
     text-decoration: none;
@@ -417,7 +419,7 @@
 
 .footerNote {
     margin: 0;
-    color: #858a84;
+    color: var(--ds-color-text-secondary);
     font-size: 10px;
     text-align: right;
 }
@@ -433,14 +435,14 @@
     }
 }
 
-@media (max-width:780px) {
+@media (max-width: map.get(var.$breakpoints, dashboard-stack)) {
     .referenceDashboard {
-        padding: 12px;
+        padding: var(--ds-space-3);
     }
 
     .kpiGrid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
+        gap: var(--ds-space-2);
     }
 
     .mainGrid {
@@ -466,7 +468,7 @@
     }
 }
 
-@media (max-width:480px) {
+@media (max-width: map.get(var.$breakpoints, dashboard-small)) {
     .nextContent {
         grid-template-columns: 1fr;
     }
@@ -493,4 +495,290 @@
         grid-column: 3;
         justify-self: start;
     }
+}
+
+/* Composition de référence : mission et tournée alignées, suivi à droite. */
+.referenceDashboard {
+    gap: var(--ds-space-4);
+    padding: 18px 20px var(--ds-space-6);
+    color: #263d34;
+}
+
+.mainGrid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) minmax(240px, .72fr);
+    grid-template-areas: "mission tour aside" "steps missions aside";
+    gap: var(--ds-space-4);
+    align-items: stretch;
+}
+
+.leftColumn,
+.centerColumn {
+    display: contents;
+}
+
+.nextMission {
+    grid-area: mission;
+}
+
+.stepsCard {
+    grid-area: steps;
+    align-self: start;
+}
+
+.centerColumn>section {
+    grid-area: tour;
+    min-width: 0;
+    border: 1px solid var(--ds-color-border);
+    border-radius: var(--ds-radius-card);
+    background: var(--ds-color-surface);
+    box-shadow: none;
+    padding: 18px;
+}
+
+.tableCard {
+    grid-area: missions;
+    align-self: start;
+}
+
+.rightColumn {
+    grid-area: aside;
+    display: grid;
+    grid-template-columns: 1fr;
+    align-content: start;
+    gap: var(--ds-space-3);
+}
+
+.metric {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    min-height: 102px;
+    padding: 18px 20px;
+    border: 1px solid var(--ds-color-border);
+    border-radius: var(--ds-radius-card);
+    background: var(--ds-color-surface);
+    box-shadow: 0 2px 4px #43351e05;
+}
+
+.metric>div {
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+}
+
+.metric strong,
+.metric span,
+.metric small {
+    color: var(--ds-color-primary-hover);
+}
+
+.metric strong {
+    font: 600 28px/1.1 var(--ds-font-heading);
+}
+
+.metric span {
+    font: 400 13px/1.35 var(--ds-font-ui);
+}
+
+.metric small {
+    font-size: 12px;
+}
+
+.metricTomorrow {
+    color: #24634f;
+    font-weight: 700;
+}
+
+.metricIcon {
+    flex-shrink: 0;
+    color: var(--ds-color-gold);
+}
+
+.cardHeader {
+    min-height: 60px;
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    gap: var(--ds-space-2);
+}
+
+.cardHeader h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-2);
+    font-size: 22px;
+}
+
+.cardHeader h2 svg {
+    flex-shrink: 0;
+    color: var(--ds-color-gold);
+}
+
+.cardLink {
+    font-size: 12px;
+    min-height: 32px;
+}
+
+.eyebrow {
+    font-size: 10px;
+    margin-bottom: var(--ds-space-1);
+}
+
+.nextContent {
+    grid-template-columns: minmax(72px, .32fr) minmax(0, 1fr);
+    gap: 14px;
+    padding: var(--ds-space-4) 14px;
+}
+
+.nextImage {
+    background: linear-gradient(150deg, #f7edda, #e4dfce);
+    color: var(--ds-color-gold);
+}
+
+.nextDetails h3 {
+    font-size: 22px;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+}
+
+.nextDetails p,
+.detailList {
+    font-size: 13px;
+}
+
+.primaryButton,
+.secondaryButton,
+.alertButton {
+    min-height: 44px;
+    font-size: 12px;
+    text-align: center;
+}
+
+.optimization h2,
+.alert h2 {
+    font-size: 19px;
+}
+
+.optimization p,
+.alert p {
+    font: 400 13px/1.6 var(--ds-font-ui);
+}
+
+.quickGrid a {
+    min-height: 78px;
+    font-size: 12px;
+}
+
+.quickGrid svg {
+    color: var(--ds-color-gold);
+    width: 23px;
+    height: 23px;
+}
+
+.message strong {
+    font-size: 12px;
+}
+
+.message small,
+.message time {
+    font-size: 11px;
+}
+
+.empty {
+    padding: 18px;
+    line-height: 1.5;
+}
+
+.referenceDashboard a:focus-visible {
+    outline: 3px solid var(--ds-color-gold);
+    outline-offset: 3px;
+}
+
+@media (max-width: map.get(var.$breakpoints, dashboard-columns)) {
+    .mainGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-areas: "mission tour" "steps missions" "aside aside";
+    }
+
+    .rightColumn {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .metric {
+        gap: 10px;
+        padding: 14px;
+    }
+
+    .metricIcon {
+        width: 32px;
+    }
+}
+
+@media (max-width: map.get(var.$breakpoints, dashboard-stack)) {
+    .mainGrid {
+        grid-template-columns: 1fr;
+        grid-template-areas: "mission" "tour" "steps" "missions" "aside";
+    }
+
+    .rightColumn {
+        grid-template-columns: 1fr;
+    }
+
+    .referenceDashboard {
+        padding: var(--ds-space-3);
+    }
+
+    .kpiGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: map.get(var.$breakpoints, dashboard-small)) {
+    .metric {
+        align-items: flex-start;
+        gap: var(--ds-space-2);
+        padding: var(--ds-space-3);
+    }
+
+    .metricIcon {
+        width: 27px;
+        height: 32px;
+    }
+
+    .metric strong {
+        font-size: 24px;
+    }
+
+    .metric span,
+    .metric small {
+        font-size: 11px;
+    }
+
+    .nextContent {
+        grid-template-columns: 1fr;
+    }
+
+    .nextImage {
+        min-height: 100px;
+    }
+}
+
+.rightColumn .cardHeader h2 {
+    font-size: 18px;
+}
+
+.rightColumn .cardHeader {
+    min-height: 48px;
+}
+
+.rightColumn .quickGrid a {
+    min-height: 68px;
+}
+
+.rightColumn .optimization p,
+.rightColumn .alert p {
+    margin: 9px 0;
+}
+
+.referenceDashboard {
+    padding-inline: 0;
 }

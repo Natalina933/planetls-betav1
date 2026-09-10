@@ -177,7 +177,7 @@ export default function UnifiedRoleDashboard({
   const kpiCount = Math.max(kpis.length, 1);
 
   return (
-    <main className={rootClassName}>
+    <div className={rootClassName} data-dashboard-theme="">
       {customLayout ? customLayout : null}
       {!customLayout ? <>
         <section className={styles.heroCard}>
@@ -326,6 +326,6 @@ export default function UnifiedRoleDashboard({
           </DashboardSection>
         </aside>
       </section> : null}
-    </main>
+    </div>
   );
 }

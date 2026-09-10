@@ -6,7 +6,7 @@
 .header {
   display: flex;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--ds-space-4);
   align-items: flex-start;
 }
 
@@ -37,7 +37,7 @@
 .metrics {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
 }
 
 .metrics span,
@@ -47,7 +47,7 @@
   justify-content: center;
   min-height: 36px;
   padding: 0.45rem 0.8rem;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   background: rgba(138, 161, 109, 0.14);
   color: #294027;
   font-weight: 700;
@@ -56,17 +56,17 @@
 .layout {
   display: grid;
   grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
-  gap: 1rem;
+  gap: var(--ds-space-4);
 }
 
 .panel {
   display: grid;
-  gap: 1rem;
-  padding: 1rem;
-  border-radius: 22px;
-  border: 1px solid rgba(76, 97, 69, 0.18);
-  background: rgba(249, 251, 247, 0.96);
-  box-shadow: 0 10px 24px rgba(30, 41, 25, 0.06);
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-4);
+  border-radius: var(--ds-radius-card);
+  border: var(--ds-border-subtle);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-sm);
 }
 
 .panelHeader,
@@ -78,7 +78,7 @@
 .inlineBadge {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
   align-items: center;
 }
 
@@ -93,7 +93,7 @@
 .toolbarGroup {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
   align-items: center;
 }
 
@@ -108,7 +108,7 @@
 .viewTabs {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--ds-space-2);
 }
 
 .counter {
@@ -117,7 +117,7 @@
   justify-content: center;
   min-height: 34px;
   padding: 0.35rem 0.7rem;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   background: rgba(76, 97, 69, 0.08);
   color: #355236;
   font-weight: 700;
@@ -151,7 +151,7 @@
   border-radius: 14px;
   border: 1px solid rgba(76, 97, 69, 0.2);
   padding: 0.8rem 0.95rem;
-  background: #ffffff;
+  background: var(--ds-color-surface);
   color: #172012;
 }
 
@@ -172,10 +172,10 @@
 .itemCard {
   display: grid;
   gap: 0.85rem;
-  padding: 1rem;
+  padding: var(--ds-space-4);
   border-radius: 18px;
   border: 1px solid rgba(76, 97, 69, 0.14);
-  background: #ffffff;
+  background: var(--ds-color-surface);
 }
 
 .itemCardTargeted {
@@ -227,7 +227,7 @@
 
 .spotlightGrid {
   display: grid;
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
 }
 
 .spotlightCard {
@@ -245,7 +245,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
 }
 
 .chartRow {
@@ -256,7 +256,7 @@
 .chartHead {
   display: flex;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
   align-items: center;
   color: #355236;
   font-weight: 700;
@@ -264,14 +264,14 @@
 
 .chartTrack {
   height: 10px;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   background: rgba(76, 97, 69, 0.12);
   overflow: hidden;
 }
 
 .chartBar {
   height: 100%;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   background: linear-gradient(135deg, #8aa16d, #c4d7a4);
 }
 
@@ -284,7 +284,7 @@
 .weekBoard {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
 }
 
 .weekColumn {
@@ -301,7 +301,7 @@
 .weekEventCard {
   display: grid;
   gap: 0.45rem;
-  padding: 0.75rem;
+  padding: var(--ds-space-3);
   border-radius: 14px;
   background: rgba(138, 161, 109, 0.1);
 }
@@ -325,7 +325,7 @@
 .calendarHeader {
   display: grid;
   gap: 0.35rem;
-  padding: 0.75rem;
+  padding: var(--ds-space-3);
   border-radius: 14px;
 }
 
@@ -339,7 +339,7 @@
 .calendarCell {
   min-height: 110px;
   border: 1px solid rgba(76, 97, 69, 0.12);
-  background: #ffffff;
+  background: var(--ds-color-surface);
 }
 
 .calendarCellMuted {
@@ -352,7 +352,7 @@
 }
 
 .calendarEvent {
-  padding: 0.35rem 0.5rem;
+  padding: 0.35rem var(--ds-space-2);
   border-radius: 10px;
   background: rgba(138, 161, 109, 0.14);
   color: #23311f;
@@ -362,7 +362,7 @@
 .successBox,
 .errorBox,
 .infoBox {
-  padding: 0.85rem 1rem;
+  padding: 0.85rem var(--ds-space-4);
   border-radius: 14px;
   font-weight: 700;
 }
@@ -394,8 +394,8 @@
   align-items: center;
   justify-content: center;
   min-height: 42px;
-  padding: 0.7rem 1rem;
-  border-radius: 999px;
+  padding: 0.7rem var(--ds-space-4);
+  border-radius: var(--ds-radius-pill);
   font-weight: 700;
   text-decoration: none;
 }
@@ -453,7 +453,7 @@
 }
 
 :global([data-theme="art-deco"]) .page {
-  gap: 1rem;
+  gap: var(--ds-space-4);
 }
 
 :global([data-theme="art-deco"]) .eyebrow {

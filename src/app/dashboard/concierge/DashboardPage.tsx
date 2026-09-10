@@ -87,6 +87,17 @@ function isToday(value: string | null | undefined) {
   return date ? isSameLocalDay(date, new Date()) : false;
 }
 
+function getTomorrow() {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return tomorrow;
+}
+
+function isTomorrow(value: string | Date | null | undefined) {
+  const date = getDateTime(value);
+  return date ? isSameLocalDay(date, getTomorrow()) : false;
+}
+
 function isWithinNextDays(value: string | Date | null | undefined, days: number) {
   const date = getDateTime(value);
   if (!date) return false;
@@ -471,16 +482,16 @@ function ConciergeInspirationPanel({
                   <a
                     href={video.watchUrl}
                     target="_blank"
-                  rel="noreferrer"
-                  className={styles.inspirationThumbLink}
-                >
-                  <div className={styles.inspirationEmbedWrap}>
-                    {/* The YouTube thumbnail host is not managed through next/image in this project yet. */}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`}
-                      alt={`Aperçu YouTube ${video.id}`}
-                      loading="lazy"
+                    rel="noreferrer"
+                    className={styles.inspirationThumbLink}
+                  >
+                    <div className={styles.inspirationEmbedWrap}>
+                      {/* The YouTube thumbnail host is not managed through next/image in this project yet. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`}
+                        alt={`Aperçu YouTube ${video.id}`}
+                        loading="lazy"
                       />
                       <span className={styles.inspirationPlayBadge}>Lecture</span>
                     </div>
@@ -514,11 +525,11 @@ function ConciergeInspirationPanel({
 export default function DashboardPage() {
   const { user, loading, isAuthenticated } = useCurrentUser() as {
     user:
-      | (CurrentUser & {
-          experience_level?: string | null;
-          years_experience?: number | null;
-        })
-      | null;
+    | (CurrentUser & {
+      experience_level?: string | null;
+      years_experience?: number | null;
+    })
+    | null;
     loading: boolean;
     isAuthenticated: boolean;
   };
@@ -637,6 +648,20 @@ export default function DashboardPage() {
     [planningEvents],
   );
 
+  const tomorrowPlanningCount = useMemo(
+    () => planningEvents.filter((event) => isTomorrow(event.start)).length,
+    [planningEvents],
+  );
+
+  const tomorrowHousingCount = useMemo(() => {
+    const ids = new Set(
+      missionRows
+        .filter((mission) => !isMissionClosed(mission.status) && isTomorrow(mission.scheduled_start) && mission.property_id)
+        .map((mission) => mission.property_id),
+    );
+    return ids.size;
+  }, [missionRows]);
+
 
   const missionPaceMeta = useMemo(() => getDashboardMissionPaceMeta(todayPlanningCount), [todayPlanningCount]);
 
@@ -668,9 +693,9 @@ export default function DashboardPage() {
               label: "Prochain moment",
               value: relatedMission?.scheduled_start
                 ? (formatDateValue(relatedMission.scheduled_start, {
-                    day: "2-digit",
-                    month: "short",
-                  }) || "Planifie")
+                  day: "2-digit",
+                  month: "short",
+                }) || "Planifie")
                 : "Libre",
             },
             {
@@ -1167,7 +1192,9 @@ export default function DashboardPage() {
           <ConciergeReferenceDashboard
             events={todayPlanning}
             missionCount={todayPlanningCount}
+            tomorrowMissionCount={tomorrowPlanningCount}
             housingCount={housings.length}
+            tomorrowHousingCount={tomorrowHousingCount}
             housingActionsCount={housingActionsCount}
             pendingValidationCount={pendingValidationCount}
             unreadConversationCount={unreadConversationCount}
@@ -1175,7 +1202,7 @@ export default function DashboardPage() {
             priorityTitle={priorityRequest?.property_name || priorityRequest?.title || "Aucune priorité terrain"}
             priorityDetail={priorityRequest ? `${priorityRequest.title} · ${priorityRequest.city || "Ville à préciser"}` : "Aucun point prioritaire détecté."}
             priorityHref={priorityRequest ? getRequestHref(priorityRequest) : "/dashboard/concierge/planning"}
-            activityItems={activityItems.map((item) => ({ id: item.id, title: item.title, detail: item.detail, meta: item.meta || "Récent" }))}
+            activityItems={activityItems.filter((item) => item.id.startsWith("conversation-")).map((item) => ({ id: item.id, title: item.title, detail: item.detail, meta: item.meta || "Récent", href: item.href }))}
           />
         }
         title={`${getGreetingLabel()} ${conciergeName}, voici votre cockpit ${operatingModeConfig.shortLabel.toLowerCase()} du jour.`}
@@ -1250,121 +1277,121 @@ export default function DashboardPage() {
           <div className={styles.leftPrimaryStack}>
             <ConciergeRoutePreview events={todayPlanning} />
             <div className={styles.primaryGrid}>
-            <article className={styles.priorityHeroCard}>
-              <div className={styles.priorityTop}>
-                <DashboardStatusBadge
-                  label={priorityRequest?.urgency ? operatingModeConfig.priorityLabel : todayArrivals > 0 ? operatingModeConfig.kpiLabels.arrivals : "Point d'attention"}
-                  tone={priorityRequest?.urgency ? "danger" : todayArrivals > 0 ? "warning" : "info"}
-                />
-                <span className={styles.priorityIcon}>
-                  <PriorityIcon size={22} />
-                </span>
-              </div>
-              <div className={styles.priorityCopy}>
-                <strong>{priorityRequest?.property_name || priorityRequest?.title || "Aucune urgence terrain détectée"}</strong>
-                <p>
-                  {priorityRequest
-                    ? `${priorityRequest.title} · ${priorityRequest.city || "Ville à préciser"}`
-                    : "Votre tableau de bord ne détecte pas de mission bloquante à cet instant."}
-                </p>
-              </div>
-              <div className={styles.priorityMeta}>
-                <span>
-                  <Clock3 size={14} />
-                  {priorityRequest?.desired_date ? `Check-in à ${formatTime(priorityRequest.desired_date)}` : "Horaire à confirmer"}
-                </span>
-                <span>
-                  <UsersRound size={14} />
-                  Voyageur ou propriétaire à coordonner
-                </span>
-              </div>
-              <p className={styles.priorityNote}>
-                {priorityRequest
-                  ? `Action attendue : ${getRequestActionLabel(priorityRequest).toLowerCase()}.`
-                  : "Surveiller les demandes, le planning et les urgences terrain."}
-              </p>
-              <div className={styles.actionRow}>
-                <Link
-                  href={priorityRequest ? getRequestHref(priorityRequest) : "/dashboard/concierge/planning"}
-                  className={styles.primaryLink}
-                >
-                  {priorityRequest?.mission_id ? "Voir mission" : "Voir la demande"}
-                </Link>
-                <Link
-                  href={priorityRequest ? getConversationHref(priorityRequest) : "/dashboard/concierge/messages"}
-                  className={styles.secondaryLink}
-                >
-                  Contacter propriétaire
-                </Link>
-              </div>
-            </article>
-
-            <div className={styles.sideStack}>
-              <section className={`${styles.contentBlock} ${styles.modeSelectorCard}`}>
-                <div className={styles.blockHeader}>
-                  <h3>Mode co-hôte</h3>
-                  <p>Statistiques, widgets et rapports s'adaptent au modèle choisi.</p>
-                </div>
-                <ConciergeDashboardModeControls
-                  experienceLevel={user?.experience_level}
-                  onPreferencesChange={handleDashboardPreferencesChange}
-                />
-              </section>
-
-              <section className={styles.contentBlock}>
-                <div className={styles.blockHeader}>
-                  <h3>Radar rapide</h3>
-                  <p>{operatingModeConfig.dashboardLead}</p>
-                </div>
-                <UnifiedSpotlightList items={priorityItems} emptyLabel="Aucun point prioritaire." />
-              </section>
-
-              <section className={`${styles.contentBlock} ${styles.activityWeatherCard}`}>
-                <div className={styles.weatherHeader}>
-                  <span className={`${styles.weatherIcon} ${styles[activityWeather.tone]}`}>
-                    <ActivityWeatherIcon size={22} />
+              <article className={styles.priorityHeroCard}>
+                <div className={styles.priorityTop}>
+                  <DashboardStatusBadge
+                    label={priorityRequest?.urgency ? operatingModeConfig.priorityLabel : todayArrivals > 0 ? operatingModeConfig.kpiLabels.arrivals : "Point d'attention"}
+                    tone={priorityRequest?.urgency ? "danger" : todayArrivals > 0 ? "warning" : "info"}
+                  />
+                  <span className={styles.priorityIcon}>
+                    <PriorityIcon size={22} />
                   </span>
-                  <div>
-                    <h3>Météo d&apos;activité</h3>
-                    <p>{activityWeather.detail}</p>
+                </div>
+                <div className={styles.priorityCopy}>
+                  <strong>{priorityRequest?.property_name || priorityRequest?.title || "Aucune urgence terrain détectée"}</strong>
+                  <p>
+                    {priorityRequest
+                      ? `${priorityRequest.title} · ${priorityRequest.city || "Ville à préciser"}`
+                      : "Votre tableau de bord ne détecte pas de mission bloquante à cet instant."}
+                  </p>
+                </div>
+                <div className={styles.priorityMeta}>
+                  <span>
+                    <Clock3 size={14} />
+                    {priorityRequest?.desired_date ? `Check-in à ${formatTime(priorityRequest.desired_date)}` : "Horaire à confirmer"}
+                  </span>
+                  <span>
+                    <UsersRound size={14} />
+                    Voyageur ou propriétaire à coordonner
+                  </span>
+                </div>
+                <p className={styles.priorityNote}>
+                  {priorityRequest
+                    ? `Action attendue : ${getRequestActionLabel(priorityRequest).toLowerCase()}.`
+                    : "Surveiller les demandes, le planning et les urgences terrain."}
+                </p>
+                <div className={styles.actionRow}>
+                  <Link
+                    href={priorityRequest ? getRequestHref(priorityRequest) : "/dashboard/concierge/planning"}
+                    className={styles.primaryLink}
+                  >
+                    {priorityRequest?.mission_id ? "Voir mission" : "Voir la demande"}
+                  </Link>
+                  <Link
+                    href={priorityRequest ? getConversationHref(priorityRequest) : "/dashboard/concierge/messages"}
+                    className={styles.secondaryLink}
+                  >
+                    Contacter propriétaire
+                  </Link>
+                </div>
+              </article>
+
+              <div className={styles.sideStack}>
+                <section className={`${styles.contentBlock} ${styles.modeSelectorCard}`}>
+                  <div className={styles.blockHeader}>
+                    <h3>Mode co-hôte</h3>
+                    <p>Statistiques, widgets et rapports s'adaptent au modèle choisi.</p>
                   </div>
-                </div>
-                <div className={styles.weatherGauge} aria-label={`Pression opérationnelle ${activityWeather.score}%`}>
-                  <span style={{ width: `${activityWeather.score}%` }} />
-                </div>
-                <div className={styles.weatherStats}>
-                  <span>{activityWeather.label}</span>
-                  <strong>{activityWeather.score}%</strong>
-                </div>
-              </section>
-              <section className={styles.contentBlock}>
-                <div className={styles.blockHeader}>
-                  <h3>Propriétaires à suivre</h3>
-                  <p>Relations actives, messages et demandes regroupés au même endroit.</p>
-                </div>
-                <div className={styles.ownerGrid}>
-                  {ownerCards.length > 0 ? (
-                    ownerCards.slice(0, 4).map((owner) => (
-                      <Link key={owner.id} href={owner.href} className={styles.ownerCard}>
-                        <span className={styles.ownerAvatar}>{getOwnerInitials(owner.name)}</span>
-                        <span className={styles.ownerBody}>
-                          <strong>{owner.name}</strong>
-                          <small>{owner.city}</small>
-                        </span>
-                        <span className={styles.ownerMeta}>
-                          {owner.urgentCount > 0 ? `${owner.urgentCount} urgent` : owner.unreadCount > 0 ? `${owner.unreadCount} non lu(s)` : `${owner.requestCount} demande(s)`}
-                        </span>
-                      </Link>
-                    ))
-                  ) : (
-                    <DashboardEmptyState
-                      title="Aucun propriétaire à afficher"
-                      copy="Les propriétaires apparaîtront ici dès qu'un profil, une demande ou une conversation sera disponible."
-                    />
-                  )}
-                </div>
-              </section>
-            </div>
+                  <ConciergeDashboardModeControls
+                    experienceLevel={user?.experience_level}
+                    onPreferencesChange={handleDashboardPreferencesChange}
+                  />
+                </section>
+
+                <section className={styles.contentBlock}>
+                  <div className={styles.blockHeader}>
+                    <h3>Radar rapide</h3>
+                    <p>{operatingModeConfig.dashboardLead}</p>
+                  </div>
+                  <UnifiedSpotlightList items={priorityItems} emptyLabel="Aucun point prioritaire." />
+                </section>
+
+                <section className={`${styles.contentBlock} ${styles.activityWeatherCard}`}>
+                  <div className={styles.weatherHeader}>
+                    <span className={`${styles.weatherIcon} ${styles[activityWeather.tone]}`}>
+                      <ActivityWeatherIcon size={22} />
+                    </span>
+                    <div>
+                      <h3>Météo d&apos;activité</h3>
+                      <p>{activityWeather.detail}</p>
+                    </div>
+                  </div>
+                  <div className={styles.weatherGauge} aria-label={`Pression opérationnelle ${activityWeather.score}%`}>
+                    <span style={{ width: `${activityWeather.score}%` }} />
+                  </div>
+                  <div className={styles.weatherStats}>
+                    <span>{activityWeather.label}</span>
+                    <strong>{activityWeather.score}%</strong>
+                  </div>
+                </section>
+                <section className={styles.contentBlock}>
+                  <div className={styles.blockHeader}>
+                    <h3>Propriétaires à suivre</h3>
+                    <p>Relations actives, messages et demandes regroupés au même endroit.</p>
+                  </div>
+                  <div className={styles.ownerGrid}>
+                    {ownerCards.length > 0 ? (
+                      ownerCards.slice(0, 4).map((owner) => (
+                        <Link key={owner.id} href={owner.href} className={styles.ownerCard}>
+                          <span className={styles.ownerAvatar}>{getOwnerInitials(owner.name)}</span>
+                          <span className={styles.ownerBody}>
+                            <strong>{owner.name}</strong>
+                            <small>{owner.city}</small>
+                          </span>
+                          <span className={styles.ownerMeta}>
+                            {owner.urgentCount > 0 ? `${owner.urgentCount} urgent` : owner.unreadCount > 0 ? `${owner.unreadCount} non lu(s)` : `${owner.requestCount} demande(s)`}
+                          </span>
+                        </Link>
+                      ))
+                    ) : (
+                      <DashboardEmptyState
+                        title="Aucun propriétaire à afficher"
+                        copy="Les propriétaires apparaîtront ici dès qu'un profil, une demande ou une conversation sera disponible."
+                      />
+                    )}
+                  </div>
+                </section>
+              </div>
             </div>
           </div>
         }
@@ -1452,9 +1479,9 @@ export default function DashboardPage() {
                             <span>
                               {request.desired_date
                                 ? formatDateValue(request.desired_date, {
-                                    day: "2-digit",
-                                    month: "short",
-                                  })
+                                  day: "2-digit",
+                                  month: "short",
+                                })
                                 : "Date a definir"}
                             </span>
                           </div>
@@ -1566,7 +1593,7 @@ export default function DashboardPage() {
                 ))}
               </div>
             ),
-          },          {
+          }, {
             id: "widgets",
             title: "Widgets personnalisables",
             subtitle: `${activeWidgetCount}/${widgetTotalCount} widgets actifs pour composer votre cockpit ${operatingModeConfig.shortLabel.toLowerCase()}.`,

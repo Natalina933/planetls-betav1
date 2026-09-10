@@ -1,81 +1,68 @@
 .page {
-  --workspace-accent: #c6a66b;
-  --workspace-accent-soft: #f3ead8;
-  --workspace-accent-text: #7b5b23;
-  --workspace-surface: rgba(255, 252, 245, 0.92);
-  --workspace-surface-strong: rgba(255, 248, 236, 0.94);
-  --workspace-surface-muted: rgba(255, 255, 255, 0.68);
-  --workspace-border: color-mix(in srgb, var(--workspace-accent) 18%, rgba(66, 47, 18, 0.14));
+  --workspace-accent: var(--ds-color-primary);
+  --workspace-accent-soft: var(--ds-color-primary-soft);
+  --workspace-accent-text: var(--ds-color-primary-hover);
+  --workspace-surface: var(--ds-color-surface);
+  --workspace-surface-strong: var(--ds-color-surface-soft);
+  --workspace-surface-muted: var(--ds-color-background-soft);
+  --workspace-border: var(--ds-color-border);
   --workspace-shadow: rgba(91, 69, 31, 0.14);
-  --workspace-ink: #2d2217;
+  --workspace-ink: var(--ds-color-text-primary);
   display: grid;
   gap: 1.35rem;
   position: relative;
 }
 
-.page::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--workspace-accent) 14%, transparent), transparent 28%),
-    radial-gradient(circle at bottom right, color-mix(in srgb, var(--workspace-accent) 8%, transparent), transparent 32%);
-  opacity: 0.9;
-}
+.page::before { content: none; }
 
 .ownerTheme {
-  --workspace-accent: #b85c48;
-  --workspace-accent-soft: #f3ddd4;
-  --workspace-accent-text: #793528;
-  --workspace-surface: rgba(255, 249, 245, 0.92);
-  --workspace-surface-strong: rgba(255, 243, 237, 0.95);
-  --workspace-surface-muted: rgba(255, 255, 255, 0.7);
-  --workspace-shadow: rgba(109, 53, 41, 0.15);
+  --workspace-accent: var(--ds-color-primary);
+  --workspace-accent-soft: var(--ds-color-primary-soft);
+  --workspace-accent-text: var(--ds-color-primary-hover);
+  --workspace-surface: var(--ds-color-surface);
+  --workspace-surface-strong: var(--ds-color-surface-soft);
+  --workspace-surface-muted: var(--ds-color-background-soft);
+  --workspace-shadow: rgba(30, 86, 72, 0.15);
 }
 
 .conciergeTheme {
-  --workspace-accent: #c6a66b;
-  --workspace-accent-soft: #f3ead8;
-  --workspace-accent-text: #7b5b23;
-  --workspace-surface: rgba(255, 252, 245, 0.92);
-  --workspace-surface-strong: rgba(255, 248, 236, 0.94);
-  --workspace-surface-muted: rgba(255, 255, 255, 0.68);
+  --workspace-accent: var(--ds-color-primary);
+  --workspace-accent-soft: var(--ds-color-primary-soft);
+  --workspace-accent-text: var(--ds-color-primary-hover);
+  --workspace-surface: var(--ds-color-surface);
+  --workspace-surface-strong: var(--ds-color-surface-soft);
+  --workspace-surface-muted: var(--ds-color-background-soft);
   --workspace-shadow: rgba(91, 69, 31, 0.14);
 }
 
 .providerTheme {
-  --workspace-accent: #72825b;
-  --workspace-accent-soft: #e3e8d8;
-  --workspace-accent-text: #4d5b3d;
-  --workspace-surface: rgba(248, 250, 244, 0.92);
-  --workspace-surface-strong: rgba(242, 246, 235, 0.95);
-  --workspace-surface-muted: rgba(255, 255, 255, 0.68);
+  --workspace-accent: var(--ds-color-primary);
+  --workspace-accent-soft: var(--ds-color-primary-soft);
+  --workspace-accent-text: var(--ds-color-primary-hover);
+  --workspace-surface: var(--ds-color-surface);
+  --workspace-surface-strong: var(--ds-color-surface-soft);
+  --workspace-surface-muted: var(--ds-color-background-soft);
   --workspace-shadow: rgba(63, 80, 47, 0.14);
 }
 
-@mixin panel($surface, $radius: 22px, $borderStrength: 22%) {
+@mixin panel($surface, $radius: var(--ds-radius-card), $borderStrength: 22%) {
   position: relative;
   display: grid;
-  gap: 0.75rem;
-  padding: 1.15rem;
-  border-radius: $radius;
-  border: 1px solid color-mix(in srgb, var(--workspace-accent) $borderStrength, rgba(44, 30, 14, 0.1));
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0)),
-    $surface;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.82),
-    0 14px 30px color-mix(in srgb, var(--workspace-shadow) 72%, transparent);
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-card);
+  border-radius: var(--ds-radius-card);
+  border: var(--ds-border-subtle);
+  background: $surface;
+  box-shadow: var(--ds-shadow-sm);
 }
 
 @mixin buttonBase {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 42px;
-  padding: 0.7rem 1rem;
-  border-radius: 999px;
+  min-height: var(--ds-control-height-md);
+  padding: 0.7rem var(--ds-space-4);
+  border-radius: var(--ds-radius-control);
   text-decoration: none;
   font-weight: 700;
   letter-spacing: 0.01em;
@@ -96,30 +83,26 @@
 @mixin buttonFilled {
   @include buttonBase;
   border: 1px solid color-mix(in srgb, var(--workspace-accent) 40%, transparent);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--workspace-accent) 92%, white),
-    color-mix(in srgb, var(--workspace-accent) 78%, #4e3820)
-  );
-  color: #fffdf8;
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--workspace-accent) 92%, white),
+      color-mix(in srgb, var(--workspace-accent) 78%, #4e3820));
+  color: var(--ds-color-surface);
   box-shadow: 0 14px 26px color-mix(in srgb, var(--workspace-shadow) 68%, transparent);
 }
 
 .hero {
-  @include panel(
-    linear-gradient(145deg, rgba(255, 253, 247, 0.98), color-mix(in srgb, var(--workspace-accent-soft) 84%, white)),
+  @include panel(linear-gradient(145deg, rgba(255, 253, 247, 0.98), color-mix(in srgb, var(--workspace-accent-soft) 84%, white)),
     28px,
-    26%
-  );
+    26%);
   grid-template-columns: minmax(0, 1fr);
-  gap: 1rem;
+  gap: var(--ds-space-4);
   overflow: hidden;
   align-items: start;
 }
 
 .sectionBlock {
   display: grid;
-  gap: 1rem;
+  gap: var(--ds-space-4);
 }
 
 .sectionIntro {
@@ -152,11 +135,9 @@
   bottom: 0;
   width: min(120px, 24%);
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--workspace-accent) 60%, transparent),
-    color-mix(in srgb, var(--workspace-accent) 14%, transparent)
-  );
+  background: linear-gradient(90deg,
+      color-mix(in srgb, var(--workspace-accent) 60%, transparent),
+      color-mix(in srgb, var(--workspace-accent) 14%, transparent));
 }
 
 .sectionTitle {
@@ -180,7 +161,7 @@
   position: absolute;
   inset: 16px;
   border: 1px solid color-mix(in srgb, var(--workspace-accent) 14%, transparent);
-  border-radius: 20px;
+  border-radius: var(--ds-radius-card);
   pointer-events: none;
 }
 
@@ -201,11 +182,9 @@
 .heroDivider {
   width: min(140px, 38%);
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--workspace-accent) 72%, transparent),
-    color-mix(in srgb, var(--workspace-accent) 20%, transparent)
-  );
+  background: linear-gradient(90deg,
+      color-mix(in srgb, var(--workspace-accent) 72%, transparent),
+      color-mix(in srgb, var(--workspace-accent) 20%, transparent));
 }
 
 .heroRail {
@@ -304,7 +283,7 @@
   min-width: 1.45rem;
   height: 1.45rem;
   padding: 0 0.38rem;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   background: linear-gradient(135deg, #bb5a45, #8e3426);
   color: #fffaf6;
   font-size: 0.72rem;
@@ -326,7 +305,7 @@
   align-items: center;
   min-height: 30px;
   padding: 0.24rem 0.72rem;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   border: 1px solid color-mix(in srgb, var(--workspace-accent) 16%, transparent);
   background: color-mix(in srgb, var(--workspace-accent) 10%, white);
   color: var(--workspace-accent-text);
@@ -346,7 +325,7 @@
 .metrics {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  gap: var(--ds-space-4);
 }
 
 .metricCard,
@@ -369,11 +348,9 @@
   left: 14px;
   width: 44px;
   height: 2px;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--workspace-accent) 86%, transparent),
-    color-mix(in srgb, var(--workspace-accent) 22%, transparent)
-  );
+  background: linear-gradient(90deg,
+      color-mix(in srgb, var(--workspace-accent) 86%, transparent),
+      color-mix(in srgb, var(--workspace-accent) 22%, transparent));
 }
 
 .metricCard {
@@ -382,11 +359,9 @@
   gap: 0.4rem;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0)),
-    linear-gradient(
-      135deg,
+    linear-gradient(135deg,
       color-mix(in srgb, var(--workspace-accent-soft) 48%, white),
-      var(--workspace-surface)
-    );
+      var(--workspace-surface));
 }
 
 .card {
@@ -421,7 +396,7 @@
 
 .grid {
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
+  gap: var(--ds-space-4);
   align-items: stretch;
 }
 
@@ -431,7 +406,7 @@
 
 .detailSection {
   @include panel(var(--workspace-surface-strong), 24px, 18%);
-  gap: 1rem;
+  gap: var(--ds-space-4);
   padding: 1.35rem 1.15rem 1.15rem;
   align-content: start;
 }
@@ -456,7 +431,7 @@
 }
 
 .detailFacts {
-  gap: 0.5rem;
+  gap: var(--ds-space-2);
 }
 
 .detailFact {
@@ -468,8 +443,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem 1rem 1rem 0.95rem;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-4) var(--ds-space-4) var(--ds-space-4) 0.95rem;
   border-radius: 18px;
   border: 1px solid color-mix(in srgb, var(--workspace-accent) 14%, transparent);
   background:
@@ -485,12 +460,12 @@
   content: "";
   width: 3px;
   align-self: stretch;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   background: color-mix(in srgb, var(--workspace-accent) 34%, transparent);
 }
 
 .detailItemMain {
-  gap: 0.5rem;
+  gap: var(--ds-space-2);
   min-width: 0;
 }
 
@@ -684,14 +659,14 @@
 
 @media (max-width: 720px) {
   .page {
-    gap: 1rem;
+    gap: var(--ds-space-4);
   }
 
   .hero,
   .metricCard,
   .card,
   .detailSection {
-    padding: 1rem;
+    padding: var(--ds-space-4);
   }
 
   .hero {

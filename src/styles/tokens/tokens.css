@@ -29,92 +29,140 @@
      Vert PlanetLS = couleur principale pour les dashboards
      Crème/Ivoire = fond dominant pour les pages publiques
      -------------------------------------------------------------------------- */
-  
+
   /* Couleurs principales */
-  --ds-color-primary: #8b6a2d;           /* Doré/laiton - ACCENT, utiliser avec parcimonie */
-  --ds-color-primary-hover: #6d5422;    /* Doré plus foncé */
-  --ds-color-primary-soft: #e4cfaa;     /* Doré très clair */
-  --ds-color-primary-pale: #f6eddd;     /* Doré presque transparent */
-  
-  --ds-color-secondary: #6b4e38;       /* Brun profond */
-  --ds-color-secondary-hover: #4c3418; /* Brun plus foncé */
-  --ds-color-secondary-soft: #e4d7c7;   /* Brun clair */
-  
-  --ds-color-accent: #416b59;           /* Vert PlanetLS - couleur de marque */
-  --ds-color-accent-hover: #294b3e;    /* Vert plus foncé */
-  --ds-color-accent-soft: #e5eee8;     /* Vert très clair */
-  --ds-color-sage: #91a997;            /* Décor végétal */
-  
+  --ds-color-primary: #8b6a2d;
+  /* Doré/laiton - ACCENT, utiliser avec parcimonie */
+  --ds-color-primary-hover: #6d5422;
+  /* Doré plus foncé */
+  --ds-color-primary-soft: #e4cfaa;
+  /* Doré très clair */
+  --ds-color-primary-pale: #f6eddd;
+  /* Doré presque transparent */
+
+  --ds-color-secondary: #6b4e38;
+  /* Brun profond */
+  --ds-color-secondary-hover: #4c3418;
+  /* Brun plus foncé */
+  --ds-color-secondary-soft: #e4d7c7;
+  /* Brun clair */
+
+  --ds-color-accent: #416b59;
+  /* Vert PlanetLS - couleur de marque */
+  --ds-color-accent-hover: #294b3e;
+  /* Vert plus foncé */
+  --ds-color-accent-soft: #e5eee8;
+  /* Vert très clair */
+  --ds-color-sage: #91a997;
+  /* Décor végétal */
+
   /* Couleurs de fond */
-  --ds-color-background: #f8f3e9;      /* Crème principal - fond de page */
-  --ds-color-background-soft: #fcf9f3; /* Crème très clair */
-  --ds-color-cream: #f4ead9;            /* Crème alternatif */
-  
-  --ds-color-surface: #ffffff;          /* Surface élevée (blanc) */
-  --ds-color-surface-soft: #f8f5ea;    /* Surface douce (blanc cassé) */
-  --ds-color-surface-muted: #efe7d8;   /* Surface atténuée (beige très clair) */
-  --ds-color-surface-premium: #fffdf8; /* Surface premium */
-  
+  --ds-color-background: #f8f3e9;
+  /* Crème principal - fond de page */
+  --ds-color-background-soft: #fcf9f3;
+  /* Crème très clair */
+  --ds-color-cream: #f4ead9;
+  /* Crème alternatif */
+
+  --ds-color-surface: #ffffff;
+  /* Surface élevée (blanc) */
+  --ds-color-surface-soft: #f8f5ea;
+  /* Surface douce (blanc cassé) */
+  --ds-color-surface-muted: #efe7d8;
+  /* Surface atténuée (beige très clair) */
+  --ds-color-surface-premium: #fffdf8;
+  /* Surface premium */
+
   /* Couleurs de texte */
-  --ds-color-text-primary: #292823;     /* Texte principal - noir foncé */
-  --ds-color-text-secondary: #68645c;   /* Texte secondaire */
-  --ds-color-text-muted: #918b81;       /* Texte atténué */
-  --ds-color-text-inverse: #f8f3e9;    /* Texte sur fond sombre */
-  
+  --ds-color-text-primary: #292823;
+  /* Texte principal - noir foncé */
+  --ds-color-text-secondary: #68645c;
+  /* Texte secondaire */
+  --ds-color-text-muted: #918b81;
+  /* Texte atténué */
+  --ds-color-text-inverse: #f8f3e9;
+  /* Texte sur fond sombre */
+
   /* Couleurs de bordure */
-  --ds-color-border: #dfd3bf;           /* Bordure principale - douce et discrète */
-  --ds-color-border-soft: #ebe3d7;     /* Bordure très douce */
-  --ds-color-border-strong: #8b6a2d;   /* Bordure forte - doré (mis à jour) */
-  --ds-color-border-subtle: #e6dbc8;   /* Bordure subtile alternative */
-  
+  --ds-color-border: #dfd3bf;
+  /* Bordure principale - douce et discrète */
+  --ds-color-border-soft: #ebe3d7;
+  /* Bordure très douce */
+  --ds-color-border-strong: #8b6a2d;
+  /* Bordure forte - doré (mis à jour) */
+  --ds-color-border-subtle: #e6dbc8;
+  /* Bordure subtile alternative */
+
   /* --------------------------------------------------------------------------
      COULEURS DE STATUT
      -------------------------------------------------------------------------- */
-  
-  --ds-color-success: #3b7d6a;           /* Succès */
-  --ds-color-success-hover: #295d4c;    /* Succès foncé */
-  --ds-color-success-soft: #e5eee8;     /* Fond succès */
-  
-  --ds-color-warning: #d98a12;           /* Attention */
-  --ds-color-warning-hover: #b56d0c;    /* Attention foncé */
-  --ds-color-warning-soft: #fff6e5;     /* Fond attention */
-  
-  --ds-color-error: #d94a4a;             /* Erreur */
-  --ds-color-error-hover: #b52f2f;      /* Erreur foncé */
-  --ds-color-error-soft: #fff0f0;       /* Fond erreur */
-  
-  --ds-color-info: #3d71c7;             /* Information */
-  --ds-color-info-hover: #2a5298;       /* Information foncé */
-  --ds-color-info-soft: #eef4ff;        /* Fond information */
-  
+
+  --ds-color-success: #3b7d6a;
+  /* Succès */
+  --ds-color-success-hover: #295d4c;
+  /* Succès foncé */
+  --ds-color-success-soft: #e5eee8;
+  /* Fond succès */
+
+  --ds-color-warning: #d98a12;
+  /* Attention */
+  --ds-color-warning-hover: #b56d0c;
+  /* Attention foncé */
+  --ds-color-warning-soft: #fff6e5;
+  /* Fond attention */
+
+  --ds-color-error: #d94a4a;
+  /* Erreur */
+  --ds-color-error-hover: #b52f2f;
+  /* Erreur foncé */
+  --ds-color-error-soft: #fff0f0;
+  /* Fond erreur */
+
+  --ds-color-info: #3d71c7;
+  /* Information */
+  --ds-color-info-hover: #2a5298;
+  /* Information foncé */
+  --ds-color-info-soft: #eef4ff;
+  /* Fond information */
+
   /* --------------------------------------------------------------------------
      TYPOGRAPHIE
      Serif: Cormorant Garamond (titres éditoriaux) / Georgia fallback
      Sans-serif: Inter (UI et corps) - limité à 2 polices pour performance
      -------------------------------------------------------------------------- */
-  
+
   /* Polices */
   --ds-font-heading: "Cormorant Garamond", Georgia, "Times New Roman", serif;
   --ds-font-ui: Inter, "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
   --ds-font-body: Inter, "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
   --ds-font-mono: "SF Mono", "Monaco", "Courier New", monospace;
-  --ds-font-artdeco: Georgia, serif; /* Conservé pour compatibilité */
-  
+  --ds-font-artdeco: Georgia, serif;
+  /* Conservé pour compatibilité */
+
   /* Tailles de texte - Echelle typographique */
-  --ds-text-xs: 0.75rem;      /* 12px - Caption, labels */
-  --ds-text-sm: 0.875rem;     /* 14px - Texte secondaire, méta */
-  --ds-text-base: 1rem;       /* 16px - Texte principal */
-  --ds-text-lg: 1.125rem;     /* 18px - Texte mis en avant */
-  --ds-text-xl: 1.25rem;      /* 20px - Sous-titres */
-  --ds-text-2xl: 1.5rem;      /* 24px - Titres de section */
-  --ds-text-3xl: 1.875rem;    /* 30px - Titres importants */
-  --ds-text-4xl: 2.25rem;     /* 36px - Titres hero */
-  --ds-text-display: clamp(2.5rem, 5vw, 4rem); /* Titre display responsive */
-  
+  --ds-text-xs: 0.75rem;
+  /* 12px - Caption, labels */
+  --ds-text-sm: 0.875rem;
+  /* 14px - Texte secondaire, méta */
+  --ds-text-base: 1rem;
+  /* 16px - Texte principal */
+  --ds-text-lg: 1.125rem;
+  /* 18px - Texte mis en avant */
+  --ds-text-xl: 1.25rem;
+  /* 20px - Sous-titres */
+  --ds-text-2xl: 1.5rem;
+  /* 24px - Titres de section */
+  --ds-text-3xl: 1.875rem;
+  /* 30px - Titres importants */
+  --ds-text-4xl: 2.25rem;
+  /* 36px - Titres hero */
+  --ds-text-display: clamp(2.5rem, 5vw, 4rem);
+  /* Titre display responsive */
+
   /* Tailles responsive */
   --ds-text-platform-headline: clamp(1.5rem, 3vw, 2.5rem);
   --ds-text-metric: 1.75rem;
-  
+
   /* Styles spéciaux */
   --ds-text-eyebrow: 0.75rem;
   --ds-text-eyebrow-letter-spacing: 0.19em;
@@ -122,129 +170,171 @@
   --ds-text-eyebrow-transform: uppercase;
   --ds-leading-heading: 1.05;
   --ds-leading-body: 1.7;
-  
+
   /* --------------------------------------------------------------------------
      ESPACEMENTS - Echelle officielle PlanetLS
      Utiliser UNIQUEMENT ces tokens pour les nouveaux developpements
      Valeurs: 0, 4, 8, 12, 16, 24, 32, 48, 64, 96, 128px
      -------------------------------------------------------------------------- */
-  
+
   --ds-space-0: 0;
-  --ds-space-1: 0.25rem;   /* 4px */
-  --ds-space-2: 0.5rem;    /* 8px */
-  --ds-space-3: 0.75rem;   /* 12px */
-  --ds-space-4: 1rem;      /* 16px */
-  --ds-space-5: 1.5rem;    /* 24px */
-  --ds-space-6: 2rem;      /* 32px */
-  --ds-space-7: 3rem;      /* 48px */
-  --ds-space-8: 4rem;      /* 64px */
-  --ds-space-9: 6rem;      /* 96px */
-  --ds-space-10: 8rem;     /* 128px */
-  
+  --ds-space-1: 0.25rem;
+  /* 4px */
+  --ds-space-2: 0.5rem;
+  /* 8px */
+  --ds-space-3: 0.75rem;
+  /* 12px */
+  --ds-space-4: 1rem;
+  /* 16px */
+  --ds-space-5: 1.5rem;
+  /* 24px */
+  --ds-space-6: 2rem;
+  /* 32px */
+  --ds-space-7: 3rem;
+  /* 48px */
+  --ds-space-8: 4rem;
+  /* 64px */
+  --ds-space-9: 6rem;
+  /* 96px */
+  --ds-space-10: 8rem;
+  /* 128px */
+
   /* Espacements responsive */
-  --ds-space-page: clamp(1rem, 2vw, 2rem);        /* Padding de page */
-  --ds-space-section: clamp(1.25rem, 2.8vw, 2.5rem); /* Gap entre sections */
-  --ds-space-card: var(--ds-space-5);             /* Espacement dans cartes */
-  
+  --ds-space-page: clamp(1rem, 2vw, 2rem);
+  /* Padding de page */
+  --ds-space-section: clamp(1.25rem, 2.8vw, 2.5rem);
+  /* Gap entre sections */
+  --ds-space-card: var(--ds-space-5);
+  /* Espacement dans cartes */
+
   /* --------------------------------------------------------------------------
      RAYONS
      -------------------------------------------------------------------------- */
-  
-  --ds-radius-sm: 4px;      /* Petits éléments, badges */
-  --ds-radius-md: 8px;      /* Boutons, inputs */
-  --ds-radius-lg: 12px;     /* Cartes standard */
-  --ds-radius-xl: 16px;     /* Grandes cartes, sections */
-  --ds-radius-2xl: 20px;    /* Cartes premium */
-  --ds-radius-3xl: 24px;    /* Cartes hero, conteneurs */
-  --ds-radius-pill: 999px;  /* Boutons pilule, badges */
-  --ds-radius-full: 50%;    /* Cercle */
-  
+
+  --ds-radius-sm: 4px;
+  /* Petits éléments, badges */
+  --ds-radius-md: 8px;
+  /* Boutons, inputs */
+  --ds-radius-lg: 12px;
+  /* Cartes standard */
+  --ds-radius-xl: 16px;
+  /* Grandes cartes, sections */
+  --ds-radius-2xl: 20px;
+  /* Cartes premium */
+  --ds-radius-3xl: 24px;
+  /* Cartes hero, conteneurs */
+  --ds-radius-pill: 999px;
+  /* Boutons pilule, badges */
+  --ds-radius-full: 50%;
+  /* Cercle */
+
   /* Rayons des composants */
-  --ds-radius-card: var(--ds-radius-lg);      /* 12px */
-  --ds-radius-panel: var(--ds-radius-md);     /* 8px */
-  --ds-radius-control: var(--ds-radius-md);   /* 8px */
-  --ds-radius-button: var(--ds-radius-md);    /* 8px - boutons par défaut */
-  
+  --ds-radius-card: var(--ds-radius-lg);
+  /* 12px */
+  --ds-radius-panel: var(--ds-radius-md);
+  /* 8px */
+  --ds-radius-control: var(--ds-radius-md);
+  /* 8px */
+  --ds-radius-button: var(--ds-radius-md);
+  /* 8px - boutons par défaut */
+
   /* --------------------------------------------------------------------------
      OMBRES
      Ombres subtiles et discrètes - éviter les ombres lourdes
      -------------------------------------------------------------------------- */
-  
+
   --ds-shadow-none: none;
-  --ds-shadow-sm: 0 2px 8px rgba(41, 40, 35, 0.06);       /* Élévation subtile */
-  --ds-shadow-md: 0 4px 16px rgba(41, 40, 35, 0.08);     /* Élévation standard */
-  --ds-shadow-lg: 0 8px 24px rgba(41, 40, 35, 0.1);      /* Élévation forte */
-  --ds-shadow-xl: 0 12px 32px rgba(41, 40, 35, 0.12);    /* Élévation maximale */
-  --ds-shadow-focus: 0 0 0 3px rgba(139, 106, 45, 0.2);   /* Focus visible - doré */
-  
+  --ds-shadow-sm: 0 2px 8px rgba(41, 40, 35, 0.06);
+  /* Élévation subtile */
+  --ds-shadow-md: 0 4px 16px rgba(41, 40, 35, 0.08);
+  /* Élévation standard */
+  --ds-shadow-lg: 0 8px 24px rgba(41, 40, 35, 0.1);
+  /* Élévation forte */
+  --ds-shadow-xl: 0 12px 32px rgba(41, 40, 35, 0.12);
+  /* Élévation maximale */
+  --ds-shadow-focus: 0 0 0 3px rgba(139, 106, 45, 0.2);
+  /* Focus visible - doré */
+
   /* Ombres de couleur */
   --ds-shadow-gold: 0 4px 16px rgba(139, 106, 45, 0.15);
   --ds-shadow-green: 0 4px 16px rgba(65, 107, 89, 0.15);
-  
+
   /* --------------------------------------------------------------------------
      ANIMATIONS / MOTION
      Tokens selon le brief: lent, elegant, subtil, fonctionnel
      Respect impératif de prefers-reduced-motion
      -------------------------------------------------------------------------- */
-  
+
   /* Durées - NOUVEAUX TOKENS selon le brief */
-  --ds-motion-instant: 1ms;      /* Instantané (pour reduced motion) */
-  --ds-motion-fast: 160ms;       /* Animations rapides */
-  --ds-motion-normal: 320ms;    /* Animations standard */
-  --ds-motion-slow: 700ms;      /* Animations lentes */
-  
+  --ds-motion-instant: 1ms;
+  /* Instantané (pour reduced motion) */
+  --ds-motion-fast: 160ms;
+  /* Animations rapides */
+  --ds-motion-normal: 320ms;
+  /* Animations standard */
+  --ds-motion-slow: 700ms;
+  /* Animations lentes */
+
   /* Anciennes valeurs conservées pour compatibilité */
-  --ds-motion-base: 200ms ease; /* Ancien fast */
-  
+  --ds-motion-base: 200ms ease;
+  /* Ancien fast */
+
   /* Easing - cubic-bezier du brief */
   --ds-ease-in: cubic-bezier(0.4, 0, 1, 1);
   --ds-ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ds-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-  --ds-ease-premium: cubic-bezier(0.22, 0.61, 0.36, 1); /* Motion elegant */
+  --ds-ease-premium: cubic-bezier(0.22, 0.61, 0.36, 1);
+  /* Motion elegant */
   --ds-ease-standard: ease;
-  
+
   /* --------------------------------------------------------------------------
      LAYOUT
      -------------------------------------------------------------------------- */
-  
+
   /* Largeurs */
-  --ds-layout-max-width: 1280px;       /* Largeur max contenu */
-  --ds-layout-content: 1280px;         /* Largeur contenu principal */
-  --ds-layout-sidebar: 240px;          /* Sidebar standard */
-  --ds-layout-sidebar-compact: 192px; /* Sidebar compacte */
-  
+  --ds-layout-max-width: 1280px;
+  /* Largeur max contenu */
+  --ds-layout-content: 1280px;
+  /* Largeur contenu principal */
+  --ds-layout-sidebar: 240px;
+  /* Sidebar standard */
+  --ds-layout-sidebar-compact: 192px;
+  /* Sidebar compacte */
+
   /* Hauteurs */
   --ds-layout-header-height: 68px;
-  --ds-hero-min-height: 720px;         /* Hero desktop */
-  --ds-hero-min-height-mobile: 600px; /* Hero mobile */
-  
+  --ds-hero-min-height: 720px;
+  /* Hero desktop */
+  --ds-hero-min-height-mobile: 600px;
+  /* Hero mobile */
+
   /* --------------------------------------------------------------------------
      CONTROLES
      -------------------------------------------------------------------------- */
-  
+
   --ds-control-height-sm: 36px;
   --ds-control-height-md: 44px;
   --ds-control-height-lg: 50px;
-  
+
   /* --------------------------------------------------------------------------
      BORDURES
      -------------------------------------------------------------------------- */
-  
+
   --ds-border-subtle: 1px solid var(--ds-color-border);
   --ds-border-strong: 1px solid var(--ds-color-border-strong);
-  
+
   /* --------------------------------------------------------------------------
      SURFACES GRADIENT
      -------------------------------------------------------------------------- */
-  
+
   --ds-surface-raised: linear-gradient(180deg, #ffffff 0%, #fbfcfc 100%);
   --ds-surface-premium: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(247, 250, 250, 0.92));
   --ds-surface-accent: linear-gradient(135deg, rgba(63, 127, 131, 0.1), rgba(212, 175, 55, 0.08));
-  
+
   /* ==========================================================================
      ALIAS DE COMPATIBILITE (ne pas utiliser pour le nouveau code)
      ========================================================================== */
-  
+
   /* Alias --ds-* */
   --ds-color-bg: var(--ds-color-background);
   --ds-color-text: var(--ds-color-text-primary);
@@ -264,7 +354,7 @@
   --ds-color-teal: var(--ds-color-accent);
   --ds-color-teal-soft: #e7f1f0;
   --ds-color-ink: #1a2530;
-  
+
   /* Alias --ui-* (compatibilité) */
   --ui-color-bg: var(--ds-color-background);
   --ui-color-surface: var(--ds-color-surface);
@@ -278,7 +368,7 @@
   --ui-color-danger: var(--ds-color-error);
   --ui-font-title: var(--ds-font-ui);
   --ui-font-text: var(--ds-font-body);
-  
+
   /* Espacements */
   --ui-space-1: var(--ds-space-1);
   --ui-space-2: var(--ds-space-2);
@@ -288,7 +378,7 @@
   --ui-space-6: var(--ds-space-6);
   --ui-space-7: var(--ds-space-7);
   --ui-space-8: var(--ds-space-8);
-  
+
   /* Rayons */
   --ui-radius-sm: var(--ds-radius-sm);
   --ui-radius-md: var(--ds-radius-md);
@@ -299,15 +389,15 @@
   --ui-select-radius: var(--ds-radius-md);
   --ui-card-radius: var(--ds-radius-lg);
   --ui-panel-radius: var(--ds-radius-md);
-  
+
   /* Ombres */
   --ui-shadow-sm: var(--ds-shadow-sm);
   --ui-shadow-md: var(--ds-shadow-md);
-  
+
   /* Transitions */
   --ui-transition-fast: var(--ds-motion-fast);
   --ui-transition-base: var(--ds-motion-normal);
-  
+
   /* Tailles */
   --ui-card-small-max: 320px;
   --ui-card-large-max: 520px;
@@ -319,107 +409,131 @@
 }
 
 /* ==========================================================================
-   THEME OWNER DASHBOARD
-   Palette verte pour l'espace propriétaire
+   THÈME DASHBOARD PARTAGÉ
+   Référence concierge pour tous les espaces
    ========================================================================== */
 
+.dashboard-root,
+[data-dashboard-theme],
 [data-owner-dashboard] {
-  /* Couleurs spécifiques owner */
-  --pls-primary: #16775b;           /* Vert PlanetLS principal */
-  --pls-primary-hover: #11654c;
-  --pls-primary-soft: #eaf7f1;
-  --pls-primary-light: #f4fbf8;
-  --pls-beige: #f7f0e7;
-  --pls-beige-soft: #fbf7f2;
-  --pls-white: #ffffff;
-  --pls-bg: #f7f8f7;
-  --pls-bg-soft: #fafbfa;
-  --pls-surface: #ffffff;
-  --pls-text: #17211d;
-  --pls-text-secondary: #5f6b65;
-  --pls-text-muted: #8a948f;
-  --pls-border: #e7ebe8;
-  --pls-border-strong: #dce2de;
-  --pls-warning: #d98a12;
-  --pls-warning-soft: #fff6e5;
-  --pls-success: #16845f;
-  --pls-success-soft: #e9f8f0;
-  --pls-danger: #d94a4a;
-  --pls-danger-soft: #fff0f0;
-  --pls-info: #3d71c7;
-  --pls-info-soft: #eef4ff;
-  
-  /* Statuts */
-  --pls-status-success-text: #107051;
-  --pls-status-warning-text: #a56300;
-  --pls-status-danger-text: #b52f2f;
-  --pls-status-info-text: #3161ad;
-  
-  /* Dimensions */
-  --pls-radius-xs: 6px;
-  --pls-radius-sm: 8px;
-  --pls-radius-md: 12px;
-  --pls-radius-lg: 16px;
-  --pls-radius-xl: 20px;
-  --pls-sidebar-width: 228px;
-  --pls-sidebar-compact: 192px;
-  --pls-header-height: 68px;
-  --pls-content-width: 1500px;
-  --pls-page-padding: 32px;
-  --pls-section-gap: 24px;
-  
-  /* Textes */
-  --pls-text-body: 14px;
-  --pls-text-meta: 12px;
-  --pls-text-section: 17px;
-  --pls-text-kpi: 24px;
-  --pls-text-hero: 26px;
-  --pls-shadow: 0 1px 3px rgb(23 33 29 / 3%);
-  
-  /* Mapping vers tokens DS pour compatibilité */
-  --ds-color-primary: var(--pls-primary);
-  --ds-color-primary-hover: var(--pls-primary-hover);
-  --ds-color-secondary: var(--pls-primary);
-  --ds-color-accent: var(--pls-primary);
-  --ds-color-background: var(--pls-bg);
-  --ds-color-surface: var(--pls-surface);
-  --ds-color-surface-soft: var(--pls-bg-soft);
-  --ds-color-surface-muted: var(--pls-beige);
-  --ds-color-text-primary: var(--pls-text);
-  --ds-color-text-secondary: var(--pls-text-secondary);
-  --ds-color-text-muted: var(--pls-text-secondary);
-  --ds-color-text-inverse: var(--pls-white);
-  --ds-color-border: var(--pls-border);
-  --ds-color-border-soft: var(--pls-border);
-  --ds-color-border-strong: var(--pls-border-strong);
-  --ds-color-success: var(--pls-success);
-  --ds-color-warning: var(--pls-warning);
-  --ds-color-error: var(--pls-danger);
-  --ds-color-info: var(--pls-info);
-  --ds-radius-sm: var(--pls-radius-sm);
-  --ds-radius-md: var(--pls-radius-md);
-  --ds-radius-lg: var(--pls-radius-lg);
-  --ds-radius-xl: var(--pls-radius-xl);
-  --ds-radius-card: var(--pls-radius-lg);
-  --ds-radius-control: var(--pls-radius-sm);
-  --ds-shadow-sm: var(--pls-shadow);
-  --ds-shadow-md: var(--pls-shadow);
-  --ds-color-text: var(--pls-text);
-  --ds-color-text-soft: var(--pls-text-secondary);
-  --ds-color-gold: var(--pls-primary);
-  --ds-color-gold-strong: var(--pls-primary-hover);
-  --ds-color-brown: var(--pls-primary);
-  --ds-border-subtle: 1px solid var(--pls-border);
-  --ds-focus-outline: 2px solid var(--pls-primary);
-  
-  /* Alias UI */
-  --ui-color-bg: var(--pls-bg);
-  --ui-color-surface: var(--pls-surface);
-  --ui-color-border: var(--pls-border);
-  --ui-color-text: var(--pls-text);
-  --ui-color-text-muted: var(--pls-text-secondary);
-  --ui-color-primary: var(--pls-primary);
-  --ui-button-radius: var(--pls-radius-sm);
+  /* Référence concierge commune ; les pages publiques gardent leur palette. */
+  --ds-color-primary: #276a58;
+  --ds-color-primary-hover: #1e5648;
+  --ds-color-primary-soft: #e3f0eb;
+  --ds-color-background-soft: #fbf8f1;
+  --ds-color-gold: #b38a45;
+  --ds-color-cream: #f3ead8;
+  --ds-color-background: #f7f3ea;
+  --ds-color-surface: #fffdf8;
+  --ds-color-text-primary: #1c211f;
+  --ds-color-text-secondary: #5f665f;
+  --ds-color-border: #e8e1d5;
+  --ds-color-border-strong: #d9cfbf;
+  --ds-color-warning: #a96417;
+  --ds-color-warning-soft: #fff0dc;
+  --ds-color-success: #1d765f;
+  --ds-color-success-soft: #daf1e8;
+  --ds-color-error: #ad3026;
+  --ds-color-error-soft: #fce7e2;
+  --ds-color-info: #326eb5;
+  --ds-color-info-soft: #e3edfb;
+  --ds-color-success-hover: #14614c;
+  --ds-color-warning-hover: #8a4f12;
+  --ds-color-error-hover: #8f2620;
+  --ds-color-info-hover: #28578f;
+  --ds-color-accent: var(--ds-color-primary);
+  --ds-color-accent-hover: var(--ds-color-primary-hover);
+  --ds-color-accent-soft: var(--ds-color-primary-soft);
+  --ds-color-secondary: var(--ds-color-primary-hover);
+  --ds-color-text-muted: var(--ds-color-text-secondary);
+  --ds-color-text-inverse: var(--ds-color-surface);
+  --ds-color-surface-soft: var(--ds-color-background-soft);
+  --ds-color-surface-muted: var(--ds-color-cream);
+  --ds-color-border-soft: var(--ds-color-border);
+  --ds-color-text: var(--ds-color-text-primary);
+  --ds-color-text-soft: var(--ds-color-text-secondary);
+  --ds-color-gold-strong: #9b7434;
+  --ds-color-brown: var(--ds-color-secondary);
+  --ds-surface-raised: var(--ds-color-surface);
+  --ds-surface-premium: var(--ds-color-surface);
+  --ds-layout-sidebar: 224px;
+  --ds-space-section: var(--ds-space-4);
+  --ds-space-card: var(--ds-space-4);
+  --ds-radius-card: var(--ds-radius-lg);
+  --ds-radius-panel: var(--ds-radius-card);
+  --ds-shadow-sm: 0 4px 12px rgb(30 40 35 / 5%);
+  --ds-shadow-md: var(--ds-shadow-sm);
+  --ds-border-subtle: 1px solid var(--ds-color-border);
+  --ds-focus-outline: 2px solid var(--ds-color-primary);
+  --ds-shadow-focus: 0 0 0 3px color-mix(in srgb, var(--ds-color-primary) 24%, transparent);
+
+  /* Alias historiques résolus dans le même scope, sans dépendance circulaire. */
+  --pls-primary: var(--ds-color-primary);
+  --pls-primary-hover: var(--ds-color-primary-hover);
+  --pls-primary-soft: var(--ds-color-primary-soft);
+  --pls-primary-light: var(--ds-color-background-soft);
+  --pls-gold: var(--ds-color-gold);
+  --pls-gold-soft: var(--ds-color-cream);
+  --pls-bg: var(--ds-color-background);
+  --pls-surface: var(--ds-color-surface);
+  --pls-text: var(--ds-color-text-primary);
+  --pls-text-secondary: var(--ds-color-text-secondary);
+  --pls-border: var(--ds-color-border);
+  --pls-border-strong: var(--ds-color-border-strong);
+  --pls-warning: var(--ds-color-warning);
+  --pls-warning-soft: var(--ds-color-warning-soft);
+  --pls-success: var(--ds-color-success);
+  --pls-success-soft: var(--ds-color-success-soft);
+  --pls-danger: var(--ds-color-error);
+  --pls-danger-soft: var(--ds-color-error-soft);
+  --pls-info: var(--ds-color-info);
+  --pls-info-soft: var(--ds-color-info-soft);
+  --pls-status-success-text: var(--ds-color-success-hover);
+  --pls-status-warning-text: var(--ds-color-warning-hover);
+  --pls-status-danger-text: var(--ds-color-error-hover);
+  --pls-status-info-text: var(--ds-color-info-hover);
+  --pls-white: var(--ds-color-surface);
+  --pls-beige: var(--ds-color-cream);
+  --pls-beige-soft: var(--ds-color-background-soft);
+  --pls-bg-soft: var(--ds-color-background-soft);
+  --pls-text-muted: var(--ds-color-text-secondary);
+  --pls-radius-xs: var(--ds-radius-sm);
+  --pls-radius-sm: var(--ds-radius-control);
+  --pls-radius-md: var(--ds-radius-card);
+  --pls-radius-lg: var(--ds-radius-xl);
+  --pls-radius-xl: var(--ds-radius-2xl);
+  --pls-sidebar-width: var(--ds-layout-sidebar);
+  --pls-sidebar-compact: var(--ds-layout-sidebar-compact);
+  --pls-header-height: var(--ds-layout-header-height);
+  --pls-content-width: var(--ds-layout-content);
+  --pls-page-padding: var(--ds-space-page);
+  --pls-section-gap: var(--ds-space-section);
+  --pls-text-body: var(--ds-text-sm);
+  --pls-text-meta: var(--ds-text-xs);
+  --pls-text-section: var(--ds-text-xl);
+  --pls-text-kpi: var(--ds-text-metric);
+  --pls-text-hero: var(--ds-text-2xl);
+  --pls-shadow: var(--ds-shadow-sm);
+  --dash-bg-page: var(--ds-color-background);
+  --dash-bg-panel: var(--ds-color-surface);
+  --dash-bg-panel-soft: var(--ds-color-surface-soft);
+  --dash-bg-accent-soft: var(--ds-color-primary-soft);
+  --dash-text: var(--ds-color-text-primary);
+  --dash-text-muted: var(--ds-color-text-secondary);
+  --dash-border: var(--ds-color-border);
+  --dash-accent: var(--ds-color-primary);
+  --dash-accent-strong: var(--ds-color-primary-hover);
+  --dash-font-heading: var(--ds-font-heading);
+  --dash-radius-panel: var(--ds-radius-card);
+  --dash-shadow-sm: var(--ds-shadow-sm);
+  --dash-shadow-md: var(--ds-shadow-md);
+  --ui-color-bg: var(--ds-color-background);
+  --ui-color-surface: var(--ds-color-surface);
+  --ui-color-border: var(--ds-color-border);
+  --ui-color-text: var(--ds-color-text-primary);
+  --ui-color-text-muted: var(--ds-color-text-secondary);
+  --ui-color-primary: var(--ds-color-primary);
+  --ui-button-radius: var(--ds-radius-control);
   --ui-card: 100%;
   --ui-card-large-max: 100%;
 }
@@ -431,10 +545,13 @@
 
 [data-theme="art-deco"],
 .theme-art-deco {
-  --ds-color-primary: #d4af37;        /* Or Art Déco */
+  --ds-color-primary: #d4af37;
+  /* Or Art Déco */
   --ds-color-primary-hover: #b5a642;
-  --ds-color-secondary: #7a5b12;      /* Brun Art Déco */
-  --ds-color-accent: #1a2530;        /* Noir Art Déco */
+  --ds-color-secondary: #7a5b12;
+  /* Brun Art Déco */
+  --ds-color-accent: #1a2530;
+  /* Noir Art Déco */
   --ds-color-background: #f4f6f8;
   --ds-color-surface-soft: #ebeff2;
   --ds-color-surface-muted: #eef1f5;
@@ -444,14 +561,14 @@
   --ds-color-border: #d5dbdf;
   --ds-color-border-strong: #b5a642;
   --ds-color-border-soft: #e8ecef;
-  
+
   /* Rayons Art Déco - tous à 4px pour le style */
   --ds-radius-sm: 4px;
   --ds-radius-md: 4px;
   --ds-radius-lg: 4px;
   --ds-radius-xl: 4px;
   --ds-radius-pill: 4px;
-  
+
   /* Tokens spécifiques Art Déco */
   --ds-artdeco-surface: #fffdf8;
   --ds-artdeco-ink: #182633;
@@ -464,7 +581,7 @@
   --ds-artdeco-rose: #f1e3dc;
   --ds-font-artdeco: Georgia, serif;
   --ds-text-artdeco-panel: clamp(1.7rem, 3vw, 2.45rem);
-  
+
   /* Layout Art Déco */
   --ds-layout-sidebar: 240px;
   --ds-layout-content: 1280px;
@@ -496,7 +613,7 @@
   --ds-color-warning: #db9c6a;
   --ds-color-error: #df7b7b;
   --ds-color-info: #6aa9dd;
-  
+
   /* Ombres pour thème sombre */
   --ds-shadow-sm: 0 10px 24px rgba(7, 9, 14, 0.2);
   --ds-shadow-md: 0 16px 36px rgba(7, 9, 14, 0.28);
@@ -510,32 +627,50 @@
 
 [data-home-heritage] {
   /* Mapping vers tokens globaux */
-  --home-bg: var(--ds-color-background);        /* #f8f3e9 */
-  --home-bg-soft: var(--ds-color-background-soft); /* #fcf9f3 */
-  --home-paper: var(--ds-color-surface);        /* #ffffff */
-  --home-cream: var(--ds-color-surface-soft);   /* #f8f5ea */
-  
-  --home-green: var(--ds-color-accent);         /* #416b59 - Vert PlanetLS */
+  --home-bg: var(--ds-color-background);
+  /* #f8f3e9 */
+  --home-bg-soft: var(--ds-color-background-soft);
+  /* #fcf9f3 */
+  --home-paper: var(--ds-color-surface);
+  /* #ffffff */
+  --home-cream: var(--ds-color-surface-soft);
+  /* #f8f5ea */
+
+  --home-green: var(--ds-color-accent);
+  /* #416b59 - Vert PlanetLS */
   --home-green-dark: var(--ds-color-accent-hover);
-  --home-green-soft: var(--ds-color-accent-soft); /* #e5eee8 */
+  --home-green-soft: var(--ds-color-accent-soft);
+  /* #e5eee8 */
   --home-sage: var(--ds-color-sage);
-  
-  --home-gold: var(--ds-color-primary);         /* #8b6a2d - Doré/laiton */
-  --home-gold-dark: var(--ds-color-primary-hover); /* #6d5422 */
-  --home-gold-soft: var(--ds-color-primary-soft);  /* #e4cfaa */
-  --home-gold-pale: var(--ds-color-primary-pale); /* #f6eddd */
-  
-  --home-brown: var(--ds-color-secondary);      /* #6b4e38 - Brun profond */
-  --home-brown-dark: var(--ds-color-secondary-hover); /* #4c3418 */
-  
-  --home-text: var(--ds-color-text-primary);    /* #292823 */
-  --home-text-secondary: var(--ds-color-text-secondary); /* #68645c */
-  --home-text-muted: var(--ds-color-text-muted); /* #918b81 */
-  
-  --home-border: var(--ds-color-border);         /* #dfd3bf */
-  --home-border-soft: var(--ds-color-border-soft); /* #ebe3d7 */
-  --home-max-width: var(--ds-layout-max-width); /* 1280px */
-  
+
+  --home-gold: var(--ds-color-primary);
+  /* #8b6a2d - Doré/laiton */
+  --home-gold-dark: var(--ds-color-primary-hover);
+  /* #6d5422 */
+  --home-gold-soft: var(--ds-color-primary-soft);
+  /* #e4cfaa */
+  --home-gold-pale: var(--ds-color-primary-pale);
+  /* #f6eddd */
+
+  --home-brown: var(--ds-color-secondary);
+  /* #6b4e38 - Brun profond */
+  --home-brown-dark: var(--ds-color-secondary-hover);
+  /* #4c3418 */
+
+  --home-text: var(--ds-color-text-primary);
+  /* #292823 */
+  --home-text-secondary: var(--ds-color-text-secondary);
+  /* #68645c */
+  --home-text-muted: var(--ds-color-text-muted);
+  /* #918b81 */
+
+  --home-border: var(--ds-color-border);
+  /* #dfd3bf */
+  --home-border-soft: var(--ds-color-border-soft);
+  /* #ebe3d7 */
+  --home-max-width: var(--ds-layout-max-width);
+  /* 1280px */
+
   /* Tokens de statut pour home */
   --home-success: var(--ds-color-success);
   --home-warning: var(--ds-color-warning);
@@ -556,7 +691,7 @@
     --ds-motion-instant: 1ms linear;
     --ds-motion-base: 1ms linear;
   }
-  
+
   /* Désactive toutes les animations et transitions */
   *,
   *::before,
@@ -577,6 +712,7 @@
     opacity: 0;
     transform: translateY(24px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -588,6 +724,7 @@
     opacity: 0;
     transform: translateY(-24px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -598,6 +735,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -608,6 +746,7 @@
     opacity: 0;
     transform: translateY(16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -618,15 +757,19 @@
   from {
     transform: scale(0.98);
   }
+
   to {
     transform: scale(1);
   }
 }
 
 @keyframes ds-ornament-move {
-  0%, 100% {
+
+  0%,
+  100% {
     background-position: 0 0;
   }
+
   50% {
     background-position: 20px 10px;
   }
@@ -668,7 +811,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ds-reveal, .ds-fade, .ds-scale {
+
+  .ds-reveal,
+  .ds-fade,
+  .ds-scale {
     opacity: 1 !important;
     transform: none !important;
     animation: none !important;

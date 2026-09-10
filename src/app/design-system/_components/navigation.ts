@@ -31,6 +31,12 @@ export const designSections = [
     description:
       "Tester la tournée concierge, la carte fictive et l'ordre des missions.",
   },
+  {
+    href: "/design-system/owner-reference",
+    title: "Dashboard propriétaire (référence)",
+    description:
+      "Prévisualiser la composition propriétaire : arrivée, logements, revenus, tâches, messages et services.",
+  },
 ] as const;
 
 export const designSpaces = [

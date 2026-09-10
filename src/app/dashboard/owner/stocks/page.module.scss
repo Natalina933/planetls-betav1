@@ -202,7 +202,7 @@
 
 .action,
 .urgent {
-  border-color: color-mix(in srgb, #b85c48 36%, var(--dash-border));
+  border-color: color-mix(in srgb, #276a58 36%, var(--dash-border));
 }
 
 .cardTop {
@@ -290,6 +290,7 @@
 }
 
 @media (max-width: 1100px) {
+
   .hero,
   .priorityLayout,
   .twoColumns {
@@ -306,6 +307,7 @@
 }
 
 @media (max-width: 640px) {
+
   .kpiGrid,
   .checkGrid,
   .tableRow {

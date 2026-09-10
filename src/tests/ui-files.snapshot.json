@@ -111,7 +111,7 @@
   "src/components/ui/dashboard/saas/DashboardSection.tsx": "4c0bcb6463e217a5b747eec7a3ae0a1af947b854714872eb7523e520409a2faf",
   "src/components/ui/dashboard/saas/DashboardStatusBadge.tsx": "e85f9d52681807317a6f016b795858e8d38a181232dc6487f0b73e3d462b02b2",
   "src/components/ui/dashboard/saas/dashboardMissionPace.tsx": "164220088543b7cf7ca82f6fe939e661722e14160769e24f1aa4bfbe7327f0e8",
-  "src/components/ui/dashboard/saas/dashboardSaas.module.scss": "08d0a54aa8c9f1da38cd244d77b55aa7faa09c1ef1ad0b29f29246729d861267",
+  "src/components/ui/dashboard/saas/dashboardSaas.module.scss": "478e5e1a1c3fddd6cb8e8bde56a896e0807fa564e566aa1c919e51db594b60b5",
   "src/components/ui/dashboard/saas/index.ts": "3ffc0104f6723f9ff1452fde94e323b91aad553ac2227767e0aef69efdfaa686",
   "src/components/ui/dashboard/types.ts": "2dad0515c5bde44f4d1a53a5ec1b161e7adb0d7ebc27985426351a6dcf3dcc69",
   "src/components/ui/index.ts": "0d7dbadf8bf93a0e21af09c3e0626f35940edbdb5de8b193ab623b579db39af6",

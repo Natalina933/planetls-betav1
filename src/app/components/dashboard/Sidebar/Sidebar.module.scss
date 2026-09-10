@@ -1,8 +1,8 @@
 @use "sass:color";
 @use "../../../styles/abstracts/variables" as *;
 
-$owner-accent: #b85c48;
-$owner-accent-soft: #f3ddd4;
+$owner-accent: #276a58;
+$owner-accent-soft: #e3f0eb;
 $concierge-accent: #c6a66b;
 $concierge-accent-soft: #f3ead8;
 $provider-accent: #72825b;
@@ -419,6 +419,11 @@ $admin-accent-soft: #e3e8f2;
 
 .ownerTheme {
     @include sidebar-theme($owner-accent, $owner-accent-soft);
+
+    background:
+        linear-gradient(180deg, rgba(255, 253, 248, 0.98), rgba(243, 234, 216, 0.9)),
+        var(--ds-color-surface);
+    border-right-color: #e6d7b9;
 }
 
 .conciergeTheme {
@@ -547,8 +552,8 @@ $admin-accent-soft: #e3e8f2;
     background: rgba(22, 33, 62, 0.72);
 }
 
-:global(.dashboard-root.concierge-design) .sidebar {
-    width: 224px;
+:global(.dashboard-root) .sidebar {
+    width: var(--ds-layout-sidebar);
     background:
         linear-gradient(180deg, rgba(255, 252, 244, 0.98), rgba(247, 239, 222, 0.98)),
         var(--ds-color-surface);
@@ -556,38 +561,43 @@ $admin-accent-soft: #e3e8f2;
     box-shadow: 8px 0 28px rgba(74, 57, 31, 0.08);
 }
 
-:global(.dashboard-root.concierge-design) .header {
+:global(.dashboard-root) .header {
     padding: var(--ds-space-5) var(--ds-space-4);
     background: transparent;
     border-bottom-color: #eadfc9;
 }
 
-:global(.dashboard-root.concierge-design) .title {
-    color: #4b3b27;
+:global(.dashboard-root) .title {
+    color: var(--ds-color-text-primary);
     font-family: var(--ds-font-heading);
     font-size: 1.22rem;
 }
 
-:global(.dashboard-root.concierge-design) .link,
-:global(.dashboard-root.concierge-design) .sublink {
-    color: #443e35;
+:global(.dashboard-root) .link,
+:global(.dashboard-root) .sublink {
+    color: var(--ds-color-text-secondary);
     border-left-width: 0;
     border-radius: var(--ds-radius-control);
 }
 
-:global(.dashboard-root.concierge-design) .link.active,
-:global(.dashboard-root.concierge-design) .sublink.active {
-    background: #b89455;
-    color: #fffdf7;
+:global(.dashboard-root) .link .icon,
+:global(.dashboard-root) .sublink .icon {
+    color: inherit;
+}
+
+:global(.dashboard-root) .link.active,
+:global(.dashboard-root) .sublink.active {
+    background: var(--ds-color-primary);
+    color: var(--ds-color-text-inverse);
     box-shadow: 0 8px 18px rgba(157, 119, 54, 0.2);
 }
 
-:global(.dashboard-root.concierge-design) .link:hover,
-:global(.dashboard-root.concierge-design) .link:focus-visible,
-:global(.dashboard-root.concierge-design) .sublink:hover,
-:global(.dashboard-root.concierge-design) .sublink:focus-visible {
-    background: #f2e8d4;
-    color: #4b3b27;
+:global(.dashboard-root) .link:hover,
+:global(.dashboard-root) .link:focus-visible,
+:global(.dashboard-root) .sublink:hover,
+:global(.dashboard-root) .sublink:focus-visible {
+    background: var(--ds-color-primary-soft);
+    color: var(--ds-color-text-primary);
 }
 
 .conciergeBrand {

@@ -1,37 +1,31 @@
 .surface {
-  --dashboard-color-primary: var(--color-primary, #11845b);
-  --dashboard-color-primary-strong: var(--dashboard-color-primary-strong, #0d6a49);
-  --dashboard-color-success: var(--color-success, #1f8b4d);
-  --dashboard-color-warning: var(--color-warning, #d48a1f);
-  --dashboard-color-danger: var(--color-danger, #d64545);
-  --dashboard-color-info: var(--color-info, #2f7cf6);
-  --dashboard-color-bg: var(--color-bg, #f4f7f6);
-  --dashboard-color-surface: var(--color-surface, #ffffff);
-  --dashboard-color-surface-alt: #f8fbfa;
-  --dashboard-color-text: var(--color-text, #18251f);
-  --dashboard-color-text-soft: #607067;
-  --dashboard-color-border: rgba(17, 132, 91, 0.14);
-  --dashboard-radius-lg: var(--radius-lg, 24px);
-  --dashboard-radius-md: 18px;
-  --dashboard-radius-sm: 14px;
-  --dashboard-shadow-soft: var(--shadow-soft, 0 18px 42px rgba(17, 37, 29, 0.08));
+  --dashboard-color-primary: var(--ds-color-primary);
+  --dashboard-color-primary-strong: var(--ds-color-primary-hover);
+  --dashboard-color-success: var(--ds-color-success);
+  --dashboard-color-warning: var(--ds-color-warning);
+  --dashboard-color-danger: var(--ds-color-error);
+  --dashboard-color-info: var(--ds-color-info);
+  --dashboard-color-bg: var(--ds-color-background);
+  --dashboard-color-surface: var(--ds-color-surface);
+  --dashboard-color-surface-alt: var(--ds-color-background-soft);
+  --dashboard-color-text: var(--ds-color-text-primary);
+  --dashboard-color-text-soft: var(--ds-color-text-secondary);
+  --dashboard-color-border: var(--ds-color-border);
+  --dashboard-radius-lg: var(--ds-radius-card);
+  --dashboard-radius-md: var(--ds-radius-card);
+  --dashboard-radius-sm: var(--ds-radius-control);
+  --dashboard-shadow-soft: var(--ds-shadow-sm);
 
   position: relative;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--dashboard-color-primary) 12%, transparent);
-  border-radius: var(--dashboard-radius-lg);
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 249, 0.9) 48%, rgba(238, 246, 242, 0.82)),
-    var(--dashboard-color-surface);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.82) inset,
-    0 14px 34px rgba(17, 37, 29, 0.07);
+  border: var(--ds-border-subtle);
+  border-radius: var(--ds-radius-card);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-sm);
 }
 
 .surfaceMuted {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 249, 247, 0.94)),
-    var(--dashboard-color-surface-alt);
+  background: var(--ds-color-surface);
 }
 
 .sectionCard {
@@ -42,8 +36,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: var(--ds-space-4);
+  margin-bottom: var(--ds-space-4);
 }
 
 .sectionTitleWrap {
@@ -91,41 +85,21 @@
   gap: clamp(0.62rem, 1.25vw, 0.9rem);
   min-height: clamp(76px, 9vw, 92px);
   padding: clamp(0.62rem, 1.1vw, 0.82rem);
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--metric-accent) 14%, rgba(255, 255, 255, 0.7));
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--metric-accent) 13%, #ffffff) 0%, rgba(255, 255, 255, 0.96) 42%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 247, 0.92)),
-    var(--dashboard-color-surface);
+  border-radius: var(--ds-radius-card);
+  border: var(--ds-border-subtle);
+  background: var(--ds-color-surface);
   color: inherit;
   text-decoration: none;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 10px 22px rgba(17, 37, 29, 0.055);
+  box-shadow: var(--ds-shadow-sm);
   transition:
     transform 180ms ease,
     box-shadow 180ms ease,
     border-color 180ms ease;
 }
 
-.metricCard::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  z-index: -1;
-  width: 3px;
-  background: var(--metric-accent);
-}
+.metricCard::before { content: none; }
 
-.metricCard::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.38), transparent 52%);
-  opacity: 0.72;
-  pointer-events: none;
-}
+.metricCard::after { content: none; }
 
 .metricCard[data-status-tone="success"] {
   --metric-accent: var(--dashboard-color-success);
@@ -164,7 +138,7 @@
 }
 
 .metricCard:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--metric-accent) 38%, transparent);
+  outline: var(--ds-focus-outline, 2px solid var(--ds-color-primary));
   outline-offset: 3px;
 }
 
@@ -213,7 +187,7 @@
   border-radius: 22px;
   background:
     radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.96), transparent 48%),
-    color-mix(in srgb, var(--metric-accent) 14%, #ffffff);
+    color-mix(in srgb, var(--metric-accent) 14%, var(--ds-color-surface));
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.9) inset,
     0 14px 26px color-mix(in srgb, var(--metric-accent) 16%, transparent);
@@ -303,7 +277,7 @@
   min-width: 30px;
   min-height: 30px;
   padding: 0.24rem 0.62rem;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   border: 1px solid transparent;
   font-size: 0.72rem;
   font-weight: 800;
@@ -321,7 +295,7 @@
   border: 0;
   background:
     radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.94), transparent 46%),
-    color-mix(in srgb, var(--metric-accent) 14%, #ffffff);
+    color-mix(in srgb, var(--metric-accent) 14%, var(--ds-color-surface));
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.9) inset,
     0 14px 26px color-mix(in srgb, var(--metric-accent) 16%, transparent);
@@ -438,9 +412,9 @@
 .emptyState {
   display: grid;
   justify-items: center;
-  gap: 0.5rem;
+  gap: var(--ds-space-2);
   min-height: 120px;
-  padding: 1rem;
+  padding: var(--ds-space-4);
   border: 1px dashed var(--dashboard-color-border);
   border-radius: var(--dashboard-radius-md);
   background: rgba(248, 251, 250, 0.82);
@@ -520,17 +494,17 @@
 }
 /* Premium dashboard component refresh */
 .surface {
-  --dashboard-radius-lg: 8px;
-  --dashboard-radius-md: 8px;
-  --dashboard-radius-sm: 8px;
+  --dashboard-radius-lg: var(--ds-radius-card);
+  --dashboard-radius-md: var(--ds-radius-card);
+  --dashboard-radius-sm: var(--ds-radius-control);
   border-color: rgba(17, 24, 39, 0.1);
-  border-radius: 8px;
-  background: #ffffff;
+  border-radius: var(--ds-radius-control);
+  background: var(--ds-color-surface);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .surfaceMuted {
-  background: #ffffff;
+  background: var(--ds-color-surface);
 }
 
 .sectionCard {
@@ -544,27 +518,27 @@
 }
 
 .eyebrow {
-  color: #6b7280;
+  color: var(--ds-color-text-secondary);
   letter-spacing: 0.08em;
 }
 
 .sectionTitle {
-  color: #111827;
+  color: var(--ds-color-text-primary);
   font-size: clamp(1rem, 1.5vw, 1.22rem);
   letter-spacing: 0;
 }
 
 .sectionDescription {
-  color: #667085;
+  color: var(--ds-color-text-secondary);
   line-height: 1.45;
 }
 
 .metricCard {
   min-height: 82px;
-  padding: 0.75rem;
-  border-radius: 8px;
+  padding: var(--ds-space-3);
+  border-radius: var(--ds-radius-control);
   border-color: rgba(17, 24, 39, 0.1);
-  background: #ffffff;
+  background: var(--ds-color-surface);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
@@ -580,8 +554,8 @@
 .metricIcon {
   width: 42px;
   height: 42px;
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--metric-accent) 10%, #ffffff);
+  border-radius: var(--ds-radius-control);
+  background: color-mix(in srgb, var(--metric-accent) 10%, var(--ds-color-surface));
   box-shadow: none;
 }
 
@@ -594,19 +568,19 @@
 .statusBadge:has(:global(.dashboardMissionPaceIcon)) {
   width: 58px;
   height: 58px;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-control);
   background: #f8fafc;
   box-shadow: none;
 }
 
 .metricValue {
-  color: #111827;
+  color: var(--ds-color-text-primary);
   font-size: clamp(1.35rem, 1.8vw, 1.7rem);
   letter-spacing: 0;
 }
 
 .metricDetail {
-  color: #667085;
+  color: var(--ds-color-text-secondary);
   line-height: 1.35;
 }
 
@@ -617,7 +591,7 @@
 
 .statusBadge {
   min-height: 28px;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-control);
   letter-spacing: 0.02em;
 }
 
@@ -627,19 +601,19 @@
 }
 
 .emptyState {
-  border-radius: 8px;
+  border-radius: var(--ds-radius-control);
   background: #f8fafc;
 }
 
 @media (max-width: 420px) {
   .metricCard {
-    border-radius: 8px;
+    border-radius: var(--ds-radius-control);
   }
 
   .metricStatus .statusBadge,
   .statusBadge:has(:global(.dashboardMissionPaceIcon)) {
     width: 52px;
     height: 52px;
-    border-radius: 8px;
+    border-radius: var(--ds-radius-control);
   }
 }

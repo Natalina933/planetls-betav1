@@ -7,17 +7,17 @@ function formatTime(value: Date) {
   return new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" }).format(value);
 }
 
-export default function ConciergeRoutePreview({ events }: { events: readonly DashboardEvent[] }) {
+export default function ConciergeRoutePreview({ events, compact = false }: { events: readonly DashboardEvent[]; compact?: boolean }) {
   const stops = events.slice(0, 6);
   const nextStop = stops[0];
   const progress = stops.length > 0 ? Math.round((1 / stops.length) * 100) : 0;
 
   return (
-    <section className={styles.preview} aria-labelledby="concierge-route-preview-title">
+    <section className={[styles.preview, compact ? styles.compact : ""].join(" ")} aria-labelledby="concierge-route-preview-title">
       <div className={styles.header}>
         <div>
           <span className={styles.eyebrow}>Organisation terrain</span>
-          <h2 id="concierge-route-preview-title">Tournée du jour</h2>
+          <h2 id="concierge-route-preview-title">Ma tournée du jour</h2>
           <p>
             {stops.length > 0
               ? `${stops.length} étape${stops.length > 1 ? "s" : ""} planifiée${stops.length > 1 ? "s" : ""} · ordre chronologique`
@@ -27,7 +27,7 @@ export default function ConciergeRoutePreview({ events }: { events: readonly Das
         <span className={styles.routeIcon} aria-hidden="true"><Route size={20} /></span>
       </div>
 
-      {nextStop ? (
+      {!compact && nextStop ? (
         <div className={styles.nextStop}>
           <div className={styles.nextCopy}>
             <span className={styles.nextLabel}>Prochaine mission</span>
@@ -38,15 +38,16 @@ export default function ConciergeRoutePreview({ events }: { events: readonly Das
             Ouvrir le planning <ArrowRight size={15} aria-hidden="true" />
           </Link>
         </div>
-      ) : (
+      ) : !nextStop ? (
         <div className={styles.emptyState}>
           <MapPinned size={18} aria-hidden="true" />
           <span>Votre tournée se construira ici dès qu&apos;une mission sera planifiée.</span>
         </div>
-      )}
+      ) : null}
 
       {stops.length > 0 ? (
         <>
+          {!compact && <>
           <div className={styles.progressHeader}>
             <span>Progression indicative</span>
             <strong>{progress}% · {stops.length} étape{stops.length > 1 ? "s" : ""}</strong>
@@ -54,6 +55,7 @@ export default function ConciergeRoutePreview({ events }: { events: readonly Das
           <div className={styles.progressTrack} role="progressbar" aria-label="Progression indicative de la tournée" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
             <span style={{ width: `${progress}%` }} />
           </div>
+          </>}
           <ol className={styles.timeline}>
             {stops.map((event, index) => (
               <li key={`${event.bookingId ?? event.title}-${index}`} className={styles.stop}>

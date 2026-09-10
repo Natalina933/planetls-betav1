@@ -1,6 +1,6 @@
 .sectionBlock {
   display: grid;
-  gap: 1rem;
+  gap: var(--ds-space-4);
 }
 
 .sectionLead {
@@ -54,16 +54,16 @@
 .timelineRow,
 .emptyCard,
 .disclosureBlock {
-  border: 1px solid color-mix(in srgb, var(--dash-accent) 16%, var(--dash-border));
-  background: color-mix(in srgb, var(--dash-bg-panel) 96%, white);
-  box-shadow: 0 16px 34px rgba(74, 54, 22, 0.06);
+  border: var(--ds-border-subtle);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-sm);
 }
 
 .heroPanel {
   display: grid;
-  gap: 1rem;
+  gap: var(--ds-space-4);
   padding: clamp(1.2rem, 2.4vw, 1.8rem);
-  border-radius: 28px;
+  border-radius: var(--ds-radius-card);
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent) 14%, transparent), transparent 28%),
     linear-gradient(145deg, color-mix(in srgb, var(--dash-bg-panel) 97%, white), color-mix(in srgb, var(--dash-accent) 7%, white));
@@ -78,7 +78,7 @@
 .priorityBadge {
   width: fit-content;
   padding: 0.35rem 0.6rem;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   background: color-mix(in srgb, var(--dash-accent) 15%, transparent);
   color: var(--dash-accent-strong);
   font-size: 0.74rem;
@@ -112,7 +112,7 @@
 .financeCard {
   display: grid;
   gap: 0.3rem;
-  padding: 1rem;
+  padding: var(--ds-space-4);
   border-radius: 22px;
   background: color-mix(in srgb, var(--dash-bg-panel) 94%, white);
 }
@@ -136,7 +136,7 @@
 .requestActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
 }
 
 .primaryLink,
@@ -159,8 +159,8 @@
   align-items: center;
   justify-content: center;
   min-height: 44px;
-  padding: 0.7rem 1rem;
-  border-radius: 999px;
+  padding: 0.7rem var(--ds-space-4);
+  border-radius: var(--ds-radius-pill);
   font-size: 0.88rem;
   font-weight: 900;
   transition:
@@ -191,14 +191,14 @@
 .financeGrid,
 .quickActions {
   display: grid;
-  gap: 1rem;
+  gap: var(--ds-space-4);
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .healthCard {
   display: grid;
-  gap: 0.75rem;
-  padding: 1rem;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4);
   border-radius: 22px;
 }
 
@@ -216,7 +216,7 @@
 .healthDot {
   width: 0.7rem;
   height: 0.7rem;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   flex: 0 0 auto;
 }
 
@@ -245,7 +245,7 @@
 .dualGrid,
 .quotesGrid {
   display: grid;
-  gap: 1rem;
+  gap: var(--ds-space-4);
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
 }
 
@@ -278,7 +278,7 @@
   justify-content: center;
   width: 2.6rem;
   height: 2.6rem;
-  border-radius: 16px;
+  border-radius: var(--ds-radius-card);
   background: color-mix(in srgb, var(--dash-accent) 16%, transparent);
   color: var(--dash-accent-strong);
   flex: 0 0 auto;
@@ -303,7 +303,7 @@
   width: fit-content;
   min-height: 30px;
   padding: 0.3rem 0.58rem;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   background: color-mix(in srgb, var(--dash-accent) 12%, transparent);
   color: var(--dash-accent-strong);
   font-size: 0.76rem;
@@ -321,7 +321,7 @@
 .signalCard {
   display: grid;
   gap: 0.4rem;
-  padding: 1rem;
+  padding: var(--ds-space-4);
   border-radius: 18px;
 }
 
@@ -347,9 +347,9 @@
 .timelineRow {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
   align-items: center;
-  padding: 0.9rem 1rem;
+  padding: 0.9rem var(--ds-space-4);
   border-radius: 18px;
 }
 
@@ -362,8 +362,8 @@
 .requestCard {
   display: grid;
   gap: 0.8rem;
-  padding: 1rem;
-  border-radius: 20px;
+  padding: var(--ds-space-4);
+  border-radius: var(--ds-radius-card);
 }
 
 .requestTop {
@@ -412,14 +412,14 @@
 .disclosureBlock {
   display: grid;
   gap: 0;
-  border-radius: 24px;
+  border-radius: var(--ds-radius-card);
   overflow: hidden;
 }
 
 .disclosureSummary {
   list-style: none;
   cursor: pointer;
-  padding: 1rem 1.1rem;
+  padding: var(--ds-space-4) 1.1rem;
 }
 
 .disclosureSummary::-webkit-details-marker {
@@ -447,7 +447,7 @@
 
 .disclosureContent {
   display: grid;
-  gap: 1rem;
+  gap: var(--ds-space-4);
   padding: 0 1.1rem 1.1rem;
 }
 
@@ -455,8 +455,8 @@
   display: grid;
   place-items: center;
   min-height: 110px;
-  padding: 1rem;
-  border-radius: 20px;
+  padding: var(--ds-space-4);
+  border-radius: var(--ds-radius-card);
   border-style: dashed;
   color: var(--dash-accent-strong);
   font-size: 0.92rem;

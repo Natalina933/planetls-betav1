@@ -59,7 +59,7 @@ function StayCalendar({ stays, properties }: { stays: Mission[]; properties: Dat
   </Section>;
 }
 
-export default function OwnerDashboardView({ data, name, userId }: { data: Data; name: string; userId: string }) {
+export default function OwnerDashboardView({ data, userId }: { data: Data; name: string; userId: string }) {
   const [query, setQuery] = useState("");
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const stays = data.missions.filter((mission) => isStay(mission) && !isCanceled(mission));
@@ -67,6 +67,12 @@ export default function OwnerDashboardView({ data, name, userId }: { data: Data;
   const interventions = data.missions.filter((mission) => !isStay(mission) && !isCanceled(mission));
   const propertyName = (mission: Mission) => data.properties.find((property) => matchesHousingReference({ propertyId: mission.property_id ?? null, metadata: mission.metadata ?? null }, property.id))?.nom_logement ?? copy.unknownProperty;
   const pendingQuotes = data.quotes.filter((quote) => ["sent", "pending"].includes(quote.status ?? ""));
+  const nextArrival = arrivals[0] ?? null;
+  const nextArrivalNights = nextArrival ? (() => {
+    const start = validDate(nextArrival.scheduled_start);
+    const end = validDate(nextArrival.scheduled_end);
+    return start && end ? Math.max(1, Math.round((end.getTime() - start.getTime()) / 86_400_000)) : null;
+  })() : null;
   const actions = [
     { label: copy.finishProperty, count: data.draftCount, href: `${root}/logements` },
     { label: copy.checkQuotes, count: pendingQuotes.length, href: `${root}/devis` },
@@ -78,7 +84,6 @@ export default function OwnerDashboardView({ data, name, userId }: { data: Data;
   const searchItems = [...data.properties.map((property) => ({ id: `housing-${property.id}`, title: property.nom_logement || copy.unknownProperty, detail: property.ville || "", href: `${root}/logements/${property.id}` })), ...arrivals.map((stay) => ({ id: stay.id, title: stay.title || copy.upcoming, detail: propertyName(stay), href: `${root}/missions/${stay.id}` })), ...documents.map((document) => ({ ...document, detail: document.type }))];
   const results = query.trim() ? searchItems.filter((item) => normalize(`${item.title} ${item.detail}`).includes(normalize(query.trim()))) : [];
   return <div className={styles.dashboard} data-owner-dashboard="">
-    <header className={styles.hero}><div><p className={styles.eyebrow}>{copy.brand} / {copy.tagline}</p><h1>{copy.greeting(name)}</h1><h2>{actions.length ? copy.attention : copy.calm}</h2><p>{copy.intro}</p></div><blockquote><Sparkles size={25} aria-hidden="true" />{copy.quote}</blockquote></header>
     <div className={styles.search}><Search size={20} aria-hidden="true" /><label className={styles.srOnly} htmlFor="owner-search">{copy.searchLabel}</label><Input bare id="owner-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={copy.search} aria-describedby="owner-search-scope" /></div><p id="owner-search-scope" className={styles.muted}>{copy.searchScope}</p>
     {query.trim() && <div className={styles.card} aria-live="polite">{results.length ? results.map((item) => <Link className={styles.row} href={item.href} key={item.id}><strong>{item.title}</strong><span>{item.detail}</span><ArrowUpRight size={16} /></Link>) : copy.noResults}</div>}
     <div className={styles.metrics}>{[
@@ -87,6 +92,22 @@ export default function OwnerDashboardView({ data, name, userId }: { data: Data;
       { label: copy.interventions, value: interventions.filter((mission) => mission.status === "in_progress").length, icon: Wrench, hint: copy.recentData },
       { label: copy.occupancy, value: "—", icon: House, hint: copy.unavailable },
     ].map(({ label, value, icon: Icon, hint }) => <Card className={styles.metric} key={label}><span className={styles.icon}><Icon size={21} aria-hidden="true" /></span><strong>{value}</strong><span>{label}</span><small>{hint}</small></Card>)}</div>
+    {nextArrival ? <Card className={`${styles.card} ${styles.nextArrival}`}>
+      <CardHeader className={styles.sectionHeader}><h2>{copy.nextArrival}</h2><Badge className={styles.badge}>{copy.inDays(Math.round(((validDate(nextArrival.scheduled_start)?.getTime() ?? 0) - today.getTime()) / 86_400_000))}</Badge></CardHeader>
+      <CardBody className={styles.nextArrivalBody}>
+        <div className={styles.nextArrivalImage} aria-hidden="true"><House size={34} /></div>
+        <div className={styles.nextArrivalDetails}>
+          <div className={styles.nextArrivalTop}><span>{dateLabel(nextArrival.scheduled_start)}</span><strong>{validDate(nextArrival.scheduled_start)?.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) ?? copy.unknownDate}</strong></div>
+          <h3>{nextArrival.title || copy.upcoming}</h3>
+          <p className={styles.muted}>{propertyName(nextArrival)}</p>
+          <ul className={styles.arrivalDetails}>{nextArrivalNights ? <li>{copy.nights(nextArrivalNights)}</li> : null}<li>{dateLabel(nextArrival.scheduled_start)} → {dateLabel(nextArrival.scheduled_end)}</li></ul>
+          <div className={styles.arrivalActions}>
+            <ButtonLink className={styles.primary} href={`${root}/missions/${nextArrival.id}`}>{copy.viewReservation}</ButtonLink>
+            <ButtonLink variant="ghost" className={styles.sectionLink} href={`${root}/messages`}>{copy.contactTravelers}</ButtonLink>
+          </div>
+        </div>
+      </CardBody>
+    </Card> : null}
     <div className={styles.twoColumns}>
       <Section title={copy.arrivals} href={`${root}/planning`} label={copy.calendarLink}>{arrivals.length ? arrivals.slice(0, 3).map((stay) => <Link className={styles.row} key={stay.id} href={`${root}/missions/${stay.id}`}><span className={styles.icon}><CalendarDays size={20} /></span><div><strong>{stay.title || copy.upcoming}</strong><span>{propertyName(stay)}</span><small>{dateLabel(stay.scheduled_start)} → {dateLabel(stay.scheduled_end)}</small></div><ArrowUpRight size={17} /></Link>) : <p className={styles.empty}>{copy.noArrivals}</p>}</Section>
       <Section title={copy.actions}>{actions.length ? actions.map((action) => <Link className={styles.row} key={action.label} href={action.href}><CircleCheck size={19} aria-hidden="true" /><strong>{action.label}</strong><Badge className={styles.badge}>{action.count}</Badge><ChevronRight size={16} /></Link>) : <p className={styles.empty}>{copy.noActions}</p>}</Section>

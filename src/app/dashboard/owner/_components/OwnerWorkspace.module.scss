@@ -1,49 +1,49 @@
 .page {
-  --workspace-accent: #b85c48;
-  --workspace-accent-soft: #f3ddd4;
-  --workspace-accent-text: #793528;
-  --workspace-surface: rgba(255, 250, 246, 0.96);
-  --workspace-surface-strong: rgba(255, 245, 239, 0.96);
-  --workspace-shadow: rgba(109, 53, 41, 0.12);
+  --workspace-accent: var(--ds-color-primary);
+  --workspace-accent-soft: var(--ds-color-primary-soft);
+  --workspace-accent-text: var(--ds-color-primary-hover);
+  --workspace-surface: var(--ds-color-surface);
+  --workspace-surface-strong: var(--ds-color-surface-soft);
+  --workspace-shadow: rgba(30, 86, 72, 0.12);
   display: grid;
-  gap: 1.5rem;
+  gap: var(--ds-space-5);
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
 }
 
 .ownerTheme {
-  --workspace-accent: #b85c48;
-  --workspace-accent-soft: #f3ddd4;
-  --workspace-accent-text: #793528;
-  --workspace-surface: rgba(255, 250, 246, 0.96);
-  --workspace-surface-strong: rgba(255, 245, 239, 0.96);
-  --workspace-shadow: rgba(109, 53, 41, 0.12);
+  --workspace-accent: var(--ds-color-primary);
+  --workspace-accent-soft: var(--ds-color-primary-soft);
+  --workspace-accent-text: var(--ds-color-primary-hover);
+  --workspace-surface: var(--ds-color-surface);
+  --workspace-surface-strong: var(--ds-color-surface-soft);
+  --workspace-shadow: rgba(30, 86, 72, 0.12);
 }
 
 .conciergeTheme {
-  --workspace-accent: #c6a66b;
-  --workspace-accent-soft: #f3ead8;
-  --workspace-accent-text: #7b5b23;
-  --workspace-surface: rgba(255, 252, 245, 0.96);
-  --workspace-surface-strong: rgba(247, 238, 221, 0.96);
+  --workspace-accent: var(--ds-color-primary);
+  --workspace-accent-soft: var(--ds-color-primary-soft);
+  --workspace-accent-text: var(--ds-color-primary-hover);
+  --workspace-surface: var(--ds-color-surface);
+  --workspace-surface-strong: var(--ds-color-surface-soft);
   --workspace-shadow: rgba(111, 87, 40, 0.1);
 }
 
 .providerTheme {
-  --workspace-accent: #72825b;
-  --workspace-accent-soft: #e3e8d8;
-  --workspace-accent-text: #4d5b3d;
-  --workspace-surface: rgba(249, 251, 245, 0.96);
-  --workspace-surface-strong: rgba(237, 242, 228, 0.96);
+  --workspace-accent: var(--ds-color-primary);
+  --workspace-accent-soft: var(--ds-color-primary-soft);
+  --workspace-accent-text: var(--ds-color-primary-hover);
+  --workspace-surface: var(--ds-color-surface);
+  --workspace-surface-strong: var(--ds-color-surface-soft);
   --workspace-shadow: rgba(63, 80, 47, 0.1);
 }
 
 .hero {
   display: grid;
   gap: 0.65rem;
-  padding: 1.5rem;
-  border-radius: 24px;
+  padding: var(--ds-space-5);
+  border-radius: var(--ds-radius-card);
   border: 1px solid color-mix(in srgb, var(--workspace-accent) 28%, transparent);
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--workspace-accent) 16%, transparent), transparent 34%),
@@ -78,7 +78,7 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
+  gap: var(--ds-space-4);
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -113,7 +113,7 @@
 .cardActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
   margin-top: 0.35rem;
 }
 
@@ -124,7 +124,7 @@
   justify-content: center;
   min-height: 40px;
   padding: 0.65rem 0.95rem;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   text-decoration: none;
   font-weight: 700;
   transition:
@@ -135,11 +135,9 @@
 
 .cardActionPrimary {
   border: none;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--workspace-accent) 90%, white),
-    color-mix(in srgb, var(--workspace-accent) 82%, #7c5b20)
-  );
+  background: linear-gradient(135deg,
+      color-mix(in srgb, var(--workspace-accent) 90%, white),
+      color-mix(in srgb, var(--workspace-accent) 82%, #7c5b20));
   color: #fff;
   box-shadow: 0 10px 24px color-mix(in srgb, var(--workspace-shadow) 75%, transparent);
 }
@@ -158,12 +156,12 @@
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--ds-space-2);
 }
 
 .chip {
   padding: 0.3rem 0.7rem;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   background: color-mix(in srgb, var(--workspace-accent) 14%, transparent);
   color: var(--workspace-accent-text);
   font-size: 0.8rem;
@@ -173,10 +171,11 @@
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
 }
 
 @media (max-width: 720px) {
+
   .hero,
   .grid,
   .card {
@@ -202,8 +201,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.7rem 1rem;
-  border-radius: 999px;
+  padding: 0.7rem var(--ds-space-4);
+  border-radius: var(--ds-radius-pill);
   border: 1px solid color-mix(in srgb, var(--workspace-accent) 35%, transparent);
   background: linear-gradient(135deg, #fffdfa, var(--workspace-accent-soft));
   color: var(--workspace-accent-text);
@@ -212,11 +211,11 @@
 }
 
 :global([data-theme="art-deco"]) .page {
-  --workspace-accent: #d4af37;
-  --workspace-accent-soft: #f9f1d8;
-  --workspace-accent-text: #1a2530;
-  --workspace-surface: rgba(255, 255, 255, 0.97);
-  --workspace-surface-strong: rgba(246, 249, 252, 0.96);
+  --workspace-accent: var(--ds-color-primary);
+  --workspace-accent-soft: var(--ds-color-primary-soft);
+  --workspace-accent-text: var(--ds-color-primary-hover);
+  --workspace-surface: var(--ds-color-surface);
+  --workspace-surface-strong: var(--ds-color-surface-soft);
   --workspace-shadow: rgba(44, 62, 80, 0.1);
 }
 
@@ -272,6 +271,6 @@
 :global([data-theme="art-deco"]) .detailItemAction {
   border-radius: 4px;
   border-color: rgba(212, 175, 55, 0.45);
-  background: #ffffff;
+  background: var(--ds-color-surface);
   color: #2c3e50;
 }

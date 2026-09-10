@@ -3,10 +3,10 @@
   --partners-panel-soft: var(--dash-bg-panel-soft, #fff3ea);
   --partners-ink: var(--dash-text, #3b3126);
   --partners-muted: var(--dash-text-muted, #78675b);
-  --partners-accent: var(--dash-accent, #b85c48);
-  --partners-accent-strong: var(--dash-accent-strong, #6d3529);
-  --partners-border: rgba(184, 92, 72, 0.2);
-  --partners-border-soft: rgba(184, 92, 72, 0.13);
+  --partners-accent: var(--dash-accent, #276a58);
+  --partners-accent-strong: var(--dash-accent-strong, #1e5648);
+  --partners-border: rgba(39, 106, 88, 0.2);
+  --partners-border-soft: rgba(39, 106, 88, 0.13);
   --partners-gold: #d4af37;
   --partners-shadow: 0 14px 28px rgba(109, 53, 41, 0.08);
   --partners-shadow-hover: 0 18px 34px rgba(109, 53, 41, 0.12);
@@ -58,7 +58,7 @@
 }
 
 .heroContent p,
-.sectionHeader > p,
+.sectionHeader>p,
 .quoteNote,
 .heroSnapshot p,
 .emptyPanel p,
@@ -256,7 +256,7 @@
   font-size: clamp(1.35rem, 2.2vw, 1.9rem);
 }
 
-.sectionHeader > p {
+.sectionHeader>p {
   max-width: 36rem;
 }
 

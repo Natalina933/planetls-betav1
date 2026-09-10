@@ -1,14 +1,16 @@
 import Link from "next/link";
-import { ArrowRight, Bell, CalendarClock, CheckCircle2, Clock3, FileText, Home, MessageSquareText, Navigation, Plus, TriangleAlert, UserRound } from "lucide-react";
+import { ArrowRight, Bell, CalendarClock, Leaf, Route, Clock3, FileText, Home, MessageSquareText, Navigation, Plus, TriangleAlert, UserRound } from "lucide-react";
 import type { DashboardEvent } from "@/app/components/dashboard/calendar/DashboardCalendar";
-import { Badge, StatsCard } from "@/components/ui";
+import { Badge, Card } from "@/components/ui";
 import ConciergeRoutePreview from "./ConciergeRoutePreview";
 import styles from "./ConciergeReferenceDashboard.module.scss";
 
 type ConciergeReferenceDashboardProps = {
     events: readonly DashboardEvent[];
     missionCount: number;
+    tomorrowMissionCount: number;
     housingCount: number;
+    tomorrowHousingCount: number;
     housingActionsCount: number;
     pendingValidationCount: number;
     unreadConversationCount: number;
@@ -16,7 +18,7 @@ type ConciergeReferenceDashboardProps = {
     priorityTitle: string;
     priorityDetail: string;
     priorityHref: string;
-    activityItems: readonly { id: string; title: string; detail: string; meta: string }[];
+    activityItems: readonly { id: string; title: string; detail: string; meta: string; href?: string }[];
 };
 
 function eventLabel(event: DashboardEvent) {
@@ -30,7 +32,9 @@ function formatTime(value: Date) {
 export default function ConciergeReferenceDashboard({
     events,
     missionCount,
+    tomorrowMissionCount,
     housingCount,
+    tomorrowHousingCount,
     housingActionsCount,
     pendingValidationCount,
     unreadConversationCount,
@@ -46,10 +50,17 @@ export default function ConciergeReferenceDashboard({
     return (
         <div className={styles.referenceDashboard}>
             <section className={styles.kpiGrid} aria-label="Indicateurs du jour">
-                <StatsCard label="Missions aujourd'hui" value={String(missionCount)} hint={events.length > missionCount ? `+ ${events.length - missionCount} demain` : "Planning du jour"} visual={<CalendarClock size={22} />} visualLabel="Missions" />
-                <StatsCard label="Distance estimée" value="--" hint="À préciser dans la tournée" visual={<Navigation size={22} />} visualLabel="Distance" />
-                <StatsCard label="Durée totale" value="--" hint="Missions et déplacements" visual={<Clock3 size={22} />} visualLabel="Durée" />
-                <StatsCard label="Logements concernés" value={String(housingCount)} hint={`${housingActionsCount} à suivre`} visual={<Home size={22} />} visualLabel="Logements" />
+                {[
+                    { label: "Missions aujourd’hui", value: String(missionCount), hint: "Planning du jour", tomorrow: `${tomorrowMissionCount} demain`, Icon: CalendarClock },
+                    { label: "Distance estimée", value: "—", hint: "Distance non disponible", tomorrow: "Non disponible demain", Icon: Route },
+                    { label: "Durée totale", value: "—", hint: "Missions et déplacements", tomorrow: "Non disponible demain", Icon: Clock3 },
+                    { label: "Logements concernés", value: String(housingCount), hint: `${housingActionsCount} à suivre`, tomorrow: `${tomorrowHousingCount} demain`, Icon: Home },
+                ].map(({ label, value, hint, tomorrow, Icon }) => (
+                    <Card key={label} className={styles.metric}>
+                        <Icon className={styles.metricIcon} size={42} strokeWidth={1.6} aria-hidden="true" />
+                        <div><strong>{value}</strong><span>{label}</span><small>{hint}</small><small className={styles.metricTomorrow}>{tomorrow}</small></div>
+                    </Card>
+                ))}
             </section>
 
             <section className={styles.mainGrid} aria-label="Pilotage de la journée">
@@ -80,7 +91,7 @@ export default function ConciergeReferenceDashboard({
                 </div>
 
                 <div className={styles.centerColumn}>
-                    <ConciergeRoutePreview events={events} />
+                    <ConciergeRoutePreview events={events} compact />
                     <article className={`${styles.card} ${styles.tableCard}`}>
                         <header className={styles.cardHeader}><div><span className={styles.eyebrow}>Vue condensée</span><h2>Mes missions du jour</h2></div><Link href="/dashboard/concierge/missions" className={styles.cardLink}>Voir toutes les missions <ArrowRight size={14} /></Link></header>
                         <div className={styles.tableWrap}><table><thead><tr><th>Heure</th><th>Logement</th><th>Type</th><th>Statut</th></tr></thead><tbody>{visibleEvents.map((event, index) => <tr key={`table-${event.bookingId ?? event.title}-${index}`}><td>{formatTime(event.start)}</td><td>{String(event.title || "Mission sans titre")}</td><td>{eventLabel(event)}</td><td><Badge variant={event.type === "reminder" ? "warning" : index === 0 ? "info" : "neutral"}>{index === 0 ? "En route" : event.type === "reminder" ? "Urgente" : "À venir"}</Badge></td></tr>)}</tbody></table></div>
@@ -88,10 +99,10 @@ export default function ConciergeReferenceDashboard({
                 </div>
 
                 <aside className={styles.rightColumn}>
-                    <article className={`${styles.card} ${styles.optimization}`}><h2><CheckCircle2 size={18} /> Optimisation de la tournée</h2><p>L&apos;ordre actuel peut être affiné dès que les distances réelles sont disponibles.</p><Link href="/dashboard/concierge/planning" className={styles.secondaryButton}>Voir l&apos;ordre initial</Link></article>
-                    <article className={`${styles.card} ${styles.alert}`}><h2><TriangleAlert size={18} /> Attention</h2><strong>{urgentCount > 0 ? `${urgentCount} point(s) urgent(s)` : "Aucun retard détecté"}</strong><p>{pendingValidationCount > 0 ? `${pendingValidationCount} mission(s) nécessitent une validation.` : "La journée est sous contrôle pour le moment."}</p><Link href="/dashboard/concierge/alertes" className={styles.alertButton}>Ouvrir les alertes</Link></article>
-                    <article className={`${styles.card} ${styles.quickCard}`}><header className={styles.cardHeader}><h2>Raccourcis rapides</h2></header><div className={styles.quickGrid}><Link href="/dashboard/concierge/demandes"><Plus size={18} />Ajouter une mission</Link><Link href="/dashboard/concierge/messages"><MessageSquareText size={18} />Contacter un voyageur</Link><Link href="/dashboard/concierge/alertes"><Bell size={18} />Signaler un problème</Link><Link href="/dashboard/concierge/profile?tab=documents"><FileText size={18} />Voir mes documents</Link></div></article>
-                    <article className={`${styles.card} ${styles.messages}`}><header className={styles.cardHeader}><h2>Messages récents</h2><Link href="/dashboard/concierge/messages" className={styles.cardLink}>Voir tous</Link></header>{activityItems.slice(0, 4).map((item) => <Link key={item.id} href="/dashboard/concierge/messages" className={styles.message}><span className={styles.avatar}><UserRound size={15} /></span><span><strong>{item.title}</strong><small>{item.detail}</small></span><time>{item.meta}</time></Link>)}{activityItems.length === 0 ? <p className={styles.empty}>Aucun message récent.</p> : null}</article>
+                    <article className={`${styles.card} ${styles.optimization}`}><h2><Leaf size={20} aria-hidden="true" /> Optimisation de la tournée</h2><p>L&apos;ordre actuel peut être affiné dès que les distances réelles sont disponibles.</p><Link href="/dashboard/concierge/planning" className={styles.secondaryButton}>Voir l&apos;ordre initial</Link></article>
+                    <article className={`${styles.card} ${styles.alert}`}><h2><Clock3 size={20} aria-hidden="true" /> Retard estimé</h2><strong>Estimation non disponible</strong><p>{pendingValidationCount > 0 ? `${pendingValidationCount} mission(s) nécessitent une validation.` : `${urgentCount} point(s) urgent(s) à surveiller. Le retard nécessite les temps de trajet réels.`}</p><Link href="/dashboard/concierge/alertes" className={styles.alertButton}>Ouvrir les alertes</Link></article>
+                    <article className={`${styles.card} ${styles.quickCard}`}><header className={styles.cardHeader}><h2><Plus size={19} aria-hidden="true" /> Raccourcis rapides</h2></header><div className={styles.quickGrid}><Link href="/dashboard/concierge/demandes"><Plus size={18} />Ajouter une mission</Link><Link href="/dashboard/concierge/messages"><MessageSquareText size={18} />Contacter un voyageur</Link><Link href="/dashboard/concierge/alertes"><Bell size={18} />Signaler un problème</Link><Link href="/dashboard/concierge/profile?tab=documents"><FileText size={18} />Voir mes documents</Link></div></article>
+                    <article className={`${styles.card} ${styles.messages}`}><header className={styles.cardHeader}><h2><MessageSquareText size={19} aria-hidden="true" /> Messages récents</h2><Link href="/dashboard/concierge/messages" className={styles.cardLink}>Voir tous</Link></header>{activityItems.slice(0, 4).map((item) => <Link key={item.id} href={item.href || "/dashboard/concierge/messages"} className={styles.message}><span className={styles.avatar}><UserRound size={15} /></span><span><strong>{item.title}</strong><small>{item.detail}</small></span><time>{item.meta}</time></Link>)}{activityItems.length === 0 ? <p className={styles.empty}>Aucun message récent.</p> : null}</article>
                 </aside>
             </section>
 

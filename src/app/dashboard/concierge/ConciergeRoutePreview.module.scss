@@ -99,7 +99,9 @@
   font-size: var(--ds-text-xs);
 }
 
-.progressHeader strong { color: var(--theme-text, var(--ds-color-text-primary)); }
+.progressHeader strong {
+  color: var(--theme-text, var(--ds-color-text-primary));
+}
 
 .progressTrack {
   height: 8px;
@@ -133,14 +135,16 @@
   border-bottom: 1px solid var(--ds-color-border-soft);
 }
 
-.stop:last-child { border-bottom: 0; }
+.stop:last-child {
+  border-bottom: 0;
+}
 
 .marker {
   display: grid;
   place-items: center;
   width: 28px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-sm, 6px);
   background: color-mix(in srgb, var(--theme-accent, var(--ds-color-accent)) 13%, var(--ds-color-surface));
   color: var(--theme-accent-strong, var(--ds-color-accent-hover));
   font-size: var(--ds-text-xs);
@@ -170,8 +174,13 @@
   white-space: nowrap;
 }
 
-.status { color: var(--ds-color-text-muted); }
-.urgent { color: var(--ds-color-warning-hover); }
+.status {
+  color: var(--ds-color-text-muted);
+}
+
+.urgent {
+  color: var(--ds-color-warning-hover);
+}
 
 .emptyState {
   display: flex;
@@ -195,8 +204,63 @@
 }
 
 @media (max-width: 640px) {
-  .preview { padding: var(--ds-space-4); }
-  .nextStop { align-items: stretch; flex-direction: column; }
-  .primaryAction { justify-content: center; }
-  .footer { align-items: flex-start; flex-direction: column; }
+  .preview {
+    padding: var(--ds-space-4);
+  }
+
+  .nextStop {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .primaryAction {
+    justify-content: center;
+  }
+
+  .footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+.compact {
+  align-content: start;
+  gap: 14px;
+
+  .header {
+    align-items: start;
+  }
+
+  .header h2 {
+    font-size: 24px;
+  }
+
+  .header p {
+    font-size: 12px;
+  }
+
+  .eyebrow {
+    display: none;
+  }
+
+  .timeline {
+    gap: 0;
+  }
+
+  .stop {
+    padding: var(--ds-space-3) 0;
+  }
+
+  .stopCopy strong {
+    font-size: 14px;
+  }
+
+  .stopCopy span,
+  .footer {
+    font-size: 12px;
+  }
+
+  .footer {
+    flex-wrap: wrap;
+  }
 }

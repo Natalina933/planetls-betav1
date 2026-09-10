@@ -2,21 +2,21 @@
   display: grid;
   place-items: center;
   min-height: 40vh;
-  padding: 2rem;
+  padding: var(--ds-space-6);
   color: var(--ds-color-text-secondary);
   font-size: 1rem;
 }
 
 .loadingStack {
   display: grid;
-  gap: 1rem;
+  gap: var(--ds-space-4);
   width: min(1120px, 100%);
 }
 
 .loadingGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  gap: var(--ds-space-4);
 }
 
 .loadingCard,
@@ -24,7 +24,7 @@
 .loadingRow {
   position: relative;
   overflow: hidden;
-  border-radius: 1rem;
+  border-radius: var(--ds-radius-card);
   background: color-mix(in srgb, var(--ds-color-accent) 8%, transparent);
 }
 
@@ -58,7 +58,7 @@
 
 .loadingRows {
   display: grid;
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
 }
 
 .loadingRow {
@@ -67,7 +67,7 @@
 
 .feedbackCard {
   display: grid;
-  gap: 0.5rem;
+  gap: var(--ds-space-2);
   max-width: 620px;
   padding: 1.1rem 1.15rem;
   border: var(--ds-border-subtle);
@@ -102,9 +102,9 @@
 
 .retryButton {
   width: fit-content;
-  padding: 0.72rem 1rem;
+  padding: 0.72rem var(--ds-space-4);
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   background: linear-gradient(135deg, #125c5b, #1e7f7d);
   color: #fff;
   font-size: 0.84rem;
@@ -160,7 +160,7 @@
 .heroTop {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.95fr);
-  gap: 1rem;
+  gap: var(--ds-space-4);
   align-items: start;
 }
 
@@ -203,7 +203,7 @@
 
 .heroMeta {
   display: grid;
-  gap: 1rem;
+  gap: var(--ds-space-4);
 }
 
 .heroActionRail {
@@ -214,7 +214,7 @@
 .heroActionCard {
   display: grid;
   gap: 0.35rem;
-  padding: 1rem;
+  padding: var(--ds-space-4);
   border: 1px solid rgba(18, 92, 91, 0.1);
   border-radius: 1.25rem;
   background: rgba(255, 255, 255, 0.78);
@@ -252,7 +252,7 @@
 .heroStoryCard {
   display: grid;
   gap: 0.45rem;
-  padding: 1rem;
+  padding: var(--ds-space-4);
   border: 1px solid rgba(18, 92, 91, 0.1);
   border-radius: 1.25rem;
   background: rgba(255, 255, 255, 0.76);
@@ -295,9 +295,9 @@
 }
 
 .periodButton {
-  padding: 0.68rem 1rem;
+  padding: 0.68rem var(--ds-space-4);
   border: 1px solid rgba(18, 92, 91, 0.12);
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   background: rgba(255, 255, 255, 0.82);
   color: #38545b;
   font-size: 0.84rem;
@@ -320,7 +320,7 @@
 .roleButton {
   padding: 0.56rem 0.9rem;
   border: 1px solid rgba(18, 92, 91, 0.12);
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   background: rgba(255, 255, 255, 0.76);
   color: #38545b;
   font-size: 0.8rem;
@@ -363,9 +363,9 @@
 .warningBanner {
   display: grid;
   gap: 0.25rem;
-  padding: 0.9rem 1rem;
+  padding: 0.9rem var(--ds-space-4);
   border: 1px solid rgba(245, 158, 11, 0.24);
-  border-radius: 1rem;
+  border-radius: var(--ds-radius-card);
   background: rgba(255, 251, 235, 0.9);
   color: #84530b;
   font-size: 0.84rem;
@@ -378,7 +378,7 @@
   justify-content: center;
   width: fit-content;
   padding: 0.34rem 0.66rem;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.03em;
@@ -387,14 +387,14 @@
 .metricsGrid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 1rem;
+  gap: var(--ds-space-4);
 }
 
 .metricCard {
   display: grid;
   gap: 0.45rem;
   min-width: 0;
-  padding: 1.05rem 1rem;
+  padding: 1.05rem var(--ds-space-4);
   border-radius: 1.4rem;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 245, 237, 0.94));
 }
@@ -439,7 +439,7 @@
 .contentGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.88fr);
-  gap: 1rem;
+  gap: var(--ds-space-4);
   align-items: start;
 }
 
@@ -455,7 +455,7 @@
 .technicalHealthGrid,
 .sourceList {
   display: grid;
-  gap: 1rem;
+  gap: var(--ds-space-4);
   min-width: 0;
 }
 
@@ -472,8 +472,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: var(--ds-space-4);
+  margin-bottom: var(--ds-space-4);
 }
 
 .panelLink {
@@ -493,8 +493,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-4);
   border-radius: 1.2rem;
   color: inherit;
   text-decoration: none;
@@ -541,7 +541,7 @@
 .insightCard {
   display: grid;
   gap: 0.9rem;
-  padding: 1rem;
+  padding: var(--ds-space-4);
   border: 1px solid rgba(18, 92, 91, 0.1);
   border-radius: 1.2rem;
   background: rgba(255, 255, 255, 0.78);
@@ -579,7 +579,7 @@
 .donutRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
   align-items: start;
 }
 
@@ -627,7 +627,7 @@
 .donutLegendItem {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 0.5rem;
+  gap: var(--ds-space-2);
   align-items: start;
   padding: 0.28rem 0;
   border-bottom: 1px solid rgba(18, 92, 91, 0.08);
@@ -647,14 +647,14 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
 }
 
 .donutLegendBar {
   width: 100%;
   height: 0.38rem;
   margin: 0.25rem 0 0.3rem;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   overflow: hidden;
   background: rgba(18, 92, 91, 0.08);
 }
@@ -694,14 +694,14 @@
 .visualGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
-  gap: 1rem;
-  margin-top: 1rem;
+  gap: var(--ds-space-4);
+  margin-top: var(--ds-space-4);
 }
 
 .visualCard {
   display: grid;
-  gap: 1rem;
-  padding: 1rem;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-4);
   border: 1px solid rgba(18, 92, 91, 0.1);
   border-radius: 1.2rem;
   background: rgba(255, 255, 255, 0.78);
@@ -747,7 +747,7 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--ds-space-4);
 }
 
 .chartMeta strong {
@@ -783,7 +783,7 @@
 .chartLegend {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
 }
 
 .chartLegend strong {
@@ -823,7 +823,7 @@
 .zoneTrack {
   width: 100%;
   height: 0.6rem;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   background: rgba(18, 92, 91, 0.08);
   overflow: hidden;
 }
@@ -853,7 +853,7 @@
 }
 
 .table th {
-  color: #6b7280;
+  color: var(--ds-color-text-secondary);
   font-size: 0.74rem;
   font-weight: 900;
   letter-spacing: 0.06em;
@@ -918,7 +918,7 @@
 .healthSectionCard {
   display: grid;
   gap: 0.9rem;
-  padding: 1rem;
+  padding: var(--ds-space-4);
   border: 1px solid rgba(18, 92, 91, 0.1);
   border-radius: 1.25rem;
   background:
@@ -946,7 +946,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
 }
 
 .healthSectionHeader strong {
@@ -963,7 +963,7 @@
   display: flex;
   width: 100%;
   height: 0.72rem;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   overflow: hidden;
   background: rgba(18, 92, 91, 0.08);
 }
@@ -975,7 +975,7 @@
 .healthSectionLegend {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
+  gap: var(--ds-space-2);
 }
 
 .healthSectionLegend div {
@@ -1015,7 +1015,7 @@
 .sourceListItem {
   display: grid;
   gap: 0.6rem;
-  padding: 1rem;
+  padding: var(--ds-space-4);
   border: 1px solid rgba(18, 92, 91, 0.1);
   border-radius: 1.2rem;
   background: rgba(255, 255, 255, 0.82);
@@ -1049,7 +1049,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
 }
 
 .kpiDefinitionTop span,
@@ -1113,7 +1113,7 @@
 }
 
 .sourceList {
-  gap: 0.75rem;
+  gap: var(--ds-space-3);
 }
 
 .sourceListItem {
@@ -1217,7 +1217,7 @@
     content: attr(data-label);
     display: block;
     margin-bottom: 0.2rem;
-    color: #6b7280;
+    color: var(--ds-color-text-secondary);
     font-size: 0.72rem;
     font-weight: 900;
     letter-spacing: 0.05em;
