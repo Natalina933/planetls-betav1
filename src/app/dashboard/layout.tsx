@@ -24,11 +24,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const isOwnerPage = pathname?.startsWith("/dashboard/owner");
   const isOwnerHome = pathname === "/dashboard/owner";
+  const isCompactOwnerPage = pathname === "/dashboard/owner/missions/voyageurs" || pathname === "/dashboard/owner/planning" || pathname === "/dashboard/owner/finances/overview" || pathname === "/dashboard/owner/factures" || pathname === "/dashboard/owner/messages" || pathname === "/dashboard/owner/documents" || pathname === "/dashboard/owner/devis" || pathname === "/dashboard/owner/logements";
   const isConciergeHome = pathname === "/dashboard/concierge";
   const isConciergePage = pathname?.startsWith("/dashboard/concierge");
   const isAdminPage = pathname?.startsWith("/dashboard/admin");
   const isProviderPage = pathname?.startsWith("/dashboard/provider");
-  const showHeaderBandeau = isOwnerPage || isConciergePage || isAdminPage || isProviderPage;
+  const showHeaderBandeau = !isCompactOwnerPage && (isOwnerPage || isConciergePage || isAdminPage || isProviderPage);
   const { draftCount, ongoingMissions, pendingInvoices, unreadConversationCount } = useOwnerDashboardData(
     Boolean(isAuthenticated && isOwnerPage),
   );
@@ -148,7 +149,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
         </div> : null}
         {isOwnerPage && pathname !== "/dashboard/owner" ? (
-          <DashboardBottomNav items={ownerBottomNavItems} ariaLabel="Navigation propriétaire" />
+          isCompactOwnerPage ? <div className="owner-business-shortcuts">
+            <DashboardBottomNav items={ownerBottomNavItems} ariaLabel="Navigation propriétaire" />
+          </div> : <DashboardBottomNav items={ownerBottomNavItems} ariaLabel="Navigation propriétaire" />
         ) : null}
         <main className="dashboard-content">{children}</main>
         <DashboardMobileExperience role={user?.role} pathname={pathname} />
@@ -156,5 +159,4 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
-
 

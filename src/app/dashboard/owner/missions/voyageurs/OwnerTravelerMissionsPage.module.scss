@@ -1,19 +1,19 @@
 .page {
-  --traveler-panel: var(--dash-bg-panel, #fbfcfb);
-  --traveler-panel-soft: var(--dash-bg-panel-soft, #edf3f5);
-  --traveler-ink: var(--dash-text, #253241);
-  --traveler-muted: var(--dash-text-muted, #61707c);
-  --traveler-accent: var(--dash-accent, #4d7287);
-  --traveler-accent-strong: var(--dash-accent-strong, #253f52);
-  --traveler-border: rgba(77, 114, 135, 0.2);
-  --traveler-border-soft: rgba(77, 114, 135, 0.13);
-  --traveler-gold: #d4af37;
-  --traveler-shadow: 0 14px 28px rgba(37, 50, 65, 0.08);
-  --traveler-shadow-hover: 0 18px 34px rgba(37, 50, 65, 0.12);
+  --traveler-panel: var(--ds-color-surface);
+  --traveler-panel-soft: var(--ds-color-surface-soft);
+  --traveler-ink: var(--ds-color-text-primary);
+  --traveler-muted: var(--ds-color-text-secondary);
+  --traveler-accent: var(--ds-color-primary);
+  --traveler-accent-strong: var(--ds-color-primary-hover);
+  --traveler-border: var(--ds-color-border);
+  --traveler-border-soft: var(--ds-color-border-soft);
+  --traveler-gold: var(--ds-color-gold);
+  --traveler-shadow: var(--ds-shadow-sm);
+  --traveler-shadow-hover: var(--ds-shadow-md);
 
   display: grid;
   gap: 1.15rem;
-  width: min(100%, 1680px);
+  width: min(100%, 1380px);
   margin-inline: auto;
   padding: 1rem;
   max-width: 100%;
@@ -597,7 +597,7 @@
 
 .modalOverlay {
   position: fixed;
-  z-index: 80;
+  z-index: 2000;
   inset: 0;
   display: grid;
   place-items: center;
@@ -1189,4 +1189,17 @@
   .quickArrivalContext {
     grid-template-columns: 1fr;
   }
+}
+
+.followUpPanel {
+  display: grid;
+  gap: var(--ds-space-4);
+  scroll-margin-top: var(--ds-space-5);
+  padding: var(--ds-space-5);
+  border: var(--ds-border-subtle);
+  border-radius: var(--ds-radius-card);
+  background: var(--ds-color-surface);
+  min-width: 0;
+  h2 { font-family: var(--ds-font-heading); color: var(--ds-color-primary-hover); }
+  &:focus-visible { outline: var(--ds-focus-outline); outline-offset: 3px; }
 }

@@ -1,72 +1,44 @@
 "use client";
 
-import SimpleOverviewWorkspace from "@/app/dashboard/_components/SimpleOverviewWorkspace";
+import { useEffect, useState } from "react";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { buildOwnerFinancesCompletion } from "@/app/dashboard/shared";
-import { PerformanceRentabilitySection } from "@/app/dashboard/admin/(business)/pilotage/performance-rentabilite/PerformanceRentabilitySection";
 import { useOwnerDashboardData } from "../../useOwnerDashboardData";
+import OwnerPerformancePage from "./OwnerPerformancePage";
+import type { PerformanceReservation } from "./performanceData";
 
 export default function OwnerFinancesOverviewPage() {
   const { isAuthenticated } = useCurrentUser();
-  const { quotes, invoices } = useOwnerDashboardData(isAuthenticated);
+  const data = useOwnerDashboardData(isAuthenticated);
+  const [reservations, setReservations] = useState<PerformanceReservation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const controller = new AbortController();
+    async function loadReservations() {
+      try {
+        const response = await fetch("/api/owner/reservations", { cache: "no-store", signal: controller.signal });
+        const payload = await response.json();
+        if (!response.ok) throw new Error("Impossible de charger vos séjours. Réessayez dans un instant.");
+        if (!controller.signal.aborted) setReservations(Array.isArray(payload.reservations) ? payload.reservations : []);
+      } catch {
+        if (!controller.signal.aborted) setError("Impossible de charger vos séjours. Réessayez dans un instant.");
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    }
+    void loadReservations();
+    return () => controller.abort();
+  }, [isAuthenticated]);
+
   const completion = buildOwnerFinancesCompletion({
-    quotes: quotes as Record<string, unknown>[],
-    invoices: invoices as Record<string, unknown>[],
+    quotes: data.quotes as Record<string, unknown>[],
+    invoices: data.invoices as Record<string, unknown>[],
   });
 
-  return (
-    <SimpleOverviewWorkspace
-      tone="owner"
-      eyebrow="Pilotage financier"
-      title="Vue d'ensemble des finances"
-      description="Cette vue rassemble l'etat de vos finances et une premiere lecture de performance locative. Les sous-rubriques servent ensuite a suivre vos devis, vos factures, vos reglements et vos leviers de rentabilite sans redondance."
-      chips={["Vue synthese", "A finaliser", "Points en attente"]}
-      actions={[
-        { label: "Voir les devis", href: "/dashboard/owner/devis", variant: "secondary" },
-        { label: "Ouvrir les reglements", href: "/dashboard/owner/reglement", variant: "primary" },
-      ]}
-      completion={{
-        title: "Finances",
-        description: "Completez cette categorie pour suivre clairement vos devis, vos factures et vos reglements.",
-        percentage: completion.percentage,
-        completedCount: completion.completedCount,
-        totalCount: completion.totalCount,
-        missingItems: completion.missingItems,
-        actionLabel: "Ouvrir les reglements",
-        actionHref: "/dashboard/owner/reglement",
-      }}
-      metrics={[
-        {
-          label: "Devis",
-          value: String(quotes.length),
-          hint: "Opportunites ou validations en cours",
-        },
-        {
-          label: "Factures",
-          value: String(invoices.length),
-          hint: "Pieces financieres deja consolidees",
-        },
-      ]}
-      cards={[
-        {
-          title: "Lecture strategique",
-          text:
-            invoices.length > 0
-              ? "La vue d'ensemble doit servir a arbitrer la sante financiere, puis le reporting detaille prend le relais sur les montants et statuts."
-              : "La base financiere est encore legere. Commencez par centraliser devis et reglements pour fiabiliser les decisions.",
-          actions: [{ label: "Voir les factures", href: "/dashboard/owner/factures", variant: "secondary" }],
-        },
-        {
-          title: "Decision recommandee",
-          text:
-            quotes.length > 0
-              ? "Priorite: comparer les devis ouverts avec les factures deja engagees pour eviter les angles morts de tresorerie."
-              : "Priorite: formaliser les demandes en devis avant d'accelerer les engagements financiers.",
-          actions: [{ label: "Voir les devis", href: "/dashboard/owner/devis", variant: "primary" }],
-        },
-      ]}
-    >
-      <PerformanceRentabilitySection />
-    </SimpleOverviewWorkspace>
-  );
+  return <OwnerPerformancePage properties={data.properties} reservations={reservations}
+    quotesCount={data.quotes.length} invoicesCount={data.invoices.length} completion={completion}
+    loading={loading || data.loading} error={error || data.error} onRetry={() => window.location.reload()} />;
 }

@@ -1,8 +1,8 @@
-import Link from "next/link";
+import { ButtonLink, Card } from "@/components/ui";
+import OwnerPlanningStatus from "./OwnerPlanningStatus";
 import { AlertTriangle, CheckCircle2, Clock3 } from "lucide-react";
 import {
   formatPlanningDateTime,
-  planningStatusLabels,
   planningTypeLabels,
 } from "./planningLabels";
 import type { OwnerPlanningItem } from "./types";
@@ -22,13 +22,13 @@ export default function OwnerPlanningPriorities({ priorities }: OwnerPlanningPri
           <p>À vérifier maintenant</p>
           <h2 id="owner-planning-priorities-title">Priorités du moment</h2>
         </div>
-        <span>{visiblePriorities.length} action(s)</span>
+        <ButtonLink href="/dashboard/owner/mission-urgente" variant="ghost" size="sm">Signaler une urgence</ButtonLink>
       </div>
 
       {visiblePriorities.length > 0 ? (
         <div className={styles.priorityList}>
           {visiblePriorities.map((item) => (
-            <article key={item.id} className={`${styles.priorityCard} ${styles[item.status]}`}>
+            <Card key={item.id} className={styles.priorityCard} tone="outlined">
               <div className={styles.iconWrap} aria-hidden="true">
                 {item.status === "urgent" ? (
                   <AlertTriangle size={19} />
@@ -39,7 +39,7 @@ export default function OwnerPlanningPriorities({ priorities }: OwnerPlanningPri
                 )}
               </div>
               <div className={styles.priorityContent}>
-                <span className={styles.status}>{planningStatusLabels[item.status]}</span>
+                <OwnerPlanningStatus status={item.status} />
                 <h3>{planningTypeLabels[item.type]}</h3>
                 <p>
                   {item.propertyName}
@@ -47,18 +47,19 @@ export default function OwnerPlanningPriorities({ priorities }: OwnerPlanningPri
                 </p>
                 <p>Responsable : {item.assignedTo || "À assigner"}</p>
               </div>
-              <Link href={`/dashboard/owner/missions/${item.id}`} className={styles.actionLink}>
+              <ButtonLink href={`/dashboard/owner/missions/${item.id}`} variant="secondary" size="sm">
                 Voir détail
-              </Link>
-            </article>
+              </ButtonLink>
+            </Card>
           ))}
         </div>
       ) : (
         <div className={styles.emptyState}>
           <CheckCircle2 size={20} aria-hidden="true" />
-          <p>Aucune urgence ni validation en attente. Votre planning est sous contrôle.</p>
+          <p>Aucune priorité signalée dans les missions chargées.</p>
         </div>
       )}
+      {priorities.length > visiblePriorities.length && <p>{visiblePriorities.length} priorités affichées sur {priorities.length}. Retrouvez les autres dans l’agenda avec les filtres de statut.</p>}
     </section>
   );
 }

@@ -3,6 +3,29 @@
 @use './variables' as var;
 @use "sass:map";
 
+/* Navigation compacte des pages métier propriétaire sélectionnées par le layout. */
+.owner-business-shortcuts > nav {
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  width: 100%;
+  margin: 0;
+  padding: var(--ds-space-2) var(--ds-space-page);
+  gap: var(--ds-space-3);
+  border: 0;
+  border-bottom: var(--ds-border-subtle);
+  border-radius: 0;
+  background: var(--ds-color-surface);
+  box-shadow: none;
+  backdrop-filter: none;
+
+  a { display: flex; align-items: center; gap: var(--ds-space-2); min-height: 36px; padding: var(--ds-space-1); font-size: var(--ds-text-xs); font-weight: 500; }
+  a > span:first-child { gap: var(--ds-space-1); }
+  svg { display: none; }
+  a > span:first-child > span { position: static; font-size: var(--ds-text-xs); min-width: 0; padding: var(--ds-space-1); background: var(--ds-color-primary-soft); color: var(--ds-color-primary-hover); }
+}
+
 /* ==========================================================================
    THEMES
    ========================================================================== */

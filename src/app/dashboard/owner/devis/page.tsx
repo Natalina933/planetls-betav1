@@ -4,18 +4,17 @@ import React, { Suspense, useCallback, useEffect, useMemo, useState } from "reac
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Eye, FileText, Route, XCircle } from "lucide-react";
-import { SearchBar, StatsCard, Tag } from "@/components/ui";
+import { SearchBar, Button, Tag } from "@/components/ui";
 import { EmptyState } from "@/features/shared/components/EmptyState/EmptyState";
 import type { WorkflowTimelineStep } from "@/features/service-requests";
 import {
-  OwnerJourneyRail,
   OwnerQuoteResponseCard,
   OwnerQuotesComparisonTable,
   OwnerRequestSummaryCard,
 } from "@/features/owner-dashboard";
 import { ownerApiError } from "../ownerFeedback";
-import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
-import styles from "../OwnerDashboardPages.module.scss";
+import OwnerQuotesHeader from "./OwnerQuotesHeader";
+import styles from "./OwnerQuotesPage.module.scss";
 
 type QuotePerson = {
   id: string;
@@ -543,33 +542,11 @@ function OwnerQuotesContent() {
   }
 
   return (
-    <div className="dashboard-grid">
-      <OwnerWorkspacePage
-        eyebrow="Conciergeries"
-        title="Propositions reçues"
-        description={
-          loading
-            ? "Chargement des devis..."
-            : error ||
-              (targetRequestId
-                ? "Retrouvez ici uniquement les propositions liées à cette demande pour ce logement."
-                : "Comparez les propositions des conciergeries et retenez le partenaire le plus adapté.")
-        }
-        chips={undefined}
-        metrics={[
-          { label: "Propositions", value: loading ? "..." : String(filteredQuotes.length) },
-          { label: "Logements suivis", value: loading ? "..." : String(propertyCountWithQuotes) },
-          { label: "À arbitrer", value: loading ? "..." : String(pendingQuotes.length) },
-        ]}
-        actions={[
-          { label: "Voir les demandes", href: "/dashboard/owner/demandes" },
-          { label: "Rechercher", href: "/dashboard/owner/concierges" },
-        ]}
-        cards={[]}
-      />
+    <div className={styles.page}>
+      <OwnerQuotesHeader loading={loading || Boolean(error)} count={filteredQuotes.length} properties={propertyCountWithQuotes} pending={pendingQuotes.length} amount={formatAmount(totalAmount)} />
 
       <section className={styles.conciergeDashboardFlow}>
-        <OwnerJourneyRail activeStep="quotes" />
+        <div className={styles.conciergeSectionHeader}><h2>Vos propositions</h2><p className={styles.conciergeNextStep}>Comparez les prestations avant de confirmer votre choix.</p></div>
 
         <div className={styles.toolbar}>
           <SearchBar
@@ -592,6 +569,7 @@ function OwnerQuotesContent() {
             <option value="ACCEPTED">Acceptée</option>
             <option value="DECLINED">Refusée</option>
             <option value="EXPIRED">Expirée</option>
+            <option value="accepted">Devis accepté</option><option value="rejected">Devis refusé</option><option value="expired">Devis expiré</option>
           </select>
           <button
             type="button"
@@ -624,32 +602,11 @@ function OwnerQuotesContent() {
           </div>
         ) : null}
 
-        {!loading && !error && groupedQuotes.length > 0 ? (
-          <div className={styles.conciergeKpiGrid}>
-            <StatsCard
-              label="Montant visible"
-              value={formatAmount(totalAmount)}
-              hint="Sur la sélection affichée."
-              tone="soft"
-            />
-            <StatsCard
-              label="Demandes avec réponses"
-              value={String(groupedQuotes.length)}
-              hint="Chaque bloc regroupe une demande d’origine."
-              tone="soft"
-            />
-            <StatsCard
-              label="Comparaison active"
-              value={String(Math.max(...groupedQuotes.map((group) => group.quotes.length)))}
-              hint="Nombre max de réponses pour une même demande."
-              tone="soft"
-            />
-          </div>
-        ) : null}
+        {!loading && !error && groupedQuotes.length > 0 ? <p className={styles.conciergeNextStep}>{groupedQuotes.length} demande(s) avec réponses · Jusqu’à {Math.max(...groupedQuotes.map(group => group.quotes.length))} proposition(s) par demande.</p> : null}
 
         {loading ? <p>Chargement des devis...</p> : null}
-        {!loading && error ? <p className={`${styles.message} ${styles.messageError}`}>{error}</p> : null}
-        {success ? <p className={`${styles.message} ${styles.messageSuccess}`}>{success}</p> : null}
+        {!loading && error ? <div role="alert" className={`${styles.message} ${styles.messageError}`}><p>{error}</p><Button variant="secondary" onClick={() => void loadData()}>Réessayer</Button></div> : null}
+        {success ? <p role="status" className={`${styles.message} ${styles.messageSuccess}`}>{success}</p> : null}
 
         {!loading && !error && groupedQuotes.length === 0 ? (
           <EmptyState
@@ -807,7 +764,7 @@ function OwnerQuotesContent() {
                             className={styles.linkButton}
                             onClick={() => handleViewQuote(quote.id)}
                           >
-                            Voir le PDF
+                            Consulter le document
                           </a>
                           {group.request?.id && recipientId ? (
                             <button
@@ -844,7 +801,6 @@ function OwnerQuotesContent() {
 
                   <div
                     className={styles.conciergeRecipientList}
-                    style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}
                   >
                     {group.quotes.map((quote) => {
                       const isCheapest = cheapestQuoteId === quote.id;
@@ -859,15 +815,7 @@ function OwnerQuotesContent() {
                       return (
                         <OwnerQuoteResponseCard
                           key={quote.id}
-                          className={styles.conciergeRecipientCard}
-                          style={
-                            isCompared
-                              ? {
-                                  borderColor: "rgba(184, 92, 72, 0.32)",
-                                  boxShadow: "0 0 0 2px rgba(184, 92, 72, 0.12)",
-                                }
-                              : undefined
-                          }
+                          className={`${styles.conciergeRecipientCard} ${isCompared ? styles.selectedQuote : ""}`}
                           conciergeName={getPersonName(quote.concierge)}
                           status={quote.status || "-"}
                           workflowStatus={quote.workflow_status}
@@ -919,7 +867,7 @@ function OwnerQuotesContent() {
                                 className={styles.linkButton}
                                 onClick={() => handleViewQuote(quote.id)}
                               >
-                                Ouvrir le devis PDF
+                                Ouvrir le devis
                               </a>
                               {group.request?.id && recipientId ? (
                                 <button
@@ -996,6 +944,7 @@ function OwnerQuotesContent() {
           </div>
         ) : null}
       </section>
+      <footer className={styles.footer}><strong>PlanetLS · Mon espace propriétaire</strong><p>Des séjours sereins, des logements qui performent.</p></footer>
     </div>
   );
 }

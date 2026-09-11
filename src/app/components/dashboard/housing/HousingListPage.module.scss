@@ -7,7 +7,7 @@
 .ownerCard {
   position: relative;
   overflow: hidden;
-  border-radius: 24px;
+  border-radius: var(--ds-radius-card);
 }
 
 .ownerImageWrapper {
@@ -42,9 +42,9 @@
   gap: 0.62rem;
   max-width: calc(100% - 1.9rem);
   padding: 0.58rem 0.78rem;
-  border-radius: 14px;
-  background: rgba(255, 252, 247, 0.92);
-  color: #5b382f;
+  border-radius: var(--ds-radius-card);
+  background: var(--ds-color-surface);
+  color: var(--ds-color-text-primary);
   box-shadow: 0 10px 24px rgba(42, 26, 20, 0.16);
   backdrop-filter: blur(10px);
 }
@@ -76,8 +76,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #a2644f;
-  color: #fffaf3;
+  background: var(--ds-color-primary);
+  color: var(--ds-color-text-inverse);
   font-weight: 900;
 }
 
@@ -87,7 +87,7 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #a2644f;
+  color: var(--ds-color-primary);
 }
 
 .ownerStatus {
@@ -102,8 +102,8 @@
   min-height: 34px;
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
-  background: rgba(255, 252, 247, 0.9);
-  color: #6d4b42;
+  background: var(--ds-color-surface);
+  color: var(--ds-color-text-primary);
   font-size: 0.76rem;
   font-weight: 700;
   box-shadow: 0 8px 18px rgba(42, 26, 20, 0.14);
@@ -140,7 +140,7 @@
   align-items: center;
   gap: 0.45rem;
   margin: 0.2rem 0 0;
-  color: #7b5b51;
+  color: var(--ds-color-text-secondary);
   font-size: 0.8rem;
   font-weight: 700;
   line-height: 1.4;
@@ -165,8 +165,8 @@
   min-height: 34px;
   padding: 0.32rem 0.68rem;
   border-radius: 999px;
-  background: rgba(184, 92, 72, 0.08);
-  color: #7d4b3f;
+  background: var(--ds-color-primary-soft);
+  color: var(--ds-color-text-primary);
   font-size: 0.75rem;
   font-weight: 800;
   white-space: nowrap;
@@ -182,19 +182,19 @@
   align-items: center;
   gap: 0.9rem;
   padding: 0.95rem 1rem;
-  border-radius: 18px;
+  border-radius: var(--ds-radius-card);
   background:
     linear-gradient(135deg, rgba(255, 246, 223, 0.94), rgba(255, 252, 247, 0.96)),
-    #fffaf3;
-  color: #5f3d22;
+    var(--ds-color-text-inverse);
+  color: var(--ds-color-text-primary);
   box-shadow: 0 12px 28px rgba(92, 58, 24, 0.08);
 }
 
 .reviewPanel[data-state="success"] {
   background:
     linear-gradient(135deg, rgba(232, 247, 238, 0.94), rgba(250, 255, 252, 0.96)),
-    #f5fcf8;
-  color: #24593c;
+    var(--ds-color-background-soft);
+  color: var(--ds-color-success);
 }
 
 .reviewPanel strong {
@@ -217,8 +217,8 @@
   justify-content: center;
   width: 44px;
   height: 44px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.78);
+  border-radius: var(--ds-radius-card);
+  background: var(--ds-color-surface);
   color: currentColor;
 }
 
@@ -244,21 +244,21 @@
 }
 
 .reviewPanelAction {
-  background: #7c4a21;
-  color: #fffaf3;
+  background: var(--ds-color-primary);
+  color: var(--ds-color-text-inverse);
   box-shadow: 0 10px 18px rgba(124, 74, 33, 0.2);
 }
 
 .filterButton {
-  border: 1px solid rgba(126, 75, 55, 0.16);
-  background: rgba(255, 252, 247, 0.7);
-  color: #765247;
+  border: 1px solid var(--ds-color-border);
+  background: var(--ds-color-surface);
+  color: var(--ds-color-text-primary);
 }
 
 .filterButtonActive {
-  border: 1px solid rgba(126, 75, 55, 0.22);
-  background: #6f4638;
-  color: #fffaf3;
+  border: 1px solid var(--ds-color-border);
+  background: var(--ds-color-primary);
+  color: var(--ds-color-text-inverse);
 }
 
 .equipmentRow {
@@ -273,8 +273,8 @@
   min-height: 32px;
   padding: 0.28rem 0.68rem;
   border-radius: 999px;
-  background: rgba(184, 92, 72, 0.08);
-  color: #7a3f32;
+  background: var(--ds-color-primary-soft);
+  color: var(--ds-color-text-primary);
   font-size: 0.74rem;
   font-weight: 700;
 }
@@ -282,7 +282,7 @@
 .ownerFooter {
   justify-content: flex-end;
   padding-top: 0.8rem;
-  border-top: 1px solid rgba(184, 92, 72, 0.12);
+  border-top: 1px solid var(--ds-color-border);
 }
 
 .reviewChecklist {
@@ -307,22 +307,22 @@
   height: 34px;
   flex: 0 0 auto;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.82);
-  color: #9b6721;
+  background: var(--ds-color-surface);
+  color: var(--ds-color-gold-strong);
 }
 
 .reviewChecklistHeader strong,
 .reviewSteps strong,
 .reviewReady span,
 .reviewEmpty strong {
-  color: #4b312a;
+  color: var(--ds-color-text-primary);
 }
 
 .reviewChecklistHeader p,
 .reviewSteps p,
 .reviewEmpty p {
   margin: 0;
-  color: #7b5b51;
+  color: var(--ds-color-text-secondary);
   font-size: 0.78rem;
   line-height: 1.45;
 }
@@ -342,7 +342,7 @@
   gap: 0.58rem;
   padding: 0.58rem;
   border-radius: 13px;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--ds-color-surface);
 }
 
 .reviewStepNumber {
@@ -352,14 +352,14 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: #9b6721;
-  color: #fffaf3;
+  background: var(--ds-color-gold-strong);
+  color: var(--ds-color-text-inverse);
   font-size: 0.72rem;
   font-weight: 900;
 }
 
 .reviewStepLink {
-  color: #8a541f;
+  color: var(--ds-color-gold-strong);
   font-size: 0.74rem;
   font-weight: 900;
 }
@@ -369,7 +369,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  color: #2f7550;
+  color: var(--ds-color-success);
   font-size: 0.82rem;
   font-weight: 800;
 }
@@ -379,7 +379,7 @@
   justify-content: center;
   min-height: 220px;
   padding: 1.4rem;
-  border-radius: 18px;
+  border-radius: var(--ds-radius-card);
   background: rgba(246, 250, 247, 0.88);
   text-align: center;
 }

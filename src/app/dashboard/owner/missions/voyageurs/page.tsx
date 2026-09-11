@@ -3,7 +3,6 @@
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
-  AlertTriangle,
   Bell,
   Building2,
   CalendarCheck2,
@@ -26,11 +25,12 @@ import {
   X,
 } from "lucide-react";
 import { getCanonicalListingId } from "@/app/lib/listingReferences";
-import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
+import { Alert, AsyncState, Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
 import { ServiceRequestCard, type ServiceRequestCardTone, type ServiceRequestFact, type ServiceRequestMilestone } from "@/features/service-requests";
 import { formatDateValue } from "@/app/utils/formatters";
 import { focusFirstModalElement, trapFocusInModal } from "../../modalAccessibility";
 import styles from "./OwnerTravelerMissionsPage.module.scss";
+import TravelerStaysOverview, { type StayOverviewRow } from "./TravelerStaysOverview";
 import { isAcceptedMissionPartner, isUuidLike } from "../missionPartnerUtils";
 
 type HousingRow = {
@@ -828,6 +828,10 @@ function getMissionPlanningLabel(mission: MissionRow) {
 }
 
 function getMissionStatusLabel(mission: MissionRow) {
+  if (mission.status === "completed") return "Terminée";
+  if (mission.status === "canceled") return "Annulée";
+  if (getMetadataString(mission, "reservation_status") === "scheduled") return "Planifiée";
+  if (mission.status === "in_progress") return "En cours";
   if (getMetadataString(mission, "issue_flag") === "incident") return "Incident";
   if (mission.priority === "urgent" || mission.metadata?.issue_flag === "urgent") return "Urgent";
   if (isMissionPlannedByConcierge(mission)) return "Planifiée";
@@ -1209,7 +1213,9 @@ function OwnerTravelerMissionsContent() {
   const [partners, setPartners] = useState<PartnerRequestRow[]>([]);
   const [acceptedQuotes, setAcceptedQuotes] = useState<OwnerQuoteRow[]>([]);
   const [form, setForm] = useState<TravelerMissionForm>(initialForm);
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [isFollowUpOpen, setFollowUpOpen] = useState(false);
+  const followUpRef = useRef<HTMLElement | null>(null);
+  const followUpReturnFocusRef = useRef<HTMLElement | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [bulkCreating, setBulkCreating] = useState(false);
@@ -1373,20 +1379,9 @@ function OwnerTravelerMissionsContent() {
     });
   }, [parsedStays]);
 
-  const filteredMissions = useMemo(
-    () =>
-      missions.filter((mission) => {
-        if (statusFilter === "all") return true;
-        if (statusFilter === "pending_planning") return !isMissionPlannedByConcierge(mission) && mission.status !== "completed";
-        if (statusFilter === "planned") return isMissionPlannedByConcierge(mission);
-        if (statusFilter === "urgent") return hasMissionIncident(mission);
-        return (mission.status ?? "draft") === statusFilter;
-      }),
-    [missions, statusFilter],
-  );
   const focusedMission = useMemo(
-    () => filteredMissions.find((mission) => mission.id === focusedMissionId) ?? filteredMissions[0] ?? null,
-    [filteredMissions, focusedMissionId],
+    () => missions.find((mission) => mission.id === focusedMissionId) ?? missions[0] ?? null,
+    [missions, focusedMissionId],
   );
 
   useEffect(() => {
@@ -1508,14 +1503,44 @@ function OwnerTravelerMissionsContent() {
     [missions],
   );
 
+  // Projection de présentation : les statuts persistés et leur normalisation restent intacts.
+  const overviewRows = useMemo<StayOverviewRow[]>(() => missions.map(mission => {
+    const reservationStatus = getMetadataString(mission, "reservation_status");
+    const status = reservationStatus === "scheduled" ? "planned" : mission.status || "assigned";
+    const terminal = status === "completed" || status === "canceled";
+    return {
+      id: mission.id, name: getTravelerName(mission),
+      propertyId: String(getMissionHousingId(mission) ?? ""),
+      property: getPropertyLabel(housing, getMissionHousingId(mission)) === "Logement à préciser"
+        ? getMetadataString(mission, "property_label") || "Logement à préciser"
+        : getPropertyLabel(housing, getMissionHousingId(mission)),
+      conciergeId: getMetadataString(mission, "concierge_profile_id"),
+      concierge: getMetadataString(mission, "concierge_name") || getMissionConciergeName(partners, mission),
+      guests: getGuestCount(mission), arrival: mission.scheduled_start, departure: mission.scheduled_end,
+      status, statusLabel: getMissionStatusLabel(mission),
+      isPending: !isMissionPlannedByConcierge(mission) && mission.status !== "completed",
+      isPlanned: isMissionPlannedByConcierge(mission), isUrgent: hasMissionIncident(mission),
+      isUpcoming: !terminal && status !== "in_progress" && Boolean(mission.scheduled_start && Date.parse(mission.scheduled_start) >= Date.now()),
+    };
+  }), [missions, housing, partners]);
+
+  useEffect(() => {
+    if (!isFollowUpOpen) return;
+    followUpRef.current?.focus({ preventScroll: true });
+    followUpRef.current?.scrollIntoView({ block: "start" });
+  }, [isFollowUpOpen, focusedMissionId]);
+
+  function openFollowUp(id: string) {
+    followUpReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setFocusedMissionId(id);
+    setFollowUpOpen(true);
+  }
+
   const stats = [
-    { label: "Séjours", value: loading ? "..." : String(missions.length), icon: <Users size={18} /> },
-    { label: "À venir", value: loading ? "..." : String(upcomingCount), icon: <CalendarClock size={18} /> },
-    { label: "Planifiées", value: loading ? "..." : String(plannedCount), icon: <CalendarCheck2 size={18} /> },
-    { label: "À planifier", value: loading ? "..." : String(pendingPlanningCount), icon: <AlertTriangle size={18} /> },
-    { label: "Urgences", value: loading ? "..." : String(urgentCount), icon: <Bell size={18} /> },
-    { label: "Terminées", value: loading ? "..." : String(completedCount), icon: <CheckCircle2 size={18} /> },
-    { label: "Partenaires", value: loading ? "..." : String(partners.length), icon: <ShieldCheck size={18} /> },
+    { label: "Séjours actifs", value: loading ? "…" : String(upcomingCount), icon: <Users size={18} /> },
+    { label: "À venir", value: loading ? "…" : String(overviewRows.filter(row => row.isUpcoming).length), icon: <CalendarClock size={18} /> },
+    { label: "À planifier", value: loading ? "…" : String(pendingPlanningCount), icon: <CalendarCheck2 size={18} /> },
+    { label: "Urgences", value: loading ? "…" : String(urgentCount), icon: <Bell size={18} /> },
   ];
   const isPostAcceptanceEntry = Boolean((targetRequestId || targetQuoteId) && selectedAssignment);
   const isQuickArrivalComposer = isPostAcceptanceEntry && creationMode === "manual";
@@ -1757,143 +1782,134 @@ function OwnerTravelerMissionsContent() {
 
   return (
     <div className={styles.page}>
-      <header className={`${styles.hero} ${isPostAcceptanceEntry ? styles.heroFocused : ""}`}>
-        <div className={styles.heroContent}>
-          <p className={styles.eyebrow}>Missions voyageurs</p>
-          <h1>{isPostAcceptanceEntry ? "Transmettre les prochains séjours" : "Séjours voyageurs"}</h1>
-          <p>
-            {isPostAcceptanceEntry
-              ? `La conciergerie est reliée. Commencez simplement par la prochaine arrivée ou importez votre planning.`
-              : "Transmettez à votre conciergerie les arrivées, départs, voyageurs, consignes et actions terrain dans un espace clair."}
-          </p>
-          {!isPostAcceptanceEntry ? (
-            <div className={styles.heroActions}>
-              <button type="button" className={styles.primaryLink} onClick={() => openComposer("manual")}>
-                <Bell size={16} aria-hidden="true" /> Prévenir la concierge
-              </button>
-              <ButtonLink href="/dashboard/owner/planning" variant="secondary">
-                <CalendarClock size={16} aria-hidden="true" /> Planning
-              </ButtonLink>
-              <ButtonLink href="/dashboard/owner/conciergerie/partenaires" variant="secondary">
-                <ShieldCheck size={16} aria-hidden="true" /> Partenaires acceptés
-              </ButtonLink>
-            </div>
-          ) : null}
-        </div>
-        {!isPostAcceptanceEntry ? (
-          <div className={styles.heroSnapshot}>
-            <span><Send size={16} /> Séjours transmis</span>
-            <strong>{loading ? "..." : upcomingCount}</strong>
-            <p>missions à venir</p>
-            <div className={styles.heroProgress}>
-              <span style={{ width: `${Math.min(100, Math.max(12, missions.length * 18))}%` }} />
-            </div>
+      <TravelerStaysOverview
+        rows={overviewRows} stats={stats} partnerCount={partners.length}
+        plannedCount={plannedCount} completedCount={completedCount}
+        loading={loading} error={error} success={success}
+        onRetry={() => void loadData()} onCreate={() => openComposer("manual")}
+        onImport={() => openComposer("platform")} onFollow={openFollowUp}
+        onDuplicate={id => { const mission = missions.find(item => item.id === id); if (mission) duplicateMission(mission); }}
+        collaboration={selectedAssignment ? {
+          name: selectedAssignment.conciergeName, property: selectedAssignment.propertyName,
+          quoteNumber: operationalContext.quote?.quote_number,
+          hasQuote: Boolean(operationalContext.quote),
+          hasMission: Boolean(partners.find(item => item.id === selectedAssignment.requestId)?.mission_id),
+          href: partners.find(item => item.id === selectedAssignment.requestId)?.mission_id
+            ? `/dashboard/owner/missions/${partners.find(item => item.id === selectedAssignment.requestId)?.mission_id}`
+            : `/dashboard/owner/demandes?request=${encodeURIComponent(selectedAssignment.requestId)}`,
+        } : null}
+      />
+      {isFollowUpOpen && focusedMission ? (
+        <section ref={followUpRef} className={styles.followUpPanel} tabIndex={-1} aria-labelledby="stay-follow-up-title">
+          <div className={styles.sectionHeading}>
+            <h2 id="stay-follow-up-title">Suivi du séjour de {getTravelerName(focusedMission)}</h2>
+            <Button variant="ghost" onClick={() => { setFollowUpOpen(false); followUpReturnFocusRef.current?.focus(); }}>Fermer le suivi</Button>
           </div>
-        ) : null}
-      </header>
-
-      {error ? <p className={`${styles.message} ${styles.messageError}`}>{error}</p> : null}
-      {success ? <p className={`${styles.message} ${styles.messageSuccess}`}>{success}</p> : null}
-
-      {selectedAssignment && !isPostAcceptanceEntry ? (
-        <section className={styles.syncPanel} aria-label="Lien avec la demande et le devis acceptés">
-          <div className={styles.syncMain}>
-            <span className={styles.syncBadgeReady}>
-              <ShieldCheck size={16} aria-hidden="true" />
-              Mission commerciale créée après devis accepté
-            </span>
-            <h2>{selectedAssignment.requestTitle}</h2>
-            <p className={styles.meta}>
-              Le devis accepté a validé la collaboration avec {selectedAssignment.conciergeName}. Les séjours voyageurs
-              créés ici sont les missions opérationnelles à transmettre ensuite à cette conciergerie.
-            </p>
-          </div>
-          <div className={styles.syncSteps} aria-label="Parcours demande vers séjour">
-            <span className={styles.syncStepDone}>Demande envoyée</span>
-            <span className={styles.syncStepDone}>
-              {operationalContext.quote?.quote_number ? `Devis ${operationalContext.quote.quote_number}` : "Devis accepté"}
-            </span>
-            <span className={styles.syncStepDone}>Mission commerciale</span>
-            <span className={styles.syncStepTodo}>Séjours voyageurs</span>
-          </div>
-        </section>
-      ) : null}
-
-      {isPostAcceptanceEntry && selectedAssignment ? (
-        <section className={styles.postAcceptancePanel} aria-labelledby="post-acceptance-title">
-          <div>
-            <p className={styles.eyebrow}>Prochaine étape</p>
-            <h2 id="post-acceptance-title">Comment souhaitez-vous démarrer avec {selectedAssignment.conciergeName} ?</h2>
-            <p className={styles.meta}>
-              Vous pouvez transmettre seulement la prochaine arrivée, ou importer plusieurs séjours depuis votre plateforme.
-            </p>
-          </div>
-          <div className={styles.postAcceptanceChoices}>
-            <button type="button" className={styles.postAcceptanceChoicePrimary} onClick={() => openComposer("manual")}>
-              <Bell size={18} aria-hidden="true" />
-              <span>
-                <strong>Prévenir d&apos;une prochaine arrivée</strong>
-                <small>Ajoutez un séjour voyageur en quelques informations.</small>
-              </span>
-            </button>
-            <button type="button" className={styles.postAcceptanceChoice} onClick={() => openComposer("platform")}>
-              <ClipboardList size={18} aria-hidden="true" />
-              <span>
-                <strong>Importer un planning</strong>
-                <small>Collez plusieurs réservations Airbnb, Booking ou autre.</small>
-              </span>
-            </button>
-          </div>
-        </section>
-      ) : null}
-
-      {!isPostAcceptanceEntry ? (
-        <section className={styles.statsGrid} aria-label="Statistiques missions voyageurs">
-          {stats.map((stat) => (
-            <article key={stat.label} className={styles.statCard}>
-              <span className={styles.statIcon}>{stat.icon}</span>
-              <div>
-                <strong>{stat.value}</strong>
-                <p>{stat.label}</p>
+          <TravelerMissionCard mission={focusedMission} housing={housing} partners={partners} onDuplicate={duplicateMission} onFocus={openFollowUp} />
+            {focusedMission ? (
+              <div className={styles.travelerSummaryCard}>
+                <p className={styles.eyebrow}>Informations du séjour</p>
+                <span className={styles.plannedChip}>
+                  <CheckCircle2 size={15} aria-hidden="true" />
+                  Séjour transmis
+                </span>
+                <strong>{getTravelerName(focusedMission)}</strong>
+                <span>
+                  <Building2 size={15} aria-hidden="true" />
+                  {getPropertyLabel(housing, getMissionHousingId(focusedMission))}
+                </span>
+                <span>
+                  {formatDateValue(focusedMission.scheduled_start, {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }) || "Arrivée à confirmer"}
+                </span>
+                <span>{getGuestCount(focusedMission)} voyageur(s)</span>
+                <span>
+                  {getMetadataString(focusedMission, "booking_platform") || form.bookingPlatform}
+                  {" · "}
+                  {focusedMission.status === "assigned" ? "transmise à la concierge" : "suivi actif"}
+                </span>
               </div>
-            </article>
-          ))}
+            ) : null}
+            {focusedMission ? (
+              <div className={styles.travelerSummaryCard}>
+                <p className={styles.eyebrow}>Brief collaboratif</p>
+                <strong>{focusedReservationDetail?.reservation?.concierge_name || getMissionConciergeName(partners, focusedMission)}</strong>
+                <span>
+                  <ShieldCheck size={15} aria-hidden="true" />
+                  {getMissionStatusLabel(focusedMission)}
+                </span>
+                <span>
+                  <MapPin size={15} aria-hidden="true" />
+                  {focusedReservationDetail?.reservation?.property_label || getPropertyLabel(housing, getMissionHousingId(focusedMission))}
+                </span>
+                {focusedReservationLoading ? <p className={styles.meta}>Chargement du suivi collaboratif...</p> : null}
+                {focusedReservationError ? <p className={styles.meta}>{focusedReservationError}</p> : null}
+                <div className={styles.editorialCardBlock}>
+                  <label htmlFor="stay-access-instructions">Accès et consignes</label>
+                  <Textarea
+                    id="stay-access-instructions"
+                    rows={3}
+                    value={focusedReservationDraft.accessInstructions}
+                    onChange={(event) =>
+                      setFocusedReservationDraft((current) => ({ ...current, accessInstructions: event.target.value }))
+                    }
+                    placeholder="Accès, codes, parking, instructions d'arrivée..."
+                  />
+                </div>
+                <div className={styles.editorialCardBlock}>
+                  <label htmlFor="stay-owner-notes">Note propriétaire</label>
+                  <Textarea
+                    id="stay-owner-notes"
+                    rows={3}
+                    value={focusedReservationDraft.ownerNotes}
+                    onChange={(event) =>
+                      setFocusedReservationDraft((current) => ({ ...current, ownerNotes: event.target.value }))
+                    }
+                    placeholder="Contexte voyageur, priorités, demandes éditoriales pour la conciergerie..."
+                  />
+                </div>
+                {focusedReservationDetail?.reservation?.concierge_notes ? (
+                  <div className={styles.editorialCardBlock}>
+                    <strong>Retour conciergerie</strong>
+                    <p>{focusedReservationDetail.reservation.concierge_notes}</p>
+                  </div>
+                ) : null}
+                {focusedReservationSuccess ? <p className={`${styles.message} ${styles.messageSuccess}`}>{focusedReservationSuccess}</p> : null}
+                <div className={styles.heroActions}>
+                  <button type="button" className={styles.buttonSecondary} onClick={() => void saveFocusedReservationBrief()} disabled={focusedReservationSaving}>
+                    {focusedReservationSaving ? "Enregistrement..." : "Mettre à jour le brief"}
+                  </button>
+                  {focusedReservationDetail?.reservation?.status !== "canceled" && focusedReservationDetail?.reservation?.status !== "completed" ? (
+                    <button type="button" className={styles.buttonSecondary} onClick={() => void cancelFocusedReservation()} disabled={focusedReservationSaving}>
+                      Annuler le séjour
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+            {focusedMission ? (
+              <div className={styles.travelerSummaryCard}>
+                <p className={styles.eyebrow}>Historique récent</p>
+                {(focusedReservationDetail?.timeline ?? []).slice(0, 4).map((item) => (
+                  <div key={item.id} className={styles.timelineCardItem}>
+                    <small>{formatTimelineDate(item.created_at)}</small>
+                    <strong>{item.title || "Événement du séjour"}</strong>
+                    {item.body ? <p>{item.body}</p> : null}
+                  </div>
+                ))}
+                {!focusedReservationLoading && (focusedReservationDetail?.timeline?.length ?? 0) === 0 ? (
+                  <p className={styles.meta}>Le suivi collaboratif apparaîtra ici dès la première mise à jour de la conciergerie.</p>
+                ) : null}
+              </div>
+            ) : null}
+
         </section>
       ) : null}
-
-      {!isPostAcceptanceEntry ? <section className={styles.syncPanel} aria-label="Synchronisation planning concierge">
-        <div className={styles.syncMain}>
-          <span className={plannedCount > 0 ? styles.syncBadgeReady : styles.syncBadgeWaiting}>
-            {plannedCount > 0 ? <CalendarCheck2 size={16} aria-hidden="true" /> : <AlertTriangle size={16} aria-hidden="true" />}
-            {plannedCount > 0 ? "Mission enregistrée dans le planning concierge" : "En attente de planification concierge"}
-          </span>
-          <h2>Suivi opérationnel propriétaire ↔ conciergerie</h2>
-          <p className={styles.meta}>
-            Chaque séjour transmis reste rattaché à un logement, une conciergerie et une timeline métier. Quand la conciergerie l’enregistre dans son planning, le retour devient visible ici.
-          </p>
-        </div>
-        <div className={styles.syncSteps} aria-label="Timeline de suivi">
-          {["Créée", "Envoyée", "Consultée", "Planifiée", "En cours", "Terminée"].map((step, index) => (
-            <span key={step} className={index <= 2 || plannedCount > 0 ? styles.syncStepDone : styles.syncStepTodo}>
-              {step}
-            </span>
-          ))}
-        </div>
-      </section> : null}
-
-      {!isPostAcceptanceEntry ? <section id="nouvelle-mission-voyageur" className={styles.creationLauncher}>
-        <div>
-          <p className={styles.eyebrow}>Information séjour</p>
-          <h2>Prévenir rapidement la conciergerie concernée</h2>
-          <p className={styles.meta}>
-            Envoyez une fiche séjour courte et professionnelle. La concierge reçoit l’essentiel, confirme la prise en charge, puis l’ajoute à son planning.
-          </p>
-        </div>
-        <Button type="button" onClick={() => openComposer("manual")}>
-          <Bell size={16} aria-hidden="true" />
-          Prévenir la concierge
-        </Button>
-      </section> : null}
 
       {isComposerOpen ? (
         <div
@@ -1927,6 +1943,7 @@ function OwnerTravelerMissionsContent() {
                 <X size={18} aria-hidden="true" />
               </button>
             </div>
+        {error ? <Alert tone="danger" title="Envoi impossible" announcement="assertive">{error}</Alert> : null}
         {isQuickArrivalComposer && selectedAssignment ? (
           <section className={styles.quickArrivalContext} aria-label="Destinataire de l'arrivée">
             <span><ShieldCheck size={16} aria-hidden="true" /> Conciergerie destinataire</span>
@@ -2354,105 +2371,6 @@ function OwnerTravelerMissionsContent() {
           </form>
 
           <aside className={styles.travelerMissionAside}>
-            {focusedMission ? (
-              <div className={styles.travelerSummaryCard}>
-                <p className={styles.eyebrow}>Derniere prise en compte</p>
-                <span className={styles.plannedChip}>
-                  <CheckCircle2 size={15} aria-hidden="true" />
-                  Mission bien prise en compte
-                </span>
-                <strong>{getTravelerName(focusedMission)}</strong>
-                <span>
-                  <Building2 size={15} aria-hidden="true" />
-                  {getPropertyLabel(housing, getMissionHousingId(focusedMission))}
-                </span>
-                <span>
-                  {formatDateValue(focusedMission.scheduled_start, {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  }) || "Arrivee a confirmer"}
-                </span>
-                <span>{getGuestCount(focusedMission)} voyageur(s)</span>
-                <span>
-                  {getMetadataString(focusedMission, "booking_platform") || form.bookingPlatform}
-                  {" · "}
-                  {focusedMission.status === "assigned" ? "transmise a la concierge" : "suivi actif"}
-                </span>
-              </div>
-            ) : null}
-            {focusedMission ? (
-              <div className={styles.travelerSummaryCard}>
-                <p className={styles.eyebrow}>Brief collaboratif</p>
-                <strong>{focusedReservationDetail?.reservation?.concierge_name || getMissionConciergeName(partners, focusedMission)}</strong>
-                <span>
-                  <ShieldCheck size={15} aria-hidden="true" />
-                  {focusedReservationDetail?.reservation?.status || getMetadataString(focusedMission, "reservation_status") || "shared"}
-                </span>
-                <span>
-                  <MapPin size={15} aria-hidden="true" />
-                  {focusedReservationDetail?.reservation?.property_label || getPropertyLabel(housing, getMissionHousingId(focusedMission))}
-                </span>
-                {focusedReservationLoading ? <p className={styles.meta}>Chargement du suivi collaboratif...</p> : null}
-                {focusedReservationError ? <p className={styles.meta}>{focusedReservationError}</p> : null}
-                <div className={styles.editorialCardBlock}>
-                  <strong>Accès et consignes</strong>
-                  <Textarea
-                    rows={3}
-                    value={focusedReservationDraft.accessInstructions}
-                    onChange={(event) =>
-                      setFocusedReservationDraft((current) => ({ ...current, accessInstructions: event.target.value }))
-                    }
-                    placeholder="Accès, codes, parking, instructions d'arrivée..."
-                  />
-                </div>
-                <div className={styles.editorialCardBlock}>
-                  <strong>Note propriétaire</strong>
-                  <Textarea
-                    rows={3}
-                    value={focusedReservationDraft.ownerNotes}
-                    onChange={(event) =>
-                      setFocusedReservationDraft((current) => ({ ...current, ownerNotes: event.target.value }))
-                    }
-                    placeholder="Contexte voyageur, priorités, demandes éditoriales pour la conciergerie..."
-                  />
-                </div>
-                {focusedReservationDetail?.reservation?.concierge_notes ? (
-                  <div className={styles.editorialCardBlock}>
-                    <strong>Retour conciergerie</strong>
-                    <p>{focusedReservationDetail.reservation.concierge_notes}</p>
-                  </div>
-                ) : null}
-                {focusedReservationSuccess ? <p className={`${styles.message} ${styles.messageSuccess}`}>{focusedReservationSuccess}</p> : null}
-                <div className={styles.heroActions}>
-                  <button type="button" className={styles.buttonSecondary} onClick={() => void saveFocusedReservationBrief()} disabled={focusedReservationSaving}>
-                    {focusedReservationSaving ? "Enregistrement..." : "Mettre a jour le brief"}
-                  </button>
-                  {focusedReservationDetail?.reservation?.status !== "canceled" && focusedReservationDetail?.reservation?.status !== "completed" ? (
-                    <button type="button" className={styles.buttonSecondary} onClick={() => void cancelFocusedReservation()} disabled={focusedReservationSaving}>
-                      Annuler le sejour
-                    </button>
-                  ) : null}
-                </div>
-              </div>
-            ) : null}
-            {focusedMission ? (
-              <div className={styles.travelerSummaryCard}>
-                <p className={styles.eyebrow}>Timeline recente</p>
-                {(focusedReservationDetail?.timeline ?? []).slice(0, 4).map((item) => (
-                  <div key={item.id} className={styles.timelineCardItem}>
-                    <small>{formatTimelineDate(item.created_at)}</small>
-                    <strong>{item.title || "Evenement sejour"}</strong>
-                    {item.body ? <p>{item.body}</p> : null}
-                  </div>
-                ))}
-                {!focusedReservationLoading && (focusedReservationDetail?.timeline?.length ?? 0) === 0 ? (
-                  <p className={styles.meta}>Le suivi collaboratif apparaitra ici des la premiere mise a jour concierge.</p>
-                ) : null}
-              </div>
-            ) : null}
             <div className={styles.travelerSummaryCard}>
               <p className={styles.eyebrow}>Aperçu envoyé</p>
               <strong>{buildTitle(form)}</strong>
@@ -2503,44 +2421,13 @@ function OwnerTravelerMissionsContent() {
         </div>
       ) : null}
 
-        <section className={styles.travelerMissionListSection}>
-          <div className={styles.sectionHeading}>
-            <div>
-              <p className={styles.eyebrow}>Séjours transmis</p>
-              <h2>Vue liste missions voyageurs</h2>
-            </div>
-            <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-              {statusOptions.map((status) => (
-                <option key={status.value} value={status.value}>{status.label}</option>
-              ))}
-            </Select>
-          </div>
-
-          {loading ? <p>Chargement des séjours...</p> : null}
-          {!loading && filteredMissions.length === 0 ? (
-            <p className={styles.meta}>Aucune mission voyageur pour le moment.</p>
-          ) : null}
-
-          <div className={styles.travelerMissionGrid}>
-            {filteredMissions.map((mission) => (
-              <TravelerMissionCard
-                key={mission.id}
-                mission={mission}
-                housing={housing}
-                partners={partners}
-                onDuplicate={duplicateMission}
-                onFocus={setFocusedMissionId}
-              />
-            ))}
-          </div>
-        </section>
     </div>
   );
 }
 
 export default function OwnerTravelerMissionsPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<AsyncState loading loadingLabel="Chargement des séjours…">{null}</AsyncState>}>
       <OwnerTravelerMissionsContent />
     </Suspense>
   );

@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { Badge, ButtonLink, Card } from "@/components/ui";
+import DashboardEmptyState from "@/components/ui/dashboard/saas/DashboardEmptyState";
+import OwnerPlanningStatus from "./OwnerPlanningStatus";
 import { CalendarCheck, Home, UserRound } from "lucide-react";
 import {
   formatPlanningDate,
@@ -82,7 +85,7 @@ function getItemsForDay(items: OwnerPlanningItem[], date: Date) {
 }
 
 function renderStatus(item: OwnerPlanningItem) {
-  return <span className={`${styles.status} ${styles[item.status]}`}>{planningStatusLabels[item.status]}</span>;
+  return <OwnerPlanningStatus status={item.status} />;
 }
 
 function renderEventPill(item: OwnerPlanningItem, compact = false) {
@@ -90,6 +93,7 @@ function renderEventPill(item: OwnerPlanningItem, compact = false) {
     <Link
       key={item.id}
       href={`/dashboard/owner/missions/${item.id}`}
+      aria-label={`${planningTypeLabels[item.type]} — ${item.travelerName || item.propertyName}, ${formatPlanningDate(item.date)} à ${formatPlanningTime(item.date)}, ${planningStatusLabels[item.status]}`}
       className={`${styles.eventPill} ${styles[item.status]} ${compact ? styles.eventPillCompact : ""}`}
     >
       <span>
@@ -103,7 +107,7 @@ function renderEventPill(item: OwnerPlanningItem, compact = false) {
 
 function renderItemCard(item: OwnerPlanningItem) {
   return (
-    <article key={item.id} className={styles.itemCard}>
+    <Card key={item.id} className={styles.itemCard} tone="outlined">
       <div className={styles.dateBlock}>
         <strong>{formatPlanningTime(item.date)}</strong>
         <span>{formatPlanningDate(item.date)}</span>
@@ -129,10 +133,10 @@ function renderItemCard(item: OwnerPlanningItem) {
         {item.notes ? <p>{item.notes}</p> : null}
         {item.narrative ? <small className={styles.narrative}>{item.narrative}</small> : null}
       </div>
-      <Link href={`/dashboard/owner/missions/${item.id}`} className={styles.actionLink}>
+      <ButtonLink href={`/dashboard/owner/missions/${item.id}`} variant="secondary" size="sm">
         Voir
-      </Link>
-    </article>
+      </ButtonLink>
+    </Card>
   );
 }
 
@@ -162,14 +166,13 @@ export default function OwnerPlanningList({ items, viewMode, selectedMonth }: Ow
           <p>Agenda visuel</p>
           <h2 id="owner-planning-list-title">{headerTitle}</h2>
         </div>
-        <span>{items.length} élément(s)</span>
+        <span>{viewMode === "jour" ? todayItems.length : viewMode === "mois" ? monthItems.length : weekDays.reduce((count, day) => count + getItemsForDay(items, day.date).length, 0)} mission(s) sur cette période</span>
       </div>
 
       {items.length === 0 ? (
         <div className={styles.emptyState}>
-          <h3>Votre planning est calme</h3>
-          <p>Aucune mission n'est prévue sur la période sélectionnée.</p>
-          <Link href="/dashboard/owner/missions/new">Créer une mission</Link>
+          <DashboardEmptyState icon={<CalendarCheck size={28} aria-hidden="true" />} title="Aucune mission à afficher" copy="Aucune mission ne correspond aux filtres. Réinitialisez-les ou créez une mission pour organiser votre planning." />
+          <ButtonLink href="/dashboard/owner/missions/new">Créer une mission</ButtonLink>
         </div>
       ) : null}
 
@@ -181,6 +184,7 @@ export default function OwnerPlanningList({ items, viewMode, selectedMonth }: Ow
             <p>{todayItems.length > 0 ? "Les actions du jour sont classées par heure." : "Aucune mission prévue aujourd'hui."}</p>
           </aside>
           <div className={styles.dayTimeline}>
+            {todayItems.length === 0 && <p>Autres missions de votre planning</p>}
             {(todayItems.length > 0 ? todayItems : items.slice(0, 6)).map(renderItemCard)}
           </div>
         </div>
@@ -218,9 +222,9 @@ export default function OwnerPlanningList({ items, viewMode, selectedMonth }: Ow
           </div>
 
           <div className={styles.monthLegend} aria-label="Légende des statuts">
-            <span className={styles.legendUrgent}>Urgent</span>
-            <span className={styles.legendWaiting}>À valider</span>
-            <span className={styles.legendReady}>Confirmé</span>
+            <Badge variant="danger">Urgent</Badge>
+            <Badge variant="warning">À faire / à valider</Badge>
+            <Badge variant="success">Confirmé / prêt</Badge>
           </div>
 
           <div className={styles.monthAgenda}>
@@ -245,11 +249,14 @@ export default function OwnerPlanningList({ items, viewMode, selectedMonth }: Ow
                   </header>
                   <div className={styles.monthEvents}>
                     {dayItems.slice(0, 3).map((item) => renderEventPill(item, true))}
-                    {dayItems.length > 3 ? <span className={styles.moreEvents}>+{dayItems.length - 3} autre(s)</span> : null}
+                    {dayItems.length > 3 ? <details className={styles.moreEvents}><summary>+{dayItems.length - 3} autre(s)</summary>{dayItems.slice(3).map(item => renderEventPill(item, true))}</details> : null}
                   </div>
                 </article>
               );
             })}
+          </div>
+          <div className={styles.mobileMonth} aria-label="Missions du mois">
+            {monthItems.length ? [...monthItems].sort((a,b) => Date.parse(a.date) - Date.parse(b.date)).map(renderItemCard) : <p>Aucune mission prévue sur ce mois.</p>}
           </div>
         </div>
       ) : null}

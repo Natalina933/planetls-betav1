@@ -3,13 +3,14 @@
 import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { formatDateValue } from "@/app/utils/formatters";
-import { ConversationFilters, DashboardSectionShell } from "@/components/dashboard";
-import { Button, ButtonLink, Textarea } from "@/components/ui";
+import { ConversationFilters } from "@/components/dashboard";
+import { Badge, Button, ButtonLink, Select, Textarea } from "@/components/ui";
+import { MessagesHeader, MessagesContext, MessagesFooter } from "./OwnerMessagesPanels";
 import styles from "./OwnerMessagesPage.module.scss";
 import { markOwnerConversationSeen } from "../messageActivity";
 import { ownerApiError } from "../ownerFeedback";
 
-type OwnerConversationRow = {
+export type OwnerConversationRow = {
   id: string;
   subject: string | null;
   counterpart_name: string | null;
@@ -30,7 +31,7 @@ type OwnerConversationsListPayload = {
   note: string | null;
 };
 
-type ConversationDetailPayload = {
+export type ConversationDetailPayload = {
   conversation: {
     id: string;
     subject: string | null;
@@ -104,6 +105,8 @@ function OwnerMessagesContent() {
   const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [unreadOnly, setUnreadOnly] = useState(false);
+  const [sort, setSort] = useState("recent");
   const [, setSeenVersion] = useState(0);
 
   async function loadConversations(preferredId?: string) {
@@ -221,6 +224,13 @@ function OwnerMessagesContent() {
     });
   }, [conversations, searchTerm, statusFilter]);
 
+  const visibleConversations = [...filteredConversations]
+    .filter(item => !unreadOnly || (item.unread_count ?? 0) > 0)
+    .sort((a, b) => {
+      const delta = (Date.parse(b.last_message_at ?? "") || 0) - (Date.parse(a.last_message_at ?? "") || 0);
+      return sort === "oldest" ? -delta : delta;
+    });
+
   async function handleSendMessage() {
     if (!canSend) return;
 
@@ -262,28 +272,8 @@ function OwnerMessagesContent() {
   }
 
   return (
-    <DashboardSectionShell
-      persona="owner"
-      title="Suivi des échanges"
-      subtitle="Centralisez vos conversations prioritaires avec vos concierges et gardez une trace claire des décisions."
-      stats={[
-        { label: "Conversations", value: `${conversations.length}` },
-        {
-          label: "Filtrées",
-          value: `${filteredConversations.length}`,
-          hint: "Avec vos filtres actifs",
-        },
-        {
-          label: "Non lues",
-          value: `${conversations.filter((item) => (item.unread_count ?? 0) > 0).length}`,
-        },
-      ]}
-      actions={[
-        { label: "Trouver un concierge", href: "/dashboard/owner/concierges" },
-        { label: "Voir le planning", href: "/dashboard/owner/planning" },
-      ]}
-    >
       <div className={styles.page} aria-busy={loading || detailLoading}>
+        <MessagesHeader conversations={conversations} loading={loading} onUnread={() => { setUnreadOnly(true); setSearchTerm(""); setStatusFilter("all"); document.getElementById("owner-conversations")?.scrollIntoView({ block: "start" }); }} />
         {success ? <div className={styles.successBox} role="status">{success}</div> : null}
         {error ? (
           <div className={styles.errorBox} role="alert">
@@ -295,12 +285,13 @@ function OwnerMessagesContent() {
         ) : null}
 
         <div className={styles.layout}>
-          <aside className={styles.sidebar}>
+          <aside id="owner-conversations" className={styles.sidebar} aria-label="Liste des conversations">
             <div className={styles.sidebarHeader}>
-              <h2>Conversations prioritaires</h2>
-              <span className={styles.headerBadge}>{loading ? "..." : `${filteredConversations.length} fil(s)`}</span>
+              <h2>Conversations</h2>
+              <span className={styles.headerBadge}>{loading ? "..." : `${visibleConversations.length} fil(s)`}</span>
             </div>
 
+            <ButtonLink href="/dashboard/owner/concierges" variant="secondary" size="sm">Nouveau message</ButtonLink>
             <ConversationFilters
               searchValue={searchTerm}
               onSearchChange={setSearchTerm}
@@ -319,20 +310,29 @@ function OwnerMessagesContent() {
               selectClassName={styles.filtersSelect}
             />
 
+            <div className={styles.listControls}>
+              <div className={styles.tabs} role="group" aria-label="Vue des conversations">
+                <Button size="sm" variant={!unreadOnly ? "primary" : "ghost"} aria-pressed={!unreadOnly} onClick={() => setUnreadOnly(false)}>Toutes</Button>
+                <Button size="sm" variant={unreadOnly ? "primary" : "ghost"} aria-pressed={unreadOnly} onClick={() => setUnreadOnly(true)}>Non lues</Button>
+              </div>
+              <Select aria-label="Trier les conversations" value={sort} onChange={event => setSort(event.target.value)}>
+                <option value="recent">Plus récentes</option><option value="oldest">Plus anciennes</option>
+              </Select>
+            </div>
             {loading ? <p className={styles.infoText}>Chargement des conversations...</p> : null}
 
-            {!loading && filteredConversations.length === 0 ? (
+            {!loading && !error && visibleConversations.length === 0 ? (
               <div className={styles.messageList}>
-                <p className={styles.emptyState}>Aucune conversation disponible pour le moment.</p>
+                <p className={styles.emptyState}>Aucune conversation ne correspond à cette vue.</p>
                 <ButtonLink href="/dashboard/owner/concierges" variant="secondary" className={styles.cta}>
                   Trouver un concierge
                 </ButtonLink>
               </div>
             ) : null}
 
-            {!loading && filteredConversations.length > 0 ? (
+            {!loading && visibleConversations.length > 0 ? (
               <div className={styles.conversationList}>
-                {filteredConversations.map((conversation) => {
+                {visibleConversations.map((conversation) => {
                   const unread = (conversation.unread_count ?? 0) > 0;
 
                   return (
@@ -344,13 +344,15 @@ function OwnerMessagesContent() {
                       className={`${styles.conversationItem} ${
                         activeConversationId === conversation.id ? styles.conversationItemActive : ""
                       }`}
-                      onClick={() => setActiveConversationId(conversation.id)}
+                      aria-pressed={activeConversationId === conversation.id}
+                      onClick={() => { setActiveConversationId(conversation.id); document.getElementById("owner-message-thread")?.focus(); }}
                     >
+                      <span className={styles.avatar} aria-hidden="true">{(conversation.counterpart_name || "C").slice(0,1)}</span>
                       <div className={styles.conversationHead}>
                         <strong>{conversation.counterpart_name || "Concierge"}</strong>
                         <div className={styles.conversationMeta}>
                           {unread ? (
-                            <span className={styles.unreadDot} aria-label="Nouveau message" />
+                            <Badge variant="success">Non lu</Badge>
                           ) : null}
                           <span>
                             {formatDateValue(conversation.last_message_at, {
@@ -362,9 +364,9 @@ function OwnerMessagesContent() {
                             })}
                           </span>
                         </div>
-                      </div>
                       <p>{conversation.subject || "Conversation directe"}</p>
                       <small>{conversation.last_message_preview || "Aucun aperçu"}</small>
+                      </div>
                     </Button>
                   );
                 })}
@@ -372,17 +374,18 @@ function OwnerMessagesContent() {
             ) : null}
           </aside>
 
-          <section className={styles.thread}>
+          <section id="owner-message-thread" tabIndex={-1} className={styles.thread} aria-label="Échange actif">
             {!activeConversationId ? (
               <p className={styles.emptyState}>Sélectionnez une conversation pour lire et répondre.</p>
             ) : detailLoading ? (
               <p className={styles.emptyState}>Chargement de la conversation...</p>
-            ) : !detail ? (
+            ) : !detail || detail.conversation.id !== activeConversationId ? (
               <p className={styles.emptyState}>Conversation indisponible.</p>
             ) : (
               <>
                 <div className={styles.threadHeader}>
-                  <h2>{detail.conversation.subject || "Conversation"}</h2>
+                  <span className={styles.avatar} aria-hidden="true">{(conversations.find(item => item.id === activeConversationId)?.counterpart_name || "C").slice(0,1)}</span>
+                  <div><h2>{conversations.find(item => item.id === activeConversationId)?.counterpart_name || "Conversation"}</h2><p>{detail.conversation.subject || "Conversation directe"}</p></div>
                   <span>
                     {getConversationContextLabel(detail.conversation.source, detail.conversation.status)}
                   </span>
@@ -422,13 +425,14 @@ function OwnerMessagesContent() {
                   )}
                 </div>
 
+                {detail.messages.length >= 400 ? <p className={styles.infoText}>Les 400 premiers messages de cet échange sont affichés.</p> : null}
                 <div className={styles.composer}>
                   <Textarea
                     value={draftMessage}
                     onChange={(event) => setDraftMessage(event.target.value)}
-                    placeholder="Écrivez votre message au concierge..."
-                    aria-label="Écrivez votre message au concierge"
-                    title="Écrivez votre message au concierge"
+                    placeholder="Écrivez votre message..."
+                    aria-label="Écrivez votre message"
+                    title="Écrivez votre message"
                     className={styles.composerTextarea}
                   />
                   <Button type="button" variant="primary" onClick={handleSendMessage} disabled={sending || !canSend}>
@@ -438,9 +442,16 @@ function OwnerMessagesContent() {
               </>
             )}
           </section>
+          <MessagesContext
+            detail={detail?.conversation.id === activeConversationId && !detailLoading ? detail : null}
+            row={conversations.find(item => item.id === activeConversationId)}
+            loading={detailLoading}
+          />
         </div>
+        {conversations.length >= 40 ? <p className={styles.infoText}>Vue limitée aux 40 conversations les plus récentes.</p> : null}
+        <MessagesFooter conversations={conversations} onSelect={id => { setActiveConversationId(id); document.getElementById("owner-message-thread")?.focus(); }} />
       </div>
-    </DashboardSectionShell>
+
   );
 }
 

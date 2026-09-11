@@ -2,12 +2,10 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
-import { getInvoicePaymentSummary } from "@/app/lib/invoiceStatus";
+import OwnerInvoicesOverview from "./OwnerInvoicesOverview";
 import { ownerApiError } from "../ownerFeedback";
-import styles from "../OwnerDashboardPages.module.scss";
 
-type OwnerInvoiceRow = {
+export type OwnerInvoiceRow = {
   id: string;
   invoice_number: string | null;
   status: string | null;
@@ -17,6 +15,7 @@ type OwnerInvoiceRow = {
   currency?: string | null;
   due_date: string | null;
   created_at: string | null;
+  issue_date?: string | null;
   metadata?: Record<string, unknown> | null;
   invoice_items?: Array<{
     id: string;
@@ -25,21 +24,6 @@ type OwnerInvoiceRow = {
     line_total: number;
   }>;
 };
-
-function formatDate(value: string | null) {
-  if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(date);
-}
-
-function formatAmount(value: number | null | undefined, currency = "EUR") {
-  return typeof value === "number" ? `${value.toFixed(2)} ${currency}` : "-";
-}
 
 export default function OwnerInvoicesPageClient() {
   const searchParams = useSearchParams();
@@ -134,10 +118,6 @@ export default function OwnerInvoicesPageClient() {
     void loadInvoices();
   }, []);
 
-  const pendingInvoices = useMemo(
-    () => invoices.filter((invoice) => invoice.status !== "paid" && invoice.status !== "canceled"),
-    [invoices],
-  );
   const filteredInvoices = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
@@ -148,14 +128,10 @@ export default function OwnerInvoicesPageClient() {
       if (!matchesStatus) return false;
       if (!normalizedSearch) return true;
 
-      const haystack = [invoice.invoice_number, invoice.status].filter(Boolean).join(" ").toLowerCase();
+      const haystack = [invoice.invoice_number, invoice.status, ...["client_name", "traveler_name", "property_label", "housing_name"].map(key => typeof invoice.metadata?.[key] === "string" ? invoice.metadata[key] : "")].filter(Boolean).join(" ").toLowerCase();
       return haystack.includes(normalizedSearch);
     });
   }, [invoices, searchTerm, statusFilter, targetInvoiceId]);
-  const filteredBalance = useMemo(
-    () => filteredInvoices.reduce((sum, invoice) => sum + (invoice.balance_amount ?? 0), 0),
-    [filteredInvoices],
-  );
   const targetedInvoice = useMemo(
     () => invoices.find((invoice) => invoice.id === targetInvoiceId) ?? null,
     [invoices, targetInvoiceId],
@@ -189,10 +165,10 @@ export default function OwnerInvoicesPageClient() {
     }
   }
 
-  function exportInvoicesCsv() {
+  function exportInvoicesCsv(exportRows: OwnerInvoiceRow[] = filteredInvoices) {
     const rows = [
       ["Numero", "Statut", "Total", "Solde", "Echeance", "Cree le"],
-      ...filteredInvoices.map((invoice) => [
+      ...exportRows.map((invoice) => [
         invoice.invoice_number ?? "",
         invoice.status ?? "",
         invoice.total_amount?.toString() ?? "",
@@ -215,155 +191,9 @@ export default function OwnerInvoicesPageClient() {
     window.URL.revokeObjectURL(url);
   }
 
-  return (
-    <section className="dashboard-grid">
-      <header>
-        <h1>Suivi des factures</h1>
-        <p>Suivez les montants émis, les échéances et les règlements à prioriser sur votre parc.</p>
-      </header>
-
-      <div className="stats-row">
-        <div className="stat-card">
-          <h3>Factures suivies</h3>
-          <p>{loading ? "..." : invoices.length}</p>
-        </div>
-        <div className="stat-card">
-          <h3>À régler</h3>
-          <p>{loading ? "..." : pendingInvoices.length}</p>
-        </div>
-        <div className="stat-card">
-          <h3>Solde visible</h3>
-          <p>{loading ? "..." : formatAmount(filteredBalance)}</p>
-        </div>
-      </div>
-
-      <div className="main-section">
-        <div className={styles.toolbar}>
-          <input
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Rechercher une facture ou un statut"
-            className={styles.field}
-          />
-          <select
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-            className={styles.select}
-          >
-            <option value="all">Tous statuts</option>
-            <option value="open">Ouvertes</option>
-            <option value="paid">Réglées</option>
-            <option value="canceled">Annulées</option>
-          </select>
-          <button
-            type="button"
-            onClick={exportInvoicesCsv}
-            disabled={filteredInvoices.length === 0}
-            className={styles.buttonSecondary}
-          >
-            Export CSV
-          </button>
-        </div>
-
-        {feedback ? <p style={{ color: "#7b5b23", fontWeight: 600 }}>{feedback}</p> : null}
-        {targetedInvoice ? (
-          <p style={{ color: "#7b5b23", fontWeight: 600 }}>
-            Focus sur {targetedInvoice.invoice_number || "la facture sélectionnée"}.
-          </p>
-        ) : null}
-        {loading ? <p>Chargement des factures...</p> : null}
-        {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
-
-        {!loading && !error && filteredInvoices.length === 0 ? (
-          <p>Aucune facture disponible pour le moment.</p>
-        ) : null}
-
-        {!loading && !error && filteredInvoices.length > 0 ? (
-          <ul>
-            {filteredInvoices.map((invoice) => {
-              const currency = invoice.currency || "EUR";
-              const paymentSummary = getInvoicePaymentSummary({
-                invoiceStatus: invoice.status,
-                totalAmount: invoice.total_amount,
-                paidAmount: invoice.paid_amount,
-                balanceAmount: invoice.balance_amount,
-                dueDate: invoice.due_date,
-                metadata: invoice.metadata,
-              });
-              const amountToPay =
-                paymentSummary.workflow.status === "paid"
-                  ? invoice.total_amount
-                  : invoice.balance_amount ?? invoice.total_amount;
-
-              return (
-              <li key={invoice.id} className={styles.listItem}>
-                <div
-                  style={
-                    invoice.id === targetInvoiceId
-                      ? {
-                          border: "1px solid rgba(123, 91, 35, 0.35)",
-                          background: "rgba(123, 91, 35, 0.06)",
-                          borderRadius: "18px",
-                          padding: "0.75rem",
-                        }
-                      : undefined
-                  }
-                >
-                  <strong>{invoice.invoice_number || "Facture sans numero"}</strong>
-                  <br />
-                  <span className={styles.inlineActions}>
-                    <span>Statut :</span>
-                    <WorkflowStatusBadge value={invoice.status || "-"} />
-                  </span>{" "}
-                  | Total : {formatAmount(invoice.total_amount, currency)} | Solde :{" "}
-                  {formatAmount(invoice.balance_amount, currency)}
-                  <br />
-                  Echeance : {formatDate(invoice.due_date)} | Lignes : {invoice.invoice_items?.length ?? 0}
-                  <div style={{ marginTop: "0.75rem", display: "grid", gap: "0.35rem" }}>
-                    <strong>{paymentSummary.title}</strong>
-                    <span>
-                      {paymentSummary.amountLabel} : {formatAmount(amountToPay, currency)}
-                    </span>
-                    <span>Deja regle : {formatAmount(invoice.paid_amount ?? 0, currency)}</span>
-                    <span>Prochaine action : {paymentSummary.workflow.nextActionOwner}</span>
-                    {invoice.invoice_items?.length ? (
-                      <span>
-                        Detail :{" "}
-                        {invoice.invoice_items
-                          .slice(0, 3)
-                          .map((item) => `${item.label} (${formatAmount(item.line_total, currency)})`)
-                          .join(", ")}
-                      </span>
-                    ) : null}
-                  </div>
-                  <br />
-                  <span className={styles.inlineActions}>
-                    <a
-                      href={`/api/invoices/${invoice.id}/document`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={styles.linkButton}
-                    >
-                      Apercu PDF
-                    </a>
-                    {invoice.status !== "paid" && invoice.status !== "canceled" ? (
-                      <button
-                        type="button"
-                        onClick={() => handlePayInvoice(invoice.id)}
-                        disabled={payingInvoiceId === invoice.id}
-                        className={styles.buttonPrimary}
-                      >
-                        {payingInvoiceId === invoice.id ? "Redirection..." : "Regler"}
-                      </button>
-                    ) : null}
-                  </span>
-                </div>
-              </li>
-              );
-            })}
-          </ul>
-        ) : null}
-      </div>
-    </section>
-  );
+  return <OwnerInvoicesOverview invoices={invoices} filteredInvoices={filteredInvoices}
+    searchTerm={searchTerm} onSearch={setSearchTerm} statusFilter={statusFilter} onStatus={setStatusFilter}
+    loading={loading} error={error} feedback={feedback} targetedInvoice={targetedInvoice}
+    targetInvoiceId={targetInvoiceId} payingInvoiceId={payingInvoiceId}
+    onPay={handlePayInvoice} onExport={exportInvoicesCsv} onRetry={() => window.location.reload()} />;
 }

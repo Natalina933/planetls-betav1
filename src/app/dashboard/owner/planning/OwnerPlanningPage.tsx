@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { Download, Plus, Search } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
-import { DashboardSectionShell } from "@/components/dashboard";
+import { Alert, AsyncState, Button, ButtonLink, Input, Select, TableFilters } from "@/components/ui";
 import OwnerPlanningKpiBar from "./OwnerPlanningKpiBar";
 import OwnerPlanningList from "./OwnerPlanningList";
 import OwnerPlanningPriorities from "./OwnerPlanningPriorities";
@@ -89,136 +88,50 @@ export default function OwnerPlanningPage({
       .sort((a, b) => getPlanningItemPriority(a) - getPlanningItemPriority(b) || new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [items, propertyFilter, searchTerm, statusFilter, typeFilter]);
 
+  const resetFilters = () => { setSearchTerm(""); setPropertyFilter("all"); setStatusFilter("all"); setTypeFilter("all"); };
+  const activeCount = [Boolean(searchTerm), propertyFilter !== "all", statusFilter !== "all", typeFilter !== "all"].filter(Boolean).length;
+  const upcomingKpi = kpis.find(kpi => kpi.id === "a-venir");
+
   return (
-    <DashboardSectionShell
-      persona="owner"
-      title="Planning propriétaire"
-      subtitle="Voyez ce qui est prévu, ce qui est urgent et ce qui attend votre validation."
-      stats={kpis.slice(0, 4).map((kpi) => ({ label: kpi.label, value: loading ? "..." : `${kpi.value}` }))}
-      actions={[
-        { label: "Créer une mission", href: "/dashboard/owner/missions/new" },
-        { label: "Mission urgente", href: "/dashboard/owner/mission-urgente" },
-      ]}
-    >
-      <main className={styles.page} aria-busy={loading}>
-        <section className={styles.hero}>
-          <div>
-            <p className={styles.eyebrow}>Agenda opérationnel</p>
-            <h1>Tout ce qui compte pour vos voyageurs, au bon moment.</h1>
-            <p>
-              Suivez les missions, les validations et les logements à préparer sans vous perdre dans les détails
-              techniques.
-            </p>
+    <div className={styles.page} aria-busy={loading}>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>Planning propriétaire</p>
+          <h1>Chaque intervention, au bon moment</h1>
+          <p className={styles.description}>Retrouvez les arrivées, les missions et les préparatifs de vos logements dans un agenda partagé avec votre conciergerie.</p>
+          <div className={styles.actions}>
+            <ButtonLink href="/dashboard/owner/missions/new"><Plus size={16} aria-hidden="true" /> Créer une mission</ButtonLink>
+            <ButtonLink href="/dashboard/owner/messages" variant="secondary">Contacter ma conciergerie</ButtonLink>
           </div>
-          <div className={styles.heroActions}>
-            <Link href="/dashboard/owner/missions/new" className={styles.primaryAction}>
-              Créer une mission
-              <Plus size={16} aria-hidden="true" />
-            </Link>
-            <Link href="/dashboard/owner/messages" className={styles.secondaryAction}>
-              Contacter ma conciergerie
-            </Link>
-          </div>
-        </section>
-
-        <OwnerPlanningKpiBar kpis={kpis} />
-        <OwnerPlanningPriorities priorities={priorities} />
-
-        <section className={styles.filters} aria-label="Filtres du planning">
-          <label className={styles.searchField}>
-            <Search size={16} aria-hidden="true" />
-            <input
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Rechercher un logement, une mission ou un responsable"
-            />
-          </label>
-          <select
-            value={propertyFilter}
-            onChange={(event) => setPropertyFilter(event.target.value)}
-            aria-label="Filtrer par logement"
-          >
-            <option value="all">Tous les logements</option>
-            {propertyOptions.map((property) => (
-              <option key={property} value={property}>
-                {property}
-              </option>
-            ))}
-          </select>
-          <select
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-            aria-label="Filtrer par statut"
-          >
-            <option value="all">Tous les statuts</option>
-            {Object.entries(planningStatusLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-          <select
-            value={typeFilter}
-            onChange={(event) => setTypeFilter(event.target.value)}
-            aria-label="Filtrer par type de mission"
-          >
-            <option value="all">Toutes les missions</option>
-            {Object.entries(planningTypeLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-          <select
-            value={selectedMonth}
-            onChange={(event) => setSelectedMonth(event.target.value)}
-            aria-label="Choisir le mois affiché"
-          >
-            {monthOptions.map((month) => (
-              <option key={month.value} value={month.value}>
-                {month.label}
-              </option>
-            ))}
-          </select>
-          <div className={styles.viewSwitch} role="group" aria-label="Choisir la vue du planning">
-            {[
-              { value: "jour", label: "Jour" },
-              { value: "semaine", label: "Semaine" },
-              { value: "mois", label: "Mois" },
-            ].map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={viewMode === option.value ? styles.viewSwitchActive : ""}
-                onClick={() => setViewMode(option.value as PlanningViewMode)}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-          <button type="button" onClick={onExport} disabled={!onExport || filteredItems.length === 0} className={styles.secondaryAction}>
-            Exporter
-            <Download size={16} aria-hidden="true" />
-          </button>
-        </section>
-
-        {success ? <p className={`${styles.feedback} ${styles.success}`} role="status">{success}</p> : null}
-        {loading ? <p className={styles.feedback} role="status">Chargement du planning...</p> : null}
-        {!loading && error ? (
-          <div className={`${styles.feedback} ${styles.error}`} role="alert">
-            <span>{error}</span>
-            {onRetry ? (
-              <button type="button" onClick={onRetry}>
-                Réessayer
-              </button>
-            ) : null}
-          </div>
-        ) : null}
-
-        {!loading && !error ? (
-          <OwnerPlanningList items={filteredItems} viewMode={viewMode} selectedMonth={selectedMonth} />
-        ) : null}
-      </main>
-    </DashboardSectionShell>
+        </div>
+      </header>
+      {success && <Alert tone="success" title="Export du planning" announcement="polite">{success}</Alert>}
+      {error && !loading && <Alert tone="danger" title="Planning indisponible" announcement="assertive" action={onRetry ? <Button variant="secondary" onClick={onRetry}>Réessayer</Button> : undefined}>{error}</Alert>}
+      <OwnerPlanningKpiBar kpis={kpis} loading={loading} unavailable={Boolean(error)} />
+      <AsyncState loading={loading} loadingLabel="Chargement du planning…" className={styles.sections}>
+        {!error && <>
+          <OwnerPlanningPriorities priorities={priorities} />
+          <section className={styles.agenda} aria-label="Votre agenda">
+            <div className={styles.sectionHeading}>
+              <div><h2>Votre agenda</h2><p>{upcomingKpi ? upcomingKpi.value + " intervention(s) à venir sur les 7 prochains jours" : "Retrouvez vos missions et leurs responsables."}</p></div>
+              <Button variant="secondary" size="sm" onClick={onExport} disabled={!onExport || filteredItems.length === 0}><Download size={16} aria-hidden="true" /> Exporter tout</Button>
+            </div>
+            <TableFilters className={styles.filters} resultCount={filteredItems.length} resultLabel={filteredItems.length + " mission(s) correspondant aux filtres, toutes dates"} activeCount={activeCount} onReset={resetFilters} resetLabel="Réinitialiser">
+              <label>Recherche<Input bare type="search" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Logement, mission, responsable…" /></label>
+              <label>Logement<Select bare aria-label="Filtrer par logement" value={propertyFilter} onChange={event => setPropertyFilter(event.target.value)}><option value="all">Tous les logements</option>{propertyOptions.map(property => <option key={property} value={property}>{property}</option>)}</Select></label>
+              <label>Statut<Select bare aria-label="Filtrer par statut" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="all">Tous les statuts</option>{Object.entries(planningStatusLabels).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</Select></label>
+              <label>Mission<Select bare aria-label="Filtrer par type de mission" value={typeFilter} onChange={event => setTypeFilter(event.target.value)}><option value="all">Toutes les missions</option>{Object.entries(planningTypeLabels).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</Select></label>
+            </TableFilters>
+            <div className={styles.calendarControls}>
+              <div className={styles.viewSwitch} role="group" aria-label="Choisir la vue du planning">
+                {([ ["jour","Jour"], ["semaine","Semaine"], ["mois","Mois"] ] as const).map(([value,label]) => <Button key={value} variant={viewMode === value ? "primary" : "ghost"} size="sm" aria-pressed={viewMode === value} onClick={() => setViewMode(value)}>{label}</Button>)}
+              </div>
+              {viewMode === "mois" && <Select label="Mois affiché" value={selectedMonth} onChange={event => setSelectedMonth(event.target.value)}>{monthOptions.map(month => <option key={month.value} value={month.value}>{month.label}</option>)}</Select>}
+            </div>
+            <OwnerPlanningList items={filteredItems} viewMode={viewMode} selectedMonth={selectedMonth} />
+          </section>
+        </>}
+      </AsyncState>
+    </div>
   );
 }

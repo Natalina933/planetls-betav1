@@ -4,12 +4,13 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FiAlertTriangle, FiCheckCircle, FiMapPin, FiTarget, FiUsers } from "react-icons/fi";
-import { DashboardSectionShell, MetricDonut } from "@/components/dashboard";
+import { DashboardSectionShell } from "@/components/dashboard";
 import { DashboardHomeIcon, DashboardHousesIcon } from "@/components/ui/PublicIcon";
 import cardStyles from "@/app/dashboard/concierge/logements/LogementsPage.module.scss";
 import pageStyles from "@/app/dashboard/owner/OwnerDashboardPages.module.scss";
 import profileStyles from "@/app/dashboard/concierge/profile/ConciergeProfilePage.module.scss";
 import { EditableProfileSection } from "@/app/dashboard/concierge/profile/profileTabSections";
+import OwnerHousingOverview from "./OwnerHousingOverview";
 import ownerHousingStyles from "./HousingListPage.module.scss";
 
 export interface HousingListItem {
@@ -532,9 +533,9 @@ export default function HousingListPage({
     </div>
   );
 
-  const renderOwnerHousingCards = () => (
+  const renderOwnerHousingCards = (items: HousingListItem[] = visibleLogements) => (
     <div className={cardStyles.logementsGrid}>
-      {visibleLogements.map((logement) => {
+      {items.map((logement) => {
         const equipments = getHousingEquipments(logement).slice(0, 4);
         const capacity = getHousingCapacity(logement);
         const description = getHousingDescription(logement);
@@ -587,7 +588,7 @@ export default function HousingListPage({
                     </span>
                   )}
                   <div>
-                    <span className={ownerHousingStyles.conciergeOverlayLabel}>Concierge accepte</span>
+                    <span className={ownerHousingStyles.conciergeOverlayLabel}>Concierge accepté</span>
                     <strong>{conciergeName}</strong>
                   </div>
                 </div>
@@ -703,152 +704,20 @@ export default function HousingListPage({
     </div>
   );
 
+  if (!isConcierge) return <OwnerHousingOverview
+    logements={visibleLogements} total={logements.length} reviewCount={reviewLogements.length}
+    summary={summaryCards} loading={loading} error={error} onRetry={loadLogements}
+    addHref={addHref} firstReviewHref={firstReviewHref} isReviewMode={isReviewMode}
+    onFilter={setOwnerFilter} renderCards={renderOwnerHousingCards}
+  />;
+
   return (
-    <DashboardSectionShell
-      persona={persona}
-      title={title}
-      subtitle="Gérez vos biens et les fiches à compléter."
-      actions={isConcierge ? [{ label: "Ajouter un logement", href: addHref }] : undefined}
-    >
+    <DashboardSectionShell persona={persona} title={title} subtitle="Gérez vos biens et les fiches à compléter." actions={[{label: "Ajouter un logement", href: addHref}]}>
       <div className={pageStyles.dashboardFlow}>
-        {!loading && !error && !isConcierge && logements.length > 0 ? (
-          <section className={ownerHousingStyles.summaryGrid} aria-label="Synthèse des logements">
-            {summaryCards.map((card) => (
-              <MetricDonut
-                key={card.label}
-                label={card.label}
-                value={card.value}
-                detail={card.detail}
-                percent={card.percent}
-              />
-            ))}
-          </section>
-        ) : null}
-
-        {loading ? (
-          <section className={pageStyles.panel}>
-            <p className={pageStyles.meta}>Chargement des logements...</p>
-          </section>
-        ) : null}
-
-        {!loading && error ? (
-          <section className={pageStyles.panel}>
-            <p className={`${pageStyles.message} ${pageStyles.messageError}`}>{error}</p>
-          </section>
-        ) : null}
-
-        {!loading && !error && logements.length === 0
-          ? isConcierge
-            ? renderConciergeEditableSection(
-                "Parc logements",
-                addHref,
-                <div className={cardStyles.conciergeEmptyBlock}>
-                  <p className={cardStyles.conciergeEyebrow}>Aucun logement</p>
-                  <h3 className={cardStyles.conciergeTitle}>Commencez votre parc</h3>
-                  <p className={cardStyles.conciergeText}>
-                    Aucun logement réel n&apos;est encore enregistré sur votre compte.
-                  </p>
-                  <Link href={addHref} className={cardStyles.conciergePrimaryAction}>
-                    <DashboardHomeIcon /> Ajouter mon premier logement
-                  </Link>
-                </div>,
-              )
-            : (
-              <section className={pageStyles.panel}>
-                <div className={pageStyles.sectionHeading}>
-                  <div>
-                    <p className={pageStyles.eyebrow}>Aucun logement</p>
-                    <h2 className={pageStyles.terracottaSectionTitle}>Commencez votre parc</h2>
-                  </div>
-                </div>
-                <p className={pageStyles.meta}>
-                  Aucun logement réel n&apos;est encore enregistré sur votre compte.
-                </p>
-                <div className={pageStyles.inlineActions}>
-                  <Link href={addHref} className={pageStyles.buttonPrimary}>
-                    <DashboardHomeIcon /> Ajouter mon premier logement
-                  </Link>
-                </div>
-              </section>
-            )
-          : null}
-
-        {!loading && !error && logements.length > 0
-          ? isConcierge
-            ? renderConciergeEditableSection("Tous les logements", firstEditableHousingHref, renderHousingCards())
-            : (
-              <section className={pageStyles.panel}>
-                <div className={pageStyles.sectionHeading}>
-                  <div>
-                    <p className={pageStyles.eyebrow}>{isReviewMode ? "Correction guidée" : "Parc propriétaire"}</p>
-                    <h2 className={pageStyles.terracottaSectionTitle}>
-                      {isReviewMode ? "Logements à revoir" : "Logements"}
-                    </h2>
-                  </div>
-                  <div className={pageStyles.inlineActions}>
-                    <Link
-                      href="/dashboard/owner/logements"
-                      className={isReviewMode ? ownerHousingStyles.filterButton : ownerHousingStyles.filterButtonActive}
-                      onClick={() => setOwnerFilter("")}
-                    >
-                      Tous
-                    </Link>
-                    <Link
-                      href="/dashboard/owner/logements?filter=review"
-                      className={isReviewMode ? ownerHousingStyles.filterButtonActive : ownerHousingStyles.filterButton}
-                      onClick={() => setOwnerFilter("review")}
-                    >
-                      À revoir ({reviewLogements.length})
-                    </Link>
-                    <Link href={addHref} className={pageStyles.buttonPrimary}>
-                      <DashboardHomeIcon /> Ajouter
-                    </Link>
-                  </div>
-                </div>
-                {reviewLogements.length > 0 ? (
-                  <div className={ownerHousingStyles.reviewPanel}>
-                    <span className={ownerHousingStyles.reviewPanelIcon}>
-                      <FiAlertTriangle />
-                    </span>
-                    <div>
-                      <strong>
-                        {reviewLogements.length} logement{reviewLogements.length > 1 ? "s" : ""} à revoir
-                      </strong>
-                      <p>
-                        Ouvrez le premier logement, complétez les points signalés, puis revenez ici pour vérifier que la
-                        liste diminue.
-                      </p>
-                    </div>
-                    <Link href={firstReviewHref} className={ownerHousingStyles.reviewPanelAction}>
-                      Commencer
-                    </Link>
-                  </div>
-                ) : (
-                  <div className={ownerHousingStyles.reviewPanel} data-state="success">
-                    <span className={ownerHousingStyles.reviewPanelIcon}>
-                      <FiCheckCircle />
-                    </span>
-                    <div>
-                      <strong>Aucun logement à revoir</strong>
-                      <p>Toutes les fiches contrôlées disposent des informations essentielles.</p>
-                    </div>
-                  </div>
-                )}
-                {visibleLogements.length > 0 ? (
-                  renderOwnerHousingCards()
-                ) : (
-                  <div className={ownerHousingStyles.reviewEmpty}>
-                    <FiCheckCircle />
-                    <strong>Aucune correction restante</strong>
-                    <p>Vous pouvez revenir à la liste complète des logements.</p>
-                    <Link href="/dashboard/owner/logements" className={ownerHousingStyles.reviewPanelAction}>
-                      Voir tous les logements
-                    </Link>
-                  </div>
-                )}
-              </section>
-            )
-          : null}
+        {loading ? <section className={pageStyles.panel}><p className={pageStyles.meta}>Chargement des logements...</p></section> : error ? <section className={pageStyles.panel}><p className={`${pageStyles.message} ${pageStyles.messageError}`}>{error}</p></section> : logements.length === 0 ? renderConciergeEditableSection(
+          "Parc logements", addHref,
+          <div className={cardStyles.conciergeEmptyBlock}><p className={cardStyles.conciergeEyebrow}>Aucun logement</p><h3 className={cardStyles.conciergeTitle}>Commencez votre parc</h3><p className={cardStyles.conciergeText}>Aucun logement réel n&apos;est encore enregistré sur votre compte.</p><Link href={addHref} className={cardStyles.conciergePrimaryAction}><DashboardHomeIcon /> Ajouter mon premier logement</Link></div>
+        ) : renderConciergeEditableSection("Tous les logements", firstEditableHousingHref, renderHousingCards())}
       </div>
     </DashboardSectionShell>
   );
