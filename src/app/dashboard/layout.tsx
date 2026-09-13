@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -90,7 +90,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="dashboard-root" data-dashboard-hero={showHeaderBandeau ? "" : undefined} data-concierge-home={isConciergeHome ? "" : undefined} data-owner-dashboard={isOwnerPage ? "" : undefined}>
-      <Sidebar conciergeBranding={Boolean(isConciergePage)} mobileBreakpoint={sidebarBreakpoint} isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
+      <Suspense fallback={null}>
+        <Sidebar conciergeBranding={Boolean(isConciergePage)} mobileBreakpoint={sidebarBreakpoint} isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
+      </Suspense>
       <div ref={mainRef} className={`dashboard-main ${isSidebarOpen ? "with-sidebar" : "no-sidebar"}`}>
         <Navbar isSidebarOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
         {showHeaderBandeau ? <div className={`headerBandeau ${isOwnerPage ? "ownerHeaderBandeau" : ""}`}>

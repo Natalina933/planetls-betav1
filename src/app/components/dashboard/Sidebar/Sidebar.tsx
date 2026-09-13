@@ -2,6 +2,8 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
+import { usePathname, useSearchParams } from "next/navigation";
+import { getOwnerActivePath } from "./ownerNavigation";
 import { useUserType } from "@/app/context/UserTypeContext";
 import {
   getOwnerReplySignature,
@@ -23,7 +25,7 @@ interface SidebarProps {
 
 const roleLabels: Record<string, string> = {
   admin: "global",
-  owner: "proprietaire",
+  owner: "propriétaire",
   concierge: "concierge",
   provider: "artisan",
 };
@@ -37,6 +39,10 @@ const roleThemeClasses: Record<string, string> = {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = "", mobileBreakpoint = 900, conciergeBranding = false }) => {
   const { userType } = useUserType();
+  const pathname = usePathname();
+  const query = useSearchParams().toString();
+  const navigationKey = `${pathname}?${query}`;
+  const [ownerGroup, setOwnerGroup] = useState<{ key: string; label: string | null } | null>(null);
   const isConciergeWorkspace = conciergeBranding || userType?.toLowerCase().includes("concierge") || false;
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [notificationCounts, setNotificationCounts] = useState<Record<string, number>>({});
@@ -46,6 +52,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
     userType && sidebarConfig[userType as keyof typeof sidebarConfig]
       ? sidebarConfig[userType as keyof typeof sidebarConfig]
       : [];
+  const ownerActivePath = userType === "owner" ? getOwnerActivePath(menuItems, pathname, query) : undefined;
+  const activeGroup = menuItems.find(item => item.children && (item.path === ownerActivePath || item.children.some(child => child.path === ownerActivePath)))?.label;
+  const openOwnerGroup = ownerGroup?.key === navigationKey ? ownerGroup.label : activeGroup;
 
   const loadNotificationCounts = useCallback(async () => {
     if (userType !== "concierge" && userType !== "owner") {
@@ -151,7 +160,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
     <>
       {isOpen && isMobileViewport ? (
         <div
-          className={styles.overlay}
+          className={`${styles.overlay} ${userType === "owner" ? styles.ownerOverlay : ""}`}
           onClick={toggleSidebar}
           role="button"
           tabIndex={-1}
@@ -159,7 +168,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
         />
       ) : null}
       <aside
-        className={`${styles.sidebar} ${className} ${isOpen ? styles.open : styles.closed} ${userType ? roleThemeClasses[userType] || "" : ""
+        className={`${styles.sidebar} ${className} ${isOpen ? styles.open : styles.closed} ${userType === "owner" && isMobileViewport ? styles.ownerDrawer : ""} ${userType ? roleThemeClasses[userType] || "" : ""
           }`}
         aria-label="Sidebar"
       >
@@ -197,12 +206,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
             <p>Aucun menu disponible</p>
           ) : (
             menuItems.map((item) => (
+              <React.Fragment key={item.label}>
+              {userType === "owner" && item.section ? <p className={styles.sectionLabel}>{item.section}</p> : null}
               <SidebarItem
                 key={item.label}
                 item={item}
-                toggleSidebar={toggleSidebar}
+                toggleSidebar={userType === "owner" ? () => { if (isMobileViewport) toggleSidebar(); } : toggleSidebar}
                 notificationCounts={notificationCounts}
+                ownerNavigation={userType === "owner" ? {
+                  activePath: ownerActivePath,
+                  open: openOwnerGroup === item.label,
+                  onToggle: () => setOwnerGroup({ key: navigationKey, label: openOwnerGroup === item.label ? null : item.label }),
+                } : undefined}
               />
+              </React.Fragment>
             ))
           )}
         </nav>

@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Image from "next/image";
+import { toHousingPhotoUrl } from "@/app/lib/housingPhotoUrl";
 import Link from "next/link";
-import { FiAlertTriangle, FiCheckCircle, FiMapPin, FiTarget, FiUsers } from "react-icons/fi";
+import { FiMapPin, FiTarget, FiUsers } from "react-icons/fi";
 import { DashboardSectionShell } from "@/components/dashboard";
 import { DashboardHomeIcon, DashboardHousesIcon } from "@/components/ui/PublicIcon";
 import cardStyles from "@/app/dashboard/concierge/logements/LogementsPage.module.scss";
@@ -30,6 +31,7 @@ export interface HousingListItem {
   };
   characteristics?: {
     propertyType?: string;
+    bedroomCount?: number | null;
     guestCapacity?: number | null;
     capacite?: number | null;
     amenities?: string[];
@@ -43,16 +45,6 @@ type HousingReviewItem = {
   label: string;
   detail: string;
   hash: string;
-};
-
-type ConciergeDirectoryEntry = {
-  displayName: string;
-  avatarUrl: string | null;
-};
-
-type AcceptedConciergeByHousingEntry = {
-  displayName: string;
-  profileId: string | null;
 };
 
 type HousingListPageProps = {
@@ -70,10 +62,6 @@ function hasCustomPhoto(photo?: string) {
   return Boolean(photo && photo.trim() !== "" && !photo.includes("/images/default-logement.png"));
 }
 
-function getPercent(value: number, total: number) {
-  if (total <= 0) return 0;
-  return Math.min(100, Math.round((value / total) * 100));
-}
 
 function toPositiveNumber(value: unknown) {
   const numericValue = typeof value === "number" ? value : Number(value);
@@ -102,14 +90,6 @@ function getHousingDescription(logement: HousingListItem) {
   return logement.infos?.description?.trim() || logement.characteristics?.description?.trim() || "";
 }
 
-function getHousingConciergeProfileId(logement: HousingListItem) {
-  return (
-    logement.proprietaire?.manager_profile_id?.trim() ||
-    logement.proprietaire?.concierge_profile_id?.trim() ||
-    null
-  );
-}
-
 function renderStatusLabel(statut: HousingListItem["statut"]) {
   if (statut === "pret") return "Prêt";
   if (statut === "active" || statut === "published") return "Actif";
@@ -118,12 +98,6 @@ function renderStatusLabel(statut: HousingListItem["statut"]) {
   if (statut === "arrivee") return "Arrivée du jour";
   if (statut === "depart") return "Départ du jour";
   return "À revoir";
-}
-
-function getOccupancyLabel(capacite?: number) {
-  if (!capacite || capacite <= 0) return "Capacité maximale à définir";
-  if (capacite === 1) return "Capacité maximale · 1 personne";
-  return `Capacité maximale · ${capacite} personnes`;
 }
 
 function getHousingReviewItems(logement: HousingListItem): HousingReviewItem[] {
@@ -212,11 +186,6 @@ export default function HousingListPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [ownerFilter, setOwnerFilter] = useState("");
-  const [conciergeDirectory, setConciergeDirectory] = useState<Record<string, ConciergeDirectoryEntry>>({});
-  const [acceptedConciergeByHousing, setAcceptedConciergeByHousing] = useState<
-    Record<string, AcceptedConciergeByHousingEntry>
-  >({});
-
   async function loadLogements() {
     try {
       setLoading(true);
@@ -242,132 +211,6 @@ export default function HousingListPage({
   }, []);
 
   useEffect(() => {
-    if (persona !== "owner") {
-      setAcceptedConciergeByHousing({});
-      return;
-    }
-
-    let cancelled = false;
-
-    async function loadAcceptedConcierges() {
-      try {
-        const response = await fetch("/api/service-requests?view=owner&limit=200", { cache: "no-store" });
-        const payload = await response.json().catch(() => ({}));
-
-        if (!response.ok || !Array.isArray(payload?.items)) {
-          if (!cancelled) setAcceptedConciergeByHousing({});
-          return;
-        }
-
-        const entries = payload.items.reduce(
-          (acc: Record<string, AcceptedConciergeByHousingEntry>, item: Record<string, unknown>) => {
-            const housingIdValue = item.property_housing_id;
-            const housingId =
-              typeof housingIdValue === "number"
-                ? String(housingIdValue)
-                : typeof housingIdValue === "string" && housingIdValue.trim()
-                  ? housingIdValue.trim()
-                  : null;
-            const displayName =
-              typeof item.selected_concierge_name === "string" && item.selected_concierge_name.trim()
-                ? item.selected_concierge_name.trim()
-                : null;
-            const profileId =
-              typeof item.selected_concierge_profile_id === "string" && item.selected_concierge_profile_id.trim()
-                ? item.selected_concierge_profile_id.trim()
-                : null;
-
-            if (!housingId || !displayName) {
-              return acc;
-            }
-
-            if (!(housingId in acc)) {
-              acc[housingId] = { displayName, profileId };
-            }
-
-            return acc;
-          },
-          {},
-        );
-
-        if (!cancelled) {
-          setAcceptedConciergeByHousing(entries);
-        }
-      } catch {
-        if (!cancelled) {
-          setAcceptedConciergeByHousing({});
-        }
-      }
-    }
-
-    void loadAcceptedConcierges();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [persona]);
-
-  useEffect(() => {
-    const conciergeProfileIds = Array.from(
-      new Set(
-        [
-          ...logements.map((logement) => getHousingConciergeProfileId(logement)),
-          ...Object.values(acceptedConciergeByHousing).map((entry) => entry.profileId),
-        ].filter(Boolean),
-      ),
-    ) as string[];
-
-    if (conciergeProfileIds.length === 0) {
-      setConciergeDirectory({});
-      return;
-    }
-
-    let cancelled = false;
-
-    async function loadConciergeDirectory() {
-      const entries = await Promise.all(
-        conciergeProfileIds.map(async (profileId) => {
-          try {
-            const response = await fetch(`/api/profiles/public/${profileId}`, { cache: "no-store" });
-            const payload = await response.json().catch(() => ({}));
-
-            if (!response.ok || !payload?.profile) {
-              return null;
-            }
-
-            const displayName =
-              typeof payload.profile.display_name === "string" && payload.profile.display_name.trim()
-                ? payload.profile.display_name.trim()
-                : "Concierge";
-            const avatarUrl =
-              typeof payload.profile.avatar_url === "string" && payload.profile.avatar_url.trim()
-                ? payload.profile.avatar_url.trim()
-                : typeof payload.profile.image === "string" && payload.profile.image.trim()
-                  ? payload.profile.image.trim()
-                  : null;
-
-            return [profileId, { displayName, avatarUrl }] as const;
-          } catch {
-            return null;
-          }
-        }),
-      );
-
-      if (cancelled) return;
-
-      setConciergeDirectory(
-        Object.fromEntries(entries.filter((entry): entry is readonly [string, ConciergeDirectoryEntry] => Boolean(entry))),
-      );
-    }
-
-    void loadConciergeDirectory();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [acceptedConciergeByHousing, logements]);
-
-  useEffect(() => {
     const syncFilterFromUrl = () => {
       setOwnerFilter(new URLSearchParams(window.location.search).get("filter") ?? "");
     };
@@ -377,16 +220,6 @@ export default function HousingListPage({
     return () => window.removeEventListener("popstate", syncFilterFromUrl);
   }, []);
 
-  const stats = useMemo(
-    () => ({
-      total: logements.length,
-      prets: logements.filter((logement) => logement.statut === "pret").length,
-      menages: logements.filter((logement) => logement.statut === "menage").length,
-      arrivees: logements.filter((logement) => logement.statut === "arrivee").length,
-      departs: logements.filter((logement) => logement.statut === "depart").length,
-    }),
-    [logements],
-  );
 
   const isConcierge = persona === "conciergerie";
   const reviewLogements = useMemo(() => logements.filter(isHousingToReview), [logements]);
@@ -394,52 +227,18 @@ export default function HousingListPage({
   const visibleLogements = isReviewMode ? reviewLogements : logements;
   const firstEditableHousingHref =
     detailHrefBase && visibleLogements.length > 0 ? `${detailHrefBase}/${visibleLogements[0].id}` : addHref;
+  const firstReviewItem = reviewLogements.length > 0 ? getHousingReviewItems(reviewLogements[0])[0] : undefined;
   const firstReviewHref =
     detailHrefBase && reviewLogements.length > 0
-      ? `${detailHrefBase}/${reviewLogements[0].id}${getHousingReviewItems(reviewLogements[0])[0]?.hash ?? ""}`
+      ? `${detailHrefBase}/${reviewLogements[0].id}${firstReviewItem?.hash ?? ""}`
       : addHref;
-  const movementCount = stats.arrivees + stats.departs;
-  const readinessRate = stats.total > 0 ? Math.round((stats.prets / stats.total) * 100) : 0;
-
-  const completedHousingCount = useMemo(
-    () =>
-      logements.filter((logement) => {
-        const hasCapacity = Boolean(getHousingCapacity(logement));
-        const hasEquipments = getHousingEquipments(logement).length > 0;
-        return Boolean(logement.nom_logement && logement.ville && (hasCapacity || hasEquipments));
-      }).length,
-    [logements],
-  );
-
-  const summaryCards = useMemo(
-    () => [
-      {
-        label: "Prêts",
-        value: `${stats.prets}/${stats.total}`,
-        detail: "Disponibles",
-        percent: readinessRate,
-      },
-      {
-        label: "À préparer",
-        value: `${stats.menages}`,
-        detail: "Ménage",
-        percent: getPercent(stats.menages, stats.total),
-      },
-      {
-        label: "Mouvements",
-        value: `${movementCount}`,
-        detail: "Arrivées/départs",
-        percent: getPercent(movementCount, stats.total),
-      },
-      {
-        label: "Infos clés",
-        value: `${completedHousingCount}/${stats.total}`,
-        detail: "Capacité maximale/équipements",
-        percent: getPercent(completedHousingCount, stats.total),
-      },
-    ],
-    [completedHousingCount, movementCount, readinessRate, stats.menages, stats.prets, stats.total],
-  );
+  const reviewPreview = firstReviewItem && reviewLogements.length > 0
+    ? {
+        housingName: reviewLogements[0].nom_logement,
+        detail: `${firstReviewItem.label} · ${firstReviewItem.detail}`,
+        href: firstReviewHref,
+      }
+    : null;
 
   const goToHref = (href: string) => () => {
     window.location.href = href;
@@ -477,7 +276,7 @@ export default function HousingListPage({
           <>
             <div className={cardStyles.cardImageWrapper}>
               <Image
-                src={getSafePhoto(logement.photo_principale)}
+                src={toHousingPhotoUrl(getSafePhoto(logement.photo_principale), logement.id)} unoptimized
                 alt={logement.nom_logement}
                 width={220}
                 height={180}
@@ -533,181 +332,55 @@ export default function HousingListPage({
     </div>
   );
 
-  const renderOwnerHousingCards = (items: HousingListItem[] = visibleLogements) => (
+  const renderOwnerHousingCards = (
+    items: HousingListItem[] = visibleLogements,
+    nextStay: (id: number) => ReactNode = () => null,
+    addCard?: ReactNode,
+  ) => (
     <div className={cardStyles.logementsGrid}>
       {items.map((logement) => {
-        const equipments = getHousingEquipments(logement).slice(0, 4);
         const capacity = getHousingCapacity(logement);
-        const description = getHousingDescription(logement);
-        const acceptedConcierge = acceptedConciergeByHousing[String(logement.id)] ?? null;
-        const conciergeProfileId = getHousingConciergeProfileId(logement);
-        const conciergeAvatarUrl =
-          (acceptedConcierge?.profileId
-            ? conciergeDirectory[acceptedConcierge.profileId]?.avatarUrl ?? null
-            : null) ??
-          (conciergeProfileId ? conciergeDirectory[conciergeProfileId]?.avatarUrl ?? null : null);
-        const conciergeName =
-          acceptedConcierge?.displayName ??
-          (acceptedConcierge?.profileId ? conciergeDirectory[acceptedConcierge.profileId]?.displayName ?? null : null) ??
-          (conciergeProfileId ? conciergeDirectory[conciergeProfileId]?.displayName ?? null : null);
+        const bedrooms = toPositiveNumber(logement.characteristics?.bedroomCount);
+        const equipment = getHousingEquipments(logement)[0];
         const reviewItems = getHousingReviewItems(logement);
-        const statusClassName = cardStyles[`status-${logement.statut}`] ?? "";
-        const ownerCardClassName = `${cardStyles.logementCard} ${ownerHousingStyles.ownerCard}`;
-        const ownerStatusClassName = `${cardStyles.status} ${statusClassName} ${ownerHousingStyles.ownerStatus}`;
-        const cardContent = (
-          <>
-            <div className={`${cardStyles.cardImageWrapper} ${ownerHousingStyles.ownerImageWrapper}`}>
-              <Image
-                src={getSafePhoto(logement.photo_principale)}
-                alt={logement.nom_logement}
-                width={220}
-                height={180}
-                className={cardStyles.cardImage}
-              />
-              <div className={ownerHousingStyles.imageOverlay} />
-              <div className={ownerHousingStyles.imageTopline}>
-                <span className={ownerStatusClassName}>{renderStatusLabel(logement.statut)}</span>
-                <span className={ownerHousingStyles.cityPill}>
-                  <FiMapPin />
-                  {logement.ville}
-                </span>
-              </div>
-              {conciergeName ? (
-                <div className={ownerHousingStyles.conciergeOverlay}>
-                  {conciergeAvatarUrl ? (
-                    <Image
-                      src={conciergeAvatarUrl}
-                      alt={conciergeName}
-                      width={36}
-                      height={36}
-                      className={ownerHousingStyles.conciergeAvatar}
-                    />
-                  ) : (
-                    <span className={ownerHousingStyles.conciergeAvatarFallback} aria-hidden="true">
-                      {conciergeName.charAt(0).toUpperCase()}
-                    </span>
-                  )}
-                  <div>
-                    <span className={ownerHousingStyles.conciergeOverlayLabel}>Concierge accepté</span>
-                    <strong>{conciergeName}</strong>
-                  </div>
-                </div>
-              ) : null}
+        const cardContent = <>
+          <div className={`${cardStyles.cardImageWrapper} ${ownerHousingStyles.ownerImageWrapper}`}>
+            <Image src={toHousingPhotoUrl(getSafePhoto(logement.photo_principale), logement.id)} unoptimized alt={logement.nom_logement}
+              width={640} height={340} sizes="(max-width: 700px) 100vw, (max-width: 1180px) 50vw, 33vw" className={cardStyles.cardImage} />
+            <span className={`${cardStyles.status} ${cardStyles[`status-${logement.statut}`] ?? ""} ${ownerHousingStyles.ownerStatus}`}>
+              {logement.statut === "draft" && reviewItems.length > 0 ? "Brouillon · À revoir" : renderStatusLabel(logement.statut)}
+            </span>
+          </div>
+          <div className={`${cardStyles.cardBody} ${ownerHousingStyles.ownerCardBody}`}>
+            <div className={ownerHousingStyles.cardHeading}>
+              <h3>{logement.nom_logement}</h3>
+              <p className={ownerHousingStyles.cardLocation}><FiMapPin aria-hidden="true" />{logement.ville || "Ville à renseigner"}</p>
             </div>
-
-            <div className={`${cardStyles.cardBody} ${ownerHousingStyles.ownerCardBody}`}>
-              <div className={ownerHousingStyles.cardHeading}>
-                <div>
-                  <p className={ownerHousingStyles.cardEyebrow}>
-                    {getHousingCategory(logement)}
-                  </p>
-                  <h2 className={cardStyles.cardTitle}>{logement.nom_logement}</h2>
-                  {conciergeName ? (
-                    <p className={ownerHousingStyles.cardMetaInline}>
-                      {conciergeAvatarUrl ? (
-                        <Image
-                          src={conciergeAvatarUrl}
-                          alt={conciergeName}
-                          width={24}
-                          height={24}
-                          className={ownerHousingStyles.conciergeAvatarInline}
-                        />
-                      ) : (
-                        <span className={ownerHousingStyles.conciergeAvatarInlineFallback} aria-hidden="true">
-                          {conciergeName.charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                      <span>Concierge accepté : {conciergeName}</span>
-                    </p>
-                  ) : null}
-                </div>
-                <span className={ownerHousingStyles.capacityBadge}>
-                  <FiUsers />
-                  {getOccupancyLabel(capacity ?? undefined)}
-                </span>
-              </div>
-
-              {description ? (
-                <p className={`${cardStyles.cardDescription} ${ownerHousingStyles.ownerDescription}`}>
-                  {description}
-                </p>
-              ) : null}
-
-              {equipments.length > 0 ? (
-                <div className={ownerHousingStyles.equipmentRow}>
-                  {equipments.map((equipment) => (
-                    <span key={`${logement.id}-${equipment}`} className={ownerHousingStyles.equipmentChip}>
-                      {equipment}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
-
-              {reviewItems.length > 0 ? (
-                <div className={ownerHousingStyles.reviewChecklist}>
-                  <div className={ownerHousingStyles.reviewChecklistHeader}>
-                    <span>
-                      <FiAlertTriangle />
-                    </span>
-                    <div>
-                      <strong>{reviewItems.length} point(s) à corriger</strong>
-                      <p>Suivez les étapes dans l&apos;ordre pour finaliser la fiche.</p>
-                    </div>
-                  </div>
-                  <ol className={ownerHousingStyles.reviewSteps}>
-                    {reviewItems.slice(0, 4).map((item, index) => (
-                      <li key={`${logement.id}-${item.id}`}>
-                        <span className={ownerHousingStyles.reviewStepNumber}>{index + 1}</span>
-                        <div>
-                          <strong>{item.label}</strong>
-                          <p>{item.detail}</p>
-                        </div>
-                        {detailHrefBase ? <span className={ownerHousingStyles.reviewStepLink}>Corriger</span> : null}
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              ) : (
-                <div className={ownerHousingStyles.reviewReady}>
-                  <FiCheckCircle />
-                  <span>Fiche complète</span>
-                </div>
-              )}
-
-              <div className={`${cardStyles.cardFooter} ${ownerHousingStyles.ownerFooter}`}>
-                <span className={`${cardStyles.btnView} ${ownerHousingStyles.ownerViewButton}`}>
-                  {reviewItems.length > 0 ? "Corriger maintenant" : detailHrefBase ? "Ouvrir" : "Logement"}
-                </span>
-              </div>
+            <div className={ownerHousingStyles.cardFeatures}>
+              <span><FiUsers aria-hidden="true" />{capacity ? `${capacity} personne${capacity > 1 ? "s" : ""}` : "Capacité à renseigner"}</span>
+              {bedrooms ? <span>{bedrooms} chambre{bedrooms > 1 ? "s" : ""}</span> : null}
+              {equipment ? <span>{equipment}</span> : null}
             </div>
-          </>
-        );
-
-        if (!detailHrefBase) {
-          return (
-            <div key={logement.id} className={ownerCardClassName}>
-              {cardContent}
+            {nextStay(logement.id)}
+            <div className={`${cardStyles.cardFooter} ${ownerHousingStyles.ownerFooter}`}>
+              <span className={ownerHousingStyles.completionLabel}>{reviewItems.length ? "Fiche à compléter" : "Fiche complète"}</span>
+              <span className={ownerHousingStyles.ownerViewButton}>{reviewItems.length ? "Corriger la fiche" : "Voir le logement"} <span aria-hidden="true">→</span></span>
             </div>
-          );
-        }
-
-        return (
-          <Link
-            key={logement.id}
-            href={`${detailHrefBase}/${logement.id}${reviewItems[0]?.hash ?? ""}`}
-            className={ownerCardClassName}
-          >
-            {cardContent}
-          </Link>
-        );
+          </div>
+        </>;
+        const className = `${cardStyles.logementCard} ${ownerHousingStyles.ownerCard}`;
+        return detailHrefBase
+          ? <Link key={logement.id} href={`${detailHrefBase}/${logement.id}${reviewItems[0]?.hash ?? ""}`} className={className}>{cardContent}</Link>
+          : <div key={logement.id} className={className}>{cardContent}</div>;
       })}
+      {addCard}
     </div>
   );
 
   if (!isConcierge) return <OwnerHousingOverview
-    logements={visibleLogements} total={logements.length} reviewCount={reviewLogements.length}
-    summary={summaryCards} loading={loading} error={error} onRetry={loadLogements}
-    addHref={addHref} firstReviewHref={firstReviewHref} isReviewMode={isReviewMode}
+    logements={logements} visibleLogements={visibleLogements} total={logements.length} reviewCount={reviewLogements.length}
+    reviewPreview={reviewPreview} loading={loading} error={error} onRetry={loadLogements}
+    addHref={addHref} isReviewMode={isReviewMode}
     onFilter={setOwnerFilter} renderCards={renderOwnerHousingCards}
   />;
 

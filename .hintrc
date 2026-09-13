@@ -17,14 +17,7 @@
         "autocomplete-valid": "off"
       }
     ],
-    "compat-api/css": [
-      "default",
-      {
-        "ignore": [
-          "-webkit-overflow-scrolling"
-        ]
-      }
-    ],
+    "compat-api/css": "off",
     "detect-css-reflows/composite": "off"
   },
   "browserslist": [

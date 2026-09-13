@@ -21,6 +21,7 @@ import { buildUnifiedProfileSidebarItems } from "@/app/components/dashboard/prof
 import { DashboardGaugeIcon, DashboardHomeIcon, DashboardHousesIcon } from "@/components/ui/PublicIcon";
 
 export interface SidebarItem {
+  section?: string;
   label: string;
   path: string;
   icon?: IconType;
@@ -43,21 +44,25 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
 
   owner: [
     { label: "Tableau de bord", path: "/dashboard/owner", icon: DashboardGaugeIcon },
-    { label: ownerDashboardContent.navigation.reservations, path: "/dashboard/owner/missions/voyageurs", icon: FiBookOpen },
-    { label: ownerDashboardContent.navigation.calendar, path: "/dashboard/owner/planning", icon: FiCalendar },
-    { label: ownerDashboardContent.navigation.messages, path: "/dashboard/owner/messages", icon: FiMessageSquare },
-    { label: ownerDashboardContent.navigation.documents, path: "/dashboard/owner/documents", icon: FiFileText },
-    { label: ownerDashboardContent.navigation.statistics, path: "/dashboard/owner/finances/overview", icon: DashboardGaugeIcon },
     {
+      section: "Gestion",
       label: ownerDashboardContent.navigation.properties,
       path: "/dashboard/owner/logements/overview",
       icon: DashboardHomeIcon,
       children: [
-        { label: "Vue d'ensemble", path: "/dashboard/owner/logements/overview", icon: DashboardGaugeIcon },
-        { label: "Tous les logements", path: "/dashboard/owner/logements", icon: DashboardHousesIcon },
+        { label: "Tous mes logements", path: "/dashboard/owner/logements", icon: DashboardHousesIcon },
         { label: "Ajouter un logement", path: "/dashboard/owner/logements/create", icon: DashboardHomeIcon },
+        { label: "Équipements & stocks", path: "/dashboard/owner/stocks", icon: FiBox },
         { label: "Documents", path: "/dashboard/owner/documents", icon: FiFileText },
-        { label: "Stocks & équipements", path: "/dashboard/owner/stocks", icon: FiBox },
+      ],
+    },
+    {
+      label: ownerDashboardContent.navigation.reservations,
+      path: "/dashboard/owner/missions/voyageurs",
+      icon: FiBookOpen,
+      children: [
+        { label: "Séjours", path: "/dashboard/owner/missions/voyageurs", icon: FiUsers },
+        { label: "Calendrier", path: "/dashboard/owner/planning", icon: FiCalendar },
       ],
     },
     {
@@ -65,48 +70,42 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       path: "/dashboard/owner/missions/overview",
       icon: FiCalendar,
       children: [
-        { label: "Vue globale", path: "/dashboard/owner/missions/overview", icon: DashboardGaugeIcon },
-        { label: "Séjours voyageurs", path: "/dashboard/owner/missions/voyageurs", icon: FiUsers },
-        { label: "Planning", path: "/dashboard/owner/planning", icon: FiCalendar },
-        { label: "Arrivées voyageurs", path: "/dashboard/owner/planning?type=arrival", icon: FiCalendar },
-        { label: "Départs voyageurs", path: "/dashboard/owner/planning?type=departure", icon: FiCalendar },
+        { label: "Arrivées & départs", path: "/dashboard/owner/planning?type=movements", icon: FiCalendar },
         { label: "Maintenance", path: "/dashboard/owner/planning?type=maintenance", icon: FiTool },
-        { label: "Alertes", path: "/dashboard/owner/alertes", icon: FiBell },
-        { label: "Urgences", path: "/dashboard/owner/mission-urgente", icon: FiBell },
+        { label: "Alertes & urgences", path: "/dashboard/owner/alertes", icon: FiBell },
         { label: "Litiges", path: "/dashboard/owner/litiges", icon: FiMessageSquare },
       ],
     },
     {
       label: "Conciergeries",
+      section: "Mon équipe",
       path: "/dashboard/owner/conciergerie/overview",
       icon: FiUsers,
       children: [
-        { label: "Vue d'ensemble", path: "/dashboard/owner/conciergerie/overview", icon: DashboardGaugeIcon },
-        { label: "Recherche", path: "/dashboard/owner/concierges", icon: FiSearch },
         {
-          label: "Demandes",
-          path: "/dashboard/owner/demandes",
-          icon: FiMessageSquare,
-          notificationKey: "owner-service-replies",
-        },
-        {
-          label: "Partenaires acceptés",
+          label: "Mes partenaires",
           path: "/dashboard/owner/conciergerie/partenaires",
           icon: FiUsers,
           notificationKey: "owner-service-replies",
         },
-        { label: "Discussions", path: "/dashboard/owner/messages?scope=conciergeries", icon: FiMessageSquare },
-        { label: "Contacts", path: "/dashboard/owner/contacts", icon: FiUsers },
+        { label: "Trouver une conciergerie", path: "/dashboard/owner/concierges", icon: FiSearch },
+        {
+          label: "Mes demandes",
+          path: "/dashboard/owner/demandes",
+          icon: FiMessageSquare,
+          notificationKey: "owner-service-replies",
+        },
       ],
     },
+    { label: ownerDashboardContent.navigation.messages, path: "/dashboard/owner/messages", icon: FiMessageSquare },
     {
       label: "Finances",
+      section: "Finances",
       path: "/dashboard/owner/finances/overview",
       icon: FiCreditCard,
       children: [
-        { label: "Vue d'ensemble", path: "/dashboard/owner/finances/overview", icon: DashboardGaugeIcon },
-        { label: "Factures", path: "/dashboard/owner/factures", icon: FiCreditCard },
         { label: "Devis", path: "/dashboard/owner/devis", icon: FiFileText },
+        { label: "Factures", path: "/dashboard/owner/factures", icon: FiCreditCard },
         { label: "Règlements", path: "/dashboard/owner/reglement", icon: FiSettings },
       ],
     },
@@ -114,7 +113,6 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       label: ownerDashboardContent.navigation.settings,
       path: "/dashboard/owner/settings?tab=overview",
       icon: FiUser,
-      children: buildUnifiedProfileSidebarItems("/dashboard/owner/settings"),
     },
   ],
 

@@ -205,6 +205,7 @@ export default function OwnerAlertesPage() {
         },
       ]}
       actions={[
+        { label: "Demander une intervention urgente", href: "/dashboard/owner/mission-urgente" },
         { label: "Voir le suivi des interventions", href: "/dashboard/owner/planning" },
         { label: "Ouvrir les factures", href: "/dashboard/owner/factures" },
         { label: "Ouvrir les devis", href: "/dashboard/owner/devis" },

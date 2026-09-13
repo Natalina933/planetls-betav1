@@ -202,6 +202,44 @@ $admin-accent-soft: #e3e8f2;
     margin-bottom: var(--ds-space-4);
 }
 
+.ownerTheme .menuGroup { margin-bottom: 0; }
+.sidebar.ownerDrawer { z-index: 5000; }
+.overlay.ownerOverlay { z-index: 4999; }
+.ownerTheme .submenu .sublink.active {
+    &, &:hover, &:focus-visible {
+        color: var(--ds-color-text-inverse);
+        text-decoration: none;
+        .icon { color: inherit; }
+    }
+}
+.sectionLabel {
+    margin: var(--ds-space-4) var(--ds-space-4) var(--ds-space-1);
+    color: var(--ds-color-text-secondary);
+    font: 700 var(--ds-text-xs)/1.5 var(--ds-font-ui);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+}
+.parentRow {
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+    > a { flex: 1; min-width: 0; }
+}
+.groupToggle {
+    display: grid;
+    place-items: center;
+    flex: 0 0 44px;
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ds-radius-control);
+    background: transparent;
+    color: var(--ds-color-text-primary);
+    cursor: pointer;
+    &:hover { background: var(--ds-color-primary-soft); }
+    &:focus-visible { outline: var(--ds-focus-outline); outline-offset: -2px; }
+}
+
 /* Lien parent & enfant (base) */
 .link,
 .sublink {

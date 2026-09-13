@@ -16,6 +16,7 @@ import {
   FiHome,
   FiRotateCcw,
   FiSave,
+  FiSearch,
   FiSend,
   FiBarChart2,
 } from "react-icons/fi";
@@ -58,6 +59,7 @@ import {
   buildHousingMutationPayload,
   HOUSING_PLATFORM_OPTIONS,
   HOUSING_PROPERTY_TYPE_OPTIONS,
+  HOUSING_STATUS_EXPLANATIONS,
   normalizeHousingRow,
 } from "@/types/housing";
 import {
@@ -109,6 +111,19 @@ const HOUSEKEEPING_CHECKLIST_ITEMS = [
   "Réassort consommables",
   "Vérifier les extérieurs",
   "Fermer fenêtres et volets",
+] as const;
+
+const FEATURED_EQUIPMENT_LABELS = [
+  "Piscine", "Climatisation", "Wi-Fi", "Parking", "Cuisine équipée", "Lave-linge", "Sèche-linge",
+  "Lave-vaisselle", "Barbecue", "Jardin", "Terrasse", "Cheminée", "Télévision", "Animaux acceptés",
+  "Non fumeur", "Ascenseur",
+] as const;
+
+const FEATURED_EQUIPMENT_GROUPS = [
+  { title: "Confort", icon: Sofa, items: ["Climatisation", "Wi-Fi", "Cheminée", "Télévision"] },
+  { title: "Cuisine et entretien", icon: Warehouse, items: ["Cuisine équipée", "Lave-linge", "Sèche-linge", "Lave-vaisselle"] },
+  { title: "Extérieur", icon: TreePine, items: ["Piscine", "Parking", "Jardin", "Terrasse", "Barbecue"] },
+  { title: "Accès et règles", icon: ShieldCheck, items: ["Animaux acceptés", "Non fumeur", "Ascenseur"] },
 ] as const;
 
 function countStockBeds(beds: HousingStockBed[]) {
@@ -249,6 +264,19 @@ const tabs: Array<{ id: OwnerHousingTab; label: string; icon: React.ComponentTyp
   { id: "litiges", label: "Litige", icon: FiAlertTriangle },
 ];
 
+const ficheNavigation: Array<
+  | { id: OwnerHousingTab; label: string; icon: React.ComponentType; href?: never }
+  | { id?: never; label: string; icon: React.ComponentType; href: string }
+> = [
+  { id: "infos", label: "Informations", icon: FiHome },
+  { label: "Réservations", icon: FiCalendar, href: "/dashboard/owner/missions/voyageurs" },
+  { id: "demandes", label: "Missions & interventions", icon: FiSend },
+  { id: "documents", label: "Documents", icon: FiFileText },
+  { id: "stocks", label: "Équipements", icon: FiBox },
+  { id: "planning", label: "Planning", icon: FiCalendar },
+  { label: "Finances", icon: FiBarChart2, href: "/dashboard/owner/finances/overview" },
+];
+
 const KNOWN_EQUIPMENT_LABELS = new Set(HOUSING_EQUIPMENT_LABELS);
 
 function makeClientId(prefix: string) {
@@ -311,6 +339,22 @@ function getCustomChecklistTasks(checklist: string | undefined) {
     .filter((line) => /^[-*•]\s+/.test(line))
     .map((line) => line.replace(/^[-*•]\s+/, "").trim())
     .filter((line) => line && !defaultTasks.has(normalizeChecklistLine(line)));
+}
+
+function getChecklistNotes(checklist: string | undefined) {
+  return (checklist ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line && !/^[-*•]\s+/.test(line))
+    .join("\n");
+}
+
+function updateChecklistNotes(checklist: string | undefined, notes: string) {
+  const tasks = (checklist ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => /^[-*•]\s+/.test(line));
+  return [...tasks, notes.trim()].filter(Boolean).join("\n");
 }
 
 function formatHousingStatus(value: string | null | undefined) {
@@ -411,6 +455,14 @@ function formatCapacityLabel(value: number | null | undefined, fallback = "À co
   return `${value} personne${value > 1 ? "s" : ""}`;
 }
 
+function normalizeEquipmentSearch(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/gi, "")
+    .toLocaleLowerCase("fr");
+}
+
 function validateOwnerHousingDraft(logement: ConciergeHousing | null) {
   if (!logement) return "Logement introuvable.";
   if (!(logement.nom_logement ?? "").trim()) return "Le nom du logement est obligatoire.";
@@ -453,6 +505,9 @@ export default function OwnerHousingDetailPage() {
   const [photoUploading, setPhotoUploading] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [newHousekeepingTask, setNewHousekeepingTask] = useState("");
+  const [newEquipment, setNewEquipment] = useState("");
+  const [equipmentQuery, setEquipmentQuery] = useState("");
+  const [equipmentView, setEquipmentView] = useState<"all" | "selected">("all");
 
   const [inspectionId, setInspectionId] = useState<string | null>(null);
   const [inspectionStatus, setInspectionStatus] = useState<string | null>(null);
@@ -907,6 +962,13 @@ export default function OwnerHousingDetailPage() {
     });
   }
 
+  function addCustomEquipment() {
+    const equipment = newEquipment.trim();
+    if (!equipment || equipments.includes(equipment)) return;
+    toggleEquipment(equipment);
+    setNewEquipment("");
+  }
+
   useEffect(() => {
     setGalleryIndex((current) => {
       if (housingPhotos.length === 0) return 0;
@@ -1247,8 +1309,22 @@ export default function OwnerHousingDetailPage() {
   if (error && !draft) return <div className={styles.error}>{error}</div>;
   if (!draft) return <div className={styles.error}>Erreur</div>;
 
-  const planningCount = planningEvents.length;
   const equipmentCount = equipments.length;
+  const equipmentCategoryCount = HOUSING_EQUIPMENT_CATALOG.filter((category) =>
+    category.subcategories.some((subcategory) => subcategory.items.some((item) => equipments.includes(item))),
+  ).length;
+  const visibleEquipmentCatalog = HOUSING_EQUIPMENT_CATALOG.map((category) => ({
+    ...category,
+    subcategories: category.subcategories
+      .map((subcategory) => ({
+        ...subcategory,
+        items: subcategory.items.filter((item) => {
+          const matchesQuery = normalizeEquipmentSearch(item).includes(normalizeEquipmentSearch(equipmentQuery.trim()));
+          return matchesQuery && (equipmentView === "all" || equipments.includes(item));
+        }),
+      }))
+      .filter((subcategory) => subcategory.items.length > 0),
+  })).filter((category) => category.subcategories.length > 0);
   const statusLabel = formatHousingStatus(draft.statut);
   const selectedPlatforms = draft.characteristics.platforms?.length
     ? draft.characteristics.platforms
@@ -1365,14 +1441,15 @@ export default function OwnerHousingDetailPage() {
   const fieldChecks: Array<{
     field: "terrace" | "stairs" | "pool" | "petsAllowed" | "nonSmoking" | "barbecue";
     label: string;
+    description: string;
     icon: ComponentType<{ size?: number; className?: string }>;
   }> = [
-    { field: "terrace", label: "Terrasse", icon: SunMedium },
-    { field: "stairs", label: "Escaliers", icon: StairsIcon },
-    { field: "pool", label: "Piscine", icon: Waves },
-    { field: "petsAllowed", label: "Animaux acceptés", icon: PawPrint },
-    { field: "nonSmoking", label: "Non fumeur", icon: CigaretteOff },
-    { field: "barbecue", label: "Barbecue", icon: Flame },
+    { field: "terrace", label: "Terrasse", description: "Surface et remise en place extérieure", icon: SunMedium },
+    { field: "stairs", label: "Escaliers", description: "Étages et contraintes d’accès", icon: StairsIcon },
+    { field: "pool", label: "Piscine", description: "Contrôles et consignes d’entretien", icon: Waves },
+    { field: "petsAllowed", label: "Animaux acceptés", description: "Règles d’accueil et de nettoyage", icon: PawPrint },
+    { field: "nonSmoking", label: "Non fumeur", description: "Règle permanente du logement", icon: CigaretteOff },
+    { field: "barbecue", label: "Barbecue", description: "Type, combustible et rangement", icon: Flame },
   ];
   const ownerRequestHref = {
     pathname: "/dashboard/owner/demandes",
@@ -1389,38 +1466,61 @@ export default function OwnerHousingDetailPage() {
   const quoteRequestHref = quotedHousingRequest
     ? `/dashboard/owner/devis?request=${encodeURIComponent(quotedHousingRequest.id)}`
     : null;
+  const completionPercent = Math.round(draft.completion.ratio * 100);
   return (
-    <div className={styles.ficheLogement}>
+    <div className={`${styles.ficheLogement} ${styles.ownerSepia}`}>
+      <Link className={styles.housingBreadcrumb} href="/dashboard/owner/logements">
+        <FiChevronLeft aria-hidden="true" /> Retour aux logements
+      </Link>
       <div className={styles.header}>
         <div className={styles.headerTop}>
-          <div className={styles.heroIdentity}>
-            <div className={styles.housingAvatarWrap}>
-              <Avatar
-                src={draft.photo_principale}
-                name={draft.nom_logement ?? "Logement"}
-                alt={`Avatar du logement ${draft.nom_logement ?? ""}`}
-                size="lg"
-                className={styles.housingAvatar}
+          <div className={styles.modelHeroPhoto}>
+            {activeGalleryPhoto ? (
+              <Image
+                src={toHousingPhotoUrl(activeGalleryPhoto, id)}
+                alt={`Photo principale de ${draft.nom_logement || "ce logement"}`}
+                fill
+                sizes="(max-width: 768px) 100vw, 52vw"
+                unoptimized
               />
-              {editing ? (
-                <>
-                  <label className={styles.housingCameraButton}>
-                    <FiCamera />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      hidden
-                      onChange={(event) => void uploadHousingPhotos(event.target.files, { setAsProfile: true })}
-                    />
-                  </label>
-                </>
-              ) : null}
-            </div>
+            ) : (
+              <div className={styles.modelHeroPhotoEmpty}>
+                <House size={44} aria-hidden="true" />
+                <span>Ajoutez une photo pour présenter ce logement</span>
+              </div>
+            )}
+            <span className={styles.modelStatusBadge}>{statusLabel}</span>
+            {housingPhotos.length > 1 ? (
+              <>
+                <button type="button" onClick={() => moveGallery(-1)} aria-label="Photo précédente">
+                  <FiChevronLeft aria-hidden="true" />
+                </button>
+                <button type="button" onClick={() => moveGallery(1)} aria-label="Photo suivante">
+                  <FiChevronRight aria-hidden="true" />
+                </button>
+              </>
+            ) : null}
+            <button
+              className={styles.modelPhotoCount}
+              type="button"
+              onClick={() => {
+                setActiveTab("synthese");
+                window.setTimeout(() => document.getElementById("photos")?.scrollIntoView({ behavior: "smooth" }), 0);
+              }}
+            >
+              <FiCamera aria-hidden="true" /> Voir {housingPhotos.length} photo{housingPhotos.length > 1 ? "s" : ""}
+            </button>
+          </div>
+          <div className={styles.heroIdentity}>
             <div className={styles.heroCopy}>
-              <p className={styles.eyebrow}>Parc immobilier</p>
+              <p className={styles.eyebrow}>Fiche du logement</p>
               <h1>{draft.nom_logement}</h1>
               <p>
                 {draft.locationInfo.addressLine1}, {draft.locationInfo.city}
+              </p>
+              <p className={styles.modelHeroDescription}>
+                {draft.characteristics.description ||
+                  "Centralisez ici les informations, les consignes et le suivi opérationnel de ce logement."}
               </p>
               <div className={styles.heroMeta}>
                 <span className={styles.metaPill}>{draft.characteristics.propertyType || "Bien"}</span>
@@ -1431,9 +1531,16 @@ export default function OwnerHousingDetailPage() {
                   {draft.characteristics.bedroomCount || "Chambres à préciser"}
                 </span>
                 <span className={styles.metaPill}>
-                  {housingPhotos.length} photo{housingPhotos.length > 1 ? "s" : ""}
+                  {draft.characteristics.bathroomCount != null
+                    ? `${draft.characteristics.bathroomCount} salle${draft.characteristics.bathroomCount > 1 ? "s" : ""} de bain`
+                    : "Salles de bain à préciser"}
                 </span>
               </div>
+              {equipments.length ? (
+                <div className={styles.modelHeroTags} aria-label="Équipements principaux">
+                  {equipments.slice(0, 5).map((equipment) => <span key={equipment}>{equipment}</span>)}
+                </div>
+              ) : null}
             </div>
           </div>
           <div className={styles.headerConciergeCard}>
@@ -1473,12 +1580,9 @@ export default function OwnerHousingDetailPage() {
             </div>
           </div>
           <div className={styles.headerActions}>
-            <Link className={styles.cancelBtn} href="/dashboard/owner/logements">
-              Retour aux logements
-            </Link>
             {!editing ? (
               <button className={styles.editBtn} type="button" onClick={() => setEditing(true)}>
-                Modifier
+                <FiEdit2 aria-hidden="true" /> Modifier le logement
               </button>
             ) : (
               <>
@@ -1493,6 +1597,25 @@ export default function OwnerHousingDetailPage() {
           </div>
         </div>
 
+        <div className={styles.modelStats} aria-label="Indicateurs du logement">
+          <article>
+            <span><FiCalendar size={19} aria-hidden="true" /></span>
+            <div><small>Prochaine mission</small><strong>{upcomingMission ? formatDate(upcomingMission.scheduled_start) : "Aucune planifiée"}</strong></div>
+          </article>
+          <article>
+            <span><ClipboardList size={19} aria-hidden="true" /></span>
+            <div><small>Demandes en cours</small><strong>{requestStats.active}</strong></div>
+          </article>
+          <article>
+            <span><Sofa size={19} aria-hidden="true" /></span>
+            <div><small>Équipements</small><strong>{equipmentCount}</strong></div>
+          </article>
+          <article>
+            <span><ShieldCheck size={19} aria-hidden="true" /></span>
+            <div><small>Fiche renseignée</small><strong>{completionPercent} %</strong></div>
+          </article>
+        </div>
+
         {photoUploading ? <p className={styles.feedbackSuccess}>Upload des photos en cours...</p> : null}
 
         {error ? <p className={styles.feedbackError}>{error}</p> : null}
@@ -1501,43 +1624,22 @@ export default function OwnerHousingDetailPage() {
       </div>
 
       <div className={styles.tabs}>
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            className={`${styles.tab} ${activeTab === tab.id ? styles.active : ""}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            <tab.icon />
-            {tab.label}
-          </button>
-        ))}
+        {ficheNavigation.map((item) => {
+          const Icon = item.icon;
+          return item.href ? (
+            <Link className={styles.tab} href={item.href} key={item.label}><Icon />{item.label}</Link>
+          ) : (
+            <button key={item.id} type="button" className={`${styles.tab} ${activeTab === item.id ? styles.active : ""}`} onClick={() => item.id && setActiveTab(item.id)}>
+              <Icon />{item.label}
+            </button>
+          );
+        })}
       </div>
 
       <div className={styles.content}>
         {activeTab === "synthese" ? (
           <div className={styles.sectionStack}>
             <p className={styles.sectionTitle}>Tableau de bord du logement</p>
-            <div className={styles.heroStats}>
-              <div className={styles.statCard}>
-                <p className={styles.statLabel}>Statut</p>
-                <strong className={styles.statValue}>{statusLabel}</strong>
-              </div>
-              <div className={styles.statCard}>
-                <p className={styles.statLabel}>Capacité maximale</p>
-                <strong className={styles.statValue}>
-                  {formatCapacityLabel(housingCapacity, "À préciser")}
-                </strong>
-              </div>
-              <div className={styles.statCard}>
-                <p className={styles.statLabel}>Équipements</p>
-                <strong className={styles.statValue}>{equipmentCount}</strong>
-              </div>
-              <div className={styles.statCard}>
-                <p className={styles.statLabel}>Planning</p>
-                <strong className={styles.statValue}>{planningCount + relatedMissions.length}</strong>
-              </div>
-            </div>
             <div className={styles.summaryMediaInfoLayout}>
             <div id="photos" className={`${styles.panel} ${styles.quickGalleryPanel}`}>
               <div className={styles.quickGalleryTopline}>
@@ -1717,6 +1819,11 @@ export default function OwnerHousingDetailPage() {
             <div className={styles.sectionHeader}>
               <div className={styles.sectionIntro}>
                 <p className={styles.sectionTitle}>Informations du logement</p>
+                <h2>La fiche opérationnelle de {draft.nom_logement || "votre logement"}</h2>
+                <span>
+                  Retrouvez les informations essentielles du bien, puis les détails utiles aux séjours et aux
+                  interventions.
+                </span>
               </div>
               {!editing ? (
                 <button className={styles.tabEditButton} type="button" onClick={() => setEditing(true)}>
@@ -1729,9 +1836,42 @@ export default function OwnerHousingDetailPage() {
               )}
             </div>
 
+            <div className={styles.infoOverview} aria-label="Repères du logement">
+              <article>
+                <span className={styles.infoOverviewIcon}><House size={19} aria-hidden="true" /></span>
+                <div><small>Type de bien</small><strong>{draft.characteristics.propertyType || "À préciser"}</strong></div>
+              </article>
+              <article>
+                <span className={styles.infoOverviewIcon}><MapPinHouse size={19} aria-hidden="true" /></span>
+                <div><small>Localisation</small><strong>{draft.locationInfo.city || "À préciser"}</strong></div>
+              </article>
+              <article>
+                <span className={styles.infoOverviewIcon}><UsersRound size={19} aria-hidden="true" /></span>
+                <div><small>Accueil</small><strong>{formatCapacityLabel(housingCapacity, "À préciser")}</strong></div>
+              </article>
+              <article>
+                <span className={styles.infoOverviewIcon}><BedDouble size={19} aria-hidden="true" /></span>
+                <div><small>Couchages</small><strong>{countStockBeds(draft.stockManagement.beds) || "À préciser"}</strong></div>
+              </article>
+            </div>
+
+            <nav className={styles.infoJumpNav} aria-label="Sections des informations du logement">
+              <a href="#infos-identite">Informations générales</a>
+              <a href="#infos-description">Description</a>
+              <a href="#infos-localisation">Localisation</a>
+              <a href="#infos-acces">Accès et logistique</a>
+              <a href="#infos-equipements">Équipements</a>
+              <a href="#infos-photos">Photos</a>
+            </nav>
+
+            <div className={styles.infoWorkspace}>
             <div className={styles.formGrid}>
               <div className={styles.fullField}>
-                <div className={styles.priorityPanel}>
+                <div className={`${styles.priorityPanel} ${styles.infoAnchor}`} id="infos-identite">
+                  <div className={styles.numberedSectionHeading}>
+                    <span>1</span>
+                    <div><h3>Informations générales</h3><p>Les informations essentielles de votre logement.</p></div>
+                  </div>
                   <div className={styles.priorityGrid}>
                     <label className={styles.priorityMainField}>
                       <span>Nom du logement</span>
@@ -1871,40 +2011,73 @@ export default function OwnerHousingDetailPage() {
                     </label>
                   </div>
 
-                  <div className={styles.platformPicker}>
-                    <span>Plateformes</span>
-                    <div>
+                  <section className={styles.propertyChoiceSection}>
+                    <div className={styles.propertyChoiceHeader}>
+                      <div><strong>Plateformes de diffusion</strong><small>Indiquez où ce logement est proposé à la réservation.</small></div>
+                      <span>{selectedPlatforms.length} sélectionnée{selectedPlatforms.length > 1 ? "s" : ""}</span>
+                    </div>
+                    <div className={styles.propertyPlatformGrid}>
                       {HOUSING_PLATFORM_OPTIONS.map((option) => {
                         const checked = selectedPlatforms.includes(option);
                         return (
-                          <label
-                            className={`${styles.platformCheck} ${checked ? styles.platformCheckActive : ""}`}
-                            key={option}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              disabled={!editing}
-                              onChange={(event) => togglePlatformSelection(option, event.target.checked)}
-                            />
-                            <span>{option}</span>
+                          <label className={`${styles.propertyPlatformItem} ${checked ? styles.propertyPlatformItemActive : ""}`} key={option}>
+                            <input className={styles.propertyChoiceInput} type="checkbox" checked={checked} disabled={!editing} onChange={(event) => togglePlatformSelection(option, event.target.checked)} />
+                            <span className={styles.propertyChoiceCheck} aria-hidden="true" />
+                            <strong>{option}</strong>
                           </label>
                         );
                       })}
+                    </div>
+                  </section>
+                  <div className={styles.statusVisibilityPanel}>
+                    <div><strong>Statut et visibilité</strong><small>Choisissez la situation actuelle du logement.</small></div>
+                    <div className={styles.statusVisibilityChoices}>
+                      {(["Actif - suivi en cours", "Brouillon", "Suspendu temporairement"] as const).map((status) => (
+                        <button className={draft.statut === status || (status === "Actif - suivi en cours" && draft.statut === "active") ? styles.statusVisibilityActive : ""} type="button" key={status} disabled={!editing} onClick={() => applyDraftUpdate((current) => ({ ...current, statut: status }))}>
+                          <strong>{status === "Actif - suivi en cours" ? "Actif" : status === "Brouillon" ? "En préparation" : "En pause"}</strong>
+                          <small>{HOUSING_STATUS_EXPLANATIONS[status]}</small>
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </div>
               </div>
               <div className={styles.fullField}>
+                <section className={`${styles.specSectionCard} ${styles.infoAnchor}`} id="infos-description">
+                  <div className={styles.numberedSectionHeading}><span>2</span><div><h3>Description et caractéristiques</h3><p>Présentez votre logement et ses principaux atouts.</p></div></div>
+                  <label className={styles.specWideField}>
+                    <span>Description</span>
+                    <textarea value={draft.characteristics.description ?? ""} disabled={!editing} onChange={(event) => updateCharacteristic("description", event.target.value)} placeholder="Ambiance, vue, environnement et particularités du logement..." />
+                  </label>
+                  <div className={styles.specTagsBlock}>
+                    <span>Tags et atouts</span>
+                    <div>
+                      {equipments.length ? equipments.slice(0, 12).map((equipment) => <button type="button" key={equipment} disabled={!editing} onClick={() => toggleEquipment(equipment)}>{equipment}</button>) : <small>Aucun tag ajouté.</small>}
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div className={styles.fullField}>
+                <section className={`${styles.specSectionCard} ${styles.infoAnchor}`} id="infos-localisation">
+                  <div className={styles.numberedSectionHeading}><span>3</span><div><h3>Localisation</h3><p>Localisez votre logement pour faciliter les interventions.</p></div></div>
+                  <div className={styles.locationPreview}>
+                    <MapPinHouse size={28} aria-hidden="true" />
+                    <div><strong>{draft.locationInfo.city || "Ville à préciser"}</strong><span>{[draft.locationInfo.addressLine1, draft.locationInfo.postalCode, draft.locationInfo.country].filter(Boolean).join(" • ") || "Adresse à compléter"}</span></div>
+                    {draft.locationInfo.city ? <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([draft.locationInfo.addressLine1, draft.locationInfo.postalCode, draft.locationInfo.city].filter(Boolean).join(" "))}`} target="_blank" rel="noreferrer">Ouvrir dans Maps</a> : null}
+                  </div>
+                  <p className={styles.locationHint}>Les coordonnées GPS seront affichées ici lorsqu’elles seront enregistrées dans la fiche logement.</p>
+                </section>
+              </div>
+              <div className={styles.fullField}>
                 <div className={`${styles.terrainSections} ${styles.terrainSectionsCompact}`}>
-                  <section className={styles.terrainCard}>
+                  <section className={`${styles.terrainCard} ${styles.infoAnchor}`} id="infos-acces">
                     <div className={styles.terrainCardHeader}>
                       <span className={styles.terrainIcon}>
                         <MapPinHouse size={20} />
                       </span>
                       <div>
-                        <p>Accès et logistique terrain</p>
-                        <small>Codes, clés, Wi‑Fi et consignes d&apos;entrée.</small>
+                        <h3>4. Accès et logistique</h3>
+                        <small>Les informations utiles pour les conciergeries et artisans.</small>
                       </div>
                     </div>
                     <div className={styles.terrainFieldGrid}>
@@ -1967,7 +2140,11 @@ export default function OwnerHousingDetailPage() {
                   </section>
                 </div>
               </div>
-              <div className={styles.fullField}>
+              <div className={`${styles.fullField} ${styles.infoAnchor}`} id="infos-capacite">
+                <div className={styles.infoBlockHeading}>
+                  <span className={styles.infoOverviewIcon}><Ruler size={18} aria-hidden="true" /></span>
+                  <div><h3>Capacité et volumes</h3><p>Les chiffres de référence pour préparer chaque séjour.</p></div>
+                </div>
                 <div className={styles.metricIconGrid}>
                   {housingMetrics.map((metric) => {
                     const Icon = metric.icon;
@@ -2017,7 +2194,7 @@ export default function OwnerHousingDetailPage() {
                 </div>
               </div>
               <div className={styles.fullField}>
-                <div className={styles.bathroomInventoryPanel}>
+                <div className={styles.bathroomInventoryPanel} id="infos-salles-de-bain">
                   <div className={styles.bedInventoryHeader}>
                     <div>
                       <p>
@@ -2086,7 +2263,7 @@ export default function OwnerHousingDetailPage() {
                 </div>
               </div>
               <div className={styles.fullField}>
-                <div className={styles.bedInventoryPanel}>
+                <div className={`${styles.bedInventoryPanel} ${styles.infoAnchor}`} id="infos-couchages">
                   <div className={styles.bedInventoryHeader}>
                     <div>
                       <p>
@@ -2151,16 +2328,50 @@ export default function OwnerHousingDetailPage() {
                   )}
                 </div>
               </div>
-              <div className={styles.fullField}>
-                <div className={styles.inlineCheckPanel}>
-                  {fieldChecks.map(({ field, label, icon: Icon }) => (
+              <div className={`${styles.fullField} ${styles.infoAnchor}`} id="infos-equipements">
+                <section className={styles.propertyEquipmentSection}>
+                  <div className={styles.propertyEquipmentHeader}>
+                    <div className={styles.numberedSectionHeading}><span>5</span><div><h3>Équipements</h3><p>Sélectionnez les équipements disponibles.</p></div></div>
+                    <strong className={styles.propertyEquipmentCount}>{FEATURED_EQUIPMENT_LABELS.filter((equipment) => equipments.includes(equipment)).length} sélectionnés</strong>
+                  </div>
+                  <div className={styles.propertyEquipmentGroups}>
+                    {FEATURED_EQUIPMENT_GROUPS.map((group) => {
+                      const GroupIcon = group.icon;
+                      return <div className={styles.propertyEquipmentGroup} key={group.title}>
+                        <div className={styles.propertyEquipmentGroupHeader}><span><GroupIcon size={17} /></span><h4>{group.title}</h4></div>
+                        <div className={styles.propertyEquipmentList}>
+                          {group.items.map((equipment) => {
+                            const checked = equipments.includes(equipment);
+                            return <label className={`${styles.propertyEquipmentItem} ${checked ? styles.propertyEquipmentItemActive : ""}`} key={equipment}>
+                              <input className={styles.propertyEquipmentInput} type="checkbox" checked={checked} disabled={!editing} onChange={() => toggleEquipment(equipment)} />
+                              <span className={styles.propertyEquipmentCheck} aria-hidden="true" />
+                              <span className={styles.propertyEquipmentName}>{equipment}</span>
+                            </label>;
+                          })}
+                        </div>
+                      </div>;
+                    })}
+                  </div>
+                </section>
+                <div className={styles.customEquipmentRow}>
+                  <label><span>Autres équipements</span><input value={newEquipment} disabled={!editing} onChange={(event) => setNewEquipment(event.target.value)} placeholder="Ex. jeu de société, plancha..." /></label>
+                  <button type="button" disabled={!editing || !newEquipment.trim()} onClick={addCustomEquipment}><Plus size={16} /> Ajouter</button>
+                </div>
+                <section className={styles.propertyChoiceSection}>
+                  <div className={styles.propertyChoiceHeader}>
+                    <div><strong>Particularités du logement</strong><small>Ces choix ajoutent les consignes utiles aux interventions.</small></div>
+                    <span>{fieldChecks.filter(({ field }) => draft.characteristics[field]).length} sélectionnées</span>
+                  </div>
+                  <div className={styles.propertyCharacteristicGrid}>
+                  {fieldChecks.map(({ field, label, description, icon: Icon }) => (
                     <label
-                      className={`${styles.equipmentCheck} ${
-                        draft.characteristics[field] ? styles.equipmentCheckActive : ""
+                      className={`${styles.propertyCharacteristicItem} ${
+                        draft.characteristics[field] ? styles.propertyCharacteristicItemActive : ""
                       }`}
                       key={field}
                     >
                       <input
+                        className={styles.propertyChoiceInput}
                         type="checkbox"
                         checked={draft.characteristics[field]}
                         disabled={!editing}
@@ -2174,11 +2385,13 @@ export default function OwnerHousingDetailPage() {
                           }))
                         }
                       />
-                      <Icon size={16} />
-                      <span>{label}</span>
+                      <span className={styles.propertyCharacteristicIcon}><Icon size={17} /></span>
+                      <span className={styles.propertyCharacteristicCopy}><strong>{label}</strong><small>{description}</small></span>
+                      <span className={styles.propertyChoiceCheck} aria-hidden="true" />
                     </label>
                   ))}
-                </div>
+                  </div>
+                </section>
               </div>
               {draft.characteristics.terrace || draft.characteristics.stairs || draft.characteristics.pool || draft.characteristics.petsAllowed || draft.characteristics.barbecue ? (
                 <div className={styles.fullField}>
@@ -2295,21 +2508,29 @@ export default function OwnerHousingDetailPage() {
               ) : null}
               <div className={styles.fullField}>
                 <div className={styles.terrainSections}>
-                  <section className={styles.terrainCard}>
+                  <section className={`${styles.terrainCard} ${styles.infoAnchor}`} id="infos-preparation">
                     <div className={styles.terrainCardHeader}>
                       <span className={styles.terrainIcon}>
                         <ClipboardList size={20} />
                       </span>
                       <div>
-                        <p>Préparation et exploitation</p>
-                        <small>Ménage, remise en place et consignes de mission.</small>
+                        <p>Préparer les interventions</p>
+                        <small>La fiche de référence pour retrouver les habitudes propres à ce logement.</small>
                       </div>
+                    </div>
+                    <div className={styles.housekeepingPurpose}>
+                      <strong>À quoi sert ce bloc ?</strong>
+                      <p>
+                        Il mémorise le temps habituel, les contrôles récurrents et les précautions à connaître.
+                        Ces informations restent attachées au logement et peuvent être consultées avant une mission.
+                      </p>
+                      <span>Ce n’est pas le suivi en direct d’un ménage en cours.</span>
                     </div>
                     <div className={styles.terrainFieldGrid}>
                       <label className={styles.terrainFieldWithIcon}>
                         <span>
                           <Clock size={15} />
-                          Temps de ménage
+                          Durée habituelle estimée
                         </span>
                         <input
                           value={draft.services.temps ?? ""}
@@ -2325,29 +2546,28 @@ export default function OwnerHousingDetailPage() {
                           }
                           placeholder="Ex. 2 h 30"
                         />
+                        <small>Une estimation pour dimensionner la prochaine intervention.</small>
                       </label>
-                      <div className={`${styles.terrainFieldWide} ${styles.housekeepingChecklistPanel}`}>
-                        <div className={styles.housekeepingChecklistHeader}>
+                      <div className={`${styles.terrainFieldWide} ${styles.propertyChoiceSection} ${styles.recurringControlsSection}`}>
+                        <div className={styles.propertyChoiceHeader}>
                           <div>
-                            <span>
-                              <ClipboardList size={16} />
-                              Checklist ménage
-                            </span>
-                            <small>Remise en place et contrôles avant arrivée.</small>
+                            <strong>Contrôles récurrents</strong>
+                            <small>Sélectionnez le standard attendu après chaque remise en état.</small>
                           </div>
-                          <strong>
-                            {housekeepingCheckedCount}/{housekeepingTasks.length}
-                          </strong>
+                          <span>
+                            {housekeepingCheckedCount} sélectionné{housekeepingCheckedCount > 1 ? "s" : ""}
+                          </span>
                         </div>
-                        <div className={styles.housekeepingQuickChecks}>
+                        <div className={styles.propertyCharacteristicGrid}>
                           {housekeepingTasks.map((task) => {
                             const checked = isChecklistTaskChecked(draft.services.checklist, task);
                             return (
                               <label
-                                className={`${styles.housekeepingCheck} ${checked ? styles.housekeepingCheckActive : ""}`}
+                                className={`${styles.propertyCharacteristicItem} ${checked ? styles.propertyCharacteristicItemActive : ""}`}
                                 key={task}
                               >
                                 <input
+                                  className={styles.propertyChoiceInput}
                                   type="checkbox"
                                   checked={checked}
                                   disabled={!editing}
@@ -2365,7 +2585,12 @@ export default function OwnerHousingDetailPage() {
                                     }))
                                   }
                                 />
-                                <span>{task}</span>
+                                <span className={styles.propertyCharacteristicIcon}><ClipboardList size={17} /></span>
+                                <span className={styles.propertyCharacteristicCopy}>
+                                  <strong>{task}</strong>
+                                  <small>{checked ? "Inclus dans le standard du logement" : "Non inclus dans le standard"}</small>
+                                </span>
+                                <span className={styles.propertyChoiceCheck} aria-hidden="true" />
                               </label>
                             );
                           })}
@@ -2390,25 +2615,25 @@ export default function OwnerHousingDetailPage() {
                           </div>
                         ) : null}
                         <label className={styles.housekeepingNotesField}>
-                          <span>Notes et ordre de passage</span>
+                          <span>Précisions sur la remise en état</span>
                           <textarea
-                            value={draft.services.checklist ?? ""}
+                            value={getChecklistNotes(draft.services.checklist)}
                             disabled={!editing}
                             onChange={(event) =>
                               applyDraftUpdate((current) => ({
                                 ...current,
                                 services: {
                                   ...current.services,
-                                  checklist: event.target.value,
+                                  checklist: updateChecklistNotes(current.services.checklist, event.target.value),
                                 },
                               }))
                             }
-                            placeholder="Ajoutez les consignes précises, l'ordre de passage ou les détails propres au logement..."
+                            placeholder="Ex. remettre les coussins de terrasse à l'intérieur s'il pleut."
                           />
                         </label>
                       </div>
                       <label className={styles.terrainFieldWide}>
-                        <span>Consignes pour la conciergerie</span>
+                        <span>Consignes générales d’intervention</span>
                         <textarea
                           value={draft.services.instructions ?? ""}
                           disabled={!editing}
@@ -2421,8 +2646,9 @@ export default function OwnerHousingDetailPage() {
                               },
                             }))
                           }
-                          placeholder="Ordre de passage, priorités, habitudes propriétaire, consignes spécifiques..."
+                          placeholder="Ex. commencer par l'étage, préparer deux jeux de clés et fermer les volets au départ."
                         />
+                        <small>Les règles stables à suivre pour intervenir dans ce logement.</small>
                       </label>
                       <label className={styles.terrainFieldWide}>
                         <span>
@@ -2443,11 +2669,12 @@ export default function OwnerHousingDetailPage() {
                           }
                           placeholder="Objets fragiles, tâches fréquentes, zones à contrôler, oublis voyageurs..."
                         />
+                        <small>Les risques et particularités qui demandent une attention spéciale.</small>
                       </label>
                     </div>
                   </section>
 
-                  <section className={styles.terrainCard}>
+                  <section className={`${styles.terrainCard} ${styles.infoAnchor}`} id="infos-partage">
                     <div className={styles.terrainCardHeader}>
                       <span className={styles.terrainIcon}>
                         <UserRound size={20} />
@@ -2510,23 +2737,6 @@ export default function OwnerHousingDetailPage() {
                         />
                       </label>
                       <label className={styles.terrainFieldWide}>
-                        <span>Description du logement</span>
-                        <textarea
-                          value={draft.characteristics.description ?? ""}
-                          disabled={!editing}
-                          onChange={(event) =>
-                            applyDraftUpdate((current) => ({
-                              ...current,
-                              characteristics: {
-                                ...current.characteristics,
-                                description: event.target.value,
-                              },
-                            }))
-                          }
-                          placeholder="Ambiance, particularités, informations utiles à connaître avant mission..."
-                        />
-                      </label>
-                      <label className={styles.terrainFieldWide}>
                         <span>Note propriétaire à partager</span>
                         <textarea
                           value={draft.services.internalNotes}
@@ -2547,7 +2757,75 @@ export default function OwnerHousingDetailPage() {
                   </section>
                 </div>
               </div>
+              <div className={styles.fullField}>
+                <section className={`${styles.specSectionCard} ${styles.infoAnchor}`} id="infos-photos">
+                  <div className={styles.specSectionTopline}>
+                    <div className={styles.numberedSectionHeading}><span>6</span><div><h3>Photos</h3><p>Ajoutez des photos de qualité pour mettre en valeur votre logement.</p></div></div>
+                    {editing ? <label className={styles.quickGalleryUpload}><FiCamera />{photoUploading ? "Upload..." : "Ajouter des photos"}<input type="file" accept="image/*" multiple hidden onChange={(event) => void uploadHousingPhotos(event.target.files)} /></label> : null}
+                  </div>
+                  {housingPhotos.length ? <div className={styles.specPhotoGrid}>{housingPhotos.slice(0, 6).map((photo, index) => <button type="button" key={`${photo}-${index}`} onClick={() => { setGalleryIndex(index); setActiveTab("synthese"); }}><Image src={toHousingPhotoUrl(photo, id)} alt={`Photo ${index + 1} du logement`} fill sizes="160px" unoptimized /></button>)}</div> : <p className={styles.sidebarEmpty}>Aucune photo ajoutée.</p>}
+                </section>
+              </div>
             </div>
+            <aside className={styles.infoSidebar} aria-label="Résumé du logement">
+              <section className={styles.infoSidebarCard}>
+                <div className={styles.infoSidebarHeading}>
+                  <div><small>En un coup d’œil</small><h3>Résumé rapide</h3></div>
+                  <span className={styles.sidebarStatus}>{statusLabel}</span>
+                </div>
+                <dl className={styles.quickSummaryList}>
+                  <div><dt>Type</dt><dd>{draft.characteristics.propertyType || "À préciser"}</dd></div>
+                  <div><dt>Surface</dt><dd>{draft.characteristics.surfaceSqm != null ? `${draft.characteristics.surfaceSqm} m²` : "À préciser"}</dd></div>
+                  <div><dt>Capacité</dt><dd>{formatCapacityLabel(housingCapacity, "À préciser")}</dd></div>
+                  <div><dt>Chambres</dt><dd>{draft.characteristics.bedroomCount ?? "À préciser"}</dd></div>
+                  <div><dt>Salles de bain</dt><dd>{draft.characteristics.bathroomCount ?? "À préciser"}</dd></div>
+                  <div><dt>Ville</dt><dd>{draft.locationInfo.city || "À préciser"}</dd></div>
+                </dl>
+              </section>
+
+              <section className={styles.infoSidebarCard}>
+                <div className={styles.infoSidebarHeading}>
+                  <div><small>Interlocuteurs</small><h3>Contacts liés</h3></div>
+                  <Link href="/dashboard/owner/conciergeries">Gérer</Link>
+                </div>
+                <div className={styles.linkedContacts}>
+                  <div><Avatar src={resolvedConciergeAvatarUrl} name={resolvedConciergeName} size="sm" /><span><small>Ma concierge</small><strong>{resolvedConciergeName}</strong></span></div>
+                  <div><Avatar name={draft.owner.fullName || "Propriétaire"} size="sm" /><span><small>Propriétaire</small><strong>{draft.owner.fullName || "À préciser"}</strong>{draft.owner.phone ? <em>{draft.owner.phone}</em> : null}</span></div>
+                </div>
+              </section>
+
+              <section className={styles.infoSidebarCard}>
+                <div className={styles.infoSidebarHeading}>
+                  <div><small>Fichiers utiles</small><h3>Documents</h3></div>
+                  <button type="button" onClick={() => setActiveTab("documents")}>Voir tous</button>
+                </div>
+                {documents.length ? (
+                  <ul className={styles.sidebarDocuments}>
+                    {documents.slice(0, 4).map((document) => <li key={document.id}><FiFileText aria-hidden="true" /><span>{document.name}<small>{document.type || "Document"}</small></span></li>)}
+                  </ul>
+                ) : <p className={styles.sidebarEmpty}>Aucun document ajouté.</p>}
+              </section>
+
+              <section className={`${styles.infoSidebarCard} ${styles.quickActionsCard}`}>
+                <div className={styles.infoSidebarHeading}><div><small>Raccourcis</small><h3>Actions rapides</h3></div></div>
+                <button type="button" onClick={() => setActiveTab("planning")}><FiCalendar /> Voir le planning</button>
+                <Link href={ownerRequestHref}><FiSend /> Créer une mission ou une intervention</Link>
+                <button type="button" onClick={() => setActiveTab("documents")}><FiFileText /> Ajouter un document</button>
+              </section>
+
+              <blockquote className={styles.sidebarQuote}>
+                <p>« Des séjours sereins, des logements qui performent. »</p>
+                <cite>PlanetLS</cite>
+              </blockquote>
+            </aside>
+            </div>
+
+            {editing ? (
+              <div className={styles.infoFooterActions}>
+                <button className={styles.cancelBtn} type="button" onClick={cancelEdition}><FiRotateCcw /> Annuler</button>
+                <button className={styles.saveBtn} type="button" onClick={saveHousingChanges} disabled={saving}><FiSave /> {saving ? "Sauvegarde..." : "Enregistrer les modifications"}</button>
+              </div>
+            ) : null}
           </div>
         ) : null}
 
@@ -2699,14 +2977,12 @@ export default function OwnerHousingDetailPage() {
         ) : null}
 
         {activeTab === "stocks" ? (
-          <div id="stocks" className={styles.sectionStack}>
-            <div className={styles.sectionHeader}>
+          <div id="stocks" className={`${styles.sectionStack} ${styles.stockWorkspace}`}>
+            <div className={styles.stockPageHeader}>
               <div className={styles.sectionIntro}>
-                <p className={styles.sectionTitle}>Stocks et équipements</p>
-                <strong className={styles.inspectionStatus}>
-                  {equipmentCount} équipement{equipmentCount > 1 ? "s" : ""} sélectionné
-                  {equipmentCount > 1 ? "s" : ""} pour ce logement.
-                </strong>
+                <p className={styles.sectionTitle}>Inventaire du logement</p>
+                <h2>Équipements</h2>
+                <span>Retrouvez ce qui est disponible sur place et complétez la fiche utilisée pour préparer les séjours.</span>
               </div>
               {!editing ? (
                 <button className={styles.tabEditButton} type="button" onClick={() => setEditing(true)}>
@@ -2718,19 +2994,48 @@ export default function OwnerHousingDetailPage() {
                 </span>
               )}
             </div>
+
+            <div className={styles.stockMetrics} aria-label="Repères des équipements">
+              <article><span><Sofa size={19} /></span><div><small>Équipements renseignés</small><strong>{equipmentCount}</strong></div></article>
+              <article><span><FiBox size={19} /></span><div><small>Familles couvertes</small><strong>{equipmentCategoryCount}</strong></div></article>
+              <article><span><ClipboardList size={19} /></span><div><small>Achats à suivre</small><strong>{draft.stockManagement.purchaseNeeds.length}</strong></div></article>
+            </div>
+
+            <section className={styles.selectedEquipmentCard}>
+              <div className={styles.stockCardHeading}>
+                <div><p className={styles.sectionTitle}>Dans le logement</p><h3>Les essentiels renseignés</h3></div>
+                <span>{equipmentCount} au total</span>
+              </div>
+              {equipments.length ? (
+                <div className={styles.selectedEquipmentList}>
+                  {equipments.slice(0, 10).map((item) => <span key={item}><FiBox aria-hidden="true" />{item}</span>)}
+                  {equipments.length > 10 ? <button type="button" onClick={() => setEquipmentView("selected")}>Voir les {equipments.length - 10} autres</button> : null}
+                </div>
+              ) : <p className={styles.stockEmpty}>Aucun équipement renseigné. Activez le mode modification pour commencer.</p>}
+            </section>
+
+            <div className={styles.equipmentToolbar}>
+              <label><FiSearch aria-hidden="true" /><input value={equipmentQuery} onChange={(event) => setEquipmentQuery(event.target.value)} placeholder="Rechercher un équipement..." aria-label="Rechercher un équipement" /></label>
+              <div role="group" aria-label="Affichage des équipements">
+                <button className={equipmentView === "all" ? styles.equipmentFilterActive : ""} type="button" onClick={() => setEquipmentView("all")}>Tout le catalogue</button>
+                <button className={equipmentView === "selected" ? styles.equipmentFilterActive : ""} type="button" onClick={() => setEquipmentView("selected")}>Déjà présents</button>
+              </div>
+            </div>
+
             <div className={styles.equipmentCatalog}>
-              {HOUSING_EQUIPMENT_CATALOG.map((category) => (
-                <section className={styles.equipmentCategory} key={category.title}>
-                  <div className={styles.equipmentCategoryHeader}>
-                    <h3>{category.title}</h3>
-                    <span>
-                      {category.subcategories.reduce(
-                        (total, subcategory) =>
-                          total + subcategory.items.filter((item) => equipments.includes(item)).length,
-                        0,
-                      )}
-                    </span>
-                  </div>
+              {visibleEquipmentCatalog.map((category) => {
+                const categorySelectedCount = category.subcategories.reduce(
+                  (total, subcategory) => total + subcategory.items.filter((item) => equipments.includes(item)).length,
+                  0,
+                );
+                return (
+                <details className={styles.equipmentCategory} key={category.title} open={categorySelectedCount > 0 || Boolean(equipmentQuery.trim()) || undefined}>
+                  <summary className={styles.equipmentCategoryHeader}>
+                    <span className={styles.equipmentCategoryIcon}><FiBox aria-hidden="true" /></span>
+                    <div><h3>{category.title}</h3><small>{categorySelectedCount ? `${categorySelectedCount} sélectionné${categorySelectedCount > 1 ? "s" : ""}` : "Aucun équipement sélectionné"}</small></div>
+                    <strong>{categorySelectedCount}</strong>
+                    <FiChevronRight className={styles.equipmentCategoryChevron} aria-hidden="true" />
+                  </summary>
 
                   <div className={styles.equipmentSubcategoryGrid}>
                     {category.subcategories.map((subcategory) => (
@@ -2758,9 +3063,12 @@ export default function OwnerHousingDetailPage() {
                       </div>
                     ))}
                   </div>
-                </section>
-              ))}
+                </details>
+                );
+              })}
             </div>
+
+            {!visibleEquipmentCatalog.length ? <div className={styles.stockEmptyState}><FiBox size={28} /><strong>Aucun équipement trouvé</strong><span>Modifiez la recherche ou affichez tout le catalogue.</span><button type="button" onClick={() => { setEquipmentQuery(""); setEquipmentView("all"); }}>Réinitialiser</button></div> : null}
 
             {customEquipments.length ? (
               <div className={styles.panel}>

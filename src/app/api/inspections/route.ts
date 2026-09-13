@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json(
           {
             error:
-              "Module inspections non active: executez la migration 20260312_checkout_inspections_disputes_core.sql.",
+              "Module inspections non actif : appliquez la migration 20260912193000_checkout_inspections_disputes_core.sql.",
           },
           { status: 503 },
         );
@@ -161,7 +161,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           {
             error:
-              "Module inspections non active: executez la migration 20260312_checkout_inspections_disputes_core.sql.",
+              "Module inspections non actif : appliquez la migration 20260912193000_checkout_inspections_disputes_core.sql.",
           },
           { status: 503 },
         );

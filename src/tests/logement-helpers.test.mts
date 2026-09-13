@@ -135,6 +135,47 @@ test("buildLogementPatchPayload keeps legacy patch keys", () => {
   assert.equal((payload.proprietaire as Record<string, unknown>).owner_profile_id, "owner-1");
 });
 
+test("housekeeping reference fields survive normalization and saving", () => {
+  const logement = parseHousingRow({
+    id: 30,
+    created_at: null,
+    updated_at: null,
+    external_id: null,
+    nom_logement: "Villa test",
+    ville: "Le Barcarès",
+    adresse: "12 avenue de la Plage",
+    plateforme: "Airbnb",
+    statut: "active",
+    photo_principale: null,
+    infos: {},
+    proprietaire: {},
+    location: {},
+    menage: {
+      temps: "2 h 30",
+      checklist: "- Changer les draps\nFermer les volets en dernier",
+      instructions: "Commencer par l'étage",
+      housekeeping_notes: "Attention à la table fragile",
+    },
+    planning: [],
+    documents: [],
+    notes: [],
+    tarifs: {},
+    contrat: {},
+  } as HousingRowInput);
+
+  assert.equal(logement.services.temps, "2 h 30");
+  assert.equal(logement.services.checklist, "- Changer les draps\nFermer les volets en dernier");
+  assert.equal(logement.services.instructions, "Commencer par l'étage");
+  assert.equal(logement.services.housekeepingNotes, "Attention à la table fragile");
+
+  const payload = buildLogementPatchPayload(logement);
+  const menage = payload.menage as Record<string, unknown>;
+  assert.equal(menage.temps, "2 h 30");
+  assert.equal(menage.checklist, "- Changer les draps\nFermer les volets en dernier");
+  assert.equal(menage.instructions, "Commencer par l'étage");
+  assert.equal(menage.housekeeping_notes, "Attention à la table fragile");
+});
+
 test("toOptionalNumber normalizes optional numeric input", () => {
   assert.equal(toOptionalNumber(""), undefined);
   assert.equal(toOptionalNumber("120"), 120);

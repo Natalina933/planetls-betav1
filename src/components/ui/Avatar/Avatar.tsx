@@ -11,6 +11,7 @@ export type AvatarProps = HTMLAttributes<HTMLDivElement> & {
   alt?: string;
   name?: string;
   size?: AvatarSize;
+  unoptimized?: boolean;
 };
 
 const sizeToPixels: Record<AvatarSize, number> = {
@@ -33,7 +34,7 @@ function getInitials(name?: string) {
   return chunks.join("") || "?";
 }
 
-export function Avatar({ src, alt = "Avatar", name, size = "md", className = "", ...props }: AvatarProps) {
+export function Avatar({ src, alt = "Avatar", name, size = "md", unoptimized = false, className = "", ...props }: AvatarProps) {
   const [hasError, setHasError] = useState(false);
   const pixelSize = sizeToPixels[size];
   const initials = useMemo(() => getInitials(name), [name]);
@@ -47,6 +48,7 @@ export function Avatar({ src, alt = "Avatar", name, size = "md", className = "",
           width={pixelSize}
           height={pixelSize}
           className={styles.image}
+          unoptimized={unoptimized}
           onError={() => setHasError(true)}
         />
       ) : (

@@ -592,7 +592,8 @@ export function normalizeHousingRow(row: HousingRow): ConciergeHousing {
           notes: cleanString(item.notes),
         };
       }),
-      housekeepingNotes: cleanString(menage.instructions),
+      housekeepingNotes:
+        cleanString(menage.housekeeping_notes ?? menage.points_vigilance) || cleanString(menage.instructions),
       internalNotes: cleanString(menage.internal_notes) || cleanString(Array.isArray(row.notes) ? row.notes.join("\n") : ""),
       temps: cleanString(menage.temps),
       checklist: cleanString(menage.checklist),
@@ -761,7 +762,10 @@ export function buildHousingMutationPayload(
         source_quote_item_id: item.sourceQuoteItemId,
         notes: cleanString(item.notes),
       })),
-      instructions: cleanString(housing.services.housekeepingNotes),
+      temps: cleanString(housing.services.temps),
+      checklist: cleanString(housing.services.checklist),
+      instructions: cleanString(housing.services.instructions),
+      housekeeping_notes: cleanString(housing.services.housekeepingNotes),
       internal_notes: cleanString(housing.services.internalNotes),
     } as Json,
     planning: housing.timeline.map((item) => ({

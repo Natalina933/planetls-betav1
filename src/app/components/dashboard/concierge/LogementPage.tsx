@@ -515,10 +515,11 @@ export default function LogementPage() {
           <div className={styles.heroIdentity}>
             <div className={styles.housingAvatarWrap}>
               <Avatar
-                src={draft.photo_principale}
+                src={draft.photo_principale ? toHousingPhotoUrl(draft.photo_principale, id) : null}
                 name={draft.nom_logement || "Logement"}
                 alt={`Avatar du logement ${draft.nom_logement || ""}`}
                 size="lg"
+                unoptimized
                 className={styles.housingAvatar}
               />
               {editing ? (

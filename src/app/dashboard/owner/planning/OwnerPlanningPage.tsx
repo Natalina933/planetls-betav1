@@ -1,7 +1,8 @@
 "use client";
 
 import { Download, Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Alert, AsyncState, Button, ButtonLink, Input, Select, TableFilters } from "@/components/ui";
 import OwnerPlanningKpiBar from "./OwnerPlanningKpiBar";
 import OwnerPlanningList from "./OwnerPlanningList";
@@ -23,7 +24,15 @@ type OwnerPlanningPageProps = {
   onExport?: () => void;
 };
 
-export default function OwnerPlanningPage({
+export default function OwnerPlanningPage(props: OwnerPlanningPageProps) {
+  return (
+    <Suspense fallback={<section className="dashboard-grid">Chargement du planning...</section>}>
+      <OwnerPlanningPageContent {...props} />
+    </Suspense>
+  );
+}
+
+function OwnerPlanningPageContent({
   kpis,
   priorities,
   items,
@@ -36,7 +45,13 @@ export default function OwnerPlanningPage({
   const [searchTerm, setSearchTerm] = useState("");
   const [propertyFilter, setPropertyFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
+  const requestedType = useSearchParams().get("type") ?? "all";
+  const urlType = requestedType === "arrival" ? "checkin" : requestedType === "departure" ? "checkout" : requestedType;
+  const initialType = urlType === "movements" || Object.hasOwn(planningTypeLabels, urlType) ? urlType : "all";
+  const [typeSelection, setTypeSelection] = useState({ source: requestedType, value: initialType });
+  const typeFilter = typeSelection.source === requestedType ? typeSelection.value : initialType;
+  if (typeSelection.source !== requestedType) setTypeSelection({ source: requestedType, value: initialType });
+  const setTypeFilter = (value: string) => setTypeSelection({ source: requestedType, value });
   const [viewMode, setViewMode] = useState<PlanningViewMode>("semaine");
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const today = new Date();
@@ -67,7 +82,7 @@ export default function OwnerPlanningPage({
       .filter((item) => {
         const matchesProperty = propertyFilter === "all" || item.propertyName === propertyFilter;
         const matchesStatus = statusFilter === "all" || item.status === statusFilter;
-        const matchesType = typeFilter === "all" || item.type === typeFilter;
+        const matchesType = typeFilter === "all" || item.type === typeFilter || (typeFilter === "movements" && (item.type === "checkin" || item.type === "checkout"));
         if (!matchesProperty || !matchesStatus || !matchesType) return false;
         if (!normalizedSearch) return true;
 
@@ -120,7 +135,7 @@ export default function OwnerPlanningPage({
               <label>Recherche<Input bare type="search" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Logement, mission, responsable…" /></label>
               <label>Logement<Select bare aria-label="Filtrer par logement" value={propertyFilter} onChange={event => setPropertyFilter(event.target.value)}><option value="all">Tous les logements</option>{propertyOptions.map(property => <option key={property} value={property}>{property}</option>)}</Select></label>
               <label>Statut<Select bare aria-label="Filtrer par statut" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="all">Tous les statuts</option>{Object.entries(planningStatusLabels).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</Select></label>
-              <label>Mission<Select bare aria-label="Filtrer par type de mission" value={typeFilter} onChange={event => setTypeFilter(event.target.value)}><option value="all">Toutes les missions</option>{Object.entries(planningTypeLabels).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</Select></label>
+              <label>Mission<Select bare aria-label="Filtrer par type de mission" value={typeFilter} onChange={event => setTypeFilter(event.target.value)}><option value="all">Toutes les missions</option><option value="movements">Arrivées &amp; départs</option>{Object.entries(planningTypeLabels).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</Select></label>
             </TableFilters>
             <div className={styles.calendarControls}>
               <div className={styles.viewSwitch} role="group" aria-label="Choisir la vue du planning">
