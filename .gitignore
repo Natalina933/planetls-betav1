@@ -18,6 +18,7 @@
 # next.js
 /.next/
 /.next-e2e/
+/.next-kombai-*/
 /out/
 
 # production
@@ -49,3 +50,5 @@ next-env.d.ts
 /.next-pls-sec-003-history/
 /DockerDesktopWSL/
 /debug.log
+/.kombai/
+/*.heapsnapshot
