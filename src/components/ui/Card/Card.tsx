@@ -29,8 +29,8 @@ export function Card({
   );
 }
 
-export function CardHeader({ className = "", ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <header className={[styles.header, className].filter(Boolean).join(" ")} {...props} />;
+export function CardHeader({ className = "", variant = "default", ...props }: HTMLAttributes<HTMLDivElement> & { variant?: "default" | "plain" }) {
+  return <header className={[variant === "plain" ? styles.plainHeader : styles.header, className].filter(Boolean).join(" ")} {...props} />;
 }
 
 export function CardBody({ className = "", ...props }: HTMLAttributes<HTMLDivElement>) {

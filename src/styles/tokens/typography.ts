@@ -1,4 +1,8 @@
 export const typography = {
+  pageTitle: "var(--ds-text-page-title)",
+  sectionTitle: "var(--ds-text-section-title)",
+  subtitle: "var(--ds-text-subtitle)",
+  secondary: "var(--ds-text-secondary)",
   ui: "var(--ds-font-ui)",
   body: "var(--ds-font-body)",
   heading: "var(--ds-font-heading)",

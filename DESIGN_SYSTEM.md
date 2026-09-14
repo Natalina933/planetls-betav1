@@ -1,5 +1,27 @@
 # Design System PlanetLS
 
+## Compositions communes — 14 septembre 2026
+
+L’étape 3 de `PLS-DS-001` mutualise les structures effectivement identiques de Documents et Devis Propriétaire : bandeau, quatre indicateurs et deux raccourcis. Le Dashboard conserve ses indicateurs verticaux, son agenda et ses actions prioritaires ; Logements conserve son état du parc et ses cartes métier.
+
+- `PageHeader/PageHeader` : titre de page, description, surtitre, fil d’Ariane, citation et emplacement d’action. Variante sobre `plain` par défaut ; `illustrated` reprend le bandeau Propriétaire existant.
+- `StatsCard/MetricGroup` : grille de composition sans calcul, quatre colonnes puis deux sous 1100 px. La page fournit un `aria-label` et ses cartes.
+- `StatsCard` : variante `layout="summary"` horizontale pour Documents/Devis ; le rendu `standard`, ses tons et sa progression restent compatibles. La page décide des valeurs, des zéros, du chargement et des erreurs.
+- `dashboard/QuickActions/QuickActions` : variante `shortcuts` avec liens `ButtonLink`, description et icône facultative ; le parcours guidé `steps` reste le défaut.
+- Les classes locales ne gardent que les écarts de Documents : titre 22ch, chiffres et icônes légèrement plus grands, raccourcis de 74 px et padding mobile. Les seuils responsive et contenus existants sont conservés.
+- Pour la suite, réutiliser `Section`, `CardHeader/CardFooter`, `TableFilters`, `DataTable`, `AsyncState` et `Alert`. Les filtres instantanés Documents et les filtres appliqués Devis ne partagent pas leur logique. Leurs tableaux/cartes, regroupements, états et modales ne sont pas migrés dans cette étape.
+
+## Fondations consolidées — 14 septembre 2026
+
+La référence principale est l’espace Propriétaire retravaillé. Ce lot consolide le socle CSS/SCSS sans migrer les pages ni modifier leurs contrats métier. Le pilote Concierge décrit dans les notes du 7 septembre est historique.
+
+- `tokens.css` reste la source canonique : palette, backgrounds, états, bordures, rayons, ombres, typographie, espacements et conteneurs. Les façades Sass et alias historiques nécessaires restent compatibles. La palette locale de la fiche logement n’est pas remplacée globalement.
+- Actions : `primary` vert, `secondary` neutre bordé, `ghost` discret, `danger` rouge et `success` vert de confirmation. `outline`, `paper` et `dark` restent disponibles avec leurs ornements de thème. Les couleurs viennent de `--ds-action-*`, recalculés aux frontières de thème/dashboard. Le nom historique `--ds-color-primary` garde ses valeurs (laiton public, vert dashboard) ; ne pas le recolorer globalement pour changer les actions.
+- Conteneurs : `compact` 1220 px, `standard` 1280 px et `large` 1400 px. La densité concerne les espacements internes. `Container` conserve son défaut `lg` 1120 px et les tailles `sm` 640, `md` 840, `xl` 1280 et `full`. `--ds-layout-max-width` et `--ds-layout-content` référencent `--ds-container-standard`. Les pages locales à 1400 px seront raccordées au token lors de leur lot, sans remplacement massif.
+- Typographie : Cormorant Garamond/Georgia pour les titres, Inter/Segoe UI pour l’interface et le corps. Aucun changement du chargement des polices. Les rôles `--ds-text-page-title`, `--ds-text-section-title`, `--ds-text-section-display`, `--ds-text-subtitle` et `--ds-text-secondary` reprennent les dimensions existantes ; les titres Propriétaire locaux restent inchangés.
+- Rythme : `--ds-space-container-inline`, `--ds-space-section-stack` et les espacements de section `compact/standard/spacious` nomment les valeurs existantes. `Section` et la typographie globale les consomment sans nouvelle marge globale.
+- Nettoyage : six feuilles sans référence retirées ; neuf suffixes invalides accolés à `var(--dash-bg-panel)` corrigés. Les références DS manquantes sont complétées, les doublons de déclaration supprimés en conservant la valeur effective. `components.json`, `cn` et `tailwind-merge` restent hors suppression dans ce lot ; aucune dépendance ajoutée ou retirée.
+
 ## Socle de la phase 2 — 9 septembre 2026
 
 Le périmètre courant comprend les tokens, `layout/HeroSection`, `layout/Section`, les hooks de mouvement et leur documentation. La Home réutilise ces composants ; les autres pages migrent progressivement. Les démonstrations sont accessibles dans `/design-system/fondations`, volet **Sections partagées et animations**.

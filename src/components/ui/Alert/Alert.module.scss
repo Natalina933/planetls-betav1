@@ -21,3 +21,8 @@
 .title { font-family: var(--ds-font-ui); }
 .message { margin-top: var(--ds-space-2); }
 .action { margin-top: var(--ds-space-3); }
+
+.inline { display: flex; flex-wrap: wrap; gap: var(--ds-space-3); align-items: center; p { margin: 0; color: inherit; } }
+.inline[data-tone="danger"] { color: var(--ds-color-danger); }
+.inline[data-tone="success"] { color: var(--ds-color-success); }
+.bordered { padding: var(--ds-space-3); border: var(--ds-border-subtle); border-radius: var(--ds-radius-control); }

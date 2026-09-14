@@ -48,3 +48,5 @@
     width: 100%;
   }
 }
+
+.centered { display: grid; justify-items: center; gap: var(--ds-space-3); padding: var(--ds-space-6); text-align: center; .content { gap: var(--ds-space-3); } .illustration { width: auto; color: var(--ds-color-primary); } .centeredTitle { margin: 0; } }

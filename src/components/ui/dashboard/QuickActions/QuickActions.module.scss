@@ -1,5 +1,19 @@
 @use "../../../../styles/mixins" as *;
 
+.shortcuts {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ds-space-3); padding: var(--ds-space-4);
+  > div { grid-column: 1 / -1; }
+  .shortcutEyebrow { font-size: var(--ds-text-xs); text-transform: uppercase; letter-spacing: .1em; color: var(--ds-color-gold-strong); font-weight: 700; }
+}
+.shortcuts .shortcut {
+  height: auto; min-height: 72px; display: flex; gap: var(--ds-space-3); text-align: left; white-space: normal;
+  background: color-mix(in srgb, var(--ds-color-primary-soft) 35%, var(--ds-color-surface));
+  > span { flex: 1; }
+  small { display: block; font-size: var(--ds-text-xs); font-weight: 400; }
+  svg { flex-shrink: 0; color: var(--ds-color-primary); }
+}
+@media (max-width: 640px) { .shortcuts { grid-template-columns: 1fr; } }
+
 .card {
   position: relative;
   overflow: hidden;

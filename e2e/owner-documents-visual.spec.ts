@@ -2,6 +2,7 @@ import { test, expect, type Page, type BrowserContext } from "@playwright/test";
 import { encode } from "next-auth/jwt";
 
 async function fixtures(page: Page, context: BrowserContext) {
+  await page.emulateMedia({ reducedMotion: "reduce" });
   const user = { id:"11111111-1111-4111-8111-111111111111",role:"owner",firstName:"Camille",email:"owner@example.test" };
   const token=await encode({secret:"traveler-stays-fixture-secret",salt:"authjs.session-token",token:{...user,sub:user.id},maxAge:3600});
   await context.addCookies([{name:"authjs.session-token",value:token,domain:"127.0.0.1",path:"/",httpOnly:true}]);
@@ -34,7 +35,22 @@ test("documents : filtres, documents et quatre formats",async({page,context})=>{
     await page.setViewportSize({width,height:1000});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
     await page.screenshot({path:`test-results/owner-documents-${width}.png`,fullPage:true});
+    await page.screenshot({path:`test-results/owner-documents-top-${width}.png`});
+    const firstShortcut = page.getByRole("link", { name: /Consulter mes devis/ });
+    const secondShortcut = page.getByRole("link", { name: /Suivre mes factures/ });
+    await firstShortcut.focus();
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Shift+Tab");
+    await expect(firstShortcut).toHaveCSS("outline-style", "solid");
+    await page.keyboard.press("Tab");
+    await expect(secondShortcut).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(firstShortcut).toBeFocused();
+    await firstShortcut.blur();
+    await page.evaluate(() => window.scrollTo(0, 0));
   }
+  await expect(page.getByLabel("Indicateurs documentaires").getByRole("article")).toHaveCount(4);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
   await page.getByLabel("Type de document",{exact:true}).selectOption("invoice");
   await expect(table.locator("tbody tr")).toHaveCount(10);
   await page.getByLabel("Suivi des documents",{exact:true}).selectOption("pending");

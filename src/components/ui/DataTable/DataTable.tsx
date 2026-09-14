@@ -10,6 +10,7 @@ export type DataTableColumn<T> = {
 
 export type DataTableProps<T> = {
   caption: string;
+  variant?: "default" | "records";
   columns: readonly DataTableColumn<T>[];
   rows: readonly T[];
   getRowId: (row: T) => string;
@@ -20,6 +21,7 @@ export type DataTableProps<T> = {
 
 export function DataTable<T>({
   caption,
+  variant = "default",
   columns,
   rows,
   getRowId,
@@ -30,8 +32,8 @@ export function DataTable<T>({
   const hasActions = Boolean(renderRowAction);
 
   return (
-    <div className={styles.wrap} data-responsive={responsiveStrategy}>
-      <table className={styles.table}>
+    <div className={variant === "records" ? styles.recordsWrap : styles.wrap} data-responsive={responsiveStrategy}>
+      <table className={variant === "records" ? styles.recordsTable : styles.table}>
         <caption>{caption}</caption>
         <thead>
           <tr>

@@ -1,5 +1,17 @@
 # Design System PlanetLS
 
+## Compositions de pages — PLS-DS-001, étape 3
+
+Imports directs : `PageHeader/PageHeader`, `StatsCard/MetricGroup`, `StatsCard/StatsCard` et `dashboard/QuickActions/QuickActions`.
+
+`PageHeader` expose `title`, `description`, `eyebrow`, `breadcrumb`, `quote` et `action` (contenu fourni par la page), avec `variant="plain" | "illustrated"`. Utiliser une seule fois pour le h1 de page ; une introduction de section utilise plutôt `Section` ou `CardHeader`. Le fil d’Ariane fournit ses liens, sans nav imbriquée.
+
+`MetricGroup` accueille des enfants libres et les attributs HTML de section ; fournir un nom accessible (`aria-label` ou `aria-labelledby`). `StatsCard layout="summary"` présente valeur, libellé h2 et aide, avec une icône décorative fournie par la page. Réserver progression, tendance et tons au layout historique `standard`. Le composant ne transforme pas un zéro ou une erreur en absence de donnée.
+
+`QuickActions variant="shortcuts"` présente des liens avec `label`, `href`, `description` et `icon` facultatifs. `showHeader={false}` masque facultativement l’introduction du bloc ; Documents/Devis la conservent. Le défaut `steps` conserve badges, étapes et état terminé. Les classes d’ajustement restent locales, sans duplication de la composition.
+
+La référence validée est utilisée directement dans les en-têtes Documents et Devis. Ne pas imposer ce bandeau au Dashboard, à l’état du parc Logements ou aux espaces plus denses. Conserver les sections, filtres et états existants tant que leur migration n’est pas explicitement engagée.
+
 ## Layout et animations — phase 2
 
 Utiliser les imports directs pour distinguer `layout/Section` de l’ancien composant `ui/Section` :
@@ -53,7 +65,7 @@ Validation reproductible : `npm run lint`, `npm run typecheck`, `npm run build`,
 - Ce README est la documentation technique des imports, APIs publiques et regles de migration. En cas de divergence, les types TypeScript et les composants exportes sont la preuve d'implementation.
 - Les nouveaux composants utilisent uniquement les tokens `--ds-*` définis dans `src/styles/tokens/tokens.css`, également disponibles via `@/styles/tokens` en TypeScript. L’organisation et les règles de contribution sont décrites dans `DESIGN_SYSTEM.md` à la racine.
 - `--ui-*` et `--dash-*` sont des alias de compatibilite : ils restent en place pour les ecrans existants, mais ne doivent plus etre choisis pour un nouveau developpement.
-- Police cible : `Montserrat` pour l'interface et `Open Sans` pour le contenu. `next/font` est la methode a adopter lors d'un lot dedie de chargement de polices ; aucune migration massive n'est incluse dans la Phase 1.
+- Polices canoniques : Cormorant Garamond/Georgia pour les titres, Inter/Segoe UI pour l’interface et le corps (`--ds-font-heading`, `--ds-font-ui`, `--ds-font-body`). Le chargement de polices reste inchangé dans ce lot.
 - Icones officielles : `lucide-react`. `react-icons` reste supporte uniquement dans les ecrans non migres.
 
 ## Composants officiels
@@ -108,7 +120,8 @@ Validation reproductible : `npm run lint`, `npm run typecheck`, `npm run build`,
 
 ## Variants autorises
 
-- `Button`: `primary | secondary | outline | ghost | paper | dark`
+- `Button` et `ButtonLink` : `primary | secondary | outline | ghost | danger | success | paper | dark`. Primaire vert, secondaire neutre bordé, ghost discret, danger rouge, succès pour une confirmation positive ; les trois variantes historiques restent disponibles. Toutes les couleurs sont pilotées par `--ds-action-*` dans `tokens.css`.
+- `Container` : `compact` 1220 px, `standard` 1280 px, `large` 1400 px. Compatibilité : `sm` 640 px, `md` 840 px, `lg` 1120 px (défaut inchangé), `xl` alias standard, `full` sans plafond. Choisir le rythme interne séparément via `Section` ; ne pas assimiler densité et largeur.
 - `Badge`: `neutral | gold | dark | success | warning | danger | info | progress`
 - `Tag`: `default | category | status`
 - `Card`: sizes `small | large`, tones `elevated | outlined | soft | dark`

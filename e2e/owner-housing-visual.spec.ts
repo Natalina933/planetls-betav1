@@ -17,6 +17,7 @@ async function fixtures(page:Page,context:BrowserContext,role="owner") {
       if(state.mode==="loading")await new Promise(resolve=>setTimeout(resolve,1800));
       json=state.mode==="empty"?[]:[{id:1,nom_logement:"Villa Horizon",ville:"Le Barcarès",statut:"pret",photo_principale:"/images/generated/dashboard/dashboard-header-bandeau.png",infos:{capacite:4,equipements:["Wifi"],description:"Maison lumineuse près de la mer."}},{id:2,nom_logement:"Mas des Oliviers",ville:"Perpignan",statut:"draft",infos:{capacite:2}}];
     }else if(path==="/api/service-requests")json={items:[{property_housing_id:1,selected_concierge_name:"Conciergerie Horizon",selected_concierge_profile_id:"concierge-1"}]};
+    else if(path==="/api/owner/reservations")json={reservations:[]};
     else if(path.startsWith("/api/profiles/public/"))json={profile:{display_name:"Conciergerie Horizon"}};
     else if(["/api/invoices","/api/quotes","/api/missions","/api/reviews"].includes(path))json=[];
     await route.fulfill({json});
@@ -26,7 +27,7 @@ async function fixtures(page:Page,context:BrowserContext,role="owner") {
 test("logements : recherche, corrections, liens et quatre formats",async({page,context})=>{
   const state=await fixtures(page,context);await page.goto("/dashboard/owner/logements");
   await expect(page.getByRole("heading",{name:"Villa Horizon",exact:true})).toBeVisible();
-  await expect(page.getByText("Concierge accepté : Conciergerie Horizon")).toBeVisible();
+  await expect(page.getByRole("region",{name:"Tous les logements"})).toBeVisible();
   for(const width of [1600,1366,768,390]){
     await page.setViewportSize({width,height:1000});await page.evaluate(()=>window.scrollTo(0,0));
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
@@ -39,8 +40,8 @@ test("logements : recherche, corrections, liens et quatre formats",async({page,c
   await page.getByRole("link",{name:"À revoir (1)",exact:true}).click();
   await expect(page).toHaveURL(/filter=review/);
   await expect(page.getByRole("heading",{name:"Villa Horizon",exact:true})).toHaveCount(0);
-  await expect(page.getByRole("link",{name:"Commencer",exact:true})).toHaveAttribute("href","/dashboard/owner/logements/2?tab=synthese#photos");
-  await expect(page.getByRole("link",{name:"Votre parc Ajouter un logement"})).toHaveAttribute("href","/dashboard/owner/logements/create");
+  await expect(page.getByRole("link",{name:"Corriger",exact:true})).toHaveAttribute("href","/dashboard/owner/logements/2?tab=synthese#photos");
+  await expect(page.getByRole("main").getByRole("link",{name:"Ajouter un logement",exact:true})).toHaveAttribute("href","/dashboard/owner/logements/create");
   expect(state.calls).toEqual([]);expect(state.errors).toEqual([]);
 });
 
@@ -53,7 +54,7 @@ test("logements : chargement, erreur, reprise et vide",async({page,context})=>{
   await expect(page.getByRole("alert").filter({hasText:"Impossible de charger les logements"})).toBeVisible();
   state.mode="empty";await page.getByRole("button",{name:"Réessayer",exact:true}).click();
   await expect(page.getByRole("heading",{name:"Commencez votre parc",exact:true})).toBeVisible();
-  await expect(page.getByRole("link",{name:"Ajouter mon premier logement",exact:true})).toHaveAttribute("href","/dashboard/owner/logements/create");
+  await expect(page.getByRole("region",{name:"Commencez votre parc"}).getByRole("link",{name:"Ajouter mon premier logement",exact:true})).toHaveAttribute("href","/dashboard/owner/logements/create");
   expect(state.calls).toEqual([]);expect(state.errors).toEqual([]);
 });
 

@@ -5,7 +5,18 @@ import { ArrowRight, FileText, Files, Receipt, CircleCheck, House } from "lucide
 import { Badge, Button, ButtonLink, Card, Input, Select } from "@/components/ui";
 import { invoiceDate, invoiceStatusLabel } from "../factures/invoicePresentation";
 import type { OwnerInvoiceRow, OwnerQuoteRow } from "./page";
+import { Section } from "@/components/ui/Section";
+import { CardHeader } from "@/components/ui/Card";
+import { TableFilters } from "@/components/ui/TableFilters";
+import { DataTable } from "@/components/ui/DataTable";
+import { Alert } from "@/components/ui/Alert";
+import { AsyncState } from "@/components/ui/AsyncState";
+import { EmptyState } from "@/features/shared/components/EmptyState/EmptyState";
 import styles from "./OwnerDocumentsOverview.module.scss";
+import { PageHeader } from "@/components/ui/PageHeader/PageHeader";
+import { MetricGroup } from "@/components/ui/StatsCard/MetricGroup";
+import { StatsCard } from "@/components/ui/StatsCard/StatsCard";
+import { QuickActions } from "@/components/ui/dashboard/QuickActions/QuickActions";
 
 type Props = {
   quotes: OwnerQuoteRow[];
@@ -34,34 +45,33 @@ export default function OwnerDocumentsOverview({ quotes, invoices, pendingQuotes
     { label: "À suivre", value: pendingQuotes + pendingInvoices, hint: "Validation et règlement", icon: CircleCheck },
   ];
   return <div className={styles.page} aria-busy={loading}>
-    <header className={styles.hero}>
-      <nav aria-label="Fil d’Ariane">Propriétaire <span aria-hidden="true">›</span> Documents</nav>
-      <p className={styles.eyebrow}>Documents et justificatifs</p><h1>Vos documents, au même endroit</h1>
-      <p>Retrouvez vos devis et factures, suivez les validations et gardez vos justificatifs à portée de main.</p>
-      <blockquote>« Des séjours sereins, des logements qui performent. »</blockquote>
-    </header>
-    <section className={styles.metrics} aria-label="Indicateurs documentaires">
-      {metrics.map(({ label, value, hint, icon: Icon }) => <Card className={styles.metric} key={label}><Icon aria-hidden="true" /><div><strong>{loading || error ? "—" : value}</strong><h2>{label}</h2><p>{loading || error ? "Documents récents" : hint}</p></div></Card>)}
-    </section>
-    <Card className={styles.quickActions}><div><p className={styles.eyebrow}>Actions rapides</p><h2>Faire maintenant</h2></div>
-      <ButtonLink className={styles.quickAction} href="/dashboard/owner/devis" variant="secondary"><FileText aria-hidden="true" /><span><small>Validation</small>Consulter mes devis</span><ArrowRight aria-hidden="true" /></ButtonLink>
-      <ButtonLink className={styles.quickAction} href="/dashboard/owner/factures" variant="secondary"><Receipt aria-hidden="true" /><span><small>Règlements</small>Suivre mes factures</span><ArrowRight aria-hidden="true" /></ButtonLink>
-    </Card>
-    <section className={styles.library} aria-labelledby="documents-title">
-      <div className={styles.heading}><div><p className={styles.eyebrow}>Bibliothèque</p><h2 id="documents-title">Mes documents</h2></div><p>{loading || error ? "—" : filtered.length} document(s)</p></div>
-      <div className={styles.filters}>
+    <PageHeader variant="illustrated" className={styles.hero} breadcrumb={<>Propriétaire <span aria-hidden="true">›</span> Documents</>} eyebrow="Documents et justificatifs" title="Vos documents, au même endroit" description="Retrouvez vos devis et factures, suivez les validations et gardez vos justificatifs à portée de main." quote="« Des séjours sereins, des logements qui performent. »" />
+    <MetricGroup aria-label="Indicateurs documentaires">
+      {metrics.map(({ label, value, hint, icon: Icon }) => <StatsCard layout="summary" className={styles.metric} key={label} label={label} value={loading || error ? "—" : String(value)} hint={loading || error ? "Documents récents" : hint} visual={<Icon aria-hidden="true" />} />)}
+    </MetricGroup>
+    <QuickActions variant="shortcuts" className={styles.quickActions} actionClassName={styles.quickAction} actions={[
+      { href: "/dashboard/owner/devis", label: "Consulter mes devis", description: "Validation", icon: <FileText aria-hidden="true" /> },
+      { href: "/dashboard/owner/factures", label: "Suivre mes factures", description: "Règlements", icon: <Receipt aria-hidden="true" /> },
+    ]} />
+    <Section tone="elevated" aria-labelledby="documents-title">
+      <CardHeader variant="plain"><div><p className={styles.eyebrow}>Bibliothèque</p><h2 id="documents-title">Mes documents</h2></div><p>{loading || error ? "—" : filtered.length} document(s)</p></CardHeader>
+      <TableFilters layout="fields" showMeta={false}>
         <Input aria-label="Rechercher un document" placeholder="Rechercher un numéro, un statut…" value={search} onChange={event => setSearch(event.target.value)} />
         <Select aria-label="Type de document" value={type} onChange={event => setType(event.target.value)}><option value="all">Tous les documents</option><option value="quote">Devis</option><option value="invoice">Factures</option></Select>
         <Select aria-label="Suivi des documents" value={attention} onChange={event => setAttention(event.target.value)}><option value="all">Tous les suivis</option><option value="pending">À suivre</option></Select>
         <Button variant="ghost" onClick={() => { setSearch(""); setType("all"); setAttention("all"); }}>Réinitialiser</Button>
-      </div>
-      {loading ? <p role="status">Chargement des documents…</p> : error ? <div role="alert" className={styles.error}><p>{error}</p><Button variant="secondary" onClick={() => window.location.reload()}>Réessayer</Button></div> : filtered.length ? <div className={styles.tableWrap}>
-        <table><caption>Devis et factures récents</caption><thead><tr><th scope="col">Document</th><th scope="col">Type</th><th scope="col">Date limite</th><th scope="col">Statut</th><th scope="col">Actions</th></tr></thead>
-          <tbody>{filtered.map(row => <tr key={`${row.type}-${row.id}`}><td data-label="Document"><span className={styles.documentName}><FileText size={20} aria-hidden="true" /><strong>{row.label}</strong></span></td><td data-label="Type">{row.type === "quote" ? "Devis" : "Facture"}</td><td data-label="Date limite"><span><small>{row.type === "quote" ? "Validité" : "Échéance"}</small>{invoiceDate(row.date)}</span></td><td data-label="Statut"><Badge variant={row.pending ? "warning" : "neutral"}>{row.status}</Badge></td><td data-label="Actions"><div className={styles.rowActions}><ButtonLink href={row.href} target="_blank" rel="noreferrer" variant="secondary" size="sm">Consulter</ButtonLink><ButtonLink href={`${row.href}?print=1`} target="_blank" rel="noreferrer" variant="ghost" size="sm">Imprimer / PDF</ButtonLink></div></td></tr>)}</tbody>
-        </table>
-      </div> : <div className={styles.empty}><Files aria-hidden="true" /><h3>{documents.length ? "Aucun résultat pour ces filtres" : "Vos documents apparaîtront ici"}</h3><p>{documents.length ? "Modifiez votre recherche ou réinitialisez les filtres." : "Les devis et factures disponibles seront regroupés dans cette bibliothèque."}</p></div>}
+      </TableFilters>
+      {loading ? <AsyncState loading loadingPresentation="text" loadingLabel="Chargement des documents…">{null}</AsyncState> : error ? <Alert tone="danger" appearance="inline" announcement="assertive" action={<Button variant="secondary" onClick={() => window.location.reload()}>Réessayer</Button>}>{error}</Alert> : filtered.length ? (
+        <DataTable variant="records" responsiveStrategy="cards" caption="Devis et factures récents" rows={filtered} getRowId={row => `${row.type}-${row.id}`} columns={[
+          { id: "document", label: "Document", render: row => <span className={styles.documentName}><FileText size={20} aria-hidden="true" /><strong>{row.label}</strong></span> },
+          { id: "type", label: "Type", render: row => row.type === "quote" ? "Devis" : "Facture" },
+          { id: "date", label: "Date limite", render: row => <span><small>{row.type === "quote" ? "Validité" : "Échéance"}</small>{invoiceDate(row.date)}</span> },
+          { id: "status", label: "Statut", render: row => <Badge variant={row.pending ? "warning" : "neutral"}>{row.status}</Badge> },
+          { id: "actions", label: "Actions", render: row => <div className={styles.rowActions}><ButtonLink href={row.href} target="_blank" rel="noreferrer" variant="secondary" size="sm">Consulter</ButtonLink><ButtonLink href={`${row.href}?print=1`} target="_blank" rel="noreferrer" variant="ghost" size="sm">Imprimer / PDF</ButtonLink></div> },
+        ]} />
+      ) : <EmptyState variant="centered" illustration={<Files aria-hidden="true" />} title={documents.length ? "Aucun résultat pour ces filtres" : "Vos documents apparaîtront ici"} description={documents.length ? "Modifiez votre recherche ou réinitialisez les filtres." : "Les devis et factures disponibles seront regroupés dans cette bibliothèque."} />}
       <p className={styles.note}>Cette vue présente les dix derniers devis et les dix dernières factures. Pour poursuivre leur suivi, ouvrez la rubrique correspondante.</p>
-    </section>
+    </Section>
     <section className={styles.tips} aria-label="Repères documentaires">
       <Card><h2>Valider sereinement</h2><p>Relisez les devis en attente avant de confirmer une prestation.</p><ButtonLink href="/dashboard/owner/devis" variant="ghost">Ouvrir les devis <ArrowRight size={16} aria-hidden="true" /></ButtonLink></Card>
       <Card><h2>Garder une trace</h2><p>Ouvrez le document puis utilisez l’impression pour conserver une copie PDF.</p></Card>

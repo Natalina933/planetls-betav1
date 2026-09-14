@@ -23,6 +23,7 @@ export type AsyncStateProps = {
   error?: string | null;
   isEmpty?: boolean;
   loadingLabel?: string;
+  loadingPresentation?: "skeleton" | "text";
   emptyLabel?: string;
   className?: string;
   children: ReactNode;
@@ -34,6 +35,7 @@ export function AsyncState({
   error = null,
   isEmpty = false,
   loadingLabel = "Chargement...",
+  loadingPresentation = "skeleton",
   emptyLabel = "Aucune donnée disponible.",
   className = "",
   children,
@@ -54,6 +56,7 @@ export function AsyncState({
   }
 
   if (state?.status === "loading" || loading) {
+    if (loadingPresentation === "text") return <p className={className} role="status">{state?.status === "loading" ? state.message ?? loadingLabel : loadingLabel}</p>;
     return (
       <div className={classes} role="status" aria-live="polite">
         <div className={styles.skeletonPanel}>

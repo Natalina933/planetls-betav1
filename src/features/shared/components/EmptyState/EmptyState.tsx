@@ -3,6 +3,7 @@ import styles from "./EmptyState.module.scss";
 
 type EmptyStateProps = {
   title: string;
+  variant?: "default" | "centered";
   description: string;
   illustration?: ReactNode;
   primaryAction?: ReactNode;
@@ -12,6 +13,7 @@ type EmptyStateProps = {
 
 export function EmptyState({
   title,
+  variant = "default",
   description,
   illustration,
   primaryAction,
@@ -19,18 +21,19 @@ export function EmptyState({
   className = "",
 }: EmptyStateProps) {
   const rootClassName = [
-    styles.root,
-    illustration ? styles.withIllustration : "",
+    variant === "centered" ? styles.centered : styles.root,
+    illustration && variant === "default" ? styles.withIllustration : "",
     className,
   ]
     .filter(Boolean)
     .join(" ");
 
+  const Title = variant === "centered" ? "h3" : "h2";
   return (
     <section className={rootClassName}>
       {illustration ? <div className={styles.illustration}>{illustration}</div> : null}
       <div className={styles.content}>
-        <h2 className={styles.title}>{title}</h2>
+        <Title className={variant === "centered" ? styles.centeredTitle : styles.title}>{title}</Title>
         <p className={styles.description}>{description}</p>
         {primaryAction || secondaryAction ? (
           <div className={styles.actions}>

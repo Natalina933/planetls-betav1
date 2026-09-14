@@ -53,7 +53,7 @@
   /* Vert plus foncé */
   --ds-color-accent-soft: #e5eee8;
   /* Vert très clair */
-  --ds-color-sage: #91a997;
+  --ds-color-sage: #dfe8df;
   /* Décor végétal */
 
   /* Couleurs de fond */
@@ -82,6 +82,15 @@
   /* Texte atténué */
   --ds-color-text-inverse: #f8f3e9;
   /* Texte sur fond sombre */
+  --ds-color-surface-inverse: #1d2430;
+  --ds-color-surface-inverse-raised: #2b3448;
+  --ds-color-text-inverse-muted: #c7b9ab;
+  --ds-color-border-inverse: #65717c;
+
+  /* Actions indépendantes des accents décoratifs et de leurs thèmes. */
+  --ds-color-action-primary: #276a58;
+  --ds-color-action-primary-hover: #1e5648;
+  --ds-color-on-action: #fffdf8;
 
   /* Couleurs de bordure */
   --ds-color-border: #dfd3bf;
@@ -170,6 +179,12 @@
   --ds-text-eyebrow-transform: uppercase;
   --ds-leading-heading: 1.05;
   --ds-leading-body: 1.7;
+  --ds-leading-ui: 1.5;
+  --ds-text-page-title: var(--ds-text-4xl);
+  --ds-text-section-title: var(--ds-text-2xl);
+  --ds-text-section-display: clamp(var(--ds-text-2xl), 3vw, var(--ds-text-3xl));
+  --ds-text-subtitle: var(--ds-text-lg);
+  --ds-text-secondary: var(--ds-text-sm);
 
   /* --------------------------------------------------------------------------
      ESPACEMENTS - Echelle officielle PlanetLS
@@ -206,6 +221,11 @@
   /* Gap entre sections */
   --ds-space-card: var(--ds-space-5);
   /* Espacement dans cartes */
+  --ds-space-container-inline: clamp(1rem, 2vw, 1.5rem);
+  --ds-space-section-stack: var(--ds-space-6);
+  --ds-space-section-compact: var(--ds-space-4);
+  --ds-space-section-standard: var(--ds-space-6);
+  --ds-space-section-spacious: var(--ds-space-7);
 
   /* --------------------------------------------------------------------------
      RAYONS
@@ -292,9 +312,16 @@
      -------------------------------------------------------------------------- */
 
   /* Largeurs */
-  --ds-layout-max-width: 1280px;
+  --ds-container-sm: 640px;
+  --ds-container-md: 840px;
+  --ds-container-lg: 1120px;
+  --ds-container-compact: 1220px;
+  --ds-container-standard: 1280px;
+  --ds-container-large: 1400px;
+  /* La densité est un rythme interne, pas une largeur de conteneur. */
+  --ds-layout-max-width: var(--ds-container-standard);
   /* Largeur max contenu */
-  --ds-layout-content: 1280px;
+  --ds-layout-content: var(--ds-container-standard);
   /* Largeur contenu principal */
   --ds-layout-sidebar: 240px;
   /* Sidebar standard */
@@ -322,6 +349,7 @@
 
   --ds-border-subtle: 1px solid var(--ds-color-border);
   --ds-border-strong: 1px solid var(--ds-color-border-strong);
+  --ds-focus-outline: 2px solid var(--ds-color-action-primary);
 
   /* --------------------------------------------------------------------------
      SURFACES GRADIENT
@@ -344,15 +372,17 @@
   --ds-color-gold-soft: var(--ds-color-primary-soft);
   --ds-color-brown: var(--ds-color-secondary);
   --ds-color-brown-strong: var(--ds-color-secondary-hover);
-  --ds-color-dark: #1d2430;
-  --ds-color-dark-soft: #2b3448;
+  --ds-color-dark: var(--ds-color-surface-inverse);
+  --ds-color-dark-soft: var(--ds-color-surface-inverse-raised);
   --ds-color-danger: var(--ds-color-error);
   --ds-color-bluegray: #e7edf1;
-  --ds-color-ivory: #fffdf8;
-  --ds-color-sage: #dfe8df;
+  --ds-color-ivory: var(--ds-color-surface-premium);
   --ds-color-clay: #f1e3dc;
   --ds-color-teal: var(--ds-color-accent);
   --ds-color-teal-soft: #e7f1f0;
+  /* Valeurs des fallbacks historiques, conservées sans recolorer les pages. */
+  --ds-color-teal-strong: #2a6f7a;
+  --ds-surface-muted: #f7f1ea;
   --ds-color-ink: #1a2530;
 
   /* Alias --ui-* (compatibilité) */
@@ -400,7 +430,6 @@
 
   /* Tailles */
   --ui-card-small-max: 320px;
-  --ui-card-large-max: 520px;
   --ui-avatar-sm: 32px;
   --ui-avatar-md: 48px;
   --ui-avatar-lg: 72px;
@@ -410,13 +439,13 @@
 
 /* ==========================================================================
    THÈME DASHBOARD PARTAGÉ
-   Référence concierge pour tous les espaces
+   Socle partagé ; référence de composition Propriétaire retravaillée
    ========================================================================== */
 
 .dashboard-root,
 [data-dashboard-theme],
 [data-owner-dashboard] {
-  /* Référence concierge commune ; les pages publiques gardent leur palette. */
+  /* Palette existante conservée ; les pages publiques gardent leur palette. */
   --ds-color-primary: #276a58;
   --ds-color-primary-hover: #1e5648;
   --ds-color-primary-soft: #e3f0eb;
@@ -584,7 +613,7 @@
 
   /* Layout Art Déco */
   --ds-layout-sidebar: 240px;
-  --ds-layout-content: 1280px;
+  --ds-layout-content: var(--ds-container-standard);
   --ds-layout-card: 240px;
 }
 
@@ -618,6 +647,51 @@
   --ds-shadow-sm: 0 10px 24px rgba(7, 9, 14, 0.2);
   --ds-shadow-md: 0 16px 36px rgba(7, 9, 14, 0.28);
   --ds-shadow-lg: 0 24px 48px rgba(7, 9, 14, 0.34);
+}
+
+/* Contrat des actions : recalculé à chaque frontière de thème/dashboard.
+ * Une variable héritée est déjà résolue : ces alias doivent rester locaux
+ * aux scopes qui redéfinissent les couleurs, y compris les thèmes imbriqués.
+ */
+:root,
+[data-theme],
+.theme-art-deco,
+.dashboard-root,
+[data-dashboard-theme],
+[data-owner-dashboard] {
+  --ds-focus-outline: 2px solid var(--ds-color-accent);
+  --ds-action-primary-bg: var(--ds-color-action-primary);
+  --ds-action-primary-hover: var(--ds-color-action-primary-hover);
+  --ds-action-primary-text: var(--ds-color-on-action);
+  --ds-action-outline-text: var(--ds-color-accent);
+  --ds-action-secondary-bg: var(--ds-surface-premium);
+  --ds-action-secondary-hover: var(--ds-color-surface-soft);
+  --ds-action-secondary-text: var(--ds-color-text-primary);
+  --ds-action-secondary-border: var(--ds-color-border);
+  --ds-action-ghost-text: var(--ds-color-text-secondary);
+  --ds-action-ghost-hover-text: var(--ds-color-text-primary);
+  --ds-action-ghost-hover-bg: color-mix(in srgb, var(--ds-color-text-primary) 7%, transparent);
+  --ds-action-danger-bg: var(--ds-color-error-hover);
+  --ds-action-danger-hover: color-mix(in srgb, var(--ds-color-error-hover) 88%, var(--ds-color-surface-inverse));
+  --ds-action-success-bg: var(--ds-color-success-hover);
+  --ds-action-success-hover: color-mix(in srgb, var(--ds-color-success-hover) 88%, var(--ds-color-surface-inverse));
+  --ds-action-paper-bg: var(--ds-color-surface-premium);
+  --ds-action-paper-hover: var(--ds-color-background-soft);
+  --ds-action-paper-text: var(--ds-color-secondary);
+  --ds-action-paper-border: color-mix(in srgb, var(--ds-color-gold) 24%, transparent);
+  --ds-action-dark-bg: linear-gradient(135deg, var(--ds-color-surface-inverse-raised), var(--ds-color-surface-inverse));
+  --ds-action-dark-hover: var(--ds-color-surface-inverse-raised);
+  --ds-action-dark-text: var(--ds-color-on-action);
+  --ds-action-ornament: color-mix(in srgb, var(--ds-color-gold) 45%, transparent);
+  --ds-action-ornament-inverse: color-mix(in srgb, var(--ds-color-on-action) 70%, transparent);
+}
+
+[data-theme="mucha-dark"],
+[data-theme="dark"] {
+  --ds-action-secondary-bg: var(--ds-color-surface);
+  --ds-action-paper-bg: var(--ds-color-surface);
+  --ds-action-paper-hover: var(--ds-color-surface-soft);
+  --ds-action-paper-text: var(--ds-color-text-primary);
 }
 
 /* ==========================================================================

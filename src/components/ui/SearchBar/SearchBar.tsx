@@ -13,6 +13,7 @@ export type SearchBarProps = {
   buttonClassName?: string;
   onSearch: (query: string) => void;
   className?: string;
+  appearance?: "plain" | "outlined";
   inputRef?: Ref<HTMLInputElement>;
   inputProps?: Omit<InputHTMLAttributes<HTMLInputElement>, "value">;
 };
@@ -25,6 +26,7 @@ export function SearchBar({
   buttonClassName = "",
   onSearch,
   className = "",
+  appearance = "plain",
   inputRef,
   inputProps,
 }: SearchBarProps) {
@@ -44,7 +46,7 @@ export function SearchBar({
   };
 
   return (
-    <form className={[styles.searchBar, className].filter(Boolean).join(" ")} role="search" onSubmit={handleSubmit}>
+    <form className={[styles.searchBar, appearance === "outlined" ? styles.outlined : "", className].filter(Boolean).join(" ")} role="search" onSubmit={handleSubmit}>
       <Input
         ref={inputRef}
         className={styles.input}

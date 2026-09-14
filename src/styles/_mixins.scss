@@ -1,5 +1,5 @@
 @mixin ui-focus-ring {
-  outline: 2px solid color-mix(in srgb, var(--ds-color-primary) 58%, transparent);
+  outline: var(--ds-focus-outline);
   outline-offset: 2px;
   box-shadow: var(--ds-shadow-focus);
 }

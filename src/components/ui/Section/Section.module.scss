@@ -1,19 +1,19 @@
 .section {
   width: 100%;
   display: grid;
-  gap: var(--ui-space-4);
+  gap: var(--ds-space-4);
 }
 
 .compact {
-  padding-block: var(--ui-space-4);
+  padding-block: var(--ds-space-section-compact);
 }
 
 .default {
-  padding-block: var(--ui-space-6);
+  padding-block: var(--ds-space-section-standard);
 }
 
 .spacious {
-  padding-block: var(--ui-space-7);
+  padding-block: var(--ds-space-section-spacious);
 }
 
 .toneDefault {
@@ -21,7 +21,11 @@
 
 .toneSoft {
   background: var(--ds-color-surface-soft);
-  border-radius: var(--ui-card-radius, var(--ds-radius-lg));
+  border-radius: var(--ds-radius-card);
   border: var(--ds-border-subtle);
-  padding-inline: var(--ui-space-4);
+  padding-inline: var(--ds-space-4);
 }
+
+.section.outlined, .section.elevated { min-width: 0; padding: var(--ds-space-5); border: var(--ds-border-subtle); border-radius: var(--ds-radius-card); background: var(--ds-color-surface); }
+.elevated { box-shadow: var(--ds-shadow-sm); }
+@media (max-width: 640px) { .section.outlined, .section.elevated { padding: var(--ds-space-4); } }

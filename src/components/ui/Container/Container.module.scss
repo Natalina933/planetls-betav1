@@ -1,23 +1,32 @@
 .container {
   width: 100%;
   margin-inline: auto;
-  padding-inline: clamp(1rem, 2vw, 1.5rem);
+  padding-inline: var(--ds-space-container-inline);
 }
 
 .sm {
-  max-width: 640px;
+  max-width: var(--ds-container-sm);
 }
 
 .md {
-  max-width: 840px;
+  max-width: var(--ds-container-md);
 }
 
 .lg {
-  max-width: 1120px;
+  max-width: var(--ds-container-lg);
 }
 
-.xl {
-  max-width: 1280px;
+.xl,
+.standard {
+  max-width: var(--ds-container-standard);
+}
+
+.compact {
+  max-width: var(--ds-container-compact);
+}
+
+.large {
+  max-width: var(--ds-container-large);
 }
 
 .full {

@@ -45,3 +45,5 @@
   font-size: 0.78rem;
   color: var(--ds-color-danger);
 }
+
+.input.compact { min-height: 40px; padding: var(--ds-space-2) var(--ds-space-3); border: var(--ds-border-subtle); border-radius: var(--ds-radius-control); background: var(--ds-color-surface); color: var(--ds-color-text-primary); font: inherit; }

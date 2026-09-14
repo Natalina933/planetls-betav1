@@ -13,16 +13,30 @@ export interface StatsCardProps {
   progress?: number;
   visual?: ReactNode;
   visualLabel?: string;
+  layout?: "standard" | "summary";
+  className?: string;
 }
 
-export function StatsCard({ label, value, hint, trend, tone = "default", progress, visual, visualLabel }: StatsCardProps) {
+export function StatsCard({ label, value, hint, trend, tone = "default", progress, visual, visualLabel, layout = "standard", className = "" }: StatsCardProps) {
+  if (layout === "summary") {
+    return (
+      <Card className={[styles.summary, className].filter(Boolean).join(" ")}>
+        {visual}
+        <div>
+          <strong>{value}</strong>
+          <h2 className={styles.summaryLabel}>{label}</h2>
+          {hint && <p className={styles.summaryHint}>{hint}</p>}
+        </div>
+      </Card>
+    );
+  }
   const normalizedProgress =
     typeof progress === "number" && Number.isFinite(progress)
       ? Math.min(100, Math.max(0, progress))
       : null;
 
   return (
-    <Card tone={tone === "dark" ? "dark" : tone === "soft" ? "soft" : "elevated"} className={[styles.statsCard, styles[tone]].join(" ")}>
+    <Card tone={tone === "dark" ? "dark" : tone === "soft" ? "soft" : "elevated"} className={[styles.statsCard, styles[tone], className].filter(Boolean).join(" ")}>
       <CardBody>
         <div className={styles.header}>
           <span className={styles.label}>{label}</span>

@@ -1,10 +1,9 @@
 "use client";
 
 import React, { Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Eye, FileText, Route, XCircle } from "lucide-react";
-import { SearchBar, Button, Tag } from "@/components/ui";
+import { SearchBar, Button, ButtonLink, Input, Select, Tag } from "@/components/ui";
 import { EmptyState } from "@/features/shared/components/EmptyState/EmptyState";
 import type { WorkflowTimelineStep } from "@/features/service-requests";
 import {
@@ -14,6 +13,11 @@ import {
 } from "@/features/owner-dashboard";
 import { ownerApiError } from "../ownerFeedback";
 import OwnerQuotesHeader from "./OwnerQuotesHeader";
+import { Section } from "@/components/ui/Section";
+import { CardHeader } from "@/components/ui/Card";
+import { TableFilters } from "@/components/ui/TableFilters";
+import { Alert } from "@/components/ui/Alert";
+import { AsyncState } from "@/components/ui/AsyncState";
 import styles from "./OwnerQuotesPage.module.scss";
 
 type QuotePerson = {
@@ -248,7 +252,7 @@ export default function OwnerQuotesPage() {
     <Suspense
       fallback={
         <section className="dashboard-grid">
-          <p>Chargement des devis...</p>
+          <AsyncState loading loadingPresentation="text" loadingLabel="Chargement des devis...">{null}</AsyncState>
         </section>
       }
     >
@@ -545,21 +549,20 @@ function OwnerQuotesContent() {
     <div className={styles.page}>
       <OwnerQuotesHeader loading={loading || Boolean(error)} count={filteredQuotes.length} properties={propertyCountWithQuotes} pending={pendingQuotes.length} amount={formatAmount(totalAmount)} />
 
-      <section className={styles.conciergeDashboardFlow}>
-        <div className={styles.conciergeSectionHeader}><h2>Vos propositions</h2><p className={styles.conciergeNextStep}>Comparez les prestations avant de confirmer votre choix.</p></div>
+      <Section tone="outlined" className={styles.content}>
+        <CardHeader variant="plain"><h2>Vos propositions</h2><p className={styles.conciergeNextStep}>Comparez les prestations avant de confirmer votre choix.</p></CardHeader>
 
-        <div className={styles.toolbar}>
+        <TableFilters layout="toolbar" showMeta={false}>
           <SearchBar
             defaultValue={searchTerm}
             onSearch={setSearchTerm}
             placeholder="Rechercher une demande, un concierge ou un devis"
-            className={styles.field}
+            appearance="outlined"
             buttonLabel="Filtrer"
           />
-          <select
+          <Select bare density="compact"
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
-            className={styles.select}
             aria-label="Filtrer les devis par statut"
           >
             <option value="all">Tous statuts</option>
@@ -570,16 +573,16 @@ function OwnerQuotesContent() {
             <option value="DECLINED">Refusée</option>
             <option value="EXPIRED">Expirée</option>
             <option value="accepted">Devis accepté</option><option value="rejected">Devis refusé</option><option value="expired">Devis expiré</option>
-          </select>
-          <button
+          </Select>
+          <Button size="compact"
             type="button"
             onClick={exportQuotesCsv}
             disabled={filteredQuotes.length === 0}
-            className={styles.buttonSecondary}
+            variant="secondary"
           >
             Export CSV
-          </button>
-        </div>
+          </Button>
+        </TableFilters>
 
         {!loading && !error ? (
           <div className={styles.decisionRail} aria-label="Synthèse de décision des devis">
@@ -605,8 +608,8 @@ function OwnerQuotesContent() {
         {!loading && !error && groupedQuotes.length > 0 ? <p className={styles.conciergeNextStep}>{groupedQuotes.length} demande(s) avec réponses · Jusqu’à {Math.max(...groupedQuotes.map(group => group.quotes.length))} proposition(s) par demande.</p> : null}
 
         {loading ? <p>Chargement des devis...</p> : null}
-        {!loading && error ? <div role="alert" className={`${styles.message} ${styles.messageError}`}><p>{error}</p><Button variant="secondary" onClick={() => void loadData()}>Réessayer</Button></div> : null}
-        {success ? <p role="status" className={`${styles.message} ${styles.messageSuccess}`}>{success}</p> : null}
+        {!loading && error ? <Alert tone="danger" appearance="message" announcement="assertive" action={<Button variant="secondary" onClick={() => void loadData()}>Réessayer</Button>}>{error}</Alert> : null}
+        {success ? <Alert tone="success" appearance="message" announcement="polite">{success}</Alert> : null}
 
         {!loading && !error && groupedQuotes.length === 0 ? (
           <EmptyState
@@ -620,15 +623,15 @@ function OwnerQuotesContent() {
           <div className={styles.conciergeTimeline}>
             {propertyGroups.map((propertyGroup) => (
               <section key={propertyGroup.key} className={styles.conciergeTimelinePanel}>
-                <div className={styles.conciergeSectionHeader}>
+                <CardHeader variant="plain">
                   <div>
                     <p className={styles.eyebrow}>Suivi par logement</p>
-                    <h2 className={styles.conciergeSectionTitle}>{propertyGroup.label}</h2>
+                    <h2>{propertyGroup.label}</h2>
                   </div>
                   <span className={`${styles.conciergeStatusPill} ${styles.statusInfo}`}>
                     {propertyGroup.groups.length} demande(s)
                   </span>
-                </div>
+                </CardHeader>
 
                 <p className={styles.conciergeNextStep}>
                   Chaque demande et chaque devis affichés ci-dessous concernent ce logement.
@@ -720,17 +723,17 @@ function OwnerQuotesContent() {
                     />
                   ) : null}
 
-                  <div className={styles.conciergeSectionHeader}>
+                  <CardHeader variant="plain">
                     <div>
                       <p className={styles.eyebrow}>Réponses des concierges</p>
-                      <h2 className={styles.conciergeSectionTitle}>
+                      <h2>
                         {group.quotes.length} proposition(s) à comparer
                       </h2>
                     </div>
                     <p className={styles.conciergeNextStep}>
                       Sélectionnez jusqu&apos;à 3 devis pour activer le comparatif visuel.
                     </p>
-                  </div>
+                  </CardHeader>
 
                   <OwnerQuotesComparisonTable
                     columns={comparisonColumns.map(({ quote, recipientId, isCheapest, isMostDetailed, isFastest }) => ({
@@ -757,19 +760,19 @@ function OwnerQuotesContent() {
                       responseAt: getResponseSpeedLabel(quote),
                       actions: (
                         <>
-                          <a
+                          <ButtonLink prefetch={false} size="compact"
                             href={`/api/quotes/${quote.id}/document`}
                             target="_blank"
                             rel="noreferrer"
-                            className={styles.linkButton}
+                            variant="secondary"
                             onClick={() => handleViewQuote(quote.id)}
                           >
                             Consulter le document
-                          </a>
+                          </ButtonLink>
                           {group.request?.id && recipientId ? (
-                            <button
+                            <Button size="compact"
                               type="button"
-                              className={styles.buttonPrimary}
+                              variant="primary"
                               disabled={
                                 selectingRequestId === group.request.id ||
                                 quote.status === "accepted" ||
@@ -782,17 +785,17 @@ function OwnerQuotesContent() {
                                 : selectingRequestId === group.request.id
                                 ? "Sélection..."
                                 : "Retenir ce concierge"}
-                            </button>
+                            </Button>
                           ) : null}
                           {quote.status !== "accepted" && quote.status !== "rejected" ? (
-                            <button
+                            <Button size="compact"
                               type="button"
-                              className={styles.buttonSecondary}
+                              variant="secondary"
                               disabled={busyQuoteAction === `${quote.id}:rejected`}
                               onClick={() => void handleUpdateQuoteStatus(quote.id, "rejected")}
                             >
                               {busyQuoteAction === `${quote.id}:rejected` ? "Refus..." : "Refuser"}
-                            </button>
+                            </Button>
                           ) : null}
                         </>
                       ),
@@ -853,26 +856,26 @@ function OwnerQuotesContent() {
                           notes={quote.notes}
                           actions={
                             <>
-                              <button
+                              <Button size="compact"
                                 type="button"
-                                className={isCompared ? styles.buttonPrimary : styles.buttonSecondary}
+                                variant={isCompared ? "primary" : "secondary"}
                                 onClick={() => toggleCompare(group.key, quote.id)}
                               >
                                 {isCompared ? "Retirer du comparatif" : "Comparer"}
-                              </button>
-                              <a
+                              </Button>
+                              <ButtonLink prefetch={false} size="compact"
                                 href={`/api/quotes/${quote.id}/document`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className={styles.linkButton}
+                                variant="secondary"
                                 onClick={() => handleViewQuote(quote.id)}
                               >
                                 Ouvrir le devis
-                              </a>
+                              </ButtonLink>
                               {group.request?.id && recipientId ? (
-                                <button
+                                <Button size="compact"
                                   type="button"
-                                  className={styles.buttonPrimary}
+                                  variant="primary"
                                   disabled={
                                     selectingRequestId === group.request.id ||
                                     quote.status === "accepted" ||
@@ -885,23 +888,22 @@ function OwnerQuotesContent() {
                                     : selectingRequestId === group.request.id
                                     ? "Sélection..."
                                     : "Retenir ce concierge"}
-                                </button>
+                                </Button>
                               ) : null}
                               {!group.request?.id && quote.status !== "accepted" && quote.status !== "rejected" ? (
-                                <button
+                                <Button size="compact"
                                   type="button"
-                                  className={styles.buttonPrimary}
+                                  variant="primary"
                                   disabled={busyQuoteAction === `${quote.id}:accepted`}
                                   onClick={() => void handleUpdateQuoteStatus(quote.id, "accepted")}
                                 >
                                   {busyQuoteAction === `${quote.id}:accepted` ? "Acceptation..." : "Accepter le devis"}
-                                </button>
+                                </Button>
                               ) : null}
                               {quote.status !== "accepted" && quote.status !== "rejected" ? (
                                 <>
-                                  <input
+                                  <Input bare density="compact"
                                     type="text"
-                                    className={styles.field}
                                     value={rejectReasons[quote.id] ?? ""}
                                     onChange={(event) =>
                                       setRejectReasons((current) => ({
@@ -912,23 +914,23 @@ function OwnerQuotesContent() {
                                     placeholder="Motif de refus optionnel"
                                     aria-label="Motif de refus du devis"
                                   />
-                                <button
+                                <Button size="compact"
                                   type="button"
-                                  className={styles.buttonSecondary}
+                                  variant="secondary"
                                   disabled={busyQuoteAction === `${quote.id}:rejected`}
                                   onClick={() => void handleUpdateQuoteStatus(quote.id, "rejected")}
                                 >
                                   {busyQuoteAction === `${quote.id}:rejected` ? "Refus..." : "Refuser le devis"}
-                                </button>
+                                </Button>
                                 </>
                               ) : null}
                               {quote.status === "accepted" ? (
-                                <Link
+                                <ButtonLink size="compact"
                                   href={`/dashboard/owner/missions/voyageurs?quote=${encodeURIComponent(quote.id)}`}
-                                  className={styles.buttonPrimary}
+                                  variant="primary"
                                 >
                                   Transmettre un séjour voyageur
-                                </Link>
+                                </ButtonLink>
                               ) : null}
                             </>
                           }
@@ -943,7 +945,7 @@ function OwnerQuotesContent() {
             ))}
           </div>
         ) : null}
-      </section>
+      </Section>
       <footer className={styles.footer}><strong>PlanetLS · Mon espace propriétaire</strong><p>Des séjours sereins, des logements qui performent.</p></footer>
     </div>
   );

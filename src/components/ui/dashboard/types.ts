@@ -18,6 +18,7 @@ export interface DashboardStatItem {
 }
 
 export interface DashboardQuickAction {
+  icon?: ReactNode;
   label: string;
   href: string;
   description?: string;

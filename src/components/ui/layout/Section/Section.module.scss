@@ -82,7 +82,7 @@
 
 .title {
   font-family: var(--ds-font-heading);
-  font-size: clamp(var(--ds-text-2xl), 3vw, var(--ds-text-3xl));
+  font-size: var(--ds-text-section-display);
   font-weight: 600;
   color: var(--ds-color-text-primary);
   line-height: var(--ds-leading-heading);
@@ -96,7 +96,7 @@
 }
 
 .subtitle {
-  font-size: var(--ds-text-lg);
+  font-size: var(--ds-text-subtitle);
   color: var(--ds-color-text-secondary);
   line-height: var(--ds-leading-body);
   margin: 0;

@@ -1,7 +1,7 @@
 import { HTMLAttributes } from "react";
 import styles from "./Container.module.scss";
 
-type ContainerSize = "sm" | "md" | "lg" | "xl" | "full";
+type ContainerSize = "sm" | "md" | "lg" | "xl" | "compact" | "standard" | "large" | "full";
 
 export type ContainerProps = HTMLAttributes<HTMLDivElement> & {
   size?: ContainerSize;

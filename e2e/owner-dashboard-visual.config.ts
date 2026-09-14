@@ -8,6 +8,7 @@ export default defineConfig({
   outputDir: "../test-results/owner-modern",
   reporter: "list",
   webServer: {
+    cwd: process.cwd(),
     command: "node node_modules/next/dist/bin/next dev --webpack --hostname 127.0.0.1 --port 3105",
     url: "http://127.0.0.1:3105/login",
     reuseExistingServer: !process.env.CI,

@@ -4,7 +4,7 @@
   display: grid;
   gap: var(--dash-space-4, var(--ds-space-4));
   width: 100%;
-  max-width: 1220px;
+  max-width: var(--ds-container-compact);
   margin: 0 auto;
   padding: var(--dash-space-3, var(--ds-space-3)) var(--dash-space-3, var(--ds-space-3)) 5.6rem;
   overflow-x: hidden;

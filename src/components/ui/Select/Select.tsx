@@ -7,14 +7,15 @@ export type SelectProps = SelectHTMLAttributes<HTMLSelectElement> & {
   label?: string;
   error?: string;
   bare?: boolean;
+  density?: "default" | "compact";
   tone?: SelectTone;
 };
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(
-  { id, label, error, bare = false, tone = "default", className = "", ...props },
+  { id, label, error, bare = false, density = "default", tone = "default", className = "", ...props },
   ref,
 ) {
-  const classes = [styles.select, styles[tone], error ? styles.error : "", className].filter(Boolean).join(" ");
+  const classes = [styles.select, styles[tone], density === "compact" ? styles.compact : "", error ? styles.error : "", className].filter(Boolean).join(" ");
   const accessibleNameProps =
     label || props["aria-label"] || props["aria-labelledby"] || props.title
       ? {}

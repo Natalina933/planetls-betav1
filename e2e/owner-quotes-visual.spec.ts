@@ -3,6 +3,7 @@ import { encode } from "next-auth/jwt";
 import { readFile } from "node:fs/promises";
 
 async function fixtures(page:Page,context:BrowserContext) {
+  await page.emulateMedia({ reducedMotion: "reduce" });
   const user={id:"11111111-1111-4111-8111-111111111111",role:"owner",firstName:"Camille",email:"owner@example.test"};
   const token=await encode({secret:"traveler-stays-fixture-secret",salt:"authjs.session-token",token:{...user,sub:user.id},maxAge:3600});
   await context.addCookies([{name:"authjs.session-token",value:token,domain:"127.0.0.1",path:"/",httpOnly:true}]);
@@ -44,7 +45,19 @@ test("devis : comparaison, filtres, export et responsive",async({page,context})=
     await page.evaluate(()=>window.scrollTo(0,0));
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
     await page.screenshot({path:`test-results/owner-quotes-${width}.png`,fullPage:true});
+    await page.screenshot({path:`test-results/owner-quotes-top-${width}.png`});
+    const firstShortcut = page.getByRole("link", { name: /Vos besoins.*Suivre mes demandes/ });
+    await firstShortcut.focus();
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Shift+Tab");
+    await expect(firstShortcut).toHaveCSS("outline-style", "solid");
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("link", { name: /Votre réseau.*Trouver une conciergerie/ })).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(firstShortcut).toBeFocused();
+    await firstShortcut.blur();
   }
+  await expect(page.getByLabel("Indicateurs des devis").getByRole("article")).toHaveCount(4);
   await page.getByRole("textbox",{name:"Rechercher une demande, un concierge ou un devis"}).fill("DEV-4");
   await page.getByRole("button",{name:"Filtrer",exact:true}).click();
   await expect(page.getByRole("button",{name:"Comparer",exact:true})).toHaveCount(1);
