@@ -56,6 +56,25 @@ test("devis : comparaison, filtres, export et responsive",async({page,context})=
     await page.keyboard.press("Shift+Tab");
     await expect(firstShortcut).toBeFocused();
     await firstShortcut.blur();
+    const status = page.getByRole("combobox", { name: "Filtrer les devis par statut", exact: true });
+    await status.focus();
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("button", { name: "Export CSV" })).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(status).toBeFocused();
+    await expect(status).toHaveCSS("outline-style", "solid");
+    const comparison = page.getByRole("region", { name: "Comparatif des devis" });
+    await comparison.focus();
+    await expect(comparison).toHaveCSS("outline-style", "solid");
+    if (width === 390) {
+      await comparison.evaluate(el => { el.scrollLeft = 0; });
+      await page.keyboard.press("ArrowRight");
+      await expect.poll(() => comparison.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
+    }
+    await comparison.blur();
+    await page.screenshot({ path: `test-results/owner-quotes-body-${width}.png` });
+
+
   }
   await expect(page.getByLabel("Indicateurs des devis").getByRole("article")).toHaveCount(4);
   await page.getByRole("textbox",{name:"Rechercher une demande, un concierge ou un devis"}).fill("DEV-4");
@@ -98,4 +117,25 @@ test("devis : erreur et reprise vide",async({page,context})=>{
   state.mode="empty";await page.getByRole("button",{name:"Réessayer",exact:true}).click();
   await expect(page.getByText("Aucun devis disponible.",{exact:true})).toBeVisible();
   expect(state.calls).toEqual([]);expect(state.errors).toEqual([]);
+});
+
+test("devis : chargement, échec de décision et reprise", async ({ page, context }) => {
+  const state = await fixtures(page, context);
+  state.mode = "loading";
+  for (const width of [390, 768, 1366, 1600]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto("/dashboard/owner/devis?quote=quote-4");
+    await expect(page.getByRole("status").filter({ hasText: "Chargement des devis..." })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    await expect(page.getByRole("button", { name: "Accepter le devis", exact: true })).toBeVisible();
+  }
+  state.mode = "action-error";
+  await page.getByRole("button", { name: "Accepter le devis", exact: true }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "Action indisponible" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Transmettre un séjour voyageur" })).toHaveCount(0);
+  state.mode = "ready";
+  await page.getByRole("button", { name: "Réessayer", exact: true }).click();
+  await page.getByRole("button", { name: "Accepter le devis", exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: /accept/i })).toBeVisible();
+  expect(state.errors).toEqual([]);
 });

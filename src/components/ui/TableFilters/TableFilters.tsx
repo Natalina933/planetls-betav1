@@ -14,7 +14,7 @@ export type TableFiltersProps = {
   resetLabel?: string;
 };
 
-export function TableFilters({ children, resultCount, showMeta = true, layout = "default", activeCount = 0, onReset, className = "", resultLabel, resetLabel = "Reinitialiser" }: TableFiltersProps) {
+export function TableFilters({ children, resultCount = 0, showMeta = true, layout = "default", activeCount = 0, onReset, className = "", resultLabel, resetLabel = "Reinitialiser" }: TableFiltersProps) {
   return (
     <div className={[layout === "default" ? styles.filters : styles.bare, className].filter(Boolean).join(" ")} aria-label="Filtres du tableau">
       <div className={layout === "default" ? styles.controls : styles[layout]}>{children}</div>

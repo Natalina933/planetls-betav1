@@ -25,13 +25,15 @@ const properties = Array.from({ length: 5 }, (_, i) => ({
     equipements: ["Wi-Fi", "Terrasse"],
   },
 }));
+const calendarDate = new Date();
+const monthDate = (day: number) => new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day, 12).toISOString();
 const missions = [
   {
     id: "stay-1",
     title: "Sophie Martin",
     property_id: 1,
-    scheduled_start: "2026-09-12T14:00:00",
-    scheduled_end: "2026-09-16T10:00:00",
+    scheduled_start: monthDate(12),
+    scheduled_end: monthDate(16),
     status: "scheduled",
     metadata: { mission_kind: "traveler_stay" },
   },
@@ -39,8 +41,8 @@ const missions = [
     id: "stay-canceled",
     title: "Séjour annulé",
     property_id: 1,
-    scheduled_start: "2026-09-20T14:00:00",
-    scheduled_end: "2026-09-23T10:00:00",
+    scheduled_start: monthDate(20),
+    scheduled_end: monthDate(23),
     status: "canceled",
     metadata: { mission_kind: "traveler_stay" },
   },
@@ -48,7 +50,7 @@ const missions = [
     id: "work-1",
     title: "Vérification climatisation",
     property_id: 1,
-    scheduled_start: "2026-09-15T10:00:00",
+    scheduled_start: monthDate(15),
     status: "in_progress",
     metadata: {},
   },
@@ -60,7 +62,6 @@ test("accueil propriétaire : composants réels, cinq résolutions et interactio
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.clock.install({ time: new Date("2026-09-09T10:00:00+02:00") });
   const token = await encode({
     secret: "planetls-owner-visual-fixture-secret",
     salt: "authjs.session-token",
@@ -115,7 +116,7 @@ test("accueil propriétaire : composants réels, cinq résolutions et interactio
                   id: "msg-1",
                   counterpart_name: "Christa",
                   last_message_preview: "Le ménage est bien terminé",
-                  last_message_at: "2026-09-08T10:00:00",
+                  last_message_at: monthDate(8),
                   unread_count: 1,
                 },
               ],
@@ -152,10 +153,11 @@ test("accueil propriétaire : composants réels, cinq résolutions et interactio
     const h1 = page.getByRole("heading", { name: "Bonjour Nathalie 👋" });
     expect(
       await h1.evaluate((el) => parseFloat(getComputedStyle(el).fontSize)),
-    ).toBeLessThanOrEqual(26);
+    ).toBeCloseTo(width <= 780 ? 34 : Math.min(48, Math.max(32, width * 0.033)), 0);
     const headerBox = await page.getByRole("banner").boundingBox();
     const titleBox = await h1.boundingBox();
-    expect(headerBox?.height).toBeLessThanOrEqual(72);
+    // Bandeau commun validé : commandes 48 px, padding vertical 32 px et bordure.
+    expect(headerBox?.height).toBeLessThanOrEqual(82);
     expect(titleBox?.y).toBeGreaterThan(
       (headerBox?.y ?? 0) + (headerBox?.height ?? 0),
     );
@@ -197,7 +199,7 @@ test("accueil propriétaire : composants réels, cinq résolutions et interactio
         .getPropertyValue("--ds-color-primary")
         .trim(),
     ),
-  ).toBe("#b88746");
+  ).toBe("#8b6a2d");
   await expect(
     page.getByRole("link", { name: "Voir les détails", exact: true }),
   ).toHaveCount(3);
@@ -222,7 +224,7 @@ test("accueil propriétaire : composants réels, cinq résolutions et interactio
     .selectOption("1");
   await expect(page.locator('[title*="Réservé"]').first()).toBeVisible();
   await page.getByRole("button", { name: "Mois suivant" }).click();
-  await expect(page.getByText("octobre 2026", { exact: true })).toBeVisible();
+  await expect(page.getByText(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }), { exact: true })).toBeVisible();
   await page
     .getByRole("textbox", { name: "Votre mémo", exact: true })
     .fill("Préparer les clés");

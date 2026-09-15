@@ -1,5 +1,17 @@
 # Design System PlanetLS
 
+## Premier lot de migration — 15 septembre 2026
+
+Documents puis Devis Propriétaire réutilisent désormais le socle dans leur corps de page. Les en-têtes de l’étape 3 restent en place. Les variantes ajoutées sont facultatives et ne changent pas les défauts des composants.
+
+- `Section tone="elevated" | "outlined"` : panneau avec ou sans ombre ; `CardHeader variant="plain"` : introduction souple sans séparateur.
+- `TableFilters layout="fields" | "toolbar" showMeta={false}` : dispositions sans panneau supplémentaire ; les pages fournissent les contrôles et gardent leur logique. Le compteur masqué reste affiché à son emplacement historique.
+- `DataTable variant="records" responsiveStrategy="cards"` : tableau documentaire avec légende, en-têtes de colonnes et de lignes ; cartes sous 768 px. Les libellés restent accessibles.
+- `Alert appearance="inline" | "message"` et `AsyncState loadingPresentation="text"` reprennent les messages existants sans ajout de texte fonctionnel ; `EmptyState variant="centered"` reprend le vide documentaire.
+- `Button/ButtonLink size="compact"`, `Input/Select density="compact"` et `SearchBar appearance="outlined"` reprennent les dimensions des actions et champs Devis avec les tokens communs.
+- Le comparatif Devis conserve sa structure transposée et son calcul dynamique de colonnes. Sa zone de défilement est nommée et accessible au clavier. Les cartes de réponses, critères de comparaison, état sélectionné, regroupements et filtres de décision restent spécifiques au métier.
+- La migration ne change ni endpoints, ni permissions, ni callbacks, ni limites de données. Documents filtre instantanément ; Devis applique la recherche à la soumission. Les styles historiques internes des widgets métier ne sont pas recolorés globalement.
+
 ## Compositions communes — 14 septembre 2026
 
 L’étape 3 de `PLS-DS-001` mutualise les structures effectivement identiques de Documents et Devis Propriétaire : bandeau, quatre indicateurs et deux raccourcis. Le Dashboard conserve ses indicateurs verticaux, son agenda et ses actions prioritaires ; Logements conserve son état du parc et ses cartes métier.

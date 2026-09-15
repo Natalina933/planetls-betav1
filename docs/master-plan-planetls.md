@@ -1,5 +1,16 @@
 # Master Plan PlanetLS
 
+### Mise à jour ciblée - PLS-DS-001, premier lot Documents puis Devis — 15 septembre 2026
+
+- Étapes 2 et 3 validées par l’utilisatrice ; premier lot de migration des corps Documents/Devis réalisé. Chantier global **🟡 En cours — P1 Prioritaire**, sans nouvelle tâche. Les fichiers de migration commencés le 14 septembre sont présents dans le commit `4ecbc15c` malgré son intitulé limité aux fondations/compositions ; cette reprise les conserve et finalise leur recette.
+- Documents : `Section`, `CardHeader`, `TableFilters`, `DataTable`, `AsyncState`, `Alert` et `EmptyState` réutilisés. Suppression des wrappers/styles locaux de bibliothèque, filtres, tableau, messages et vide ; largeur reliée au token large. Le tableau devient des cartes à 768 px en conservant les en-têtes accessibles, dates, statuts et liens Consulter/Imprimer.
+- Devis : sections/introductions, filtres, contrôles compacts, actions et messages réutilisent les composants partagés. Les classes locales de champs/boutons/toolbar/messages et la référence sans définition `conciergeSectionTitle` sont supprimées. Les styles de regroupement, sélection, rail de décision et cartes métier sont conservés. Le comparatif existant reste transposé : colonnes dynamiques justifiant son style inline, bordure invalide corrigée et défilement clavier ajouté.
+- Contrats préservés : hooks/calculs/chargement/gestionnaires comparés textuellement aux sources sauvegardées dans `test-results/migration-before` : identiques pour les deux pages. Aucun changement API, route, données, permission, dépendance ou migration SQL. Filtres instantanés Documents et recherche soumise Devis, limites de dix devis/dix factures, exports, comparaison et décisions inchangés. Aucun état de succès inventé pour Documents.
+- Test Dashboard : correction des assertions réellement périmées (titre issu du bandeau commun, hauteur desktop 81 px, token public laiton) ; fixtures datées sur le mois courant pour éviter l’hydratation divergente d’une horloge figée côté navigateur seulement. Le test reste en échec à 1024 px : barre de navigation de 202 px repliée sur plusieurs lignes. Limite conservée à 82 px ; aucun changement du layout ni masquage du défaut. Les assertions et interactions suivantes restent à vérifier après correction dédiée.
+- Vérifications : typecheck et lint réussis ; 20 tests ciblés fondations/architecture/pilotage réussis. Recette Documents et Devis sur API simulées : normal, filtres, tableau/comparatif, chargement, vide, erreur, reprise et décisions avec succès pour Devis. Captures quatre largeurs et contrôle clavier détaillés dans les specs E2E. Les deux dettes unitaires globales antérieures (contrat photos et empreinte Avatar) ne sont pas corrigées dans ce lot ; seules les empreintes des composants de la migration sont actualisées.
+- Limites : aucune recette Supabase réelle ni preuve RLS nouvelle, puisque les APIs et permissions ne changent pas et que les données sont simulées. Les thèmes et widgets métier partagés gardent certains styles historiques pour préserver leur rendu ; leur convergence doit rester progressive.
+- Journal de décision : conserver les compositions métier spécialisées et étendre les primitives existantes plutôt que créer un nouveau composant. Prochaine page recommandée : Factures Propriétaire, proche de Documents et cohérente avec le parcours financier. Le défaut Dashboard est enregistré dans le chantier existant ; aucune tâche ni dépendance ajoutée.
+
 ### Mise à jour ciblée - PLS-DS-001, étape 3 : compositions communes — 14 septembre 2026
 
 - Compositions réalisées dans le périmètre demandé ; chantier global **🟡 En cours — P1 Prioritaire**, sans nouvelle tâche. Étape 2 validée par l’utilisatrice. Pas de migration générale, de dépendance, de route ou de logique métier modifiée.
@@ -2672,8 +2683,8 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "type": "improvement",
       "persona": "Tous",
       "phase": "Cohérence de l'expérience",
-      "updatedAt": "2026-09-14",
-      "nextAction": "Premier lot de migration : corps Documents Propriétaire, puis Devis, en réutilisant Section/CardHeader, les états Alert/AsyncState et les composants de filtres/tableaux existants. Préserver leurs logiques distinctes. Les compositions d’en-tête, indicateurs et raccourcis de l’étape 3 sont mutualisées ; pas de migration générale ni de modales dans ce lot.",
+      "updatedAt": "2026-09-15",
+      "nextAction": "Migrer Factures Propriétaire avec les mêmes sections, filtres, tableaux et états, en conservant ses contrats métier. Traiter séparément le repli excessif de la navigation Dashboard à 1024 px avant de déclarer sa recette historique entièrement réussie.",
       "validationCriteria": [
         "Les tokens visuels canoniques sont documentés et réutilisables",
         "Les composants partagés possèdent une convention d'usage claire",
@@ -2714,9 +2725,10 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "src/app/dashboard/",
         "DESIGN_SYSTEM.md"
       ],
-      "progressLabel": "14 septembre 2026 : étape 3, PageHeader et MetricGroup créés, StatsCard summary et QuickActions shortcuts étendus, adoption limitée aux en-têtes Documents/Devis et CSS dupliqué retiré. Variantes historiques, Dashboard et état du parc Logements conservés. Recettes Documents/Devis réussies à quatre largeurs avec clavier ; écart du test historique Dashboard consigné sans assouplir ses assertions. Les corps de pages, états/filtres/tableaux, modales et autres espaces restent à migrer.",
+      "progressLabel": "15 septembre 2026 : premier lot Documents puis Devis migré sur les compositions et primitives existantes, contrats métier inchangés. Sections, filtres, tableau documentaire, contrôles/actions et messages communs ; comparatif métier conservé et accessible au clavier. Recettes locales et limites consignées dans le journal. Défaut Dashboard à 1024 px non masqué ; autres pages et thèmes à traiter progressivement.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
       "evidence": [
+        "Premier lot : OwnerDocumentsOverview, devis/page.tsx, variantes des primitives UI ; e2e/owner-documents-visual.spec.ts et e2e/owner-quotes-visual.spec.ts ; recette et défaut Dashboard détaillés le 15 septembre 2026.",
         "Étape 3 : PageHeader, MetricGroup, StatsCard summary, QuickActions shortcuts ; usages OwnerDocumentsOverview et OwnerQuotesHeader ; e2e owner-documents/owner-quotes avec focus/clavier et quatre largeurs. Décisions, limites et preuves dans le journal du 14 septembre 2026.",
         "src/styles/tokens/tokens.css",
         "DESIGN_SYSTEM.md",
@@ -2734,7 +2746,7 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "Conserver les captures de référence Documents/Devis et compléter la recette des autres espaces avant leur migration",
         "Poursuivre la convergence des valeurs locales et alias uniquement lors des migrations ; décision sur les reliquats Tailwind reportée sans changement de dépendance",
         "Poursuivre la migration des introductions de sections, états et filtres/tableaux sur les composants existants ; cadrer les modales accessibles dans un lot séparé",
-        "Migrer Documents/Devis propriétaire puis Concierge, Artisan, Admin et pages publiques par petits lots en conservant les compositions métier adaptées",
+        "Poursuivre par Factures Propriétaire puis les autres pages et espaces par petits lots, en conservant les compositions métier adaptées",
         "Vérifier chaque lot à 390, 768, 1366 et 1600 px, accessibilité, thèmes et parcours existants ; documenter RLS si des composants Supabase sont touchés",
         "Confirmer les imports puis supprimer uniquement les fichiers/classes devenus inutilisés ; conserver alias et styles dynamiques nécessaires",
         "Traiter planning, réservations et remontée d'erreurs dans des lots métier séparés"

@@ -6,8 +6,11 @@
 .table {
   display: grid;
   gap: 0;
-  min-width: 100%;
-  border: 1px solid var(--ds-border-subtle, rgba(90, 110, 128, 0.14));
+  --comparison-label-width: 150px;
+  --comparison-column-width: 220px;
+  grid-template-columns: minmax(var(--comparison-label-width), 0.85fr) repeat(var(--comparison-count), minmax(var(--comparison-column-width), 1fr));
+  min-width: max(100%, calc(var(--comparison-label-width) + var(--comparison-count) * var(--comparison-column-width)));
+  border: var(--ds-border-subtle);
   border-radius: var(--ds-radius-panel, 12px);
   overflow: hidden;
   background:
@@ -80,3 +83,5 @@
 :global([data-theme="mucha-dark"]) .valueCell strong {
   color: #c6a75c;
 }
+
+.scroller:focus-visible { outline: var(--ds-focus-outline); outline-offset: 3px; }

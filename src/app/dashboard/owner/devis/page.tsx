@@ -607,7 +607,7 @@ function OwnerQuotesContent() {
 
         {!loading && !error && groupedQuotes.length > 0 ? <p className={styles.conciergeNextStep}>{groupedQuotes.length} demande(s) avec réponses · Jusqu’à {Math.max(...groupedQuotes.map(group => group.quotes.length))} proposition(s) par demande.</p> : null}
 
-        {loading ? <p>Chargement des devis...</p> : null}
+        {loading ? <AsyncState loading loadingPresentation="text" loadingLabel="Chargement des devis...">{null}</AsyncState> : null}
         {!loading && error ? <Alert tone="danger" appearance="message" announcement="assertive" action={<Button variant="secondary" onClick={() => void loadData()}>Réessayer</Button>}>{error}</Alert> : null}
         {success ? <Alert tone="success" appearance="message" announcement="polite">{success}</Alert> : null}
 

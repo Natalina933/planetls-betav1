@@ -47,6 +47,18 @@ test("documents : filtres, documents et quatre formats",async({page,context})=>{
     await page.keyboard.press("Shift+Tab");
     await expect(firstShortcut).toBeFocused();
     await firstShortcut.blur();
+    const search = page.getByRole("textbox", { name: "Rechercher un document", exact: true });
+    await search.focus();
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("combobox", { name: "Type de document", exact: true })).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(search).toBeFocused();
+    await expect(search).toHaveCSS("outline-style", "solid");
+    await search.blur();
+    await page.getByRole("heading", { name: "Mes documents", exact: true }).scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `test-results/owner-documents-body-${width}.png` });
+
+
     await page.evaluate(() => window.scrollTo(0, 0));
   }
   await expect(page.getByLabel("Indicateurs documentaires").getByRole("article")).toHaveCount(4);

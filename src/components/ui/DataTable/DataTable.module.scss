@@ -16,5 +16,5 @@
 }
 
 .recordsWrap { min-width: 0; table { width: 100%; border-collapse: collapse; font-size: var(--ds-text-sm); } caption { text-align: left; padding-bottom: var(--ds-space-3); color: var(--ds-color-text-secondary); font-size: var(--ds-text-xs); } th,td { padding: var(--ds-space-3); border-bottom: var(--ds-border-subtle); text-align: left; overflow-wrap: anywhere; } th { background: var(--ds-color-background-soft); font-size: var(--ds-text-xs); } small { display: block; font-size: var(--ds-text-xs); color: var(--ds-color-text-secondary); } }
-.recordsTable tbody th { font-weight: inherit; background: transparent; }
+.recordsTable tbody th { font-weight: inherit; font-size: var(--ds-text-sm); background: transparent; }
 @media (max-width: 768px) { .recordsWrap[data-responsive="cards"] { thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } table,tbody,tr,td,tbody th { display: block; } tr { border: var(--ds-border-subtle); border-radius: var(--ds-radius-control); margin-bottom: var(--ds-space-3); } td,tbody th { display: grid; grid-template-columns: 90px minmax(0,1fr); gap: var(--ds-space-2); } td::before,tbody th::before { content: attr(data-label); font-size: var(--ds-text-xs); font-weight: 600; } caption { display: block; } } }

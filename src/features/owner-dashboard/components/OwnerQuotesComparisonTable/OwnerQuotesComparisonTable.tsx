@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import styles from "./OwnerQuotesComparisonTable.module.scss";
 
@@ -23,12 +23,10 @@ export function OwnerQuotesComparisonTable({ columns }: OwnerQuotesComparisonTab
   if (columns.length < 2) return null;
 
   return (
-    <div className={styles.scroller}>
+    <div className={styles.scroller} role="region" aria-label="Comparatif des devis" tabIndex={0}>
       <div
         className={styles.table}
-        style={{
-          gridTemplateColumns: `minmax(150px, 0.85fr) repeat(${columns.length}, minmax(220px, 1fr))`,
-        }}
+        style={{ "--comparison-count": columns.length } as CSSProperties}
       >
         <div className={styles.labelCell}>Comparatif</div>
         {columns.map((column) => (
