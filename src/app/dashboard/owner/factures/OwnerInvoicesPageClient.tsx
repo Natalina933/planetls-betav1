@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import OwnerInvoicesOverview from "./OwnerInvoicesOverview";
 import { ownerApiError } from "../ownerFeedback";

@@ -1,104 +1,280 @@
+/* =========================================================
+   PLANETLS — ASSISTANT / RAPPORT / DÉCORATION IA
+   Harmonisation Design System PlanetLS
+   Conservation des classes existantes
+   ========================================================= */
+
+
+/* =========================================================
+   TOKENS LOCAUX
+   À migrer ensuite vers les tokens globaux PlanetLS
+   ========================================================= */
+
+$bg: #f7f2e9;
+$bg-soft: #fbf8f2;
+
+$paper: #fffdfa;
+$white: #ffffff;
+
+$ink: #302b25;
+$ink-strong: #34271e;
+
+$muted: #766d64;
+$muted-light: #968c82;
+
+$border: #e7ddd0;
+$border-strong: #d8c9b7;
+
+$green: #26705c;
+$green-hover: #1f5d4c;
+$green-dark: #214c40;
+$green-soft: #e9f3ee;
+
+$gold: #b78332;
+$gold-dark: #93671f;
+$gold-soft: #f3e8d4;
+
+$danger: #b84d43;
+$danger-soft: #fae9e6;
+
+$warning: #c98224;
+$warning-soft: #fff1dc;
+
+
+/* =========================================================
+   WORKSPACE
+   Formulaire à gauche / résultat à droite
+   ========================================================= */
+
 .workspace {
   display: grid;
-  grid-template-columns: minmax(320px, 0.42fr) minmax(0, 1fr);
-  gap: 1rem;
+
+  grid-template-columns:
+    minmax(300px, 0.38fr)
+    minmax(0, 1fr);
+
+  gap: 18px;
+
   align-items: start;
+
+  color: $ink;
 }
+
+
+/* =========================================================
+   SURFACES PRINCIPALES
+   ========================================================= */
 
 .formPanel,
 .reportPanel,
 .historyPanel,
 .reportCard,
 .promptBox {
-  border: 1px solid rgba(17, 24, 39, 0.1);
-  border-radius: 8px;
-  background: #ffffff;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  border-radius: 13px;
 }
 
 .formPanel,
 .reportPanel,
 .historyPanel {
+  position: relative;
+
   display: grid;
-  gap: 1rem;
-  padding: 1rem;
+  gap: 16px;
+
+  padding: 18px;
+
+  background: $paper;
+
+  border: 1px solid $border;
+
+  box-shadow:
+    0 5px 22px rgba(65, 46, 30, 0.04);
 }
+
+
+/* Petit détail 1900 très discret */
+
+.formPanel::before,
+.reportPanel::before,
+.historyPanel::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 18px;
+
+  width: 42px;
+  height: 2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      $gold,
+      rgba($gold, 0.12)
+    );
+
+  border-radius: 0 0 3px 3px;
+}
+
 
 .reportPanel {
   min-height: 460px;
 }
+
+
+/* =========================================================
+   HEADERS
+   ========================================================= */
 
 .panelHeader,
 .reportHeader,
 .reportActions,
 .promptBox > div {
   display: flex;
+
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.8rem;
+
+  gap: 12px;
 }
 
-.panelHeader > span,
-.promptBox > div {
+
+.panelHeader > span {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  color: #111827;
-  font-weight: 850;
+
+  gap: 7px;
+
+  color: $green-dark;
+
+  font-size: 11px;
+  font-weight: 700;
 }
+
+
+/* =========================================================
+   FORMULAIRE
+   ========================================================= */
 
 .formGrid,
 .reportSectionGrid,
 .objectGrid,
 .paletteGrid {
   display: grid;
-  gap: 0.8rem;
+
+  gap: 11px;
 }
 
+
 .formGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
 }
+
 
 .formGrid label,
 .textareaField,
 .choiceGroup {
   display: grid;
-  gap: 0.42rem;
+
+  gap: 6px;
 }
+
+
+/* =========================================================
+   LABELS
+   ========================================================= */
 
 .formGrid span,
 .textareaField span,
 .choiceGroup > span {
-  color: #374151;
-  font-size: 0.78rem;
-  font-weight: 850;
-  letter-spacing: 0.04em;
+  color: $muted;
+
+  font-size: 8px;
+  font-weight: 750;
+
+  letter-spacing: 0.07em;
   text-transform: uppercase;
 }
+
+
+/* =========================================================
+   INPUTS
+   ========================================================= */
 
 .formGrid input,
 .formGrid select,
 .textareaField textarea {
   width: 100%;
+
   min-height: 42px;
-  border: 1px solid rgba(17, 24, 39, 0.12);
+
+  padding: 10px 11px;
+
+  color: $ink;
+  background: $white;
+
+  border: 1px solid $border-strong;
   border-radius: 8px;
-  padding: 0.68rem 0.75rem;
-  background: #ffffff;
-  color: #111827;
+
   font: inherit;
+  font-size: 11px;
+
+  outline: none;
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
 }
 
-.textareaField textarea {
-  min-height: 110px;
-  resize: vertical;
+
+.formGrid input:hover,
+.formGrid select:hover,
+.textareaField textarea:hover {
+  border-color: rgba($green, 0.3);
 }
+
+
+.formGrid input:focus,
+.formGrid select:focus,
+.textareaField textarea:focus {
+  background: $paper;
+
+  border-color: rgba($green, 0.58);
+
+  box-shadow:
+    0 0 0 3px rgba($green, 0.09);
+}
+
+
+.formGrid input::placeholder,
+.textareaField textarea::placeholder {
+  color: $muted-light;
+}
+
+
+.textareaField textarea {
+  min-height: 115px;
+
+  resize: vertical;
+
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   CHOIX SEGMENTÉS
+   ========================================================= */
 
 .segmented {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+
+  gap: 6px;
 }
+
 
 .segmented button,
 .reportActions button,
@@ -108,116 +284,304 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
-  min-height: 40px;
-  border: 1px solid rgba(17, 24, 39, 0.12);
+
+  gap: 6px;
+
+  min-height: 36px;
+
+  color: $ink;
+  background: $paper;
+
+  border: 1px solid $border;
   border-radius: 8px;
-  background: #ffffff;
-  color: #111827;
+
   font: inherit;
-  font-weight: 850;
+  font-size: 10px;
+  font-weight: 650;
+
   text-decoration: none;
+
   cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
 }
+
 
 .segmented button {
-  padding: 0.5rem 0.7rem;
-  color: #4b5563;
+  padding: 7px 10px;
+
+  color: $muted;
 }
 
-.segmented button[data-active="true"] {
-  border-color: rgba(15, 139, 98, 0.32);
-  background: rgba(15, 139, 98, 0.08);
-  color: #0b6d4d;
+
+.segmented button:hover {
+  color: $green-dark;
+
+  background: $green-soft;
+
+  border-color: rgba($green, 0.2);
 }
+
+
+/* =========================================================
+   CHOIX ACTIF
+   ========================================================= */
+
+.segmented button[data-active="true"] {
+  color: $green-dark;
+
+  background: $green-soft;
+
+  border-color: rgba($green, 0.38);
+
+  box-shadow:
+    inset 0 0 0 1px rgba($green, 0.05);
+}
+
+
+/* =========================================================
+   DROPZONE PHOTO
+   ========================================================= */
 
 .photoDropzone {
   position: relative;
+
+  min-height: 145px;
+
   display: grid;
+  align-content: center;
   justify-items: center;
-  gap: 0.35rem;
-  min-height: 128px;
-  padding: 1rem;
-  border: 1px dashed rgba(15, 139, 98, 0.34);
-  border-radius: 8px;
-  background: #f8fafc;
-  color: #0b6d4d;
+
+  gap: 6px;
+
+  padding: 18px;
+
+  color: $green-dark;
+
+  background:
+    radial-gradient(
+      circle at center,
+      rgba($green, 0.04),
+      transparent 68%
+    ),
+    $bg-soft;
+
+  border: 1px dashed rgba($green, 0.35);
+  border-radius: 10px;
+
   text-align: center;
+
   cursor: pointer;
+
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
 }
+
+
+.photoDropzone:hover {
+  background: $green-soft;
+
+  border-color: rgba($green, 0.58);
+
+  transform: translateY(-1px);
+}
+
 
 .photoDropzone span {
-  color: #111827;
-  font-weight: 850;
+  color: $ink-strong;
+
+  font-size: 11px;
+  font-weight: 700;
 }
 
+
 .photoDropzone small {
-  color: #667085;
-  line-height: 1.35;
+  max-width: 42ch;
+
+  color: $muted;
+
+  font-size: 9px;
+  line-height: 1.45;
 }
+
 
 .photoDropzone input {
   position: absolute;
+
   width: 1px;
   height: 1px;
+
   overflow: hidden;
+
   clip: rect(0 0 0 0);
+
+  clip-path: inset(50%);
 }
+
+
+/* =========================================================
+   APERÇU PHOTO
+   ========================================================= */
 
 .photoPreview {
   position: relative;
+
   display: block;
+
   width: 100%;
-  min-height: 210px;
+  min-height: 230px;
+
   overflow: hidden;
-  border-radius: 8px;
-  background: #e5e7eb;
+
+  background: #eee9e1;
+
+  border: 1px solid $border;
+  border-radius: 10px;
 }
+
 
 .photoPreview img {
   object-fit: cover;
+
+  transition:
+    transform 500ms cubic-bezier(.22, .61, .36, 1);
 }
+
+
+.photoPreview:hover img {
+  transform: scale(1.015);
+}
+
+
+/* =========================================================
+   BOUTON GÉNÉRER
+   Action principale = vert PlanetLS
+   ========================================================= */
 
 .generateButton {
   width: 100%;
-  min-height: 46px;
-  border-color: #0b6d4d;
-  background: #0b6d4d;
+  min-height: 44px;
+
+  padding: 0 16px;
+
   color: #ffffff;
+  background: $green;
+
+  border-color: $green;
+
+  box-shadow:
+    0 5px 14px rgba($green, 0.14);
 }
+
+
+.generateButton:hover:not(:disabled) {
+  background: $green-hover;
+
+  border-color: $green-hover;
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 8px 20px rgba($green, 0.18);
+}
+
+
+.generateButton:focus-visible {
+  outline: 3px solid rgba($green, 0.16);
+  outline-offset: 2px;
+}
+
 
 .generateButton:disabled,
 .reportActions button:disabled {
   cursor: not-allowed;
-  opacity: 0.62;
+
+  opacity: 0.52;
+
+  transform: none;
 }
 
+
+/* =========================================================
+   SPINNER
+   ========================================================= */
+
 .spinner {
-  animation: spin 900ms linear infinite;
+  animation:
+    spin 900ms linear infinite;
 }
+
+
+/* =========================================================
+   ERREUR / AVERTISSEMENT
+   ========================================================= */
 
 .errorText {
   margin: 0;
-  padding: 0.7rem;
+
+  padding: 10px 12px;
+
+  color: #8c5716;
+  background: $warning-soft;
+
+  border: 1px solid rgba($warning, 0.18);
   border-radius: 8px;
-  background: rgba(212, 138, 31, 0.12);
-  color: #92400e;
-  font-weight: 750;
+
+  font-size: 10px;
+  font-weight: 650;
+
+  line-height: 1.45;
 }
+
+
+/* =========================================================
+   CARTE RAPPORT
+   ========================================================= */
 
 .reportCard {
+  position: relative;
+
   display: grid;
-  gap: 1rem;
-  padding: 1rem;
+
+  gap: 16px;
+
+  padding: 18px;
+
+  color: $ink;
+  background: $paper;
+
+  border: 1px solid $border;
+
+  box-shadow:
+    0 3px 14px rgba(65, 46, 30, 0.035);
 }
 
+
+/* =========================================================
+   EYEBROW
+   ========================================================= */
+
 .eyebrow {
-  color: #6b7280;
-  font-size: 0.72rem;
-  font-weight: 850;
-  letter-spacing: 0.08em;
+  color: $gold-dark;
+
+  font-size: 8px;
+  font-weight: 750;
+
+  letter-spacing: 0.085em;
   text-transform: uppercase;
 }
+
+
+/* =========================================================
+   RESET MARGES
+   ========================================================= */
 
 .reportHeader h2,
 .reportHeader p,
@@ -228,11 +592,34 @@
   margin: 0;
 }
 
+
+/* =========================================================
+   TITRE DU RAPPORT
+   ========================================================= */
+
 .reportHeader h2 {
-  margin-top: 0.18rem;
-  color: #111827;
-  font-size: clamp(1.2rem, 2vw, 1.55rem);
+  margin-top: 3px;
+
+  color: $ink-strong;
+
+  font-family:
+    var(--font-primary),
+    var(--font-title),
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: clamp(24px, 2vw, 30px);
+  font-weight: 650;
+
+  line-height: 1.05;
+  letter-spacing: -0.015em;
 }
+
+
+/* =========================================================
+   TEXTES
+   ========================================================= */
 
 .reportHeader p,
 .reportSection li,
@@ -240,151 +627,468 @@
 .objectGrid p,
 .paletteGrid p,
 .promptBox p {
-  color: #667085;
-  line-height: 1.48;
+  color: $muted;
+
+  font-size: 10px;
+  line-height: 1.5;
 }
+
+
+/* =========================================================
+   ACTIONS DU RAPPORT
+   ========================================================= */
 
 .reportActions {
   justify-content: flex-start;
   flex-wrap: wrap;
 }
 
+
 .reportActions button,
 .reportActions a {
-  padding: 0.55rem 0.75rem;
+  padding: 7px 11px;
 }
 
-.reportSectionGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+.reportActions button:hover,
+.reportActions a:hover {
+  color: $green-dark;
+  background: $green-soft;
+
+  border-color: rgba($green, 0.28);
+
+  transform: translateY(-1px);
 }
+
+
+/* =========================================================
+   SECTIONS RAPPORT
+   ========================================================= */
+
+.reportSectionGrid {
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+}
+
 
 .reportSectionGrid section,
 .reportSection {
   display: grid;
-  gap: 0.65rem;
-  padding-top: 0.9rem;
-  border-top: 1px solid rgba(17, 24, 39, 0.08);
+
+  gap: 9px;
+
+  padding-top: 14px;
+
+  border-top: 1px solid rgba($border-strong, 0.65);
 }
+
+
+.reportSectionGrid h3,
+.reportSection h3 {
+  color: $ink-strong;
+
+  font-family:
+    var(--font-primary),
+    var(--font-title),
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 17px;
+  font-weight: 650;
+}
+
 
 .reportSectionGrid ul,
 .reportSection ul {
   margin: 0;
-  padding-left: 1.1rem;
+
+  padding-left: 18px;
 }
+
+
+/* =========================================================
+   LISTES DE SUGGESTIONS
+   ========================================================= */
 
 .suggestionList,
 .historyList {
   display: grid;
-  gap: 0.65rem;
+
+  gap: 8px;
 }
+
 
 .suggestionList article,
 .objectGrid article,
 .paletteGrid article {
+  position: relative;
+
   display: grid;
-  gap: 0.35rem;
-  padding: 0.8rem;
-  border: 1px solid rgba(17, 24, 39, 0.1);
-  border-radius: 8px;
-  background: #ffffff;
+
+  gap: 5px;
+
+  padding: 11px;
+
+  color: $ink;
+  background: $bg-soft;
+
+  border: 1px solid rgba($border-strong, 0.7);
+  border-radius: 9px;
+
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
 }
 
-.suggestionList article {
-  grid-template-columns: minmax(0, 1fr) auto;
+
+.suggestionList article:hover,
+.objectGrid article:hover,
+.paletteGrid article:hover {
+  background: #ffffff;
+
+  border-color: rgba($green, 0.2);
+
+  transform: translateY(-1px);
 }
+
+
+/* =========================================================
+   SUGGESTION
+   ========================================================= */
+
+.suggestionList article {
+  grid-template-columns:
+    minmax(0, 1fr) auto;
+}
+
 
 .suggestionList article p,
 .suggestionList article span {
   grid-column: 1 / -1;
+
   margin: 0;
 }
 
+
 .suggestionList article small,
 .objectGrid article span {
-  color: #0b6d4d;
-  font-weight: 900;
+  color: $green;
+
+  font-size: 9px;
+  font-weight: 700;
 }
 
+
+/* =========================================================
+   OBJETS
+   ========================================================= */
+
 .objectGrid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
 }
+
 
 .objectGrid strong,
 .paletteGrid strong,
 .suggestionList strong {
-  color: #111827;
+  color: $ink-strong;
+
+  font-size: 10px;
+  font-weight: 700;
 }
 
+
+/* =========================================================
+   PALETTE
+   ========================================================= */
+
 .paletteGrid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
 }
+
 
 .paletteGrid article > span {
   display: block;
-  height: 38px;
-  border-radius: 6px;
-  border: 1px solid rgba(17, 24, 39, 0.08);
+
+  height: 44px;
+
+  border: 1px solid rgba($ink, 0.08);
+  border-radius: 7px;
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.25);
 }
 
+
+/* =========================================================
+   PROMPT IA
+   Exception volontaire :
+   panneau sombre premium
+   ========================================================= */
+
 .promptBox {
+  position: relative;
+
   display: grid;
-  gap: 0.65rem;
-  padding: 0.9rem;
-  background: #111827;
+
+  gap: 9px;
+
+  padding: 14px;
+
   color: #ffffff;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba($gold, 0.18),
+      transparent 35%
+    ),
+    linear-gradient(
+      145deg,
+      #263d35,
+      #183129
+    );
+
+  border: 1px solid rgba($green, 0.2);
+
+  box-shadow:
+    0 8px 22px rgba(33, 76, 64, 0.1);
+
+  overflow: hidden;
 }
+
+
+/* Accent doré */
+
+.promptBox::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 14px;
+
+  width: 44px;
+  height: 2px;
+
+  background: $gold;
+}
+
+
+.promptBox > div {
+  display: flex;
+  align-items: center;
+}
+
 
 .promptBox h3,
 .promptBox > div {
   color: #ffffff;
 }
 
-.promptBox p {
-  color: #e5e7eb;
-  overflow-wrap: anywhere;
+
+.promptBox h3 {
+  font-family:
+    var(--font-primary),
+    var(--font-title),
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 17px;
+  font-weight: 650;
 }
 
+
+.promptBox p {
+  color: rgba(255, 255, 255, 0.78);
+
+  overflow-wrap: anywhere;
+
+  font-size: 10px;
+}
+
+
+/* =========================================================
+   HISTORIQUE
+   ========================================================= */
+
 .historyList button {
+  width: 100%;
+
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+
+  grid-template-columns:
+    auto minmax(0, 1fr) auto;
+
   justify-content: stretch;
-  min-height: 62px;
-  padding: 0.75rem;
+
+  min-height: 60px;
+
+  padding: 10px 11px;
+
+  color: $ink;
+  background: $bg-soft;
+
+  border-color: rgba($border-strong, 0.7);
+
   text-align: left;
 }
 
+
+.historyList button:hover {
+  background: #ffffff;
+
+  border-color: rgba($green, 0.25);
+
+  transform: translateY(-1px);
+}
+
+
 .historyList button span {
   display: grid;
-  gap: 0.15rem;
+
+  gap: 3px;
+
   min-width: 0;
 }
+
 
 .historyList strong,
 .historyList small {
   overflow: hidden;
+
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.historyList small {
-  color: #667085;
+
+.historyList strong {
+  color: $ink-strong;
+
+  font-size: 10px;
+  font-weight: 700;
 }
+
+
+.historyList small {
+  color: $muted-light;
+
+  font-size: 9px;
+}
+
+
+/* =========================================================
+   FOCUS ACCESSIBLE
+   ========================================================= */
+
+.segmented button:focus-visible,
+.reportActions button:focus-visible,
+.reportActions a:focus-visible,
+.historyList button:focus-visible,
+.photoDropzone:focus-within {
+  outline: 3px solid rgba($green, 0.14);
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-@media (max-width: 1100px) {
-  .workspace,
-  .reportSectionGrid,
-  .objectGrid,
-  .paletteGrid {
-    grid-template-columns: 1fr;
+  to {
+    transform: rotate(360deg);
   }
 }
 
+
+@keyframes panelReveal {
+  from {
+    opacity: 0;
+
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
+}
+
+
+.formPanel,
+.reportPanel,
+.historyPanel {
+  animation:
+    panelReveal
+    380ms
+    cubic-bezier(.22, .61, .36, 1)
+    both;
+}
+
+
+.reportPanel {
+  animation-delay: 50ms;
+}
+
+
+.historyPanel {
+  animation-delay: 90ms;
+}
+
+
+/* =========================================================
+   TABLETTE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .reportSectionGrid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .objectGrid,
+  .paletteGrid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
 @media (max-width: 640px) {
-  .formGrid {
+
+  .workspace {
+    gap: 12px;
+  }
+
+  .formPanel,
+  .reportPanel,
+  .historyPanel,
+  .reportCard {
+    padding: 14px;
+
+    border-radius: 11px;
+  }
+
+  .formGrid,
+  .reportSectionGrid,
+  .objectGrid,
+  .paletteGrid {
     grid-template-columns: 1fr;
   }
 
@@ -393,7 +1097,90 @@
     flex-direction: column;
   }
 
+  .reportActions {
+    width: 100%;
+  }
+
+  .reportActions button,
+  .reportActions a {
+    flex: 1 1 auto;
+  }
+
   .historyList button {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns:
+      auto minmax(0, 1fr);
+  }
+
+  .photoPreview {
+    min-height: 190px;
+  }
+}
+
+
+/* =========================================================
+   PETIT MOBILE
+   ========================================================= */
+
+@media (max-width: 420px) {
+
+  .segmented {
+    display: grid;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .segmented button {
+    width: 100%;
+  }
+
+  .reportActions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .reportActions button,
+  .reportActions a {
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .formPanel,
+  .reportPanel,
+  .historyPanel {
+    animation: none;
+  }
+
+  .photoPreview img,
+  .photoDropzone,
+  .generateButton,
+  .reportActions button,
+  .reportActions a,
+  .historyList button,
+  .suggestionList article,
+  .objectGrid article,
+  .paletteGrid article {
+    transition: none;
+  }
+
+  .photoPreview:hover img {
+    transform: none;
+  }
+
+  .photoDropzone:hover,
+  .generateButton:hover,
+  .reportActions button:hover,
+  .reportActions a:hover,
+  .historyList button:hover,
+  .suggestionList article:hover,
+  .objectGrid article:hover,
+  .paletteGrid article:hover {
+    transform: none;
   }
 }

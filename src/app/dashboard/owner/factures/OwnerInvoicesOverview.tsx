@@ -6,6 +6,10 @@ import { Alert, AsyncState, Badge, Button, ButtonLink, Card, DataTable, Input, S
 import { getInvoicePaymentSummary } from "@/app/lib/invoiceStatus";
 import type { OwnerInvoiceRow } from "./OwnerInvoicesPageClient";
 import { invoiceAmount, invoiceDate, invoiceStatusLabel, invoiceTotals } from "./invoicePresentation";
+import { PageHeader } from "@/components/ui/PageHeader/PageHeader";
+import { MetricGroup } from "@/components/ui/StatsCard/MetricGroup";
+import { Section } from "@/components/ui/Section";
+import { CardHeader } from "@/components/ui/Card";
 import styles from "./OwnerInvoicesOverview.module.scss";
 
 type Props = {
@@ -82,26 +86,29 @@ export default function OwnerInvoicesOverview(props: Props) {
   }
 
   return <div className={styles.page} aria-busy={props.loading}>
-    <header className={styles.hero}>
-      <nav aria-label="Fil d’Ariane"><ButtonLink href="/dashboard/owner" variant="ghost" size="sm">Propriétaire</ButtonLink><span>› Finance et règlements</span></nav>
-      <p className={styles.eyebrow}>Finance et règlements</p><h1>Suivi des factures</h1>
-      <p>Consultez vos factures, retrouvez vos documents et gardez une vue claire des montants réglés et de vos prochaines échéances.</p>
-      <blockquote>« Des séjours sereins, des logements qui performent. »</blockquote>
-    </header>
+    <PageHeader
+      variant="illustrated"
+      className={styles.hero}
+      breadcrumb={<><ButtonLink href="/dashboard/owner" variant="ghost" size="sm">Propriétaire</ButtonLink><span>› Finance et règlements</span></>}
+      eyebrow="Finance et règlements"
+      title="Suivi des factures"
+      description="Consultez vos factures, retrouvez vos documents et gardez une vue claire des montants réglés et de vos prochaines échéances."
+      quote="« Des séjours sereins, des logements qui performent. »"
+    />
     {props.feedback && <Alert tone="info" title="Suivi du paiement" announcement="polite">{props.feedback}</Alert>}
     {props.error && <Alert tone="danger" title="Impossible de terminer l’opération" announcement="assertive" action={<Button variant="secondary" onClick={props.onRetry}>Réessayer</Button>}>{props.error}</Alert>}
-    <section className={styles.metrics} aria-label="Synthèse des factures">
+    <MetricGroup className={styles.metrics} aria-label="Synthèse des factures">
       {[
         {label:"Total facturé",value:amountText("total"),Icon:Files},
         {label:"Montant réglé",value:amountText("paid"),Icon:CreditCard},
         {label:"Reste à régler",value:amountText("balance"),Icon:Wallet},
         {label:"Factures",value:String(periodRows.length),Icon:CalendarClock},
       ].map(({label,value,Icon}) => <Card className={styles.metric} tone="outlined" key={label}><Icon size={20} aria-hidden="true" /><div><strong>{props.loading ? "…" : props.error ? "—" : value}</strong><h2>{label}</h2><p>{year === "all" ? "Factures chargées" : "Année " + year}</p></div></Card>)}
-    </section>
+    </MetricGroup>
     <AsyncState loading={props.loading} loadingLabel="Chargement des factures…" className={styles.sections}>
       {!props.error && <>
-        <section id="invoice-list" className={styles.tablePanel} aria-labelledby="invoice-list-title">
-          <div className={styles.sectionHeading}><h2 id="invoice-list-title">Vos factures</h2><Button variant="secondary" size="sm" onClick={() => props.onExport(rows)} disabled={!rows.length}>Exporter CSV</Button></div>
+        <Section tone="outlined" id="invoice-list" className={styles.tablePanel} aria-labelledby="invoice-list-title">
+          <CardHeader variant="plain" className={styles.sectionHeading}><h2 id="invoice-list-title">Vos factures</h2><Button variant="secondary" size="sm" onClick={() => props.onExport(rows)} disabled={!rows.length}>Exporter CSV</Button></CardHeader>
           <div className={styles.tabs} role="group" aria-label="Vue des factures">{tabs.map(([value,label]) => <Button key={value} size="sm" variant={tab === value ? "primary" : "ghost"} aria-pressed={tab === value} onClick={() => {setTab(value);props.onStatus("all");setPage(1);}}>{label}</Button>)}</div>
           <TableFilters resultCount={rows.length} resultLabel={rows.length + " facture(s)"} activeCount={activeCount} onReset={reset} resetLabel="Réinitialiser">
             <label>Recherche<Input bare type="search" value={props.searchTerm} onChange={event => {props.onSearch(event.target.value);setPage(1);}} placeholder="N°, séjour, logement…" /></label>
@@ -113,11 +120,11 @@ export default function OwnerInvoicesOverview(props: Props) {
           {rows.length > 10 && <nav className={styles.pagination} aria-label="Pagination des factures"><Button variant="secondary" size="sm" disabled={currentPage === 1} onClick={() => setPage(currentPage-1)}>Précédent</Button><span aria-live="polite">Page {currentPage} sur {pageCount}</span><Button variant="secondary" size="sm" disabled={currentPage === pageCount} onClick={() => setPage(currentPage+1)}>Suivant</Button></nav>}
           <p>Montants hors brouillons et factures annulées. Les montants non renseignés sont indiqués par un tiret ; les devises restent séparées.</p>
           {props.invoices.length >= 30 && <p>Cette vue porte sur les 30 factures les plus récentes ; les totaux et l’export peuvent être incomplets.</p>}
-        </section>
+        </Section>
         <section className={styles.bottomGrid} aria-label="Règlements et récapitulatif">
-          <Card className={styles.panel} tone="outlined"><h2>Prochains règlements</h2>{pending.slice(0,2).map(invoice => <div className={styles.nextPayment} key={invoice.id}><strong>{invoice.invoice_number || "Facture sans numéro"}</strong><span>{invoiceAmount(invoice.balance_amount,invoice.currency || "EUR")}</span><p>Échéance : {invoiceDate(invoice.due_date)}</p><p>{metadata(invoice,["property_label","housing_name"])}</p></div>)}{!pending.length && <p>Aucune facture en attente dans les résultats chargés.</p>}<Button variant="ghost" size="sm" onClick={() => {reset();setTab("pending");document.getElementById("invoice-list")?.scrollIntoView();}}>Voir les factures à régler</Button></Card>
-          <Card className={styles.panel} tone="outlined"><h2>Récapitulatif annuel ({annualYear})</h2><dl>{[["Total facturé",amountText("total",annualTotals)],["Montant réglé",amountText("paid",annualTotals)],["Reste à régler",amountText("balance",annualTotals)],["Factures",String(annualRows.length)]].map(([label,value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl><p>Sur les factures chargées de l’année.</p><Button variant="ghost" size="sm" onClick={() => {reset();setYear(annualYear);document.getElementById("invoice-list")?.scrollIntoView();}}>Voir le détail annuel</Button></Card>
-          <Card className={styles.panel} tone="outlined"><h2>Actions rapides</h2><ButtonLink href="#invoice-list" variant="ghost" size="sm">Retrouver mes documents</ButtonLink><Button variant="ghost" size="sm" onClick={() => props.onExport(rows)} disabled={!rows.length}>Exporter en CSV</Button><ButtonLink href="/dashboard/owner/messages" variant="ghost" size="sm">Demander un avoir / nous contacter</ButtonLink><p>Pour un avoir, contactez l’émetteur de votre facture.</p></Card>
+          <Card variant="large" className={styles.panel} tone="outlined"><h2>Prochains règlements</h2>{pending.slice(0,2).map(invoice => <div className={styles.nextPayment} key={invoice.id}><strong>{invoice.invoice_number || "Facture sans numéro"}</strong><span>{invoiceAmount(invoice.balance_amount,invoice.currency || "EUR")}</span><p>Échéance : {invoiceDate(invoice.due_date)}</p><p>{metadata(invoice,["property_label","housing_name"])}</p></div>)}{!pending.length && <p>Aucune facture en attente dans les résultats chargés.</p>}<Button variant="ghost" size="sm" onClick={() => {reset();setTab("pending");document.getElementById("invoice-list")?.scrollIntoView();}}>Voir les factures à régler</Button></Card>
+          <Card variant="large" className={styles.panel} tone="outlined"><h2>Récapitulatif annuel ({annualYear})</h2><dl>{[["Total facturé",amountText("total",annualTotals)],["Montant réglé",amountText("paid",annualTotals)],["Reste à régler",amountText("balance",annualTotals)],["Factures",String(annualRows.length)]].map(([label,value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl><p>Sur les factures chargées de l’année.</p><Button variant="ghost" size="sm" onClick={() => {reset();setYear(annualYear);document.getElementById("invoice-list")?.scrollIntoView();}}>Voir le détail annuel</Button></Card>
+          <Card variant="large" className={styles.panel} tone="outlined"><h2>Actions rapides</h2><ButtonLink href="#invoice-list" variant="ghost" size="sm">Retrouver mes documents</ButtonLink><Button variant="ghost" size="sm" onClick={() => props.onExport(rows)} disabled={!rows.length}>Exporter en CSV</Button><ButtonLink href="/dashboard/owner/messages" variant="ghost" size="sm">Demander un avoir / nous contacter</ButtonLink><p>Pour un avoir, contactez l’émetteur de votre facture.</p></Card>
         </section>
       </>}
     </AsyncState>

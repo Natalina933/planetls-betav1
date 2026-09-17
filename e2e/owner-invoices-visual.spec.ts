@@ -38,7 +38,7 @@ async function fixtures(page: Page, context: BrowserContext) {
   return state;
 }
 
-test("factures : tableau, filtres, pagination, CSV et quatre formats", async ({ page, context }) => {
+test("factures : tableau, filtres, pagination, CSV et cinq formats", async ({ page, context }) => {
   const state = await fixtures(page,context);
   await page.goto("/dashboard/owner/factures");
   await expect(page.getByRole("heading",{name:"Vos factures",exact:true})).toBeVisible();
@@ -48,12 +48,25 @@ test("factures : tableau, filtres, pagination, CSV et quatre formats", async ({ 
   await page.getByRole("button",{name:"Suivant",exact:true}).click();
   await expect(table.locator("tbody tr")).toHaveCount(2);
   await page.getByRole("button",{name:"Précédent",exact:true}).click();
-  for (const width of [1600,1366,768,390]) {
+  for (const width of [1600,1366,1024,768,390]) {
     await page.setViewportSize({width,height:1000});
     await page.evaluate(() => window.scrollTo(0,0));
     await page.clock.runFor(350);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     await page.screenshot({path:`test-results/owner-invoices-${width}.png`,fullPage:true});
+    const search = page.getByRole("searchbox", { name: "Recherche", exact: true });
+    await search.focus();
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("combobox", { name: "Année des factures" })).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("combobox", { name: "Statut des factures" })).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(page.getByRole("combobox", { name: "Année des factures" })).toHaveCSS("outline-style", "solid");
+    await page.keyboard.press("Shift+Tab");
+    await expect(search).toBeFocused();
+    await expect(search).toHaveCSS("outline-style", "solid");
+    await search.blur();
+
   }
   await page.getByRole("group",{name:"Vue des factures"}).getByRole("button",{name:"Factures réglées",exact:true}).click();
   await expect(table.locator("tbody tr")).toHaveCount(2);
@@ -82,7 +95,9 @@ test("factures : focus, document, paiement et synchronisation", async ({page,con
   const popup = await popupPromise;
   await expect(popup.getByRole("heading")).toHaveText("Document de facture simulé");
   await popup.close();
-  await table.locator("summary").click();
+  await table.locator("summary").focus();
+  await page.keyboard.press("Enter");
+  await expect(table.locator("details")).toHaveAttribute("open", "");
   await expect(table.getByRole("link",{name:"Imprimer / PDF"})).toHaveAttribute("href","/api/invoices/invoice-0/document?print=1");
   await expect(table).toContainText("Accueil voyageurs");
   await table.getByRole("button",{name:"Régler",exact:true}).click();
@@ -102,6 +117,8 @@ test("factures : focus, document, paiement et synchronisation", async ({page,con
 
 test("factures : chargement, erreur et vide", async ({page,context}) => {
   const state = await fixtures(page,context);
+  for (const width of [390,768,1024,1366,1600]) {
+    await page.setViewportSize({width,height:1000});
   state.mode="loading";
   await page.goto("/dashboard/owner/factures");
   await expect(page.getByText("Chargement des factures…",{exact:true})).toBeVisible();
@@ -113,5 +130,7 @@ test("factures : chargement, erreur et vide", async ({page,context}) => {
   await page.getByRole("button",{name:"Réessayer",exact:true}).click();
   await expect(page.getByRole("table")).toContainText("Aucune facture ne correspond");
   await expect(page.getByRole("button",{name:"Exporter CSV",exact:true})).toBeDisabled();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  }
   expect(state.errors).toEqual([]);
 });

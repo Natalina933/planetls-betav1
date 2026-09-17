@@ -1,141 +1,239 @@
+$page-bg: #f7f2e9;
+$paper: #fffdfa;
+$white: #ffffff;
+$ink: #302b25;
+$ink-strong: #34271e;
+$muted: #766d64;
+$muted-light: #968c82;
+$border: #e7ddd0;
+$border-strong: #d8c9b7;
+$green: #26705c;
+$green-hover: #1f5d4c;
+$green-dark: #214c40;
+$green-soft: #e9f3ee;
+$gold: #b78332;
+$gold-dark: #93671f;
+$gold-soft: #f3e8d4;
+$danger: #b84d43;
+$danger-soft: #fae9e6;
+
 .page {
   display: grid;
-  gap: 1rem;
-  padding: 1rem;
+  gap: 18px;
+  min-height: 100%;
+  padding: clamp(18px, 2vw, 28px);
+  color: $ink;
+  background:
+    radial-gradient(circle at top left, rgba($gold, 0.06), transparent 30%),
+    linear-gradient(180deg, $page-bg 0%, #faf7f1 100%);
+  font-family: var(--font-inter), var(--font-text), Arial, sans-serif;
 }
 
 .header {
+  position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem 0;
+  gap: 24px;
+  padding: clamp(20px, 3vw, 34px);
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba($paper, 0.98), rgba($gold-soft, 0.48));
+  border: 1px solid $border;
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(65, 46, 30, 0.045);
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 28px;
+    width: 66px;
+    height: 2px;
+    background: linear-gradient(90deg, $gold, rgba($gold, 0.1));
+  }
+
+  > div { min-width: 0; }
 
   p {
-    margin: 0 0 0.25rem;
-    color: #7b5b23;
-    font-size: 0.78rem;
-    font-weight: 900;
+    margin: 0 0 7px;
+    color: $gold-dark;
+    font-size: 9px;
+    font-weight: 750;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
   }
 
   h1 {
     margin: 0;
-    color: #202532;
-    font-size: 1.7rem;
-    line-height: 1.15;
+    color: $ink-strong;
+    font-family: var(--font-primary), var(--font-title), "Cormorant Garamond", Georgia, serif;
+    font-size: clamp(34px, 4vw, 52px);
+    font-weight: 650;
+    line-height: 0.98;
+    letter-spacing: -0.025em;
   }
 
   span {
     display: block;
-    max-width: 58rem;
-    margin-top: 0.45rem;
-    color: #5b6578;
-    line-height: 1.5;
+    max-width: 66ch;
+    margin-top: 10px;
+    color: $muted;
+    font-size: 11px;
+    line-height: 1.55;
   }
 }
 
 .backLink,
 .actions button {
+  min-height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.42rem;
-  min-height: 38px;
+  gap: 7px;
   border-radius: 8px;
-  font-weight: 900;
+  font-size: 10px;
+  font-weight: 700;
   text-decoration: none;
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
 }
 
 .backLink {
-  padding: 0.55rem 0.8rem;
-  border: 1px solid rgba(32, 37, 50, 0.12);
-  color: #202532;
+  flex: 0 0 auto;
+  padding: 0 14px;
+  color: $green-dark;
+  background: rgba($paper, 0.86);
+  border: 1px solid rgba($green, 0.22);
   white-space: nowrap;
+
+  &:hover {
+    background: $green-soft;
+    border-color: rgba($green, 0.38);
+    transform: translateY(-1px);
+  }
 }
 
 .grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+  gap: 14px;
+  align-items: start;
 }
 
 .panelBody {
   display: grid;
-  gap: 1rem;
+  gap: 14px;
 }
 
 .statusCard {
   display: flex;
-  gap: 0.85rem;
   align-items: center;
-  padding: 0.9rem;
-  border: 1px solid rgba(198, 166, 107, 0.24);
-  border-radius: 8px;
-  background: rgba(255, 251, 245, 0.94);
+  gap: 12px;
+  padding: 13px 14px;
+  background: linear-gradient(135deg, $paper, rgba($gold-soft, 0.34));
+  border: 1px solid $border;
+  border-radius: 11px;
 
   strong {
     display: block;
-    color: #202532;
+    color: $ink-strong;
+    font-family: var(--font-primary), var(--font-title), "Cormorant Garamond", Georgia, serif;
+    font-size: 18px;
+    font-weight: 650;
   }
 
   p {
-    margin: 0.2rem 0 0;
-    color: #5b6578;
+    margin: 3px 0 0;
+    color: $muted;
+    font-size: 10px;
+    line-height: 1.45;
   }
 }
 
 .lockedIcon,
 .openIcon {
+  width: 42px;
+  height: 42px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
 }
 
 .lockedIcon {
-  background: #eaf8ef;
-  color: #216444;
+  color: $green-dark;
+  background: $green-soft;
+  border: 1px solid rgba($green, 0.12);
 }
 
 .openIcon {
-  background: #fff3d5;
-  color: #7b5b23;
+  color: $gold-dark;
+  background: $gold-soft;
+  border: 1px solid rgba($gold, 0.16);
 }
 
 .field {
   display: grid;
-  gap: 0.42rem;
+  gap: 6px;
 
-  span {
-    color: #3e4656;
-    font-size: 0.86rem;
-    font-weight: 900;
+  > span {
+    color: $muted;
+    font-size: 8px;
+    font-weight: 750;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
   }
 
   input[type="text"],
   input:not([type]) {
     width: 100%;
     min-height: 42px;
-    padding: 0.62rem 0.75rem;
-    border: 1px solid rgba(32, 37, 50, 0.14);
+    padding: 10px 11px;
+    color: $ink;
+    background: $white;
+    border: 1px solid $border-strong;
     border-radius: 8px;
-    background: #ffffff;
-    color: #202532;
     font: inherit;
+    font-size: 11px;
+    outline: none;
+    transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+
+    &:hover { border-color: rgba($green, 0.3); }
+    &:focus {
+      background: $paper;
+      border-color: rgba($green, 0.58);
+      box-shadow: 0 0 0 3px rgba($green, 0.09);
+    }
+    &:disabled {
+      color: $muted;
+      background: #f3f0ea;
+      cursor: not-allowed;
+    }
   }
 }
 
 .radiusRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 72px;
-  gap: 0.8rem;
+  grid-template-columns: minmax(0, 1fr) 74px;
+  gap: 14px;
   align-items: center;
+  min-height: 42px;
+  padding: 8px 11px;
+  background: $paper;
+  border: 1px solid $border;
+  border-radius: 8px;
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: $green;
+    cursor: pointer;
+  }
 
   strong {
-    color: #202532;
+    color: $green-dark;
+    font-family: var(--font-primary), var(--font-title), "Cormorant Garamond", Georgia, serif;
+    font-size: 18px;
+    font-weight: 700;
     text-align: right;
   }
 }
@@ -143,79 +241,139 @@
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.65rem;
+  gap: 8px;
+  padding-top: 4px;
 
   button {
-    padding: 0.55rem 0.82rem;
-    border: 1px solid rgba(32, 37, 50, 0.12);
-    background: #202532;
-    color: #ffffff;
+    padding: 0 14px;
+    color: $green-dark;
+    background: $paper;
+    border: 1px solid rgba($green, 0.25);
     cursor: pointer;
 
-    &:first-child {
-      background: #ffffff;
-      color: #202532;
+    &:hover:not(:disabled) {
+      background: $green-soft;
+      border-color: rgba($green, 0.42);
+      transform: translateY(-1px);
+    }
+
+    &:last-child {
+      color: #fff;
+      background: $green;
+      border-color: $green;
+      box-shadow: 0 5px 14px rgba($green, 0.14);
+
+      &:hover:not(:disabled) {
+        background: $green-hover;
+        border-color: $green-hover;
+        box-shadow: 0 8px 18px rgba($green, 0.18);
+      }
     }
 
     &:disabled {
       cursor: not-allowed;
-      opacity: 0.55;
+      opacity: 0.5;
+      transform: none;
     }
   }
 }
 
 .tipList {
   display: grid;
-  gap: 0.75rem;
+  gap: 8px;
 
   p {
     display: grid;
-    grid-template-columns: 24px minmax(0, 1fr);
-    gap: 0.6rem;
+    grid-template-columns: 34px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
     margin: 0;
-    color: #3e4656;
-    line-height: 1.45;
+    padding: 11px;
+    color: $muted;
+    background: $paper;
+    border: 1px solid $border;
+    border-radius: 9px;
+    font-size: 10px;
+    line-height: 1.5;
   }
 
   svg {
-    color: #7b5b23;
+    width: 18px;
+    height: 18px;
+    color: $green;
   }
 }
 
 .muted {
   margin: 0;
-  color: #5b6578;
+  color: $muted-light;
+  font-size: 10px;
 }
 
 .errorBox,
 .successBox {
   margin: 0;
-  padding: 0.72rem 0.8rem;
+  padding: 10px 12px;
   border-radius: 8px;
-  font-weight: 800;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.45;
 }
 
 .errorBox {
-  background: #fff1f1;
-  color: #9b2c2c;
+  color: $danger;
+  background: $danger-soft;
+  border: 1px solid rgba($danger, 0.18);
 }
 
 .successBox {
-  background: #eaf8ef;
-  color: #216444;
+  color: $green-dark;
+  background: $green-soft;
+  border: 1px solid rgba($green, 0.16);
 }
 
+.backLink:focus-visible,
+.actions button:focus-visible,
+.field input:focus-visible,
+.radiusRow input:focus-visible {
+  outline: 3px solid rgba($green, 0.14);
+  outline-offset: 2px;
+}
+
+@keyframes zoneReveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.header,
+.grid {
+  animation: zoneReveal 380ms cubic-bezier(.22, .61, .36, 1) both;
+}
+.grid { animation-delay: 50ms; }
+
 @media (max-width: 900px) {
-  .header,
-  .grid {
-    grid-template-columns: 1fr;
-  }
-
+  .grid { grid-template-columns: 1fr; }
   .header {
-    display: grid;
+    align-items: flex-start;
+    flex-direction: column;
   }
+  .backLink { width: fit-content; }
+}
 
-  .backLink {
-    width: fit-content;
-  }
+@media (max-width: 640px) {
+  .page { padding: 14px; }
+  .header { padding: 20px; border-radius: 12px; }
+  .header h1 { font-size: 36px; }
+  .actions { flex-direction: column; }
+  .actions button { width: 100%; }
+  .radiusRow { grid-template-columns: minmax(0, 1fr) 64px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .grid { animation: none; }
+  .backLink,
+  .actions button { transition: none; }
+  .backLink:hover,
+  .actions button:hover { transform: none; }
 }

@@ -1,18 +1,129 @@
+/* =========================================================
+   PLANETLS — CONCIERGERIE / CRM PROPRIÉTAIRES
+   Nouveau Design System
+   ========================================================= */
+
+
+/* =========================================================
+   VARIABLES LOCALES
+   À remplacer par les tokens globaux PlanetLS
+   s'ils existent déjà.
+   ========================================================= */
+
+$bg: #f7f2e9;
+$bg-soft: #fbf8f2;
+
+$paper: #fffdfa;
+$white: #ffffff;
+
+$ink: #302b25;
+$ink-strong: #34271e;
+
+$muted: #766d64;
+$muted-light: #968c82;
+
+$border: #e7ddd0;
+$border-strong: #d8c9b7;
+
+$green: #26705c;
+$green-hover: #1f5d4c;
+$green-dark: #214c40;
+$green-soft: #e9f3ee;
+
+$gold: #b78332;
+$gold-dark: #93671f;
+$gold-soft: #f3e8d4;
+
+$danger: #b84d43;
+$danger-soft: #fae9e6;
+
+$warning: #c98224;
+$warning-soft: #fff1dc;
+
+$success: #4a7c59;
+$success-soft: #e9f3ec;
+
+
+/* =========================================================
+   PANNEAU CRM PRINCIPAL
+   ========================================================= */
+
 .crmPanel {
+  position: relative;
+
   display: grid;
-  gap: 1rem;
-  border: 1px solid rgba(30, 64, 54, 0.14);
-  border-radius: 8px;
-  background: linear-gradient(135deg, #ffffff 0%, #f3f8f5 56%, #fff9ef 100%);
-  padding: clamp(1rem, 2vw, 1.25rem);
-  box-shadow: 0 14px 30px rgba(30, 64, 54, 0.07);
+  gap: 18px;
+
+  padding: clamp(18px, 2vw, 26px);
+
+  color: $ink;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba($gold, 0.055),
+      transparent 30%
+    ),
+    linear-gradient(
+      145deg,
+      $paper 0%,
+      #fffdfa 62%,
+      #faf6ef 100%
+    );
+
+  border: 1px solid $border;
+  border-radius: 16px;
+
+  box-shadow:
+    0 8px 28px rgba(65, 46, 30, 0.045);
+
+  overflow: hidden;
 }
+
+
+/* Petite signature décorative 1900.
+   Très discrète. */
+
+.crmPanel::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 26px;
+
+  width: 64px;
+  height: 2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      $gold,
+      rgba($gold, 0.15)
+    );
+
+  border-radius: 0 0 3px 3px;
+}
+
+
+/* =========================================================
+   HEADER CRM
+   ========================================================= */
 
 .crmHeader {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
+
+  gap: 24px;
+
+  padding-bottom: 17px;
+
+  border-bottom: 1px solid rgba($border-strong, 0.65);
+}
+
+.crmHeader > div:first-child {
+  min-width: 0;
 }
 
 .crmHeader h2,
@@ -20,230 +131,781 @@
 .moduleCard h3,
 .timelineCard h3 {
   margin: 0;
-  color: #1f2a24;
+
+  color: $ink-strong;
+}
+
+
+/* =========================================================
+   TITRE PRINCIPAL
+   ========================================================= */
+
+.crmHeader h2 {
+  font-family:
+    var(--font-primary),
+    var(--font-title),
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: clamp(25px, 2vw, 31px);
+  font-weight: 650;
+
+  line-height: 1.05;
+  letter-spacing: -0.015em;
 }
 
 .crmHeader p {
-  margin: 0.35rem 0 0;
-  max-width: 76ch;
-  color: #53615a;
-  line-height: 1.5;
+  max-width: 72ch;
+
+  margin: 7px 0 0;
+
+  color: $muted;
+
+  font-size: 11px;
+  line-height: 1.55;
 }
 
+
+/* =========================================================
+   EYEBROW
+   ========================================================= */
+
 .eyebrow {
-  margin: 0 0 0.35rem;
-  color: #0f766e;
-  font-size: 0.75rem;
-  font-weight: 850;
-  letter-spacing: 0.08em;
+  margin: 0 0 5px;
+
+  color: $gold-dark;
+
+  font-size: 9px;
+  font-weight: 750;
+
+  letter-spacing: 0.085em;
   text-transform: uppercase;
 }
 
+
+/* =========================================================
+   SCORE CRM
+   ========================================================= */
+
 .crmScore {
+  min-width: 170px;
+
   display: grid;
-  gap: 0.3rem;
-  min-width: 150px;
-  border: 1px solid rgba(15, 118, 110, 0.16);
-  border-radius: 8px;
-  background: #edf7f4;
-  padding: 0.8rem;
-  text-align: right;
+  grid-template-columns: 1fr auto;
+
+  align-items: end;
+
+  gap: 4px 10px;
+
+  padding: 13px 14px;
+
+  color: $green-dark;
+
+  background:
+    linear-gradient(
+      135deg,
+      $green-soft,
+      rgba(255, 255, 255, 0.92)
+    );
+
+  border: 1px solid rgba($green, 0.16);
+  border-radius: 11px;
+
+  text-align: left;
 }
 
 .crmScore strong {
-  color: #0f766e;
-  font-size: 1.6rem;
+  grid-column: 1;
+
+  color: $green-dark;
+
+  font-family:
+    var(--font-primary),
+    var(--font-title),
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 28px;
+  font-weight: 700;
+
   line-height: 1;
 }
 
 .crmScore span {
-  color: #315c56;
-  font-size: 0.78rem;
-  font-weight: 850;
+  grid-column: 2;
+  grid-row: 1;
+
+  align-self: center;
+
+  color: $muted;
+
+  font-size: 8px;
+  font-weight: 750;
+
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
+
+
+/* =========================================================
+   PROGRESS BAR
+   ========================================================= */
 
 .crmScore progress,
 .ownerHealth progress {
   width: 100%;
-  height: 0.45rem;
+  height: 5px;
+
   overflow: hidden;
+
+  appearance: none;
+
   border: 0;
   border-radius: 999px;
-  background: #d9e9e5;
+
+  background: #dfe9e3;
+}
+
+.crmScore progress {
+  grid-column: 1 / -1;
+
+  margin-top: 5px;
 }
 
 .crmScore progress::-webkit-progress-bar,
 .ownerHealth progress::-webkit-progress-bar {
-  background: #d9e9e5;
+  background: #dfe9e3;
+
+  border-radius: 999px;
 }
 
 .crmScore progress::-webkit-progress-value,
 .ownerHealth progress::-webkit-progress-value {
-  background: #0f766e;
+  background:
+    linear-gradient(
+      90deg,
+      $green,
+      #4d8876
+    );
+
+  border-radius: 999px;
 }
 
 .crmScore progress::-moz-progress-bar,
 .ownerHealth progress::-moz-progress-bar {
-  background: #0f766e;
+  background: $green;
+
+  border-radius: 999px;
 }
+
+
+/* =========================================================
+   GRILLES
+   ========================================================= */
 
 .ownerGrid,
 .moduleGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 12px;
 }
+
+
+/* =========================================================
+   CARTES
+   ========================================================= */
 
 .ownerCard,
 .moduleCard,
 .timelineCard {
-  display: grid;
-  gap: 0.8rem;
+  position: relative;
+
   min-width: 0;
-  border: 1px solid rgba(30, 64, 54, 0.11);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 0.9rem;
+
+  display: grid;
+  align-content: start;
+
+  gap: 12px;
+
+  padding: 15px;
+
+  color: $ink;
+
+  background: $paper;
+
+  border: 1px solid $border;
+  border-radius: 12px;
+
+  box-shadow:
+    0 2px 8px rgba(65, 46, 30, 0.025);
+
+  transition:
+    transform 200ms cubic-bezier(.22, .61, .36, 1),
+    border-color 200ms ease,
+    box-shadow 200ms ease;
 }
+
+.ownerCard:hover,
+.moduleCard:hover,
+.timelineCard:hover {
+  transform: translateY(-2px);
+
+  border-color: $border-strong;
+
+  box-shadow:
+    0 10px 25px rgba(65, 46, 30, 0.065);
+}
+
+
+/* Trait décoratif léger */
+
+.ownerCard::before,
+.moduleCard::before,
+.timelineCard::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 14px;
+
+  width: 34px;
+  height: 2px;
+
+  background: rgba($gold, 0.7);
+
+  border-radius: 0 0 2px 2px;
+}
+
+
+/* =========================================================
+   TITRES DES CARTES
+   ========================================================= */
+
+.ownerCard h3,
+.moduleCard h3,
+.timelineCard h3 {
+  font-family:
+    var(--font-primary),
+    var(--font-title),
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 19px;
+  font-weight: 650;
+
+  line-height: 1.1;
+}
+
+
+/* =========================================================
+   HEADER PROPRIÉTAIRE
+   ========================================================= */
 
 .ownerTop {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.75rem;
+
+  gap: 10px;
 }
 
+.ownerTop > div {
+  min-width: 0;
+}
+
+
+/* =========================================================
+   BADGE PROPRIÉTAIRE
+   ========================================================= */
+
 .ownerBadge {
+  min-height: 25px;
+
+  display: inline-flex;
+  align-items: center;
+
+  padding: 0 9px;
+
+  flex: 0 0 auto;
+
+  color: $green-dark;
+  background: $green-soft;
+
+  border: 1px solid rgba($green, 0.12);
   border-radius: 999px;
-  background: #eef7f4;
-  color: #0f766e;
-  padding: 0.22rem 0.58rem;
-  font-size: 0.74rem;
-  font-weight: 850;
+
+  font-size: 8px;
+  font-weight: 750;
+
+  letter-spacing: 0.035em;
   text-transform: uppercase;
+
   white-space: nowrap;
 }
 
+
+/* =========================================================
+   SANTÉ DE LA RELATION
+   ========================================================= */
+
 .ownerHealth {
   display: grid;
-  gap: 0.35rem;
+
+  gap: 6px;
 }
 
 .ownerHealth span {
-  color: #53615a;
-  font-size: 0.82rem;
-  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  color: $muted;
+
+  font-size: 9px;
+  font-weight: 650;
 }
+
+
+/* =========================================================
+   STATISTIQUES
+   ========================================================= */
 
 .ownerStats,
 .moduleStats {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.55rem;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 7px;
 }
 
 .ownerStats div,
 .moduleStats div {
-  display: grid;
-  gap: 0.15rem;
   min-width: 0;
+
+  display: grid;
+
+  gap: 4px;
+
+  padding: 9px 10px;
+
+  color: $ink;
+
+  background: $bg-soft;
+
+  border: 1px solid rgba($border-strong, 0.55);
   border-radius: 8px;
-  background: #f7faf8;
-  padding: 0.55rem;
 }
 
 .ownerStats span,
 .moduleStats span {
-  color: #65716b;
-  font-size: 0.74rem;
-  font-weight: 850;
+  color: $muted-light;
+
+  font-size: 8px;
+  font-weight: 750;
+
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .ownerStats strong,
 .moduleStats strong {
-  color: #1f2a24;
-  font-size: 1rem;
+  color: $ink-strong;
+
+  font-family:
+    var(--font-primary),
+    var(--font-title),
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 18px;
+  font-weight: 650;
+
+  line-height: 1;
 }
+
+
+/* =========================================================
+   LIENS PROPRIÉTAIRE
+   ========================================================= */
 
 .ownerLinks {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.55rem;
+
+  gap: 7px;
+
+  margin-top: auto;
 }
 
 .ownerLinks a {
+  min-height: 34px;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.2rem;
-  border: 1px solid rgba(15, 118, 110, 0.16);
+
+  gap: 6px;
+
+  padding: 0 11px;
+
+  color: $green-dark;
+  background: $paper;
+
+  border: 1px solid rgba($green, 0.22);
   border-radius: 8px;
-  color: #0f766e;
-  padding: 0.45rem 0.7rem;
-  font-weight: 850;
+
+  font-size: 9px;
+  font-weight: 650;
+
   text-decoration: none;
+
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
 }
+
+.ownerLinks a:hover {
+  color: $green-dark;
+  background: $green-soft;
+
+  border-color: rgba($green, 0.38);
+
+  transform: translateY(-1px);
+}
+
+.ownerLinks a:focus-visible {
+  outline: 3px solid rgba($green, 0.13);
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   MODULE HEADER
+   ========================================================= */
 
 .moduleHeader {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+
+  gap: 8px;
 }
 
 .moduleHeader svg {
-  color: #0f766e;
+  width: 18px;
+  height: 18px;
+
   flex: 0 0 auto;
+
+  color: $green;
 }
+
+
+/* Petite pastille derrière l'icône si structure compatible */
+
+.moduleHeader > svg {
+  padding: 2px;
+}
+
+
+/* =========================================================
+   TEXTE MODULE
+   ========================================================= */
 
 .moduleCard p,
 .timelineCard p,
 .empty {
   margin: 0;
-  color: #53615a;
-  line-height: 1.45;
+
+  color: $muted;
+
+  font-size: 10px;
+  line-height: 1.5;
 }
+
+
+/* =========================================================
+   TIMELINE
+   ========================================================= */
 
 .timeline {
+  position: relative;
+
   display: grid;
-  gap: 0.65rem;
+
+  gap: 7px;
 }
 
+
+/* =========================================================
+   ÉLÉMENT TIMELINE
+   ========================================================= */
+
 .timelineItem {
+  position: relative;
+
   display: grid;
-  gap: 0.2rem;
-  border-left: 3px solid #0f766e;
-  border-radius: 0 8px 8px 0;
-  background: #f7faf8;
-  padding: 0.6rem 0.7rem;
+
+  gap: 4px;
+
+  padding: 10px 11px 10px 15px;
+
+  color: $ink;
+
+  background: $bg-soft;
+
+  border: 1px solid rgba($border-strong, 0.55);
+  border-radius: 8px;
+
+  transition:
+    background 160ms ease,
+    border-color 160ms ease;
+}
+
+
+/* Le gros trait vert de l'ancien design devient
+   un indicateur plus fin */
+
+.timelineItem::before {
+  content: "";
+
+  position: absolute;
+
+  top: 10px;
+  bottom: 10px;
+  left: 6px;
+
+  width: 2px;
+
+  background: $green;
+
+  border-radius: 999px;
+}
+
+.timelineItem:hover {
+  background: #ffffff;
+
+  border-color: rgba($green, 0.2);
 }
 
 .timelineItem strong {
-  color: #1f2a24;
+  color: $ink-strong;
+
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .timelineItem span {
-  color: #65716b;
-  font-size: 0.82rem;
-  font-weight: 800;
+  color: $muted-light;
+
+  font-size: 9px;
+  font-weight: 600;
 }
 
-@media (max-width: 980px) {
+
+/* =========================================================
+   ÉTAT VIDE
+   ========================================================= */
+
+.empty {
+  min-height: 110px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 18px;
+
+  color: $muted-light;
+  background: $bg-soft;
+
+  border: 1px dashed $border-strong;
+  border-radius: 9px;
+
+  text-align: center;
+}
+
+
+/* =========================================================
+   FOCUS ACCESSIBILITÉ
+   ========================================================= */
+
+.ownerCard:focus-within,
+.moduleCard:focus-within,
+.timelineCard:focus-within {
+  border-color: rgba($green, 0.35);
+}
+
+
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
+
+@keyframes crmReveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ownerCard,
+.moduleCard,
+.timelineCard {
+  animation:
+    crmReveal
+    380ms
+    cubic-bezier(.22, .61, .36, 1)
+    both;
+}
+
+
+/* Décalage très léger des cartes */
+
+.ownerGrid > :nth-child(2),
+.moduleGrid > :nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.ownerGrid > :nth-child(3),
+.moduleGrid > :nth-child(3) {
+  animation-delay: 80ms;
+}
+
+
+/* =========================================================
+   TABLETTE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+  .ownerGrid,
+  .moduleGrid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+/* =========================================================
+   TABLETTE PETITE
+   ========================================================= */
+
+@media (max-width: 820px) {
+
+  .crmHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .crmScore {
+    width: 100%;
+    min-width: 0;
+  }
+
   .ownerGrid,
   .moduleGrid {
     grid-template-columns: 1fr;
   }
 }
 
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
 @media (max-width: 640px) {
-  .crmHeader,
+
+  .crmPanel {
+    gap: 14px;
+
+    padding: 14px;
+
+    border-radius: 12px;
+  }
+
+  .crmHeader {
+    gap: 14px;
+  }
+
+  .crmHeader h2 {
+    font-size: 25px;
+  }
+
   .ownerTop {
     align-items: stretch;
     flex-direction: column;
   }
 
-  .crmScore {
-    text-align: left;
+  .ownerBadge {
+    width: fit-content;
+  }
+
+  .ownerStats,
+  .moduleStats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ownerLinks {
+    flex-direction: column;
+  }
+
+  .ownerLinks a {
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   PETIT MOBILE
+   ========================================================= */
+
+@media (max-width: 420px) {
+
+  .ownerStats,
+  .moduleStats {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .ownerCard,
+  .moduleCard,
+  .timelineCard {
+    animation: none;
+    transition: none;
+  }
+
+  .ownerCard:hover,
+  .moduleCard:hover,
+  .timelineCard:hover,
+  .ownerLinks a:hover {
+    transform: none;
+  }
+
+  .ownerLinks a,
+  .timelineItem {
+    transition: none;
   }
 }
