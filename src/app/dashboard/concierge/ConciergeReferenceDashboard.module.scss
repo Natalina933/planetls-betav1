@@ -73,9 +73,13 @@
     padding-bottom: 16px;
 }
 
+.nextMission .cardHeader {
+    align-items: flex-start;
+}
+
 .nextContent {
     display: grid;
-    grid-template-columns: 120px 1fr;
+    grid-template-columns: 54px minmax(0, 1fr);
     gap: var(--ds-space-4);
     padding: var(--ds-space-4);
 }
@@ -83,9 +87,11 @@
 .nextImage {
     display: grid;
     place-items: center;
-    min-height: 142px;
+    width: 54px;
+    height: 54px;
+    border: 1px solid var(--ds-color-border-soft);
     border-radius: var(--ds-radius-control);
-    background: linear-gradient(145deg, #d9e8df, #b9d0c1);
+    background: var(--ds-color-warning-soft, var(--ds-color-surface));
     color: var(--ds-color-primary);
 }
 
@@ -97,8 +103,9 @@
 }
 
 .missionTime {
+    display: block;
     color: var(--ds-color-primary-hover);
-    font: 650 27px/1 var(--ds-font-heading);
+    font: 700 30px/1 var(--ds-font-heading);
 }
 
 .nextDetails h3 {
@@ -112,6 +119,10 @@
     margin: 0;
     color: var(--ds-color-text-secondary);
     font-size: 12px;
+}
+
+.missionType {
+    font-weight: 700;
 }
 
 .detailList {
@@ -161,6 +172,16 @@
     color: var(--ds-color-primary-hover);
 }
 
+.nextMission .primaryButton {
+    background: var(--ds-color-primary);
+    color: var(--ds-color-text-inverse);
+}
+
+.nextMission .secondaryButton {
+    border-color: var(--ds-color-primary);
+    background: var(--ds-color-surface);
+}
+
 .alertButton {
     border: 1px solid #d9a096;
     color: var(--ds-color-error);
@@ -175,24 +196,38 @@
     list-style: none;
 }
 
+.stepsEmpty {
+    display: grid;
+    gap: var(--ds-space-1);
+    margin: 0;
+    padding: var(--ds-space-4);
+    color: var(--ds-color-text-secondary);
+    font-size: var(--ds-text-sm);
+    line-height: 1.45;
+}
+
+.stepsEmpty strong {
+    color: var(--ds-color-text-primary);
+}
+
 .steps li {
     position: relative;
     display: grid;
     grid-template-columns: 30px 50px minmax(0, 1fr) auto;
-    align-items: center;
+    align-items: start;
     gap: var(--ds-space-2);
-    min-height: 55px;
-    padding-bottom: 10px;
+    min-height: 62px;
+    padding: var(--ds-space-2) 0;
 }
 
 .steps li:not(:last-child)::before {
     content: "";
     position: absolute;
-    top: 29px;
-    bottom: -2px;
+    top: 37px;
+    bottom: -11px;
     left: 14px;
     width: 1px;
-    background: #387d6a;
+    background: var(--ds-color-border);
 }
 
 .stepNumber {
@@ -202,20 +237,52 @@
     place-items: center;
     width: 29px;
     height: 29px;
+    border: 1px solid var(--ds-color-border);
     border-radius: 50%;
-    background: var(--ds-color-primary);
-    color: #fff;
+    background: var(--ds-color-surface);
+    color: var(--ds-color-text-secondary);
     font-size: 11px;
     font-weight: 800;
 }
 
+.stepCurrent {
+    border-radius: var(--ds-radius-control);
+    background: var(--ds-color-accent-soft);
+}
+
+.stepCurrent .stepNumber {
+    border-color: var(--ds-color-primary);
+    background: var(--ds-color-primary);
+    color: var(--ds-color-text-inverse);
+}
+
+.stepCompleted {
+    opacity: .72;
+}
+
+.stepCompleted .stepNumber {
+    border-color: var(--ds-color-primary);
+    color: transparent;
+}
+
+.stepCompleted .stepNumber::after {
+    content: "✓";
+    position: absolute;
+    color: var(--ds-color-primary);
+    font-size: 13px;
+}
+
 .stepTime {
+    padding-top: 7px;
+    color: var(--ds-color-text-primary);
     font: 700 13px var(--ds-font-heading);
 }
 
 .stepContent {
     display: grid;
+    gap: 2px;
     min-width: 0;
+    padding-top: 4px;
 }
 
 .stepContent strong {
@@ -227,8 +294,9 @@
 }
 
 .stepContent small {
-    color: var(--ds-color-text-secondary);
-    font-size: 9px;
+    color: var(--ds-color-primary);
+    font-size: 10px;
+    font-weight: 700;
 }
 
 .centerColumn> :global(.routePreview) {
@@ -624,13 +692,12 @@
 }
 
 .nextContent {
-    grid-template-columns: minmax(72px, .32fr) minmax(0, 1fr);
+    grid-template-columns: 54px minmax(0, 1fr);
     gap: 14px;
     padding: var(--ds-space-4) 14px;
 }
 
 .nextImage {
-    background: linear-gradient(150deg, #f7edda, #e4dfce);
     color: var(--ds-color-gold);
 }
 
@@ -754,11 +821,18 @@
     }
 
     .nextContent {
-        grid-template-columns: 1fr;
+        grid-template-columns: 44px minmax(0, 1fr);
+        gap: var(--ds-space-3);
     }
 
     .nextImage {
-        min-height: 100px;
+        width: 44px;
+        height: 44px;
+    }
+
+    .nextImage svg {
+        width: 24px;
+        height: 24px;
     }
 }
 

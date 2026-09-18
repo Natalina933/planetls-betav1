@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Bell, CalendarClock, Leaf, Route, Clock3, FileText, Home, MessageSquareText, Navigation, Plus, TriangleAlert, UserRound } from "lucide-react";
+import { ArrowRight, Bell, CalendarClock, Route, Clock3, FileText, Home, MessageSquareText, Navigation, Plus, TriangleAlert, UserRound } from "lucide-react";
 import type { DashboardEvent } from "@/app/components/dashboard/calendar/DashboardCalendar";
 import { Badge, Card } from "@/components/ui";
 import ConciergeRoutePreview from "./ConciergeRoutePreview";
@@ -74,11 +74,17 @@ export default function ConciergeReferenceDashboard({
                             <div className={styles.nextContent}>
                                 <div className={styles.nextImage} aria-hidden="true"><Home size={34} /></div>
                                 <div className={styles.nextDetails}>
-                                    <strong className={styles.missionTime}>{formatTime(nextEvent.start)}</strong>
+                                    <time className={styles.missionTime} dateTime={nextEvent.start.toISOString()}>{formatTime(nextEvent.start)}</time>
                                     <h3>{String(nextEvent.title || "Mission sans titre")}</h3>
-                                    <p>{eventLabel(nextEvent)}</p>
-                                    <div className={styles.detailList}><span><Clock3 size={15} /> Créneau planifié</span><span><Navigation size={15} /> Itinéraire à ouvrir</span></div>
-                                    <div className={styles.actionRow}><Link href={priorityHref} className={styles.primaryButton}>Ouvrir la mission <ArrowRight size={15} /></Link><Link href="/dashboard/concierge/planning" className={styles.secondaryButton}>Voir l&apos;itinéraire <Navigation size={15} /></Link></div>
+                                    <p className={styles.missionType}>{eventLabel(nextEvent)}</p>
+                                    <div className={styles.detailList}>
+                                        <span><Clock3 size={15} aria-hidden="true" /> Créneau planifié</span>
+                                        <span><Navigation size={15} aria-hidden="true" /> Itinéraire à ouvrir</span>
+                                    </div>
+                                    <div className={styles.actionRow}>
+                                        <Link href={priorityHref} className={styles.primaryButton}>Ouvrir la mission <ArrowRight size={15} aria-hidden="true" /></Link>
+                                        <Link href="/dashboard/concierge/planning" className={styles.secondaryButton}>Voir l&apos;itinéraire <Navigation size={15} aria-hidden="true" /></Link>
+                                    </div>
                                 </div>
                             </div>
                         ) : <p className={styles.empty}>Aucune mission planifiée aujourd&apos;hui.</p>}
@@ -86,7 +92,30 @@ export default function ConciergeReferenceDashboard({
 
                     <article className={`${styles.card} ${styles.stepsCard}`}>
                         <header className={styles.cardHeader}><div><span className={styles.eyebrow}>Ordre de la journée</span><h2>Étapes de la tournée</h2></div><Link href="/dashboard/concierge/planning" className={styles.cardLink}>Voir le planning <ArrowRight size={14} /></Link></header>
-                        <ol className={styles.steps}>{visibleEvents.map((event, index) => <li key={`${event.bookingId ?? event.title}-${index}`}><span className={styles.stepNumber}>{index + 1}</span><span className={styles.stepTime}>{formatTime(event.start)}</span><span className={styles.stepContent}><strong>{String(event.title || "Mission sans titre")}</strong><small>{eventLabel(event)}</small></span><Badge variant={event.type === "reminder" ? "warning" : index === 0 ? "info" : "neutral"}>{event.type === "reminder" ? "Urgente" : index === 0 ? "En route" : "À venir"}</Badge></li>)}</ol>
+                        {visibleEvents.length > 0 ? <ol className={styles.steps}>
+                            {visibleEvents.map((event, index) => (
+                                <li
+                                    key={`${event.bookingId ?? event.title}-${index}`}
+                                    className={index === 0 ? styles.stepCurrent : styles.stepUpcoming}
+                                    aria-current={index === 0 ? "step" : undefined}
+                                >
+                                    <span className={styles.stepNumber}>{index + 1}</span>
+                                    <time className={styles.stepTime} dateTime={event.start.toISOString()}>{formatTime(event.start)}</time>
+                                    <span className={styles.stepContent}>
+                                        <small>{eventLabel(event)}</small>
+                                        <strong>{String(event.title || "Mission sans titre")}</strong>
+                                    </span>
+                                    <Badge variant={event.type === "reminder" ? "warning" : index === 0 ? "info" : "neutral"}>
+                                        {event.type === "reminder" ? "Urgente" : index === 0 ? "En route" : "À venir"}
+                                    </Badge>
+                                </li>
+                            ))}
+                        </ol> : (
+                            <p className={styles.stepsEmpty}>
+                                <strong>Aucune étape planifiée aujourd&apos;hui.</strong>
+                                <span>Les missions apparaîtront ici dans l&apos;ordre de votre tournée.</span>
+                            </p>
+                        )}
                     </article>
                 </div>
 
@@ -99,7 +128,6 @@ export default function ConciergeReferenceDashboard({
                 </div>
 
                 <aside className={styles.rightColumn}>
-                    <article className={`${styles.card} ${styles.optimization}`}><h2><Leaf size={20} aria-hidden="true" /> Optimisation de la tournée</h2><p>L&apos;ordre actuel peut être affiné dès que les distances réelles sont disponibles.</p><Link href="/dashboard/concierge/planning" className={styles.secondaryButton}>Voir l&apos;ordre initial</Link></article>
                     <article className={`${styles.card} ${styles.alert}`}><h2><Clock3 size={20} aria-hidden="true" /> Retard estimé</h2><strong>Estimation non disponible</strong><p>{pendingValidationCount > 0 ? `${pendingValidationCount} mission(s) nécessitent une validation.` : `${urgentCount} point(s) urgent(s) à surveiller. Le retard nécessite les temps de trajet réels.`}</p><Link href="/dashboard/concierge/alertes" className={styles.alertButton}>Ouvrir les alertes</Link></article>
                     <article className={`${styles.card} ${styles.quickCard}`}><header className={styles.cardHeader}><h2><Plus size={19} aria-hidden="true" /> Raccourcis rapides</h2></header><div className={styles.quickGrid}><Link href="/dashboard/concierge/demandes"><Plus size={18} />Ajouter une mission</Link><Link href="/dashboard/concierge/messages"><MessageSquareText size={18} />Contacter un voyageur</Link><Link href="/dashboard/concierge/alertes"><Bell size={18} />Signaler un problème</Link><Link href="/dashboard/concierge/profile?tab=documents"><FileText size={18} />Voir mes documents</Link></div></article>
                     <article className={`${styles.card} ${styles.messages}`}><header className={styles.cardHeader}><h2><MessageSquareText size={19} aria-hidden="true" /> Messages récents</h2><Link href="/dashboard/concierge/messages" className={styles.cardLink}>Voir tous</Link></header>{activityItems.slice(0, 4).map((item) => <Link key={item.id} href={item.href || "/dashboard/concierge/messages"} className={styles.message}><span className={styles.avatar}><UserRound size={15} /></span><span><strong>{item.title}</strong><small>{item.detail}</small></span><time>{item.meta}</time></Link>)}{activityItems.length === 0 ? <p className={styles.empty}>Aucun message récent.</p> : null}</article>

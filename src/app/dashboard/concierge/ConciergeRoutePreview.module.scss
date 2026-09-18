@@ -117,6 +117,190 @@
   background: var(--theme-accent, var(--ds-color-accent));
 }
 
+.routeContent {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(210px, 2fr);
+  align-items: stretch;
+  gap: var(--ds-space-4);
+}
+
+.routeMap {
+  display: grid;
+  align-content: space-between;
+  min-width: 0;
+  margin: 0;
+  padding: var(--ds-space-3);
+  border: 1px solid var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-lg);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--ds-color-warning-hover) 5%, var(--ds-color-surface));
+}
+
+.routeMap figcaption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--ds-space-2);
+  color: var(--theme-text, var(--ds-color-text-primary));
+  font-size: var(--ds-text-sm);
+}
+
+.routeMap figcaption span {
+  color: var(--theme-text-soft, var(--ds-color-text-secondary));
+  font-size: var(--ds-text-xs);
+  white-space: nowrap;
+}
+
+.routeMap svg {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: 21 / 11;
+  margin-top: var(--ds-space-2);
+  border: 1px solid var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-md);
+}
+
+.mapOptimization {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-2);
+  padding-top: var(--ds-space-2);
+  border-top: 1px solid var(--ds-color-border-soft);
+  color: var(--theme-text-soft, var(--ds-color-text-secondary));
+  font-size: var(--ds-text-xs);
+  line-height: 1.4;
+}
+
+.mapOptimization svg {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  min-height: 0;
+  margin: 0;
+  border: 0;
+}
+
+.routeLine {
+  fill: none;
+  stroke: var(--theme-accent-strong, var(--ds-color-accent-hover));
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 5;
+}
+
+.mapLand {
+  fill: color-mix(in srgb, var(--ds-color-warning-hover) 5%, var(--ds-color-surface));
+}
+
+.mapSea {
+  fill: var(--ds-color-info-soft, #e6f1f3);
+}
+
+.coastLine {
+  fill: none;
+  stroke: color-mix(in srgb, var(--ds-color-info, var(--ds-color-accent)) 28%, var(--ds-color-border));
+  stroke-width: 1.5;
+}
+
+.naturalArea {
+  fill: var(--ds-color-success-soft, #e8efe4);
+}
+
+.landmarkArea {
+  fill: var(--ds-color-warning-soft, #f2e8cf);
+}
+
+.mainRoads,
+.secondaryRoads {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.mainRoads {
+  stroke: color-mix(in srgb, var(--ds-color-warning-hover) 22%, var(--ds-color-border));
+  stroke-width: 2.4;
+}
+
+.secondaryRoads {
+  stroke: color-mix(in srgb, var(--ds-color-text-muted) 28%, var(--ds-color-surface));
+  stroke-dasharray: 3 4;
+  stroke-width: 1.2;
+}
+
+.mapTexture {
+  fill: url("#route-map-texture");
+  opacity: 0.32;
+}
+
+.textureDot {
+  fill: var(--ds-color-border);
+}
+
+.placeLabel {
+  fill: var(--theme-accent-strong, var(--ds-color-accent-hover));
+  font-family: var(--ds-font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.mapStop circle {
+  fill: var(--theme-accent-strong, var(--ds-color-accent-hover));
+  stroke: var(--ds-color-surface);
+  stroke-width: 2;
+}
+
+.startPoint circle {
+  fill: var(--theme-accent-strong, var(--ds-color-accent-hover));
+  stroke: var(--ds-color-warning-soft, #f2e8cf);
+  stroke-width: 3;
+}
+
+.startIcon {
+  fill: var(--ds-color-text-inverse);
+}
+
+.startLabel,
+.startSubLabel,
+.missionPlace,
+.missionType {
+  font-family: var(--ds-font-ui);
+}
+
+.startLabel {
+  fill: var(--theme-accent-strong, var(--ds-color-accent-hover));
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.startSubLabel {
+  fill: var(--ds-color-text-muted);
+  font-size: 9px;
+}
+
+.missionPlace {
+  fill: var(--theme-accent-strong, var(--ds-color-accent-hover));
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.missionType {
+  fill: var(--ds-color-text-muted);
+  font-size: 8px;
+}
+
+.mapNumber {
+  fill: var(--ds-color-text-inverse);
+  font-family: var(--ds-font-ui);
+  text-anchor: middle;
+  font-size: 10px;
+  font-weight: 800;
+  dominant-baseline: central;
+}
+
 .timeline {
   display: grid;
   gap: var(--ds-space-2);
@@ -217,6 +401,10 @@
     justify-content: center;
   }
 
+  .routeContent {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .footer {
     align-items: flex-start;
     flex-direction: column;
@@ -245,6 +433,10 @@
 
   .timeline {
     gap: 0;
+  }
+
+  .routeContent {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .stop {

@@ -3,12 +3,51 @@ div:has(> .page) {
   min-width: 0;
 }
 
+:global(.dashboard-grid):has(.page) > div > div:first-child {
+  min-height: 0;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-4) var(--ds-space-5);
+  border-radius: var(--ds-radius-md);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+:global(.dashboard-grid):has(.page) > div > div:first-child::after {
+  display: none;
+}
+
+:global(.dashboard-grid):has(.page) > div > div:first-child > div:first-child {
+  gap: var(--ds-space-1);
+}
+
+:global(.dashboard-grid):has(.page) > div > div:first-child h1 {
+  font-size: clamp(1.65rem, 3vw, 2.25rem);
+  line-height: 1.1;
+}
+
+:global(.dashboard-grid):has(.page) > div > div:first-child p {
+  max-width: none;
+  margin: 0;
+  font-size: var(--ds-text-sm);
+}
+
 .page {
   min-width: 0;
   width: 100%;
   min-height: 100%;
   padding: 32px;
-  color: #172033;
+  color: var(--ds-color-text-primary);
+}
+
+.metrics {
+  margin-bottom: var(--ds-space-5);
+}
+
+.metrics > article {
+  min-height: 104px;
+}
+
+.metrics > article > div {
+  padding: var(--ds-space-3);
 }
 
 .header {
@@ -135,9 +174,13 @@ div:has(> .page) {
 
 .process {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--ds-space-1);
   margin-bottom: 22px;
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border: var(--ds-border-subtle);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface-soft);
 }
 
 .processStep {
@@ -145,13 +188,21 @@ div:has(> .page) {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 64px;
-  padding: 12px 14px;
-  border: 1px solid #ebe9f5;
-  border-radius: 16px;
-  background: #ffffff;
-  color: #626a7b;
-  box-shadow: 0 8px 24px rgba(44, 39, 86, 0.04);
+  min-height: 40px;
+  padding: var(--ds-space-1) var(--ds-space-2);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ds-color-text-secondary);
+  box-shadow: none;
+}
+
+.processStep:not(:nth-child(5))::after {
+  content: "→";
+  position: absolute;
+  right: 0;
+  color: var(--ds-color-text-muted);
+  font-weight: 700;
 }
 
 .processStep span {
@@ -161,8 +212,8 @@ div:has(> .page) {
   flex: 0 0 28px;
   place-items: center;
   border-radius: 50%;
-  background: #f0edff;
-  color: #7162ed;
+  background: var(--ds-color-primary-pale);
+  color: var(--ds-color-primary);
   font-size: 0.82rem;
   font-weight: 850;
 }
@@ -172,10 +223,22 @@ div:has(> .page) {
   line-height: 1.3;
 }
 
+.processHint {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--ds-color-text-muted);
+  font-size: var(--ds-text-xs);
+  line-height: 1.5;
+}
+
+.filterPanel {
+  margin-bottom: var(--ds-space-5);
+}
+
 .filters {
   display: flex;
   gap: 10px;
-  margin-bottom: 28px;
+  margin-bottom: 0;
   overflow-x: auto;
   padding: 2px 2px 8px;
   scrollbar-width: thin;
@@ -288,6 +351,23 @@ div:has(> .page) {
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: var(--ds-space-3);
+}
+
+.cards > article {
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-2);
+}
+
+.cards :global(button[aria-expanded]) {
+  border: var(--ds-border-subtle);
+  background: var(--ds-color-surface-soft);
+  color: var(--ds-color-primary);
+  font-weight: 800;
+}
+
+.cards :global(button[aria-expanded]):hover {
+  border-color: var(--ds-color-primary);
+  background: var(--ds-color-primary-pale);
 }
 
 .emptyState {
@@ -449,11 +529,23 @@ div:has(> .page) {
   .cards {
     grid-template-columns: 1fr;
   }
+
+  .process {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .processStep::after {
+    display: none;
+  }
 }
 
 @media (max-width: 760px) {
   .page {
     padding: 18px 14px 28px;
+  }
+
+  :global(.dashboard-grid):has(.page) > div > div:first-child {
+    padding: var(--ds-space-3) var(--ds-space-4);
   }
 
   .header {
@@ -531,8 +623,8 @@ div:has(> .page) {
 }
 
 @media (max-width: 460px) {
-  .process {
-    grid-template-columns: 1fr;
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .filterButton {

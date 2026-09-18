@@ -5,9 +5,16 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 import { getMissionPriorityLabel, getMissionStatusLabel, normalizeMissionStatus } from "@/app/lib/missionStatus";
 import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
-import { Input, Select } from "@/components/ui";
+import {
+  Input,
+  Select,
+  StatsCard,
+  TableFilters,
+} from "@/components/ui";
+import { MetricGroup } from "@/components/ui/StatsCard/MetricGroup";
 import { conciergeApiError } from "../conciergeFeedback";
 import styles from "@/app/dashboard/missions/MissionDetailPage.module.scss";
+import listStyles from "./page.module.scss";
 
 type MissionView = "to_plan" | "today" | "late" | "done" | "all";
 
@@ -61,6 +68,17 @@ function getOperationalHint(mission: MissionRow, now: number) {
   if (view === "to_plan") return "À planifier : il manque une date ou une validation opérationnelle.";
   if (view === "done") return "Clôturée : conserver les preuves et le contexte client.";
   return "Mission programmée : à surveiller dans le planning.";
+}
+
+function getNextActionLabel(mission: MissionRow, now: number) {
+  const status = normalizeMissionStatus(mission.status);
+  const view = getMissionView(mission, now);
+
+  if (view === "to_plan") return "Planifier la mission";
+  if (status === "in_progress") return "Poursuivre";
+  if (status === "awaiting_owner_validation") return "Voir la validation";
+  if (status === "assigned" || status === "accepted") return "Démarrer";
+  return "Ouvrir la mission";
 }
 
 export default function ConciergeMissionsListPage() {
@@ -124,13 +142,26 @@ export default function ConciergeMissionsListPage() {
     }),
     [missions, now],
   );
+  const missionKpis = useMemo(
+    () => ({
+      today: missions.filter((mission) => getMissionView(mission, now) === "today").length,
+      toPlan: missions.filter((mission) => getMissionView(mission, now) === "to_plan").length,
+      inProgress: missions.filter(
+        (mission) => normalizeMissionStatus(mission.status) === "in_progress",
+      ).length,
+      awaitingValidation: missions.filter(
+        (mission) => normalizeMissionStatus(mission.status) === "awaiting_owner_validation",
+      ).length,
+    }),
+    [missions, now],
+  );
 
   return (
     <ConciergeWorkspacePage
       eyebrow="Missions"
-      title="Liste opérationnelle des missions"
-      description={loading ? "Chargement des missions..." : error || "Pilotez les missions confiées, les retards, les urgences et les dossiers sans date."}
-      chips={[`${filtered.length} mission(s)`, `${delayed.length} en retard`, `${undated.length} sans date`, `${urgent.length} urgente(s)`]}
+      title="Missions"
+      description="Planifiez, suivez et réalisez les missions de vos logements."
+      chips={[`${delayed.length} en retard`, `${undated.length} sans date`, `${urgent.length} urgente(s)`]}
       actions={[
         { label: "Planning", href: "/dashboard/concierge/planning" },
         { label: "Configurer mon profil missions", href: "/dashboard/concierge/profile?tab=missions" },
@@ -140,14 +171,19 @@ export default function ConciergeMissionsListPage() {
       showDetailsIntro={false}
     >
       <div className={styles.page} aria-busy={loading}>
-        <section className={styles.panel}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <p className={styles.eyebrow}>Pilotage</p>
-              <h2>Toutes les missions</h2>
-            </div>
-          </div>
-          <div className={styles.formGrid}>
+        <MetricGroup className={listStyles.metrics} aria-label="Indicateurs des missions">
+          <StatsCard label="Aujourd'hui" value={String(missionKpis.today)} hint="Missions prévues ce jour" />
+          <StatsCard label="À planifier" value={String(missionKpis.toPlan)} hint="Date ou validation à préciser" />
+          <StatsCard label="En cours" value={String(missionKpis.inProgress)} hint="Exécution démarrée" />
+          <StatsCard
+            label="En attente de validation"
+            value={String(missionKpis.awaitingValidation)}
+            hint="Réalisation à confirmer"
+          />
+        </MetricGroup>
+
+        <section className={`${styles.panel} ${listStyles.filtersPanel}`}>
+          <TableFilters showMeta={false} layout="toolbar">
             <label className={styles.label}>
               Recherche
               <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Titre, urgence, consigne" />
@@ -164,7 +200,7 @@ export default function ConciergeMissionsListPage() {
                 <option value="canceled">Annulée</option>
               </Select>
             </label>
-          </div>
+          </TableFilters>
         </section>
 
         <section className={styles.panel} aria-label="Files operationnelles">
@@ -213,11 +249,10 @@ export default function ConciergeMissionsListPage() {
             const status = normalizeMissionStatus(mission.status);
             const isDelayed = toTimestamp(mission.scheduled_start) > 0 && toTimestamp(mission.scheduled_start) < now && status !== "completed" && status !== "canceled";
             return (
-              <article className={styles.proofCard} key={mission.id}>
+              <article className={`${styles.proofCard} ${listStyles.missionCard}`} key={mission.id}>
                 <div className={styles.sectionHeader}>
                   <div>
                     <strong>{mission.title || "Mission sans titre"}</strong>
-                    <p>{mission.description || "Sans consigne détaillée."}</p>
                   </div>
                   <span className={isDelayed ? `${styles.badge} ${styles.badgeWarning}` : styles.badge}>
                     {isDelayed ? "En retard" : getMissionStatusLabel(status)}
@@ -226,12 +261,15 @@ export default function ConciergeMissionsListPage() {
                 <div className={styles.badgeRow}>
                   <span className={styles.badge}>{getMissionPriorityLabel(mission.priority)}</span>
                   <span className={styles.badge}>{formatDateValue(mission.scheduled_start, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
-                  <span className={styles.badge}>{formatEuroAmountLabel(mission.amount, "-")}</span>
                 </div>
+                <p className={listStyles.description}>{mission.description || "Sans consigne détaillée."}</p>
                 <p className={styles.operationalHint}>{getOperationalHint(mission, now)}</p>
-                <Link className={styles.linkButton} href={`/dashboard/concierge/missions/${mission.id}`}>
-                  Ouvrir la mission
-                </Link>
+                <div className={listStyles.cardFooter}>
+                  <span className={listStyles.amount}>Montant : {formatEuroAmountLabel(mission.amount, "-")}</span>
+                  <Link className={styles.linkButton} href={`/dashboard/concierge/missions/${mission.id}`}>
+                    {getNextActionLabel(mission, now)}
+                  </Link>
+                </div>
               </article>
             );
           })}

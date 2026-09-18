@@ -77,6 +77,7 @@ type MissionDetail = {
     currency: string | null;
     scheduled_start: string | null;
     scheduled_end: string | null;
+    reservation_id?: string | null;
     metadata?: Record<string, unknown> | null;
     created_at: string;
     updated_at: string;
@@ -296,7 +297,7 @@ function getOwnerEventLabel(event: { event_type: string; payload?: Record<string
   return getEventLabel(event.event_type);
 }
 
-function getMissionWorkflowSteps(status: MissionStatus): WorkflowTimelineStep[] {
+function getMissionWorkflowSteps(status: MissionStatus, origin: string): WorkflowTimelineStep[] {
   const currentStatus = normalizeMissionStatus(status);
   const doneStatuses = ["awaiting_owner_validation", "validated", "completed", "closed"];
   const planned = ["date_confirmed", "scheduled", "accepted", "in_progress", ...doneStatuses].includes(currentStatus);
@@ -307,7 +308,7 @@ function getMissionWorkflowSteps(status: MissionStatus): WorkflowTimelineStep[] 
   return [
     {
       label: "Mission créée",
-      detail: "Issue du devis accepté",
+      detail: origin,
       state: canceled ? "done" : "done",
       Icon: Wrench,
     },
@@ -330,6 +331,18 @@ function getMissionWorkflowSteps(status: MissionStatus): WorkflowTimelineStep[] 
       Icon: canceled ? XCircle : CheckCircle2,
     },
   ];
+}
+
+function getMissionOrigin(detail: MissionDetail, metadata: Record<string, unknown>) {
+  if (typeof metadata.service_request_id === "string" && metadata.service_request_id) {
+    return "Demande";
+  }
+  if (detail.quotes.length > 0) return "Devis";
+  if (detail.mission.reservation_id) return "Réservation / séjour";
+  if (metadata.creation_source === "direct" || metadata.created_from === "manual") {
+    return "Création directe";
+  }
+  return "Origine non renseignée";
 }
 
 function getOwnerRequestWorkflowSteps(input: {
@@ -807,7 +820,9 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
     { label: "Conciergerie", value: profileName(detail.participants.concierge) },
     { label: "Logement", value: detail.property?.nom_logement || detail.property?.ville || "Non rattaché" },
     { label: "Budget", value: formatEuroAmountLabel(mission.amount, "-") },
-    ...(firstInvoicePayment ? [{ label: "Paiement", value: firstInvoicePayment.workflow.nextActionOwner }] : []),
+    ...(persona === "owner" && firstInvoicePayment
+      ? [{ label: "Paiement", value: firstInvoicePayment.workflow.nextActionOwner }]
+      : []),
   ];
 
   const ownerMissionItems: OwnerMissionItem[] = [
@@ -854,6 +869,7 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
     ),
   );
   const missionCenter = buildMissionObjectCenter(detail);
+  const missionOrigin = getMissionOrigin(detail, missionMetadata);
   const missionObjectKpis = [
     { label: "Avancement", value: `${missionCenter.completionRate}%`, detail: "Objet metier consolide" },
     { label: "Checklist", value: `${missionCenter.counts.checklistDone}/${missionCenter.counts.checklistTotal}`, detail: `${missionCenter.checklistRate}% controles faits` },
@@ -1174,10 +1190,10 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
         </section>
       ) : null}
 
-      <section className={styles.hero}>
+      <section className={`${styles.hero} ${persona === "concierge" ? styles.conciergeSummary : ""}`}>
         <div className={styles.heroTop}>
           <div>
-            <p className={styles.eyebrow}>Détail mission</p>
+            <p className={styles.eyebrow}>{persona === "concierge" ? "Résumé" : "Détail mission"}</p>
             <h1 className={styles.title}>{mission.title || "Mission sans titre"}</h1>
           </div>
           <span className={statusBadgeClass(currentStatus)}>{getMissionStatusLabel(currentStatus)}</span>
@@ -1198,44 +1214,25 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
             })}
           </span>
         </div>
-        <WorkflowTimeline title="Parcours métier" steps={getMissionWorkflowSteps(currentStatus)} />
-        <div className={styles.actions}>
-          {canRequestDate ? (
-            <Button
-              variant="secondary"
-              disabled={saving}
-              onClick={() => patchPlanning("request_date", "Date demandée pour cette mission.")}
-            >
-              <CalendarClock size={16} aria-hidden="true" /> Demander une date
-            </Button>
-          ) : null}
-          {canProposeDate ? (
-            <Button
-              variant="secondary"
-              disabled={saving || !hasPlanningDate}
-              onClick={() => patchPlanning("propose_date", "Créneau proposé.")}
-            >
-              <CalendarClock size={16} aria-hidden="true" /> Proposer ce créneau
-            </Button>
-          ) : null}
-          {canConfirmDate ? (
-            <Button
-              variant="secondary"
-              disabled={saving || !hasPlanningDate}
-              onClick={() => patchPlanning("confirm_date", "Date confirmée.")}
-            >
-              <CheckCircle2 size={16} aria-hidden="true" /> Confirmer la date
-            </Button>
-          ) : null}
-          {canScheduleDate ? (
-            <Button
-              variant="secondary"
-              disabled={saving || !hasPlanningDate}
-              onClick={() => patchPlanning("schedule", "Mission planifiée.")}
-            >
-              <CalendarClock size={16} aria-hidden="true" /> Planifier
-            </Button>
-          ) : null}
+        {persona === "concierge" ? (
+          <dl className={styles.summaryFacts}>
+            <div>
+              <dt>Logement</dt>
+              <dd>{detail.property?.nom_logement || detail.property?.ville || "Non rattaché"}</dd>
+            </div>
+            <div>
+              <dt>Responsable</dt>
+              <dd>{missionConciergeName}</dd>
+            </div>
+            <div>
+              <dt>Origine de la mission</dt>
+              <dd>{missionOrigin}</dd>
+            </div>
+          </dl>
+        ) : null}
+        <WorkflowTimeline title="Parcours de la mission" steps={getMissionWorkflowSteps(currentStatus, missionOrigin)} />
+        {persona === "concierge" ? <p className={styles.actionSectionLabel}>Exécution</p> : null}
+        <div className={`${styles.actions} ${styles.executionActions}`}>
           {canShowAccept ? (
             <Button disabled={saving} onClick={() => patchMission({ action: "accept" }, "Mission acceptée.")}>
               <CheckCircle2 size={16} aria-hidden="true" /> Accepter
@@ -1256,6 +1253,8 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
               <CheckCircle2 size={16} aria-hidden="true" /> Confirmer la réalisation
             </Button>
           ) : null}
+        </div>
+        <div className={`${styles.actions} ${styles.utilityActions}`}>
           {canShowCancel ? (
             <Button
               variant="outline"
@@ -1429,8 +1428,8 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
           <section className={styles.panel}>
             <div className={styles.sectionHeader}>
               <div>
-                <p className={styles.eyebrow}>Pilotage</p>
-                <h2>Informations et replanification</h2>
+                <p className={styles.eyebrow}>{persona === "concierge" ? "Planification" : "Pilotage"}</p>
+                <h2>{persona === "concierge" ? "Créneau de la mission" : "Informations et replanification"}</h2>
               </div>
             </div>
             <form className={styles.formGrid} onSubmit={submitEdit}>
@@ -1455,8 +1454,8 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
                 Fin
                 <Input type="datetime-local" value={editForm.scheduled_end} onChange={(event) => setEditForm((current) => ({ ...current, scheduled_end: event.target.value }))} />
               </label>
-              <label className={styles.label}>
-                Montant
+              <label className={`${styles.label} ${styles.financialField}`}>
+                Montant convenu
                 <Input type="number" min="0" step="0.01" value={editForm.amount} onChange={(event) => setEditForm((current) => ({ ...current, amount: event.target.value }))} />
               </label>
               <label className={`${styles.label} ${styles.fullWidth}`}>
@@ -1472,13 +1471,37 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
                 <Button type="submit" disabled={saving}>Enregistrer les modifications</Button>
               </div>
             </form>
+            {persona === "concierge" ? (
+              <div className={styles.planningActions} aria-label="Actions de planification">
+                {canRequestDate ? (
+                  <Button variant="secondary" disabled={saving} onClick={() => patchPlanning("request_date", "Date demandée pour cette mission.")}>
+                    <CalendarClock size={16} aria-hidden="true" /> Demander une date
+                  </Button>
+                ) : null}
+                {canProposeDate ? (
+                  <Button variant="secondary" disabled={saving || !hasPlanningDate} onClick={() => patchPlanning("propose_date", "Créneau proposé.")}>
+                    <CalendarClock size={16} aria-hidden="true" /> Proposer ce créneau
+                  </Button>
+                ) : null}
+                {canConfirmDate ? (
+                  <Button variant="secondary" disabled={saving || !hasPlanningDate} onClick={() => patchPlanning("confirm_date", "Date confirmée.")}>
+                    <CheckCircle2 size={16} aria-hidden="true" /> Confirmer la date
+                  </Button>
+                ) : null}
+                {canScheduleDate ? (
+                  <Button variant="secondary" disabled={saving || !hasPlanningDate} onClick={() => patchPlanning("schedule", "Mission planifiée.")}>
+                    <CalendarClock size={16} aria-hidden="true" /> Planifier
+                  </Button>
+                ) : null}
+              </div>
+            ) : null}
           </section>
 
           <section className={styles.panel}>
             <div className={styles.sectionHeader}>
               <div>
-                <p className={styles.eyebrow}>Preuves terrain</p>
-                <h2>Checklist et pièces jointes</h2>
+                <p className={styles.eyebrow}>{persona === "concierge" ? "À faire" : "Preuves terrain"}</p>
+                <h2>{persona === "concierge" ? "Checklist de la mission" : "Checklist et pièces jointes"}</h2>
               </div>
               <Button variant="secondary" disabled={saving} onClick={saveChecklist}>Sauver la checklist</Button>
             </div>
@@ -1508,6 +1531,13 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
                 </label>
               ))}
             </div>
+
+            {persona === "concierge" ? (
+              <div className={styles.subsectionHeader}>
+                <p className={styles.eyebrow}>Preuves</p>
+                <h3>Photos, vidéos et documents</h3>
+              </div>
+            ) : null}
 
             {canConciergeAct ? (
               <form className={styles.formGrid} onSubmit={submitFile}>
@@ -1585,11 +1615,13 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
             <section className={styles.panel}>
               <div className={styles.sectionHeader}>
                 <div>
-                  <p className={styles.eyebrow}>Artisan / provider</p>
-                  <h2>Créer une intervention liée</h2>
+                  <p className={styles.eyebrow}>Interventions liées</p>
+                  <h2>Besoin d&apos;un artisan ?</h2>
                 </div>
               </div>
-              <form className={styles.formGrid} onSubmit={createProviderIntervention}>
+              <details className={styles.linkedIntervention}>
+                <summary>Créer une intervention liée</summary>
+                <form className={styles.formGrid} onSubmit={createProviderIntervention}>
                 <label className={styles.label}>
                   Artisan
                   <Select value={providerForm.provider_profile_id} onChange={(event) => setProviderForm((current) => ({ ...current, provider_profile_id: event.target.value }))}>
@@ -1618,14 +1650,15 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
                     <Wrench size={16} aria-hidden="true" /> Créer l&apos;intervention
                   </Button>
                 </div>
-              </form>
+                </form>
+              </details>
             </section>
           ) : null}
         </main>
 
-        <aside className={styles.page}>
-          <section className={styles.panel}>
-            <p className={styles.eyebrow}>Relation</p>
+        <aside className={`${styles.page} ${styles.contextColumn}`}>
+          <section className={`${styles.panel} ${styles.contextPanel}`}>
+            <p className={styles.eyebrow}>{persona === "concierge" ? "Contexte" : "Relation"}</p>
             <div className={styles.factGrid}>
               {relationFacts.map((fact) => (
                 <div className={styles.fact} key={fact.label}>
@@ -1636,9 +1669,9 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
             </div>
           </section>
 
-          <section className={styles.panel}>
-            <p className={styles.eyebrow}>Documents liés</p>
-            {detail.quotes.length > 0 || detail.invoices.length > 0 ? (
+          <section className={`${styles.panel} ${styles.contextPanel}`}>
+            <p className={styles.eyebrow}>{persona === "concierge" ? "Références liées" : "Documents liés"}</p>
+            {detail.quotes.length > 0 || (persona === "owner" && detail.invoices.length > 0) ? (
               <div className={styles.timeline}>
                 {detail.quotes.map((quote) => (
                   <div className={styles.timelineItem} key={quote.id}>
@@ -1646,19 +1679,21 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
                     <span>{quote.status || "-"} · {formatEuroAmountLabel(quote.total_amount, "-")}</span>
                   </div>
                 ))}
-                {detail.invoices.map((invoice) => (
+                {persona === "owner" ? detail.invoices.map((invoice) => (
                   <div className={styles.timelineItem} key={invoice.id}>
                     <strong>{invoice.invoice_number || "Facture"}</strong>
                     <span>{invoice.status || "-"} · solde {formatEuroAmountLabel(invoice.balance_amount, "-")}</span>
                   </div>
-                ))}
+                )) : null}
               </div>
             ) : (
-              <p className={styles.empty}>Aucun devis ou facture rattaché.</p>
+              <p className={styles.empty}>
+                {persona === "concierge" ? "Aucune référence rattachée." : "Aucun devis ou facture rattaché."}
+              </p>
             )}
           </section>
 
-          <section className={styles.panel}>
+          <section className={`${styles.panel} ${styles.contextPanel}`}>
             <p className={styles.eyebrow}>Interventions artisan</p>
             {detail.provider_interventions.length > 0 ? (
               <div className={styles.timeline}>
@@ -1674,7 +1709,7 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
             )}
           </section>
 
-          <section className={styles.panel}>
+          <section className={`${styles.panel} ${styles.contextPanel}`}>
             <div className={styles.sectionHeader}>
               <div>
                 <p className={styles.eyebrow}>Messages</p>
@@ -1695,8 +1730,9 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
             <Link href={messageHref} className={styles.linkButton}>Ouvrir les messages</Link>
           </section>
 
-          <section className={styles.panel}>
+          <section className={`${styles.panel} ${styles.validationPanel}`}>
             <p className={styles.eyebrow}>Validation</p>
+            <p className={styles.validationState}>{getMissionStatusLabel(currentStatus)}</p>
             <form className={styles.formGrid} onSubmit={signMission}>
               <label className={`${styles.label} ${styles.fullWidth}`}>
                 Nom du signataire
@@ -1708,7 +1744,7 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
             </form>
           </section>
 
-          <section className={styles.panel}>
+          <section className={`${styles.panel} ${styles.historyPanel}`}>
             <p className={styles.eyebrow}>Historique</p>
             <div className={styles.timeline}>
               {detail.events.length > 0 ? (

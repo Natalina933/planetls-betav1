@@ -1,6 +1,6 @@
 # Instructions projet PlanetLS
 
-## Master Plan obligatoire
+## Master Plan — règles de pilotage
 
 ### Encodage et langue
 
@@ -50,3 +50,38 @@ Les petites corrections typographiques ou purement visuelles ne nécessitent pas
 ## Compte rendu final
 
 Toute mission importante se termine par une section `Mise à jour du pilotage PlanetLS` indiquant le fichier mis à jour, les statuts et priorités déplacés, les tâches ou idées ajoutées, les contradictions détectées et les vérifications restantes. Si aucun impact significatif n'existe, l'indiquer explicitement.
+## Mode d'intervention légère — économie de tokens
+
+Pour une demande explicitement limitée à une petite modification locale
+(visuel, CSS, texte, icône, espacement, responsive local, état d'affichage
+ou ajustement mineur d'un composant existant) :
+
+- Ne pas auditer le projet.
+- Ne pas lire le Master Plan sauf si la modification révèle un impact
+  fonctionnel, métier ou technique significatif.
+- Ne pas explorer les fichiers sans rapport direct avec la demande.
+- Commencer par le fichier ou composant explicitement indiqué par l'utilisateur.
+- Lire uniquement ses dépendances directes si nécessaire.
+- Réutiliser les composants, styles et tokens existants.
+- Ne pas refactoriser du code hors périmètre.
+- Ne pas créer de dépendance.
+- Ne pas modifier l'architecture.
+- Ne pas créer de documentation ou d'audit supplémentaire.
+- Ne pas mettre à jour le Master Plan pour une modification purement visuelle locale.
+- Exécuter uniquement les tests ou vérifications ciblés nécessaires.
+- Ne pas lancer la suite complète, le build global ou les E2E complets sauf nécessité réelle.
+
+Si la modification nécessite finalement une évolution significative au sens
+des règles de gouvernance ci-dessous, quitter ce mode et appliquer les règles
+complètes du projet.
+
+### Compte rendu léger
+
+Pour une intervention légère, terminer avec seulement :
+
+- Fichiers modifiés
+- Modification réalisée
+- Vérification/test effectué
+- Problème éventuel restant
+
+Réponse concise.

@@ -207,7 +207,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
           ) : (
             menuItems.map((item) => (
               <React.Fragment key={item.label}>
-              {userType === "owner" && item.section ? <p className={styles.sectionLabel}>{item.section}</p> : null}
+              {(userType === "owner" || userType === "concierge") && item.section ? <p className={styles.sectionLabel}>{item.section}</p> : null}
               <SidebarItem
                 key={item.label}
                 item={item}

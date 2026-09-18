@@ -19,7 +19,6 @@ import {
   FileText,
   Home,
   MapPinned,
-  Send,
   Sparkles,
   XCircle,
   type LucideIcon,
@@ -40,6 +39,11 @@ import {
 } from "@/features/service-requests";
 
 import { RequestStatusBadge } from "@/components/ui/RequestStatusBadge";
+import {
+  StatsCard,
+  TableFilters,
+} from "@/components/ui";
+import { MetricGroup } from "@/components/ui/StatsCard/MetricGroup";
 
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 import { conciergeApiError } from "../conciergeFeedback";
@@ -99,12 +103,10 @@ type ConciergeRequestRow = {
 };
 
 type RequestFilter =
+  | "all"
   | "new"
-  | "compatible"
-  | "urgent"
-  | "premium"
-  | "quote_draft"
-  | "quote_sent"
+  | "action"
+  | "quote"
   | "selected"
   | "closed";
 
@@ -116,34 +118,24 @@ type FilterDefinition = {
 
 const FILTERS: FilterDefinition[] = [
   {
+    key: "all",
+    label: "Toutes",
+    icon: ClipboardList,
+  },
+  {
     key: "new",
     label: "Nouvelles",
     icon: ClipboardList,
   },
   {
-    key: "compatible",
-    label: "Compatibles",
+    key: "action",
+    label: "À traiter",
     icon: BadgeCheck,
   },
   {
-    key: "urgent",
-    label: "Urgentes",
-    icon: Clock,
-  },
-  {
-    key: "premium",
-    label: "Premium",
-    icon: Sparkles,
-  },
-  {
-    key: "quote_draft",
-    label: "Devis brouillon",
+    key: "quote",
+    label: "Devis",
     icon: FileText,
-  },
-  {
-    key: "quote_sent",
-    label: "Devis envoyés",
-    icon: Send,
   },
   {
     key: "selected",
@@ -156,6 +148,15 @@ const FILTERS: FilterDefinition[] = [
     icon: XCircle,
   },
 ];
+
+const FILTER_TITLES: Record<RequestFilter, string> = {
+  all: "Toutes les demandes",
+  new: "Nouvelles demandes",
+  action: "Demandes à traiter",
+  quote: "Demandes avec devis",
+  selected: "Demandes acceptées",
+  closed: "Demandes clôturées",
+};
 
 const RECIPIENT_STATUS = {
   SENT: "sent",
@@ -308,30 +309,17 @@ function getRequestFilter(
   }
 
   if (item.quote_status === "draft") {
-    return "quote_draft";
+    return "quote";
   }
 
   if (
     item.quote_id ||
     item.recipient_status === RECIPIENT_STATUS.QUOTED
   ) {
-    return "quote_sent";
-  }
-
-  if (item.urgency) {
-    return "urgent";
+    return "quote";
   }
 
   if (
-    typeof item.budget_max === "number" &&
-    item.budget_max >= 500
-  ) {
-    return "premium";
-  }
-
-  if (
-    item.recipient_status ===
-      RECIPIENT_STATUS.VIEWED ||
     item.recipient_status ===
       RECIPIENT_STATUS.INTERESTED ||
     item.recipient_status ===
@@ -339,7 +327,7 @@ function getRequestFilter(
     item.recipient_status ===
       RECIPIENT_STATUS.DATE_PROPOSED
   ) {
-    return "compatible";
+    return "action";
   }
 
   return "new";
@@ -351,13 +339,18 @@ function getNextStepLabel(item: ConciergeRequestRow) {
       RECIPIENT_STATUS.SELECTED ||
     item.mission_id
   ) {
-    return "Collaboration acceptée";
+    return "Accord accepté";
+  }
+
+  if (item.quote_status === "draft") {
+    return "Finaliser le devis";
   }
 
   if (
-    item.recipient_status === RECIPIENT_STATUS.QUOTED
+    item.recipient_status === RECIPIENT_STATUS.QUOTED ||
+    item.quote_id
   ) {
-    return "Devis à suivre";
+    return "En attente de décision";
   }
 
   if (
@@ -365,6 +358,20 @@ function getNextStepLabel(item: ConciergeRequestRow) {
     RECIPIENT_STATUS.INTERESTED
   ) {
     return "Préparer le devis";
+  }
+
+  if (
+    item.recipient_status ===
+    RECIPIENT_STATUS.INFORMATION_REQUESTED
+  ) {
+    return "En attente d'informations";
+  }
+
+  if (
+    item.recipient_status ===
+    RECIPIENT_STATUS.DATE_PROPOSED
+  ) {
+    return "Suivre la proposition";
   }
 
   if (
@@ -381,7 +388,9 @@ function getNextStepLabel(item: ConciergeRequestRow) {
     return "Non retenue";
   }
 
-  return "Qualifier la demande";
+  return item.recipient_status === RECIPIENT_STATUS.SENT
+    ? "Examiner la demande"
+    : "Qualifier la demande";
 }
 
 function getNextStepDescription(
@@ -392,13 +401,17 @@ function getNextStepDescription(
       RECIPIENT_STATUS.SELECTED ||
     item.mission_id
   ) {
-    return "Le devis a été accepté. La demande commerciale est validée ; les séjours voyageurs seront transmis dans Missions.";
+    return "L'accord commercial est accepté. La suite dépend du type de prestation convenu.";
+  }
+
+  if (item.quote_status === "draft") {
+    return "Le brouillon existe déjà. Vérifiez-le avant de l'envoyer au propriétaire.";
   }
 
   if (
     item.recipient_status === RECIPIENT_STATUS.QUOTED
   ) {
-    return "Le devis est prêt côté concierge. Suivez la réponse du propriétaire.";
+    return "Le devis est prêt côté concierge. La décision du propriétaire est attendue.";
   }
 
   if (
@@ -530,7 +543,10 @@ function getCardTone(
 function isQualifiedStatus(
   status: RecipientStatus,
 ) {
-  return status !== RECIPIENT_STATUS.SENT;
+  return (
+    status !== RECIPIENT_STATUS.SENT &&
+    status !== RECIPIENT_STATUS.VIEWED
+  );
 }
 
 function getConciergeMilestones(
@@ -546,9 +562,16 @@ function getConciergeMilestones(
     status === RECIPIENT_STATUS.SELECTED ||
     Boolean(item.mission_id);
 
-  const hasMission =
+  const hasDecision =
     status === RECIPIENT_STATUS.SELECTED ||
     Boolean(item.mission_id);
+
+  const nextPath =
+    item.request_type === "ponctuel"
+      ? "Mission"
+      : item.request_type === "durable"
+        ? "Collaboration → Contrat"
+        : "Suite du parcours";
 
   const steps = [
     {
@@ -566,7 +589,7 @@ function getConciergeMilestones(
       Icon: BadgeCheck,
     },
     {
-      label: "Devis envoyés",
+      label: "Devis",
       detail: hasQuote
         ? "Devis préparé"
         : "Devis à préparer",
@@ -574,11 +597,17 @@ function getConciergeMilestones(
       Icon: FileText,
     },
     {
-      label: "Missions voyageurs",
-      detail: hasMission
-        ? "Partenariat prêt"
-        : "Après devis accepté",
-      state: hasMission ? "done" : "todo",
+      label: "Décision",
+      detail: hasDecision
+        ? "Accord accepté"
+        : "Décision attendue",
+      state: hasDecision ? "done" : "todo",
+      Icon: BadgeCheck,
+    },
+    {
+      label: "Suite",
+      detail: hasDecision ? nextPath : "Après décision",
+      state: "todo" as const,
       Icon: CalendarPlus,
     },
   ];
@@ -670,9 +699,9 @@ function getConciergeFacts(
 
   if (item.mission_id) {
     facts.push({
-      label: "Partenariat",
-      value: "Devis accepté",
-      hint: "Missions voyageurs à venir",
+      label: "Suite",
+      value: "Mission liée",
+      hint: "Accès opérationnel disponible",
       Icon: CalendarPlus,
     });
   }
@@ -772,6 +801,30 @@ function RequestActions({
     : "/dashboard/concierge/billing?source=request";
 
   if (
+    item.quote_status === "draft" &&
+    item.recipient_status !== RECIPIENT_STATUS.SELECTED &&
+    !item.mission_id
+  ) {
+    return (
+      <div className={styles.actionGroup}>
+        <Link
+          href={conversationHref}
+          className={styles.secondaryAction}
+        >
+          Ouvrir la conversation
+        </Link>
+
+        <Link
+          href={quoteHref}
+          className={styles.primaryAction}
+        >
+          Finaliser le devis
+        </Link>
+      </div>
+    );
+  }
+
+  if (
     item.recipient_status ===
     RECIPIENT_STATUS.QUOTED
   ) {
@@ -788,7 +841,7 @@ function RequestActions({
           href={quoteHref}
           className={styles.primaryAction}
         >
-          Ouvrir le devis
+          Voir le devis
         </Link>
 
         <button
@@ -799,7 +852,7 @@ function RequestActions({
         >
           {busy
             ? "Mise à jour..."
-            : "Relancer la préparation"}
+            : "Finaliser le devis"}
         </button>
       </div>
     );
@@ -822,15 +875,17 @@ function RequestActions({
           href={quoteHref}
           className={styles.primaryAction}
         >
-          Ouvrir devis / facturation
+          Voir le devis
         </Link>
 
-        <Link
-          href="/dashboard/concierge/missions"
-          className={styles.ghostAction}
-        >
-          Planifier la mission
-        </Link>
+        {item.mission_id ? (
+          <Link
+            href="/dashboard/concierge/missions"
+            className={styles.ghostAction}
+          >
+            Voir la mission
+          </Link>
+        ) : null}
       </div>
     );
   }
@@ -874,7 +929,7 @@ function RequestActions({
         >
           {busy
             ? "Préparation..."
-            : "Préparer un devis"}
+            : "Préparer le devis"}
         </button>
 
         <button
@@ -962,7 +1017,7 @@ function ConciergeDemandesContent() {
   >([]);
 
   const [filter, setFilter] =
-    useState<RequestFilter>("new");
+    useState<RequestFilter>("all");
 
   const [loading, setLoading] = useState(true);
 
@@ -1084,29 +1139,21 @@ function ConciergeDemandesContent() {
     void loadRequests();
   }, [loadRequests]);
 
-  const urgentCount = useMemo(
-    () => items.filter((item) => item.urgency).length,
-    [items],
-  );
-
-  const openCount = useMemo(
-    () =>
-      items.filter(
-        (item) =>
-          item.recipient_status ===
-            RECIPIENT_STATUS.SENT ||
-          item.recipient_status ===
-            RECIPIENT_STATUS.VIEWED,
+  const metricCounts = useMemo(
+    () => ({
+      new: items.filter(
+        (item) => getRequestFilter(item) === "new",
       ).length,
-    [items],
-  );
-
-  const quotedCount = useMemo(
-    () =>
-      items.filter(
-        (item) =>
-          getWorkflow(item) === "QUOTE_SENT",
+      qualification: items.filter(
+        (item) => getRequestFilter(item) === "action",
       ).length,
+      quote: items.filter(
+        (item) => getRequestFilter(item) === "quote",
+      ).length,
+      selected: items.filter(
+        (item) => getRequestFilter(item) === "selected",
+      ).length,
+    }),
     [items],
   );
 
@@ -1120,19 +1167,20 @@ function ConciergeDemandesContent() {
           return true;
         }
 
-        return getRequestFilter(item) === filter;
+        return (
+          filter === "all" ||
+          getRequestFilter(item) === filter
+        );
       }),
     [filter, focusedRecipientId, items],
   );
 
   const filterCounts = useMemo(() => {
     const counts: Record<RequestFilter, number> = {
+      all: items.length,
       new: 0,
-      compatible: 0,
-      urgent: 0,
-      premium: 0,
-      quote_draft: 0,
-      quote_sent: 0,
+      action: 0,
+      quote: 0,
       selected: 0,
       closed: 0,
     };
@@ -1359,53 +1407,35 @@ function ConciergeDemandesContent() {
     <ConciergeWorkspacePage
       eyebrow="Espace concierge"
       title="Demandes"
-      description="Gérez les demandes reçues et transformez-les en collaborations."
+      description="Gérez les demandes jusqu'à l'accord avec le propriétaire."
       cards={[]}
     >
       <main className={styles.page}>
-        <section className={styles.header}>
-          <div>
-            <p className={styles.eyebrow}>
-              Espace concierge
-            </p>
-
-            <h1>File de demandes</h1>
-
-            <p className={styles.description}>
-              Statut, besoin, propriétaire et prochaine
-              action en un coup d’œil.
-            </p>
-          </div>
-
-          <div className={styles.stats}>
-            <div className={styles.stat}>
-              <span className={styles.statValue}>
-                {openCount}
-              </span>
-              <span className={styles.statLabel}>
-                demandes ouvertes
-              </span>
-            </div>
-
-            <div className={styles.stat}>
-              <span className={styles.statValue}>
-                {urgentCount}
-              </span>
-              <span className={styles.statLabel}>
-                urgentes
-              </span>
-            </div>
-
-            <div className={styles.stat}>
-              <span className={styles.statValue}>
-                {quotedCount}
-              </span>
-              <span className={styles.statLabel}>
-                devis envoyés
-              </span>
-            </div>
-          </div>
-        </section>
+        <MetricGroup
+          className={styles.metrics}
+          aria-label="Indicateurs des demandes"
+        >
+          <StatsCard
+            label="Nouvelles"
+            value={String(metricCounts.new)}
+            hint="Demandes reçues à examiner"
+          />
+          <StatsCard
+            label="À qualifier"
+            value={String(metricCounts.qualification)}
+            hint="Qualification commerciale en cours"
+          />
+          <StatsCard
+            label="Devis en attente"
+            value={String(metricCounts.quote)}
+            hint="Brouillons et décisions attendues"
+          />
+          <StatsCard
+            label="Acceptées"
+            value={String(metricCounts.selected)}
+            hint="Accords commerciaux acceptés"
+          />
+        </MetricGroup>
 
         {actionMessage ? (
           <div
@@ -1437,58 +1467,60 @@ function ConciergeDemandesContent() {
           className={styles.process}
           aria-label="Étapes d'une demande"
         >
-          <div className={styles.processStep}>
-            <span>1</span>
-            <strong>Demande reçue</strong>
-          </div>
-
-          <div className={styles.processStep}>
-            <span>2</span>
-            <strong>Devis préparé</strong>
-          </div>
-
-          <div className={styles.processStep}>
-            <span>3</span>
-            <strong>Propriétaire accepte</strong>
-          </div>
-
-          <div className={styles.processStep}>
-            <span>4</span>
-            <strong>Collaboration active</strong>
-          </div>
+          {[
+            "Demande",
+            "Qualification",
+            "Devis",
+            "Décision",
+            "Suite",
+          ].map((step, index) => (
+            <div className={styles.processStep} key={step}>
+              <span>{index + 1}</span>
+              <strong>{step}</strong>
+            </div>
+          ))}
+          <p className={styles.processHint}>
+            Ponctuel → Mission · Régulier → Collaboration → Contrat
+          </p>
         </section>
 
-        <nav
-          className={styles.filters}
-          aria-label="Filtrer les demandes"
+        <TableFilters
+          className={styles.filterPanel}
+          layout="toolbar"
+          showMeta={false}
         >
-          {FILTERS.map(
-            ({ key, label, icon: Icon }) => {
-              const isActive = filter === key;
+          <nav
+            className={styles.filters}
+            aria-label="Filtrer les demandes"
+          >
+            {FILTERS.map(
+              ({ key, label, icon: Icon }) => {
+                const isActive = filter === key;
 
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  className={`${styles.filterButton} ${
-                    isActive
-                      ? styles.filterButtonActive
-                      : ""
-                  }`}
-                  onClick={() => setFilter(key)}
-                  aria-pressed={isActive}
-                >
-                  <Icon
-                    size={16}
-                    aria-hidden="true"
-                  />
-                  <span>{label}</span>
-                  <strong>{filterCounts[key]}</strong>
-                </button>
-              );
-            },
-          )}
-        </nav>
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`${styles.filterButton} ${
+                      isActive
+                        ? styles.filterButtonActive
+                        : ""
+                    }`}
+                    onClick={() => setFilter(key)}
+                    aria-pressed={isActive}
+                  >
+                    <Icon
+                      size={16}
+                      aria-hidden="true"
+                    />
+                    <span>{label}</span>
+                    <strong>{filterCounts[key]}</strong>
+                  </button>
+                );
+              },
+            )}
+          </nav>
+        </TableFilters>
 
         {loading ? (
           <div
@@ -1505,23 +1537,15 @@ function ConciergeDemandesContent() {
             <div className={styles.resultsHeader}>
               <div>
                 <p className={styles.eyebrow}>
-                  Demandes à traiter
+                  Suivi commercial
                 </p>
 
-                <h2>
-                  {filteredItems.length} demande
-                  {filteredItems.length > 1
-                    ? "s"
-                    : ""}
-                </h2>
+                <h2>{FILTER_TITLES[filter]}</h2>
               </div>
 
               <span className={styles.currentFilter}>
-                {
-                  FILTERS.find(
-                    (item) => item.key === filter,
-                  )?.label
-                }
+                {filteredItems.length} demande
+                {filteredItems.length > 1 ? "s" : ""}
               </span>
             </div>
 
@@ -1545,7 +1569,12 @@ function ConciergeDemandesContent() {
                         ...(item.desired_date ? [{ label: "Date souhaitée", value: formatDate(item.desired_date), Icon: CalendarPlus }] : []),
                         ...(item.proposed_date ? [{ label: "Date proposée", value: formatDate(item.proposed_date), Icon: Clock }] : []),
                       ]}
-                      compactDetails={item.requested_services.filter(Boolean).slice(0, 3)}
+                      compactDetails={[
+                        ...item.requested_services
+                          .filter(Boolean)
+                          .slice(0, 3),
+                        `Prochaine action : ${getNextStepLabel(item)}`,
+                      ]}
                       key={item.recipient_id}
                       id={`request-${item.recipient_id}`}
                       title={item.title}

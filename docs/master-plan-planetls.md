@@ -1,5 +1,62 @@
 # Master Plan PlanetLS
 
+### Réorganisation de la navigation Concierge — 18 septembre 2026
+
+- Navigation Concierge **✅ Terminé — P1 Prioritaire** dans le périmètre de la sidebar uniquement. Les routes, pages, APIs, données, permissions et workflows métier existants restent inchangés ; cette organisation ne signifie pas que les écarts métier documentés sont corrigés.
+- Organisation adoptée : `Mon activité`, `Commercial`, `Clients`, `Prestataires`, `Gestion`, `Pilotage` et `Configuration`, après l'entrée autonome `Tableau de bord`. Les libellés redondants `Vue d'ensemble` sont retirés de la navigation sans suppression de leurs routes.
+- Décisions de classement : `/missions` devient l'entrée Missions ; `/missions/overview` est présenté comme `Offre de services` ; `/planning` devient `Planning & tournées` ; `/maintenance` devient provisoirement `Artisans & interventions`. Aucune entrée `Demandes artisan` n'est créée tant que le concept canonique n'est pas implémenté.
+- Chevauchement assumé : `/billing` reste accessible comme `Devis` dans Commercial et comme `Facturation` dans Gestion. `/finances/overview` reste le pilotage `Finances`. La page et son mélange fonctionnel ne sont pas refactorisés dans ce lot.
+- Compatibilité : tous les pathnames existants sont conservés. La navigation mobile continue d'utiliser les routes historiques ; les liens internes, redirections, notifications et tests existants ne nécessitent aucun changement de destination.
+- Vérification attendue : contrat ciblé sur sections, libellés, ordre, existence des routes et double alias `/billing`, plus non-régression du test sidebar Owner et lint des fichiers de navigation.
+
+### Architecture métier cible — accords, exécution, validation et facturation — 18 septembre 2026
+
+- Gouvernance : décision d'architecture métier **✅ Terminé — P1 Prioritaire**. Mise en œuvre produit et technique **🟠 Partiel — P1 Prioritaire**. Cette entrée fixe la cible validée ; elle ne renomme aucun statut existant et ne présente aucune API, migration, permission ou interface comme déjà alignée.
+- Vocabulaire canonique : une `demande` exprime un besoin avant accord ; un `devis` est une proposition commerciale ; une `collaboration` relie des acteurs autour d'un logement ; un `contrat` définit les services, tarifs, logement, dates et règles de cette collaboration ; une `mission` est un travail concret daté ; une `intervention artisan` est un travail technique ponctuel ; le `planning` est une projection temporelle ; la `tournée` est une projection géographique ordonnée ; la `validation` confirme la conformité du travail et des preuves ; la `facture` documente les prestations facturables.
+
+#### Cible validée
+
+- Prestation ponctuelle : `demande → devis accepté → mission → exécution terminée → preuves déposées → validation → facturation → paiement → clôture`. Le devis accepté peut constituer l'accord contractuel de la prestation ; aucun contrat séparé n'est obligatoire.
+- Collaboration régulière : `demande → devis accepté → collaboration → contrat → missions → exécution → validation → facturation périodique ou événementielle`. La collaboration représente la relation entre acteurs et logement ; le contrat en porte les conditions. Une collaboration peut avoir plusieurs contrats successifs dans le temps.
+- Statuts canoniques cibles de collaboration : `pending → active → paused → ended`. Ces valeurs sont une cible métier, pas une déclaration sur les statuts techniques actuellement persistés.
+- Workflow artisan : `incident/besoin → demande artisan → devis → acceptation → intervention → preuves → validation → facturation`. Une intervention urgente peut exceptionnellement être créée sans devis préalable, avec une justification explicite, traçable et contrôlable.
+- États opérationnels distincts : `planifiée → en cours → exécution terminée → preuves déposées → en attente de validation → validée → facturée → payée → clôturée`. `Terminée`, `validée`, `facturée`, `payée` et `clôturée` ne sont jamais synonymes et ne doivent pas être compressées dans un statut unique.
+- Règle financière : accepter un devis ne rend pas automatiquement une facture finale exigible. Une facture d'acompte n'est créée que si le devis ou le contrat le prévoit. La facture finale est déclenchée par la validation d'une prestation ponctuelle ou par l'événement de facturation défini dans un contrat récurrent.
+
+#### État actuel et écarts conservés
+
+- Le flux actuel `service_requests → quotes → finalizeAcceptedQuoteWorkflow` crée ou rattache automatiquement une mission et génère une facture brouillon à l'acceptation du devis. Ce comportement reste en place mais ne correspond pas entièrement à la nouvelle règle de facturation ni à la branche collaboration régulière avec contrat.
+- `housing_collaborations` distingue déjà la relation opérationnelle, mais peut être créée à l'acceptation et liée directement à une mission ou un devis sans contrat canonique. Les statuts existants, notamment `pending_handover`, `active` et `paused`, ne sont pas encore alignés sur la cible complète `pending/active/paused/ended`.
+- `services_contracts` existe mais n'est pas intégré au flux demande → devis → collaboration → missions. La cardinalité cible « une collaboration, plusieurs contrats dans le temps » n'est pas matérialisée comme invariant vérifié.
+- Les missions possèdent des étapes de planification, exécution, attente de validation, validation, achèvement et clôture, mais `completed` et `validated` se recouvrent encore dans certains parcours et replis techniques.
+- Le socle artisan possède `provider_interventions`, rapports et factures, mais aucun objet canonique persistant `demande artisan` ni chaîne obligatoire demande → devis → acceptation. La création directe d'une intervention ne porte pas encore une règle uniforme de justification d'urgence.
+- Les preuves artisan sont persistées, mais leur approbation, réserve ou rejet ne constitue pas encore un objet ou une transition canonique distincte avant facturation.
+- Le planning concierge projette les missions datées et la tournée ordonne les missions planifiées, mais la coexistence de `planning_entries`, missions et réservations conserve plusieurs sources temporelles. Aucun objet tournée canonique n'est nécessaire tant qu'elle reste une projection calculée et clairement présentée comme telle.
+
+#### Éléments déjà conformes
+
+- Demandes, devis, missions, interventions artisan, rapports/preuves et factures sont des objets persistants distincts ; une demande n'est donc pas stockée comme une mission.
+- Le devis accepté est traçable vers la mission créée ou rattachée, ce qui convient à la branche ponctuelle sous réserve de séparer correctement acompte et facture finale.
+- Les missions disposent déjà de dates, d'une exécution, d'événements, de preuves, d'une attente de validation propriétaire et d'une clôture financière possible après paiement.
+- Les interventions artisan disposent d'un objet propre et de comptes rendus distincts des missions concierge.
+- Les factures distinguent déjà brouillon, émission, paiement partiel, paiement, retard et annulation ; le paiement final peut clôturer une mission éligible.
+
+#### Prochaines étapes recommandées
+
+1. Spécifier les invariants et cardinalités de `collaboration`, `contrat`, `mission`, `demande artisan`, `intervention`, `validation` et `facture`, y compris les branches ponctuelle, régulière et urgente.
+2. Définir les événements de facturation canoniques : acompte prévu, validation ponctuelle, échéance ou période récurrente, facture finale et clôture.
+3. Concevoir le modèle cible de `demande artisan` et la justification obligatoire d'urgence, sans modifier encore les objets existants.
+4. Établir une table de correspondance entre statuts techniques existants et états métier cibles, sans renommage immédiat ni migration destructive.
+5. Préparer un plan de migration progressive, rétrocompatible et testable avant toute évolution de schéma, API ou interface.
+
+#### Risques et vérifications préalables
+
+- Risques de régression : double création mission/facture lors de l'acceptation, rupture des liens devis–mission–facture, collaborations actives sans contrat interprétable, changement involontaire des droits inter-rôles, perte de l'historique des statuts, blocage des urgences artisan et clôture prématurée après paiement.
+- Toute future migration devra préserver les identifiants et liens historiques, être validée sur base locale fraîche et base existante représentative, prévoir sauvegarde ou prévisualisation et documenter la stratégie de retour arrière.
+- Toute future évolution Supabase devra vérifier les RLS pour accès autorisé, refus entre rôles ou tenants et parcours serveur, notamment owner, concierge, artisan/provider et admin.
+- Les transitions devront être couvertes par des tests d'idempotence, de reprise après échec et de non-régression sur les workflows actuels avant activation progressive.
+- Journal de décision : les deux types d'accords, la séparation collaboration/contrat, la facturation déclenchée par un événement explicite, la demande artisan canonique et la séparation des états opérationnels deviennent la référence métier cible PlanetLS à compter du 18 septembre 2026.
+
 ### Mise à jour ciblée - PLS-DS-001, premier lot Documents puis Devis — 15 septembre 2026
 
 - Étapes 2 et 3 validées par l’utilisatrice ; premier lot de migration des corps Documents/Devis réalisé. Chantier global **🟡 En cours — P1 Prioritaire**, sans nouvelle tâche. Les fichiers de migration commencés le 14 septembre sont présents dans le commit `4ecbc15c` malgré son intitulé limité aux fondations/compositions ; cette reprise les conserve et finalise leur recette.
