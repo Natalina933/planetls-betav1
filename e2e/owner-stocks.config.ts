@@ -1,0 +1,4 @@
+import { defineConfig } from "@playwright/test";
+import base from "./traveler-stays-visual.config";
+
+export default defineConfig({ ...base, testMatch: "owner-stocks.spec.ts", outputDir: "../test-results/owner-stocks" });

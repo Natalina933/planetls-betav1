@@ -337,18 +337,14 @@ export default function OwnerStocksPage() {
   return (
     <DashboardSectionShell
       persona="owner"
-      title="Préparation logements"
-      subtitle={error || "Stocks, équipements et contrôles terrain traduits en décisions simples."}
-      actions={[
-        { label: "Voir les logements", href: "/dashboard/owner/logements" },
-        { label: "Demander un contrôle", href: "/dashboard/owner/demandes" },
-      ]}
+      title="Préparation des logements"
+      subtitle={error || "Suivez les stocks, les équipements et les contrôles utiles à chaque séjour."}
     >
       <div className={styles.page}>
         <section className={styles.hero}>
           <div className={styles.heroCopy}>
             <span className={styles.eyebrow}>Exploitation du parc</span>
-            <h1>Bonjour Nathalie, vos logements sont-ils prêts ?</h1>
+            <h1>Vos logements sont-ils prêts à accueillir ?</h1>
             <p>
               {readyCount} prêt(s) à accueillir, {criticalCount} critique(s), {reorders.length} réapprovisionnement(s)
               à prévoir et {equipmentWatchCount} équipement(s) à surveiller.
