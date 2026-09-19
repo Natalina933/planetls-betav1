@@ -1,3 +1,5 @@
+import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
+import { validateQuoteHousingAttachment, QuoteHousingValidationError, HOUSING_OWNER_KEYS, HOUSING_MANAGER_KEYS } from "./quoteHousingValidation";
 import { db } from "@/app/lib/dbServer";
 import {
   buildHousingMutationPayload,
@@ -5,6 +7,10 @@ import {
   type ProfileRow,
   type QuotePreview,
 } from "@/types/housing";
+
+export { QuoteHousingValidationError } from "./quoteHousingValidation";
+export const validateHousingFromQuote = (input: Parameters<typeof validateQuoteHousingAttachment>[1]) =>
+  validateQuoteHousingAttachment(asLooseSupabaseClient(db), input);
 
 const quoteSelect = `
   id,
@@ -72,73 +78,39 @@ export async function createHousingFromQuote(
   managerProfileId: string,
   existingHousingId?: string | number | null,
 ) {
+  const validation = await validateHousingFromQuote({
+    quoteId, expectedConciergeProfileId: managerProfileId, existingHousingId,
+  });
   const preview = await loadQuotePreview(quoteId, managerProfileId);
-
-  const linkedHousingId =
-    typeof existingHousingId === "number"
-      ? String(existingHousingId)
-      : typeof existingHousingId === "string" && existingHousingId.trim()
-        ? existingHousingId.trim()
-        : null;
-
-  const numericLinkedHousingId = linkedHousingId ? Number(linkedHousingId) : null;
-
-  if (numericLinkedHousingId && Number.isInteger(numericLinkedHousingId) && numericLinkedHousingId > 0) {
-    const { data: linkedHousing, error: linkedHousingError } = await db
-      .from("housing")
-      .select("id, proprietaire, contrat")
-      .eq("id", numericLinkedHousingId)
-      .maybeSingle();
-
-    if (linkedHousingError) {
-      throw new Error("Impossible de verifier le logement lie a la demande.");
-    }
-
-    if (linkedHousing?.id) {
-      const currentOwner =
-        linkedHousing.proprietaire && typeof linkedHousing.proprietaire === "object" && !Array.isArray(linkedHousing.proprietaire)
-          ? linkedHousing.proprietaire
-          : {};
-      const currentContract =
-        linkedHousing.contrat && typeof linkedHousing.contrat === "object" && !Array.isArray(linkedHousing.contrat)
-          ? linkedHousing.contrat
-          : {};
-
-      const { error: linkError } = await db
-        .from("housing")
-        .update({
-          proprietaire: {
-            ...currentOwner,
-            owner_profile_id: preview.owner.profileId,
-            manager_profile_id: managerProfileId,
-            source: "quote",
-          },
-          contrat: {
-            ...currentContract,
-            quote_id: quoteId,
-            quote_number: preview.quoteNumber,
-            signed_at: preview.acceptedAt || new Date().toISOString(),
-          },
-        })
-        .eq("id", linkedHousing.id);
-
-      if (linkError) {
-        throw new Error("Impossible de rattacher la conciergerie au logement existant.");
-      }
-
-      return { housingId: linkedHousing.id, created: false, linkedExisting: true };
-    }
+  if (preview.owner.profileId !== validation.ownerId) {
+    throw new QuoteHousingValidationError("Le propriétaire du devis a changé pendant le rattachement.");
   }
-
-  const { data: existing } = await db
-    .from("housing")
-    .select("id, contrat")
-    .eq("proprietaire->>manager_profile_id", managerProfileId)
-    .eq("contrat->>quote_id", quoteId)
-    .maybeSingle();
-
-  if (existing?.id) {
-    return { housingId: existing.id, created: false, linkedExisting: false };
+  const linkedHousing = validation.housing;
+  if (linkedHousing) {
+    const currentOwner = linkedHousing.proprietaire as Record<string, unknown>;
+    const currentContract = linkedHousing.contrat && typeof linkedHousing.contrat === "object" && !Array.isArray(linkedHousing.contrat)
+      ? linkedHousing.contrat as Record<string, unknown> : {};
+    if (currentContract.quote_id === quoteId && currentOwner.manager_profile_id === managerProfileId) {
+      return { housingId: Number(linkedHousing.id), created: false, linkedExisting: true };
+    }
+    // Compare the ownership snapshot as well: never overwrite a concurrent reassignment.
+    let update = asLooseSupabaseClient(db)
+      .from("housing")
+      .update({
+        proprietaire: { ...currentOwner, owner_profile_id: validation.ownerId, manager_profile_id: managerProfileId, source: "quote" },
+        contrat: { ...currentContract, quote_id: quoteId, quote_number: preview.quoteNumber, signed_at: preview.acceptedAt || new Date().toISOString() },
+      })
+      .eq("id", linkedHousing.id);
+    for (const key of [...HOUSING_OWNER_KEYS, ...HOUSING_MANAGER_KEYS]) {
+      const value = currentOwner[key];
+      update = value === null || value === undefined
+        ? update.is(`proprietaire->>${key}`, null)
+        : update.eq(`proprietaire->>${key}`, String(value));
+    }
+    const { data: updated, error: linkError } = await update.select("id").maybeSingle();
+    if (linkError) throw new Error("Impossible de rattacher la conciergerie au logement existant.");
+    if (!updated) throw new QuoteHousingValidationError("Le logement a changé pendant le rattachement. Rechargez puis réessayez.");
+    return { housingId: Number(linkedHousing.id), created: false, linkedExisting: true };
   }
 
   const payload = buildHousingMutationPayload({
@@ -197,6 +169,11 @@ export async function createHousingFromQuote(
     },
   });
 
+  // Preserve the verified UUID origin for retries without inventing a name-based mapping.
+  if (validation.propertyId) {
+    payload.infos = { ...(payload.infos as Record<string, unknown>), quote_source_property_id: validation.propertyId };
+  }
+
   const { data: createdHousing, error: createError } = await db
     .from("housing")
     .insert(payload)
@@ -211,6 +188,7 @@ export async function createHousingFromQuote(
     .from("quotes")
     .update({
       metadata: {
+        ...(validation.quote.metadata && typeof validation.quote.metadata === "object" ? validation.quote.metadata : {}),
         quote_id: quoteId,
         housing_id: createdHousing.id,
         auto_housing_created_at: new Date().toISOString(),

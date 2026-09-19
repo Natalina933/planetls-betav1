@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
-import { createHousingFromQuote, loadQuotePreview } from "@/app/api/profiles/housing/shared";
+import { createHousingFromQuote, loadQuotePreview, QuoteHousingValidationError } from "@/app/api/profiles/housing/shared";
 
 const ALLOWED_ROLES = new Set(["admin", "super_admin", "concierge", "concierge_pro"]);
 
@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
     const preview = await loadQuotePreview(quoteId, userId);
     return NextResponse.json(preview);
   } catch (error) {
+    if (error instanceof QuoteHousingValidationError) return NextResponse.json({ error: error.message }, { status: error.status });
     const message = error instanceof Error ? error.message : "Erreur serveur.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -47,6 +48,7 @@ export async function POST(req: NextRequest) {
     const result = await createHousingFromQuote(quoteId, userId);
     return NextResponse.json(result, { status: result.created ? 201 : 200 });
   } catch (error) {
+    if (error instanceof QuoteHousingValidationError) return NextResponse.json({ error: error.message }, { status: error.status });
     const message = error instanceof Error ? error.message : "Erreur serveur.";
     return NextResponse.json({ error: message }, { status: 500 });
   }

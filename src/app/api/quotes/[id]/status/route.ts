@@ -7,7 +7,7 @@ import { deriveQuoteWorkflowStatus } from "@/app/lib/commercialWorkflow";
 import { db } from "@/app/lib/dbServer";
 import { requireApiRole } from "@/server/auth/roleGuards";
 import { deriveServiceRequestStatus, type ServiceRequestRecipientStatus } from "@/server/service-requests/workflow";
-import { createHousingFromQuote } from "@/app/api/profiles/housing/shared";
+import { createHousingFromQuote, validateHousingFromQuote, QuoteHousingValidationError } from "@/app/api/profiles/housing/shared";
 
 const untypedDb = asLooseSupabaseClient(db);
 
@@ -280,6 +280,14 @@ export async function PATCH(
       return NextResponse.json({ error: "Devis introuvable" }, { status: 404 });
     }
 
+    const housingValidation = nextStatus === "accepted"
+      ? await validateHousingFromQuote({
+          quoteId: id,
+          expectedOwnerProfileId: OWNER_BILLING_ROLES.has(role) ? userId : existing.owner_profile_id,
+          expectedConciergeProfileId: SERVICE_BILLING_ROLES.has(role) ? userId : existing.concierge_profile_id,
+        })
+      : null;
+
     const updatePayload: Record<string, unknown> = { status: nextStatus };
     if (nextStatus === "sent" && !existing.sent_at) {
       updatePayload.sent_at = new Date().toISOString();
@@ -295,7 +303,7 @@ export async function PATCH(
     }
 
     const actorIsOwner = OWNER_BILLING_ROLES.has(role);
-    let linkedHousingId: string | number | null = null;
+    const linkedHousingId = housingValidation?.housingId ?? null;
     let acceptedServiceRequest: ServiceRequestRow | null = null;
 
     if (nextStatus === "accepted") {
@@ -339,12 +347,6 @@ export async function PATCH(
           serviceRequest?.metadata && typeof serviceRequest.metadata === "object" && !Array.isArray(serviceRequest.metadata)
             ? { ...serviceRequest.metadata }
             : {};
-        const requestedHousingId = requestMetadata.property_housing_id;
-        if (typeof requestedHousingId === "string" && requestedHousingId.trim()) {
-          linkedHousingId = requestedHousingId.trim();
-        } else if (typeof requestedHousingId === "number" && Number.isFinite(requestedHousingId)) {
-          linkedHousingId = requestedHousingId;
-        }
         delete requestMetadata.selected_mission_id;
 
         const { error: requestUpdateError } = await untypedDb
@@ -509,6 +511,7 @@ export async function PATCH(
           request: acceptedServiceRequest,
         });
       } catch (autoHousingError) {
+        if (autoHousingError instanceof QuoteHousingValidationError) throw autoHousingError;
         console.error("[PATCH /api/quotes/:id/status] auto housing error:", autoHousingError);
       }
     }
@@ -594,6 +597,7 @@ export async function PATCH(
       auto_housing: autoHousingResult,
     });
   } catch (err) {
+    if (err instanceof QuoteHousingValidationError) return NextResponse.json({ error: err.message }, { status: err.status });
     console.error("[PATCH /api/quotes/:id/status] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }

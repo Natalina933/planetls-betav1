@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { finalizeAcceptedQuoteWorkflow } from "@/app/api/_shared/acceptedQuoteWorkflow";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
-import { createHousingFromQuote } from "@/app/api/profiles/housing/shared";
+import { createHousingFromQuote, validateHousingFromQuote, QuoteHousingValidationError } from "@/app/api/profiles/housing/shared";
 import { upsertAcceptedHousingCollaboration } from "@/app/api/_shared/housingCollaboration";
 import { db } from "@/server/db/dbServer";
 import { requireApiRole } from "@/server/auth/roleGuards";
@@ -114,6 +114,17 @@ export async function POST(
         );
       }) ?? null;
 
+    if (!selectedQuote) {
+      throw new QuoteHousingValidationError("Aucun devis correspondant à cette demande et à cette concierge ne peut être sélectionné.");
+    }
+    const housingValidation = await validateHousingFromQuote({
+          quoteId: selectedQuote.id,
+          expectedOwnerProfileId: userId,
+          expectedConciergeProfileId: selectedRecipient.concierge_profile_id,
+          expectedRequestId: id,
+          expectedRecipientId: recipientId,
+        });
+
     const recipientStatuses = new Map<string, string>();
     recipientRows.forEach((recipient: { id: string }) => {
       recipientStatuses.set(recipient.id, recipient.id === recipientId ? "selected" : "not_selected");
@@ -191,14 +202,7 @@ export async function POST(
         serviceRequestRecipientId: selectedRecipient.id,
       });
 
-      const metadata = isRecord(requestRow.metadata) ? requestRow.metadata : {};
-      const requestedHousingId = metadata.property_housing_id;
-      const housingId =
-        typeof requestedHousingId === "string" && requestedHousingId.trim()
-          ? requestedHousingId.trim()
-          : typeof requestedHousingId === "number" && Number.isFinite(requestedHousingId)
-            ? requestedHousingId
-            : null;
+      const housingId = housingValidation?.housingId ?? null;
 
       try {
         autoHousing = await createHousingFromQuote(
@@ -220,6 +224,7 @@ export async function POST(
           console.error("[service-requests/select] collaboration record error:", collaborationError);
         }
       } catch (housingError) {
+        if (housingError instanceof QuoteHousingValidationError) throw housingError;
         console.error("[service-requests/select] housing collaboration link error:", housingError);
         return NextResponse.json(
           { error: "La conciergerie est sélectionnée, mais le logement n'a pas pu être rattaché." },
@@ -263,6 +268,7 @@ export async function POST(
       { status: 200 },
     );
   } catch (error) {
+    if (error instanceof QuoteHousingValidationError) return NextResponse.json({ error: error.message }, { status: error.status });
     console.error("[service-requests/select] ERROR:", error);
     return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });
   }
