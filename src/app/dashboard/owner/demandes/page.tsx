@@ -898,6 +898,14 @@ export default function OwnerRequestsPage() {
             </ButtonLink>
           </div>
         </div>
+        <aside className={styles.heroAside} aria-label="Principe des demandes">
+          <span className={styles.heroAsideIcon}><Handshake size={22} aria-hidden="true" /></span>
+          <div>
+            <span>Votre parcours</span>
+            <strong>Un besoin précis, une conciergerie adaptée.</strong>
+            <p>Décrivez votre recherche, comparez les réponses puis transformez l’accord en mission.</p>
+          </div>
+        </aside>
       </header>
 
       <OwnerJourneyRail activeStep="request" />
