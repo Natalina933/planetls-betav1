@@ -46,6 +46,7 @@ import {
 import { MetricGroup } from "@/components/ui/StatsCard/MetricGroup";
 
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
+import { PendingCollaborations } from "@/features/housing-collaborations/PendingCollaborations";
 import { conciergeApiError } from "../conciergeFeedback";
 import styles from "./DemandesPage.module.scss";
 
@@ -1411,6 +1412,7 @@ function ConciergeDemandesContent() {
       cards={[]}
     >
       <main className={styles.page}>
+        <PendingCollaborations refreshKey={items} />
         <MetricGroup
           className={styles.metrics}
           aria-label="Indicateurs des demandes"

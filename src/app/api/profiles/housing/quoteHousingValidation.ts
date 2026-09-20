@@ -106,7 +106,8 @@ export async function validateQuoteHousingAttachment(db: LooseSupabaseClient, in
     .eq("contrat->>quote_id", input.quoteId);
   if (error) throw new Error("Impossible de vérifier le logement déjà rattaché au devis.");
   const previousRows = (previous ?? []) as Row[];
-  if (previousRows.length > 1 || (housing && previousRows.some((row) => row.id !== housing.id))) {
+  const referencedHousing = housing;
+  if (previousRows.length > 1 || (referencedHousing && previousRows.some((row) => row.id !== referencedHousing.id))) {
     throw new QuoteHousingValidationError("Plusieurs logements sont associés au même devis.");
   }
   if (!housing && previousRows.length) housing = previousRows[0];

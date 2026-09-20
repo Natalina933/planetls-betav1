@@ -13,6 +13,7 @@ import {
 } from "@/features/owner-dashboard";
 import { ownerApiError } from "../ownerFeedback";
 import OwnerQuotesHeader from "./OwnerQuotesHeader";
+import { PendingCollaborations } from "@/features/housing-collaborations/PendingCollaborations";
 import { Section } from "@/components/ui/Section";
 import { CardHeader } from "@/components/ui/Card";
 import { TableFilters } from "@/components/ui/TableFilters";
@@ -548,6 +549,7 @@ function OwnerQuotesContent() {
   return (
     <div className={styles.page}>
       <OwnerQuotesHeader loading={loading || Boolean(error)} count={filteredQuotes.length} properties={propertyCountWithQuotes} pending={pendingQuotes.length} amount={formatAmount(totalAmount)} />
+      <PendingCollaborations refreshKey={quotes} />
 
       <Section tone="outlined" className={styles.content}>
         <CardHeader variant="plain"><h2>Vos propositions</h2><p className={styles.conciergeNextStep}>Comparez les prestations avant de confirmer votre choix.</p></CardHeader>
