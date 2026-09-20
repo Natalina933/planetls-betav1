@@ -3702,6 +3702,7 @@ export type Database = {
       }
       services_contracts: {
         Row: {
+          collaboration_id: string | null
           created_at: string | null
           end_date: string | null
           id: string
@@ -3712,6 +3713,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          collaboration_id?: string | null
           created_at?: string | null
           end_date?: string | null
           id?: string
@@ -3722,6 +3724,7 @@ export type Database = {
           title: string
         }
         Update: {
+          collaboration_id?: string | null
           created_at?: string | null
           end_date?: string | null
           id?: string
@@ -3740,12 +3743,62 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "services_contracts_collaboration_id_fkey"
+            columns: ["collaboration_id"]
+            isOneToOne: true
+            referencedRelation: "housing_collaborations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "service_contracts_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "user_dashboard_view"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      services_contract_versions: {
+        Row: {
+          id: string
+          contract_id: string
+          version_number: number
+          status: string
+          revision: number
+          conditions: Json
+          created_by: string
+          updated_by: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          contract_id: string
+          version_number?: number
+          status?: string
+          revision?: number
+          conditions: Json
+          created_by: string
+          updated_by: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          contract_id?: string
+          version_number?: number
+          status?: string
+          revision?: number
+          conditions?: Json
+          created_by?: string
+          updated_by?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          { foreignKeyName: "services_contract_versions_contract_id_fkey"; columns: ["contract_id"]; isOneToOne: false; referencedRelation: "services_contracts"; referencedColumns: ["id"] },
+          { foreignKeyName: "services_contract_versions_created_by_fkey"; columns: ["created_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+          { foreignKeyName: "services_contract_versions_updated_by_fkey"; columns: ["updated_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] }
         ]
       }
       services_package_items: {
@@ -4134,6 +4187,11 @@ export type Database = {
       }
     }
     Functions: {
+      valid_collaboration_draft_conditions: { Args: { doc: Json }; Returns: boolean }
+      save_collaboration_contract_draft: {
+        Args: { p_collaboration_id: string; p_actor_id: string; p_expected_revision: number; p_conditions: Json }
+        Returns: Database["public"]["Tables"]["services_contract_versions"]["Row"]
+      }
       admin_problem_severity_rank: { Args: { value: string }; Returns: number }
       change_admin_problem_status: {
         Args: {

@@ -155,6 +155,7 @@ test("shared UI renders loading, empty, error and pending states without active 
       if (id === "react") return { useEffect() {}, useState: () => [states[index++], () => {}] };
       if (id === "react/jsx-runtime") return jsxRuntime;
       if (id === "./types") return types;
+      if (id === "./ContractDraftEditor") return { ContractDraftEditor: () => null };
       if (id.startsWith("@/components/ui")) return { Section: "section", Card: "article", CardHeader: "header", CardBody: "div", Button: "button" };
       throw new Error(id);
     });

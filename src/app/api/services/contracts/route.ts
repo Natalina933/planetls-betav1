@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     const from = searchParams.get("from");
     const to = searchParams.get("to");
 
-    let query = db.from("services_contracts").select("*").order("start_date", { ascending: false });
+    let query = db.from("services_contracts").select("*").is("collaboration_id", null).order("start_date", { ascending: false });
 
     if (!auth.isAdmin) {
       query = query.eq("profile_id", auth.userId);

@@ -1,0 +1,222 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+import ts from "typescript";
+import * as zod from "zod";
+import * as React from "react";
+import * as jsxRuntime from "react/jsx-runtime";
+import { renderToStaticMarkup } from "react-dom/server";
+import { conditions, invalidConditions } from "./fixtures/contractDraftCases.mts";
+
+type Row = Record<string, unknown>;
+const read = (file: string) => readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
+function execute(code: string, load: (id: string) => unknown) {
+  const loaded = { exports: {} as Record<string, unknown> };
+  const js = ts.transpileModule(code, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText;
+  new Function("require", "module", "exports", js)(load, loaded, loaded.exports);
+  return loaded.exports;
+}
+const schemas = execute(read("features/housing-collaborations/contractConditions.ts"), id => {
+  if (id === "zod") return zod;
+  throw new Error(id);
+}) as { contractConditionsSchema: zod.ZodType; saveContractDraftSchema: zod.ZodType };
+test("all pricing modes and both general modes are valid without inferring services", () => {
+  assert.deepEqual(schemas.contractConditionsSchema.parse(conditions), conditions);
+  const full = schemas.contractConditionsSchema.parse({ ...conditions, mode: "FULL_MANAGEMENT" }) as typeof conditions;
+  assert.deepEqual(full.services, conditions.services);
+});
+for (const [label, value] of invalidConditions()) {
+  test(`strict conditions: ${label}`, () => assert.equal(schemas.contractConditionsSchema.safeParse(value).success, false));
+}
+test("identity, signature and revision fields cannot be smuggled into request", () => {
+  for (const field of ["owner_id", "concierge_id", "profile_id", "signature", "status"]) {
+    assert.equal(schemas.saveContractDraftSchema.safeParse({ expectedRevision: 0, conditions, [field]: "injected" }).success, false);
+  }
+  assert.equal(schemas.saveContractDraftSchema.safeParse({ expectedRevision: -1, conditions }).success, false);
+});
+
+const OWNER = "11111111-1111-4111-8111-111111111111";
+const CONCIERGE = "22222222-2222-4222-8222-222222222222";
+const COLLAB = "44444444-4444-4444-8444-444444444444";
+type ResponseModule = Record<string, (req: Request, context?: { params: Promise<{ id: string }> }) => Promise<Response>>;
+function fixture(role = "owner", userId: string | null = OWNER) {
+  const tables: Record<string, Row[]> = {
+    housing_collaborations: [{ id: COLLAB, status: "pending_handover", owner_profile_id: OWNER, concierge_profile_id: CONCIERGE }],
+    services_contracts: [{ id: "envelope", collaboration_id: COLLAB, profile_id: OWNER, title: "Linked" }, { id: "legacy", collaboration_id: null, profile_id: OWNER, title: "Historical" }],
+    services_contract_versions: [{ id: "draft", contract_id: "envelope", status: "draft", revision: 1, conditions }],
+  };
+  const calls: { table: string; operation: string }[] = [];
+  const rpcCalls: Row[] = [];
+  let rpcError: string | null = null;
+  const db = {
+    from(table: string) {
+      let op = "select";
+      let values: Row = {};
+      const filters: ((row: Row) => boolean)[] = [];
+      function result(single: boolean) {
+        calls.push({ table, operation: op });
+        let rows = (tables[table] ?? []).filter(row => filters.every(filter => filter(row)));
+        if (op === "update") rows.forEach(row => Object.assign(row, values));
+        if (op === "delete") tables[table] = tables[table].filter(row => !rows.includes(row));
+        if (op === "insert") { rows = [{ id: "new", collaboration_id: null, ...values }]; tables[table].push(...rows); }
+        return { data: structuredClone(single ? rows[0] ?? null : rows), error: null, count: rows.length };
+      }
+      const query = {
+        select() { return query; }, order() { return query; },
+        eq(key: string, value: unknown) { filters.push(row => row[key] === value); return query; },
+        is(key: string, value: unknown) { filters.push(row => (row[key] ?? null) === value); return query; },
+        update(body: Row) { op = "update"; values = body; return query; },
+        insert(body: Row) { op = "insert"; values = body; return query; },
+        delete() { op = "delete"; return query; },
+        maybeSingle() { return Promise.resolve(result(true)); },
+        single() { return Promise.resolve(result(true)); },
+        then(resolve: (value: unknown) => unknown) { return Promise.resolve(result(false)).then(resolve); },
+      };
+      return query;
+    },
+    async rpc(name: string, args: Row) {
+      assert.equal(name, "save_collaboration_contract_draft");
+      rpcCalls.push(args);
+      return { data: rpcError ? null : tables.services_contract_versions[0], error: rpcError ? { code: rpcError } : null };
+    },
+  };
+  const load = (id: string): unknown => {
+    if (id === "zod") return zod;
+    if (id === "next/server") return { NextResponse: { json: Response.json } };
+    if (id === "@/app/lib/dbServer") return { db };
+    if (id === "@/app/api/_shared/untypedSupabase") return { asLooseSupabaseClient: (value: unknown) => value };
+    if (id === "@/features/housing-collaborations/contractConditions") return schemas;
+    if (id === "./apiAuth") return { getApiAuthContext: async () => ({ userId, role }) };
+    if (id === "@/server/auth/roleGuards") return execute(read("server/auth/roleGuards.ts"), load);
+    if (id === "@/app/api/services/_shared") return {
+      getServiceAuthContext: async () => userId ? { userId, role, isAdmin: role === "admin" } : null,
+      isAllowedServiceRole: () => true,
+      serviceAuthError: (status: number) => Response.json({ error: "Forbidden" }, { status }),
+    };
+    throw new Error(`Unexpected import ${id}`);
+  };
+  const routes = execute(read("app/api/housing-collaborations/[id]/conditions/route.ts"), load) as ResponseModule;
+  const legacy = execute(read("app/api/services/contracts/[id]/route.ts"), load) as ResponseModule;
+  const legacyList = execute(read("app/api/services/contracts/route.ts"), load) as ResponseModule;
+  const request = (method: string, body?: unknown) => new Request("http://localhost/api/test?owner_id=forged", { method, ...(body === undefined ? {} : { body: JSON.stringify(body), headers: { "Content-Type": "application/json" } }) });
+  return {
+    tables, calls, rpcCalls, setRpcError(code: string) { rpcError = code; },
+    get: (id = COLLAB) => routes.GET(request("GET"), { params: Promise.resolve({ id }) }),
+    put: (body: unknown = { expectedRevision: 0, conditions }) => routes.PUT(request("PUT", body), { params: Promise.resolve({ id: COLLAB }) }),
+    legacy: (method: string, id: string, body?: unknown) => legacy[method](request(method, body), { params: Promise.resolve({ id }) }),
+    list: () => legacyList.GET(request("GET")),
+    postLegacy: (body: unknown) => legacyList.POST(request("POST", body)),
+  };
+}
+
+for (const [role, user] of [["owner", OWNER], ["concierge", CONCIERGE], ["owner_pro", OWNER], ["concierge_pro", CONCIERGE]]) {
+  test(`${role} reads and edits own draft through scoped API`, async () => {
+    const f = fixture(role, user);
+    assert.equal((await f.get()).status, 200);
+    const before = structuredClone(f.tables);
+    assert.equal((await f.put()).status, 200);
+    assert.equal(f.rpcCalls[0].p_actor_id, user);
+    assert.equal(f.rpcCalls[0].p_collaboration_id, COLLAB);
+    assert.deepEqual(f.tables, before);
+    assert.ok(f.calls.every(call => call.operation === "select"));
+  });
+}
+for (const [role, user, expected] of [["owner", null, 401], ["owner", "third", 404], ["concierge", "third", 404], ["admin", OWNER, 403], ["provider", OWNER, 403]] as const) {
+  test(`${role}/${user}: no read/write access`, async () => {
+    const f = fixture(role, user);
+    assert.equal((await f.get()).status, expected);
+    assert.equal((await f.put()).status, expected);
+    assert.equal(f.rpcCalls.length, 0);
+  });
+}
+test("absent draft GET remains read-only and does not create an envelope", async () => {
+  const f = fixture();
+  f.tables.services_contracts = [];
+  assert.deepEqual(await (await f.get()).json(), { draft: null });
+  assert.deepEqual(await (await f.get()).json(), { draft: null });
+  assert.equal(f.rpcCalls.length, 0);
+});
+test("invalid conditions and participant spoofing are rejected before RPC", async () => {
+  const f = fixture();
+  assert.equal((await f.put({ expectedRevision: 0, conditions, owner_id: "third" })).status, 400);
+  assert.equal((await f.put({ expectedRevision: 0, conditions: {} })).status, 400);
+  assert.equal(f.rpcCalls.length, 0);
+});
+test("nonpending collaboration cannot be modified or activated", async () => {
+  const f = fixture();
+  f.tables.housing_collaborations[0].status = "paused";
+  assert.equal((await f.put()).status, 409);
+  assert.equal(f.rpcCalls.length, 0);
+});
+for (const [code, status] of [["40001", 409], ["42501", 403], ["23514", 400], ["XX000", 500]] as const) {
+  test(`RPC ${code} surfaces as HTTP ${status}`, async () => {
+    const f = fixture(); f.setRpcError(code);
+    assert.equal((await f.put()).status, status);
+  });
+}
+for (const role of ["owner", "admin"]) {
+  test(`${role}: legacy APIs cannot read, update or delete a linked envelope`, async () => {
+    const f = fixture(role);
+    const linked = structuredClone(f.tables.services_contracts[0]);
+    assert.equal((await f.legacy("GET", "envelope")).status, 404);
+    assert.equal((await f.legacy("PATCH", "envelope", { status: "actif" })).status, 404);
+    assert.equal((await f.legacy("DELETE", "envelope")).status, 404);
+    assert.deepEqual(f.tables.services_contracts[0], linked);
+    const rows = await (await f.list()).json();
+    assert.deepEqual(rows.map((r: Row) => r.id), ["legacy"]);
+    assert.equal((await f.legacy("PATCH", "legacy", { notes: "Updated" })).status, 200);
+    assert.equal((await f.legacy("DELETE", "legacy")).status, 200);
+  });
+}
+test("legacy POST preserves historical behavior and ignores collaboration/identity injection", async () => {
+  const f = fixture();
+  const response = await f.postLegacy({ title: "Historic", start_date: "2026-01-01", collaboration_id: COLLAB, profile_id: "third" });
+  assert.equal(response.status, 201);
+  const body = await response.json();
+  assert.equal(body.collaboration_id, null);
+  assert.equal(body.profile_id, OWNER);
+});
+
+test("draft form uses existing labeled controls; changing mode preserves every service", () => {
+  let index = 0;
+  const states: unknown[] = [true, false, false, true, 1, structuredClone(conditions), null, null, 0];
+  const loadControl = (id: string): unknown => {
+    if (id === "react") return React;
+    if (id === "react/jsx-runtime") return jsxRuntime;
+    if (id.endsWith(".scss")) return { default: {} };
+    throw new Error(id);
+  };
+  const controls = {
+    ...execute(read("components/ui/Input/Input.tsx"), loadControl),
+    ...execute(read("components/ui/Select/Select.tsx"), loadControl),
+    Button: "button",
+  };
+  const loaded = execute(read("features/housing-collaborations/ContractDraftEditor.tsx"), id => {
+    if (id === "react") return { ...React, useEffect() {}, useState() {
+      const current = index++;
+      return [states[current], (value: unknown) => { states[current] = typeof value === "function" ? value(states[current]) : value; }];
+    } };
+    if (id === "react/jsx-runtime") return jsxRuntime;
+    if (id === "@/components/ui") return controls;
+    if (id === "./contractConditions") return schemas;
+    throw new Error(id);
+  });
+  const tree = (loaded.ContractDraftEditor as (props: { collaborationId: string }) => React.ReactElement)({ collaborationId: COLLAB });
+  const html = renderToStaticMarkup(tree);
+  assert.match(html, /Brouillon de conditions contractuelles/);
+  assert.match(html, /Assiette du pourcentage/);
+  assert.match(html, /Devise/);
+  let labelDepth = 0;
+  for (const match of html.matchAll(/<\/?label\b[^>]*>/g)) {
+    labelDepth += match[0].startsWith("</") ? -1 : 1;
+    assert.ok(labelDepth === 0 || labelDepth === 1, "No nested labels");
+  }
+  function visit(node: React.ReactNode) {
+    if (!React.isValidElement<{ label?: string; onChange?: (event: { target: { value: string } }) => void; children?: React.ReactNode }>(node)) return;
+    if (node.props.label === "Mode général") node.props.onChange?.({ target: { value: "FULL_MANAGEMENT" } });
+    React.Children.forEach(node.props.children, visit);
+  }
+  visit(tree);
+  assert.equal((states[5] as typeof conditions).mode, "FULL_MANAGEMENT");
+  assert.deepEqual((states[5] as typeof conditions).services, conditions.services);
+});

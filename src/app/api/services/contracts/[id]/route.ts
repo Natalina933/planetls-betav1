@@ -30,7 +30,7 @@ export async function GET(
 
     const { id } = await context.params;
 
-    let query = db.from("services_contracts").select("*").eq("id", id);
+    let query = db.from("services_contracts").select("*").eq("id", id).is("collaboration_id", null);
     if (!auth.isAdmin) {
       query = query.eq("profile_id", auth.userId);
     }
@@ -80,7 +80,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Aucune donnee a mettre a jour" }, { status: 400 });
     }
 
-    let query = db.from("services_contracts").update(updatePayload).eq("id", id).select("*");
+    let query = db.from("services_contracts").update(updatePayload).eq("id", id).is("collaboration_id", null).select("*");
     if (!auth.isAdmin) {
       query = query.eq("profile_id", auth.userId);
     }
@@ -118,7 +118,7 @@ export async function DELETE(
 
     const { id } = await context.params;
 
-    let query = db.from("services_contracts").delete({ count: "exact" }).eq("id", id);
+    let query = db.from("services_contracts").delete({ count: "exact" }).eq("id", id).is("collaboration_id", null);
     if (!auth.isAdmin) {
       query = query.eq("profile_id", auth.userId);
     }

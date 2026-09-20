@@ -5,6 +5,7 @@ import { Section } from "@/components/ui/Section";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui";
 import { PENDING_COLLABORATION_LABEL, type PendingHousingCollaboration } from "./types";
+import { ContractDraftEditor } from "./ContractDraftEditor";
 
 export function PendingCollaborations({ refreshKey }: { refreshKey?: unknown }) {
   const [items, setItems] = useState<PendingHousingCollaboration[]>([]);
@@ -49,6 +50,7 @@ export function PendingCollaborations({ refreshKey }: { refreshKey?: unknown }) 
             <p>Propriétaire : {item.owner.name} · Concierge : {item.concierge.name}</p>
             <p>Devis accepté : {item.quote.number || item.quote.id}</p>
             <p>Demande d’origine : {item.request?.title || "Non renseignée"}</p>
+            <ContractDraftEditor collaborationId={item.id} />
           </CardBody>
         </Card>
       ))}

@@ -1,4 +1,5 @@
 // src/types/supabase.ts
+import type { ContractDraft } from "@/features/housing-collaborations/contractConditions";
 export type Json =
   | string
   | number
@@ -651,6 +652,7 @@ export type Database = {
 
       services_contracts: {
         Row: {
+          collaboration_id: string | null;
           id: string;
           profile_id: string | null;
           title: string;
@@ -661,6 +663,7 @@ export type Database = {
           created_at: string | null;
         };
         Insert: {
+          collaboration_id?: string | null;
           id?: string;
           profile_id?: string | null;
           title: string;
@@ -671,6 +674,7 @@ export type Database = {
           created_at?: string | null;
         };
         Update: {
+          collaboration_id?: string | null;
           id?: string;
           profile_id?: string | null;
           title?: string;
@@ -683,6 +687,12 @@ export type Database = {
         Relationships: [];
       };
 
+      services_contract_versions: {
+        Row: ContractDraft;
+        Insert: Pick<ContractDraft, "contract_id" | "conditions" | "created_by" | "updated_by"> & Partial<ContractDraft>;
+        Update: Partial<ContractDraft>;
+        Relationships: [];
+      };
       services_packages: {
         Row: {
           id: string;
@@ -1948,6 +1958,10 @@ export type Database = {
     };
 
     Functions: {
+      save_collaboration_contract_draft: {
+        Args: { p_collaboration_id: string; p_actor_id: string; p_expected_revision: number; p_conditions: Json };
+        Returns: ContractDraft;
+      };
       is_admin: { Args: Record<string, never>; Returns: boolean };
       is_user_profile_owner: { Args: { profile_id: string }; Returns: boolean };
     };
