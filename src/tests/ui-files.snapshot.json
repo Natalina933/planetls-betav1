@@ -10,7 +10,7 @@
   "src/components/ui/AsyncState/AsyncState.tsx": "db800ab78d2b51964c356053d91bddf4cf6eef651bd00bf0e3a9dbf3b7977bcb",
   "src/components/ui/AsyncState/index.ts": "1fecec085a769cc31ef495046efdfe75d097850c22b8ec62954aecdc0a40c26f",
   "src/components/ui/Avatar/Avatar.module.scss": "85a89667c4a83f07ba4e48b02495a9597c0899b0f59bf0b0b4534f683892a96a",
-  "src/components/ui/Avatar/Avatar.tsx": "0999444a454daf21d0455fa46c85dd67fbcc2cc80a800aabe38334cf7fd3536b",
+  "src/components/ui/Avatar/Avatar.tsx": "b4461bc7d87afc3e1eb27335e3bb3063b9f9f23de6002dfaa57ba722baac13bb",
   "src/components/ui/Avatar/index.ts": "e5f2d0e04a56a7dbf8de01d7f12fa824433cd1a9606215b80e6612616ba64b5c",
   "src/components/ui/Badge/Badge.module.scss": "6656e0e1ae1376dbb6959a72389a3e49fd343706183b8264d883c3dd882c23c7",
   "src/components/ui/Badge/Badge.tsx": "489e8a79e5f4530e27e889048ef5e88ae6792c08ef2153e2328c75cfe43b7ecd",
@@ -40,6 +40,8 @@
   "src/components/ui/Loader/Loader.module.scss": "794176c795f3bb3ff2dd10b1ff5394a876671f7947e7f9228b384cfde6a49225",
   "src/components/ui/Loader/Loader.tsx": "a8613442fc7a1a5b7d6372303720dedb8962dd8222f9e15dfcdd6c435527001b",
   "src/components/ui/Loader/index.ts": "c0204c1833c4692309795a2cb661a4c10a63c3a5932f904e4386b8b98df9e2d1",
+  "src/components/ui/PageHeader/PageHeader.module.scss": "09de55fb2cc66cf089bf98653ee78f82d38b51684634ac6eabcbe398e5b1fed6",
+  "src/components/ui/PageHeader/PageHeader.tsx": "89938d0c20d3703d128c89e537f17ae1e18e2c084df1a135469579ab8eaec025",
   "src/components/ui/PlatformHeadline/PlatformHeadline.module.scss": "76ddc069a461ecf47a2dde5733f323b3ae9cb92bbfe31c3605f80d75148056d9",
   "src/components/ui/PlatformHeadline/PlatformHeadline.tsx": "c0a5cd6a37cbb726ea36c628fc9e2f2ff2789e3600c211bee039458d2cc916d8",
   "src/components/ui/PublicIcon/PublicIcon.module.scss": "bc781915d4411e8c33e8ba305bf4db54e72362b0e08d33f5ea0ad1ca27175a1d",
@@ -68,6 +70,7 @@
   "src/components/ui/ShowcaseFlipCard/ShowcaseFlipCard.module.scss": "486c6a2faed5510b893161d19a58a204b50107912cca5cc8f680a8f829b5ea5f",
   "src/components/ui/ShowcaseFlipCard/ShowcaseFlipCard.tsx": "45eedb09f9112a3d716cf4f4d46c4f80d5ff9a0b02b52439d18a640176c68037",
   "src/components/ui/ShowcaseFlipCard/index.ts": "d90482193b84798c06f9fc916d5ea6c9c150b8802afcc105559e9cf868f66ead",
+  "src/components/ui/StatsCard/MetricGroup.tsx": "c13e0791859ef1f59d1c19739834b69dc95764e6cebfa2f1c0d8ac633d9f2eac",
   "src/components/ui/StatsCard/StatsCard.module.scss": "dc29cba77db583cf105ad7a9c6ef99998d629aa4f8199a91da95e71290b050b6",
   "src/components/ui/StatsCard/StatsCard.tsx": "fa652550051db943b8744ab3d53cf96b4b54921fffd0628bf616199dad3eafe0",
   "src/components/ui/StatsCard/index.ts": "eddce82ac516680c2ce0debae9b3c8924cfc9c24f9f820164367013b8b469469",
@@ -122,8 +125,5 @@
   "src/components/ui/layout/Section/Section.tsx": "e3f9725ec98f8c52e149323e91526ed77ed54225b4e1d35db725cb3d628b6f46",
   "src/components/ui/layout/Section/index.ts": "28fdb2e04d609d81e616ac9f22aed36195fb89094d39b11bc11a7bbccad35541",
   "src/components/ui/layout/index.ts": "3dc891c95f7d4c84f2b06ffc7f9a9727f7b6bc25df631e9013e8c4182715f373",
-  "src/components/ui/motion.ts": "903388c1f6a70662c0ca6a3587ca62d3a8eeebafb877325132c6a6c9c247267a",
-  "src/components/ui/PageHeader/PageHeader.module.scss": "09de55fb2cc66cf089bf98653ee78f82d38b51684634ac6eabcbe398e5b1fed6",
-  "src/components/ui/PageHeader/PageHeader.tsx": "89938d0c20d3703d128c89e537f17ae1e18e2c084df1a135469579ab8eaec025",
-  "src/components/ui/StatsCard/MetricGroup.tsx": "c13e0791859ef1f59d1c19739834b69dc95764e6cebfa2f1c0d8ac633d9f2eac"
+  "src/components/ui/motion.ts": "903388c1f6a70662c0ca6a3587ca62d3a8eeebafb877325132c6a6c9c247267a"
 }
