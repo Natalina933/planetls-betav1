@@ -105,6 +105,7 @@ const statusLabel = (status?: string | null) =>
     sent: "Envoyé",
     accepted: "Accepté",
     rejected: "Refusé",
+    not_selected: "Non retenu",
     canceled: "Annulé",
     expired: "Expiré",
     issued: "Émise",

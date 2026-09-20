@@ -1958,6 +1958,10 @@ export type Database = {
     };
 
     Functions: {
+      award_service_request_quote: {
+        Args: { p_quote_id: string; p_actor_id: string };
+        Returns: Json;
+      };
       save_collaboration_contract_draft: {
         Args: { p_collaboration_id: string; p_actor_id: string; p_expected_revision: number; p_conditions: Json; p_version_id?: string | null };
         Returns: ContractDraft;

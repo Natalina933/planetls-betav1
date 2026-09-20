@@ -33,6 +33,33 @@ class MemoryDb {
   failRead: string | null = null;
   beforeHousingUpdate: (() => void) | null = null;
   from(table: string) { return new Query(this, table); }
+  // RPC transport double. Real SQL locking/permissions are tested in local PostgreSQL.
+  async rpc(name: string, args: Row) {
+    assert.equal(name, "award_service_request_quote");
+    const q = this.tables.quotes.find(row => row.id === args.p_quote_id);
+    if (!q || q.owner_profile_id !== args.p_actor_id) return { data: null, error: { code: "42501", message: "Forbidden" } };
+    const requestId = q.service_request_id ?? asRow(q.metadata).service_request_id;
+    if (!requestId) return { data: null, error: null };
+    const r = this.tables.service_requests.find(row => row.id === requestId);
+    const recipientId = q.service_request_recipient_id ?? asRow(q.metadata).service_request_recipient_id;
+    const metadata = asRow(r?.metadata ?? {});
+    if (!r || (metadata.selected_quote_id && metadata.selected_quote_id !== q.id) || !["sent", "accepted"].includes(String(q.status))) {
+      return { data: null, error: { code: "40001", message: "Already awarded" } };
+    }
+    if (metadata.selected_quote_id === q.id) return { data: structuredClone(r), error: null };
+    Object.assign(r, { status: "quote_accepted", selected_concierge_profile_id: q.concierge_profile_id,
+      metadata: { ...metadata, selected_quote_id: q.id, selected_recipient_id: recipientId } });
+    for (const other of this.tables.quotes) {
+      if ((other.service_request_id ?? asRow(other.metadata).service_request_id) !== requestId) continue;
+      if (other.id === q.id) Object.assign(other, { status: "accepted", accepted_at: "2026-09-20" });
+      else if (["draft", "sent"].includes(String(other.status))) other.status = "not_selected";
+    }
+    for (const recipient of this.tables.service_request_recipients) {
+      if (recipient.service_request_id === requestId) recipient.status = recipient.id === recipientId ? "selected" : "not_selected";
+    }
+    this.writes.push({ table: "service_requests", operation: "award" });
+    return { data: structuredClone(r), error: null };
+  }
 }
 
 function valueAt(row: Row, key: string) {
@@ -130,7 +157,7 @@ function setup(kind: "accept" | "select", db = new MemoryDb()) {
   const load = modules(db);
   const route = load(kind === "accept" ? "@/app/api/quotes/[id]/status/route" : "@/app/api/service-requests/[id]/select/route");
   const call = () => (route[kind === "accept" ? "PATCH" : "POST"] as Handler)(
-    { json: async () => kind === "accept" ? { status: "accepted" } : { recipient_id: RECIPIENT } },
+    { json: async () => kind === "accept" ? { status: "accepted" } : { recipient_id: RECIPIENT, quote_id: Q } },
     { params: Promise.resolve({ id: kind === "accept" ? Q : R }) },
   );
   return { db, load, call };

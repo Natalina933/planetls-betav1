@@ -3,6 +3,21 @@ import type { LooseSupabaseClient } from "./untypedSupabase.ts";
 
 type DbClient = LooseSupabaseClient;
 
+export class QuoteAwardError extends Error {
+  constructor(message: string, public status = 409) { super(message); }
+}
+
+/** Shared transactional attribution, before either route creates business objects. */
+export async function awardAcceptedQuote(
+  db: { rpc: (name: "award_service_request_quote", args: { p_quote_id: string; p_actor_id: string }) => PromiseLike<{ data: unknown; error: { code?: string; message: string } | null }> },
+  quoteId: string,
+  actorId: string,
+): Promise<ServiceRequestWorkflowRow | null> {
+  const { data, error } = await db.rpc("award_service_request_quote", { p_quote_id: quoteId, p_actor_id: actorId });
+  if (error) throw new QuoteAwardError(error.message, error.code === "42501" ? 403 : error.code === "40001" ? 409 : 500);
+  return data as ServiceRequestWorkflowRow | null;
+}
+
 type QuoteWorkflowInput = {
   db: DbClient;
   quoteId: string;
@@ -13,6 +28,7 @@ type QuoteWorkflowInput = {
 
 type QuoteWorkflowQuote = {
   id: string;
+  status?: string | null;
   quote_number?: string | null;
   concierge_profile_id?: string | null;
   owner_profile_id?: string | null;
@@ -238,7 +254,7 @@ export async function finalizeAcceptedQuoteWorkflow(input: QuoteWorkflowInput) {
   const { data: quote, error: quoteError } = await db
     .from("quotes")
     .select(
-      "id, quote_number, concierge_profile_id, owner_profile_id, mission_id, service_request_id, service_request_recipient_id, currency, total_amount, discount_amount, tax_rate, notes, metadata",
+      "id, status, quote_number, concierge_profile_id, owner_profile_id, mission_id, service_request_id, service_request_recipient_id, currency, total_amount, discount_amount, tax_rate, notes, metadata",
     )
     .eq("id", quoteId)
     .maybeSingle();
@@ -269,6 +285,10 @@ export async function finalizeAcceptedQuoteWorkflow(input: QuoteWorkflowInput) {
     }
   }
 
+  if (serviceRequestId && (quoteRow.status !== "accepted" || request?.metadata?.selected_quote_id !== quoteId)) {
+    throw new QuoteAwardError("Seul le devis retenu peut produire les effets de l’acceptation.");
+  }
+
   const mission = await findOrCreateMission({
     db,
     quote: quoteRow,
@@ -289,11 +309,12 @@ export async function finalizeAcceptedQuoteWorkflow(input: QuoteWorkflowInput) {
         .update({
           mission_id: missionId,
           selected_concierge_profile_id: quoteRow.concierge_profile_id,
-          status: "accepted",
+          status: "quote_accepted",
           metadata: {
             ...requestMetadata,
             selected_quote_id: quoteId,
             selected_mission_id: missionId,
+            accepted_invoice_id: invoice?.id ?? requestMetadata.accepted_invoice_id ?? null,
             selected_at: getMetadataString(requestMetadata, "selected_at") ?? new Date().toISOString(),
           },
         })

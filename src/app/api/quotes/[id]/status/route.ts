@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
-import { finalizeAcceptedQuoteWorkflow } from "@/app/api/_shared/acceptedQuoteWorkflow";
+import { awardAcceptedQuote, QuoteAwardError, finalizeAcceptedQuoteWorkflow } from "@/app/api/_shared/acceptedQuoteWorkflow";
 import { upsertAcceptedHousingCollaboration } from "@/app/api/_shared/housingCollaboration";
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { deriveQuoteWorkflowStatus } from "@/app/lib/commercialWorkflow";
@@ -169,6 +169,10 @@ async function syncServiceRequestFromQuoteStatus(input: {
 }) {
   if (!input.serviceRequestId) return null;
 
+  const { data: awardedRequest } = await untypedDb.from("service_requests")
+    .select("metadata").eq("id", input.serviceRequestId).maybeSingle();
+  if (awardedRequest?.metadata?.selected_quote_id) return "quote_accepted";
+
   if (input.serviceRequestRecipientId) {
     const recipientStatus =
       input.quoteStatus === "sent"
@@ -306,93 +310,12 @@ export async function PATCH(
     const linkedHousingId = housingValidation?.housingId ?? null;
     let acceptedServiceRequest: ServiceRequestRow | null = null;
 
+    if (existing.status === "not_selected" || (existing.status === "accepted" && nextStatus !== "accepted" &&
+      (existing.service_request_id || existing.metadata?.service_request_id))) {
+      return NextResponse.json({ error: "Le résultat de l’attribution doit être conservé." }, { status: 409 });
+    }
     if (nextStatus === "accepted") {
-      const metadata =
-        existing.metadata && typeof existing.metadata === "object" && !Array.isArray(existing.metadata)
-          ? existing.metadata
-          : {};
-
-      const serviceRequestId =
-        typeof existing.service_request_id === "string"
-          ? existing.service_request_id
-          : typeof metadata.service_request_id === "string"
-            ? metadata.service_request_id
-            : null;
-      const serviceRequestRecipientId =
-        typeof existing.service_request_recipient_id === "string"
-          ? existing.service_request_recipient_id
-          : typeof metadata.service_request_recipient_id === "string"
-            ? metadata.service_request_recipient_id
-            : null;
-
-      let serviceRequest: ServiceRequestRow | null = null;
-      if (serviceRequestId) {
-        const { data: requestRow, error: requestError } = await untypedDb
-          .from("service_requests")
-          .select("*")
-          .eq("id", serviceRequestId)
-          .maybeSingle();
-
-        if (requestError) {
-          console.error("[PATCH /api/quotes/:id/status] request lookup error:", requestError);
-          return NextResponse.json({ error: "Impossible de charger la demande liee." }, { status: 500 });
-        }
-
-        serviceRequest = (requestRow as ServiceRequestRow | null) ?? null;
-        acceptedServiceRequest = serviceRequest;
-      }
-
-      if (serviceRequestId) {
-        const requestMetadata =
-          serviceRequest?.metadata && typeof serviceRequest.metadata === "object" && !Array.isArray(serviceRequest.metadata)
-            ? { ...serviceRequest.metadata }
-            : {};
-        delete requestMetadata.selected_mission_id;
-
-        const { error: requestUpdateError } = await untypedDb
-          .from("service_requests")
-          .update({
-            selected_concierge_profile_id: existing.concierge_profile_id,
-            status: "quote_accepted",
-            mission_id: null,
-            metadata: {
-              ...requestMetadata,
-              selected_at: new Date().toISOString(),
-              selected_quote_id: existing.id,
-            },
-          })
-          .eq("id", serviceRequestId)
-          .eq("owner_profile_id", serviceRequest?.owner_profile_id ?? existing.owner_profile_id ?? "");
-
-        if (requestUpdateError) {
-          console.error("[PATCH /api/quotes/:id/status] request update error:", requestUpdateError);
-          return NextResponse.json({ error: "Impossible de synchroniser la demande." }, { status: 500 });
-        }
-
-        if (serviceRequestRecipientId) {
-          const { data: relatedRecipients, error: recipientsError } = await untypedDb
-            .from("service_request_recipients")
-            .select("id")
-            .eq("service_request_id", serviceRequestId);
-
-          if (recipientsError) {
-            console.error("[PATCH /api/quotes/:id/status] recipients lookup error:", recipientsError);
-            return NextResponse.json({ error: "Impossible de synchroniser les destinataires." }, { status: 500 });
-          }
-
-          await Promise.all(
-            (relatedRecipients ?? []).map((recipient: { id: string }) =>
-              untypedDb
-                .from("service_request_recipients")
-                .update({
-                  status: recipient.id === serviceRequestRecipientId ? "selected" : "not_selected",
-                  responded_at: new Date().toISOString(),
-                })
-                .eq("id", recipient.id),
-            ),
-          );
-        }
-      }
+      acceptedServiceRequest = await awardAcceptedQuote(db, id, userId);
     }
 
     if (nextStatus === "rejected") {
@@ -438,7 +361,7 @@ export async function PATCH(
         : typeof metadata.service_request_recipient_id === "string"
           ? metadata.service_request_recipient_id
           : null;
-    const syncedRequestStatus = await syncServiceRequestFromQuoteStatus({
+    const syncedRequestStatus = acceptedServiceRequest ? "quote_accepted" : await syncServiceRequestFromQuoteStatus({
       serviceRequestId,
       serviceRequestRecipientId,
       quoteId: id,
@@ -597,6 +520,7 @@ export async function PATCH(
       auto_housing: autoHousingResult,
     });
   } catch (err) {
+    if (err instanceof QuoteAwardError) return NextResponse.json({ error: err.message }, { status: err.status });
     if (err instanceof QuoteHousingValidationError) return NextResponse.json({ error: err.message }, { status: err.status });
     console.error("[PATCH /api/quotes/:id/status] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

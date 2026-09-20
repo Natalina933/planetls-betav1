@@ -6,6 +6,7 @@ export type QuoteWorkflowStatus =
   | "QUOTE_SENT"
   | "QUOTE_ACCEPTED"
   | "QUOTE_REJECTED"
+  | "QUOTE_NOT_SELECTED"
   | "QUOTE_EXPIRED"
   | "QUOTE_CANCELED";
 
@@ -37,6 +38,8 @@ export function deriveQuoteWorkflowStatus(status: unknown): QuoteWorkflowStatus 
       return "QUOTE_ACCEPTED";
     case "rejected":
       return "QUOTE_REJECTED";
+    case "not_selected":
+      return "QUOTE_NOT_SELECTED";
     case "expired":
       return "QUOTE_EXPIRED";
     case "canceled":

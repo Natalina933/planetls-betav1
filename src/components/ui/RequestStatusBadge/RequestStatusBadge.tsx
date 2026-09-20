@@ -26,6 +26,9 @@ export function RequestStatusBadge({
   hasMission = false,
   className,
 }: RequestStatusBadgeProps) {
+  if (quoteStatus === "not_selected" || recipientStatus === "not_selected") {
+    return <Badge variant="neutral" className={className}>Non retenu</Badge>;
+  }
   const resolvedStatus =
     status ??
     deriveRequestWorkflowStatus({

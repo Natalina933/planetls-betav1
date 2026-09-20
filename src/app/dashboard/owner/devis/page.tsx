@@ -216,8 +216,8 @@ function getAcceptedWorkflowMessage(payload: AcceptedWorkflowPayload) {
 
 function getQuoteWorkflowSteps(quote: OwnerQuoteRow): WorkflowTimelineStep[] {
   const status = (quote.status ?? "draft").toLowerCase();
-  const sent = ["sent", "accepted", "rejected", "expired", "canceled"].includes(status);
-  const decided = ["accepted", "rejected", "expired", "canceled"].includes(status);
+  const sent = ["sent", "accepted", "rejected", "expired", "canceled", "not_selected"].includes(status);
+  const decided = ["accepted", "rejected", "expired", "canceled", "not_selected"].includes(status);
   const accepted = status === "accepted";
 
   return [
@@ -234,7 +234,7 @@ function getQuoteWorkflowSteps(quote: OwnerQuoteRow): WorkflowTimelineStep[] {
       Icon: Eye,
     },
     {
-      label: accepted ? "Accepté" : status === "rejected" ? "Refusé" : "Décision",
+      label: accepted ? "Accepté" : status === "not_selected" ? "Non retenu" : status === "rejected" ? "Refusé" : "Décision",
       detail: decided ? "Décision enregistrée" : "À arbitrer",
       state: decided ? "done" : sent ? "active" : "todo",
       Icon: status === "rejected" ? XCircle : CheckCircle2,
@@ -483,7 +483,7 @@ function OwnerQuotesContent() {
     });
   }
 
-  async function handleSelectConcierge(requestId: string, recipientId: string) {
+  async function handleSelectConcierge(requestId: string, recipientId: string, quoteId: string) {
     try {
       setSelectingRequestId(requestId);
       setSuccess(null);
@@ -492,7 +492,7 @@ function OwnerQuotesContent() {
       const response = await fetch(`/api/service-requests/${requestId}/select`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipient_id: recipientId }),
+        body: JSON.stringify({ recipient_id: recipientId, quote_id: quoteId }),
       });
       const payload = await response.json();
 
@@ -574,7 +574,7 @@ function OwnerQuotesContent() {
             <option value="ACCEPTED">Acceptée</option>
             <option value="DECLINED">Refusée</option>
             <option value="EXPIRED">Expirée</option>
-            <option value="accepted">Devis accepté</option><option value="rejected">Devis refusé</option><option value="expired">Devis expiré</option>
+            <option value="accepted">Devis accepté</option><option value="rejected">Devis refusé</option><option value="not_selected">Non retenu</option><option value="expired">Devis expiré</option>
           </Select>
           <Button size="compact"
             type="button"
@@ -778,9 +778,9 @@ function OwnerQuotesContent() {
                               disabled={
                                 selectingRequestId === group.request.id ||
                                 quote.status === "accepted" ||
-                                quote.status === "rejected"
+                                quote.status !== "sent"
                               }
-                              onClick={() => void handleSelectConcierge(group.request!.id, recipientId)}
+                              onClick={() => void handleSelectConcierge(group.request!.id, recipientId, quote.id)}
                             >
                               {quote.status === "accepted"
                                 ? "Accepté"
@@ -789,7 +789,7 @@ function OwnerQuotesContent() {
                                 : "Retenir ce concierge"}
                             </Button>
                           ) : null}
-                          {quote.status !== "accepted" && quote.status !== "rejected" ? (
+                          {quote.status === "sent" ? (
                             <Button size="compact"
                               type="button"
                               variant="secondary"
@@ -881,9 +881,9 @@ function OwnerQuotesContent() {
                                   disabled={
                                     selectingRequestId === group.request.id ||
                                     quote.status === "accepted" ||
-                                    quote.status === "rejected"
+                                    quote.status !== "sent"
                                   }
-                                  onClick={() => void handleSelectConcierge(group.request!.id, recipientId)}
+                                  onClick={() => void handleSelectConcierge(group.request!.id, recipientId, quote.id)}
                                 >
                                   {quote.status === "accepted"
                                     ? "Accepté"
@@ -892,7 +892,7 @@ function OwnerQuotesContent() {
                                     : "Retenir ce concierge"}
                                 </Button>
                               ) : null}
-                              {!group.request?.id && quote.status !== "accepted" && quote.status !== "rejected" ? (
+                              {!group.request?.id && quote.status === "sent" ? (
                                 <Button size="compact"
                                   type="button"
                                   variant="primary"
@@ -902,7 +902,7 @@ function OwnerQuotesContent() {
                                   {busyQuoteAction === `${quote.id}:accepted` ? "Acceptation..." : "Accepter le devis"}
                                 </Button>
                               ) : null}
-                              {quote.status !== "accepted" && quote.status !== "rejected" ? (
+                              {quote.status === "sent" ? (
                                 <>
                                   <Input bare density="compact"
                                     type="text"

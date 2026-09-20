@@ -335,6 +335,7 @@ function getRequestFilter(
 }
 
 function getNextStepLabel(item: ConciergeRequestRow) {
+  if (item.quote_status === "not_selected" || item.recipient_status === RECIPIENT_STATUS.NOT_SELECTED) return "Non retenu";
   if (
     item.recipient_status ===
       RECIPIENT_STATUS.SELECTED ||
@@ -397,6 +398,9 @@ function getNextStepLabel(item: ConciergeRequestRow) {
 function getNextStepDescription(
   item: ConciergeRequestRow,
 ) {
+  if (item.quote_status === "not_selected" || item.recipient_status === RECIPIENT_STATUS.NOT_SELECTED) {
+    return "Un autre devis a été retenu. Votre proposition reste dans l’historique.";
+  }
   if (
     item.recipient_status ===
       RECIPIENT_STATUS.SELECTED ||
