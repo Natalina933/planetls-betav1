@@ -1959,7 +1959,11 @@ export type Database = {
 
     Functions: {
       save_collaboration_contract_draft: {
-        Args: { p_collaboration_id: string; p_actor_id: string; p_expected_revision: number; p_conditions: Json };
+        Args: { p_collaboration_id: string; p_actor_id: string; p_expected_revision: number; p_conditions: Json; p_version_id?: string | null };
+        Returns: ContractDraft;
+      };
+      transition_collaboration_contract_version: {
+        Args: { p_collaboration_id: string; p_actor_id: string; p_version_id: string; p_expected_revision: number; p_action: string; p_reason?: string | null };
         Returns: ContractDraft;
       };
       is_admin: { Args: Record<string, never>; Returns: boolean };

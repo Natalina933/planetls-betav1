@@ -3,7 +3,7 @@ import { z } from "zod";
 import { db } from "@/app/lib/dbServer";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { requireApiRole } from "@/server/auth/roleGuards";
-import { saveContractDraftSchema } from "@/features/housing-collaborations/contractConditions";
+import { saveContractDraftSchema, contractVersionActionSchema } from "@/features/housing-collaborations/contractConditions";
 
 export const dynamic = "force-dynamic";
 const roles = new Set(["owner", "owner_pro", "concierge", "concierge_pro"]);
@@ -32,11 +32,12 @@ export async function GET(req: NextRequest, context: Context) {
     const { data: envelope, error } = await db.from("services_contracts")
       .select("id").eq("collaboration_id", access.id).maybeSingle();
     if (error) throw error;
-    if (!envelope) return NextResponse.json({ draft: null }, { headers });
-    const { data: draft, error: draftError } = await db.from("services_contract_versions")
-      .select("*").eq("contract_id", envelope.id).eq("status", "draft").maybeSingle();
+    if (!envelope) return NextResponse.json({ draft: null, currentVersion: null, versions: [], actorId: access.actor }, { headers });
+    const { data: versions, error: draftError } = await db.from("services_contract_versions")
+      .select("*").eq("contract_id", envelope.id).order("version_number", { ascending: false });
     if (draftError) throw draftError;
-    return NextResponse.json({ draft }, { headers });
+    const currentVersion = versions?.[0] ?? null;
+    return NextResponse.json({ draft: currentVersion?.status === "draft" ? currentVersion : null, currentVersion, versions: versions ?? [], actorId: access.actor }, { headers });
   } catch (error) {
     console.error("[GET collaboration conditions]", error);
     return NextResponse.json({ error: "Impossible de charger le brouillon." }, { status: 500, headers });
@@ -62,6 +63,7 @@ export async function PUT(req: NextRequest, context: Context) {
       p_actor_id: access.actor,
       p_expected_revision: parsed.data.expectedRevision,
       p_conditions: parsed.data.conditions,
+      p_version_id: parsed.data.versionId,
     });
     if (error) {
       if (error.code === "40001") return NextResponse.json({ error: "Le brouillon a changé. Rechargez-le avant de modifier les conditions." }, { status: 409, headers });
@@ -73,5 +75,34 @@ export async function PUT(req: NextRequest, context: Context) {
   } catch (error) {
     console.error("[PUT collaboration conditions]", error);
     return NextResponse.json({ error: "Impossible d’enregistrer le brouillon." }, { status: 500, headers });
+  }
+}
+
+/** Propose, accept and request changes are distinct explicit actions, never signatures. */
+export async function POST(req: NextRequest, context: Context) {
+  try {
+    const access = await participant(req, context);
+    if (access.response) return access.response;
+    if (access.status !== "pending_handover") {
+      return NextResponse.json({ error: "Cette collaboration n’est plus en attente de contractualisation." }, { status: 409, headers });
+    }
+    const parsed = contractVersionActionSchema.safeParse(await req.json().catch(() => null));
+    if (!parsed.success) return NextResponse.json({ error: "Action ou version invalide." }, { status: 400, headers });
+    const action = parsed.data;
+    const { data, error } = await db.rpc("transition_collaboration_contract_version", {
+      p_collaboration_id: access.id, p_actor_id: access.actor, p_version_id: action.versionId,
+      p_expected_revision: action.expectedRevision, p_action: action.action,
+      p_reason: action.action === "request_changes" ? action.reason : null,
+    });
+    if (error) {
+      if (error.code === "40001") return NextResponse.json({ error: "La version ou son état a changé. Rechargez les conditions avant de continuer." }, { status: 409, headers });
+      if (error.code === "42501") return NextResponse.json({ error: "Cette action ne vous est pas autorisée." }, { status: 403, headers });
+      if (error.code === "23514") return NextResponse.json({ error: "Conditions ou action invalides." }, { status: 400, headers });
+      throw error;
+    }
+    return NextResponse.json({ version: data }, { headers });
+  } catch (error) {
+    console.error("[POST collaboration conditions]", error);
+    return NextResponse.json({ error: "Impossible d’enregistrer cette action." }, { status: 500, headers });
   }
 }

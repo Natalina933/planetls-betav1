@@ -43,20 +43,46 @@ export const contractConditionsSchema = z.object({
 }).strict();
 
 export const saveContractDraftSchema = z.object({
+  versionId: z.string().uuid().nullable().default(null),
   expectedRevision: z.number().int().min(0).max(2147483646),
   conditions: contractConditionsSchema,
 }).strict();
 
 export type ContractConditions = z.infer<typeof contractConditionsSchema>;
-export type ContractDraft = {
+export const contractVersionActionSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("propose"), versionId: z.string().uuid(), expectedRevision: z.number().int().positive() }).strict(),
+  z.object({ action: z.literal("accept"), versionId: z.string().uuid(), expectedRevision: z.number().int().positive() }).strict(),
+  z.object({ action: z.literal("request_changes"), versionId: z.string().uuid(), expectedRevision: z.number().int().positive(), reason: z.string().trim().min(1).max(2000) }).strict(),
+]);
+export type ContractVersionAction = z.infer<typeof contractVersionActionSchema>;
+export type ContractVersion = {
   id: string;
   contract_id: string;
   version_number: number;
-  status: "draft";
+  status: "draft" | "proposed" | "ready_to_sign" | "superseded";
   revision: number;
   conditions: ContractConditions;
   created_by: string;
   updated_by: string;
   created_at: string;
   updated_at: string;
+  proposed_by: string | null;
+  proposed_at: string | null;
+  proposed_owner_id: string | null;
+  proposed_concierge_id: string | null;
+  owner_accepted_by: string | null;
+  owner_accepted_at: string | null;
+  concierge_accepted_by: string | null;
+  concierge_accepted_at: string | null;
+  change_requested_by: string | null;
+  change_requested_at: string | null;
+  change_request_reason: string | null;
+  previous_version_id: string | null;
+};
+export type ContractDraft = ContractVersion;
+export type ContractConditionsResponse = {
+  draft: ContractVersion | null;
+  currentVersion: ContractVersion | null;
+  versions: ContractVersion[];
+  actorId: string;
 };

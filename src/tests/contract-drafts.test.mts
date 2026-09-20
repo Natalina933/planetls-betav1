@@ -19,7 +19,7 @@ function execute(code: string, load: (id: string) => unknown) {
 const schemas = execute(read("features/housing-collaborations/contractConditions.ts"), id => {
   if (id === "zod") return zod;
   throw new Error(id);
-}) as { contractConditionsSchema: zod.ZodType; saveContractDraftSchema: zod.ZodType };
+}) as { contractConditionsSchema: zod.ZodType; saveContractDraftSchema: zod.ZodType; contractVersionActionSchema: zod.ZodType };
 test("all pricing modes and both general modes are valid without inferring services", () => {
   assert.deepEqual(schemas.contractConditionsSchema.parse(conditions), conditions);
   const full = schemas.contractConditionsSchema.parse({ ...conditions, mode: "FULL_MANAGEMENT" }) as typeof conditions;
@@ -38,12 +38,13 @@ test("identity, signature and revision fields cannot be smuggled into request", 
 const OWNER = "11111111-1111-4111-8111-111111111111";
 const CONCIERGE = "22222222-2222-4222-8222-222222222222";
 const COLLAB = "44444444-4444-4444-8444-444444444444";
+const VERSION = "66666666-6666-4666-8666-666666666666";
 type ResponseModule = Record<string, (req: Request, context?: { params: Promise<{ id: string }> }) => Promise<Response>>;
 function fixture(role = "owner", userId: string | null = OWNER) {
   const tables: Record<string, Row[]> = {
     housing_collaborations: [{ id: COLLAB, status: "pending_handover", owner_profile_id: OWNER, concierge_profile_id: CONCIERGE }],
     services_contracts: [{ id: "envelope", collaboration_id: COLLAB, profile_id: OWNER, title: "Linked" }, { id: "legacy", collaboration_id: null, profile_id: OWNER, title: "Historical" }],
-    services_contract_versions: [{ id: "draft", contract_id: "envelope", status: "draft", revision: 1, conditions }],
+    services_contract_versions: [{ id: VERSION, contract_id: "envelope", version_number: 1, status: "draft", revision: 1, conditions }],
   };
   const calls: { table: string; operation: string }[] = [];
   const rpcCalls: Row[] = [];
@@ -52,17 +53,19 @@ function fixture(role = "owner", userId: string | null = OWNER) {
     from(table: string) {
       let op = "select";
       let values: Row = {};
+      let orderBy: string | null = null;
       const filters: ((row: Row) => boolean)[] = [];
       function result(single: boolean) {
         calls.push({ table, operation: op });
         let rows = (tables[table] ?? []).filter(row => filters.every(filter => filter(row)));
+        if (orderBy) { const key = orderBy; rows.sort((a, b) => Number(b[key]) - Number(a[key])); }
         if (op === "update") rows.forEach(row => Object.assign(row, values));
         if (op === "delete") tables[table] = tables[table].filter(row => !rows.includes(row));
         if (op === "insert") { rows = [{ id: "new", collaboration_id: null, ...values }]; tables[table].push(...rows); }
         return { data: structuredClone(single ? rows[0] ?? null : rows), error: null, count: rows.length };
       }
       const query = {
-        select() { return query; }, order() { return query; },
+        select() { return query; }, order(key: string) { orderBy = key; return query; },
         eq(key: string, value: unknown) { filters.push(row => row[key] === value); return query; },
         is(key: string, value: unknown) { filters.push(row => (row[key] ?? null) === value); return query; },
         update(body: Row) { op = "update"; values = body; return query; },
@@ -75,7 +78,7 @@ function fixture(role = "owner", userId: string | null = OWNER) {
       return query;
     },
     async rpc(name: string, args: Row) {
-      assert.equal(name, "save_collaboration_contract_draft");
+      assert.ok(["save_collaboration_contract_draft", "transition_collaboration_contract_version"].includes(name));
       rpcCalls.push(args);
       return { data: rpcError ? null : tables.services_contract_versions[0], error: rpcError ? { code: rpcError } : null };
     },
@@ -103,6 +106,7 @@ function fixture(role = "owner", userId: string | null = OWNER) {
     tables, calls, rpcCalls, setRpcError(code: string) { rpcError = code; },
     get: (id = COLLAB) => routes.GET(request("GET"), { params: Promise.resolve({ id }) }),
     put: (body: unknown = { expectedRevision: 0, conditions }) => routes.PUT(request("PUT", body), { params: Promise.resolve({ id: COLLAB }) }),
+    action: (body: unknown = { action: "propose", versionId: VERSION, expectedRevision: 1 }) => routes.POST(request("POST", body), { params: Promise.resolve({ id: COLLAB }) }),
     legacy: (method: string, id: string, body?: unknown) => legacy[method](request(method, body), { params: Promise.resolve({ id }) }),
     list: () => legacyList.GET(request("GET")),
     postLegacy: (body: unknown) => legacyList.POST(request("POST", body)),
@@ -126,16 +130,60 @@ for (const [role, user, expected] of [["owner", null, 401], ["owner", "third", 4
     const f = fixture(role, user);
     assert.equal((await f.get()).status, expected);
     assert.equal((await f.put()).status, expected);
+    assert.equal((await f.action()).status, expected);
     assert.equal(f.rpcCalls.length, 0);
   });
 }
 test("absent draft GET remains read-only and does not create an envelope", async () => {
   const f = fixture();
   f.tables.services_contracts = [];
-  assert.deepEqual(await (await f.get()).json(), { draft: null });
-  assert.deepEqual(await (await f.get()).json(), { draft: null });
+  assert.deepEqual(await (await f.get()).json(), { draft: null, currentVersion: null, versions: [], actorId: OWNER });
+  assert.deepEqual(await (await f.get()).json(), { draft: null, currentVersion: null, versions: [], actorId: OWNER });
   assert.equal(f.rpcCalls.length, 0);
 });
+
+for (const [role, user] of [["owner", OWNER], ["concierge", CONCIERGE]]) {
+  for (const action of ["propose", "accept", "request_changes"]) {
+    test(`${role}: ${action} always targets authenticated actor and exact version/revision`, async () => {
+      const f = fixture(role, user);
+      const response = await f.action({ action, versionId: VERSION, expectedRevision: 3, ...(action === "request_changes" ? { reason: "Modifier le tarif" } : {}) });
+      assert.equal(response.status, 200);
+      assert.deepEqual(f.rpcCalls[0], { p_collaboration_id: COLLAB, p_actor_id: user, p_version_id: VERSION, p_expected_revision: 3, p_action: action, p_reason: action === "request_changes" ? "Modifier le tarif" : null });
+      assert.ok(f.calls.every(call => call.operation === "select"));
+    });
+  }
+}
+test("agreement actions reject identity injection, missing versions/revisions and signing", async () => {
+  const f = fixture();
+  const base = { action: "accept", versionId: VERSION, expectedRevision: 1 };
+  for (const body of [
+    { ...base, actorId: CONCIERGE }, { ...base, owner_accepted_by: CONCIERGE },
+    { ...base, role: "owner" }, { ...base, action: "sign" }, { ...base, expectedRevision: 0 },
+    { action: "accept" }, { ...base, action: "request_changes", reason: " " },
+  ]) assert.equal((await f.action(body)).status, 400);
+  assert.equal(f.rpcCalls.length, 0);
+});
+test("save forwards the explicit draft ID and never silently selects a newer draft", async () => {
+  const f = fixture();
+  await f.put({ versionId: VERSION, expectedRevision: 2, conditions });
+  assert.equal(f.rpcCalls[0].p_version_id, VERSION);
+});
+test("GET exposes the latest version plus immutable history without writing", async () => {
+  const f = fixture();
+  f.tables.services_contract_versions[0].status = "superseded";
+  f.tables.services_contract_versions.push({ id: "new-version", contract_id: "envelope", version_number: 2, status: "proposed", conditions });
+  const response = await (await f.get()).json();
+  assert.equal(response.draft, null);
+  assert.equal(response.currentVersion.id, "new-version");
+  assert.equal(response.versions.length, 2);
+  assert.equal(f.rpcCalls.length, 0);
+});
+for (const [code, status] of [["40001", 409], ["42501", 403], ["23514", 400], ["XX000", 500]] as const) {
+  test(`transition RPC ${code} surfaces as HTTP ${status}`, async () => {
+    const f = fixture(); f.setRpcError(code);
+    assert.equal((await f.action()).status, status);
+  });
+}
 test("invalid conditions and participant spoofing are rejected before RPC", async () => {
   const f = fixture();
   assert.equal((await f.put({ expectedRevision: 0, conditions, owner_id: "third" })).status, 400);
@@ -179,7 +227,7 @@ test("legacy POST preserves historical behavior and ignores collaboration/identi
 
 test("draft form uses existing labeled controls; changing mode preserves every service", () => {
   let index = 0;
-  const states: unknown[] = [true, false, false, true, 1, structuredClone(conditions), null, null, 0];
+  const states: unknown[] = [true, false, false, true, 1, structuredClone(conditions), null, null, 0, null, [], OWNER, ""];
   const loadControl = (id: string): unknown => {
     if (id === "react") return React;
     if (id === "react/jsx-runtime") return jsxRuntime;
@@ -219,4 +267,59 @@ test("draft form uses existing labeled controls; changing mode preserves every s
   visit(tree);
   assert.equal((states[5] as typeof conditions).mode, "FULL_MANAGEMENT");
   assert.deepEqual((states[5] as typeof conditions).services, conditions.services);
+});
+
+function frozenEditor(status: string, actor: string, accepted = false) {
+  const version = {
+    id: VERSION, version_number: 1, revision: 3, status, conditions,
+    proposed_by: OWNER, proposed_owner_id: OWNER, proposed_concierge_id: CONCIERGE,
+    proposed_at: "2026-09-20T10:00:00Z", owner_accepted_at: accepted ? "2026-09-20T11:00:00Z" : null,
+    concierge_accepted_at: status === "ready_to_sign" ? "2026-09-20T12:00:00Z" : null,
+  };
+  const states: unknown[] = [true, false, false, true, 3, conditions, null, null, 0, version, [version], actor, ""];
+  let index = 0;
+  const loaded = execute(read("features/housing-collaborations/ContractDraftEditor.tsx"), id => {
+    if (id === "react") return { ...React, useEffect() {}, useState() {
+      const position = index++;
+      return [states[position], (value: unknown) => { states[position] = typeof value === "function" ? value(states[position]) : value; }];
+    } };
+    if (id === "react/jsx-runtime") return jsxRuntime;
+    if (id === "@/components/ui") return { Button: "button", Input: "input", Select: "select" };
+    if (id === "./contractConditions") return schemas;
+    throw new Error(id);
+  });
+  const tree = (loaded.ContractDraftEditor as (props: { collaborationId: string }) => React.ReactElement)({ collaborationId: COLLAB });
+  return { tree, html: renderToStaticMarkup(tree) };
+}
+test("proposer must explicitly accept; frozen conditions have no edit/save controls", () => {
+  const { html } = frozenEditor("proposed", OWNER);
+  assert.match(html, /Accepter les conditions/);
+  assert.match(html, /Proposer ne vaut pas accord/);
+  assert.doesNotMatch(html, /<form|Enregistrer le brouillon|Demander une modification/);
+  assert.match(frozenEditor("proposed", CONCIERGE).html, /Demander une modification/);
+});
+test("ready to sign is read-only with clear message, not a signature or activation", () => {
+  const { html } = frozenEditor("ready_to_sign", OWNER, true);
+  assert.match(html, /Les conditions ont été acceptées par les deux parties/);
+  assert.match(html, /prêt pour l/);
+  assert.doesNotMatch(html, /Accepter les conditions|Demander une modification|Contrat signé|Collaboration active|<form/);
+});
+test("accept button submits the exact displayed version/revision and no participant identity", async () => {
+  const originalFetch = globalThis.fetch;
+  let sent: unknown;
+  globalThis.fetch = async (_url, init) => {
+    sent = JSON.parse(String(init?.body));
+    return Response.json({ version: { id: VERSION, status: "proposed", conditions, revision: 3 } });
+  };
+  try {
+    const { tree } = frozenEditor("proposed", OWNER);
+    function visit(node: React.ReactNode) {
+      if (!React.isValidElement<{ children?: React.ReactNode; onClick?: () => void }>(node)) return;
+      if (node.props.children === "Accepter les conditions") node.props.onClick?.();
+      React.Children.forEach(node.props.children, visit);
+    }
+    visit(tree);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.deepEqual(sent, { action: "accept", versionId: VERSION, expectedRevision: 3 });
+  } finally { globalThis.fetch = originalFetch; }
 });

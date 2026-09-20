@@ -3760,6 +3760,18 @@ export type Database = {
       }
       services_contract_versions: {
         Row: {
+          proposed_by: string | null
+          proposed_at: string | null
+          proposed_owner_id: string | null
+          proposed_concierge_id: string | null
+          owner_accepted_by: string | null
+          owner_accepted_at: string | null
+          concierge_accepted_by: string | null
+          concierge_accepted_at: string | null
+          change_requested_by: string | null
+          change_requested_at: string | null
+          change_request_reason: string | null
+          previous_version_id: string | null
           id: string
           contract_id: string
           version_number: number
@@ -3772,6 +3784,18 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          proposed_by?: string | null
+          proposed_at?: string | null
+          proposed_owner_id?: string | null
+          proposed_concierge_id?: string | null
+          owner_accepted_by?: string | null
+          owner_accepted_at?: string | null
+          concierge_accepted_by?: string | null
+          concierge_accepted_at?: string | null
+          change_requested_by?: string | null
+          change_requested_at?: string | null
+          change_request_reason?: string | null
+          previous_version_id?: string | null
           id?: string
           contract_id: string
           version_number?: number
@@ -3784,6 +3808,18 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          proposed_by?: string | null
+          proposed_at?: string | null
+          proposed_owner_id?: string | null
+          proposed_concierge_id?: string | null
+          owner_accepted_by?: string | null
+          owner_accepted_at?: string | null
+          concierge_accepted_by?: string | null
+          concierge_accepted_at?: string | null
+          change_requested_by?: string | null
+          change_requested_at?: string | null
+          change_request_reason?: string | null
+          previous_version_id?: string | null
           id?: string
           contract_id?: string
           version_number?: number
@@ -4187,9 +4223,13 @@ export type Database = {
       }
     }
     Functions: {
+      transition_collaboration_contract_version: {
+        Args: { p_collaboration_id: string; p_actor_id: string; p_version_id: string; p_expected_revision: number; p_action: string; p_reason?: string | null }
+        Returns: Database["public"]["Tables"]["services_contract_versions"]["Row"]
+      }
       valid_collaboration_draft_conditions: { Args: { doc: Json }; Returns: boolean }
       save_collaboration_contract_draft: {
-        Args: { p_collaboration_id: string; p_actor_id: string; p_expected_revision: number; p_conditions: Json }
+        Args: { p_collaboration_id: string; p_actor_id: string; p_expected_revision: number; p_conditions: Json; p_version_id?: string | null }
         Returns: Database["public"]["Tables"]["services_contract_versions"]["Row"]
       }
       admin_problem_severity_rank: { Args: { value: string }; Returns: number }
