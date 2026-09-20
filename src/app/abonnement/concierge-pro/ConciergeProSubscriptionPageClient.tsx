@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -90,7 +90,7 @@ export default function ConciergeProSubscriptionPageClient() {
 
     async function loadSubscriptionState() {
       try {
-        const response = await fetch("/api/profiles/me", { cache: "no-store" });
+        const response = await fetch("/api/profiles/current", { cache: "no-store" });
         const payload = await response.json();
         if (!response.ok || cancelled) return;
 
@@ -246,3 +246,4 @@ export default function ConciergeProSubscriptionPageClient() {
     </div>
   );
 }
+

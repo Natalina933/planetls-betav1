@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { finalizeAcceptedQuoteWorkflow } from "@/app/api/_shared/acceptedQuoteWorkflow";
+import { awardAcceptedQuote, QuoteAwardError, finalizeAcceptedQuoteWorkflow } from "@/app/api/_shared/acceptedQuoteWorkflow";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { createHousingFromQuote, validateHousingFromQuote, QuoteHousingValidationError } from "@/app/api/profiles/housing/shared";
 import { upsertAcceptedHousingCollaboration } from "@/app/api/_shared/housingCollaboration";
@@ -8,6 +8,7 @@ import { requireApiRole } from "@/server/auth/roleGuards";
 
 interface SelectRequestBody {
   recipient_id?: string;
+  quote_id?: string;
 }
 
 type QuoteLookupRow = {
@@ -40,6 +41,8 @@ export async function POST(
 
     const body = (await req.json()) as SelectRequestBody;
     const recipientId = typeof body.recipient_id === "string" ? body.recipient_id.trim() : "";
+    const quoteId = typeof body.quote_id === "string" ? body.quote_id.trim() : "";
+    if (!quoteId) return NextResponse.json({ error: "quote_id requis." }, { status: 400 });
     if (!recipientId) {
       return NextResponse.json({ error: "recipient_id requis." }, { status: 400 });
     }
@@ -91,6 +94,7 @@ export async function POST(
     const { data: candidateQuotes, error: candidateQuotesError } = await dbAny
       .from("quotes")
       .select("id, status, mission_id, accepted_at, service_request_id, service_request_recipient_id, metadata")
+      .eq("id", quoteId)
       .eq("concierge_profile_id", selectedRecipient.concierge_profile_id)
       .eq("owner_profile_id", requestRow.owner_profile_id ?? userId);
 
@@ -100,7 +104,7 @@ export async function POST(
     }
 
     const selectedQuote =
-      ((candidateQuotes ?? []) as QuoteLookupRow[]).find((quote) => {
+      ((candidateQuotes ?? []) as QuoteLookupRow[]).filter((quote) => {
         const metadata = isRecord(quote.metadata) ? quote.metadata : null;
         const quoteRequestId =
           typeof quote.service_request_id === "string" ? quote.service_request_id : metadata?.service_request_id;
@@ -112,7 +116,7 @@ export async function POST(
           quoteRequestId === requestRow.id &&
           quoteRecipientId === selectedRecipient.id
         );
-      }) ?? null;
+      })[0] ?? null;
 
     if (!selectedQuote) {
       throw new QuoteHousingValidationError("Aucun devis correspondant à cette demande et à cette concierge ne peut être sélectionné.");
@@ -125,71 +129,7 @@ export async function POST(
           expectedRecipientId: recipientId,
         });
 
-    const recipientStatuses = new Map<string, string>();
-    recipientRows.forEach((recipient: { id: string }) => {
-      recipientStatuses.set(recipient.id, recipient.id === recipientId ? "selected" : "not_selected");
-    });
-
-    await Promise.all(
-      recipientRows.map((recipient: { id: string }) =>
-        dbAny
-          .from("service_request_recipients")
-          .update({
-            status: recipientStatuses.get(recipient.id),
-            responded_at: new Date().toISOString(),
-          })
-          .eq("id", recipient.id),
-      ),
-    );
-
-    const nextMetadata = isRecord(requestRow.metadata) ? { ...requestRow.metadata } : {};
-    delete nextMetadata.selected_mission_id;
-
-    if (selectedQuote?.id) {
-      const quoteUpdatePayload: Record<string, unknown> = {};
-
-      if (selectedQuote.status !== "accepted") {
-        quoteUpdatePayload.status = "accepted";
-      }
-
-      if (!selectedQuote.accepted_at) {
-        quoteUpdatePayload.accepted_at = new Date().toISOString();
-      }
-
-      const { error: quoteUpdateError } = await db
-        .from("quotes")
-        .update(quoteUpdatePayload)
-        .eq("id", selectedQuote.id)
-        .eq("owner_profile_id", requestRow.owner_profile_id ?? userId)
-        .eq("concierge_profile_id", selectedRecipient.concierge_profile_id);
-
-      if (quoteUpdateError) {
-        console.error("[service-requests/select] quote update error:", quoteUpdateError);
-        return NextResponse.json({ error: "Impossible de valider le devis lié." }, { status: 500 });
-      }
-
-      const { error: quoteEventError } = await db.from("quote_events").insert({
-        quote_id: selectedQuote.id,
-        actor_profile_id: userId,
-        event_type: "accepted",
-        payload: {
-          source: "service_request_selection",
-          service_request_id: requestRow.id,
-          service_request_recipient_id: selectedRecipient.id,
-        },
-      });
-
-      if (quoteEventError) {
-        console.error("[service-requests/select] quote event error:", quoteEventError);
-      }
-    }
-
-    const updatedMetadata = {
-      ...nextMetadata,
-      selected_at: new Date().toISOString(),
-      selected_recipient_id: selectedRecipient.id,
-      selected_quote_id: selectedQuote?.id ?? null,
-    };
+    await awardAcceptedQuote(db, selectedQuote.id, userId);
 
     let acceptedWorkflow: Awaited<ReturnType<typeof finalizeAcceptedQuoteWorkflow>> | null = null;
     let autoHousing: { housingId: number; created: boolean; linkedExisting?: boolean } | null = null;
@@ -234,21 +174,7 @@ export async function POST(
     }
 
     const { data: updatedRequest, error: updateRequestError } = await dbAny
-      .from("service_requests")
-      .update({
-        selected_concierge_profile_id: selectedRecipient.concierge_profile_id,
-        status: "quote_accepted",
-        mission_id: acceptedWorkflow?.mission?.id ?? selectedQuote?.mission_id ?? null,
-        metadata: {
-          ...updatedMetadata,
-          selected_mission_id: acceptedWorkflow?.mission?.id ?? selectedQuote?.mission_id ?? null,
-          accepted_invoice_id: acceptedWorkflow?.invoice?.id ?? null,
-        },
-      })
-      .eq("id", id)
-      .eq("owner_profile_id", userId)
-      .select("*")
-      .single();
+      .from("service_requests").select("*").eq("id", id).eq("owner_profile_id", userId).single();
 
     if (updateRequestError || !updatedRequest) {
       console.error("[service-requests/select] request update error:", updateRequestError);
@@ -268,6 +194,7 @@ export async function POST(
       { status: 200 },
     );
   } catch (error) {
+    if (error instanceof QuoteAwardError) return NextResponse.json({ error: error.message }, { status: error.status });
     if (error instanceof QuoteHousingValidationError) return NextResponse.json({ error: error.message }, { status: error.status });
     console.error("[service-requests/select] ERROR:", error);
     return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });

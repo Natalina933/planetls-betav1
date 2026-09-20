@@ -205,7 +205,7 @@ function pickPrimaryRecipientStatus(recipients: Array<{ status?: string | null }
 
 function pickPrimaryQuoteStatus(quotes: Array<{ status?: string | null }>) {
   const statuses = quotes.map((quote) => quote.status).filter(Boolean);
-  const priority = ["accepted", "sent", "rejected", "expired", "canceled", "draft"];
+  const priority = ["accepted", "sent", "not_selected", "rejected", "expired", "canceled", "draft"];
   return priority.find((status) => statuses.includes(status)) ?? statuses[0] ?? null;
 }
 

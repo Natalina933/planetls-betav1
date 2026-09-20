@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -76,7 +76,7 @@ export default function ConciergeAlertesPage() {
             fetch("/api/missions?scope=all&limit=80", { cache: "no-store" }),
             fetch("/api/messages/conversations?role=concierge&limit=80", { cache: "no-store" }),
             fetch("/api/housing", { cache: "no-store" }),
-            fetch("/api/profiles/me", { cache: "no-store" }),
+            fetch("/api/profiles/current", { cache: "no-store" }),
           ]);
 
         const missionsPayload = await missionsResponse.json();
@@ -138,30 +138,30 @@ export default function ConciergeAlertesPage() {
     () => [
       {
         id: "urgences",
-        title: "Urgences à traiter",
+        title: "Urgences Ã  traiter",
         description: "Les missions prioritaires restent visibles pour limiter les oublis et tenir le niveau de service.",
-        emptyText: loading ? "Chargement des urgences." : error || "Aucune urgence terrain détectée.",
+        emptyText: loading ? "Chargement des urgences." : error || "Aucune urgence terrain dÃ©tectÃ©e.",
         items: withAction(urgentMissionItems),
       },
       {
         id: "relances",
-        title: "Relances propriétaires",
-        description: "Conversations à reprendre pour ne pas laisser refroidir une opportunité ou une demande active.",
-        emptyText: loading ? "Analyse des conversations." : error || "Aucune relance urgente à faire.",
+        title: "Relances propriÃ©taires",
+        description: "Conversations Ã  reprendre pour ne pas laisser refroidir une opportunitÃ© ou une demande active.",
+        emptyText: loading ? "Analyse des conversations." : error || "Aucune relance urgente Ã  faire.",
         items: withAction(stalledConversationItems),
       },
       {
         id: "fiches",
-        title: "Fiches logement à finaliser",
-        description: "Biens inactifs ou incomplets qui méritent une vérification rapide avant mise en avant.",
-        emptyText: loading ? "Vérification des logements en cours." : error || "Tous vos logements sont déjà actifs.",
+        title: "Fiches logement Ã  finaliser",
+        description: "Biens inactifs ou incomplets qui mÃ©ritent une vÃ©rification rapide avant mise en avant.",
+        emptyText: loading ? "VÃ©rification des logements en cours." : error || "Tous vos logements sont dÃ©jÃ  actifs.",
         items: withAction(draftHousingItems),
       },
       {
         id: "optimisation",
         title: "Optimisation commerciale",
-        description: "Actions utiles pour renforcer votre conversion, votre visibilité et votre positionnement premium.",
-        emptyText: loading ? "Analyse des optimisations." : error || "Aucune optimisation prioritaire détectée.",
+        description: "Actions utiles pour renforcer votre conversion, votre visibilitÃ© et votre positionnement premium.",
+        emptyText: loading ? "Analyse des optimisations." : error || "Aucune optimisation prioritaire dÃ©tectÃ©e.",
         items: withAction(profileSetupAlerts),
       },
     ],
@@ -170,9 +170,9 @@ export default function ConciergeAlertesPage() {
 
   const metrics = [
     {
-      label: "Priorité",
+      label: "PrioritÃ©",
       value: loading ? "..." : String(totalAttention),
-      hint: "Points à regarder avant de lancer la journée",
+      hint: "Points Ã  regarder avant de lancer la journÃ©e",
     },
     {
       label: "Relances",
@@ -183,13 +183,13 @@ export default function ConciergeAlertesPage() {
     {
       label: "Fiches",
       value: loading ? "..." : String(draftHousings.length),
-      hint: "Biens à fiabiliser",
+      hint: "Biens Ã  fiabiliser",
       detailSectionId: "fiches",
     },
     {
       label: "Offre",
-      value: loading ? "..." : profile?.role === "concierge_pro" ? "Actif" : "À renforcer",
-      hint: "Visibilité et conversion",
+      value: loading ? "..." : profile?.role === "concierge_pro" ? "Actif" : "Ã€ renforcer",
+      hint: "VisibilitÃ© et conversion",
       detailSectionId: "optimisation",
     },
   ];
@@ -197,12 +197,12 @@ export default function ConciergeAlertesPage() {
   return (
     <DashboardOperationalPage
       tone="concierge"
-      badge="Vue opérationnelle"
+      badge="Vue opÃ©rationnelle"
       title="Centre de vigilance"
       description={
         loading
           ? "Analyse des points de vigilance..."
-          : error || "Priorisez les urgences terrain, les relances propriétaires et les fiches à fiabiliser."
+          : error || "Priorisez les urgences terrain, les relances propriÃ©taires et les fiches Ã  fiabiliser."
       }
       primaryActions={[
         { label: "Ouvrir la messagerie", href: "/dashboard/concierge/messages" },
@@ -211,7 +211,7 @@ export default function ConciergeAlertesPage() {
       metrics={metrics}
       focus={{
         title: "Lecture du matin",
-        status: totalAttention > 0 ? "À arbitrer" : "Stable",
+        status: totalAttention > 0 ? "Ã€ arbitrer" : "Stable",
         statusVariant: totalAttention > 0 ? "gold" : "success",
         icon: <TriangleAlert size={28} />,
         heading: mainPriority ? mainPriority.title : "Aucun point bloquant",
@@ -232,7 +232,7 @@ export default function ConciergeAlertesPage() {
         {
           label: "Relation",
           value: loading ? "..." : stalledConversationItems.length,
-          hint: "Relances propriétaires",
+          hint: "Relances propriÃ©taires",
           icon: MessageSquareWarning,
           tone: "warning",
           detailSectionId: "relances",
@@ -254,7 +254,7 @@ export default function ConciergeAlertesPage() {
           detailSectionId: "optimisation",
         },
       ]}
-      cadenceTitle="Cadence conseillée"
+      cadenceTitle="Cadence conseillÃ©e"
       cadence={[
         {
           label: "Maintenant",
@@ -264,17 +264,17 @@ export default function ConciergeAlertesPage() {
         {
           label: "Aujourd'hui",
           icon: MessageSquareWarning,
-          text: "Relancer les propriétaires silencieux avant que l'opportunité refroidisse.",
+          text: "Relancer les propriÃ©taires silencieux avant que l'opportunitÃ© refroidisse.",
         },
         {
           label: "Cette semaine",
           icon: Building2,
-          text: "Finaliser les fiches et les repères d'offre qui soutiennent la conversion.",
+          text: "Finaliser les fiches et les repÃ¨res d'offre qui soutiennent la conversion.",
         },
       ]}
-      detailsBadge="Dossiers à suivre"
+      detailsBadge="Dossiers Ã  suivre"
       detailsTitle="Actions disponibles"
-      detailsDescription="Chaque ligne renvoie directement vers l'espace où traiter le point d'attention."
+      detailsDescription="Chaque ligne renvoie directement vers l'espace oÃ¹ traiter le point d'attention."
       detailSections={detailSections}
       illustration={{
         mainIcon: Home,
@@ -284,3 +284,4 @@ export default function ConciergeAlertesPage() {
     />
   );
 }
+

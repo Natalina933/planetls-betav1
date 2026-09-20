@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { ChangeEvent, KeyboardEvent, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -191,7 +191,7 @@ export default function EditableUnifiedProfilePage({
       try {
         setError(null);
 
-        const response = await fetch("/api/profiles/me", { cache: "no-store" });
+        const response = await fetch("/api/profiles/current", { cache: "no-store" });
         const payload = await response.json();
 
         if (!response.ok) {
@@ -479,14 +479,14 @@ export default function EditableUnifiedProfilePage({
   });
   const profileCompletion = showProfessionalDetails
     ? buildCompletionState([
-        { label: "Identité et coordonnées", complete: basicProfileCompletion.percentage === 100 },
-        { label: "Métier principal", complete: Boolean(form.category.trim()) },
-        { label: "Compétences/métiers", complete: Boolean(form.skills.trim()) },
+        { label: "IdentitÃ© et coordonnÃ©es", complete: basicProfileCompletion.percentage === 100 },
+        { label: "MÃ©tier principal", complete: Boolean(form.category.trim()) },
+        { label: "CompÃ©tences/mÃ©tiers", complete: Boolean(form.skills.trim()) },
         { label: "Zone d'intervention", complete: Boolean(form.service_area.trim()) },
         { label: "Rayon d'intervention", complete: Boolean(form.service_radius_km.trim()) },
-        { label: "Disponibilités", complete: Boolean(form.availability_hours.trim()) },
+        { label: "DisponibilitÃ©s", complete: Boolean(form.availability_hours.trim()) },
         { label: "Tarif horaire", complete: Boolean(form.hourly_rate.trim()) },
-        { label: "Expérience", complete: Boolean(form.years_experience.trim()) },
+        { label: "ExpÃ©rience", complete: Boolean(form.years_experience.trim()) },
         { label: "SIRET", complete: Boolean(form.siret.trim()) },
         { label: "Assurance professionnelle", complete: Boolean(form.insurance_company.trim() && form.insurance_number.trim()) },
         { label: "Certifications", complete: Boolean(form.certifications.trim()) },
@@ -511,11 +511,11 @@ export default function EditableUnifiedProfilePage({
       onCancel={cancelEditSection}
     >
       <div className={conciergeStyles.fieldsGrid}>
-        <EditableProfileField styles={conciergeStyles} label="Prénom" name="first_name" value={form.first_name} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="PrÃ©nom" name="first_name" value={form.first_name} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Nom" name="last_name" value={form.last_name} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Nom utilisateur" name="username" value={form.username} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Email" name="email" value={form.email} isEditing={false} onChange={handleChange} />
-        <EditableProfileField styles={conciergeStyles} label="Téléphone" name="phone" value={form.phone} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="TÃ©lÃ©phone" name="phone" value={form.phone} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Entreprise" name="company_name" value={form.company_name} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
       </div>
     </EditableProfileSection>
@@ -524,7 +524,7 @@ export default function EditableUnifiedProfilePage({
   const renderAddressSection = () => (
     <EditableProfileSection
       styles={conciergeStyles}
-      title="Adresse et présence locale"
+      title="Adresse et prÃ©sence locale"
       icon={<FiMapPin />}
       canEdit
       collapsible
@@ -550,7 +550,7 @@ export default function EditableUnifiedProfilePage({
   const renderSocialsSection = () => (
     <EditableProfileSection
       styles={conciergeStyles}
-      title="Site et réseaux sociaux"
+      title="Site et rÃ©seaux sociaux"
       icon={<FiMessageSquare />}
       canEdit
       collapsible
@@ -565,7 +565,7 @@ export default function EditableUnifiedProfilePage({
       onCancel={cancelEditSection}
     >
       <p className={conciergeStyles.sectionIntroText}>
-        Centralisez vos liens publics et vos réseaux sociaux.
+        Centralisez vos liens publics et vos rÃ©seaux sociaux.
       </p>
       <div className={conciergeStyles.fieldsGrid}>
         <EditableProfileField styles={conciergeStyles} label="Site web" name="website" value={form.website} isEditing={editingSection === SECTION_IDS.SOCIALS} onChange={handleChange} />
@@ -579,7 +579,7 @@ export default function EditableUnifiedProfilePage({
   const renderProfessionalSection = () => (
     <EditableProfileSection
       styles={conciergeStyles}
-      title="Activité, confiance et disponibilité"
+      title="ActivitÃ©, confiance et disponibilitÃ©"
       icon={<FiTool />}
       canEdit
       collapsible
@@ -594,31 +594,31 @@ export default function EditableUnifiedProfilePage({
       onCancel={cancelEditSection}
     >
       <p className={conciergeStyles.sectionIntroText}>
-        Décrivez précisément votre métier, votre capacité d'intervention et les preuves qui rassurent vos clients.
+        DÃ©crivez prÃ©cisÃ©ment votre mÃ©tier, votre capacitÃ© d'intervention et les preuves qui rassurent vos clients.
       </p>
       <div className={conciergeStyles.fieldsGrid}>
-        <EditableProfileField styles={conciergeStyles} label="Métier principal" name="category" value={form.category} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
-        <EditableProfileField styles={conciergeStyles} label="Compétences/métiers" name="skills" value={form.skills} isTextarea placeholder="Ex: Plomberie, Electricité, Menuiserie" isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="MÃ©tier principal" name="category" value={form.category} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="CompÃ©tences/mÃ©tiers" name="skills" value={form.skills} isTextarea placeholder="Ex: Plomberie, ElectricitÃ©, Menuiserie" isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Zone couverte" name="service_area" value={form.service_area} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Rayon (km)" name="service_radius_km" value={form.service_radius_km} type="number" inputProps={{ min: 0 }} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
-        <EditableProfileField styles={conciergeStyles} label="Disponibilités" name="availability_hours" value={form.availability_hours} isTextarea isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
-        <EditableProfileField styles={conciergeStyles} label="Tarif horaire (€)" name="hourly_rate" value={form.hourly_rate} type="number" inputProps={{ min: 0, step: 0.01 }} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
-        <EditableProfileField styles={conciergeStyles} label="Frais de déplacement (€)" name="travel_fee" value={form.travel_fee} type="number" inputProps={{ min: 0, step: 0.01 }} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
-        <EditableProfileField styles={conciergeStyles} label="Années d'expérience" name="years_experience" value={form.years_experience} type="number" inputProps={{ min: 0, step: 1 }} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
-        <EditableProfileField styles={conciergeStyles} label="Niveau d'expérience" name="experience_level" value={form.experience_level} placeholder="debutant, intermediaire ou experimente" isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="DisponibilitÃ©s" name="availability_hours" value={form.availability_hours} isTextarea isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Tarif horaire (â‚¬)" name="hourly_rate" value={form.hourly_rate} type="number" inputProps={{ min: 0, step: 0.01 }} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Frais de dÃ©placement (â‚¬)" name="travel_fee" value={form.travel_fee} type="number" inputProps={{ min: 0, step: 0.01 }} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="AnnÃ©es d'expÃ©rience" name="years_experience" value={form.years_experience} type="number" inputProps={{ min: 0, step: 1 }} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Niveau d'expÃ©rience" name="experience_level" value={form.experience_level} placeholder="debutant, intermediaire ou experimente" isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Forme juridique" name="legal_form" value={form.legal_form} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="SIRET" name="siret" value={form.siret} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Assureur RC Pro" name="insurance_company" value={form.insurance_company} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
-        <EditableProfileField styles={conciergeStyles} label="N° de police RC Pro" name="insurance_number" value={form.insurance_number} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="NÂ° de police RC Pro" name="insurance_number" value={form.insurance_number} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Certifications et habilitations" name="certifications" value={form.certifications} isTextarea isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
-        <EditableProfileField styles={conciergeStyles} label="Interventions urgentes acceptées" name="emergency_service" value={form.emergency_service} type="checkbox" isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Interventions urgentes acceptÃ©es" name="emergency_service" value={form.emergency_service} type="checkbox" isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
       </div>
     </EditableProfileSection>
   );
   const renderPresentationSection = () => (
     <EditableProfileSection
       styles={conciergeStyles}
-      title="Présentation"
+      title="PrÃ©sentation"
       icon={<FiFileText />}
       canEdit
       collapsible
@@ -635,7 +635,7 @@ export default function EditableUnifiedProfilePage({
       <p className={conciergeStyles.sectionIntroText}>{presentationIntro}</p>
       <EditableProfileField
         styles={conciergeStyles}
-        label="Présentation"
+        label="PrÃ©sentation"
         name="additional_info"
         value={form.additional_info}
         isEditing={editingSection === SECTION_IDS.PRESENTATION}
@@ -669,7 +669,7 @@ export default function EditableUnifiedProfilePage({
               roleLabel={roleLabel}
               email={form.email}
               phone={form.phone}
-              location={form.city || "Ville non renseignée"}
+              location={form.city || "Ville non renseignÃ©e"}
               isEditing={editingSection === SECTION_IDS.AVATAR}
               avatarFile={avatarFile}
               existingAvatarUrl={currentAvatar}
@@ -727,7 +727,7 @@ export default function EditableUnifiedProfilePage({
           <div className={conciergeStyles.badgeCard}>
               <h4 className={conciergeStyles.badgeTitle}>
                 <FiShield />
-                {isVerified ? "Badge vérifié" : "Vérification en attente"}
+                {isVerified ? "Badge vÃ©rifiÃ©" : "VÃ©rification en attente"}
               </h4>
             <p className={conciergeStyles.badgeText}>
               {isVerified ? verifiedCompleteText : verifiedPendingText}
@@ -736,7 +736,7 @@ export default function EditableUnifiedProfilePage({
 
           <EditableProfileSection
             styles={conciergeStyles}
-            title="Résumé du profil"
+            title="RÃ©sumÃ© du profil"
             icon={<FiHome />}
             canEdit={false}
             collapsible
@@ -774,23 +774,23 @@ export default function EditableUnifiedProfilePage({
                 tone={roleLabel.toLowerCase().includes("prestataire") ? "provider" : "owner"}
                 eyebrow="Pilotage du profil"
                 title="Profil"
-                description="Cette vue rassemble uniquement l'état de votre profil. Les autres onglets servent ensuite à compléter votre identité, vos coordonnées et votre présentation, sans redondance."
-                chips={["Vue synthèse", "Profil", "Fiche visible"]}
+                description="Cette vue rassemble uniquement l'Ã©tat de votre profil. Les autres onglets servent ensuite Ã  complÃ©ter votre identitÃ©, vos coordonnÃ©es et votre prÃ©sentation, sans redondance."
+                chips={["Vue synthÃ¨se", "Profil", "Fiche visible"]}
                 actions={[
                   { label: "Compte", href: "?tab=account", variant: "primary" },
                   { label: "Adresse", href: "?tab=address", variant: "secondary" },
-                  { label: "Réseaux", href: "?tab=socials", variant: "secondary" },
-                  { label: "Présentation", href: "?tab=presentation", variant: "secondary" },
+                  { label: "RÃ©seaux", href: "?tab=socials", variant: "secondary" },
+                  { label: "PrÃ©sentation", href: "?tab=presentation", variant: "secondary" },
                 ]}
                 card={{
                   title: "Profil",
                   description:
-                    "Complétez votre fiche pour renforcer votre visibilité et débloquer les étapes de vérification.",
+                    "ComplÃ©tez votre fiche pour renforcer votre visibilitÃ© et dÃ©bloquer les Ã©tapes de vÃ©rification.",
                   percentage: profileCompletion.percentage,
                   completedCount: profileCompletion.completedCount,
                   totalCount: profileCompletion.totalCount,
                   missingItems: profileCompletion.missingItems,
-                  actionLabel: "Compléter mon compte",
+                  actionLabel: "ComplÃ©ter mon compte",
                   actionHref: "?tab=account",
                 }}
               />
@@ -810,3 +810,4 @@ export default function EditableUnifiedProfilePage({
     </ProfilePageShell>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
@@ -43,7 +43,7 @@ export default function ConciergeSettingsPage() {
         setError(null);
 
         const [profileResponse, billingResponse] = await Promise.all([
-          fetch("/api/profiles/me", { cache: "no-store" }),
+          fetch("/api/profiles/current", { cache: "no-store" }),
           fetch("/api/billing/history", { cache: "no-store" }),
         ]);
 
@@ -51,7 +51,7 @@ export default function ConciergeSettingsPage() {
         const billingPayload = await billingResponse.json();
 
         if (!profileResponse.ok) {
-          throw new Error(profilePayload?.error || "Impossible de charger vos paramètres.");
+          throw new Error(profilePayload?.error || "Impossible de charger vos paramÃ¨tres.");
         }
         if (!billingResponse.ok) {
           throw new Error(
@@ -62,7 +62,7 @@ export default function ConciergeSettingsPage() {
         setProfile(profilePayload);
         setBilling(billingPayload);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Impossible de charger vos paramètres.");
+        setError(err instanceof Error ? err.message : "Impossible de charger vos paramÃ¨tres.");
       } finally {
         setLoading(false);
       }
@@ -86,17 +86,17 @@ export default function ConciergeSettingsPage() {
 
   return (
     <ConciergeWorkspacePage
-      eyebrow="Paramètres"
+      eyebrow="ParamÃ¨tres"
       title="Compte et configuration"
       description={
         loading
           ? "Chargement de votre configuration..."
           : error ||
-            "Retrouvez les repères de votre compte, votre niveau d'abonnement et les raccourcis pour maintenir votre offre à jour."
+            "Retrouvez les repÃ¨res de votre compte, votre niveau d'abonnement et les raccourcis pour maintenir votre offre Ã  jour."
       }
       chips={[
         profile?.role === "concierge_pro" ? "Compte PRO" : "Compte standard",
-        profile?.service_area || profile?.city || "Zone non renseignée",
+        profile?.service_area || profile?.city || "Zone non renseignÃ©e",
       ]}
       actions={[
         { label: "Modifier ma fiche", href: "/dashboard/concierge/profile?tab=fiche" },
@@ -118,9 +118,9 @@ export default function ConciergeSettingsPage() {
               : "-",
         },
         {
-          label: "Événements de sync",
+          label: "Ã‰vÃ©nements de sync",
           value: loading ? "..." : String(recentEvents.length),
-          hint: "Historique récent disponible",
+          hint: "Historique rÃ©cent disponible",
         },
         {
           label: "Source abonnement",
@@ -130,11 +130,11 @@ export default function ConciergeSettingsPage() {
       ]}
       cards={[
         {
-          title: "1. Identité de compte",
+          title: "1. IdentitÃ© de compte",
           text: `${profile?.first_name || profile?.company_name || "Compte concierge"} - ${profile?.email || "email non disponible"}`,
           actions: [
             {
-              label: "Mettre à jour mon profil",
+              label: "Mettre Ã  jour mon profil",
               href: "/dashboard/concierge/profile?tab=fiche",
               variant: "primary",
             },
@@ -144,8 +144,8 @@ export default function ConciergeSettingsPage() {
           title: "2. Abonnement et revenus",
           text:
             profile?.role === "concierge_pro"
-              ? "Votre compte PRO est actif. Vérifiez vos références de facturation et votre historique de sync."
-              : "Passez à PRO pour booster votre visibilité et débloquer les outils premium.",
+              ? "Votre compte PRO est actif. VÃ©rifiez vos rÃ©fÃ©rences de facturation et votre historique de sync."
+              : "Passez Ã  PRO pour booster votre visibilitÃ© et dÃ©bloquer les outils premium.",
           actions: [
             {
               label: "Historique de facturation",
@@ -155,9 +155,9 @@ export default function ConciergeSettingsPage() {
           ],
         },
         {
-          title: "3. Configuration opérationnelle",
+          title: "3. Configuration opÃ©rationnelle",
           text:
-            "Vos zones, vos missions, vos documents et vos tarifs restent accessibles depuis la fiche concierge. Utilisez cet espace comme point de contrôle global.",
+            "Vos zones, vos missions, vos documents et vos tarifs restent accessibles depuis la fiche concierge. Utilisez cet espace comme point de contrÃ´le global.",
           actions: [
             {
               label: "Ouvrir documents et avis",
@@ -171,21 +171,22 @@ export default function ConciergeSettingsPage() {
         {
           title: "Checklist de configuration",
           description:
-            "Les principaux points de contrôle de votre compte concierge, pour garder votre profil, vos accès et votre offre alignés.",
-          emptyText: "Aucune configuration à afficher.",
+            "Les principaux points de contrÃ´le de votre compte concierge, pour garder votre profil, vos accÃ¨s et votre offre alignÃ©s.",
+          emptyText: "Aucune configuration Ã  afficher.",
           items: settingsChecklist,
         },
         {
-          title: "Historique abonnement récent",
+          title: "Historique abonnement rÃ©cent",
           description:
-            "Derniers événements connus liés à la facturation pour vérifier rapidement l'état de synchronisation de votre compte.",
+            "Derniers Ã©vÃ©nements connus liÃ©s Ã  la facturation pour vÃ©rifier rapidement l'Ã©tat de synchronisation de votre compte.",
           emptyText:
             loading
               ? "Chargement de l'historique de facturation."
-              : error || "Aucun événement récent disponible.",
+              : error || "Aucun Ã©vÃ©nement rÃ©cent disponible.",
           items: recentBillingEvents,
         },
       ]}
     />
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { fetchJsonOrFallback } from "../shared";
@@ -40,7 +40,7 @@ export function useConciergeOverviewData() {
           nextPricingRows,
           nextPackages,
         ] = await Promise.all([
-          fetchJsonOrFallback<Record<string, unknown> | null>("/api/profiles/me", null),
+          fetchJsonOrFallback<Record<string, unknown> | null>("/api/profiles/current", null),
           fetchJsonOrFallback<{ items?: ConciergeRequest[] }>(
             "/api/service-requests?view=concierge&limit=30",
             { items: [] },
@@ -89,3 +89,4 @@ export function useConciergeOverviewData() {
     packages,
   };
 }
+

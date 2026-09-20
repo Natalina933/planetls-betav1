@@ -242,7 +242,7 @@ export async function GET(req: NextRequest) {
     const limitRaw = Number(url.searchParams.get("limit") ?? "30");
     const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 200) : 30;
 
-    if (status && !VALID_QUOTE_STATUS.includes(status as QuoteStatus)) {
+    if (status && status !== "not_selected" && !VALID_QUOTE_STATUS.includes(status as QuoteStatus)) {
       return NextResponse.json({ error: "status invalide" }, { status: 400 });
     }
     if (missionId && !isUuidLike(missionId)) {
@@ -270,7 +270,7 @@ export async function GET(req: NextRequest) {
       query = query.eq("concierge_profile_id", userId);
     }
 
-    if (status && VALID_QUOTE_STATUS.includes(status as QuoteStatus)) {
+    if (status && (status === "not_selected" || VALID_QUOTE_STATUS.includes(status as QuoteStatus))) {
       query = query.eq("status", status);
     }
     if (missionId) {

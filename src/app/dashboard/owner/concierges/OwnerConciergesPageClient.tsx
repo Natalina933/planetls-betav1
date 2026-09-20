@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -155,12 +155,12 @@ function getOwnerRequestStatus(request: OwnerServiceRequestRow) {
 
 function formatOwnerRequestStatus(request: OwnerServiceRequestRow) {
   const status = getOwnerRequestStatus(request);
-  if (status === "accepted") return "Devis accepté";
+  if (status === "accepted") return "Devis acceptÃ©";
   if (status === "discussion") return "En discussion";
-  if (status === "viewed") return "Consultée";
-  if (status === "sent") return "Envoyée";
-  if (status === "declined") return "Refusée";
-  if (status === "expired") return "Expirée";
+  if (status === "viewed") return "ConsultÃ©e";
+  if (status === "sent") return "EnvoyÃ©e";
+  if (status === "declined") return "RefusÃ©e";
+  if (status === "expired") return "ExpirÃ©e";
   return "Brouillon";
 }
 
@@ -186,11 +186,11 @@ function isRequestWaitingForReply(request: OwnerServiceRequestRow) {
 
 function getOwnerRequestActionLabel(request: OwnerServiceRequestRow) {
   const status = getOwnerRequestStatus(request);
-  if (status === "draft") return "Compléter";
+  if (status === "draft") return "ComplÃ©ter";
   if (status === "accepted") return request.mission_id ? "Voir la mission" : "Confier une mission";
   if (getQuoteCount(request) > 0) return "Comparer les devis";
   if (isRequestWaitingForReply(request)) return "Relancer / alerte";
-  if (status === "discussion") return "Suivre l'échange";
+  if (status === "discussion") return "Suivre l'Ã©change";
   if (status === "declined" || status === "expired") return "Reprendre";
   return "Suivre";
 }
@@ -452,7 +452,7 @@ export default function OwnerConciergesPageClient() {
 
     async function loadProfileDefaults() {
       try {
-        const response = await fetch("/api/profiles/me", { cache: "no-store" });
+        const response = await fetch("/api/profiles/current", { cache: "no-store" });
         const payload = (await response.json()) as CurrentOwnerProfilePayload;
         if (!response.ok || cancelled) return;
 
@@ -762,16 +762,16 @@ export default function OwnerConciergesPageClient() {
       setFeedback(
         result.created
           ? editingAlertId
-            ? "Alerte mise à jour. Vous la retrouverez dans vos alertes propriétaire."
-            : "Alerte créée. Vous la retrouverez dans vos alertes propriétaire."
-          : "Une alerte existe déjà pour cette ville. Vous la retrouverez dans vos alertes propriétaire.",
+            ? "Alerte mise Ã  jour. Vous la retrouverez dans vos alertes propriÃ©taire."
+            : "Alerte crÃ©Ã©e. Vous la retrouverez dans vos alertes propriÃ©taire."
+          : "Une alerte existe dÃ©jÃ  pour cette ville. Vous la retrouverez dans vos alertes propriÃ©taire.",
       );
       if (editingAlertId) {
         setEditingAlertId(result.alert.id);
         router.replace("/dashboard/owner/concierges");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de créer l'alerte.");
+      setError(err instanceof Error ? err.message : "Impossible de crÃ©er l'alerte.");
     }
   }
 
@@ -799,14 +799,14 @@ export default function OwnerConciergesPageClient() {
     event.preventDefault();
 
     if (existingHousingRequestIsBlocking && existingHousingRequest) {
-      setError("Ce logement a déjà une demande. Complétez ou suivez la demande existante.");
+      setError("Ce logement a dÃ©jÃ  une demande. ComplÃ©tez ou suivez la demande existante.");
       closeRequestComposer();
       router.push(`/dashboard/owner/demandes?request=${encodeURIComponent(existingHousingRequest.id)}`);
       return;
     }
 
     if (selectedConciergeIds.length === 0) {
-      setError("Sélectionnez au moins un concierge avant d'envoyer une demande.");
+      setError("SÃ©lectionnez au moins un concierge avant d'envoyer une demande.");
       return;
     }
 
@@ -877,7 +877,7 @@ export default function OwnerConciergesPageClient() {
 
       const recipientNames = selectedConcierges.map((item) => item.display_name);
       setFeedback(
-        `Votre demande a bien été envoyée à ${selectedConciergeIds.length} concierge(s).`,
+        `Votre demande a bien Ã©tÃ© envoyÃ©e Ã  ${selectedConciergeIds.length} concierge(s).`,
       );
       setLastSubmittedStatus("NEW");
       setLastSentSummary({
@@ -903,27 +903,27 @@ export default function OwnerConciergesPageClient() {
     }
   }
 
-  const filtersLabel = [filters.city.trim()].filter(Boolean).join(" · ");
+  const filtersLabel = [filters.city.trim()].filter(Boolean).join(" Â· ");
   const activeRegion = filters.region?.trim() ?? "";
   const cockpitMetrics = [
     {
-      label: "Résultats",
+      label: "RÃ©sultats",
       value: `${items.length}`,
-      detail: hasSubmittedSearch ? `${stats.totalAvailable} disponible(s)` : "À lancer",
+      detail: hasSubmittedSearch ? `${stats.totalAvailable} disponible(s)` : "Ã€ lancer",
       progress: hasSubmittedSearch ? (items.length > 0 ? Math.min(100, 24 + items.length * 12) : 8) : 0,
       Icon: SearchIcon,
     },
     {
       label: "Zone",
       value: filters.radiusKm.trim() ? `${filters.radiusKm} km` : "Libre",
-      detail: filters.city.trim() || activeRegion || "Ville à préciser",
+      detail: filters.city.trim() || activeRegion || "Ville Ã  prÃ©ciser",
       progress: filters.city.trim() || activeRegion ? 100 : 0,
       Icon: MapPin,
     },
     {
-      label: "Sélection",
+      label: "SÃ©lection",
       value: `${selectedConciergeIds.length}`,
-      detail: selectedConciergeIds.length > 0 ? "À contacter" : "Aucun profil",
+      detail: selectedConciergeIds.length > 0 ? "Ã€ contacter" : "Aucun profil",
       progress: selectedConciergeIds.length > 0 ? Math.min(100, selectedConciergeIds.length * 25) : 0,
       Icon: CheckCircle2,
     },
@@ -932,8 +932,8 @@ export default function OwnerConciergesPageClient() {
       value: `${requestFollowUp.totalQuotes}`,
       detail:
         requestFollowUp.acceptedRequests.length > 0
-          ? `${requestFollowUp.acceptedRequests.length} accepté(s)`
-          : "À recevoir",
+          ? `${requestFollowUp.acceptedRequests.length} acceptÃ©(s)`
+          : "Ã€ recevoir",
       progress: requestFollowUp.totalQuotes > 0 ? Math.min(100, 30 + requestFollowUp.totalQuotes * 25) : 0,
       Icon: FileText,
     },
@@ -1015,16 +1015,16 @@ export default function OwnerConciergesPageClient() {
             <div className={styles.requestDock}>
               <div>
                 <p className={styles.eyebrow}>Short-list</p>
-                <h2 className={styles.requestTitle}>Préparer une demande</h2>
+                <h2 className={styles.requestTitle}>PrÃ©parer une demande</h2>
               </div>
               <p className={styles.requestIntro}>
-                Sélectionnez les concierges à contacter, puis envoyez un brief court et exploitable.
+                SÃ©lectionnez les concierges Ã  contacter, puis envoyez un brief court et exploitable.
               </p>
               {existingHousingRequestIsBlocking && existingHousingRequest ? (
                 <div className={styles.existingRequestNotice} role="status">
                   <div>
-                    <strong>Demande déjà ouverte</strong>
-                    <span>{existingHousingRequest.property_name || requestForm.propertyName || "Logement sélectionné"}</span>
+                    <strong>Demande dÃ©jÃ  ouverte</strong>
+                    <span>{existingHousingRequest.property_name || requestForm.propertyName || "Logement sÃ©lectionnÃ©"}</span>
                   </div>
                   <ButtonLink
                     href={buildOwnerRequestActionHref(existingHousingRequest)}
@@ -1036,8 +1036,8 @@ export default function OwnerConciergesPageClient() {
                 </div>
               ) : null}
               <div className={styles.selectionSummary}>
-                <span className={styles.requestSectionLabel}>Sélection</span>
-                <strong>{selectedConciergeIds.length} concierge(s) sélectionné(s)</strong>
+                <span className={styles.requestSectionLabel}>SÃ©lection</span>
+                <strong>{selectedConciergeIds.length} concierge(s) sÃ©lectionnÃ©(s)</strong>
                 {selectedConcierges.length > 0 ? (
                   <div className={styles.summaryChips}>
                     {selectedConcierges.slice(0, 4).map((item) => (
@@ -1047,7 +1047,7 @@ export default function OwnerConciergesPageClient() {
                     ))}
                   </div>
                 ) : (
-                  <span className={styles.tagMuted}>Sélectionnez un profil dans les résultats.</span>
+                  <span className={styles.tagMuted}>SÃ©lectionnez un profil dans les rÃ©sultats.</span>
                 )}
               </div>
               <Button
@@ -1083,7 +1083,7 @@ export default function OwnerConciergesPageClient() {
                 </div>
                 <div className={styles.followUpMetric}>
                   <Clock3 size={16} aria-hidden="true" />
-                  <span>Sans réponse</span>
+                  <span>Sans rÃ©ponse</span>
                   <strong>{requestFollowUp.unansweredRequests.length}</strong>
                 </div>
                 <div className={styles.followUpMetric}>
@@ -1093,7 +1093,7 @@ export default function OwnerConciergesPageClient() {
                 </div>
                 <div className={styles.followUpMetric}>
                   <CheckCircle2 size={16} aria-hidden="true" />
-                  <span>Validées</span>
+                  <span>ValidÃ©es</span>
                   <strong>{requestFollowUp.acceptedRequests.length}</strong>
                 </div>
               </div>
@@ -1105,7 +1105,7 @@ export default function OwnerConciergesPageClient() {
                     <strong>{requestFollowUp.nextRequest.title}</strong>
                     <small>
                       {formatOwnerRequestStatus(requestFollowUp.nextRequest)}
-                      {requestFollowUp.nextRequest.property_name ? ` · ${requestFollowUp.nextRequest.property_name}` : ""}
+                      {requestFollowUp.nextRequest.property_name ? ` Â· ${requestFollowUp.nextRequest.property_name}` : ""}
                     </small>
                   </div>
                   <ButtonLink
@@ -1128,9 +1128,9 @@ export default function OwnerConciergesPageClient() {
                     <span />
                   </div>
                   <div>
-                    <strong>Première demande de conciergerie</strong>
+                    <strong>PremiÃ¨re demande de conciergerie</strong>
                     <p>
-                      Choisissez les services utiles, contactez les bons profils, puis gardez la date du devis accepté
+                      Choisissez les services utiles, contactez les bons profils, puis gardez la date du devis acceptÃ©
                       comme anniversaire de collaboration.
                     </p>
                   </div>
@@ -1146,7 +1146,7 @@ export default function OwnerConciergesPageClient() {
                       className={styles.acceptedConciergeAvatar}
                     />
                     <div>
-                      <span>Devis accepté</span>
+                      <span>Devis acceptÃ©</span>
                       <strong>{requestFollowUp.acceptedConcierge.name}</strong>
                     </div>
                   </div>
@@ -1178,13 +1178,13 @@ export default function OwnerConciergesPageClient() {
               ) : (
                 <div className={styles.followUpEmpty}>
                   <Handshake size={18} aria-hidden="true" />
-                  <span>Aucun devis accepté pour le moment.</span>
+                  <span>Aucun devis acceptÃ© pour le moment.</span>
                 </div>
               )}
 
               <div className={styles.followUpList}>
                 <div className={styles.followUpListHeader}>
-                  <span>Dernières demandes</span>
+                  <span>DerniÃ¨res demandes</span>
                   {ownerRequestsLoading ? <small>Chargement...</small> : null}
                 </div>
                 {requestFollowUp.latestRequests.length > 0 ? (
@@ -1195,7 +1195,7 @@ export default function OwnerConciergesPageClient() {
                         <strong>{request.title}</strong>
                         <span>
                           {formatOwnerRequestStatus(request)}
-                          {getQuoteCount(request) > 0 ? ` · ${getQuoteCount(request)} devis` : ""}
+                          {getQuoteCount(request) > 0 ? ` Â· ${getQuoteCount(request)} devis` : ""}
                         </span>
                       </div>
                       <ButtonLink
@@ -1209,9 +1209,9 @@ export default function OwnerConciergesPageClient() {
                     </article>
                   ))
                 ) : !ownerRequestsLoading && ownerRequests.length === 0 ? (
-                  <p className={styles.followUpEmptyText}>La première recherche apparaîtra ici.</p>
+                  <p className={styles.followUpEmptyText}>La premiÃ¨re recherche apparaÃ®tra ici.</p>
                 ) : (
-                  <p className={styles.followUpEmptyText}>Aucune demande envoyée.</p>
+                  <p className={styles.followUpEmptyText}>Aucune demande envoyÃ©e.</p>
                 )}
               </div>
             </div>
@@ -1220,10 +1220,10 @@ export default function OwnerConciergesPageClient() {
 
         <div className={styles.mobileSelectionBar}>
           <div className={styles.mobileSelectionCopy}>
-            <strong>{selectedConciergeIds.length} concierge(s) sélectionné(s)</strong>
+            <strong>{selectedConciergeIds.length} concierge(s) sÃ©lectionnÃ©(s)</strong>
             <span>
               {selectedConciergeIds.length > 0
-                ? "Finalisez votre brief ou ajustez votre sélection."
+                ? "Finalisez votre brief ou ajustez votre sÃ©lection."
                 : "Ajoutez des profils pour envoyer une demande."}
             </span>
           </div>
@@ -1268,7 +1268,7 @@ export default function OwnerConciergesPageClient() {
               {existingHousingRequestIsBlocking && existingHousingRequest ? (
                 <div className={styles.existingRequestNotice} role="status">
                   <div>
-                    <strong>Une demande existe déjà pour ce logement</strong>
+                    <strong>Une demande existe dÃ©jÃ  pour ce logement</strong>
                     <span>{existingHousingRequest.title}</span>
                   </div>
                   <ButtonLink
@@ -1353,4 +1353,5 @@ export default function OwnerConciergesPageClient() {
     </section>
   );
 }
+
 

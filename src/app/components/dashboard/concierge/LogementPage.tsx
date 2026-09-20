@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
@@ -86,7 +86,7 @@ type PricingPackageRow = {
 type ServiceSelectionMode = "pack" | "manual";
 
 const tabs: Array<{ id: TabId; label: string }> = [
-  { id: "synthese", label: "Synthèse" },
+  { id: "synthese", label: "SynthÃ¨se" },
   { id: "infos", label: "Infos" },
   { id: "stocks", label: "Stocks" },
   { id: "services", label: "Services" },
@@ -143,7 +143,7 @@ export default function LogementPage() {
   useEffect(() => {
     async function loadConciergeServices() {
       try {
-        const response = await fetch("/api/profiles/me", { cache: "no-store" });
+        const response = await fetch("/api/profiles/current", { cache: "no-store" });
         const payload = await response.json();
         if (!response.ok) return;
 
@@ -251,7 +251,7 @@ export default function LogementPage() {
             linkedPricing.length > 0
               ? linkedPricing
                   .slice(0, 1)
-                  .map((pricing) => `${pricing.label} · ${pricing.amount.toFixed(0)} EUR`)
+                  .map((pricing) => `${pricing.label} Â· ${pricing.amount.toFixed(0)} EUR`)
                   .join("")
               : null,
         };
@@ -459,7 +459,7 @@ export default function LogementPage() {
       .filter((label) => availableLabels.has(label.trim().toLowerCase()));
 
     syncHousingServicesFromSelection(selectedLabels);
-    setSuccess(`${pack.name} appliqué au logement.`);
+    setSuccess(`${pack.name} appliquÃ© au logement.`);
     setError("");
   }
 
@@ -490,7 +490,7 @@ export default function LogementPage() {
       setHousing(normalized);
       setDraft(normalized);
       setEditing(false);
-      setSuccess("Fiche logement mise à jour.");
+      setSuccess("Fiche logement mise Ã  jour.");
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Sauvegarde impossible.");
     } finally {
@@ -547,20 +547,20 @@ export default function LogementPage() {
 
         <div className={styles.pillRow}>
           <HousingStatusBadge status={draft.statut} />
-          <span className={styles.pill}>{draft.creationMode === "quote" ? "Créé depuis devis" : "Créé manuellement"}</span>
-          <span className={styles.pill}>{draft.characteristics.propertyType || "Type à renseigner"}</span>
-          <span className={styles.completionPill}>Complétion {completionRatio}%</span>
+          <span className={styles.pill}>{draft.creationMode === "quote" ? "CrÃ©Ã© depuis devis" : "CrÃ©Ã© manuellement"}</span>
+          <span className={styles.pill}>{draft.characteristics.propertyType || "Type Ã  renseigner"}</span>
+          <span className={styles.completionPill}>ComplÃ©tion {completionRatio}%</span>
         </div>
 
         <div className={styles.statGrid}>
           <article className={styles.statCard}>
-            <span className={styles.statLabel}>Propriétaire</span>
-            <strong className={styles.statValue}>{draft.owner.fullName || "À renseigner"}</strong>
+            <span className={styles.statLabel}>PropriÃ©taire</span>
+            <strong className={styles.statValue}>{draft.owner.fullName || "Ã€ renseigner"}</strong>
           </article>
           <article className={styles.statCard}>
-            <span className={styles.statLabel}>Caractéristiques</span>
+            <span className={styles.statLabel}>CaractÃ©ristiques</span>
             <strong className={styles.statValue}>
-              {[draft.characteristics.surfaceSqm ? `${draft.characteristics.surfaceSqm} m2` : "", draft.characteristics.bedroomCount ? `${draft.characteristics.bedroomCount} ch.` : ""].filter(Boolean).join(" - ") || "À compléter"}
+              {[draft.characteristics.surfaceSqm ? `${draft.characteristics.surfaceSqm} m2` : "", draft.characteristics.bedroomCount ? `${draft.characteristics.bedroomCount} ch.` : ""].filter(Boolean).join(" - ") || "Ã€ complÃ©ter"}
             </strong>
           </article>
           <article className={styles.statCard}>
@@ -568,7 +568,7 @@ export default function LogementPage() {
             <strong className={styles.statValue}>{draft.services.items.length}</strong>
           </article>
           <article className={styles.statCard}>
-            <span className={styles.statLabel}>Dernière intervention</span>
+            <span className={styles.statLabel}>DerniÃ¨re intervention</span>
             
             <strong className={styles.statValue}>{draft.timeline[0]?.date ? new Date(draft.timeline[0].date).toLocaleDateString("fr-FR") : "Aucune"}</strong>
           </article>
@@ -634,14 +634,14 @@ export default function LogementPage() {
                 <section className={styles.panel}>
                   <div className={styles.sectionHeader}>
                     <div>
-                      <p className={styles.eyebrow}>Synthèse</p>
+                      <p className={styles.eyebrow}>SynthÃ¨se</p>
                       <h2 className={styles.cardTitle}>Tableau de bord du logement</h2>
                     </div>
                   </div>
                   <div className={styles.statGrid}>
                     <article className={styles.statCard}>
                       <span className={styles.statLabel}>Statut</span>
-                      <strong className={styles.statValue}>{draft.statut || "À préciser"}</strong>
+                      <strong className={styles.statValue}>{draft.statut || "Ã€ prÃ©ciser"}</strong>
                     </article>
                     <article className={styles.statCard}>
                       <span className={styles.statLabel}>Photos</span>
@@ -652,7 +652,7 @@ export default function LogementPage() {
                       <strong className={styles.statValue}>{draft.services.items.length}</strong>
                     </article>
                     <article className={styles.statCard}>
-                      <span className={styles.statLabel}>Complétion</span>
+                      <span className={styles.statLabel}>ComplÃ©tion</span>
                       <strong className={styles.statValue}>{completionRatio}%</strong>
                     </article>
                   </div>
@@ -692,22 +692,22 @@ export default function LogementPage() {
                 <section className={styles.panel}>
                   <div className={styles.sectionHeader}>
                     <div>
-                      <p className={styles.eyebrow}>Identité</p>
+                      <p className={styles.eyebrow}>IdentitÃ©</p>
                       <h2 className={styles.cardTitle}>Fiche logement</h2>
                     </div>
                     <span className={styles.pill}>
-                      {draft.creationMode === "quote" ? "Créé depuis devis" : "Création manuelle"}
+                      {draft.creationMode === "quote" ? "CrÃ©Ã© depuis devis" : "CrÃ©ation manuelle"}
                     </span>
                   </div>
 
                   <div className={styles.fieldGrid}>
                     <label className={styles.label}>
-                      <span>Date de création</span>
+                      <span>Date de crÃ©ation</span>
                       <input className={styles.field} value={draft.created_at ? new Date(draft.created_at).toLocaleString("fr-FR") : ""} disabled />
                     </label>
 
                     <label className={styles.label}>
-                      <span>Id propriétaire</span>
+                      <span>Id propriÃ©taire</span>
                       <input className={styles.field} value={draft.owner.profileId ?? ""} disabled />
                     </label>
 
@@ -776,7 +776,7 @@ export default function LogementPage() {
 
                     <div className={styles.inlineHelper}>
                       {HOUSING_STATUS_EXPLANATIONS[draft.statut ?? ""] ??
-                        "Choisissez un statut pour refléter l'état opérationnel réel du logement."}
+                        "Choisissez un statut pour reflÃ©ter l'Ã©tat opÃ©rationnel rÃ©el du logement."}
                     </div>
 
                     <label className={`${styles.label} ${styles.fieldFull}`}>
@@ -795,7 +795,7 @@ export default function LogementPage() {
                         ))}
                       </div>
                       <span className={styles.helper}>
-                        Coche une ou plusieurs plateformes. La première sélectionnée reste la plateforme principale.
+                        Coche une ou plusieurs plateformes. La premiÃ¨re sÃ©lectionnÃ©e reste la plateforme principale.
                       </span>
                     </label>
                   </div>
@@ -810,7 +810,7 @@ export default function LogementPage() {
 
                   <div className={styles.fieldGrid}>
                     <label className={`${styles.label} ${styles.fieldFull}`}>
-                      <span>Adresse propriétaire</span>
+                      <span>Adresse propriÃ©taire</span>
                       <input
                         className={styles.field}
                         value={draft.owner.address}
@@ -825,7 +825,7 @@ export default function LogementPage() {
                     </label>
 
                     <label className={styles.label}>
-                      <span>Téléphone 2</span>
+                      <span>TÃ©lÃ©phone 2</span>
                       <input
                         className={styles.field}
                         value={draft.owner.secondaryPhone}
@@ -871,7 +871,7 @@ export default function LogementPage() {
                     </label>
 
                     <label className={styles.label}>
-                      <span>Tél. principal</span>
+                      <span>TÃ©l. principal</span>
                       <input
                         className={styles.field}
                         value={draft.owner.primaryContactPhone}
@@ -899,7 +899,7 @@ export default function LogementPage() {
                   <div className={styles.sectionHeader}>
                     <div>
                       <p className={styles.eyebrow}>Localisation</p>
-                      <h2 className={styles.cardTitle}>Adresse et accès au bien</h2>
+                      <h2 className={styles.cardTitle}>Adresse et accÃ¨s au bien</h2>
                     </div>
                   </div>
 
@@ -920,7 +920,7 @@ export default function LogementPage() {
                     </label>
 
                     <label className={`${styles.label} ${styles.fieldFull}`}>
-                      <span>Complément d&apos;adresse</span>
+                      <span>ComplÃ©ment d&apos;adresse</span>
                       <input
                         className={styles.field}
                         value={draft.locationInfo.addressLine2}
@@ -980,7 +980,7 @@ export default function LogementPage() {
                     </label>
 
                     <label className={styles.label}>
-                      <span>Étage</span>
+                      <span>Ã‰tage</span>
                       <input
                         className={styles.field}
                         value={draft.locationInfo.floor}
@@ -995,7 +995,7 @@ export default function LogementPage() {
                     </label>
 
                     <label className={styles.label}>
-                      <span>Code d&apos;accès</span>
+                      <span>Code d&apos;accÃ¨s</span>
                       <input
                         className={styles.field}
                         value={draft.locationInfo.accessCode}
@@ -1027,7 +1027,7 @@ export default function LogementPage() {
                     </label>
 
                     <label className={`${styles.label} ${styles.fieldFull}`}>
-                      <span>Consignes d&apos;entrée</span>
+                      <span>Consignes d&apos;entrÃ©e</span>
                       <textarea
                         className={styles.textArea}
                         value={draft.locationInfo.entryInstructions}
@@ -1046,7 +1046,7 @@ export default function LogementPage() {
                 <section className={styles.panel}>
                   <div className={styles.sectionHeader}>
                     <div>
-                      <p className={styles.eyebrow}>Caractéristiques</p>
+                      <p className={styles.eyebrow}>CaractÃ©ristiques</p>
                       <h2 className={styles.cardTitle}>Configuration du logement</h2>
                     </div>
                   </div>
@@ -1131,7 +1131,7 @@ export default function LogementPage() {
                     </label>
 
                     <label className={styles.label}>
-                      <span>Nombre de clés</span>
+                      <span>Nombre de clÃ©s</span>
                       <input
                         className={styles.field}
                         type="number"
@@ -1241,7 +1241,7 @@ export default function LogementPage() {
                               })
                             }
                           />
-                          <span>Animaux acceptés</span>
+                          <span>Animaux acceptÃ©s</span>
                         </label>
                         <label className={styles.checkboxCard}>
                           <input
@@ -1283,7 +1283,7 @@ export default function LogementPage() {
                               })
                             }
                           />
-                          <span>Chèque de caution à demander</span>
+                          <span>ChÃ¨que de caution Ã  demander</span>
                         </label>
                       </div>
                     </div>
@@ -1313,11 +1313,11 @@ export default function LogementPage() {
                 <section className={styles.panel}>
                   <div className={styles.sectionHeader}>
                     <div>
-                      <p className={styles.eyebrow}>Logistique partagée</p>
+                      <p className={styles.eyebrow}>Logistique partagÃ©e</p>
                       <h2 className={styles.cardTitle}>Stocks, linge et couchages</h2>
                       <p className={styles.muted}>
-                        Ces informations sont renseignées par le propriétaire et modifiables par la conciergerie
-                        rattachée au logement.
+                        Ces informations sont renseignÃ©es par le propriÃ©taire et modifiables par la conciergerie
+                        rattachÃ©e au logement.
                       </p>
                     </div>
                     {!editing ? (
@@ -1326,18 +1326,18 @@ export default function LogementPage() {
                       </button>
                     ) : (
                       <span className={styles.tabEditBadge}>
-                        <FiEdit2 /> Édition active
+                        <FiEdit2 /> Ã‰dition active
                       </span>
                     )}
                   </div>
 
                   <div className={styles.factGrid}>
                     <article className={styles.factCard}>
-                      <span>Lits déclarés</span>
+                      <span>Lits dÃ©clarÃ©s</span>
                       <strong>{stockSummary.bedCount}</strong>
                     </article>
                     <article className={styles.factCard}>
-                      <span>Pièces linge</span>
+                      <span>PiÃ¨ces linge</span>
                       <strong>{stockSummary.laundryTotal}</strong>
                     </article>
                     <article className={styles.factCard}>
@@ -1345,13 +1345,13 @@ export default function LogementPage() {
                       <strong>{stockSummary.consumableCount}</strong>
                     </article>
                     <article className={styles.factCard}>
-                      <span>À réassortir</span>
+                      <span>Ã€ rÃ©assortir</span>
                       <strong>{stockSummary.lowConsumableCount}</strong>
                     </article>
                   </div>
 
                   <label className={`${styles.label} ${styles.fieldFull}`}>
-                    <span>Équipements et repères utiles</span>
+                    <span>Ã‰quipements et repÃ¨res utiles</span>
                     <input
                       className={styles.field}
                       value={draft.characteristics.amenities.join(", ")}
@@ -1409,7 +1409,7 @@ export default function LogementPage() {
                       <div className={styles.panel} key={bed.id}>
                         <div className={styles.fieldGrid}>
                           <label className={styles.label}>
-                            <span>Pièce</span>
+                            <span>PiÃ¨ce</span>
                             <input className={styles.field} value={bed.room} disabled={!editing} onChange={(event) => updateStockBed(index, "room", event.target.value)} />
                           </label>
                           <label className={styles.label}>
@@ -1417,7 +1417,7 @@ export default function LogementPage() {
                             <input className={styles.field} value={bed.type} disabled={!editing} onChange={(event) => updateStockBed(index, "type", event.target.value)} />
                           </label>
                           <label className={styles.label}>
-                            <span>Quantité</span>
+                            <span>QuantitÃ©</span>
                             <input className={styles.field} min={0} type="number" value={bed.quantity} disabled={!editing} onChange={(event) => updateStockBed(index, "quantity", event.target.value)} />
                           </label>
                           <label className={styles.label}>
@@ -1449,7 +1449,7 @@ export default function LogementPage() {
                         ) : null}
                       </div>
                     ))}
-                    {draft.stockManagement.beds.length === 0 ? <p className={styles.muted}>Aucun lit renseigné.</p> : null}
+                    {draft.stockManagement.beds.length === 0 ? <p className={styles.muted}>Aucun lit renseignÃ©.</p> : null}
                   </div>
                 </section>
 
@@ -1496,7 +1496,7 @@ export default function LogementPage() {
                   <div className={styles.sectionHeader}>
                     <div>
                       <p className={styles.eyebrow}>Consommables</p>
-                      <h2 className={styles.cardTitle}>Réassort à suivre</h2>
+                      <h2 className={styles.cardTitle}>RÃ©assort Ã  suivre</h2>
                     </div>
                     {editing ? (
                       <button
@@ -1513,7 +1513,7 @@ export default function LogementPage() {
                                 category: "Accueil",
                                 currentQty: 0,
                                 minQty: 1,
-                                unit: "unité",
+                                unit: "unitÃ©",
                                 storageLocation: "",
                                 notes: "",
                               },
@@ -1534,11 +1534,11 @@ export default function LogementPage() {
                             <input className={styles.field} value={item.name} disabled={!editing} onChange={(event) => updateStockConsumable(index, "name", event.target.value)} />
                           </label>
                           <label className={styles.label}>
-                            <span>Catégorie</span>
+                            <span>CatÃ©gorie</span>
                             <input className={styles.field} value={item.category} disabled={!editing} onChange={(event) => updateStockConsumable(index, "category", event.target.value)} />
                           </label>
                           <label className={styles.label}>
-                            <span>Quantité</span>
+                            <span>QuantitÃ©</span>
                             <input className={styles.field} min={0} type="number" value={item.currentQty} disabled={!editing} onChange={(event) => updateStockConsumable(index, "currentQty", event.target.value)} />
                           </label>
                           <label className={styles.label}>
@@ -1546,7 +1546,7 @@ export default function LogementPage() {
                             <input className={styles.field} min={0} type="number" value={item.minQty} disabled={!editing} onChange={(event) => updateStockConsumable(index, "minQty", event.target.value)} />
                           </label>
                           <label className={styles.label}>
-                            <span>Unité</span>
+                            <span>UnitÃ©</span>
                             <input className={styles.field} value={item.unit} disabled={!editing} onChange={(event) => updateStockConsumable(index, "unit", event.target.value)} />
                           </label>
                           <label className={styles.label}>
@@ -1574,7 +1574,7 @@ export default function LogementPage() {
                         ) : null}
                       </div>
                     ))}
-                    {draft.stockManagement.consumables.length === 0 ? <p className={styles.muted}>Aucun consommable renseigné.</p> : null}
+                    {draft.stockManagement.consumables.length === 0 ? <p className={styles.muted}>Aucun consommable renseignÃ©.</p> : null}
                   </div>
                 </section>
 
@@ -1582,12 +1582,12 @@ export default function LogementPage() {
                   <div className={styles.sectionHeader}>
                     <div>
                       <p className={styles.eyebrow}>Consignes</p>
-                      <h2 className={styles.cardTitle}>Repères terrain</h2>
+                      <h2 className={styles.cardTitle}>RepÃ¨res terrain</h2>
                     </div>
                   </div>
                   <div className={styles.fieldGrid}>
                     <label className={`${styles.label} ${styles.fieldFull}`}>
-                      <span>Notes équipements</span>
+                      <span>Notes Ã©quipements</span>
                       <textarea className={styles.textArea} value={draft.stockManagement.equipmentNotes} disabled={!editing} onChange={(event) => updateDraft("stockManagement", { ...draft.stockManagement, equipmentNotes: event.target.value })} />
                     </label>
                     <label className={`${styles.label} ${styles.fieldFull}`}>
@@ -1595,7 +1595,7 @@ export default function LogementPage() {
                       <textarea className={styles.textArea} value={draft.stockManagement.storageNotes} disabled={!editing} onChange={(event) => updateDraft("stockManagement", { ...draft.stockManagement, storageNotes: event.target.value })} />
                     </label>
                     <label className={`${styles.label} ${styles.fieldFull}`}>
-                      <span>Consignes propriétaire</span>
+                      <span>Consignes propriÃ©taire</span>
                       <textarea className={styles.textArea} value={draft.stockManagement.conciergeInstructions} disabled={!editing} onChange={(event) => updateDraft("stockManagement", { ...draft.stockManagement, conciergeInstructions: event.target.value })} />
                     </label>
                   </div>
@@ -1607,8 +1607,8 @@ export default function LogementPage() {
               <div className={styles.page}>
                 <div className={styles.sectionHeader}>
                   <div>
-                    <p className={styles.eyebrow}>Services associés</p>
-                    <h2 className={styles.cardTitle}>Prestations activées sur ce logement</h2>
+                    <p className={styles.eyebrow}>Services associÃ©s</p>
+                    <h2 className={styles.cardTitle}>Prestations activÃ©es sur ce logement</h2>
                   </div>
                 </div>
                 <div className={styles.invitationCard}>
@@ -1621,7 +1621,7 @@ export default function LogementPage() {
 
                   {!editing ? (
                     <p className={styles.cardMeta}>
-                      Passez en mode édition pour appliquer un pack préconfiguré ou sélectionner quelques services à la carte pour ce logement.
+                      Passez en mode Ã©dition pour appliquer un pack prÃ©configurÃ© ou sÃ©lectionner quelques services Ã  la carte pour ce logement.
                     </p>
                   ) : (
                     <>
@@ -1646,7 +1646,7 @@ export default function LogementPage() {
                         <div className={styles.page}>
                           {packageCards.length === 0 ? (
                             <p className={styles.cardMeta}>
-                              Aucun pack disponible pour le moment. Vous pouvez les préparer dans la page
+                              Aucun pack disponible pour le moment. Vous pouvez les prÃ©parer dans la page
                               services-packages.
                             </p>
                           ) : (
@@ -1664,11 +1664,11 @@ export default function LogementPage() {
                                     </button>
                                   </div>
                                   <p className={styles.cardMeta}>
-                                    {pack.description || pack.category || "Pack prêt à l'emploi"}
+                                    {pack.description || pack.category || "Pack prÃªt Ã  l'emploi"}
                                   </p>
                                   <p className={styles.helper}>
                                     {pack.serviceLabels.length} service(s)
-                                    {pack.pricePreview ? ` · ${pack.pricePreview}` : ""}
+                                    {pack.pricePreview ? ` Â· ${pack.pricePreview}` : ""}
                                   </p>
                                 </article>
                               ))}
@@ -1679,7 +1679,7 @@ export default function LogementPage() {
                         <>
                           {profileServices.length === 0 ? (
                             <p className={styles.cardMeta}>
-                              Aucun service actif trouvé dans Missions & Services. Configurez-les dans votre profil concierge pour pouvoir les réutiliser ici.
+                              Aucun service actif trouvÃ© dans Missions & Services. Configurez-les dans votre profil concierge pour pouvoir les rÃ©utiliser ici.
                             </p>
                           ) : (
                             <MissionDetails
@@ -1699,7 +1699,7 @@ export default function LogementPage() {
                 </div>
                 {draft.services.items.length === 0 ? (
                   <div className={styles.emptyState}>
-                    <p className={styles.muted}>Aucun service n&apos;est encore rattaché à ce logement.</p>
+                    <p className={styles.muted}>Aucun service n&apos;est encore rattachÃ© Ã  ce logement.</p>
                   </div>
                 ) : (
                   <div className={styles.cardGrid}>
@@ -1740,11 +1740,11 @@ export default function LogementPage() {
                 <div className={styles.sectionHeader}>
                     <div>
                       <p className={styles.eyebrow}>Historique interventions</p>
-                      <h2 className={styles.cardTitle}>Traçabilité des actions et activations</h2>
+                      <h2 className={styles.cardTitle}>TraÃ§abilitÃ© des actions et activations</h2>
                     </div>
                   </div>
                 {draft.timeline.length === 0 ? (
-                  <div className={styles.emptyState}><p className={styles.muted}>Aucune intervention enregistrée.</p></div>
+                  <div className={styles.emptyState}><p className={styles.muted}>Aucune intervention enregistrÃ©e.</p></div>
                 ) : (
                   <div className={styles.timeline}>
                     {draft.timeline.map((item) => (
@@ -1767,11 +1767,11 @@ export default function LogementPage() {
                 <div className={styles.sectionHeader}>
                     <div>
                       <p className={styles.eyebrow}>Documents / contrats</p>
-                      <h2 className={styles.cardTitle}>Contrats, guides et pièces utiles</h2>
+                      <h2 className={styles.cardTitle}>Contrats, guides et piÃ¨ces utiles</h2>
                     </div>
                   </div>
                 {draft.documentsList.length === 0 && !draft.contractInfo.contractUrl ? (
-                  <div className={styles.emptyState}><p className={styles.muted}>Aucun document rattaché pour le moment.</p></div>
+                  <div className={styles.emptyState}><p className={styles.muted}>Aucun document rattachÃ© pour le moment.</p></div>
                 ) : (
                   <div className={styles.docsGrid}>
                     {draft.contractInfo.contractUrl ? (
@@ -1803,18 +1803,18 @@ export default function LogementPage() {
                 <div className={styles.sectionHeader}>
                   <div>
                     <p className={styles.eyebrow}>Devis & factures</p>
-                    <h2 className={styles.cardTitle}>Suivi commercial rattaché au logement</h2>
+                    <h2 className={styles.cardTitle}>Suivi commercial rattachÃ© au logement</h2>
                   </div>
                 </div>
 
                 <div className={styles.cardGrid}>
                   <article className={styles.quoteCard}>
                     <div className={styles.sectionHeader}>
-                      <strong className={styles.cardTitle}>Devis liés</strong>
+                      <strong className={styles.cardTitle}>Devis liÃ©s</strong>
                       <span className={styles.pill}>{relatedQuotes.length}</span>
                     </div>
                     {relatedQuotes.length === 0 ? (
-                      <p className={styles.cardMeta}>Aucun devis lié à ce logement pour le moment.</p>
+                      <p className={styles.cardMeta}>Aucun devis liÃ© Ã  ce logement pour le moment.</p>
                     ) : (
                       relatedQuotes.map((quote) => (
                         <div key={quote.id} className={styles.docCard}>
@@ -1826,7 +1826,7 @@ export default function LogementPage() {
                             {quote.total_amount} {quote.currency}
                           </p>
                           <p className={styles.helper}>
-                            Créé le {new Date(quote.created_at).toLocaleDateString("fr-FR")}
+                            CrÃ©Ã© le {new Date(quote.created_at).toLocaleDateString("fr-FR")}
                           </p>
                         </div>
                       ))
@@ -1835,11 +1835,11 @@ export default function LogementPage() {
 
                   <article className={styles.quoteCard}>
                     <div className={styles.sectionHeader}>
-                      <strong className={styles.cardTitle}>Factures liées</strong>
+                      <strong className={styles.cardTitle}>Factures liÃ©es</strong>
                       <span className={styles.pill}>{relatedInvoices.length}</span>
                     </div>
                     {relatedInvoices.length === 0 ? (
-                      <p className={styles.cardMeta}>Aucune facture liée à ce logement pour le moment.</p>
+                      <p className={styles.cardMeta}>Aucune facture liÃ©e Ã  ce logement pour le moment.</p>
                     ) : (
                       relatedInvoices.map((invoice) => (
                         <div key={invoice.id} className={styles.docCard}>
@@ -1851,7 +1851,7 @@ export default function LogementPage() {
                             {invoice.total_amount} {invoice.currency}
                           </p>
                           <p className={styles.helper}>
-                            Solde : {invoice.balance_amount} {invoice.currency} | Émise le{" "}
+                            Solde : {invoice.balance_amount} {invoice.currency} | Ã‰mise le{" "}
                             {new Date(invoice.issue_date).toLocaleDateString("fr-FR")}
                           </p>
                         </div>
@@ -1870,7 +1870,7 @@ export default function LogementPage() {
               <strong className={styles.cardTitle}>Vue d&apos;ensemble</strong>
               <FiHome />
             </div>
-            <p className={styles.cardMeta}>{draft.owner.fullName || "Propriétaire à compléter"}</p>
+            <p className={styles.cardMeta}>{draft.owner.fullName || "PropriÃ©taire Ã  complÃ©ter"}</p>
             <p className={styles.cardMeta}>
               {[draft.characteristics.surfaceSqm ? `${draft.characteristics.surfaceSqm} m2` : "", draft.characteristics.bedroomCount ? `${draft.characteristics.bedroomCount} chambres` : "", draft.characteristics.propertyType].filter(Boolean).join(" - ")}
             </p>
@@ -1889,7 +1889,7 @@ export default function LogementPage() {
             <p className={styles.cardMeta}>
               {typeof draft.pricing.totalContractValue === "number"
                 ? `${draft.pricing.totalContractValue} ${draft.pricing.currency}`
-                : "Tarifs à compléter"}
+                : "Tarifs Ã  complÃ©ter"}
             </p>
           </article>
         </aside>
@@ -1897,3 +1897,4 @@ export default function LogementPage() {
     </div>
   );
 }
+

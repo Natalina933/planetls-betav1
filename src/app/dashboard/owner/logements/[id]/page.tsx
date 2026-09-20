@@ -268,14 +268,14 @@ const ficheNavigation: Array<
   | { id: OwnerHousingTab; label: string; icon: React.ComponentType; href?: never }
   | { id?: never; label: string; icon: React.ComponentType; href: string }
 > = [
-  { id: "infos", label: "Informations", icon: FiHome },
-  { label: "Réservations", icon: FiCalendar, href: "/dashboard/owner/missions/voyageurs" },
-  { id: "demandes", label: "Missions & interventions", icon: FiSend },
-  { id: "documents", label: "Documents", icon: FiFileText },
-  { id: "stocks", label: "Équipements", icon: FiBox },
-  { id: "planning", label: "Planning", icon: FiCalendar },
-  { label: "Finances", icon: FiBarChart2, href: "/dashboard/owner/finances/overview" },
-];
+    { id: "infos", label: "Informations", icon: FiHome },
+    { label: "Réservations", icon: FiCalendar, href: "/dashboard/owner/missions/voyageurs" },
+    { id: "demandes", label: "Missions & interventions", icon: FiSend },
+    { id: "documents", label: "Documents", icon: FiFileText },
+    { id: "stocks", label: "Équipements", icon: FiBox },
+    { id: "planning", label: "Planning", icon: FiCalendar },
+    { label: "Finances", icon: FiBarChart2, href: "/dashboard/owner/finances/overview" },
+  ];
 
 const KNOWN_EQUIPMENT_LABELS = new Set(HOUSING_EQUIPMENT_LABELS);
 
@@ -579,7 +579,7 @@ export default function OwnerHousingDetailPage() {
           fetch(`/api/housing/${id}`, { cache: "no-store" }),
           fetch("/api/missions?scope=owner&limit=200", { cache: "no-store" }),
           fetch("/api/service-requests?limit=100", { cache: "no-store" }),
-          fetch("/api/profiles/me", { cache: "no-store" }).catch(() => null),
+          fetch("/api/profiles/current", { cache: "no-store" }).catch(() => null),
         ]);
 
         const housingPayload = await housingResponse.json();
@@ -772,12 +772,12 @@ export default function OwnerHousingDetailPage() {
   function updateStockBed(index: number, field: keyof HousingStockBed, value: string) {
     applyDraftUpdate((current) => {
       const beds = current.stockManagement.beds.map((bed, bedIndex) =>
-          bedIndex === index
-            ? {
-                ...bed,
-                [field]: field === "quantity" ? Number(value) || 0 : value,
-              }
-            : bed,
+        bedIndex === index
+          ? {
+            ...bed,
+            [field]: field === "quantity" ? Number(value) || 0 : value,
+          }
+          : bed,
       );
 
       return {
@@ -849,9 +849,9 @@ export default function OwnerHousingDetailPage() {
       const bathrooms = current.characteristics.bathrooms.map((bathroom, bathroomIndex) =>
         bathroomIndex === index
           ? {
-              ...bathroom,
-              [field]: value,
-            }
+            ...bathroom,
+            [field]: value,
+          }
           : bathroom,
       );
 
@@ -1444,13 +1444,13 @@ export default function OwnerHousingDetailPage() {
     description: string;
     icon: ComponentType<{ size?: number; className?: string }>;
   }> = [
-    { field: "terrace", label: "Terrasse", description: "Surface et remise en place extérieure", icon: SunMedium },
-    { field: "stairs", label: "Escaliers", description: "Étages et contraintes d’accès", icon: StairsIcon },
-    { field: "pool", label: "Piscine", description: "Contrôles et consignes d’entretien", icon: Waves },
-    { field: "petsAllowed", label: "Animaux acceptés", description: "Règles d’accueil et de nettoyage", icon: PawPrint },
-    { field: "nonSmoking", label: "Non fumeur", description: "Règle permanente du logement", icon: CigaretteOff },
-    { field: "barbecue", label: "Barbecue", description: "Type, combustible et rangement", icon: Flame },
-  ];
+      { field: "terrace", label: "Terrasse", description: "Surface et remise en place extérieure", icon: SunMedium },
+      { field: "stairs", label: "Escaliers", description: "Étages et contraintes d’accès", icon: StairsIcon },
+      { field: "pool", label: "Piscine", description: "Contrôles et consignes d’entretien", icon: Waves },
+      { field: "petsAllowed", label: "Animaux acceptés", description: "Règles d’accueil et de nettoyage", icon: PawPrint },
+      { field: "nonSmoking", label: "Non fumeur", description: "Règle permanente du logement", icon: CigaretteOff },
+      { field: "barbecue", label: "Barbecue", description: "Type, combustible et rangement", icon: Flame },
+    ];
   const ownerRequestHref = {
     pathname: "/dashboard/owner/demandes",
     query: {
@@ -1641,175 +1641,174 @@ export default function OwnerHousingDetailPage() {
           <div className={styles.sectionStack}>
             <p className={styles.sectionTitle}>Tableau de bord du logement</p>
             <div className={styles.summaryMediaInfoLayout}>
-            <div id="photos" className={`${styles.panel} ${styles.quickGalleryPanel}`}>
-              <div className={styles.quickGalleryTopline}>
-                <div>
-                  <p className={styles.sectionTitle}>Galerie rapide</p>
-                </div>
-                {editing ? (
-                  <label className={styles.quickGalleryUpload}>
-                    <FiCamera />
-                    {photoUploading ? "Upload..." : "Ajouter des images"}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      hidden
-                      onChange={(event) => void uploadHousingPhotos(event.target.files)}
-                    />
-                  </label>
-                ) : null}
-              </div>
-              {!activeGalleryPhoto ? (
-                <p>Aucune photo du logement pour le moment.</p>
-              ) : (
-                <div className={styles.quickGallery}>
-                  <div className={styles.quickGalleryFrame}>
-                    <button
-                      className={styles.quickGalleryNav}
-                      type="button"
-                      onClick={() => moveGallery(-1)}
-                      disabled={housingPhotos.length <= 1}
-                      aria-label="Photo précédente"
-                    >
-                      <FiChevronLeft />
-                    </button>
-                    <div className={styles.quickGalleryImageWrap}>
-                      <Image
-                        src={toHousingPhotoUrl(activeGalleryPhoto, id)}
-                        alt={`Photo ${galleryIndex + 1} du logement`}
-                        className={styles.quickGalleryImage}
-                        width={800}
-                        height={600}
-                        unoptimized
-                      />
-                      <span className={styles.quickGalleryCounter}>
-                        {galleryIndex + 1}/{housingPhotos.length}
-                      </span>
-                      {activeGalleryPhoto === draft.photo_principale ? (
-                        <span className={styles.quickGalleryBadge}>Profil</span>
-                      ) : null}
-                      {editing ? (
-                        activeGalleryPhoto === draft.photo_principale ? (
-                          <button
-                            className={styles.quickGalleryProfileButton}
-                            type="button"
-                            onClick={() => void clearPrimaryHousingPhoto()}
-                          >
-                            Retirer profil
-                          </button>
-                        ) : (
-                          <button
-                            className={styles.quickGalleryProfileButton}
-                            type="button"
-                            onClick={() => void setPrimaryHousingPhoto(activeGalleryPhoto)}
-                          >
-                            Définir profil
-                          </button>
-                        )
-                      ) : null}
-                    </div>
-                    <button
-                      className={styles.quickGalleryNav}
-                      type="button"
-                      onClick={() => moveGallery(1)}
-                      disabled={housingPhotos.length <= 1}
-                      aria-label="Photo suivante"
-                    >
-                      <FiChevronRight />
-                    </button>
+              <div id="photos" className={`${styles.panel} ${styles.quickGalleryPanel}`}>
+                <div className={styles.quickGalleryTopline}>
+                  <div>
+                    <p className={styles.sectionTitle}>Galerie rapide</p>
                   </div>
-
-                  {housingPhotos.length > 1 ? (
-                    <div className={styles.quickGalleryThumbs} aria-label="Photos du logement">
-                      {housingPhotos.map((photo, index) => (
-                        <button
-                          className={`${styles.quickGalleryThumb} ${
-                            index === galleryIndex ? styles.quickGalleryThumbActive : ""
-                          }`}
-                          key={`${photo}-${index}`}
-                          type="button"
-                          onClick={() => setGalleryIndex(index)}
-                          aria-label={`Afficher la photo ${index + 1}`}
-                        >
-                          <Image
-                            src={toHousingPhotoUrl(photo, id)}
-                            alt=""
-                            className={styles.quickGalleryThumbImage}
-                            width={160}
-                            height={120}
-                            unoptimized
-                          />
-                          {photo === draft.photo_principale ? <span>Profil</span> : null}
-                        </button>
-                      ))}
-                    </div>
+                  {editing ? (
+                    <label className={styles.quickGalleryUpload}>
+                      <FiCamera />
+                      {photoUploading ? "Upload..." : "Ajouter des images"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        hidden
+                        onChange={(event) => void uploadHousingPhotos(event.target.files)}
+                      />
+                    </label>
                   ) : null}
                 </div>
-              )}
-            </div>
-            <section className={`${styles.conciergeInfoGrid} ${styles.summaryInfoGrid}`}>
-              <article className={styles.conciergeInfoCard}>
-                <p className={`${styles.sectionTitle} ${styles.summaryCardTitle}`}>
-                  <DoorOpen size={16} />
-                  Logement
-                </p>
-                <div className={styles.infoTileGrid}>
-                  {housingFacts.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <div className={styles.infoTile} key={item.label}>
-                        <span>
-                          <Icon size={14} />
-                          {item.label}
+                {!activeGalleryPhoto ? (
+                  <p>Aucune photo du logement pour le moment.</p>
+                ) : (
+                  <div className={styles.quickGallery}>
+                    <div className={styles.quickGalleryFrame}>
+                      <button
+                        className={styles.quickGalleryNav}
+                        type="button"
+                        onClick={() => moveGallery(-1)}
+                        disabled={housingPhotos.length <= 1}
+                        aria-label="Photo précédente"
+                      >
+                        <FiChevronLeft />
+                      </button>
+                      <div className={styles.quickGalleryImageWrap}>
+                        <Image
+                          src={toHousingPhotoUrl(activeGalleryPhoto, id)}
+                          alt={`Photo ${galleryIndex + 1} du logement`}
+                          className={styles.quickGalleryImage}
+                          width={800}
+                          height={600}
+                          unoptimized
+                        />
+                        <span className={styles.quickGalleryCounter}>
+                          {galleryIndex + 1}/{housingPhotos.length}
                         </span>
-                        <strong>{item.value}</strong>
+                        {activeGalleryPhoto === draft.photo_principale ? (
+                          <span className={styles.quickGalleryBadge}>Profil</span>
+                        ) : null}
+                        {editing ? (
+                          activeGalleryPhoto === draft.photo_principale ? (
+                            <button
+                              className={styles.quickGalleryProfileButton}
+                              type="button"
+                              onClick={() => void clearPrimaryHousingPhoto()}
+                            >
+                              Retirer profil
+                            </button>
+                          ) : (
+                            <button
+                              className={styles.quickGalleryProfileButton}
+                              type="button"
+                              onClick={() => void setPrimaryHousingPhoto(activeGalleryPhoto)}
+                            >
+                              Définir profil
+                            </button>
+                          )
+                        ) : null}
                       </div>
-                    );
-                  })}
-                </div>
-              </article>
-              <article className={styles.conciergeInfoCard}>
-                <p className={`${styles.sectionTitle} ${styles.summaryCardTitle}`}>
-                  <KeyRound size={16} />
-                  À connaître
-                </p>
-                <div className={styles.infoTileGrid}>
-                  {priorityFacts.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <div className={styles.infoTile} key={item.label}>
-                        <span>
-                          <Icon size={14} />
-                          {item.label}
-                        </span>
-                        <strong>{item.value}</strong>
+                      <button
+                        className={styles.quickGalleryNav}
+                        type="button"
+                        onClick={() => moveGallery(1)}
+                        disabled={housingPhotos.length <= 1}
+                        aria-label="Photo suivante"
+                      >
+                        <FiChevronRight />
+                      </button>
+                    </div>
+
+                    {housingPhotos.length > 1 ? (
+                      <div className={styles.quickGalleryThumbs} aria-label="Photos du logement">
+                        {housingPhotos.map((photo, index) => (
+                          <button
+                            className={`${styles.quickGalleryThumb} ${index === galleryIndex ? styles.quickGalleryThumbActive : ""
+                              }`}
+                            key={`${photo}-${index}`}
+                            type="button"
+                            onClick={() => setGalleryIndex(index)}
+                            aria-label={`Afficher la photo ${index + 1}`}
+                          >
+                            <Image
+                              src={toHousingPhotoUrl(photo, id)}
+                              alt=""
+                              className={styles.quickGalleryThumbImage}
+                              width={160}
+                              height={120}
+                              unoptimized
+                            />
+                            {photo === draft.photo_principale ? <span>Profil</span> : null}
+                          </button>
+                        ))}
                       </div>
-                    );
-                  })}
-                </div>
-              </article>
-              <article className={styles.conciergeInfoCard}>
-                <p className={`${styles.sectionTitle} ${styles.summaryCardTitle}`}>
-                  <UserRound size={16} />
-                  Contact partagé
-                </p>
-                <div className={styles.infoTileGrid}>
-                  {sharedOwnerContact.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <div className={styles.infoTile} key={item.label}>
-                        <span>
-                          <Icon size={14} />
-                          {item.label}
-                        </span>
-                        <strong>{item.value}</strong>
-                      </div>
-                    );
-                  })}
-                </div>
-              </article>
-            </section>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+              <section className={`${styles.conciergeInfoGrid} ${styles.summaryInfoGrid}`}>
+                <article className={styles.conciergeInfoCard}>
+                  <p className={`${styles.sectionTitle} ${styles.summaryCardTitle}`}>
+                    <DoorOpen size={16} />
+                    Logement
+                  </p>
+                  <div className={styles.infoTileGrid}>
+                    {housingFacts.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <div className={styles.infoTile} key={item.label}>
+                          <span>
+                            <Icon size={14} />
+                            {item.label}
+                          </span>
+                          <strong>{item.value}</strong>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </article>
+                <article className={styles.conciergeInfoCard}>
+                  <p className={`${styles.sectionTitle} ${styles.summaryCardTitle}`}>
+                    <KeyRound size={16} />
+                    À connaître
+                  </p>
+                  <div className={styles.infoTileGrid}>
+                    {priorityFacts.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <div className={styles.infoTile} key={item.label}>
+                          <span>
+                            <Icon size={14} />
+                            {item.label}
+                          </span>
+                          <strong>{item.value}</strong>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </article>
+                <article className={styles.conciergeInfoCard}>
+                  <p className={`${styles.sectionTitle} ${styles.summaryCardTitle}`}>
+                    <UserRound size={16} />
+                    Contact partagé
+                  </p>
+                  <div className={styles.infoTileGrid}>
+                    {sharedOwnerContact.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <div className={styles.infoTile} key={item.label}>
+                          <span>
+                            <Icon size={14} />
+                            {item.label}
+                          </span>
+                          <strong>{item.value}</strong>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </article>
+              </section>
             </div>
           </div>
         ) : null}
@@ -1865,959 +1864,958 @@ export default function OwnerHousingDetailPage() {
             </nav>
 
             <div className={styles.infoWorkspace}>
-            <div className={styles.formGrid}>
-              <div className={styles.fullField}>
-                <div className={`${styles.priorityPanel} ${styles.infoAnchor}`} id="infos-identite">
-                  <div className={styles.numberedSectionHeading}>
-                    <span>1</span>
-                    <div><h3>Informations générales</h3><p>Les informations essentielles de votre logement.</p></div>
-                  </div>
-                  <div className={styles.priorityGrid}>
-                    <label className={styles.priorityMainField}>
-                      <span>Nom du logement</span>
-                      <input
-                        value={draft.nom_logement ?? ""}
-                        disabled={!editing}
-                        onChange={(event) =>
-                          applyDraftUpdate((current) => ({ ...current, nom_logement: event.target.value }))
-                        }
-                      />
-                    </label>
-                    <label>
-                      <span>
-                        <StairsIcon size={15} />
-                        Étage
-                      </span>
-                      <input
-                        value={draft.locationInfo.floor}
-                        disabled={!editing}
-                        onChange={(event) =>
-                          applyDraftUpdate((current) => ({
-                            ...current,
-                            locationInfo: {
-                              ...current.locationInfo,
-                              floor: event.target.value,
-                            },
-                          }))
-                        }
-                        placeholder="RDC, 2e, villa..."
-                      />
-                    </label>
-                  </div>
+              <div className={styles.formGrid}>
+                <div className={styles.fullField}>
+                  <div className={`${styles.priorityPanel} ${styles.infoAnchor}`} id="infos-identite">
+                    <div className={styles.numberedSectionHeading}>
+                      <span>1</span>
+                      <div><h3>Informations générales</h3><p>Les informations essentielles de votre logement.</p></div>
+                    </div>
+                    <div className={styles.priorityGrid}>
+                      <label className={styles.priorityMainField}>
+                        <span>Nom du logement</span>
+                        <input
+                          value={draft.nom_logement ?? ""}
+                          disabled={!editing}
+                          onChange={(event) =>
+                            applyDraftUpdate((current) => ({ ...current, nom_logement: event.target.value }))
+                          }
+                        />
+                      </label>
+                      <label>
+                        <span>
+                          <StairsIcon size={15} />
+                          Étage
+                        </span>
+                        <input
+                          value={draft.locationInfo.floor}
+                          disabled={!editing}
+                          onChange={(event) =>
+                            applyDraftUpdate((current) => ({
+                              ...current,
+                              locationInfo: {
+                                ...current.locationInfo,
+                                floor: event.target.value,
+                              },
+                            }))
+                          }
+                          placeholder="RDC, 2e, villa..."
+                        />
+                      </label>
+                    </div>
 
-                  <div className={styles.propertyTypePicker}>
-                    <span>
-                      <PropertyTypeIcon size={15} />
-                      Type de bien
-                    </span>
-                    <div>
-                      {HOUSING_PROPERTY_TYPE_OPTIONS.map((option) => {
-                        const Icon = getPropertyTypeIcon(option);
-                        const active = draft.characteristics.propertyType === option;
-                        return (
-                          <button
-                            className={`${styles.propertyTypeOption} ${active ? styles.propertyTypeOptionActive : ""}`}
-                            type="button"
-                            key={option}
+                    <div className={styles.propertyTypePicker}>
+                      <span>
+                        <PropertyTypeIcon size={15} />
+                        Type de bien
+                      </span>
+                      <div>
+                        {HOUSING_PROPERTY_TYPE_OPTIONS.map((option) => {
+                          const Icon = getPropertyTypeIcon(option);
+                          const active = draft.characteristics.propertyType === option;
+                          return (
+                            <button
+                              className={`${styles.propertyTypeOption} ${active ? styles.propertyTypeOptionActive : ""}`}
+                              type="button"
+                              key={option}
+                              disabled={!editing}
+                              onClick={() =>
+                                applyDraftUpdate((current) => ({
+                                  ...current,
+                                  characteristics: {
+                                    ...current.characteristics,
+                                    propertyType: option,
+                                    categorie: option,
+                                  },
+                                }))
+                              }
+                            >
+                              <Icon size={17} />
+                              <span>{option}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className={styles.priorityAddressGrid}>
+                      <label className={styles.priorityAddressMain}>
+                        <span>
+                          <MapPinHouse size={15} />
+                          Adresse
+                        </span>
+                        <input
+                          value={draft.locationInfo.addressLine1}
+                          disabled={!editing}
+                          onChange={(event) =>
+                            applyDraftUpdate((current) => ({
+                              ...current,
+                              adresse: event.target.value,
+                              locationInfo: {
+                                ...current.locationInfo,
+                                addressLine1: event.target.value,
+                              },
+                            }))
+                          }
+                        />
+                      </label>
+                      <label>
+                        <span>Complément</span>
+                        <input
+                          value={draft.locationInfo.addressLine2}
+                          disabled={!editing}
+                          onChange={(event) =>
+                            applyDraftUpdate((current) => ({
+                              ...current,
+                              locationInfo: {
+                                ...current.locationInfo,
+                                addressLine2: event.target.value,
+                              },
+                            }))
+                          }
+                        />
+                      </label>
+                      <label>
+                        <span>Code postal</span>
+                        <input
+                          value={draft.locationInfo.postalCode}
+                          disabled={!editing}
+                          onChange={(event) =>
+                            applyDraftUpdate((current) => ({
+                              ...current,
+                              locationInfo: {
+                                ...current.locationInfo,
+                                postalCode: event.target.value,
+                              },
+                            }))
+                          }
+                        />
+                      </label>
+                      <label>
+                        <span>Ville</span>
+                        <input
+                          value={draft.locationInfo.city}
+                          disabled={!editing}
+                          onChange={(event) =>
+                            applyDraftUpdate((current) => ({
+                              ...current,
+                              ville: event.target.value,
+                              locationInfo: {
+                                ...current.locationInfo,
+                                city: event.target.value,
+                              },
+                            }))
+                          }
+                        />
+                      </label>
+                    </div>
+
+                    <section className={styles.propertyChoiceSection}>
+                      <div className={styles.propertyChoiceHeader}>
+                        <div><strong>Plateformes de diffusion</strong><small>Indiquez où ce logement est proposé à la réservation.</small></div>
+                        <span>{selectedPlatforms.length} sélectionnée{selectedPlatforms.length > 1 ? "s" : ""}</span>
+                      </div>
+                      <div className={styles.propertyPlatformGrid}>
+                        {HOUSING_PLATFORM_OPTIONS.map((option) => {
+                          const checked = selectedPlatforms.includes(option);
+                          return (
+                            <label className={`${styles.propertyPlatformItem} ${checked ? styles.propertyPlatformItemActive : ""}`} key={option}>
+                              <input className={styles.propertyChoiceInput} type="checkbox" checked={checked} disabled={!editing} onChange={(event) => togglePlatformSelection(option, event.target.checked)} />
+                              <span className={styles.propertyChoiceCheck} aria-hidden="true" />
+                              <strong>{option}</strong>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </section>
+                    <div className={styles.statusVisibilityPanel}>
+                      <div><strong>Statut et visibilité</strong><small>Choisissez la situation actuelle du logement.</small></div>
+                      <div className={styles.statusVisibilityChoices}>
+                        {(["Actif - suivi en cours", "Brouillon", "Suspendu temporairement"] as const).map((status) => (
+                          <button className={draft.statut === status || (status === "Actif - suivi en cours" && draft.statut === "active") ? styles.statusVisibilityActive : ""} type="button" key={status} disabled={!editing} onClick={() => applyDraftUpdate((current) => ({ ...current, statut: status }))}>
+                            <strong>{status === "Actif - suivi en cours" ? "Actif" : status === "Brouillon" ? "En préparation" : "En pause"}</strong>
+                            <small>{HOUSING_STATUS_EXPLANATIONS[status]}</small>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className={styles.fullField}>
+                  <section className={`${styles.specSectionCard} ${styles.infoAnchor}`} id="infos-description">
+                    <div className={styles.numberedSectionHeading}><span>2</span><div><h3>Description et caractéristiques</h3><p>Présentez votre logement et ses principaux atouts.</p></div></div>
+                    <label className={styles.specWideField}>
+                      <span>Description</span>
+                      <textarea value={draft.characteristics.description ?? ""} disabled={!editing} onChange={(event) => updateCharacteristic("description", event.target.value)} placeholder="Ambiance, vue, environnement et particularités du logement..." />
+                    </label>
+                    <div className={styles.specTagsBlock}>
+                      <span>Tags et atouts</span>
+                      <div>
+                        {equipments.length ? equipments.slice(0, 12).map((equipment) => <button type="button" key={equipment} disabled={!editing} onClick={() => toggleEquipment(equipment)}>{equipment}</button>) : <small>Aucun tag ajouté.</small>}
+                      </div>
+                    </div>
+                  </section>
+                </div>
+                <div className={styles.fullField}>
+                  <section className={`${styles.specSectionCard} ${styles.infoAnchor}`} id="infos-localisation">
+                    <div className={styles.numberedSectionHeading}><span>3</span><div><h3>Localisation</h3><p>Localisez votre logement pour faciliter les interventions.</p></div></div>
+                    <div className={styles.locationPreview}>
+                      <MapPinHouse size={28} aria-hidden="true" />
+                      <div><strong>{draft.locationInfo.city || "Ville à préciser"}</strong><span>{[draft.locationInfo.addressLine1, draft.locationInfo.postalCode, draft.locationInfo.country].filter(Boolean).join(" • ") || "Adresse à compléter"}</span></div>
+                      {draft.locationInfo.city ? <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([draft.locationInfo.addressLine1, draft.locationInfo.postalCode, draft.locationInfo.city].filter(Boolean).join(" "))}`} target="_blank" rel="noreferrer">Ouvrir dans Maps</a> : null}
+                    </div>
+                    <p className={styles.locationHint}>Les coordonnées GPS seront affichées ici lorsqu’elles seront enregistrées dans la fiche logement.</p>
+                  </section>
+                </div>
+                <div className={styles.fullField}>
+                  <div className={`${styles.terrainSections} ${styles.terrainSectionsCompact}`}>
+                    <section className={`${styles.terrainCard} ${styles.infoAnchor}`} id="infos-acces">
+                      <div className={styles.terrainCardHeader}>
+                        <span className={styles.terrainIcon}>
+                          <MapPinHouse size={20} />
+                        </span>
+                        <div>
+                          <h3>4. Accès et logistique</h3>
+                          <small>Les informations utiles pour les conciergeries et artisans.</small>
+                        </div>
+                      </div>
+                      <div className={styles.terrainFieldGrid}>
+                        <label className={styles.terrainFieldWithIcon}>
+                          <span>
+                            <KeyRound size={15} />
+                            Code d&apos;accès
+                          </span>
+                          <input
+                            value={draft.locationInfo.accessCode}
                             disabled={!editing}
-                            onClick={() =>
+                            onChange={(event) =>
+                              applyDraftUpdate((current) => ({
+                                ...current,
+                                locationInfo: {
+                                  ...current.locationInfo,
+                                  accessCode: event.target.value,
+                                },
+                              }))
+                            }
+                          />
+                        </label>
+                        <label className={styles.terrainFieldWithIcon}>
+                          <span>
+                            <Wifi size={15} />
+                            Wi‑Fi / box
+                          </span>
+                          <input
+                            value={draft.characteristics.wifiInfo}
+                            disabled={!editing}
+                            onChange={(event) =>
                               applyDraftUpdate((current) => ({
                                 ...current,
                                 characteristics: {
                                   ...current.characteristics,
-                                  propertyType: option,
-                                  categorie: option,
+                                  wifiInfo: event.target.value,
                                 },
                               }))
                             }
-                          >
-                            <Icon size={17} />
-                            <span>{option}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className={styles.priorityAddressGrid}>
-                    <label className={styles.priorityAddressMain}>
-                      <span>
-                        <MapPinHouse size={15} />
-                        Adresse
-                      </span>
-                      <input
-                        value={draft.locationInfo.addressLine1}
-                        disabled={!editing}
-                        onChange={(event) =>
-                          applyDraftUpdate((current) => ({
-                            ...current,
-                            adresse: event.target.value,
-                            locationInfo: {
-                              ...current.locationInfo,
-                              addressLine1: event.target.value,
-                            },
-                          }))
-                        }
-                      />
-                    </label>
-                    <label>
-                      <span>Complément</span>
-                      <input
-                        value={draft.locationInfo.addressLine2}
-                        disabled={!editing}
-                        onChange={(event) =>
-                          applyDraftUpdate((current) => ({
-                            ...current,
-                            locationInfo: {
-                              ...current.locationInfo,
-                              addressLine2: event.target.value,
-                            },
-                          }))
-                        }
-                      />
-                    </label>
-                    <label>
-                      <span>Code postal</span>
-                      <input
-                        value={draft.locationInfo.postalCode}
-                        disabled={!editing}
-                        onChange={(event) =>
-                          applyDraftUpdate((current) => ({
-                            ...current,
-                            locationInfo: {
-                              ...current.locationInfo,
-                              postalCode: event.target.value,
-                            },
-                          }))
-                        }
-                      />
-                    </label>
-                    <label>
-                      <span>Ville</span>
-                      <input
-                        value={draft.locationInfo.city}
-                        disabled={!editing}
-                        onChange={(event) =>
-                          applyDraftUpdate((current) => ({
-                            ...current,
-                            ville: event.target.value,
-                            locationInfo: {
-                              ...current.locationInfo,
-                              city: event.target.value,
-                            },
-                          }))
-                        }
-                      />
-                    </label>
-                  </div>
-
-                  <section className={styles.propertyChoiceSection}>
-                    <div className={styles.propertyChoiceHeader}>
-                      <div><strong>Plateformes de diffusion</strong><small>Indiquez où ce logement est proposé à la réservation.</small></div>
-                      <span>{selectedPlatforms.length} sélectionnée{selectedPlatforms.length > 1 ? "s" : ""}</span>
-                    </div>
-                    <div className={styles.propertyPlatformGrid}>
-                      {HOUSING_PLATFORM_OPTIONS.map((option) => {
-                        const checked = selectedPlatforms.includes(option);
-                        return (
-                          <label className={`${styles.propertyPlatformItem} ${checked ? styles.propertyPlatformItemActive : ""}`} key={option}>
-                            <input className={styles.propertyChoiceInput} type="checkbox" checked={checked} disabled={!editing} onChange={(event) => togglePlatformSelection(option, event.target.checked)} />
-                            <span className={styles.propertyChoiceCheck} aria-hidden="true" />
-                            <strong>{option}</strong>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </section>
-                  <div className={styles.statusVisibilityPanel}>
-                    <div><strong>Statut et visibilité</strong><small>Choisissez la situation actuelle du logement.</small></div>
-                    <div className={styles.statusVisibilityChoices}>
-                      {(["Actif - suivi en cours", "Brouillon", "Suspendu temporairement"] as const).map((status) => (
-                        <button className={draft.statut === status || (status === "Actif - suivi en cours" && draft.statut === "active") ? styles.statusVisibilityActive : ""} type="button" key={status} disabled={!editing} onClick={() => applyDraftUpdate((current) => ({ ...current, statut: status }))}>
-                          <strong>{status === "Actif - suivi en cours" ? "Actif" : status === "Brouillon" ? "En préparation" : "En pause"}</strong>
-                          <small>{HOUSING_STATUS_EXPLANATIONS[status]}</small>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className={styles.fullField}>
-                <section className={`${styles.specSectionCard} ${styles.infoAnchor}`} id="infos-description">
-                  <div className={styles.numberedSectionHeading}><span>2</span><div><h3>Description et caractéristiques</h3><p>Présentez votre logement et ses principaux atouts.</p></div></div>
-                  <label className={styles.specWideField}>
-                    <span>Description</span>
-                    <textarea value={draft.characteristics.description ?? ""} disabled={!editing} onChange={(event) => updateCharacteristic("description", event.target.value)} placeholder="Ambiance, vue, environnement et particularités du logement..." />
-                  </label>
-                  <div className={styles.specTagsBlock}>
-                    <span>Tags et atouts</span>
-                    <div>
-                      {equipments.length ? equipments.slice(0, 12).map((equipment) => <button type="button" key={equipment} disabled={!editing} onClick={() => toggleEquipment(equipment)}>{equipment}</button>) : <small>Aucun tag ajouté.</small>}
-                    </div>
-                  </div>
-                </section>
-              </div>
-              <div className={styles.fullField}>
-                <section className={`${styles.specSectionCard} ${styles.infoAnchor}`} id="infos-localisation">
-                  <div className={styles.numberedSectionHeading}><span>3</span><div><h3>Localisation</h3><p>Localisez votre logement pour faciliter les interventions.</p></div></div>
-                  <div className={styles.locationPreview}>
-                    <MapPinHouse size={28} aria-hidden="true" />
-                    <div><strong>{draft.locationInfo.city || "Ville à préciser"}</strong><span>{[draft.locationInfo.addressLine1, draft.locationInfo.postalCode, draft.locationInfo.country].filter(Boolean).join(" • ") || "Adresse à compléter"}</span></div>
-                    {draft.locationInfo.city ? <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([draft.locationInfo.addressLine1, draft.locationInfo.postalCode, draft.locationInfo.city].filter(Boolean).join(" "))}`} target="_blank" rel="noreferrer">Ouvrir dans Maps</a> : null}
-                  </div>
-                  <p className={styles.locationHint}>Les coordonnées GPS seront affichées ici lorsqu’elles seront enregistrées dans la fiche logement.</p>
-                </section>
-              </div>
-              <div className={styles.fullField}>
-                <div className={`${styles.terrainSections} ${styles.terrainSectionsCompact}`}>
-                  <section className={`${styles.terrainCard} ${styles.infoAnchor}`} id="infos-acces">
-                    <div className={styles.terrainCardHeader}>
-                      <span className={styles.terrainIcon}>
-                        <MapPinHouse size={20} />
-                      </span>
-                      <div>
-                        <h3>4. Accès et logistique</h3>
-                        <small>Les informations utiles pour les conciergeries et artisans.</small>
-                      </div>
-                    </div>
-                    <div className={styles.terrainFieldGrid}>
-                      <label className={styles.terrainFieldWithIcon}>
-                        <span>
-                          <KeyRound size={15} />
-                          Code d&apos;accès
-                        </span>
-                        <input
-                          value={draft.locationInfo.accessCode}
-                          disabled={!editing}
-                          onChange={(event) =>
-                            applyDraftUpdate((current) => ({
-                              ...current,
-                              locationInfo: {
-                                ...current.locationInfo,
-                                accessCode: event.target.value,
-                              },
-                            }))
-                          }
-                        />
-                      </label>
-                      <label className={styles.terrainFieldWithIcon}>
-                        <span>
-                          <Wifi size={15} />
-                          Wi‑Fi / box
-                        </span>
-                        <input
-                          value={draft.characteristics.wifiInfo}
-                          disabled={!editing}
-                          onChange={(event) =>
-                            applyDraftUpdate((current) => ({
-                              ...current,
-                              characteristics: {
-                                ...current.characteristics,
-                                wifiInfo: event.target.value,
-                              },
-                            }))
-                          }
-                        />
-                      </label>
-                      <label className={styles.terrainFieldWide}>
-                        <span>Instructions d&apos;entrée</span>
-                        <textarea
-                          value={draft.locationInfo.entryInstructions}
-                          disabled={!editing}
-                          onChange={(event) =>
-                            applyDraftUpdate((current) => ({
-                              ...current,
-                              locationInfo: {
-                                ...current.locationInfo,
-                                entryInstructions: event.target.value,
-                              },
-                            }))
-                          }
-                          placeholder="Boîte à clés, ascenseur, portail, stationnement, repères sur place..."
-                        />
-                      </label>
-                    </div>
-                  </section>
-                </div>
-              </div>
-              <div className={`${styles.fullField} ${styles.infoAnchor}`} id="infos-capacite">
-                <div className={styles.infoBlockHeading}>
-                  <span className={styles.infoOverviewIcon}><Ruler size={18} aria-hidden="true" /></span>
-                  <div><h3>Capacité et volumes</h3><p>Les chiffres de référence pour préparer chaque séjour.</p></div>
-                </div>
-                <div className={styles.metricIconGrid}>
-                  {housingMetrics.map((metric) => {
-                    const Icon = metric.icon;
-                    return (
-                      <label className={styles.metricIconField} key={metric.label}>
-                        <span>
-                          <Icon size={17} />
-                          {metric.label}
-                        </span>
-                        <div className={styles.metricInputWrap}>
-                          <input
-                            type="number"
-                            min={0}
-                            value={metric.value}
-                            disabled={!editing}
-                            onChange={(event) => {
-                              const nextValue = toNullableNumber(event.target.value);
-                              applyDraftUpdate((current) => {
-                                const nextBeds =
-                                  metric.field === "bedroomCount"
-                                    ? syncBedsWithBedroomCount(current.stockManagement.beds, nextValue)
-                                    : current.stockManagement.beds;
-
-                                return {
-                                  ...current,
-                                  characteristics: {
-                                    ...current.characteristics,
-                                    [metric.field]: nextValue,
-                                    ...(metric.field === "surfaceSqm" ? { superficie: nextValue } : {}),
-                                    ...(metric.field === "guestCapacity" ? { capacite: nextValue } : {}),
-                                    ...(metric.field === "bedroomCount" ? { nb_chambres: nextValue } : {}),
-                                    ...(metric.field === "bedroomCount" ? { bedCount: countStockBeds(nextBeds) } : {}),
-                                  },
-                                  stockManagement: {
-                                    ...current.stockManagement,
-                                    beds: nextBeds,
-                                  },
-                                };
-                              });
-                            }}
                           />
-                          {metric.suffix ? <small>{metric.suffix}</small> : null}
-                        </div>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-              <div className={styles.fullField}>
-                <div className={styles.bathroomInventoryPanel} id="infos-salles-de-bain">
-                  <div className={styles.bedInventoryHeader}>
-                    <div>
-                      <p>
-                        <Bath size={18} />
-                        Salles de bain
-                      </p>
-                      <span>Ajoutez chaque salle de bain avec douche, baignoire ou les deux.</span>
-                    </div>
-                    {editing ? (
-                      <button type="button" className={styles.smallInlineButton} onClick={addBathroom}>
-                        Ajouter une salle de bain
-                      </button>
-                    ) : null}
+                        </label>
+                        <label className={styles.terrainFieldWide}>
+                          <span>Instructions d&apos;entrée</span>
+                          <textarea
+                            value={draft.locationInfo.entryInstructions}
+                            disabled={!editing}
+                            onChange={(event) =>
+                              applyDraftUpdate((current) => ({
+                                ...current,
+                                locationInfo: {
+                                  ...current.locationInfo,
+                                  entryInstructions: event.target.value,
+                                },
+                              }))
+                            }
+                            placeholder="Boîte à clés, ascenseur, portail, stationnement, repères sur place..."
+                          />
+                        </label>
+                      </div>
+                    </section>
                   </div>
-                  {draft.characteristics.bathrooms.length === 0 ? (
-                    <p className={styles.emptyInlineText}>Aucune salle de bain détaillée.</p>
-                  ) : (
-                    <div className={styles.bathroomRows}>
-                      {draft.characteristics.bathrooms.map((bathroom, index) => (
-                        <div className={styles.bathroomRow} key={bathroom.id}>
-                          <label>
-                            <span>Nom</span>
+                </div>
+                <div className={`${styles.fullField} ${styles.infoAnchor}`} id="infos-capacite">
+                  <div className={styles.infoBlockHeading}>
+                    <span className={styles.infoOverviewIcon}><Ruler size={18} aria-hidden="true" /></span>
+                    <div><h3>Capacité et volumes</h3><p>Les chiffres de référence pour préparer chaque séjour.</p></div>
+                  </div>
+                  <div className={styles.metricIconGrid}>
+                    {housingMetrics.map((metric) => {
+                      const Icon = metric.icon;
+                      return (
+                        <label className={styles.metricIconField} key={metric.label}>
+                          <span>
+                            <Icon size={17} />
+                            {metric.label}
+                          </span>
+                          <div className={styles.metricInputWrap}>
                             <input
-                              value={bathroom.name}
+                              type="number"
+                              min={0}
+                              value={metric.value}
                               disabled={!editing}
-                              onChange={(event) => updateBathroom(index, "name", event.target.value)}
-                              placeholder={`Salle de bain ${index + 1}`}
+                              onChange={(event) => {
+                                const nextValue = toNullableNumber(event.target.value);
+                                applyDraftUpdate((current) => {
+                                  const nextBeds =
+                                    metric.field === "bedroomCount"
+                                      ? syncBedsWithBedroomCount(current.stockManagement.beds, nextValue)
+                                      : current.stockManagement.beds;
+
+                                  return {
+                                    ...current,
+                                    characteristics: {
+                                      ...current.characteristics,
+                                      [metric.field]: nextValue,
+                                      ...(metric.field === "surfaceSqm" ? { superficie: nextValue } : {}),
+                                      ...(metric.field === "guestCapacity" ? { capacite: nextValue } : {}),
+                                      ...(metric.field === "bedroomCount" ? { nb_chambres: nextValue } : {}),
+                                      ...(metric.field === "bedroomCount" ? { bedCount: countStockBeds(nextBeds) } : {}),
+                                    },
+                                    stockManagement: {
+                                      ...current.stockManagement,
+                                      beds: nextBeds,
+                                    },
+                                  };
+                                });
+                              }}
                             />
-                          </label>
-                          <div className={styles.bathroomTypeChoices}>
-                            {BATHROOM_TYPE_OPTIONS.map((option) => {
-                              const Icon = option.icon;
-                              const active = bathroom.type === option.value;
-                              return (
-                                <button
-                                  className={`${styles.iconChoice} ${active ? styles.iconChoiceActive : ""}`}
-                                  type="button"
-                                  key={option.value}
-                                  disabled={!editing}
-                                  onClick={() => updateBathroom(index, "type", option.value)}
-                                >
-                                  <Icon size={18} />
-                                  <span>{option.label}</span>
-                                </button>
-                              );
-                            })}
+                            {metric.suffix ? <small>{metric.suffix}</small> : null}
                           </div>
-                          <label>
-                            <span>Détail utile</span>
-                            <input
-                              value={bathroom.notes}
-                              disabled={!editing}
-                              onChange={(event) => updateBathroom(index, "notes", event.target.value)}
-                              placeholder="Douche italienne, baignoire à l'étage, tapis antidérapant..."
-                            />
-                          </label>
-                          {editing ? (
-                            <button type="button" className={styles.iconDangerButton} onClick={() => removeBathroom(index)} aria-label="Supprimer cette salle de bain">
-                              <Trash2 size={16} />
-                            </button>
-                          ) : null}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className={styles.fullField}>
-                <div className={`${styles.bedInventoryPanel} ${styles.infoAnchor}`} id="infos-couchages">
-                  <div className={styles.bedInventoryHeader}>
-                    <div>
-                      <p>
-                        <BedDouble size={18} />
-                        Chambres et couchages réels
-                      </p>
-                      <span>La capacité maximale indique les personnes autorisées. Ici, détaillez les lits et canapés-lits pour préparer le linge.</span>
-                    </div>
-                    {editing ? (
-                      <button type="button" className={styles.smallInlineButton} onClick={addStockBed}>
-                        Ajouter un couchage
-                      </button>
-                    ) : null}
-                  </div>
-                  {draft.stockManagement.beds.length === 0 ? (
-                    <p className={styles.emptyInlineText}>Aucun couchage détaillé pour les draps.</p>
-                  ) : (
-                    <div className={styles.bedRows}>
-                      {draft.stockManagement.beds.map((bed, index) => (
-                        <div className={styles.bedRow} key={bed.id}>
-                          <label>
-                            <span>Chambre / zone</span>
-                            <input value={bed.room} disabled={!editing} onChange={(event) => updateStockBed(index, "room", event.target.value)} />
-                          </label>
-                          <label>
-                            <span>Type de couchage</span>
-                            <select value={bed.type} disabled={!editing} onChange={(event) => updateStockBed(index, "type", event.target.value)}>
-                              {BED_TYPE_OPTIONS.map((option) => (
-                                <option key={option} value={option}>
-                                  {option}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-                          <label>
-                            <span>Qté</span>
-                            <input type="number" min="0" value={bed.quantity} disabled={!editing} onChange={(event) => updateStockBed(index, "quantity", event.target.value)} />
-                          </label>
-                          <label>
-                            <span>Taille matelas</span>
-                            <select value={bed.mattressSize} disabled={!editing} onChange={(event) => updateStockBed(index, "mattressSize", event.target.value)}>
-                              <option value="">À préciser</option>
-                              {MATTRESS_SIZE_OPTIONS.map((option) => (
-                                <option key={option} value={option}>
-                                  {option}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-                          <label className={styles.bedLinenField}>
-                            <span>Linge à prévoir</span>
-                            <input value={bed.linenKit} disabled={!editing} onChange={(event) => updateStockBed(index, "linenKit", event.target.value)} />
-                          </label>
-                          {editing ? (
-                            <button type="button" className={styles.iconDangerButton} onClick={() => removeStockBed(index)} aria-label="Supprimer ce lit">
-                              <Trash2 size={16} />
-                            </button>
-                          ) : null}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className={`${styles.fullField} ${styles.infoAnchor}`} id="infos-equipements">
-                <section className={styles.propertyEquipmentSection}>
-                  <div className={styles.propertyEquipmentHeader}>
-                    <div className={styles.numberedSectionHeading}><span>5</span><div><h3>Équipements</h3><p>Sélectionnez les équipements disponibles.</p></div></div>
-                    <strong className={styles.propertyEquipmentCount}>{FEATURED_EQUIPMENT_LABELS.filter((equipment) => equipments.includes(equipment)).length} sélectionnés</strong>
-                  </div>
-                  <div className={styles.propertyEquipmentGroups}>
-                    {FEATURED_EQUIPMENT_GROUPS.map((group) => {
-                      const GroupIcon = group.icon;
-                      return <div className={styles.propertyEquipmentGroup} key={group.title}>
-                        <div className={styles.propertyEquipmentGroupHeader}><span><GroupIcon size={17} /></span><h4>{group.title}</h4></div>
-                        <div className={styles.propertyEquipmentList}>
-                          {group.items.map((equipment) => {
-                            const checked = equipments.includes(equipment);
-                            return <label className={`${styles.propertyEquipmentItem} ${checked ? styles.propertyEquipmentItemActive : ""}`} key={equipment}>
-                              <input className={styles.propertyEquipmentInput} type="checkbox" checked={checked} disabled={!editing} onChange={() => toggleEquipment(equipment)} />
-                              <span className={styles.propertyEquipmentCheck} aria-hidden="true" />
-                              <span className={styles.propertyEquipmentName}>{equipment}</span>
-                            </label>;
-                          })}
-                        </div>
-                      </div>;
+                        </label>
+                      );
                     })}
                   </div>
-                </section>
-                <div className={styles.customEquipmentRow}>
-                  <label><span>Autres équipements</span><input value={newEquipment} disabled={!editing} onChange={(event) => setNewEquipment(event.target.value)} placeholder="Ex. jeu de société, plancha..." /></label>
-                  <button type="button" disabled={!editing || !newEquipment.trim()} onClick={addCustomEquipment}><Plus size={16} /> Ajouter</button>
                 </div>
-                <section className={styles.propertyChoiceSection}>
-                  <div className={styles.propertyChoiceHeader}>
-                    <div><strong>Particularités du logement</strong><small>Ces choix ajoutent les consignes utiles aux interventions.</small></div>
-                    <span>{fieldChecks.filter(({ field }) => draft.characteristics[field]).length} sélectionnées</span>
-                  </div>
-                  <div className={styles.propertyCharacteristicGrid}>
-                  {fieldChecks.map(({ field, label, description, icon: Icon }) => (
-                    <label
-                      className={`${styles.propertyCharacteristicItem} ${
-                        draft.characteristics[field] ? styles.propertyCharacteristicItemActive : ""
-                      }`}
-                      key={field}
-                    >
-                      <input
-                        className={styles.propertyChoiceInput}
-                        type="checkbox"
-                        checked={draft.characteristics[field]}
-                        disabled={!editing}
-                        onChange={(event) =>
-                          applyDraftUpdate((current) => ({
-                            ...current,
-                            characteristics: {
-                              ...current.characteristics,
-                              [field]: event.target.checked,
-                            },
-                          }))
-                        }
-                      />
-                      <span className={styles.propertyCharacteristicIcon}><Icon size={17} /></span>
-                      <span className={styles.propertyCharacteristicCopy}><strong>{label}</strong><small>{description}</small></span>
-                      <span className={styles.propertyChoiceCheck} aria-hidden="true" />
-                    </label>
-                  ))}
-                  </div>
-                </section>
-              </div>
-              {draft.characteristics.terrace || draft.characteristics.stairs || draft.characteristics.pool || draft.characteristics.petsAllowed || draft.characteristics.barbecue ? (
                 <div className={styles.fullField}>
-                  <div className={styles.conditionalDetailsGrid}>
-                    {draft.characteristics.terrace ? (
-                      <div className={styles.detailCard}>
+                  <div className={styles.bathroomInventoryPanel} id="infos-salles-de-bain">
+                    <div className={styles.bedInventoryHeader}>
+                      <div>
                         <p>
-                          <SunMedium size={17} />
-                          Terrasse
+                          <Bath size={18} />
+                          Salles de bain
                         </p>
-                        <label>
-                          <span>Surface</span>
-                          <input
-                            type="number"
-                            min="0"
-                            value={draft.characteristics.terraceSurfaceSqm ?? ""}
-                            disabled={!editing}
-                            onChange={(event) => updateCharacteristic("terraceSurfaceSqm", toNullableNumber(event.target.value))}
-                            placeholder="m²"
-                          />
-                        </label>
-                        <label>
-                          <span>Notes</span>
-                          <input
-                            value={draft.characteristics.terraceNotes ?? ""}
-                            disabled={!editing}
-                            onChange={(event) => updateCharacteristic("terraceNotes", event.target.value)}
-                            placeholder="Salon extérieur, accès, rangement coussins..."
-                          />
-                        </label>
+                        <span>Ajoutez chaque salle de bain avec douche, baignoire ou les deux.</span>
                       </div>
-                    ) : null}
-                    {draft.characteristics.stairs ? (
-                      <div className={styles.detailCard}>
-                        <p>
-                          <StairsIcon size={17} />
-                          Escaliers
-                        </p>
-                        <label>
-                          <span>Étages à monter</span>
-                          <input
-                            type="number"
-                            min="0"
-                            value={draft.characteristics.stairsFloorCount ?? ""}
-                            disabled={!editing}
-                            onChange={(event) => updateCharacteristic("stairsFloorCount", toNullableNumber(event.target.value))}
-                            placeholder="Ex. 2"
-                          />
-                        </label>
-                        <label>
-                          <span>Accès</span>
-                          <input
-                            value={draft.characteristics.stairsNotes ?? ""}
-                            disabled={!editing}
-                            onChange={(event) => updateCharacteristic("stairsNotes", event.target.value)}
-                            placeholder="Ascenseur absent, escalier étroit, valises..."
-                          />
-                        </label>
+                      {editing ? (
+                        <button type="button" className={styles.smallInlineButton} onClick={addBathroom}>
+                          Ajouter une salle de bain
+                        </button>
+                      ) : null}
+                    </div>
+                    {draft.characteristics.bathrooms.length === 0 ? (
+                      <p className={styles.emptyInlineText}>Aucune salle de bain détaillée.</p>
+                    ) : (
+                      <div className={styles.bathroomRows}>
+                        {draft.characteristics.bathrooms.map((bathroom, index) => (
+                          <div className={styles.bathroomRow} key={bathroom.id}>
+                            <label>
+                              <span>Nom</span>
+                              <input
+                                value={bathroom.name}
+                                disabled={!editing}
+                                onChange={(event) => updateBathroom(index, "name", event.target.value)}
+                                placeholder={`Salle de bain ${index + 1}`}
+                              />
+                            </label>
+                            <div className={styles.bathroomTypeChoices}>
+                              {BATHROOM_TYPE_OPTIONS.map((option) => {
+                                const Icon = option.icon;
+                                const active = bathroom.type === option.value;
+                                return (
+                                  <button
+                                    className={`${styles.iconChoice} ${active ? styles.iconChoiceActive : ""}`}
+                                    type="button"
+                                    key={option.value}
+                                    disabled={!editing}
+                                    onClick={() => updateBathroom(index, "type", option.value)}
+                                  >
+                                    <Icon size={18} />
+                                    <span>{option.label}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <label>
+                              <span>Détail utile</span>
+                              <input
+                                value={bathroom.notes}
+                                disabled={!editing}
+                                onChange={(event) => updateBathroom(index, "notes", event.target.value)}
+                                placeholder="Douche italienne, baignoire à l'étage, tapis antidérapant..."
+                              />
+                            </label>
+                            {editing ? (
+                              <button type="button" className={styles.iconDangerButton} onClick={() => removeBathroom(index)} aria-label="Supprimer cette salle de bain">
+                                <Trash2 size={16} />
+                              </button>
+                            ) : null}
+                          </div>
+                        ))}
                       </div>
-                    ) : null}
-                    {draft.characteristics.pool ? (
-                      <div className={styles.detailCard}>
-                        <p>
-                          <Waves size={17} />
-                          Piscine
-                        </p>
-                        <label>
-                          <span>Consignes piscine</span>
-                          <input
-                            value={draft.characteristics.poolNotes ?? ""}
-                            disabled={!editing}
-                            onChange={(event) => updateCharacteristic("poolNotes", event.target.value)}
-                            placeholder="Local technique, bâche, contrôle chlore..."
-                          />
-                        </label>
-                      </div>
-                    ) : null}
-                    {draft.characteristics.petsAllowed ? (
-                      <div className={styles.detailCard}>
-                        <p>
-                          <PawPrint size={17} />
-                          Animaux
-                        </p>
-                        <label>
-                          <span>Conditions</span>
-                          <input
-                            value={draft.characteristics.petsNotes ?? ""}
-                            disabled={!editing}
-                            onChange={(event) => updateCharacteristic("petsNotes", event.target.value)}
-                            placeholder="Taille acceptée, zones interdites, nettoyage..."
-                          />
-                        </label>
-                      </div>
-                    ) : null}
-                    {draft.characteristics.barbecue ? (
-                      <div className={styles.detailCard}>
-                        <p>
-                          <Flame size={17} />
-                          Barbecue
-                        </p>
-                        <label>
-                          <span>Type et rangement</span>
-                          <input
-                            value={draft.characteristics.barbecueType ?? ""}
-                            disabled={!editing}
-                            onChange={(event) => updateCharacteristic("barbecueType", event.target.value)}
-                            placeholder="Gaz, charbon, plancha, bouteille..."
-                          />
-                        </label>
-                      </div>
-                    ) : null}
+                    )}
                   </div>
                 </div>
-              ) : null}
-              <div className={styles.fullField}>
-                <div className={styles.terrainSections}>
-                  <section className={`${styles.terrainCard} ${styles.infoAnchor}`} id="infos-preparation">
-                    <div className={styles.terrainCardHeader}>
-                      <span className={styles.terrainIcon}>
-                        <ClipboardList size={20} />
-                      </span>
+                <div className={styles.fullField}>
+                  <div className={`${styles.bedInventoryPanel} ${styles.infoAnchor}`} id="infos-couchages">
+                    <div className={styles.bedInventoryHeader}>
                       <div>
-                        <p>Préparer les interventions</p>
-                        <small>La fiche de référence pour retrouver les habitudes propres à ce logement.</small>
+                        <p>
+                          <BedDouble size={18} />
+                          Chambres et couchages réels
+                        </p>
+                        <span>La capacité maximale indique les personnes autorisées. Ici, détaillez les lits et canapés-lits pour préparer le linge.</span>
                       </div>
+                      {editing ? (
+                        <button type="button" className={styles.smallInlineButton} onClick={addStockBed}>
+                          Ajouter un couchage
+                        </button>
+                      ) : null}
                     </div>
-                    <div className={styles.housekeepingPurpose}>
-                      <strong>À quoi sert ce bloc ?</strong>
-                      <p>
-                        Il mémorise le temps habituel, les contrôles récurrents et les précautions à connaître.
-                        Ces informations restent attachées au logement et peuvent être consultées avant une mission.
-                      </p>
-                      <span>Ce n’est pas le suivi en direct d’un ménage en cours.</span>
-                    </div>
-                    <div className={styles.terrainFieldGrid}>
-                      <label className={styles.terrainFieldWithIcon}>
-                        <span>
-                          <Clock size={15} />
-                          Durée habituelle estimée
-                        </span>
-                        <input
-                          value={draft.services.temps ?? ""}
-                          disabled={!editing}
-                          onChange={(event) =>
-                            applyDraftUpdate((current) => ({
-                              ...current,
-                              services: {
-                                ...current.services,
-                                temps: event.target.value,
-                              },
-                            }))
-                          }
-                          placeholder="Ex. 2 h 30"
-                        />
-                        <small>Une estimation pour dimensionner la prochaine intervention.</small>
-                      </label>
-                      <div className={`${styles.terrainFieldWide} ${styles.propertyChoiceSection} ${styles.recurringControlsSection}`}>
-                        <div className={styles.propertyChoiceHeader}>
-                          <div>
-                            <strong>Contrôles récurrents</strong>
-                            <small>Sélectionnez le standard attendu après chaque remise en état.</small>
+                    {draft.stockManagement.beds.length === 0 ? (
+                      <p className={styles.emptyInlineText}>Aucun couchage détaillé pour les draps.</p>
+                    ) : (
+                      <div className={styles.bedRows}>
+                        {draft.stockManagement.beds.map((bed, index) => (
+                          <div className={styles.bedRow} key={bed.id}>
+                            <label>
+                              <span>Chambre / zone</span>
+                              <input value={bed.room} disabled={!editing} onChange={(event) => updateStockBed(index, "room", event.target.value)} />
+                            </label>
+                            <label>
+                              <span>Type de couchage</span>
+                              <select value={bed.type} disabled={!editing} onChange={(event) => updateStockBed(index, "type", event.target.value)}>
+                                {BED_TYPE_OPTIONS.map((option) => (
+                                  <option key={option} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <label>
+                              <span>Qté</span>
+                              <input type="number" min="0" value={bed.quantity} disabled={!editing} onChange={(event) => updateStockBed(index, "quantity", event.target.value)} />
+                            </label>
+                            <label>
+                              <span>Taille matelas</span>
+                              <select value={bed.mattressSize} disabled={!editing} onChange={(event) => updateStockBed(index, "mattressSize", event.target.value)}>
+                                <option value="">À préciser</option>
+                                {MATTRESS_SIZE_OPTIONS.map((option) => (
+                                  <option key={option} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <label className={styles.bedLinenField}>
+                              <span>Linge à prévoir</span>
+                              <input value={bed.linenKit} disabled={!editing} onChange={(event) => updateStockBed(index, "linenKit", event.target.value)} />
+                            </label>
+                            {editing ? (
+                              <button type="button" className={styles.iconDangerButton} onClick={() => removeStockBed(index)} aria-label="Supprimer ce lit">
+                                <Trash2 size={16} />
+                              </button>
+                            ) : null}
                           </div>
-                          <span>
-                            {housekeepingCheckedCount} sélectionné{housekeepingCheckedCount > 1 ? "s" : ""}
-                          </span>
-                        </div>
-                        <div className={styles.propertyCharacteristicGrid}>
-                          {housekeepingTasks.map((task) => {
-                            const checked = isChecklistTaskChecked(draft.services.checklist, task);
-                            return (
-                              <label
-                                className={`${styles.propertyCharacteristicItem} ${checked ? styles.propertyCharacteristicItemActive : ""}`}
-                                key={task}
-                              >
-                                <input
-                                  className={styles.propertyChoiceInput}
-                                  type="checkbox"
-                                  checked={checked}
-                                  disabled={!editing}
-                                  onChange={(event) =>
-                                    applyDraftUpdate((current) => ({
-                                      ...current,
-                                      services: {
-                                        ...current.services,
-                                        checklist: toggleChecklistTask(
-                                          current.services.checklist,
-                                          task,
-                                          event.target.checked,
-                                        ),
-                                      },
-                                    }))
-                                  }
-                                />
-                                <span className={styles.propertyCharacteristicIcon}><ClipboardList size={17} /></span>
-                                <span className={styles.propertyCharacteristicCopy}>
-                                  <strong>{task}</strong>
-                                  <small>{checked ? "Inclus dans le standard du logement" : "Non inclus dans le standard"}</small>
-                                </span>
-                                <span className={styles.propertyChoiceCheck} aria-hidden="true" />
-                              </label>
-                            );
-                          })}
-                        </div>
-                        {editing ? (
-                          <div className={styles.housekeepingAddRow}>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className={`${styles.fullField} ${styles.infoAnchor}`} id="infos-equipements">
+                  <section className={styles.propertyEquipmentSection}>
+                    <div className={styles.propertyEquipmentHeader}>
+                      <div className={styles.numberedSectionHeading}><span>5</span><div><h3>Équipements</h3><p>Sélectionnez les équipements disponibles.</p></div></div>
+                      <strong className={styles.propertyEquipmentCount}>{FEATURED_EQUIPMENT_LABELS.filter((equipment) => equipments.includes(equipment)).length} sélectionnés</strong>
+                    </div>
+                    <div className={styles.propertyEquipmentGroups}>
+                      {FEATURED_EQUIPMENT_GROUPS.map((group) => {
+                        const GroupIcon = group.icon;
+                        return <div className={styles.propertyEquipmentGroup} key={group.title}>
+                          <div className={styles.propertyEquipmentGroupHeader}><span><GroupIcon size={17} /></span><h4>{group.title}</h4></div>
+                          <div className={styles.propertyEquipmentList}>
+                            {group.items.map((equipment) => {
+                              const checked = equipments.includes(equipment);
+                              return <label className={`${styles.propertyEquipmentItem} ${checked ? styles.propertyEquipmentItemActive : ""}`} key={equipment}>
+                                <input className={styles.propertyEquipmentInput} type="checkbox" checked={checked} disabled={!editing} onChange={() => toggleEquipment(equipment)} />
+                                <span className={styles.propertyEquipmentCheck} aria-hidden="true" />
+                                <span className={styles.propertyEquipmentName}>{equipment}</span>
+                              </label>;
+                            })}
+                          </div>
+                        </div>;
+                      })}
+                    </div>
+                  </section>
+                  <div className={styles.customEquipmentRow}>
+                    <label><span>Autres équipements</span><input value={newEquipment} disabled={!editing} onChange={(event) => setNewEquipment(event.target.value)} placeholder="Ex. jeu de société, plancha..." /></label>
+                    <button type="button" disabled={!editing || !newEquipment.trim()} onClick={addCustomEquipment}><Plus size={16} /> Ajouter</button>
+                  </div>
+                  <section className={styles.propertyChoiceSection}>
+                    <div className={styles.propertyChoiceHeader}>
+                      <div><strong>Particularités du logement</strong><small>Ces choix ajoutent les consignes utiles aux interventions.</small></div>
+                      <span>{fieldChecks.filter(({ field }) => draft.characteristics[field]).length} sélectionnées</span>
+                    </div>
+                    <div className={styles.propertyCharacteristicGrid}>
+                      {fieldChecks.map(({ field, label, description, icon: Icon }) => (
+                        <label
+                          className={`${styles.propertyCharacteristicItem} ${draft.characteristics[field] ? styles.propertyCharacteristicItemActive : ""
+                            }`}
+                          key={field}
+                        >
+                          <input
+                            className={styles.propertyChoiceInput}
+                            type="checkbox"
+                            checked={draft.characteristics[field]}
+                            disabled={!editing}
+                            onChange={(event) =>
+                              applyDraftUpdate((current) => ({
+                                ...current,
+                                characteristics: {
+                                  ...current.characteristics,
+                                  [field]: event.target.checked,
+                                },
+                              }))
+                            }
+                          />
+                          <span className={styles.propertyCharacteristicIcon}><Icon size={17} /></span>
+                          <span className={styles.propertyCharacteristicCopy}><strong>{label}</strong><small>{description}</small></span>
+                          <span className={styles.propertyChoiceCheck} aria-hidden="true" />
+                        </label>
+                      ))}
+                    </div>
+                  </section>
+                </div>
+                {draft.characteristics.terrace || draft.characteristics.stairs || draft.characteristics.pool || draft.characteristics.petsAllowed || draft.characteristics.barbecue ? (
+                  <div className={styles.fullField}>
+                    <div className={styles.conditionalDetailsGrid}>
+                      {draft.characteristics.terrace ? (
+                        <div className={styles.detailCard}>
+                          <p>
+                            <SunMedium size={17} />
+                            Terrasse
+                          </p>
+                          <label>
+                            <span>Surface</span>
                             <input
-                              value={newHousekeepingTask}
-                              onChange={(event) => setNewHousekeepingTask(event.target.value)}
-                              onKeyDown={(event) => {
-                                if (event.key === "Enter") {
-                                  event.preventDefault();
-                                  addHousekeepingTask();
-                                }
-                              }}
-                              placeholder="Ajouter un point : kit nettoyage, kit arrivée..."
+                              type="number"
+                              min="0"
+                              value={draft.characteristics.terraceSurfaceSqm ?? ""}
+                              disabled={!editing}
+                              onChange={(event) => updateCharacteristic("terraceSurfaceSqm", toNullableNumber(event.target.value))}
+                              placeholder="m²"
                             />
-                            <button type="button" onClick={addHousekeepingTask} disabled={!newHousekeepingTask.trim()}>
-                              <Plus size={15} />
-                              Ajouter
-                            </button>
-                          </div>
-                        ) : null}
-                        <label className={styles.housekeepingNotesField}>
-                          <span>Précisions sur la remise en état</span>
-                          <textarea
-                            value={getChecklistNotes(draft.services.checklist)}
+                          </label>
+                          <label>
+                            <span>Notes</span>
+                            <input
+                              value={draft.characteristics.terraceNotes ?? ""}
+                              disabled={!editing}
+                              onChange={(event) => updateCharacteristic("terraceNotes", event.target.value)}
+                              placeholder="Salon extérieur, accès, rangement coussins..."
+                            />
+                          </label>
+                        </div>
+                      ) : null}
+                      {draft.characteristics.stairs ? (
+                        <div className={styles.detailCard}>
+                          <p>
+                            <StairsIcon size={17} />
+                            Escaliers
+                          </p>
+                          <label>
+                            <span>Étages à monter</span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={draft.characteristics.stairsFloorCount ?? ""}
+                              disabled={!editing}
+                              onChange={(event) => updateCharacteristic("stairsFloorCount", toNullableNumber(event.target.value))}
+                              placeholder="Ex. 2"
+                            />
+                          </label>
+                          <label>
+                            <span>Accès</span>
+                            <input
+                              value={draft.characteristics.stairsNotes ?? ""}
+                              disabled={!editing}
+                              onChange={(event) => updateCharacteristic("stairsNotes", event.target.value)}
+                              placeholder="Ascenseur absent, escalier étroit, valises..."
+                            />
+                          </label>
+                        </div>
+                      ) : null}
+                      {draft.characteristics.pool ? (
+                        <div className={styles.detailCard}>
+                          <p>
+                            <Waves size={17} />
+                            Piscine
+                          </p>
+                          <label>
+                            <span>Consignes piscine</span>
+                            <input
+                              value={draft.characteristics.poolNotes ?? ""}
+                              disabled={!editing}
+                              onChange={(event) => updateCharacteristic("poolNotes", event.target.value)}
+                              placeholder="Local technique, bâche, contrôle chlore..."
+                            />
+                          </label>
+                        </div>
+                      ) : null}
+                      {draft.characteristics.petsAllowed ? (
+                        <div className={styles.detailCard}>
+                          <p>
+                            <PawPrint size={17} />
+                            Animaux
+                          </p>
+                          <label>
+                            <span>Conditions</span>
+                            <input
+                              value={draft.characteristics.petsNotes ?? ""}
+                              disabled={!editing}
+                              onChange={(event) => updateCharacteristic("petsNotes", event.target.value)}
+                              placeholder="Taille acceptée, zones interdites, nettoyage..."
+                            />
+                          </label>
+                        </div>
+                      ) : null}
+                      {draft.characteristics.barbecue ? (
+                        <div className={styles.detailCard}>
+                          <p>
+                            <Flame size={17} />
+                            Barbecue
+                          </p>
+                          <label>
+                            <span>Type et rangement</span>
+                            <input
+                              value={draft.characteristics.barbecueType ?? ""}
+                              disabled={!editing}
+                              onChange={(event) => updateCharacteristic("barbecueType", event.target.value)}
+                              placeholder="Gaz, charbon, plancha, bouteille..."
+                            />
+                          </label>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
+                <div className={styles.fullField}>
+                  <div className={styles.terrainSections}>
+                    <section className={`${styles.terrainCard} ${styles.infoAnchor}`} id="infos-preparation">
+                      <div className={styles.terrainCardHeader}>
+                        <span className={styles.terrainIcon}>
+                          <ClipboardList size={20} />
+                        </span>
+                        <div>
+                          <p>Préparer les interventions</p>
+                          <small>La fiche de référence pour retrouver les habitudes propres à ce logement.</small>
+                        </div>
+                      </div>
+                      <div className={styles.housekeepingPurpose}>
+                        <strong>À quoi sert ce bloc ?</strong>
+                        <p>
+                          Il mémorise le temps habituel, les contrôles récurrents et les précautions à connaître.
+                          Ces informations restent attachées au logement et peuvent être consultées avant une mission.
+                        </p>
+                        <span>Ce n’est pas le suivi en direct d’un ménage en cours.</span>
+                      </div>
+                      <div className={styles.terrainFieldGrid}>
+                        <label className={styles.terrainFieldWithIcon}>
+                          <span>
+                            <Clock size={15} />
+                            Durée habituelle estimée
+                          </span>
+                          <input
+                            value={draft.services.temps ?? ""}
                             disabled={!editing}
                             onChange={(event) =>
                               applyDraftUpdate((current) => ({
                                 ...current,
                                 services: {
                                   ...current.services,
-                                  checklist: updateChecklistNotes(current.services.checklist, event.target.value),
+                                  temps: event.target.value,
                                 },
                               }))
                             }
-                            placeholder="Ex. remettre les coussins de terrasse à l'intérieur s'il pleut."
+                            placeholder="Ex. 2 h 30"
+                          />
+                          <small>Une estimation pour dimensionner la prochaine intervention.</small>
+                        </label>
+                        <div className={`${styles.terrainFieldWide} ${styles.propertyChoiceSection} ${styles.recurringControlsSection}`}>
+                          <div className={styles.propertyChoiceHeader}>
+                            <div>
+                              <strong>Contrôles récurrents</strong>
+                              <small>Sélectionnez le standard attendu après chaque remise en état.</small>
+                            </div>
+                            <span>
+                              {housekeepingCheckedCount} sélectionné{housekeepingCheckedCount > 1 ? "s" : ""}
+                            </span>
+                          </div>
+                          <div className={styles.propertyCharacteristicGrid}>
+                            {housekeepingTasks.map((task) => {
+                              const checked = isChecklistTaskChecked(draft.services.checklist, task);
+                              return (
+                                <label
+                                  className={`${styles.propertyCharacteristicItem} ${checked ? styles.propertyCharacteristicItemActive : ""}`}
+                                  key={task}
+                                >
+                                  <input
+                                    className={styles.propertyChoiceInput}
+                                    type="checkbox"
+                                    checked={checked}
+                                    disabled={!editing}
+                                    onChange={(event) =>
+                                      applyDraftUpdate((current) => ({
+                                        ...current,
+                                        services: {
+                                          ...current.services,
+                                          checklist: toggleChecklistTask(
+                                            current.services.checklist,
+                                            task,
+                                            event.target.checked,
+                                          ),
+                                        },
+                                      }))
+                                    }
+                                  />
+                                  <span className={styles.propertyCharacteristicIcon}><ClipboardList size={17} /></span>
+                                  <span className={styles.propertyCharacteristicCopy}>
+                                    <strong>{task}</strong>
+                                    <small>{checked ? "Inclus dans le standard du logement" : "Non inclus dans le standard"}</small>
+                                  </span>
+                                  <span className={styles.propertyChoiceCheck} aria-hidden="true" />
+                                </label>
+                              );
+                            })}
+                          </div>
+                          {editing ? (
+                            <div className={styles.housekeepingAddRow}>
+                              <input
+                                value={newHousekeepingTask}
+                                onChange={(event) => setNewHousekeepingTask(event.target.value)}
+                                onKeyDown={(event) => {
+                                  if (event.key === "Enter") {
+                                    event.preventDefault();
+                                    addHousekeepingTask();
+                                  }
+                                }}
+                                placeholder="Ajouter un point : kit nettoyage, kit arrivée..."
+                              />
+                              <button type="button" onClick={addHousekeepingTask} disabled={!newHousekeepingTask.trim()}>
+                                <Plus size={15} />
+                                Ajouter
+                              </button>
+                            </div>
+                          ) : null}
+                          <label className={styles.housekeepingNotesField}>
+                            <span>Précisions sur la remise en état</span>
+                            <textarea
+                              value={getChecklistNotes(draft.services.checklist)}
+                              disabled={!editing}
+                              onChange={(event) =>
+                                applyDraftUpdate((current) => ({
+                                  ...current,
+                                  services: {
+                                    ...current.services,
+                                    checklist: updateChecklistNotes(current.services.checklist, event.target.value),
+                                  },
+                                }))
+                              }
+                              placeholder="Ex. remettre les coussins de terrasse à l'intérieur s'il pleut."
+                            />
+                          </label>
+                        </div>
+                        <label className={styles.terrainFieldWide}>
+                          <span>Consignes générales d’intervention</span>
+                          <textarea
+                            value={draft.services.instructions ?? ""}
+                            disabled={!editing}
+                            onChange={(event) =>
+                              applyDraftUpdate((current) => ({
+                                ...current,
+                                services: {
+                                  ...current.services,
+                                  instructions: event.target.value,
+                                },
+                              }))
+                            }
+                            placeholder="Ex. commencer par l'étage, préparer deux jeux de clés et fermer les volets au départ."
+                          />
+                          <small>Les règles stables à suivre pour intervenir dans ce logement.</small>
+                        </label>
+                        <label className={styles.terrainFieldWide}>
+                          <span>
+                            <ShieldCheck size={15} />
+                            Points de vigilance
+                          </span>
+                          <textarea
+                            value={draft.services.housekeepingNotes}
+                            disabled={!editing}
+                            onChange={(event) =>
+                              applyDraftUpdate((current) => ({
+                                ...current,
+                                services: {
+                                  ...current.services,
+                                  housekeepingNotes: event.target.value,
+                                },
+                              }))
+                            }
+                            placeholder="Objets fragiles, tâches fréquentes, zones à contrôler, oublis voyageurs..."
+                          />
+                          <small>Les risques et particularités qui demandent une attention spéciale.</small>
+                        </label>
+                      </div>
+                    </section>
+
+                    <section className={`${styles.terrainCard} ${styles.infoAnchor}`} id="infos-partage">
+                      <div className={styles.terrainCardHeader}>
+                        <span className={styles.terrainIcon}>
+                          <UserRound size={20} />
+                        </span>
+                        <div>
+                          <p>Informations partagées</p>
+                          <small>Coordonnées propriétaire et description utile au concierge.</small>
+                        </div>
+                      </div>
+                      <div className={styles.terrainFieldGrid}>
+                        <label>
+                          <span>Propriétaire</span>
+                          <input
+                            value={draft.owner.fullName}
+                            disabled={!editing}
+                            onChange={(event) =>
+                              applyDraftUpdate((current) => ({
+                                ...current,
+                                owner: {
+                                  ...current.owner,
+                                  fullName: event.target.value,
+                                },
+                              }))
+                            }
+                          />
+                        </label>
+                        <label className={styles.terrainFieldWithIcon}>
+                          <span>
+                            <Phone size={15} />
+                            Téléphone
+                          </span>
+                          <input
+                            value={draft.owner.phone}
+                            disabled={!editing}
+                            onChange={(event) =>
+                              applyDraftUpdate((current) => ({
+                                ...current,
+                                owner: {
+                                  ...current.owner,
+                                  phone: event.target.value,
+                                },
+                              }))
+                            }
+                          />
+                        </label>
+                        <label className={styles.terrainFieldWide}>
+                          <span>Adresse propriétaire</span>
+                          <input
+                            value={draft.owner.address}
+                            disabled={!editing}
+                            onChange={(event) =>
+                              applyDraftUpdate((current) => ({
+                                ...current,
+                                owner: {
+                                  ...current.owner,
+                                  address: event.target.value,
+                                },
+                              }))
+                            }
+                          />
+                        </label>
+                        <label className={styles.terrainFieldWide}>
+                          <span>Note propriétaire à partager</span>
+                          <textarea
+                            value={draft.services.internalNotes}
+                            disabled={!editing}
+                            onChange={(event) =>
+                              applyDraftUpdate((current) => ({
+                                ...current,
+                                services: {
+                                  ...current.services,
+                                  internalNotes: event.target.value,
+                                },
+                              }))
+                            }
+                            placeholder="Message ou précision que le concierge peut consulter."
                           />
                         </label>
                       </div>
-                      <label className={styles.terrainFieldWide}>
-                        <span>Consignes générales d’intervention</span>
-                        <textarea
-                          value={draft.services.instructions ?? ""}
-                          disabled={!editing}
-                          onChange={(event) =>
-                            applyDraftUpdate((current) => ({
-                              ...current,
-                              services: {
-                                ...current.services,
-                                instructions: event.target.value,
-                              },
-                            }))
-                          }
-                          placeholder="Ex. commencer par l'étage, préparer deux jeux de clés et fermer les volets au départ."
-                        />
-                        <small>Les règles stables à suivre pour intervenir dans ce logement.</small>
-                      </label>
-                      <label className={styles.terrainFieldWide}>
-                        <span>
-                          <ShieldCheck size={15} />
-                          Points de vigilance
-                        </span>
-                        <textarea
-                          value={draft.services.housekeepingNotes}
-                          disabled={!editing}
-                          onChange={(event) =>
-                            applyDraftUpdate((current) => ({
-                              ...current,
-                              services: {
-                                ...current.services,
-                                housekeepingNotes: event.target.value,
-                              },
-                            }))
-                          }
-                          placeholder="Objets fragiles, tâches fréquentes, zones à contrôler, oublis voyageurs..."
-                        />
-                        <small>Les risques et particularités qui demandent une attention spéciale.</small>
-                      </label>
-                    </div>
-                  </section>
-
-                  <section className={`${styles.terrainCard} ${styles.infoAnchor}`} id="infos-partage">
-                    <div className={styles.terrainCardHeader}>
-                      <span className={styles.terrainIcon}>
-                        <UserRound size={20} />
-                      </span>
-                      <div>
-                        <p>Informations partagées</p>
-                        <small>Coordonnées propriétaire et description utile au concierge.</small>
-                      </div>
-                    </div>
-                    <div className={styles.terrainFieldGrid}>
-                      <label>
-                        <span>Propriétaire</span>
-                        <input
-                          value={draft.owner.fullName}
-                          disabled={!editing}
-                          onChange={(event) =>
-                            applyDraftUpdate((current) => ({
-                              ...current,
-                              owner: {
-                                ...current.owner,
-                                fullName: event.target.value,
-                              },
-                            }))
-                          }
-                        />
-                      </label>
-                      <label className={styles.terrainFieldWithIcon}>
-                        <span>
-                          <Phone size={15} />
-                          Téléphone
-                        </span>
-                        <input
-                          value={draft.owner.phone}
-                          disabled={!editing}
-                          onChange={(event) =>
-                            applyDraftUpdate((current) => ({
-                              ...current,
-                              owner: {
-                                ...current.owner,
-                                phone: event.target.value,
-                              },
-                            }))
-                          }
-                        />
-                      </label>
-                      <label className={styles.terrainFieldWide}>
-                        <span>Adresse propriétaire</span>
-                        <input
-                          value={draft.owner.address}
-                          disabled={!editing}
-                          onChange={(event) =>
-                            applyDraftUpdate((current) => ({
-                              ...current,
-                              owner: {
-                                ...current.owner,
-                                address: event.target.value,
-                              },
-                            }))
-                          }
-                        />
-                      </label>
-                      <label className={styles.terrainFieldWide}>
-                        <span>Note propriétaire à partager</span>
-                        <textarea
-                          value={draft.services.internalNotes}
-                          disabled={!editing}
-                          onChange={(event) =>
-                            applyDraftUpdate((current) => ({
-                              ...current,
-                              services: {
-                                ...current.services,
-                                internalNotes: event.target.value,
-                              },
-                            }))
-                          }
-                          placeholder="Message ou précision que le concierge peut consulter."
-                        />
-                      </label>
-                    </div>
-                  </section>
-                </div>
-              </div>
-              <div className={styles.fullField}>
-                <section className={`${styles.specSectionCard} ${styles.infoAnchor}`} id="infos-photos">
-                  <div className={styles.specSectionTopline}>
-                    <div className={styles.numberedSectionHeading}><span>6</span><div><h3>Photos</h3><p>Ajoutez des photos de qualité pour mettre en valeur votre logement.</p></div></div>
-                    {editing ? <label className={styles.quickGalleryUpload}><FiCamera />{photoUploading ? "Upload..." : "Ajouter des photos"}<input type="file" accept="image/*" multiple hidden onChange={(event) => void uploadHousingPhotos(event.target.files)} /></label> : null}
+                    </section>
                   </div>
-                  {housingPhotos.length ? <div className={styles.specPhotoGrid}>{housingPhotos.slice(0, 6).map((photo, index) => <button type="button" key={`${photo}-${index}`} onClick={() => { setGalleryIndex(index); setActiveTab("synthese"); }}><Image src={toHousingPhotoUrl(photo, id)} alt={`Photo ${index + 1} du logement`} fill sizes="160px" unoptimized /></button>)}</div> : <p className={styles.sidebarEmpty}>Aucune photo ajoutée.</p>}
-                </section>
+                </div>
+                <div className={styles.fullField}>
+                  <section className={`${styles.specSectionCard} ${styles.infoAnchor}`} id="infos-photos">
+                    <div className={styles.specSectionTopline}>
+                      <div className={styles.numberedSectionHeading}><span>6</span><div><h3>Photos</h3><p>Ajoutez des photos de qualité pour mettre en valeur votre logement.</p></div></div>
+                      {editing ? <label className={styles.quickGalleryUpload}><FiCamera />{photoUploading ? "Upload..." : "Ajouter des photos"}<input type="file" accept="image/*" multiple hidden onChange={(event) => void uploadHousingPhotos(event.target.files)} /></label> : null}
+                    </div>
+                    {housingPhotos.length ? <div className={styles.specPhotoGrid}>{housingPhotos.slice(0, 6).map((photo, index) => <button type="button" key={`${photo}-${index}`} onClick={() => { setGalleryIndex(index); setActiveTab("synthese"); }}><Image src={toHousingPhotoUrl(photo, id)} alt={`Photo ${index + 1} du logement`} fill sizes="160px" unoptimized /></button>)}</div> : <p className={styles.sidebarEmpty}>Aucune photo ajoutée.</p>}
+                  </section>
+                </div>
               </div>
-            </div>
-            <aside className={styles.infoSidebar} aria-label="Résumé du logement">
-              <section className={styles.infoSidebarCard}>
-                <div className={styles.infoSidebarHeading}>
-                  <div><small>En un coup d’œil</small><h3>Résumé rapide</h3></div>
-                  <span className={styles.sidebarStatus}>{statusLabel}</span>
-                </div>
-                <dl className={styles.quickSummaryList}>
-                  <div><dt>Type</dt><dd>{draft.characteristics.propertyType || "À préciser"}</dd></div>
-                  <div><dt>Surface</dt><dd>{draft.characteristics.surfaceSqm != null ? `${draft.characteristics.surfaceSqm} m²` : "À préciser"}</dd></div>
-                  <div><dt>Capacité</dt><dd>{formatCapacityLabel(housingCapacity, "À préciser")}</dd></div>
-                  <div><dt>Chambres</dt><dd>{draft.characteristics.bedroomCount ?? "À préciser"}</dd></div>
-                  <div><dt>Salles de bain</dt><dd>{draft.characteristics.bathroomCount ?? "À préciser"}</dd></div>
-                  <div><dt>Ville</dt><dd>{draft.locationInfo.city || "À préciser"}</dd></div>
-                </dl>
-              </section>
+              <aside className={styles.infoSidebar} aria-label="Résumé du logement">
+                <section className={styles.infoSidebarCard}>
+                  <div className={styles.infoSidebarHeading}>
+                    <div><small>En un coup d’œil</small><h3>Résumé rapide</h3></div>
+                    <span className={styles.sidebarStatus}>{statusLabel}</span>
+                  </div>
+                  <dl className={styles.quickSummaryList}>
+                    <div><dt>Type</dt><dd>{draft.characteristics.propertyType || "À préciser"}</dd></div>
+                    <div><dt>Surface</dt><dd>{draft.characteristics.surfaceSqm != null ? `${draft.characteristics.surfaceSqm} m²` : "À préciser"}</dd></div>
+                    <div><dt>Capacité</dt><dd>{formatCapacityLabel(housingCapacity, "À préciser")}</dd></div>
+                    <div><dt>Chambres</dt><dd>{draft.characteristics.bedroomCount ?? "À préciser"}</dd></div>
+                    <div><dt>Salles de bain</dt><dd>{draft.characteristics.bathroomCount ?? "À préciser"}</dd></div>
+                    <div><dt>Ville</dt><dd>{draft.locationInfo.city || "À préciser"}</dd></div>
+                  </dl>
+                </section>
 
-              <section className={styles.infoSidebarCard}>
-                <div className={styles.infoSidebarHeading}>
-                  <div><small>Interlocuteurs</small><h3>Contacts liés</h3></div>
-                  <Link href="/dashboard/owner/conciergeries">Gérer</Link>
-                </div>
-                <div className={styles.linkedContacts}>
-                  <div><Avatar src={resolvedConciergeAvatarUrl} name={resolvedConciergeName} size="sm" /><span><small>Ma concierge</small><strong>{resolvedConciergeName}</strong></span></div>
-                  <div><Avatar name={draft.owner.fullName || "Propriétaire"} size="sm" /><span><small>Propriétaire</small><strong>{draft.owner.fullName || "À préciser"}</strong>{draft.owner.phone ? <em>{draft.owner.phone}</em> : null}</span></div>
-                </div>
-              </section>
+                <section className={styles.infoSidebarCard}>
+                  <div className={styles.infoSidebarHeading}>
+                    <div><small>Interlocuteurs</small><h3>Contacts liés</h3></div>
+                    <Link href="/dashboard/owner/conciergeries">Gérer</Link>
+                  </div>
+                  <div className={styles.linkedContacts}>
+                    <div><Avatar src={resolvedConciergeAvatarUrl} name={resolvedConciergeName} size="sm" /><span><small>Ma concierge</small><strong>{resolvedConciergeName}</strong></span></div>
+                    <div><Avatar name={draft.owner.fullName || "Propriétaire"} size="sm" /><span><small>Propriétaire</small><strong>{draft.owner.fullName || "À préciser"}</strong>{draft.owner.phone ? <em>{draft.owner.phone}</em> : null}</span></div>
+                  </div>
+                </section>
 
-              <section className={styles.infoSidebarCard}>
-                <div className={styles.infoSidebarHeading}>
-                  <div><small>Fichiers utiles</small><h3>Documents</h3></div>
-                  <button type="button" onClick={() => setActiveTab("documents")}>Voir tous</button>
-                </div>
-                {documents.length ? (
-                  <ul className={styles.sidebarDocuments}>
-                    {documents.slice(0, 4).map((document) => <li key={document.id}><FiFileText aria-hidden="true" /><span>{document.name}<small>{document.type || "Document"}</small></span></li>)}
-                  </ul>
-                ) : <p className={styles.sidebarEmpty}>Aucun document ajouté.</p>}
-              </section>
+                <section className={styles.infoSidebarCard}>
+                  <div className={styles.infoSidebarHeading}>
+                    <div><small>Fichiers utiles</small><h3>Documents</h3></div>
+                    <button type="button" onClick={() => setActiveTab("documents")}>Voir tous</button>
+                  </div>
+                  {documents.length ? (
+                    <ul className={styles.sidebarDocuments}>
+                      {documents.slice(0, 4).map((document) => <li key={document.id}><FiFileText aria-hidden="true" /><span>{document.name}<small>{document.type || "Document"}</small></span></li>)}
+                    </ul>
+                  ) : <p className={styles.sidebarEmpty}>Aucun document ajouté.</p>}
+                </section>
 
-              <section className={`${styles.infoSidebarCard} ${styles.quickActionsCard}`}>
-                <div className={styles.infoSidebarHeading}><div><small>Raccourcis</small><h3>Actions rapides</h3></div></div>
-                <button type="button" onClick={() => setActiveTab("planning")}><FiCalendar /> Voir le planning</button>
-                <Link href={ownerRequestHref}><FiSend /> Créer une mission ou une intervention</Link>
-                <button type="button" onClick={() => setActiveTab("documents")}><FiFileText /> Ajouter un document</button>
-              </section>
+                <section className={`${styles.infoSidebarCard} ${styles.quickActionsCard}`}>
+                  <div className={styles.infoSidebarHeading}><div><small>Raccourcis</small><h3>Actions rapides</h3></div></div>
+                  <button type="button" onClick={() => setActiveTab("planning")}><FiCalendar /> Voir le planning</button>
+                  <Link href={ownerRequestHref}><FiSend /> Créer une mission ou une intervention</Link>
+                  <button type="button" onClick={() => setActiveTab("documents")}><FiFileText /> Ajouter un document</button>
+                </section>
 
-              <blockquote className={styles.sidebarQuote}>
-                <p>« Des séjours sereins, des logements qui performent. »</p>
-                <cite>PlanetLS</cite>
-              </blockquote>
-            </aside>
+                <blockquote className={styles.sidebarQuote}>
+                  <p>« Des séjours sereins, des logements qui performent. »</p>
+                  <cite>PlanetLS</cite>
+                </blockquote>
+              </aside>
             </div>
 
             {editing ? (
@@ -3029,41 +3027,41 @@ export default function OwnerHousingDetailPage() {
                   0,
                 );
                 return (
-                <details className={styles.equipmentCategory} key={category.title} open={categorySelectedCount > 0 || Boolean(equipmentQuery.trim()) || undefined}>
-                  <summary className={styles.equipmentCategoryHeader}>
-                    <span className={styles.equipmentCategoryIcon}><FiBox aria-hidden="true" /></span>
-                    <div><h3>{category.title}</h3><small>{categorySelectedCount ? `${categorySelectedCount} sélectionné${categorySelectedCount > 1 ? "s" : ""}` : "Aucun équipement sélectionné"}</small></div>
-                    <strong>{categorySelectedCount}</strong>
-                    <FiChevronRight className={styles.equipmentCategoryChevron} aria-hidden="true" />
-                  </summary>
+                  <details className={styles.equipmentCategory} key={category.title} open={categorySelectedCount > 0 || Boolean(equipmentQuery.trim()) || undefined}>
+                    <summary className={styles.equipmentCategoryHeader}>
+                      <span className={styles.equipmentCategoryIcon}><FiBox aria-hidden="true" /></span>
+                      <div><h3>{category.title}</h3><small>{categorySelectedCount ? `${categorySelectedCount} sélectionné${categorySelectedCount > 1 ? "s" : ""}` : "Aucun équipement sélectionné"}</small></div>
+                      <strong>{categorySelectedCount}</strong>
+                      <FiChevronRight className={styles.equipmentCategoryChevron} aria-hidden="true" />
+                    </summary>
 
-                  <div className={styles.equipmentSubcategoryGrid}>
-                    {category.subcategories.map((subcategory) => (
-                      <div className={styles.equipmentSubcategory} key={subcategory.title}>
-                        <p>{subcategory.title}</p>
-                        <div className={styles.equipmentChecklist}>
-                          {subcategory.items.map((item) => {
-                            const checked = equipments.includes(item);
-                            return (
-                              <label
-                                className={`${styles.equipmentCheck} ${checked ? styles.equipmentCheckActive : ""}`}
-                                key={item}
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={checked}
-                                  disabled={!editing}
-                                  onChange={() => toggleEquipment(item)}
-                                />
-                                <span>{item}</span>
-                              </label>
-                            );
-                          })}
+                    <div className={styles.equipmentSubcategoryGrid}>
+                      {category.subcategories.map((subcategory) => (
+                        <div className={styles.equipmentSubcategory} key={subcategory.title}>
+                          <p>{subcategory.title}</p>
+                          <div className={styles.equipmentChecklist}>
+                            {subcategory.items.map((item) => {
+                              const checked = equipments.includes(item);
+                              return (
+                                <label
+                                  className={`${styles.equipmentCheck} ${checked ? styles.equipmentCheckActive : ""}`}
+                                  key={item}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    disabled={!editing}
+                                    onChange={() => toggleEquipment(item)}
+                                  />
+                                  <span>{item}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </details>
+                      ))}
+                    </div>
+                  </details>
                 );
               })}
             </div>

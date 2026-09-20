@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   createContext,
@@ -80,7 +80,7 @@ export function UserTypeProvider({ children }: { children: ReactNode }) {
 
     async function fetchUserType() {
       try {
-        const res = await fetch("/api/profiles/me");
+        const res = await fetch("/api/profiles/current");
         if (!res.ok) throw new Error("API error");
 
         const data = await res.json();
@@ -119,3 +119,4 @@ export function useUserType() {
   if (!context) throw new Error("useUserType must be used within UserTypeProvider");
   return context;
 }
+
