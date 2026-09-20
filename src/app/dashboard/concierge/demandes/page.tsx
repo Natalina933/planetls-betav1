@@ -383,13 +383,6 @@ function getNextStepLabel(item: ConciergeRequestRow) {
     return "Refusée";
   }
 
-  if (
-    item.recipient_status ===
-    RECIPIENT_STATUS.NOT_SELECTED
-  ) {
-    return "Non retenue";
-  }
-
   return item.recipient_status === RECIPIENT_STATUS.SENT
     ? "Examiner la demande"
     : "Qualifier la demande";
