@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import ts from "typescript";
+import { createClient } from "@supabase/supabase-js";
 
 type Row = Record<string, unknown>;
 const root = fileURLToPath(new URL("../../", import.meta.url));
@@ -46,6 +47,7 @@ class Query {
   payload: Row | Row[] = {};
   filters: Array<(row: Row) => boolean> = [];
   count = Infinity;
+  ignoreDuplicates = false;
   constructor(db: MemoryDb, table: string) { this.db = db; this.table = table; }
   select() { return this; }
   eq(key: string, value: unknown) {
@@ -58,7 +60,9 @@ class Query {
   limit(n: number) { this.count = n; return this; }
   update(payload: Row) { this.operation = "update"; this.payload = payload; return this; }
   insert(payload: Row | Row[]) { this.operation = "insert"; this.payload = payload; return this; }
-  upsert(payload: Row) { this.operation = "upsert"; this.payload = payload; return this; }
+  upsert(payload: Row, options?: { ignoreDuplicates?: boolean }) {
+    this.operation = "upsert"; this.payload = payload; this.ignoreDuplicates = options?.ignoreDuplicates ?? false; return this;
+  }
   async result(single = false) {
     if (this.operation === "select" && this.db.failRead === this.table) {
       return { data: null, error: { message: "read unavailable" } };
@@ -70,14 +74,17 @@ class Query {
       this.db.writes.push({ table: this.table, operation: this.operation });
       if (this.operation === "update") selected.forEach((row) => Object.assign(row, structuredClone(this.payload)));
       else {
-        selected = (Array.isArray(this.payload) ? this.payload : [this.payload]).map((payload) => {
+        selected = (Array.isArray(this.payload) ? this.payload : [this.payload]).flatMap((payload) => {
           if (this.operation === "upsert") {
             const previous = rows.find((row) => row.quote_id === payload.quote_id);
-            if (previous) { Object.assign(previous, structuredClone(payload)); return previous; }
+            if (previous) {
+              if (this.ignoreDuplicates) return [];
+              Object.assign(previous, structuredClone(payload)); return [previous];
+            }
           }
           const row = { id: this.table === "housing" ? 100 + rows.length : `${this.table}-${rows.length}`, ...structuredClone(payload) };
           rows.push(row);
-          return row;
+          return [row];
         });
       }
     }
@@ -105,15 +112,15 @@ function modules(db: MemoryDb) {
     if (!existsSync(file)) file += ".ts";
     const existing = cache.get(file);
     if (existing) return existing.exports;
-    const module = { exports: {} as Row };
-    cache.set(file, module);
+    const loaded = { exports: {} as Row };
+    cache.set(file, loaded);
     const code = ts.transpileModule(readFileSync(file, "utf8"), {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
     }).outputText;
     new Function("require", "module", "exports", code)(
-      (dependency: string) => load(dependency, path.dirname(file)), module, module.exports,
+      (dependency: string) => load(dependency, path.dirname(file)), loaded, loaded.exports,
     );
-    return module.exports;
+    return loaded.exports;
   };
   return load;
 }
@@ -130,6 +137,32 @@ function setup(kind: "accept" | "select", db = new MemoryDb()) {
 }
 
 for (const kind of ["accept", "select"] as const) {
+  for (const status of ["pending_handover", "active", "paused", "ended", "cancelled"]) {
+    test(`${kind}: acceptance retry preserves ${status}, references and contractual versions`, async () => {
+      const { db, call } = setup(kind);
+      assert.equal((await call()).status, 200);
+      assert.equal(db.tables.housing_collaborations.length, 1);
+      assert.equal(db.tables.housing_collaborations[0].status, "pending_handover");
+      Object.assign(db.tables.housing_collaborations[0], {
+        status, handover_status: "ready", starts_on: "2026-09-01", ends_on: "2027-09-01",
+        scope: { requested_services: ["CHECK_IN"], preserved: true },
+      });
+      db.tables.services_contracts = [{ id: "contract", collaboration_id: db.tables.housing_collaborations[0].id }];
+      db.tables.services_contract_versions = [{ id: "version", contract_id: "contract", status: "ready_to_sign", revision: 3,
+        conditions: { mode: "A_LA_CARTE" }, owner_accepted_at: "2026-09-20", concierge_accepted_at: "2026-09-20" }];
+      const collaboration = structuredClone(db.tables.housing_collaborations);
+      const contracts = structuredClone(db.tables.services_contracts);
+      const versions = structuredClone(db.tables.services_contract_versions);
+      const missionIds = db.tables.missions.map(row => row.id);
+      assert.equal((await call()).status, 200);
+      assert.equal((await call()).status, 200);
+      assert.deepEqual(db.tables.housing_collaborations, collaboration);
+      assert.deepEqual(db.tables.services_contracts, contracts);
+      assert.deepEqual(db.tables.services_contract_versions, versions);
+      assert.deepEqual(db.tables.missions.map(row => row.id), missionIds);
+      assert.equal(db.tables.invoices.length, 1);
+    });
+  }
   test(`${kind}: legitimate attachment preserves mission, invoice and history; retry reuses objects`, async () => {
     const { db, call } = setup(kind);
     assert.equal((await call()).status, 200);
@@ -206,6 +239,59 @@ for (const kind of ["accept", "select"] as const) {
     assert.equal(asRow(db.tables.housing[0].proprietaire).manager_profile_id, CONCIERGE);
   });
 }
+
+type CollaborationInput = {
+  db: unknown; housingId: number; ownerProfileId: string; conciergeProfileId: string;
+  quoteId: string; missionId?: string | null; request?: { id: string } | null;
+};
+function collaborationWriter(db: MemoryDb) {
+  return modules(db)("@/app/api/_shared/housingCollaboration").upsertAcceptedHousingCollaboration as (input: CollaborationInput) => Promise<Row>;
+}
+const collaborationInput = (db: unknown): CollaborationInput => ({
+  db, housingId: 42, ownerProfileId: OWNER, conciergeProfileId: CONCIERGE, quoteId: Q,
+});
+
+test("acceptance helper never erases existing references when optional inputs are missing", async () => {
+  const db = new MemoryDb();
+  const save = collaborationWriter(db);
+  await save({ ...collaborationInput(db), missionId: "mission-kept", request: { id: R } });
+  const previous = structuredClone(db.tables.housing_collaborations);
+  const result = await save({ ...collaborationInput(db), missionId: null, request: null });
+  assert.equal(result.id, previous[0].id);
+  assert.deepEqual(db.tables.housing_collaborations, previous);
+});
+
+test("concurrent helper calls converge on the same collaboration", async () => {
+  const db = new MemoryDb();
+  const save = collaborationWriter(db);
+  const results = await Promise.all([save(collaborationInput(db)), save(collaborationInput(db))]);
+  assert.equal(db.tables.housing_collaborations.length, 1);
+  assert.equal(results[0].id, results[1].id);
+});
+
+test("real Supabase client sends atomic ignore-duplicates and re-reads the existing quote binding", async () => {
+  const requests: Array<{ url: string; method: string }> = [];
+  const existing = { id: "existing", status: "active", handover_status: "ready" };
+  const db = createClient("https://local-test.invalid", "test-key", {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: async (input, init) => {
+      const url = new URL(String(input));
+      requests.push({ url: url.pathname, method: init?.method ?? "GET" });
+      if (init?.method === "POST") {
+        assert.equal(url.searchParams.get("on_conflict"), "quote_id");
+        assert.match(new Headers(init.headers).get("Prefer") ?? "", /resolution=ignore-duplicates/);
+        assert.equal(JSON.parse(String(init.body)).status, "pending_handover");
+        return new Response(null, { status: 201 });
+      }
+      assert.equal(url.searchParams.get("quote_id"), `eq.${Q}`);
+      return Response.json(existing);
+    } },
+  });
+  const result = await collaborationWriter(new MemoryDb())(collaborationInput(db));
+  assert.deepEqual(result, existing);
+  assert.deepEqual(requests.map(r => r.method), ["POST", "GET"]);
+  assert.ok(requests.every(r => r.url === "/rest/v1/housing_collaborations"));
+});
 
 test("shared writer independently refuses a foreign concierge", async () => {
   const { load, db } = setup("accept");

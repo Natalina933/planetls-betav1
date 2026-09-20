@@ -32,7 +32,7 @@ export async function upsertAcceptedHousingCollaboration(input: {
   const frequency = asOption(metadata.collaboration_frequency, ["once", "weekly", "monthly", "seasonal", "year_round", "unknown"]);
   const responsibilityLevel = asOption(metadata.responsibility_level, ["low", "shared", "full", "unknown"]);
 
-  const { data, error } = await input.db
+  const { error } = await input.db
     .from("housing_collaborations")
     .upsert(
       {
@@ -54,11 +54,17 @@ export async function upsertAcceptedHousingCollaboration(input: {
           requested_services: Array.isArray(metadata.requested_services) ? metadata.requested_services : [],
         },
       },
-      { onConflict: "quote_id" },
-    )
-    .select("id, status, handover_status")
-    .single();
+      // PostgreSQL ON CONFLICT DO NOTHING: an acceptance retry must never
+      // overwrite the existing lifecycle, references or handover progress.
+      { onConflict: "quote_id", ignoreDuplicates: true },
+    );
 
   if (error) throw error;
+  const { data, error: readError } = await input.db
+    .from("housing_collaborations")
+    .select("id, status, handover_status")
+    .eq("quote_id", input.quoteId)
+    .single();
+  if (readError) throw readError;
   return data;
 }
