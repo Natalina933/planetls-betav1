@@ -2617,6 +2617,16 @@ export function FicheTabSection({
   const missingItems = completion.missingItems.slice(0, 4);
   const priorityLabel = missingItems[0] ?? "Fiche prête à publier";
   const hasAvatar = Boolean(ficheControls.avatarFile || editProfile.avatar_url);
+  const avatarPreviewUrl = React.useMemo(
+    () => (ficheControls.avatarFile ? URL.createObjectURL(ficheControls.avatarFile) : null),
+    [ficheControls.avatarFile],
+  );
+  React.useEffect(() => {
+    return () => {
+      if (avatarPreviewUrl) URL.revokeObjectURL(avatarPreviewUrl);
+    };
+  }, [avatarPreviewUrl]);
+  const avatarSrc = avatarPreviewUrl || editProfile.avatar_url || ficheControls.defaultAvatar;
   const readinessItems = [
     { label: "Photo", ready: hasAvatar },
     { label: "Coordonnées", ready: identityReady },
@@ -2626,6 +2636,24 @@ export function FicheTabSection({
     { label: "Confiance", ready: insuranceReady },
   ];
   const profileHref = "/dashboard/concierge/profile?tab=fiche";
+  const publicProfileId = String(
+    (ficheControls.profile as Record<string, unknown> | null | undefined)?.id ?? "",
+  );
+  const publicProfileHref = publicProfileId ? `/concierges/${publicProfileId}` : profileHref;
+  const completionTarget =
+    !hasAvatar
+      ? "Photo de profil"
+      : !identityReady
+        ? ficheControls.sectionIds.INFO_PERSO
+        : !presentationReady
+          ? ficheControls.sectionIds.PRESENTATION
+          : !companyReady
+            ? "Informations_entreprise"
+            : !addressReady
+              ? "Adresse_professionnelle"
+              : !insuranceReady
+                ? "Assurance___Certifications"
+                : ficheControls.sectionIds.INFO_PERSO;
   const profileTabActions = [
     { label: "Vue d'ensemble", href: "/dashboard/concierge/profile" },
     { label: "Fiche", href: "/dashboard/concierge/profile?tab=fiche" },
@@ -2635,6 +2663,7 @@ export function FicheTabSection({
     { label: "Devis", href: "/dashboard/concierge/profile?tab=devis" },
     { label: "Équipe", href: "/dashboard/concierge/profile?tab=equipe" },
     { label: "Documents", href: "/dashboard/concierge/profile?tab=documents" },
+    { label: "Voir comme un propriétaire", href: publicProfileHref },
   ];
   const toProfileAction = (label: string, hash: string) => ({
     label,
@@ -2843,36 +2872,91 @@ export function FicheTabSection({
         topRightIcon: MapPinned,
       }}
     >
-      <DashboardPanel title="Édition reliée de la fiche" className={styles.operationalPanel}>
-        <div id="fiche-publication" className={styles.ficheEditIntro}>
-          <p>
-            Les indicateurs au-dessus renvoient aux mêmes familles que les sections ci-dessous. Utilisez ces raccourcis pour aller directement au bloc à corriger.
+      <DashboardPanel title="Informations de ma fiche" className={styles.operationalPanel}>
+        <div id="fiche-publication" className={styles.profilePage}>
+          <p className={styles.profileSectionLead}>
+            Les informations renseignées ici sont utilisées pour votre profil public et dans la recherche.
           </p>
-          <div className={styles.ficheSectionLinks}>
-            <Link href={`${profileHref}#${ficheControls.sectionIds.INFO_PERSO}`}>Identité</Link>
-            <Link href={`${profileHref}#${ficheControls.sectionIds.PRESENTATION}`}>Présentation</Link>
-            <Link href={`${profileHref}#Informations_entreprise`}>Entreprise</Link>
-            <Link href={`${profileHref}#Adresse_professionnelle`}>Adresse</Link>
-            <Link href={`${profileHref}#Assurance___Certifications`}>Confiance</Link>
-            <Link href={`${profileHref}#Web___R_seaux_sociaux`}>Visibilité</Link>
-            <Link href={`${profileHref}#${ficheControls.sectionIds.INSPIRATION_VIDEOS}`}>Videos</Link>
-          </div>
-        </div>
-        <div className={styles.grid}>
-          <aside className={styles.leftColumn}>
-            <FicheSidebarCard
-              styles={styles}
-              profile={ficheControls.profile}
-              editProfile={editProfile}
-              editingSection={editingSection}
-              avatarFile={ficheControls.avatarFile}
-              defaultAvatar={ficheControls.defaultAvatar}
-              setAvatarFile={ficheControls.setAvatarFile}
-              setEditProfile={setEditProfile}
-              handleSaveSection={handleSaveSection}
-              beginSectionEdit={beginSectionEdit}
-            />
 
+          <div className={styles.profileTopGrid}>
+            <article className={styles.publicProfileCard}>
+              <div className={styles.publicProfileCover}>
+                <Image
+                  src={editProfile.image || CONCIERGE_CARD_COVER_OPTIONS[0].url}
+                  alt=""
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 760px"
+                />
+              </div>
+              <div className={styles.publicProfileBody}>
+                <div className={styles.publicProfileIdentity}>
+                  <div className={styles.publicProfileAvatar}>
+                    <Image src={avatarSrc} alt="" fill sizes="96px" />
+                  </div>
+                  <div>
+                    <span className={styles.publicProfileBadge}>CONCIERGE PARTENAIRE</span>
+                    <h2>{displayName || "Non renseigné"}</h2>
+                    <p>{editProfile.location || "Non renseigné"}</p>
+                  </div>
+                </div>
+                <p className={styles.publicProfileText}>{additionalInfo || "Non renseigné"}</p>
+                <div className={styles.publicProfileStats}>
+                  <div>
+                    <span>Note</span>
+                    <strong>Non renseigné</strong>
+                  </div>
+                  <div>
+                    <span>Expérience</span>
+                    <strong>
+                      {ficheControls.profile?.years_experience != null
+                        ? `${ficheControls.profile.years_experience} ans`
+                        : formatExperienceLabel(editProfile.experience_level ?? null) || "Non renseigné"}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Missions réalisées</span>
+                    <strong>Non renseigné</strong>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <aside className={styles.profileCompletion}>
+              <div className={styles.profileCompletionHeader}>
+                <span>Complétez votre profil</span>
+                <strong>{completion.percentage}%</strong>
+              </div>
+              <div className={styles.profileCompletionTrack}>
+                <span style={{ width: `${completion.percentage}%` }} />
+              </div>
+              <div className={styles.profileCompletionList}>
+                {readinessItems.map((item) => (
+                  <div
+                    key={item.label}
+                    className={`${styles.profileCompletionItem} ${
+                      item.ready ? styles.profileCompletionItemDone : styles.profileCompletionItemMissing
+                    }`}
+                  >
+                    <span>{item.ready ? "Complet" : "Manquant"}</span>
+                    <strong>{item.label}</strong>
+                  </div>
+                ))}
+              </div>
+              <p>
+                {missingItems.length > 0
+                  ? `Priorité : ${missingItems[0]}`
+                  : "La fiche est cohérente. Pensez seulement à la relire régulièrement."}
+              </p>
+              <Link
+                href={`${profileHref}#${completionTarget}`}
+                className={styles.profileCompletionAction}
+              >
+                Compléter mon profil
+              </Link>
+            </aside>
+          </div>
+
+          <div className={styles.profileInfoGrid}>
             <FichePresentationSection
               styles={styles}
               renderSection={renderSection}
@@ -2883,27 +2967,6 @@ export function FicheTabSection({
               sectionId={ficheControls.sectionIds.PRESENTATION}
             />
 
-            <div className={styles.ficheReadinessPanel}>
-              <div>
-                <span>Repères de publication</span>
-                <strong>{completion.percentage}% complet</strong>
-              </div>
-              <div className={styles.ficheReadinessList}>
-                {readinessItems.map((item) => (
-                  <span key={item.label} className={item.ready ? styles.ficheReadinessDone : ""}>
-                    {item.label}
-                  </span>
-                ))}
-              </div>
-              {missingItems.length > 0 ? (
-                <p>Priorité : {missingItems[0]}</p>
-              ) : (
-                <p>La fiche est cohérente. Pensez seulement à la relire régulièrement.</p>
-              )}
-            </div>
-          </aside>
-
-          <section className={styles.rightColumn}>
             <FichePersonalInfoSection
               styles={styles}
               renderSection={renderSection}
@@ -2915,6 +2978,9 @@ export function FicheTabSection({
               formatExperienceLabel={formatExperienceLabel}
             />
             <FicheCompanySection renderSection={renderSection} renderField={renderField} />
+          </div>
+
+          <div className={styles.profileInfoGridSecondary}>
             <FicheAddressSection renderSection={renderSection} renderField={renderField} />
             <FicheInsuranceSection renderSection={renderSection} renderField={renderField} />
             <FicheSocialSection
@@ -2934,7 +3000,7 @@ export function FicheTabSection({
               setEditProfile={setEditProfile}
               sectionId={ficheControls.sectionIds.INSPIRATION_VIDEOS}
             />
-          </section>
+          </div>
         </div>
       </DashboardPanel>
     </DashboardOperationalPage>
@@ -5011,7 +5077,3 @@ export function ConciergeTariffsTabContent({
     </div>
   );
 }
-
-
-
-
