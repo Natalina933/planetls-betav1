@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { Button, Input, Select } from "@/components/ui";
-import { contractConditionsSchema, type ContractConditions, type ContractDraft, type ContractVersion, type ContractConditionsResponse } from "./contractConditions";
+import { contractConditionsSchema, type ContractConditions, type ContractDraft, type ContractVersion, type ContractConditionsResponse, type ContractSignatureState } from "./contractConditions";
 
 const labels: Record<string, string> = {
   CHECK_IN: "Check-in", CHECK_OUT: "Check-out", LINGE: "Linge", MENAGE: "Ménage",
@@ -50,6 +50,8 @@ export function ContractDraftEditor({ collaborationId }: { collaborationId: stri
   const [actorId, setActorId] = useState<string | null>(null);
   const [changeReason, setChangeReason] = useState("");
   const endpoint = `/api/housing-collaborations/${collaborationId}/conditions`;
+  const signatureEndpoint = `/api/housing-collaborations/${collaborationId}/signatures`;
+  const [signatureState, setSignatureState] = useState<ContractSignatureState | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -68,6 +70,7 @@ export function ContractDraftEditor({ collaborationId }: { collaborationId: stri
         setCurrentVersion(version);
         setVersions(payload.versions);
         setActorId(payload.actorId);
+        setSignatureState(payload.signatureState ?? null);
         setConditions(version?.conditions ?? initialConditions());
         setRevision(version?.revision ?? 0);
         setLoaded(true);
@@ -135,6 +138,26 @@ export function ContractDraftEditor({ collaborationId }: { collaborationId: stri
     } finally { setSaving(false); }
   }
 
+  async function signContract() {
+    if (!currentVersion || !signatureState || signatureState.versionId !== currentVersion.id) return;
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const response = await fetch(signatureEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ versionId: currentVersion.id, expectedRevision: currentVersion.revision }),
+      });
+      const payload = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(payload.error || "Signature impossible.");
+      setMessage("Signature enregistrée.");
+      setReload(value => value + 1);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Signature impossible.");
+    } finally { setSaving(false); }
+  }
+
   return <div>
     <Button type="button" aria-expanded={open} disabled={saving} onClick={() => setOpen(value => !value)}>
       {open ? "Fermer les conditions" : "Consulter / préparer les conditions"}
@@ -151,7 +174,16 @@ export function ContractDraftEditor({ collaborationId }: { collaborationId: stri
         <ConditionsSummary conditions={currentVersion.conditions} />
         <p>Accord propriétaire : {currentVersion.owner_accepted_at ? displayDate(currentVersion.owner_accepted_at) : "En attente"}</p>
         <p>Accord concierge : {currentVersion.concierge_accepted_at ? displayDate(currentVersion.concierge_accepted_at) : "En attente"}</p>
-        {currentVersion.status === "ready_to_sign" ? <p role="status">Les conditions ont été acceptées par les deux parties. Le contrat est prêt pour l&apos;étape de signature.</p> : currentVersion.status === "proposed" && <>
+        {["ready_to_sign", "signing", "signed"].includes(currentVersion.status) ? <div>
+          <p role="status">Les conditions ont été acceptées par les deux parties. L&apos;accord contractuel reste distinct de la signature.</p>
+          <h5>Signature du contrat</h5>
+          <p>Signature propriétaire : {signatureState?.ownerSigned ? "Enregistrée" : "En attente"}</p>
+          <p>Signature concierge : {signatureState?.conciergeSigned ? "Enregistrée" : "En attente"}</p>
+          {signatureState?.signed && <p>Contrat signé. Collaboration {signatureState.collaborationStatus === "active" ? "active" : signatureState.collaborationStatus === "scheduled" ? `programmée au ${signatureState.effectiveStart ?? "démarrage prévu"}` : signatureState.collaborationStatus}.</p>}
+          {!signatureState?.signed && <Button type="button" disabled={saving || !signatureState || signatureState.currentActorSigned} onClick={() => void signContract()}>
+            {signatureState?.currentActorSigned ? "Votre signature est enregistrée" : "Signer le contrat"}
+          </Button>}
+        </div> : currentVersion.status === "proposed" && <>
           <p>Proposer ne vaut pas accord. Chaque partie doit accepter explicitement cette version.</p>
           <Button type="button" disabled={saving || Boolean(accepted)} onClick={() => void transition("accept")}>{accepted ? "Votre accord est enregistré" : "Accepter les conditions"}</Button>
           {actorId !== currentVersion.proposed_by && <div>

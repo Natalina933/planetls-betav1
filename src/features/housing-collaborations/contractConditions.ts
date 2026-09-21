@@ -59,7 +59,7 @@ export type ContractVersion = {
   id: string;
   contract_id: string;
   version_number: number;
-  status: "draft" | "proposed" | "ready_to_sign" | "superseded";
+  status: "draft" | "proposed" | "ready_to_sign" | "signing" | "signed" | "superseded";
   revision: number;
   conditions: ContractConditions;
   created_by: string;
@@ -80,9 +80,29 @@ export type ContractVersion = {
   previous_version_id: string | null;
 };
 export type ContractDraft = ContractVersion;
+export type ContractVersionSignature = {
+  id: string;
+  contract_version_id: string;
+  signer_profile_id: string;
+  signer_role: "owner" | "concierge";
+  signed_at: string;
+  created_at: string;
+};
+export type ContractSignatureState = {
+  versionId: string | null;
+  collaborationStatus: string;
+  signatures: ContractVersionSignature[];
+  ownerSigned: boolean;
+  conciergeSigned: boolean;
+  signed: boolean;
+  currentActorSigned: boolean;
+  currentActorRole: "owner" | "concierge";
+  effectiveStart: string | null;
+};
 export type ContractConditionsResponse = {
   draft: ContractVersion | null;
   currentVersion: ContractVersion | null;
   versions: ContractVersion[];
   actorId: string;
+  signatureState?: ContractSignatureState | null;
 };

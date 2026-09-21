@@ -9,6 +9,27 @@ export const dynamic = "force-dynamic";
 const roles = new Set(["owner", "owner_pro", "concierge", "concierge_pro"]);
 const headers = { "Cache-Control": "private, no-store" };
 type Context = { params: Promise<{ id: string }> };
+type SignatureRow = {
+  id: string;
+  contract_version_id: string;
+  signer_profile_id: string;
+  signer_role: "owner" | "concierge";
+  signed_at: string;
+  created_at: string;
+};
+type VersionRow = { id: string; conditions?: unknown };
+
+function actorRole(role: string): "owner" | "concierge" {
+  return role === "owner" || role === "owner_pro" ? "owner" : "concierge";
+}
+
+function effectiveStartFromConditions(conditions: unknown) {
+  if (!conditions || typeof conditions !== "object" || Array.isArray(conditions)) return null;
+  const duration = (conditions as Record<string, unknown>).duration;
+  if (!duration || typeof duration !== "object" || Array.isArray(duration)) return null;
+  const startsOn = (duration as Record<string, unknown>).startsOn;
+  return typeof startsOn === "string" ? startsOn : null;
+}
 
 async function participant(req: NextRequest, context: Context) {
   const guard = await requireApiRole(req, roles);
@@ -17,12 +38,35 @@ async function participant(req: NextRequest, context: Context) {
   if (!z.string().uuid().safeParse(id).success) {
     return { response: NextResponse.json({ error: "Collaboration invalide." }, { status: 400, headers }) };
   }
-  const column = guard.auth.role === "owner" || guard.auth.role === "owner_pro" ? "owner_profile_id" : "concierge_profile_id";
+  const role = actorRole(guard.auth.role);
+  const column = role === "owner" ? "owner_profile_id" : "concierge_profile_id";
   const { data, error } = await asLooseSupabaseClient(db).from("housing_collaborations")
     .select("id,status").eq("id", id).eq(column, guard.auth.userId).maybeSingle();
   if (error) throw error;
   if (!data) return { response: NextResponse.json({ error: "Collaboration introuvable." }, { status: 404, headers }) };
-  return { id, actor: guard.auth.userId, status: data.status as string };
+  return { id, actor: guard.auth.userId, actorRole: role, status: data.status as string };
+}
+
+async function signatureState(collaborationId: string, collaborationStatus: string, version: VersionRow | null, currentActor: string, currentActorRole: "owner" | "concierge") {
+  if (!version) return null;
+  const { data, error } = await asLooseSupabaseClient(db).from("contract_version_signatures")
+    .select("*").eq("contract_version_id", version.id).order("signed_at", { ascending: true });
+  if (error) throw error;
+  const signatures = (data ?? []) as SignatureRow[];
+  const ownerSigned = signatures.some(signature => signature.signer_role === "owner");
+  const conciergeSigned = signatures.some(signature => signature.signer_role === "concierge");
+  return {
+    versionId: version.id,
+    collaborationStatus,
+    signatures,
+    ownerSigned,
+    conciergeSigned,
+    signed: ownerSigned && conciergeSigned,
+    currentActorSigned: signatures.some(signature => signature.signer_profile_id === currentActor && signature.signer_role === currentActorRole),
+    currentActorRole,
+    effectiveStart: effectiveStartFromConditions(version.conditions),
+    collaborationId,
+  };
 }
 
 export async function GET(req: NextRequest, context: Context) {
@@ -32,12 +76,18 @@ export async function GET(req: NextRequest, context: Context) {
     const { data: envelope, error } = await db.from("services_contracts")
       .select("id").eq("collaboration_id", access.id).maybeSingle();
     if (error) throw error;
-    if (!envelope) return NextResponse.json({ draft: null, currentVersion: null, versions: [], actorId: access.actor }, { headers });
+    if (!envelope) return NextResponse.json({ draft: null, currentVersion: null, versions: [], actorId: access.actor, signatureState: null }, { headers });
     const { data: versions, error: draftError } = await db.from("services_contract_versions")
       .select("*").eq("contract_id", envelope.id).order("version_number", { ascending: false });
     if (draftError) throw draftError;
     const currentVersion = versions?.[0] ?? null;
-    return NextResponse.json({ draft: currentVersion?.status === "draft" ? currentVersion : null, currentVersion, versions: versions ?? [], actorId: access.actor }, { headers });
+    return NextResponse.json({
+      draft: currentVersion?.status === "draft" ? currentVersion : null,
+      currentVersion,
+      versions: versions ?? [],
+      actorId: access.actor,
+      signatureState: await signatureState(access.id, access.status, currentVersion as VersionRow | null, access.actor, access.actorRole),
+    }, { headers });
   } catch (error) {
     console.error("[GET collaboration conditions]", error);
     return NextResponse.json({ error: "Impossible de charger le brouillon." }, { status: 500, headers });

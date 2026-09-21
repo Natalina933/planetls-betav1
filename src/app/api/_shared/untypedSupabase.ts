@@ -43,6 +43,7 @@ export type LooseSupabaseQuery<T = LooseSupabaseData> = PromiseLike<LooseSupabas
 
 export type LooseSupabaseClient = {
   from: (table: string) => LooseSupabaseQuery;
+  rpc: (name: string, args?: Record<string, unknown>) => Promise<LooseSupabaseResult>;
 };
 
 export function asLooseSupabaseClient(client: unknown): LooseSupabaseClient {

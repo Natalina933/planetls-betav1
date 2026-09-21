@@ -48,6 +48,7 @@ function fixture(role = "owner", userId: string | null = OWNER) {
     housing_collaborations: [{ id: COLLAB, status: "pending_handover", owner_profile_id: OWNER, concierge_profile_id: CONCIERGE }],
     services_contracts: [{ id: "envelope", collaboration_id: COLLAB, profile_id: OWNER, title: "Linked" }, { id: "legacy", collaboration_id: null, profile_id: OWNER, title: "Historical" }],
     services_contract_versions: [{ id: VERSION, contract_id: "envelope", version_number: 1, status: "draft", revision: 1, conditions }],
+    contract_version_signatures: [],
   };
   const calls: { table: string; operation: string }[] = [];
   const rpcCalls: Row[] = [];
@@ -81,8 +82,34 @@ function fixture(role = "owner", userId: string | null = OWNER) {
       return query;
     },
     async rpc(name: string, args: Row) {
-      assert.ok(["save_collaboration_contract_draft", "transition_collaboration_contract_version"].includes(name));
+      assert.ok(["save_collaboration_contract_draft", "transition_collaboration_contract_version", "sign_collaboration_contract_version"].includes(name));
       rpcCalls.push(args);
+      if (name === "sign_collaboration_contract_version" && !rpcError) {
+        const collaboration = tables.housing_collaborations.find(row => row.id === args.p_collaboration_id);
+        const version = tables.services_contract_versions.find(row => row.id === args.p_version_id);
+        if (!collaboration || !version || version.revision !== args.p_expected_revision) return { data: null, error: { code: "40001" } };
+        const role = args.p_actor_id === collaboration.owner_profile_id ? "owner" : args.p_actor_id === collaboration.concierge_profile_id ? "concierge" : null;
+        if (!role) return { data: null, error: { code: "42501" } };
+        const startsOn = ((version.conditions as typeof conditions).duration ?? {}).startsOn;
+        const parsedStart = typeof startsOn === "string" ? new Date(`${startsOn}T00:00:00Z`) : null;
+        if (typeof startsOn !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(startsOn) || !parsedStart || Number.isNaN(parsedStart.getTime()) || parsedStart.toISOString().slice(0, 10) !== startsOn) {
+          return { data: null, error: { code: "23514" } };
+        }
+        const existing = tables.contract_version_signatures.find(row => row.contract_version_id === version.id && row.signer_role === role);
+        if (!existing) tables.contract_version_signatures.push({
+          id: `sig-${role}`,
+          contract_version_id: version.id,
+          signer_profile_id: args.p_actor_id,
+          signer_role: role,
+          signed_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+        });
+        const ownerSigned = tables.contract_version_signatures.some(row => row.contract_version_id === version.id && row.signer_role === "owner");
+        const conciergeSigned = tables.contract_version_signatures.some(row => row.contract_version_id === version.id && row.signer_role === "concierge");
+        version.status = ownerSigned && conciergeSigned ? "signed" : "signing";
+        if (version.status === "signed") collaboration.status = startsOn <= "2026-09-21" ? "active" : "scheduled";
+        return { data: { version, collaboration, signatures: tables.contract_version_signatures.filter(row => row.contract_version_id === version.id), effectiveStart: startsOn }, error: null };
+      }
       return { data: rpcError ? null : tables.services_contract_versions[0], error: rpcError ? { code: rpcError } : null };
     },
   };
@@ -102,6 +129,7 @@ function fixture(role = "owner", userId: string | null = OWNER) {
     throw new Error(`Unexpected import ${id}`);
   };
   const routes = execute(read("app/api/housing-collaborations/[id]/conditions/route.ts"), load) as ResponseModule;
+  const signatures = execute(read("app/api/housing-collaborations/[id]/signatures/route.ts"), load) as ResponseModule;
   const legacy = execute(read("app/api/services/contracts/[id]/route.ts"), load) as ResponseModule;
   const legacyList = execute(read("app/api/services/contracts/route.ts"), load) as ResponseModule;
   const request = (method: string, body?: unknown) => new Request("http://localhost/api/test?owner_id=forged", { method, ...(body === undefined ? {} : { body: JSON.stringify(body), headers: { "Content-Type": "application/json" } }) });
@@ -110,6 +138,8 @@ function fixture(role = "owner", userId: string | null = OWNER) {
     get: (id = COLLAB) => routes.GET(request("GET"), { params: Promise.resolve({ id }) }),
     put: (body: unknown = { expectedRevision: 0, conditions }) => routes.PUT(request("PUT", body), { params: Promise.resolve({ id: COLLAB }) }),
     action: (body: unknown = { action: "propose", versionId: VERSION, expectedRevision: 1 }) => routes.POST(request("POST", body), { params: Promise.resolve({ id: COLLAB }) }),
+    signaturesGet: (id = COLLAB) => signatures.GET(request("GET"), { params: Promise.resolve({ id }) }),
+    sign: (body: unknown = { versionId: VERSION, expectedRevision: 1 }) => signatures.POST(request("POST", body), { params: Promise.resolve({ id: COLLAB }) }),
     legacy: (method: string, id: string, body?: unknown) => legacy[method](request(method, body), { params: Promise.resolve({ id }) }),
     list: () => legacyList.GET(request("GET")),
     postLegacy: (body: unknown) => legacyList.POST(request("POST", body)),
@@ -140,8 +170,8 @@ for (const [role, user, expected] of [["owner", null, 401], ["owner", "third", 4
 test("absent draft GET remains read-only and does not create an envelope", async () => {
   const f = fixture();
   f.tables.services_contracts = [];
-  assert.deepEqual(await (await f.get()).json(), { draft: null, currentVersion: null, versions: [], actorId: OWNER });
-  assert.deepEqual(await (await f.get()).json(), { draft: null, currentVersion: null, versions: [], actorId: OWNER });
+  assert.deepEqual(await (await f.get()).json(), { draft: null, currentVersion: null, versions: [], actorId: OWNER, signatureState: null });
+  assert.deepEqual(await (await f.get()).json(), { draft: null, currentVersion: null, versions: [], actorId: OWNER, signatureState: null });
   assert.equal(f.rpcCalls.length, 0);
 });
 
@@ -182,6 +212,41 @@ test("GET exposes the latest version plus immutable history without writing", as
   assert.equal(f.rpcCalls.length, 0);
 });
 
+test("GET exposes signature state for the exact current version without writing", async () => {
+  const f = fixture();
+  f.tables.services_contract_versions[0] = {
+    ...f.tables.services_contract_versions[0],
+    status: "ready_to_sign",
+    proposed_owner_id: OWNER,
+    proposed_concierge_id: CONCIERGE,
+    owner_accepted_at: "2026-09-20T11:00:00Z",
+    concierge_accepted_at: "2026-09-20T12:00:00Z",
+  };
+  f.tables.services_contract_versions.push({
+    id: VERSION_B,
+    contract_id: "legacy",
+    version_number: 99,
+    status: "signed",
+    revision: 9,
+    conditions,
+  });
+  f.tables.contract_version_signatures.push({
+    id: "sig-owner",
+    contract_version_id: VERSION,
+    signer_profile_id: OWNER,
+    signer_role: "owner",
+    signed_at: "2026-09-20T13:00:00Z",
+    created_at: "2026-09-20T13:00:00Z",
+  });
+  const response = await (await f.get()).json();
+  assert.equal(response.currentVersion.id, VERSION);
+  assert.equal(response.signatureState.versionId, VERSION);
+  assert.equal(response.signatureState.ownerSigned, true);
+  assert.equal(response.signatureState.conciergeSigned, false);
+  assert.equal(response.signatureState.effectiveStart, "2026-10-01");
+  assert.equal(f.rpcCalls.length, 0);
+});
+
 test("two collaborations for the same housing keep separate contracts and versions", async () => {
   const f = fixture();
   f.tables.housing_collaborations[0].housing_id = 42;
@@ -218,6 +283,93 @@ test("two collaborations for the same housing keep separate contracts and versio
   const responseB = await (await f.get(COLLAB_B)).json();
   assert.equal(responseA.currentVersion.id, VERSION);
   assert.equal(responseB.currentVersion.id, VERSION_B);
+});
+
+test("signature API signs exact version and revision, then idempotently avoids duplicate effects", async () => {
+  const f = fixture("owner", OWNER);
+  f.tables.services_contract_versions[0] = {
+    ...f.tables.services_contract_versions[0],
+    status: "ready_to_sign",
+    revision: 7,
+    proposed_owner_id: OWNER,
+    proposed_concierge_id: CONCIERGE,
+    owner_accepted_at: "2026-09-20T11:00:00Z",
+    concierge_accepted_at: "2026-09-20T12:00:00Z",
+  };
+  assert.equal((await f.sign({ versionId: VERSION, expectedRevision: 7 })).status, 200);
+  assert.equal((await f.sign({ versionId: VERSION, expectedRevision: 7 })).status, 200);
+  assert.deepEqual(f.rpcCalls.map(call => call.p_version_id), [VERSION, VERSION]);
+  assert.deepEqual(f.rpcCalls.map(call => call.p_actor_id), [OWNER, OWNER]);
+  assert.equal(f.tables.contract_version_signatures.length, 1);
+  assert.equal(f.tables.services_contract_versions[0].status, "signing");
+  assert.equal(f.tables.housing_collaborations[0].status, "pending_handover");
+});
+
+test("second participant signature activates or schedules from startsOn only", async () => {
+  const f = fixture("concierge", CONCIERGE);
+  f.tables.services_contract_versions[0] = {
+    ...f.tables.services_contract_versions[0],
+    status: "signing",
+    revision: 7,
+    proposed_owner_id: OWNER,
+    proposed_concierge_id: CONCIERGE,
+    owner_accepted_at: "2026-09-20T11:00:00Z",
+    concierge_accepted_at: "2026-09-20T12:00:00Z",
+  };
+  f.tables.contract_version_signatures.push({
+    id: "sig-owner",
+    contract_version_id: VERSION,
+    signer_profile_id: OWNER,
+    signer_role: "owner",
+    signed_at: "2026-09-20T13:00:00Z",
+    created_at: "2026-09-20T13:00:00Z",
+  });
+  assert.equal((await f.sign({ versionId: VERSION, expectedRevision: 7 })).status, 200);
+  assert.equal(f.tables.contract_version_signatures.length, 2);
+  assert.equal(f.tables.services_contract_versions[0].status, "signed");
+  assert.equal(f.tables.housing_collaborations[0].status, "scheduled");
+
+  const due = fixture("concierge", CONCIERGE);
+  due.tables.services_contract_versions[0] = {
+    ...due.tables.services_contract_versions[0],
+    status: "signing",
+    revision: 7,
+    conditions: { ...conditions, duration: { ...conditions.duration, startsOn: "2026-09-21" } },
+    proposed_owner_id: OWNER,
+    proposed_concierge_id: CONCIERGE,
+    owner_accepted_at: "2026-09-20T11:00:00Z",
+    concierge_accepted_at: "2026-09-20T12:00:00Z",
+  };
+  due.tables.contract_version_signatures.push({
+    id: "sig-owner",
+    contract_version_id: VERSION,
+    signer_profile_id: OWNER,
+    signer_role: "owner",
+    signed_at: "2026-09-20T13:00:00Z",
+    created_at: "2026-09-20T13:00:00Z",
+  });
+  assert.equal((await due.sign({ versionId: VERSION, expectedRevision: 7 })).status, 200);
+  assert.equal(due.tables.housing_collaborations[0].status, "active");
+});
+
+test("signature rejects identity injection, ambiguous version and invalid startsOn before activation", async () => {
+  const f = fixture();
+  f.tables.services_contract_versions[0] = {
+    ...f.tables.services_contract_versions[0],
+    status: "ready_to_sign",
+    revision: 7,
+    proposed_owner_id: OWNER,
+    proposed_concierge_id: CONCIERGE,
+    owner_accepted_at: "2026-09-20T11:00:00Z",
+    concierge_accepted_at: "2026-09-20T12:00:00Z",
+  };
+  assert.equal((await f.sign({ versionId: VERSION, expectedRevision: 7, signerRole: "concierge" })).status, 400);
+  assert.equal((await f.sign({ versionId: VERSION_B, expectedRevision: 7 })).status, 409);
+  f.tables.services_contract_versions[0].conditions = { ...conditions, duration: { ...conditions.duration, startsOn: "2026-02-30" } };
+  assert.equal((await f.sign({ versionId: VERSION, expectedRevision: 7 })).status, 400);
+  assert.equal(f.tables.contract_version_signatures.length, 0);
+  assert.equal(f.tables.services_contract_versions[0].status, "ready_to_sign");
+  assert.equal(f.tables.housing_collaborations[0].status, "pending_handover");
 });
 for (const [code, status] of [["40001", 409], ["42501", 403], ["23514", 400], ["XX000", 500]] as const) {
   test(`transition RPC ${code} surfaces as HTTP ${status}`, async () => {
@@ -268,7 +420,7 @@ test("legacy POST preserves historical behavior and ignores collaboration/identi
 
 test("draft form uses existing labeled controls; changing mode preserves every service", () => {
   let index = 0;
-  const states: unknown[] = [true, false, false, true, 1, structuredClone(conditions), null, null, 0, null, [], OWNER, ""];
+  const states: unknown[] = [true, false, false, true, 1, structuredClone(conditions), null, null, 0, null, [], OWNER, "", null];
   const loadControl = (id: string): unknown => {
     if (id === "react") return React;
     if (id === "react/jsx-runtime") return jsxRuntime;
@@ -317,7 +469,25 @@ function frozenEditor(status: string, actor: string, accepted = false) {
     proposed_at: "2026-09-20T10:00:00Z", owner_accepted_at: accepted ? "2026-09-20T11:00:00Z" : null,
     concierge_accepted_at: status === "ready_to_sign" ? "2026-09-20T12:00:00Z" : null,
   };
-  const states: unknown[] = [true, false, false, true, 3, conditions, null, null, 0, version, [version], actor, ""];
+  const signatureState = ["ready_to_sign", "signing", "signed"].includes(status) ? {
+    versionId: VERSION,
+    collaborationStatus: status === "signed" ? "scheduled" : "pending_handover",
+    signatures: accepted ? [{
+      id: "sig-owner",
+      contract_version_id: VERSION,
+      signer_profile_id: OWNER,
+      signer_role: "owner",
+      signed_at: "2026-09-20T13:00:00Z",
+      created_at: "2026-09-20T13:00:00Z",
+    }] : [],
+    ownerSigned: accepted,
+    conciergeSigned: status === "signed",
+    signed: status === "signed",
+    currentActorSigned: accepted && actor === OWNER,
+    currentActorRole: actor === OWNER ? "owner" : "concierge",
+    effectiveStart: "2026-10-01",
+  } : null;
+  const states: unknown[] = [true, false, false, true, 3, conditions, null, null, 0, version, [version], actor, "", signatureState];
   let index = 0;
   const loaded = execute(read("features/housing-collaborations/ContractDraftEditor.tsx"), id => {
     if (id === "react") return { ...React, useEffect() {}, useState() {
@@ -339,10 +509,12 @@ test("proposer must explicitly accept; frozen conditions have no edit/save contr
   assert.doesNotMatch(html, /<form|Enregistrer le brouillon|Demander une modification/);
   assert.match(frozenEditor("proposed", CONCIERGE).html, /Demander une modification/);
 });
-test("ready to sign is read-only with clear message, not a signature or activation", () => {
+test("ready to sign is read-only and exposes a distinct signature action", () => {
   const { html } = frozenEditor("ready_to_sign", OWNER, true);
   assert.match(html, /Les conditions ont été acceptées par les deux parties/);
-  assert.match(html, /prêt pour l/);
+  assert.match(html, /accord contractuel reste distinct de la signature/);
+  assert.match(html, /Signature du contrat/);
+  assert.match(html, /Votre signature est enregistrée/);
   assert.doesNotMatch(html, /Accepter les conditions|Demander une modification|Contrat signé|Collaboration active|<form/);
 });
 test("accept button submits the exact displayed version/revision and no participant identity", async () => {
@@ -362,5 +534,25 @@ test("accept button submits the exact displayed version/revision and no particip
     visit(tree);
     await new Promise(resolve => setImmediate(resolve));
     assert.deepEqual(sent, { action: "accept", versionId: VERSION, expectedRevision: 3 });
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test("signature button submits the exact displayed version/revision and no participant identity", async () => {
+  const originalFetch = globalThis.fetch;
+  let sent: unknown;
+  globalThis.fetch = async (_url, init) => {
+    sent = JSON.parse(String(init?.body));
+    return Response.json({ result: { ok: true } });
+  };
+  try {
+    const { tree } = frozenEditor("ready_to_sign", CONCIERGE, false);
+    function visit(node: React.ReactNode) {
+      if (!React.isValidElement<{ children?: React.ReactNode; onClick?: () => void }>(node)) return;
+      if (node.props.children === "Signer le contrat") node.props.onClick?.();
+      React.Children.forEach(node.props.children, visit);
+    }
+    visit(tree);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.deepEqual(sent, { versionId: VERSION, expectedRevision: 3 });
   } finally { globalThis.fetch = originalFetch; }
 });

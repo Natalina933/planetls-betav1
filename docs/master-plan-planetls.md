@@ -1,5 +1,12 @@
 # Master Plan PlanetLS
 
+### LOT 3B - Signature interne et activation contractuelle — 21 septembre 2026
+
+- Signature interne des versions contractuelles **🟡 En cours — P1 Prioritaire**. Une version `ready_to_sign` peut désormais recevoir une signature interne propriétaire et concierge via `contract_version_signatures`; les accords `owner_accepted_at` / `concierge_accepted_at` restent des accords préalables, pas des signatures.
+- Mécanisme retenu : la route `POST /api/housing-collaborations/[id]/signatures` délègue au RPC serveur `sign_collaboration_contract_version`, qui verrouille la collaboration et la version exacte, déduit le rôle depuis l'acteur authentifié, vérifie la révision attendue et rattache la signature à `services_contract_versions.id`. La relation réelle reste `services_contract_versions.contract_id -> services_contracts.id -> housing_collaborations.id`; aucune colonne `collaboration_id` n'est ajoutée aux versions.
+- Activation : après les deux signatures, la version devient `signed`; la collaboration devient `active` si `conditions.duration.startsOn` est atteinte, sinon `scheduled`. Les statuts existants `pending_handover`, `active`, `paused`, `ended` et `cancelled` sont conservés. Si `startsOn` est absent, invalide ou impossible à convertir en date, la signature échoue explicitement et aucune activation n'utilise `CURRENT_DATE` comme secours.
+- Validation locale en cours : tests ciblés contrats/signatures réussis sur 74 tests, incluant idempotence, version/révision exactes, refus d'injection d'identité, séparation accord/signature, démarrage différé et migration/rollback relus par contrat statique. Les migrations restent non appliquées à distance; validation SQL locale fraîche/représentative à confirmer selon disponibilité d'un PostgreSQL/Supabase local sans relancer Docker.
+
 ### LOT 2B - Multi-collaborations minimales par logement — 21 septembre 2026
 
 - Collaborations par logement **🟡 En cours — P1 Prioritaire**. Le verrou d'unicité active par `housing_id` est retiré par la migration `20260921120000_allow_multi_housing_collaborations.sql`, tout en conservant l'identité métier par devis accepté : une collaboration reste idempotente par `quote_id`.
