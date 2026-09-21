@@ -96,6 +96,7 @@ class MockQuery {
 class MockSupabase {
   readonly quote = {
     id: "quote-1",
+    status: "accepted",
     quote_number: "DV-2026-000001",
     concierge_profile_id: "concierge-1",
     owner_profile_id: "owner-1",
@@ -120,7 +121,7 @@ class MockSupabase {
     currency: "EUR",
     urgency: false,
     owner_profile_id: "owner-1",
-    metadata: {},
+    metadata: { selected_quote_id: "quote-1" },
   };
 
   readonly mission = {

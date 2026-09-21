@@ -1,5 +1,13 @@
 # Master Plan PlanetLS
 
+### LOT 1 - Attribution unique d'une demande multi-devis — 21 septembre 2026
+
+- Sécurisation de l'attribution unique **🟡 En cours — P1 Prioritaire**. Les deux parcours d'acceptation relus, `PATCH /api/quotes/[id]/status` et `POST /api/service-requests/[id]/select`, passent par le même RPC serveur `award_service_request_quote` avant de créer mission, facture, logement ou collaboration. La sélection utilise le `quote_id` explicite fourni au parcours, et non une recherche ambiguë dans une liste de devis.
+- Règle vérifiée dans le WIP : une demande ne conserve qu'un devis gagnant (`accepted`) et un destinataire `selected`; les autres devis ouverts deviennent `not_selected` et les autres destinataires `not_selected`. Les statuts terminaux comme `rejected` restent distincts de `not_selected`, ce qui préserve l'historique et laisse ouverte une future évolution vers allocation multiple ou par prestation.
+- Garde-fous techniques : la demande est verrouillée comme point d'arbitrage par `award_service_request_quote`; les guards SQL empêchent le remplacement d'un gagnant et la modification d'un devis déjà `accepted` ou `not_selected` hors parcours serveur. Une réacceptation du même devis est idempotente côté attribution et les helpers applicatifs réutilisent mission, facture et collaboration existantes.
+- Preuves locales : `npm run typecheck` réussi, lint ciblé des routes/helper/tests réussi, 82 tests ciblés réussis sur le parcours demande → devis → logement → collaboration → mission. Ajout d'une non-régression vérifiant qu'une tentative perdante sur un second devis ne remplace pas le gagnant et ne crée aucune mission, facture ou collaboration supplémentaire.
+- Limites de validation : la migration `20260920140000_service_request_quote_award.sql` et son rollback ont été relus, mais non exécutés faute de client SQL local disponible dans l'environnement (`psql`, CLI Supabase et dépendance Node Postgres absents). Les ports locaux Supabase répondent, Docker n'a pas été relancé conformément à la consigne, et aucune action distante n'a été effectuée.
+
 ### Réorganisation de la navigation Concierge — 18 septembre 2026
 
 - Navigation Concierge **✅ Terminé — P1 Prioritaire** dans le périmètre de la sidebar uniquement. Les routes, pages, APIs, données, permissions et workflows métier existants restent inchangés ; cette organisation ne signifie pas que les écarts métier documentés sont corrigés.

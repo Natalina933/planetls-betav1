@@ -4,7 +4,12 @@ import type { LooseSupabaseClient } from "./untypedSupabase.ts";
 type DbClient = LooseSupabaseClient;
 
 export class QuoteAwardError extends Error {
-  constructor(message: string, public status = 409) { super(message); }
+  status: number;
+
+  constructor(message: string, status = 409) {
+    super(message);
+    this.status = status;
+  }
 }
 
 /** Shared transactional attribution, before either route creates business objects. */

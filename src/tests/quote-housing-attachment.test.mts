@@ -12,8 +12,10 @@ const OWNER = "11111111-1111-4111-8111-111111111111";
 const CONCIERGE = "22222222-2222-4222-8222-222222222222";
 const OTHER = "33333333-3333-4333-8333-333333333333";
 const Q = "44444444-4444-4444-8444-444444444444";
+const Q2 = "44444444-4444-4444-8444-555555555555";
 const R = "55555555-5555-4555-8555-555555555555";
 const RECIPIENT = "66666666-6666-4666-8666-666666666666";
+const RECIPIENT2 = "66666666-6666-4666-8666-777777777777";
 const PROPERTY = "77777777-7777-4777-8777-777777777777";
 const asRow = (v: unknown) => v as Row;
 
@@ -276,6 +278,42 @@ function collaborationWriter(db: MemoryDb) {
 }
 const collaborationInput = (db: unknown): CollaborationInput => ({
   db, housingId: 42, ownerProfileId: OWNER, conciergeProfileId: CONCIERGE, quoteId: Q,
+});
+
+test("accept: a losing quote cannot overwrite the winner or create business effects", async () => {
+  const { db, load, call } = setup("accept");
+  db.tables.quotes.push({
+    ...structuredClone(db.tables.quotes[0]),
+    id: Q2,
+    quote_number: "DV-2",
+    status: "sent",
+    service_request_recipient_id: RECIPIENT2,
+    mission_id: null,
+    accepted_at: null,
+  });
+  db.tables.service_request_recipients.push({
+    id: RECIPIENT2,
+    service_request_id: R,
+    concierge_profile_id: CONCIERGE,
+    status: "quoted",
+  });
+
+  assert.equal((await call()).status, 200);
+  const afterWinner = structuredClone(db.tables);
+
+  const route = load("@/app/api/quotes/[id]/status/route");
+  const response = await (route.PATCH as Handler)(
+    { json: async () => ({ status: "accepted" }) },
+    { params: Promise.resolve({ id: Q2 }) },
+  );
+
+  assert.equal(response.status, 409);
+  assert.equal(asRow(db.tables.service_requests[0].metadata).selected_quote_id, Q);
+  assert.equal(db.tables.quotes.find((quote) => quote.id === Q)?.status, "accepted");
+  assert.equal(db.tables.quotes.find((quote) => quote.id === Q2)?.status, "not_selected");
+  assert.deepEqual(db.tables.missions, afterWinner.missions);
+  assert.deepEqual(db.tables.invoices, afterWinner.invoices);
+  assert.deepEqual(db.tables.housing_collaborations, afterWinner.housing_collaborations);
 });
 
 test("acceptance helper never erases existing references when optional inputs are missing", async () => {
