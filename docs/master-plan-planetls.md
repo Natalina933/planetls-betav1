@@ -1,5 +1,13 @@
 # Master Plan PlanetLS
 
+### LOT 5A / 5B - Séjour, besoins et attribution explicite des missions — 21 septembre 2026
+
+- Audit LOT 5A **✅ Terminé — P1 Prioritaire**. Le code confirme que `reservations` est le séjour canonique, que plusieurs `missions` peuvent partager le même `reservation_id`, et que `missions.concierge_profile_id` porte la responsabilité opérationnelle mission par mission.
+- LOT 5B **🟡 En cours — P1 Prioritaire**. Ajout d'une route ciblée `POST /api/owner/reservations/[id]/missions` pour créer des missions depuis une réservation existante par attribution explicite `besoin -> collaboration_id`, sans modifier le workflow concierge legacy ni `reservationPlanningEngine.ts`.
+- Règle retenue : les besoins minimaux normalisés sont `checkin`, `checkout`, `cleaning`, `linen`. Les collaborations candidates doivent être `active`, appartenir au propriétaire du séjour, concerner le même logement et exposer le service contractuel correspondant en `AUTOMATIQUE` ou en `SUR_DEMANDE` seulement si le besoin est explicitement présent dans `reservation.metadata.requested_actions`; `NON_INCLUSE` est refusé.
+- Garde-fous : le serveur dérive toujours `concierge_profile_id` depuis `housing_collaborations.concierge_profile_id`, ignore toute autorité client sur la concierge, garde le même `reservation_id` et utilise une clé d'idempotence `reservation + besoin + collaboration` en metadata mission pour éviter les doublons.
+- Dettes reportées : orchestration intelligente, allocation automatique, dépendances check-out/ménage/check-in, optimisation de tournée, notifications, facturation, multi-responsable et refonte générale reservations/missions restent hors périmètre.
+
 ### LOT 4B - Séjour rattaché à une collaboration active — 21 septembre 2026
 
 - Parcours propriétaire séjour **🟡 En cours — P1 Prioritaire**. La création `POST /api/owner/reservations` ne s'appuie plus sur `concierge_owner_matches` pour décider si une concierge peut recevoir un séjour : elle exige désormais une `housing_collaborations.id` explicite, appartenant au propriétaire authentifié, rattachée au logement demandé, en statut `active`, et dont `concierge_profile_id` correspond à la concierge envoyée.
