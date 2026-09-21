@@ -9,8 +9,26 @@ test("owner reservations API exposes list and create on the canonical table", ()
   assert.match(route, /export async function GET/);
   assert.match(route, /export async function POST/);
   assert.match(route, /from\("reservations"\)/);
-  assert.match(route, /concierge_owner_matches/);
+  assert.match(route, /from\("housing_collaborations"\)/);
+  assert.match(route, /\.eq\("id", collaborationId\)/);
+  assert.match(route, /collaboration\.status !== "active"/);
+  assert.match(route, /collaboration\.concierge_profile_id !== conciergeProfileId/);
+  assert.match(route, /String\(collaboration\.housing_id\) !== requestedHousingId/);
+  assert.match(route, /from\("services_contracts"\)/);
+  assert.doesNotMatch(route, /from\("concierge_owner_matches"\)/);
   assert.match(route, /manual_owner/);
+});
+
+test("owner traveler stay creation sends an exact active collaboration", () => {
+  const page = read("../app/dashboard/owner/missions/voyageurs/page.tsx");
+  const collaborationsRoute = read("../app/api/housing-collaborations/route.ts");
+
+  assert.match(page, /\/api\/housing-collaborations\?status=active/);
+  assert.match(page, /buildAssignmentOptionsFromCollaborations/);
+  assert.match(page, /collaboration_id: context\?\.assignment\?\.collaborationId \|\| form\.collaborationId \|\| null/);
+  assert.match(page, /option\.collaborationId === form\.collaborationId/);
+  assert.match(collaborationsRoute, /requestedStatus = url\.searchParams\.get\("status"\) === "active" \? "active" : "pending_handover"/);
+  assert.match(collaborationsRoute, /\.eq\("status", requestedStatus\)/);
 });
 
 test("reservation detail API exposes participant read and update", () => {

@@ -1,5 +1,13 @@
 # Master Plan PlanetLS
 
+### LOT 4B - Séjour rattaché à une collaboration active — 21 septembre 2026
+
+- Parcours propriétaire séjour **🟡 En cours — P1 Prioritaire**. La création `POST /api/owner/reservations` ne s'appuie plus sur `concierge_owner_matches` pour décider si une concierge peut recevoir un séjour : elle exige désormais une `housing_collaborations.id` explicite, appartenant au propriétaire authentifié, rattachée au logement demandé, en statut `active`, et dont `concierge_profile_id` correspond à la concierge envoyée.
+- Modèle conservé : aucune table `stays` n'est créée ; `reservations` reste l'objet canonique du séjour. `reservations.concierge_profile_id` reste la concierge initiale de la collaboration choisie, sans imposer que toutes les futures missions du séjour aient la même responsable. `missions.concierge_profile_id` reste le responsable opérationnel de chaque mission.
+- UI propriétaire : `/dashboard/owner/missions/voyageurs` charge les collaborations via `/api/housing-collaborations?status=active`, construit les choix depuis ces collaborations actives et transmet `collaboration_id` dans la création du séjour. Deux collaborations actives A/B sur le même logement restent distinguées par leur identifiant exact.
+- Validation locale : tests ciblés réservations/collaborations réussis sur 38 tests, lint ciblé réussi, `npm run typecheck` réussi et `git diff --check` propre. Aucune migration créée ou appliquée dans ce lot ; aucune action distante.
+- Limites reportées : pas de moteur multi-concierges par mission, pas de scheduler `scheduled -> active`, pas de refonte reservations/missions, pas d'allocation automatique check-in/ménage/check-out.
+
 ### LOT 3B - Signature interne et activation contractuelle — 21 septembre 2026
 
 - Signature interne des versions contractuelles **🟡 En cours — P1 Prioritaire**. Une version `ready_to_sign` peut désormais recevoir une signature interne propriétaire et concierge via `contract_version_signatures`; les accords `owner_accepted_at` / `concierge_accepted_at` restent des accords préalables, pas des signatures.

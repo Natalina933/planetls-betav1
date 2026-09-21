@@ -12,7 +12,7 @@ import {
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
-import { collectHousingReferenceIds, getListingLabel } from "@/app/lib/listingReferences";
+import { collectHousingReferenceIds, getHousingReferenceId, getListingLabel } from "@/app/lib/listingReferences";
 import { requireApiRole } from "@/server/auth/roleGuards";
 
 const dbAny = asLooseSupabaseClient(db);
@@ -30,6 +30,10 @@ function toPositiveInteger(value: unknown) {
     if (Number.isInteger(parsed) && parsed >= 0) return parsed;
   }
   return null;
+}
+
+function isUuidLike(value: string | null) {
+  return Boolean(value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value));
 }
 
 export async function GET(req: NextRequest) {
@@ -138,11 +142,13 @@ export async function POST(req: NextRequest) {
 
     const conciergeProfileId = cleanString(payload.concierge_profile_id);
     const propertyId = cleanString(payload.property_id);
-    const contractId = cleanString(payload.contract_id);
+    const collaborationId = cleanString(payload.collaboration_id);
     const checkInAt = toIsoString(payload.check_in_at ?? payload.check_in ?? payload.arrival_date);
     const checkOutAt = toIsoString(payload.check_out_at ?? payload.check_out ?? payload.departure_date);
+    const metadata = isRecord(payload.metadata) ? payload.metadata : {};
+    const requestedHousingId = getHousingReferenceId({ propertyId, metadata });
 
-    if (!conciergeProfileId || !checkInAt || !checkOutAt) {
+    if (!conciergeProfileId || !collaborationId || !requestedHousingId || !checkInAt || !checkOutAt) {
       return NextResponse.json(
         { error: "concierge_profile_id, check_in_at et check_out_at sont requis." },
         { status: 400 },
@@ -154,12 +160,9 @@ export async function POST(req: NextRequest) {
     }
 
     const { data: collaboration, error: collaborationError } = await dbAny
-      .from("concierge_owner_matches")
-      .select("id")
-      .eq("owner_profile_id", userId)
-      .eq("concierge_profile_id", conciergeProfileId)
-      .in("match_status", ["new", "contacted"])
-      .limit(1)
+      .from("housing_collaborations")
+      .select("id,housing_id,owner_profile_id,concierge_profile_id,status")
+      .eq("id", collaborationId)
       .maybeSingle();
 
     if (collaborationError) {
@@ -167,19 +170,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Impossible de vérifier la collaboration active." }, { status: 500 });
     }
 
-    if (!collaboration) {
+    if (
+      !collaboration ||
+      collaboration.owner_profile_id !== userId ||
+      String(collaboration.housing_id) !== requestedHousingId ||
+      collaboration.status !== "active" ||
+      collaboration.concierge_profile_id !== conciergeProfileId
+    ) {
       return NextResponse.json(
         { error: "Aucune collaboration active entre ce propriétaire et cette conciergerie." },
         { status: 400 },
       );
     }
 
-    const metadata = isRecord(payload.metadata) ? payload.metadata : {};
+    const { data: contract } = await dbAny
+      .from("services_contracts")
+      .select("id")
+      .eq("collaboration_id", collaboration.id)
+      .limit(1)
+      .maybeSingle();
+
     const insertPayload = {
-      contract_id: contractId,
+      contract_id: contract?.id ?? null,
       owner_profile_id: userId,
       concierge_profile_id: conciergeProfileId,
-      property_id: propertyId,
+      property_id: isUuidLike(propertyId) ? propertyId : null,
       source: cleanString(payload.source) ?? "manual_owner",
       external_reference: cleanString(payload.external_reference),
       channel: cleanString(payload.channel),
@@ -204,6 +219,8 @@ export async function POST(req: NextRequest) {
       metadata: {
         ...metadata,
         special_requests: Array.isArray(payload.special_requests) ? payload.special_requests : metadata.special_requests,
+        collaboration_id: collaboration.id,
+        housing_id: requestedHousingId,
         property_label: cleanString(payload.property_label) ?? cleanString(metadata.property_label),
       },
     };

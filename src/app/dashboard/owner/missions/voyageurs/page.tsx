@@ -170,6 +170,7 @@ type TravelerMissionForm = {
   arrivalTime: string;
   departureTime: string;
   propertyId: string;
+  collaborationId: string;
   conciergeProfileId: string;
   bookingPlatform: string;
   bookingCode: string;
@@ -204,6 +205,7 @@ type ParsedStayDraft = Partial<Omit<ParsedStay, "id" | "raw">>;
 
 type AssignmentOption = {
   key: string;
+  collaborationId: string;
   requestId: string;
   conciergeId: string;
   conciergeName: string;
@@ -217,6 +219,16 @@ type AssignmentOption = {
   requestedServices: string[];
   selectedQuoteId: string;
   hasPartner: boolean;
+};
+
+type ActiveHousingCollaboration = {
+  id: string;
+  status?: string | null;
+  concierge?: { id?: string | null; name?: string | null } | null;
+  housing?: { id?: string | number | null; name?: string | null } | null;
+  quote?: { id?: string | null; number?: string | null } | null;
+  request?: { id?: string | null; title?: string | null } | null;
+  contractId?: string | null;
 };
 
 type MissionOperationalContext = {
@@ -250,6 +262,7 @@ const initialForm: TravelerMissionForm = {
   arrivalTime: "16:00",
   departureTime: "10:00",
   propertyId: "",
+  collaborationId: "",
   conciergeProfileId: "",
   bookingPlatform: "Airbnb",
   bookingCode: "",
@@ -555,67 +568,31 @@ function getGenericMetadataString(metadata: Record<string, unknown> | null | und
   return "";
 }
 
-function getPartnerPropertyId(partner: PartnerRequestRow) {
-  return (
-    getCanonicalListingId({
-      propertyId: partner.property_id ?? null,
-      metadata: partner.metadata ?? null,
-    }) ?? ""
-  );
-}
-
-function getPartnerPropertyName(partner: PartnerRequestRow) {
-  return partner.property_name || partner.city || "Appartement à préciser";
-}
-
-function getPartnerSelectedQuoteId(partner: PartnerRequestRow, conciergeId: string) {
-  const metadataQuoteId = getGenericMetadataString(partner.metadata, ["selected_quote_id", "quote_id"]);
-  if (metadataQuoteId) return metadataQuoteId;
-
-  const acceptedRecipient = partner.recipients?.find(
-    (recipient) =>
-      (!recipient.concierge_profile_id || recipient.concierge_profile_id === conciergeId) &&
-      (recipient.quote_status === "accepted" || recipient.status === "selected" || recipient.status === "accepted") &&
-      recipient.quote_id,
-  );
-  return acceptedRecipient?.quote_id ?? "";
-}
-
-function buildAssignmentOptions(partners: PartnerRequestRow[], housing: HousingRow[] = []): AssignmentOption[] {
-  const seen = new Set<string>();
-
-  return partners
-    .filter((partner) => isUuidLike(partner.selected_concierge_profile_id || ""))
-    .map((partner) => {
-      const conciergeId = partner.selected_concierge_profile_id || "";
-      const propertyId = getPartnerPropertyId(partner);
+function buildAssignmentOptionsFromCollaborations(collaborations: ActiveHousingCollaboration[], housing: HousingRow[] = []): AssignmentOption[] {
+  return collaborations
+    .filter((collaboration) => collaboration.status === "active" && isUuidLike(collaboration.concierge?.id || ""))
+    .map((collaboration) => {
+      const propertyId = String(collaboration.housing?.id ?? "");
       const property = housing.find((item) => String(item.id) === propertyId);
-      const propertyName = property?.nom_logement || getPartnerPropertyName(partner);
-      const selectedQuoteId = getPartnerSelectedQuoteId(partner, conciergeId);
-      const key = `${conciergeId}:${propertyId || propertyName}:${partner.id}`;
+      const propertyName = cleanString(property?.nom_logement) || cleanString(collaboration.housing?.name) || "Logement à préciser";
 
       return {
-        key,
-        requestId: partner.id,
-        conciergeId,
-        conciergeName: partner.selected_concierge_name || "Conciergerie",
+        key: collaboration.id,
+        collaborationId: collaboration.id,
+        requestId: collaboration.request?.id ?? "",
+        conciergeId: collaboration.concierge?.id ?? "",
+        conciergeName: cleanString(collaboration.concierge?.name) || "Conciergerie",
         propertyId,
         propertyName,
-        propertyAddress: property?.adresse || partner.city || "Adresse à confirmer",
+        propertyAddress: property?.adresse || "Adresse à confirmer",
         propertyPhoto: property?.photo_principale || "/images/default-logement.png",
-        city: partner.city || "",
-        requestTitle: partner.title || "Collaboration acceptée",
-        requestDescription: partner.description || "",
-        requestedServices: Array.isArray(partner.requested_services) ? partner.requested_services : [],
-        selectedQuoteId,
+        city: property?.ville || "",
+        requestTitle: collaboration.request?.title || "Collaboration active",
+        requestDescription: collaboration.contractId ? `Contrat ${collaboration.contractId}` : "",
+        requestedServices: [],
+        selectedQuoteId: collaboration.quote?.id ?? "",
         hasPartner: true,
       };
-    })
-    .filter((option) => {
-      const dedupeKey = `${option.conciergeId}:${option.propertyId || option.propertyName}`;
-      if (seen.has(dedupeKey)) return false;
-      seen.add(dedupeKey);
-      return true;
     });
 }
 
@@ -933,6 +910,7 @@ function buildResetForm(current: TravelerMissionForm): TravelerMissionForm {
   return {
     ...initialForm,
     propertyId: current.propertyId,
+    collaborationId: current.collaborationId,
     conciergeProfileId: current.conciergeProfileId,
     bookingPlatform: current.bookingPlatform,
   };
@@ -1042,6 +1020,7 @@ function buildReservationPayload(form: TravelerMissionForm, context?: MissionOpe
     "";
 
   return {
+    collaboration_id: context?.assignment?.collaborationId || form.collaborationId || null,
     concierge_profile_id: form.conciergeProfileId,
     property_id: isUuidLike(form.propertyId) ? form.propertyId : null,
     property_label: propertyLabel || null,
@@ -1063,6 +1042,7 @@ function buildReservationPayload(form: TravelerMissionForm, context?: MissionOpe
     channel: form.bookingPlatform,
     metadata: {
       mission_kind: "traveler_stay",
+      collaboration_id: context?.assignment?.collaborationId || form.collaborationId || null,
       housing_id: getCanonicalListingId({ propertyId: form.propertyId || null, metadata: null }) ?? null,
       property_label: propertyLabel || null,
       concierge_profile_id: form.conciergeProfileId,
@@ -1114,6 +1094,7 @@ function parsedStayToForm(stay: ParsedStay, current: TravelerMissionForm): Trave
   return {
     ...initialForm,
     propertyId: current.propertyId,
+    collaborationId: current.collaborationId,
     conciergeProfileId: current.conciergeProfileId,
     bookingPlatform: current.bookingPlatform,
     firstName: stay.firstName,
@@ -1211,6 +1192,7 @@ function OwnerTravelerMissionsContent() {
   const [missions, setMissions] = useState<MissionRow[]>([]);
   const [housing, setHousing] = useState<HousingRow[]>([]);
   const [partners, setPartners] = useState<PartnerRequestRow[]>([]);
+  const [activeCollaborations, setActiveCollaborations] = useState<ActiveHousingCollaboration[]>([]);
   const [acceptedQuotes, setAcceptedQuotes] = useState<OwnerQuoteRow[]>([]);
   const [form, setForm] = useState<TravelerMissionForm>(initialForm);
   const [isFollowUpOpen, setFollowUpOpen] = useState(false);
@@ -1245,15 +1227,19 @@ function OwnerTravelerMissionsContent() {
     setComposerOpen(false);
   }, []);
 
-  const assignmentOptions = useMemo(() => buildAssignmentOptions(partners, housing), [partners, housing]);
+  const assignmentOptions = useMemo(
+    () => buildAssignmentOptionsFromCollaborations(activeCollaborations, housing),
+    [activeCollaborations, housing],
+  );
   const selectedAssignment = useMemo(
     () =>
       assignmentOptions.find(
         (option) =>
           option.conciergeId === form.conciergeProfileId &&
+          (!form.collaborationId || option.collaborationId === form.collaborationId) &&
           (!option.propertyId || !form.propertyId || option.propertyId === form.propertyId),
-      ) ?? assignmentOptions.find((option) => option.conciergeId === form.conciergeProfileId) ?? null,
-    [assignmentOptions, form.conciergeProfileId, form.propertyId],
+      ) ?? assignmentOptions.find((option) => option.collaborationId === form.collaborationId) ?? null,
+    [assignmentOptions, form.collaborationId, form.conciergeProfileId, form.propertyId],
   );
   const selectedPlatform = platformOptions.find((platform) => platform.value === form.bookingPlatform) ?? platformOptions[0];
   const operationalContext = useMemo(
@@ -1289,28 +1275,32 @@ function OwnerTravelerMissionsContent() {
     try {
       setLoading(true);
       setError(null);
-      const [reservationsResponse, housingResponse, requestsResponse, quotesResponse] = await Promise.all([
+      const [reservationsResponse, housingResponse, collaborationsResponse, requestsResponse, quotesResponse] = await Promise.all([
         fetch("/api/owner/reservations", { cache: "no-store" }),
         fetch("/api/housing", { cache: "no-store" }),
+        fetch("/api/housing-collaborations?status=active", { cache: "no-store" }),
         fetch("/api/service-requests?limit=100", { cache: "no-store" }),
         fetch("/api/quotes?status=accepted&limit=100", { cache: "no-store" }),
       ]);
 
       const reservationsPayload = await reservationsResponse.json();
       const housingPayload = await housingResponse.json();
+      const collaborationsPayload = await collaborationsResponse.json();
       const requestsPayload = await requestsResponse.json();
       const quotesPayload = await quotesResponse.json();
 
       if (!reservationsResponse.ok) throw new Error(reservationsPayload?.error || "Impossible de charger les séjours.");
       if (!housingResponse.ok) throw new Error(housingPayload?.error || "Impossible de charger les logements.");
+      if (!collaborationsResponse.ok) throw new Error(collaborationsPayload?.error || "Impossible de charger les collaborations actives.");
       if (!requestsResponse.ok) throw new Error(requestsPayload?.error || "Impossible de charger les partenaires.");
       if (!quotesResponse.ok) throw new Error(quotesPayload?.error || "Impossible de charger les devis acceptés.");
 
       const nextHousing = Array.isArray(housingPayload) ? housingPayload : [];
+      const nextActiveCollaborations = Array.isArray(collaborationsPayload?.items) ? collaborationsPayload.items : [];
       const acceptedPartners = (Array.isArray(requestsPayload?.items) ? requestsPayload.items : []).filter(
         isAcceptedMissionPartner,
       );
-      const nextAssignments = buildAssignmentOptions(acceptedPartners, nextHousing);
+      const nextAssignments = buildAssignmentOptionsFromCollaborations(nextActiveCollaborations, nextHousing);
       const targetedAssignment =
         nextAssignments.find((option) => targetRequestId && option.requestId === targetRequestId) ??
         nextAssignments.find((option) => targetQuoteId && option.selectedQuoteId === targetQuoteId) ??
@@ -1323,11 +1313,13 @@ function OwnerTravelerMissionsContent() {
           .filter((mission: MissionRow) => mission.metadata?.mission_kind === "traveler_stay"),
       );
       setHousing(nextHousing);
+      setActiveCollaborations(nextActiveCollaborations);
       setPartners(acceptedPartners);
       setAcceptedQuotes(Array.isArray(quotesPayload) ? quotesPayload : []);
       setForm((current) => ({
         ...current,
         propertyId: current.propertyId || targetedAssignment?.propertyId || String(nextHousing[0]?.id ?? ""),
+        collaborationId: current.collaborationId || targetedAssignment?.collaborationId || "",
         conciergeProfileId:
           current.conciergeProfileId || targetedAssignment?.conciergeId || "",
       }));
@@ -1584,6 +1576,7 @@ function OwnerTravelerMissionsContent() {
   function selectAssignment(option: AssignmentOption) {
     setForm((current) => ({
       ...current,
+      collaborationId: option.collaborationId,
       conciergeProfileId: option.conciergeId,
       propertyId: option.propertyId || current.propertyId,
     }));
@@ -1615,6 +1608,7 @@ function OwnerTravelerMissionsContent() {
       hasBaby: mission.metadata?.guest_baby === true ? "yes" : "no",
       language: getMetadataString(mission, "guest_language") || "fr",
       propertyId: String(getMissionHousingId(mission) ?? ""),
+      collaborationId: getMetadataString(mission, "collaboration_id"),
       conciergeProfileId: getMetadataString(mission, "concierge_profile_id"),
       bookingPlatform: getMetadataString(mission, "booking_platform") || "Airbnb",
       actions: Array.isArray(mission.metadata?.requested_actions)
@@ -1667,7 +1661,7 @@ function OwnerTravelerMissionsContent() {
       setError("Complétez le nom, la date d'arrivée et la date de départ avant d'envoyer ce séjour.");
       return;
     }
-    if (partners.length === 0) {
+    if (assignmentOptions.length === 0) {
       setError("Aucune conciergerie partenaire acceptée n'est disponible.");
       return;
     }
@@ -1677,6 +1671,10 @@ function OwnerTravelerMissionsContent() {
     }
     if (!isUuidLike(form.conciergeProfileId)) {
       setError("Sélectionnez le logement et la conciergerie concernée avant d'envoyer ce séjour.");
+      return;
+    }
+    if (!form.collaborationId) {
+      setError("Sélectionnez une collaboration active pour ce logement.");
       return;
     }
 
@@ -1708,7 +1706,7 @@ function OwnerTravelerMissionsContent() {
       setError("Complétez chaque séjour non envoyé avant de transférer les missions restantes à la conciergerie.");
       return;
     }
-    if (partners.length === 0) {
+    if (assignmentOptions.length === 0) {
       setError("Aucune conciergerie partenaire acceptée n'est disponible.");
       return;
     }
@@ -1718,6 +1716,10 @@ function OwnerTravelerMissionsContent() {
     }
     if (!isUuidLike(form.conciergeProfileId)) {
       setError("Sélectionnez la conciergerie concernée avant de créer les missions.");
+      return;
+    }
+    if (!form.collaborationId) {
+      setError("Sélectionnez une collaboration active pour ce logement.");
       return;
     }
 
@@ -1754,12 +1756,16 @@ function OwnerTravelerMissionsContent() {
       setError("Renseignez les dates d'arrivée et de départ.");
       return;
     }
-    if (partners.length === 0) {
+    if (assignmentOptions.length === 0) {
       setError("Aucune conciergerie partenaire acceptée n'est disponible. Acceptez d'abord un devis ou une demande partenaire.");
       return;
     }
     if (!isUuidLike(form.conciergeProfileId)) {
       setError("Sélectionnez une conciergerie partenaire acceptée.");
+      return;
+    }
+    if (!form.collaborationId) {
+      setError("Sélectionnez une collaboration active pour ce logement.");
       return;
     }
 
@@ -1966,6 +1972,7 @@ function OwnerTravelerMissionsContent() {
               <div className={styles.assignmentGrid}>
                 {assignmentOptions.map((option) => {
                   const selected =
+                    option.collaborationId === form.collaborationId &&
                     option.conciergeId === form.conciergeProfileId &&
                     (!option.propertyId || option.propertyId === form.propertyId);
                   const addressLabel = getAssignmentAddressLabel(option);

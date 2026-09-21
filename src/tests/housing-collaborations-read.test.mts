@@ -24,6 +24,7 @@ function fixture(role = "owner", userId: string | null = "owner") {
     housing: [{ id: 42, nom_logement: "Maison", proprietaire: { owner_profile_id: "owner" } }],
     quotes: [{ id: "quote", quote_number: "DV-42", status: "accepted", owner_profile_id: "owner", concierge_profile_id: "concierge", service_request_id: "request" }],
     service_requests: [{ id: "request", title: "Accueil", owner_profile_id: "owner" }],
+    services_contracts: [{ id: "contract", collaboration_id: "collab" }],
   };
   const calls: string[] = [];
   let failTable = "";
@@ -118,6 +119,36 @@ test("optional source request can be absent", async () => {
   f.tables.housing_collaborations[0].service_request_id = null;
   f.tables.quotes[0].service_request_id = null;
   assert.equal((await (await f.get()).json()).items[0].request, null);
+});
+
+test("active collaborations endpoint keeps exact collaboration identity for traveler stays", async () => {
+  const f = fixture();
+  f.tables.housing_collaborations[0].status = "active";
+  f.tables.housing_collaborations.push({
+    ...f.tables.housing_collaborations[0],
+    id: "collab-b",
+    concierge_profile_id: "concierge-b",
+    quote_id: "quote-b",
+  });
+  f.tables.profiles.push({ id: "concierge-b", company_name: "Conciergerie B" });
+  f.tables.quotes.push({
+    id: "quote-b",
+    quote_number: "DV-43",
+    status: "accepted",
+    owner_profile_id: "owner",
+    concierge_profile_id: "concierge-b",
+    service_request_id: "request",
+  });
+  f.tables.services_contracts.push({ id: "contract-b", collaboration_id: "collab-b" });
+
+  const response = await f.get("?status=active");
+  assert.equal(response.status, 200);
+  const { items } = await response.json();
+  assert.equal(items.length, 2);
+  assert.deepEqual(
+    items.map((item: Row) => [item.id, (item.concierge as Row).id, item.contractId]).sort(),
+    [["collab", "concierge", "contract"], ["collab-b", "concierge-b", "contract-b"]],
+  );
 });
 for (const [table, key, value] of [
   ["quotes", "owner_profile_id", "other"], ["quotes", "concierge_profile_id", "other"],
