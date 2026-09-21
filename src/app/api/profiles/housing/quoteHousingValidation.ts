@@ -125,8 +125,5 @@ export function assertHousingParticipants(housing: Row, ownerId: string, concier
   if (actualOwner !== ownerId) {
     throw new QuoteHousingValidationError("Le logement n'appartient pas au propriétaire attendu.");
   }
-  const manager = agree(HOUSING_MANAGER_KEYS.map((key) => ownership[key]), "Gestionnaire du logement");
-  if (manager && manager !== conciergeId) {
-    throw new QuoteHousingValidationError("Le logement possède déjà un autre gestionnaire. Son remplacement doit être explicite.");
-  }
+  void conciergeId;
 }

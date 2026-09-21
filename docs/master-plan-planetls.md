@@ -1,5 +1,13 @@
 # Master Plan PlanetLS
 
+### LOT 2B - Multi-collaborations minimales par logement — 21 septembre 2026
+
+- Collaborations par logement **🟡 En cours — P1 Prioritaire**. Le verrou d'unicité active par `housing_id` est retiré par la migration `20260921120000_allow_multi_housing_collaborations.sql`, tout en conservant l'identité métier par devis accepté : une collaboration reste idempotente par `quote_id`.
+- Portée volontairement limitée : le LOT 1 reste inchangé (`une demande = un devis gagnant`) et l'évolution ne crée pas d'allocation multiple par demande, de `executor_profile_id`, de moteur de conflit, ni de refonte missions/réservations.
+- Comportement retenu : un logement déjà géré par une autre concierge peut recevoir une nouvelle collaboration issue d'une autre demande et d'un autre devis accepté, sans remplacement du gestionnaire legacy du logement et sans écrasement des références existantes.
+- Historique et contrats : les collaborations successives ou parallèles d'un même logement restent distinguées par leurs `quote_id`, `collaboration_id`, contrats et versions contractuelles.
+- Validation locale : lint ciblé réussi, `npm run typecheck` relancé, tests ciblés LOT 2B réussis sur 142 tests. La migration et le rollback ont été ajoutés mais non exécutés faute de client SQL local disponible ; aucune action distante et aucun Docker n'ont été lancés.
+
 ### LOT 1 - Attribution unique d'une demande multi-devis — 21 septembre 2026
 
 - Sécurisation de l'attribution unique **🟡 En cours — P1 Prioritaire**. Les deux parcours d'acceptation relus, `PATCH /api/quotes/[id]/status` et `POST /api/service-requests/[id]/select`, passent par le même RPC serveur `award_service_request_quote` avant de créer mission, facture, logement ou collaboration. La sélection utilise le `quote_id` explicite fourni au parcours, et non une recherche ambiguë dans une liste de devis.

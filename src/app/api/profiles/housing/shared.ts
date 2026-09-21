@@ -90,14 +90,19 @@ export async function createHousingFromQuote(
     const currentOwner = linkedHousing.proprietaire as Record<string, unknown>;
     const currentContract = linkedHousing.contrat && typeof linkedHousing.contrat === "object" && !Array.isArray(linkedHousing.contrat)
       ? linkedHousing.contrat as Record<string, unknown> : {};
-    if (currentContract.quote_id === quoteId && currentOwner.manager_profile_id === managerProfileId) {
+    if (currentContract.quote_id === quoteId) {
       return { housingId: Number(linkedHousing.id), created: false, linkedExisting: true };
     }
     // Compare the ownership snapshot as well: never overwrite a concurrent reassignment.
     let update = asLooseSupabaseClient(db)
       .from("housing")
       .update({
-        proprietaire: { ...currentOwner, owner_profile_id: validation.ownerId, manager_profile_id: managerProfileId, source: "quote" },
+        proprietaire: {
+          ...currentOwner,
+          owner_profile_id: validation.ownerId,
+          manager_profile_id: currentOwner.manager_profile_id ?? currentOwner.concierge_profile_id ?? currentOwner.managed_by ?? managerProfileId,
+          source: "quote",
+        },
         contrat: { ...currentContract, quote_id: quoteId, quote_number: preview.quoteNumber, signed_at: preview.acceptedAt || new Date().toISOString() },
       })
       .eq("id", linkedHousing.id);

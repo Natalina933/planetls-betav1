@@ -37,8 +37,11 @@ test("identity, signature and revision fields cannot be smuggled into request", 
 
 const OWNER = "11111111-1111-4111-8111-111111111111";
 const CONCIERGE = "22222222-2222-4222-8222-222222222222";
+const CONCIERGE_B = "33333333-3333-4333-8333-333333333333";
 const COLLAB = "44444444-4444-4444-8444-444444444444";
+const COLLAB_B = "55555555-5555-4555-8555-555555555555";
 const VERSION = "66666666-6666-4666-8666-666666666666";
+const VERSION_B = "77777777-7777-4777-8777-777777777777";
 type ResponseModule = Record<string, (req: Request, context?: { params: Promise<{ id: string }> }) => Promise<Response>>;
 function fixture(role = "owner", userId: string | null = OWNER) {
   const tables: Record<string, Row[]> = {
@@ -177,6 +180,44 @@ test("GET exposes the latest version plus immutable history without writing", as
   assert.equal(response.currentVersion.id, "new-version");
   assert.equal(response.versions.length, 2);
   assert.equal(f.rpcCalls.length, 0);
+});
+
+test("two collaborations for the same housing keep separate contracts and versions", async () => {
+  const f = fixture();
+  f.tables.housing_collaborations[0].housing_id = 42;
+  f.tables.housing_collaborations.push({
+    id: COLLAB_B,
+    status: "pending_handover",
+    owner_profile_id: OWNER,
+    concierge_profile_id: CONCIERGE_B,
+    housing_id: 42,
+  });
+  f.tables.services_contracts.push({
+    id: "envelope-b",
+    collaboration_id: COLLAB_B,
+    profile_id: OWNER,
+    title: "Linked B",
+  });
+  f.tables.services_contract_versions.push({
+    id: VERSION_B,
+    contract_id: "envelope-b",
+    version_number: 1,
+    status: "draft",
+    revision: 1,
+    conditions: { ...conditions, mode: "FULL_MANAGEMENT" },
+  });
+
+  const contractA = f.tables.services_contracts.find((contract) => contract.collaboration_id === COLLAB);
+  const contractB = f.tables.services_contracts.find((contract) => contract.collaboration_id === COLLAB_B);
+  assert.equal(contractA?.id, "envelope");
+  assert.equal(contractB?.id, "envelope-b");
+  assert.equal(f.tables.services_contract_versions.find((version) => version.id === VERSION)?.contract_id, contractA?.id);
+  assert.equal(f.tables.services_contract_versions.find((version) => version.id === VERSION_B)?.contract_id, contractB?.id);
+
+  const responseA = await (await f.get(COLLAB)).json();
+  const responseB = await (await f.get(COLLAB_B)).json();
+  assert.equal(responseA.currentVersion.id, VERSION);
+  assert.equal(responseB.currentVersion.id, VERSION_B);
 });
 for (const [code, status] of [["40001", 409], ["42501", 403], ["23514", 400], ["XX000", 500]] as const) {
   test(`transition RPC ${code} surfaces as HTTP ${status}`, async () => {

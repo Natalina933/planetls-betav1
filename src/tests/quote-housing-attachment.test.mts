@@ -11,11 +11,15 @@ const root = fileURLToPath(new URL("../../", import.meta.url));
 const OWNER = "11111111-1111-4111-8111-111111111111";
 const CONCIERGE = "22222222-2222-4222-8222-222222222222";
 const OTHER = "33333333-3333-4333-8333-333333333333";
+const CONCIERGE_B = "88888888-8888-4888-8888-888888888888";
 const Q = "44444444-4444-4444-8444-444444444444";
 const Q2 = "44444444-4444-4444-8444-555555555555";
+const QB = "44444444-4444-4444-8444-666666666666";
 const R = "55555555-5555-4555-8555-555555555555";
+const RB = "55555555-5555-4555-8555-666666666666";
 const RECIPIENT = "66666666-6666-4666-8666-666666666666";
 const RECIPIENT2 = "66666666-6666-4666-8666-777777777777";
+const RECIPIENT_B = "66666666-6666-4666-8666-888888888888";
 const PROPERTY = "77777777-7777-4777-8777-777777777777";
 const asRow = (v: unknown) => v as Row;
 
@@ -209,7 +213,6 @@ for (const kind of ["accept", "select"] as const) {
 
   const cases: Array<[string, (db: MemoryDb) => void]> = [
     ["foreign owner", (db) => { asRow(db.tables.housing[0].proprietaire).owner_profile_id = OTHER; }],
-    ["foreign manager", (db) => { asRow(db.tables.housing[0].proprietaire).manager_profile_id = OTHER; }],
     ["foreign concierge quote", (db) => { db.tables.quotes[0].concierge_profile_id = OTHER; }],
     ["wrong request", (db) => { db.tables.quotes[0].service_request_id = OTHER; }],
     ["conflicting request metadata", (db) => { db.tables.quotes[0].metadata = { service_request_id: OTHER }; }],
@@ -267,6 +270,15 @@ for (const kind of ["accept", "select"] as const) {
     assert.equal((await call()).status, 200);
     assert.equal(asRow(db.tables.housing[0].proprietaire).manager_profile_id, CONCIERGE);
   });
+
+  test(`${kind}: a home managed by another concierge can create a separate collaboration without replacing it`, async () => {
+    const { db, call } = setup(kind);
+    asRow(db.tables.housing[0].proprietaire).manager_profile_id = OTHER;
+    assert.equal((await call()).status, 200);
+    assert.equal(asRow(db.tables.housing[0].proprietaire).manager_profile_id, OTHER);
+    assert.equal(db.tables.housing_collaborations.length, 1);
+    assert.equal(db.tables.housing_collaborations[0].concierge_profile_id, CONCIERGE);
+  });
 }
 
 type CollaborationInput = {
@@ -314,6 +326,63 @@ test("accept: a losing quote cannot overwrite the winner or create business effe
   assert.deepEqual(db.tables.missions, afterWinner.missions);
   assert.deepEqual(db.tables.invoices, afterWinner.invoices);
   assert.deepEqual(db.tables.housing_collaborations, afterWinner.housing_collaborations);
+});
+
+test("accept: same housing can keep collaboration A and create collaboration B for another request", async () => {
+  const { db, load, call } = setup("accept");
+  assert.equal((await call()).status, 200);
+  const collaborationA = structuredClone(db.tables.housing_collaborations[0]);
+
+  db.tables.service_requests.push({
+    id: RB,
+    owner_profile_id: OWNER,
+    metadata: { property_housing_id: "42" },
+    title: "Accueil voyageurs",
+  });
+  db.tables.service_request_recipients.push({
+    id: RECIPIENT_B,
+    service_request_id: RB,
+    concierge_profile_id: CONCIERGE_B,
+    status: "quoted",
+  });
+  db.tables.quotes.push({
+    id: QB,
+    owner_profile_id: OWNER,
+    concierge_profile_id: CONCIERGE_B,
+    service_request_id: RB,
+    service_request_recipient_id: RECIPIENT_B,
+    status: "sent",
+    quote_number: "DV-B",
+    total_amount: 45,
+    metadata: {},
+    quote_items: [],
+  });
+  db.tables.quote_items.push({ id: "item-b", quote_id: QB, label: "Accueil", quantity: 1, unit_price: 45, line_total: 45 });
+
+  const route = load("@/app/api/quotes/[id]/status/route");
+  const response = await (route.PATCH as Handler)(
+    { json: async () => ({ status: "accepted" }) },
+    { params: Promise.resolve({ id: QB }) },
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(db.tables.housing_collaborations.length, 2);
+  assert.deepEqual(db.tables.housing_collaborations[0], collaborationA);
+  const collaborationB = db.tables.housing_collaborations.find((row) => row.quote_id === QB);
+  assert.equal(collaborationB?.housing_id, 42);
+  assert.equal(collaborationB?.concierge_profile_id, CONCIERGE_B);
+  assert.equal(db.tables.missions.some((mission) => mission.concierge_profile_id === CONCIERGE_B), true);
+});
+
+test("collaboration writer allows a new quote after an ended collaboration on the same housing", async () => {
+  const db = new MemoryDb();
+  const save = collaborationWriter(db);
+  await save(collaborationInput(db));
+  db.tables.housing_collaborations[0].status = "ended";
+  const second = await save({ ...collaborationInput(db), quoteId: QB });
+  assert.equal(db.tables.housing_collaborations.length, 2);
+  assert.equal(db.tables.housing_collaborations[0].status, "ended");
+  assert.equal(second.quote_id, QB);
 });
 
 test("acceptance helper never erases existing references when optional inputs are missing", async () => {

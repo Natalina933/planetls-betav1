@@ -146,6 +146,15 @@ test("repository SELECT RLS scopes access to either participant (not a live data
   assert.match(sql, /for select\s+using \(auth.uid\(\) = owner_profile_id or auth.uid\(\) = concierge_profile_id\)/i);
 });
 
+test("multi-collaboration migration removes housing-only uniqueness and keeps quote identity", () => {
+  const initial = readFileSync(new URL("../../supabase/migrations/20260621000100_housing_collaborations.sql", import.meta.url), "utf8");
+  const migration = readFileSync(new URL("../../supabase/migrations/20260921120000_allow_multi_housing_collaborations.sql", import.meta.url), "utf8");
+  assert.match(initial, /unique \(quote_id\)/i);
+  assert.match(migration, /drop index if exists public\.housing_collaborations_one_active_per_housing/i);
+  assert.doesNotMatch(migration, /create unique index/i);
+  assert.match(migration, /housing_collaborations_housing_status_idx/i);
+});
+
 test("shared UI renders loading, empty, error and pending states without active claims", async () => {
   const items = (await (await fixture().get()).json()).items;
   const types = execute(source("features/housing-collaborations/types.ts"), () => { throw new Error("Unexpected import"); });
