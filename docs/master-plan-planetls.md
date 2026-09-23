@@ -1,5 +1,57 @@
 # Master Plan PlanetLS
 
+### LOT 2F - Mode de prestation concierge canonique `profiles.service_mode` — 22 septembre 2026
+
+- Persistance canonique **🟢 Terminé — P1 Prioritaire**. Nouvelle colonne `profiles.service_mode` (text null, CHECK `null | a_la_carte | full_management | both`, pas de default, pas de backfill) via migration `supabase/migrations/20260922120000_add_profiles_service_mode.sql` (idempotente, `add column if not exists` + `drop constraint if exists`).
+- Source unique du type : `ConciergeServiceMode` / `CONCIERGE_SERVICE_MODES` dans `src/types/profile.ts`, réutilisée par `src/types/supabase.ts` (Row/Insert/Update) et par la validation de `PATCH /api/profiles` (`src/app/api/profiles/pure.ts`, `allowConciergeServiceMode` concierge+admin, valeurs arbitraires rejetées en `ignoredFields`, `null` accepté pour effacement explicite).
+- `/api/profiles/current` retourne désormais `service_mode` via `CURRENT_PROFILE_SELECT` (`src/server/profiles/currentProfile.ts`).
+- Onboarding concierge (`ConciergePostSignupOnboarding.tsx`) : le type UI historique `a-la-carte / full-management / both` est remplacé par le canonique ; l'étape Services envoie `service_mode` avec `availability_hours` ; préremplissage depuis le profil sans invention si `service_mode` est null ; l'ancienne logique « la gestion complète ne peut pas être enregistrée » est supprimée.
+- Décision : `service_mode` et les prestations individuelles à la carte restent deux données distinctes. `full_management` n'active aucun service fictif (check-in, ménage, linge, etc.) ; `both` conserve les prestations ponctuelles sélectionnées dans le modèle `availability_hours` existant.
+- Récapitulatif « Votre profil est prêt » : le libellé du mode provient de la valeur persistée (`persistedServiceMode`, issue de la réponse du PATCH ou de `/api/profiles/current`) et non plus uniquement d'un état local temporaire.
+- Profils historiques : `service_mode = null` est valide et ne déclenche aucune déduction depuis `signupMode`, `missionPreference`, `option`, services, packs, contrats ou collaborations.
+- Validations acquises : `db reset` réussi sur base locale fraîche (historique rejouable de zéro) ; migration appliquée via `db push` sur le projet distant et enregistrée dans `supabase_migrations.schema_migrations` ; colonne distante vérifiée (`text`, nullable) ; CHECK distante vérifiée (`profiles_service_mode_check` = NULL | a_la_carte | full_management | both) ; RLS `profiles` toujours actif ; aucun backfill des profils existants (tous à `null`). Historique Local/Remote réaligné au préalable : 7 migrations historiques restaurées depuis la sauvegarde `.temp/pls-sec-003-history` et 7 réparées côté distant (`20260219120000` → `20260307110000`), checkout dupliqué volontairement non restauré (`20260312100000` ≡ `20260912193000`).
+- Tests : `profile-patch-policy.test.mts` 11/11 (cas `service_mode` acceptés/refusés), `npm run typecheck` OK, ESLint ciblé OK, `git diff --check` OK.
+
+### Dette technique — policies RLS `profiles` (hors LOT 2F)
+
+- **🟠 Partiel — P2 Important.** `public.profiles` porte 8 policies avec doublons fonctionnels : 2× UPDATE équivalents (`Allow user to update own profile`, `Users can update own profile`), 3× SELECT dont `Utilisateur peut voir son propre profil` exposé au rôle `public`, 2× INSERT, `admin_manage_profiles` (ALL). Consolidation à prévoir dans un lot de durcissement RLS dédié (conservation d'une policy par action, restriction du rôle `public`, audit des autres tables en doublon), sans impact sur le LOT 2F.
+
+### LOT 2E - Onboarding concierge, finalisation — 22 septembre 2026
+### LOT 2E - Onboarding concierge, finalisation — 22 septembre 2026
+
+- Onboarding post-inscription concierge **✅ Terminé — P1 Prioritaire** pour le parcours minimal `welcome -> activity -> services -> organization -> complete`.
+- L'écran `complete` affiche un récapitulatif compact des informations réellement présentes pour activité, services et organisation, puis finalise via `markConciergeOnboardingComplete()`.
+- Finalisation : le CTA `Découvrir mon espace` attend la réussite de `PATCH /api/profiles` avec `onboarding_complete: true` avant de fermer l'onboarding. L'API existante reste responsable de `onboarding_completed_at`.
+- Garde-fous : échec serveur affiché dans la modale, pas de fermeture définitive avant confirmation, pas de localStorage, pas de redirection profil, pas de persistance ajoutée pour le mode global `À la carte / Gestion complète / Les deux`.
+
+### LOT 2D - Onboarding concierge, étape organisation — 22 septembre 2026
+
+- Onboarding post-inscription concierge **🟡 En cours — P1 Prioritaire**. L'étape `organization` est désormais implémentée entre `services` et un état local `complete`, sans appeler la finalisation serveur.
+- Portée livrée : ville/zone principale via `location`, `service_area` et `city`, rayon via `service_radius_km`, et disponibilités particulières via `availability_hours.missionProfile.specialConditions`.
+- Décision : aucune zone secondaire, aucun planning détaillé, aucun jour férié et aucun type de logement ne sont ajoutés dans ce lot. `availability_hours.schedule`, `rules`, `missionCatalog`, `preferences`, `zones` et les données existantes sont préservés par fusion.
+- Sauvegarde : `PATCH /api/profiles` ne reçoit pas `onboarding_complete`; la vraie finalisation reste réservée au LOT 2E.
+
+### LOT 2C - Onboarding concierge, étape services — 22 septembre 2026
+
+- Onboarding post-inscription concierge **🟡 En cours — P1 Prioritaire**. L'étape `services` est désormais intégrée dans `ConciergePostSignupOnboarding` entre `activity` et `organization`, sans finaliser l'onboarding et sans modifier l'inscription publique.
+- Portée livrée : choix visuel entre `Prestations à la carte`, `Gestion complète` et `Les deux`, puis sélection libre de prestations à la carte groupées par famille. Les services à la carte sont persistés via le modèle existant `availability_hours.missionProfile`, `missionCatalog` et `preferences`.
+- Décision : le mode business `a-la-carte / full-management / both` n'est pas persisté dans ce lot, car le modèle actuel ne possède pas de champ canonique dédié. La gestion complète affiche son socle informatif sans activer artificiellement les missions `check-in`, `check-out`, `ménage`, `linge`, `intendance` ou `maintenance`.
+- Sauvegarde : `PATCH /api/profiles` ne reçoit que `availability_hours` pour les prestations à la carte compatibles. `onboarding_complete` reste `false`; l'étape `organization` reste un placeholder pour le prochain lot.
+
+### LOT 2B - Onboarding concierge, étape activité — 22 septembre 2026
+
+- Onboarding post-inscription concierge **🟡 En cours — P1 Prioritaire**. Le conteneur `ConciergePostSignupOnboarding` gère désormais la navigation `welcome -> activity -> services` sans redirection automatique vers le profil.
+- Étape `activity` livrée : expérience via `experience_level` avec la nomenclature existante `debutant / intermediaire / experimente`, années via `years_experience`, et situation via `legal_form` uniquement pour les formes juridiques représentables (`micro-entreprise`, `societe`, `autre`).
+- Décision : `Complément de revenu` n'est pas persisté dans ce lot, car le modèle actuel ne possède pas de champ dédié distinct de la forme juridique. Aucune migration, aucun champ JSON et aucune API nouvelle.
+- Sauvegarde : `PATCH /api/profiles` conserve `onboarding_complete` à `false`; la finalisation reste réservée à la future étape `organization`.
+
+### LOT 2A - Onboarding post-inscription concierge — 22 septembre 2026
+
+- Onboarding post-inscription concierge **🟡 En cours — P1 Prioritaire**. Le dashboard concierge déclenche désormais un conteneur de bienvenue uniquement lorsque `profile.onboarding_complete === false`, valeur récupérée via `/api/profiles/current` et exposée par `useCurrentUser`.
+- Périmètre livré : première vue sobre "Bienvenue sur PlanetLS", étapes préparées `welcome -> activity -> services -> organization -> complete`, CTA vers `/dashboard/concierge/profile?tab=missions`, fermeture locale sans écriture base et fonction de finalisation future via `PATCH /api/profiles` avec `onboarding_complete: true`.
+- Décision : ne pas réintroduire `signupMode`, `Simple`, `Express` ou `Business+` pour le déclenchement concierge. Les composants anciens `NextStepsPopup`, `ConciergeWelcomeNextStep` et `onboardingPayload.ts` restent non branchés et non supprimés.
+- Limites reportées : les formulaires détaillés activité/services/organisation restent à construire ou extraire depuis les écrans profil existants ; les composants `profileTabSections.tsx`, `profileEditing.ts` et `EditableUnifiedProfilePage.tsx` sont réutilisables par logique/champs mais trop couplés pour une extraction complète dans ce lot minimal.
+
 ### LOT 5A / 5B - Séjour, besoins et attribution explicite des missions — 21 septembre 2026
 
 - Audit LOT 5A **✅ Terminé — P1 Prioritaire**. Le code confirme que `reservations` est le séjour canonique, que plusieurs `missions` peuvent partager le même `reservation_id`, et que `missions.concierge_profile_id` porte la responsabilité opérationnelle mission par mission.
