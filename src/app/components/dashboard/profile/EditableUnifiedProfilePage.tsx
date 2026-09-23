@@ -23,7 +23,6 @@ import {
 import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/ProfileSummary";
 import { ProfileIdentity } from "@/app/components/dashboard/concierge/ProfileSummary/profileIdentity";
 import { buildBasicProfileCompletion, buildCompletionState } from "@/app/components/dashboard/profile/completion";
-import { ProfileOverviewWorkspace } from "@/app/components/dashboard/profile/ProfileOverviewWorkspace";
 import {
   UNIFIED_PROFILE_TABS,
   type UnifiedProfileTabId,
@@ -179,6 +178,7 @@ export default function EditableUnifiedProfilePage({
   const [activeTab, setActiveTab] = useState<UnifiedProfileTabId>(resolvedInitialTab);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     [SECTION_IDS.SUMMARY]: true,
+    [SECTION_IDS.AVATAR]: true,
     [SECTION_IDS.ACCOUNT]: true,
     [SECTION_IDS.ADDRESS]: true,
     [SECTION_IDS.SOCIALS]: true,
@@ -461,7 +461,47 @@ export default function EditableUnifiedProfilePage({
       form.username ||
       form.company_name ||
       emptyDisplayName;
-  const currentAvatar = form.avatar_url || DEFAULT_AVATAR;
+  const avatarPreviewUrl = React.useMemo(
+    () => (avatarFile ? URL.createObjectURL(avatarFile) : null),
+    [avatarFile],
+  );
+  useEffect(() => {
+    return () => {
+      if (avatarPreviewUrl) URL.revokeObjectURL(avatarPreviewUrl);
+    };
+  }, [avatarPreviewUrl]);
+  const currentAvatar = avatarPreviewUrl || form.avatar_url || DEFAULT_AVATAR;
+  const publicRoleLabel = roleLabel.toUpperCase();
+  const publicLocation = [form.city, form.country].filter(Boolean).join(", ");
+  const completionItems = showProfessionalDetails
+    ? [
+        { label: "Photo", complete: Boolean(form.avatar_url || avatarFile) },
+        { label: "Coordonnées", complete: Boolean(form.first_name && form.last_name && form.email && form.phone) },
+        { label: "Présentation", complete: Boolean(form.additional_info.trim()) },
+        { label: "Entreprise", complete: Boolean(form.company_name.trim() || form.siret.trim()) },
+        { label: "Localisation", complete: Boolean(form.city.trim() || form.service_area.trim()) },
+        { label: "Confiance", complete: Boolean(form.insurance_company.trim() || form.certifications.trim()) },
+      ]
+    : [
+        { label: "Photo", complete: Boolean(form.avatar_url || avatarFile) },
+        { label: "Coordonnées", complete: Boolean(form.first_name && form.last_name && form.email && form.phone) },
+        { label: "Présentation", complete: Boolean(form.additional_info.trim()) },
+        { label: "Biens", complete: Boolean(form.company_name.trim() || form.street_address.trim()) },
+        { label: "Localisation", complete: Boolean(form.city.trim()) },
+        { label: "Confiance", complete: Boolean(form.email && form.phone) },
+      ];
+  const completionTarget =
+    completionItems.find((item) => !item.complete)?.label === "Photo"
+      ? SECTION_IDS.AVATAR
+      : !form.first_name || !form.last_name || !form.phone
+        ? SECTION_IDS.ACCOUNT
+        : !form.additional_info.trim()
+          ? SECTION_IDS.PRESENTATION
+          : !form.city.trim()
+            ? SECTION_IDS.ADDRESS
+            : showProfessionalDetails
+              ? SECTION_IDS.PROFESSIONAL
+              : SECTION_IDS.ACCOUNT;
   const isVerified = Boolean(
     form.email && form.phone && form.city && (!requireCompanyForVerified || form.company_name),
   );
@@ -661,15 +701,117 @@ export default function EditableUnifiedProfilePage({
       activeTab={activeTab}
       onTabChange={handleTabChange}
     >
-      <div className={conciergeStyles.grid}>
-        <aside className={conciergeStyles.leftColumn}>
-          <article className={conciergeStyles.profileCard}>
+      <div className={conciergeStyles.profilePage}>
+        <p className={conciergeStyles.profileSectionLead}>{identityIntro}</p>
+
+        <div className={conciergeStyles.profileTopGrid}>
+          <article className={conciergeStyles.publicProfileCard}>
+            <div className={conciergeStyles.publicProfileCover}>
+              <img src={currentAvatar} alt="" />
+            </div>
+            <div className={conciergeStyles.publicProfileBody}>
+              <div className={conciergeStyles.publicProfileIdentity}>
+                <div className={conciergeStyles.publicProfileAvatar}>
+                  <img src={currentAvatar} alt="" />
+                </div>
+                <div>
+                  <span className={conciergeStyles.publicProfileBadge}>{publicRoleLabel}</span>
+                  <h2>{displayName || "Non renseigné"}</h2>
+                  <p>{publicLocation || "Non renseigné"}</p>
+                </div>
+              </div>
+              <p className={conciergeStyles.publicProfileText}>
+                {form.additional_info || "Non renseigné"}
+              </p>
+              <div className={conciergeStyles.publicProfileStats}>
+                <div>
+                  <span>{showProfessionalDetails ? "Métier" : "Statut"}</span>
+                  <strong>{showProfessionalDetails ? form.category || "Non renseigné" : roleLabel}</strong>
+                </div>
+                <div>
+                  <span>Expérience</span>
+                  <strong>{form.years_experience ? `${form.years_experience} ans` : "Non renseigné"}</strong>
+                </div>
+                <div>
+                  <span>Structure</span>
+                  <strong>{form.company_name || "Non renseigné"}</strong>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <aside className={conciergeStyles.profileCompletion}>
+            <div className={conciergeStyles.profileCompletionHeader}>
+              <span>Complétez votre profil</span>
+              <strong>{profileCompletion.percentage}%</strong>
+            </div>
+            <div className={conciergeStyles.profileCompletionTrack}>
+              <span style={{ width: `${profileCompletion.percentage}%` }} />
+            </div>
+            <div className={conciergeStyles.profileCompletionList}>
+              {completionItems.map((item) => (
+                <div
+                  key={item.label}
+                  className={`${conciergeStyles.profileCompletionItem} ${
+                    item.complete
+                      ? conciergeStyles.profileCompletionItemDone
+                      : conciergeStyles.profileCompletionItemMissing
+                  }`}
+                >
+                  <span>{item.complete ? "Complet" : "Manquant"}</span>
+                  <strong>{item.label}</strong>
+                </div>
+              ))}
+            </div>
+            <p>
+              {profileCompletion.missingItems[0]
+                ? `Priorité : ${profileCompletion.missingItems[0]}`
+                : "La fiche est cohérente. Pensez seulement à la relire régulièrement."}
+            </p>
+            <button
+              type="button"
+              className={conciergeStyles.profileCompletionAction}
+              onClick={() => {
+                beginEditSection(completionTarget);
+                setOpenSections((current) => ({ ...current, [completionTarget]: true }));
+              }}
+            >
+              Compléter mon profil
+            </button>
+          </aside>
+        </div>
+
+        <div className={conciergeStyles.profileInfoGrid}>
+          {renderPresentationSection()}
+          {renderAccountSection()}
+          {showProfessionalDetails ? renderProfessionalSection() : renderAddressSection()}
+        </div>
+
+        <div className={conciergeStyles.profileInfoGridSecondary}>
+          {showProfessionalDetails ? renderAddressSection() : null}
+          {renderSocialsSection()}
+          <EditableProfileSection
+            styles={conciergeStyles}
+            title="Photo de profil"
+            icon={<FiClipboard />}
+            canEdit={false}
+            collapsible
+            isOpen={openSections[SECTION_IDS.AVATAR] ?? true}
+            isEditing={editingSection === SECTION_IDS.AVATAR}
+            isDirty={isSectionDirty(SECTION_IDS.AVATAR)}
+            isLoading={saving}
+            onToggle={() => toggleSection(SECTION_IDS.AVATAR)}
+            onHeaderKeyDown={handleHeaderKeyDown}
+            onBeginEdit={() => beginEditSection(SECTION_IDS.AVATAR)}
+            onSave={() => void saveSection(SECTION_IDS.AVATAR)}
+            onCancel={cancelEditSection}
+          >
             <ProfileIdentity
               fullName={displayName}
               roleLabel={roleLabel}
               email={form.email}
               phone={form.phone}
-              location={form.city || "Ville non renseignÃ©e"}
+              location={form.city || "Ville non renseignée"}
               isEditing={editingSection === SECTION_IDS.AVATAR}
               avatarFile={avatarFile}
               existingAvatarUrl={currentAvatar}
@@ -709,34 +851,21 @@ export default function EditableUnifiedProfilePage({
               }
               onEditAvatarClick={() => beginEditSection(SECTION_IDS.AVATAR)}
             />
-
-            <p className={conciergeStyles.sectionIntroText}>{identityIntro}</p>
-
-            <div className={conciergeStyles.profileStats}>
-              <div className={conciergeStyles.profileStatItem}>
-                <p className={conciergeStyles.profileStatLabel}>Ville</p>
-                <div className={conciergeStyles.profileStatValue}>{form.city || "-"}</div>
-              </div>
-              <div className={conciergeStyles.profileStatItem}>
-                <p className={conciergeStyles.profileStatLabel}>Structure</p>
-                <div className={conciergeStyles.profileStatValue}>{form.company_name || "-"}</div>
-              </div>
-            </div>
-          </article>
-
-          <div className={conciergeStyles.badgeCard}>
+          </EditableProfileSection>
+          <div className={conciergeStyles.profileInfoCard}>
+            <div className={conciergeStyles.badgeCard}>
               <h4 className={conciergeStyles.badgeTitle}>
                 <FiShield />
-                {isVerified ? "Badge vÃ©rifiÃ©" : "VÃ©rification en attente"}
+                {isVerified ? "Badge vérifié" : "Vérification en attente"}
               </h4>
-            <p className={conciergeStyles.badgeText}>
-              {isVerified ? verifiedCompleteText : verifiedPendingText}
-            </p>
+              <p className={conciergeStyles.badgeText}>
+                {isVerified ? verifiedCompleteText : verifiedPendingText}
+              </p>
+            </div>
           </div>
-
           <EditableProfileSection
             styles={conciergeStyles}
-            title="RÃ©sumÃ© du profil"
+            title="Résumé du profil"
             icon={<FiHome />}
             canEdit={false}
             collapsible
@@ -764,50 +893,8 @@ export default function EditableUnifiedProfilePage({
               }}
             />
           </EditableProfileSection>
-
-        </aside>
-
-        <div className={conciergeStyles.rightColumn}>
-          {activeTab === "overview" ? (
-            <>
-              <ProfileOverviewWorkspace
-                tone={roleLabel.toLowerCase().includes("prestataire") ? "provider" : "owner"}
-                eyebrow="Pilotage du profil"
-                title="Profil"
-                description="Cette vue rassemble uniquement l'Ã©tat de votre profil. Les autres onglets servent ensuite Ã  complÃ©ter votre identitÃ©, vos coordonnÃ©es et votre prÃ©sentation, sans redondance."
-                chips={["Vue synthÃ¨se", "Profil", "Fiche visible"]}
-                actions={[
-                  { label: "Compte", href: "?tab=account", variant: "primary" },
-                  { label: "Adresse", href: "?tab=address", variant: "secondary" },
-                  { label: "RÃ©seaux", href: "?tab=socials", variant: "secondary" },
-                  { label: "PrÃ©sentation", href: "?tab=presentation", variant: "secondary" },
-                ]}
-                card={{
-                  title: "Profil",
-                  description:
-                    "ComplÃ©tez votre fiche pour renforcer votre visibilitÃ© et dÃ©bloquer les Ã©tapes de vÃ©rification.",
-                  percentage: profileCompletion.percentage,
-                  completedCount: profileCompletion.completedCount,
-                  totalCount: profileCompletion.totalCount,
-                  missingItems: profileCompletion.missingItems,
-                  actionLabel: "ComplÃ©ter mon compte",
-                  actionHref: "?tab=account",
-                }}
-              />
-            </>
-          ) : null}
-          {activeTab === "account" ? (
-            <>
-              {renderAccountSection()}
-              {showProfessionalDetails ? renderProfessionalSection() : null}
-            </>
-          ) : null}
-          {activeTab === "address" ? renderAddressSection() : null}
-          {activeTab === "socials" ? renderSocialsSection() : null}
-          {activeTab === "presentation" ? renderPresentationSection() : null}
         </div>
       </div>
     </ProfilePageShell>
   );
 }
-
