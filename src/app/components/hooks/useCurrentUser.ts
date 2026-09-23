@@ -16,6 +16,8 @@ export interface CurrentUser {
   availability_hours?: string | null;
   service_radius_km?: number | null;
   service_area?: string | null;
+  onboarding_complete?: boolean | null;
+  onboarding_completed_at?: string | null;
 }
 
 export function useCurrentUser() {
@@ -45,6 +47,8 @@ export function useCurrentUser() {
       availability_hours: current?.availability_hours ?? null,
       service_radius_km: current?.service_radius_km ?? null,
       service_area: current?.service_area ?? null,
+      onboarding_complete: current?.onboarding_complete ?? null,
+      onboarding_completed_at: current?.onboarding_completed_at ?? null,
     }));
     setLoading(true);
 
@@ -103,6 +107,8 @@ export function useCurrentUser() {
         availability_hours: user?.availability_hours ?? null,
         service_radius_km: user?.service_radius_km ?? null,
         service_area: user?.service_area ?? null,
+        onboarding_complete: user?.onboarding_complete ?? null,
+        onboarding_completed_at: user?.onboarding_completed_at ?? null,
       }
     : user;
 

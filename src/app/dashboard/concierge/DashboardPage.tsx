@@ -66,6 +66,7 @@ import {
   buildYoutubeSearchUrl,
   parseConciergeInspirationLibrary,
 } from "./inspirationVideos";
+import ConciergePostSignupOnboarding from "./ConciergePostSignupOnboarding";
 import styles from "./Dashboard.module.scss";
 
 function getDateTime(value: string | Date | null | undefined) {
@@ -528,6 +529,7 @@ export default function DashboardPage() {
     | (CurrentUser & {
       experience_level?: string | null;
       years_experience?: number | null;
+      onboarding_complete?: boolean | null;
     })
     | null;
     loading: boolean;
@@ -553,6 +555,11 @@ export default function DashboardPage() {
   );
   const [syncedOperatingMode, setSyncedOperatingMode] = useState(dashboardPreferences.operatingMode);
   const [widgets, setWidgets] = useState(DEFAULT_CONCIERGE_WIDGETS);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+
+  useEffect(() => {
+    setOnboardingOpen(user?.onboarding_complete === false);
+  }, [user?.onboarding_complete]);
 
   useEffect(() => {
     try {
@@ -1185,6 +1192,10 @@ export default function DashboardPage() {
 
   return (
     <div className="theme-concierge">
+      <ConciergePostSignupOnboarding
+        open={onboardingOpen && user?.onboarding_complete === false}
+        onClose={() => setOnboardingOpen(false)}
+      />
       <UnifiedRoleDashboard
         role="concierge"
         className="concierge-dashboard"
@@ -1704,7 +1715,6 @@ export default function DashboardPage() {
     </div>
   );
 }
-
 
 
 
