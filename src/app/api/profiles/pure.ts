@@ -1,6 +1,11 @@
+// Import relatif : ce module est importé par les tests Node (src/tests/*.test.mts)
+// qui ne résolvent pas l'alias "@/". Le type canonique reste unique (src/types/profile.ts).
+import { CONCIERGE_SERVICE_MODES } from "../../../types/profile.ts";
+
 const OWNER_ROLES = new Set(["owner", "owner_pro"]);
 const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro"]);
 const PROVIDER_ROLES = new Set(["provider", "provider_pro", "artisan", "artisan_pro"]);
+const VALID_CONCIERGE_SERVICE_MODES = new Set<string>(CONCIERGE_SERVICE_MODES);
 
 const COMMON_STRING_FIELDS = [
   "username",
@@ -110,6 +115,7 @@ type ProfilePatchPolicy = {
   allowRoleMutation: boolean;
   allowExperienceLevel: boolean;
   allowOwnerPreferencesObject: boolean;
+  allowConciergeServiceMode: boolean;
 };
 
 type ProfilePatchPrimitive = string | number | boolean | null;
@@ -162,6 +168,7 @@ export function getProfilePatchPolicy(role: string | null | undefined, isAdmin: 
         "skills",
         "iban",
         "bic",
+        "service_mode",
       ]),
       numberFields: new Set([
         "avatar_scale",
@@ -178,6 +185,7 @@ export function getProfilePatchPolicy(role: string | null | undefined, isAdmin: 
       allowRoleMutation: true,
       allowExperienceLevel: true,
       allowOwnerPreferencesObject: false,
+      allowConciergeServiceMode: true,
     };
   }
 
@@ -193,6 +201,7 @@ export function getProfilePatchPolicy(role: string | null | undefined, isAdmin: 
       allowRoleMutation: false,
       allowExperienceLevel: false,
       allowOwnerPreferencesObject: true,
+      allowConciergeServiceMode: false,
     };
   }
 
@@ -204,6 +213,7 @@ export function getProfilePatchPolicy(role: string | null | undefined, isAdmin: 
       allowRoleMutation: false,
       allowExperienceLevel: true,
       allowOwnerPreferencesObject: false,
+      allowConciergeServiceMode: true,
     };
   }
 
@@ -215,6 +225,7 @@ export function getProfilePatchPolicy(role: string | null | undefined, isAdmin: 
       allowRoleMutation: false,
       allowExperienceLevel: true,
       allowOwnerPreferencesObject: false,
+      allowConciergeServiceMode: false,
     };
   }
 
@@ -225,6 +236,7 @@ export function getProfilePatchPolicy(role: string | null | undefined, isAdmin: 
     allowRoleMutation: false,
     allowExperienceLevel: false,
     allowOwnerPreferencesObject: false,
+    allowConciergeServiceMode: false,
   };
 }
 
@@ -261,6 +273,7 @@ export function sanitizeProfilePatchBody(
     ...(policy.allowRoleMutation ? ["role"] : []),
     ...(policy.allowExperienceLevel ? ["experience_level"] : []),
     ...(policy.allowOwnerPreferencesObject ? ["owner_preferences"] : []),
+    ...(policy.allowConciergeServiceMode ? ["service_mode"] : []),
   ]);
 
   for (const [key, value] of Object.entries(body)) {
@@ -290,6 +303,15 @@ export function sanitizeProfilePatchBody(
     if (policy.booleanFields.has(key)) {
       if (typeof value === "boolean" || value === null) {
         updateData[key] = value;
+      }
+      continue;
+    }
+
+    if (key === "service_mode" && policy.allowConciergeServiceMode) {
+      if (value === null || (typeof value === "string" && VALID_CONCIERGE_SERVICE_MODES.has(value))) {
+        updateData[key] = value;
+      } else {
+        ignoredFields.push(key);
       }
       continue;
     }

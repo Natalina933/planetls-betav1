@@ -1,5 +1,6 @@
 // src/types/supabase.ts
 import type { ContractDraft } from "@/features/housing-collaborations/contractConditions";
+import type { ConciergeServiceMode } from "./profile";
 export type Json =
   | string
   | number
@@ -161,6 +162,7 @@ export type Database = {
           insurance_number: string | null;
           insurance_company: string | null;
           service_area: string | null;
+          service_mode: ConciergeServiceMode | null;
           service_radius_km: number | null;
           hourly_rate: number | null;
           monthly_rate: number | null;
@@ -209,6 +211,7 @@ export type Database = {
           insurance_number?: string | null;
           insurance_company?: string | null;
           service_area?: string | null;
+          service_mode?: ConciergeServiceMode | null;
           service_radius_km?: number | null;
           hourly_rate?: number | null;
           monthly_rate?: number | null;
@@ -257,6 +260,7 @@ export type Database = {
           insurance_number?: string | null;
           insurance_company?: string | null;
           service_area?: string | null;
+          service_mode?: ConciergeServiceMode | null;
           service_radius_km?: number | null;
           hourly_rate?: number | null;
           monthly_rate?: number | null;

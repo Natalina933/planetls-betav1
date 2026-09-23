@@ -2349,6 +2349,7 @@ export type Database = {
           role: string | null
           search_target: string | null
           service_area: string | null
+          service_mode: string | null
           service_radius_km: number | null
           siren: string | null
           siret: string | null
@@ -2409,6 +2410,7 @@ export type Database = {
           role?: string | null
           search_target?: string | null
           service_area?: string | null
+          service_mode?: string | null
           service_radius_km?: number | null
           siren?: string | null
           siret?: string | null
@@ -2469,6 +2471,7 @@ export type Database = {
           role?: string | null
           search_target?: string | null
           service_area?: string | null
+          service_mode?: string | null
           service_radius_km?: number | null
           siren?: string | null
           siret?: string | null

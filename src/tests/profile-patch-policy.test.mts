@@ -31,6 +31,36 @@ test("concierge patch policy allows operational profile fields", () => {
   assert.equal(policy.numberFields.has("monthly_rate"), true);
   assert.equal(policy.booleanFields.has("emergency_service"), true);
   assert.equal(policy.allowExperienceLevel, true);
+  assert.equal(policy.allowConciergeServiceMode, true);
+});
+
+test("concierge service_mode accepts canonical values and null", () => {
+  const policy = getProfilePatchPolicy("concierge", false);
+
+  for (const value of ["a_la_carte", "full_management", "both", null]) {
+    const result = sanitizeProfilePatchBody({ service_mode: value }, policy);
+    assert.deepEqual(result.ignoredFields, []);
+    assert.equal(result.updateData.service_mode, value);
+  }
+});
+
+test("concierge service_mode rejects arbitrary values", () => {
+  const policy = getProfilePatchPolicy("concierge", false);
+
+  const result = sanitizeProfilePatchBody({ service_mode: "full-management" }, policy);
+  assert.deepEqual(result.ignoredFields, ["service_mode"]);
+  assert.equal("service_mode" in result.updateData, false);
+});
+
+test("service_mode is blocked for roles without concierge service mode policy", () => {
+  for (const role of ["owner", "artisan"]) {
+    const policy = getProfilePatchPolicy(role, false);
+    assert.equal(policy.allowConciergeServiceMode, false);
+
+    const result = sanitizeProfilePatchBody({ service_mode: "both" }, policy);
+    assert.deepEqual(result.ignoredFields, ["service_mode"]);
+    assert.equal("service_mode" in result.updateData, false);
+  }
 });
 
 test("provider patch policy allows professional, compliance and operational fields", () => {

@@ -40,6 +40,7 @@ export const CURRENT_PROFILE_SELECT = `
   insurance_number,
   insurance_company,
   service_area,
+  service_mode,
   service_radius_km,
   hourly_rate,
   monthly_rate,

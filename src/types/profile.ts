@@ -1,12 +1,16 @@
 // src/types/profile.ts
 
-import { Tables } from './supabase';
-import { CertificationLevel, CertificationMetadata } from './certification';
+import type { Tables } from './supabase';
+import type { CertificationLevel, CertificationMetadata } from './certification';
 
 /**
  * Type Profile de base depuis Supabase
  */
 export type Profile = Tables<'profiles'>;
+
+export const CONCIERGE_SERVICE_MODES = ["a_la_carte", "full_management", "both"] as const;
+
+export type ConciergeServiceMode = (typeof CONCIERGE_SERVICE_MODES)[number];
 
 /**
  * Profile étendu avec les champs de certification
