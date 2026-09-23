@@ -1001,6 +1001,8 @@ $transition-slow: 380ms $easing-soft;
   background: var(--profile-sage);
 
   img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
   }
 }
@@ -1029,6 +1031,8 @@ $transition-slow: 380ms $easing-soft;
   box-shadow: 0 10px 22px rgba(22, 52, 43, 0.12);
 
   img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
   }
 }
@@ -1169,9 +1173,12 @@ $transition-slow: 380ms $easing-soft;
   min-height: 42px;
   align-items: center;
   padding: 0.72rem 1rem;
+  border: 0;
   border-radius: 8px;
   background: #183d31;
   color: #fffaf0;
+  cursor: pointer;
+  font: inherit;
   font-weight: 800;
   text-decoration: none;
 }
@@ -1188,6 +1195,17 @@ $transition-slow: 380ms $easing-soft;
 
 .profileInfoGridSecondary {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.profileInfoCard {
+  min-width: 0;
+}
+
+.profileInfoCard .badgeCard {
+  height: 100%;
+  border-color: rgba(22, 52, 43, 0.13);
+  background: linear-gradient(180deg, #fffdf7, #fff);
+  box-shadow: 0 14px 30px rgba(22, 52, 43, 0.06);
 }
 
 .profilePage :is(.presentationFeatured, .section) {
@@ -1416,9 +1434,381 @@ $transition-slow: 380ms $easing-soft;
   color: #1c8454 !important;
 }
 
+.missionsPage {
+  --missions-green: var(--ds-color-primary, #155b49);
+  --missions-green-dark: #123f35;
+  --missions-gold: #b68a2c;
+  --missions-gold-soft: #f8f0dc;
+  --missions-cream: #fbf8f1;
+  --missions-ivory: #fffdf8;
+  --missions-sage: #edf5f0;
+  --missions-text: var(--ds-color-text, #17241f);
+  --missions-muted: var(--ds-color-text-muted, #707871);
+  --missions-border: rgba(38, 62, 52, 0.12);
+
+  display: grid;
+  gap: 0.9rem;
+  color: var(--missions-text);
+}
+
+.configurationArea {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(260px, 1fr);
+  gap: 0.8rem;
+}
+
+.configurationSummary,
+.helpCard,
+.servicesSection {
+  border: 1px solid var(--missions-border);
+  border-radius: 12px;
+}
+
+.configurationSummary {
+  padding: 1rem;
+  background: linear-gradient(110deg, #fffdf8 0%, #f3f7f1 100%);
+}
+
+.summaryHeader,
+.sectionHeadingLeft,
+.helpTitle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.summaryHeader {
+  margin-bottom: 0.85rem;
+}
+
+.summaryIcon,
+.sectionIcon,
+.configStatIcon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 8px;
+  background: var(--missions-gold-soft);
+  color: var(--missions-gold);
+}
+
+.summaryIcon,
+.sectionIcon {
+  width: 36px;
+  height: 36px;
+}
+
+.summaryTitle,
+.sectionTitle,
+.catalogueTitle,
+.serviceCategoryTitle,
+.helpTitle {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.summaryTitle {
+  font-size: 1rem;
+}
+
+.summaryDescription,
+.catalogueDescription,
+.serviceDescription,
+.helpText {
+  color: var(--missions-muted);
+}
+
+.summaryDescription {
+  margin: 0.15rem 0 0;
+  font-size: 0.77rem;
+}
+
+.configurationStats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.configStat {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 70px;
+  padding: 0.75rem;
+  border: 1px solid var(--missions-border);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.configStatIcon {
+  width: 34px;
+  height: 34px;
+}
+
+.configStatValue {
+  display: block;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.configStatLabel {
+  display: block;
+  margin-top: 0.08rem;
+  color: var(--missions-muted);
+  font-size: 0.68rem;
+}
+
+.configStatSuccess {
+  color: var(--missions-green);
+}
+
+.helpCard {
+  padding: 1rem;
+  background: linear-gradient(135deg, #edf7f2, #f8fbf8);
+}
+
+.helpTitle {
+  align-items: center;
+  margin-bottom: 0.55rem;
+  font-size: 0.95rem;
+}
+
+.helpText {
+  margin: 0 0 0.8rem;
+  padding-left: 1.8rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.textLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--missions-green);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.servicesSection {
+  padding: 1rem;
+  background: var(--missions-ivory);
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.sectionHeadingLeft {
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.sectionTitle {
+  font-size: 1.2rem;
+}
+
+.editCatalogueButton,
+.serviceButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  border: 1px solid rgba(182, 138, 44, 0.2);
+  background: var(--missions-cream);
+  color: var(--missions-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.editCatalogueButton {
+  gap: 0.45rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+}
+
+.catalogueHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--missions-border);
+  border-left: 3px solid var(--missions-gold);
+  border-radius: 9px;
+  background: linear-gradient(110deg, #fffdf8, #faf5e9);
+}
+
+.catalogueEyebrow {
+  display: block;
+  margin-bottom: 0.15rem;
+  color: var(--missions-muted);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.catalogueTitle {
+  font-size: 1.15rem;
+}
+
+.catalogueDescription {
+  max-width: 480px;
+  margin: 0.15rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.catalogueCounters {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.catalogueCounter {
+  min-width: 90px;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--missions-border);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.counterLabel {
+  display: block;
+  color: var(--missions-muted);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.counterValue {
+  display: block;
+  margin-top: 0.1rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.serviceCategories {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.serviceCategory {
+  overflow: hidden;
+  border: 1px solid var(--missions-border);
+  border-radius: 9px;
+  background: #fff;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(31, 49, 41, 0.07);
+  }
+}
+
+.serviceImage {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  object-fit: cover;
+}
+
+.serviceCategoryContent {
+  padding: 0.75rem;
+}
+
+.serviceCategoryTitle {
+  font-size: 0.92rem;
+}
+
+.serviceCount {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--missions-green);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.serviceDescription {
+  min-height: 2.6rem;
+  margin: 0.45rem 0;
+  font-size: 0.69rem;
+  line-height: 1.4;
+}
+
+.serviceButton {
+  justify-content: space-between;
+  width: 100%;
+  min-height: 34px;
+  padding: 0.45rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+}
+
+.missionsServicesPanel {
+  scroll-margin-top: 112px;
+}
+
 .missionsFocusedLayout {
   display: grid;
   gap: 1rem;
+}
+
+.packsTabPage {
+  min-width: 0;
+}
+
+@media (max-width: 1200px) {
+  .configurationStats,
+  .serviceCategories {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .configurationArea {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .configurationStats,
+  .serviceCategories {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionHeading,
+  .catalogueHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .catalogueCounters {
+    width: 100%;
+  }
+
+  .catalogueCounter {
+    flex: 1;
+  }
+
+  .editCatalogueButton {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .serviceImage {
+    aspect-ratio: 16 / 6;
+  }
 }
 
 .missionsCurrentPanel,

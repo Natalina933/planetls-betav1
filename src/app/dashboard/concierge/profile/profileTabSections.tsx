@@ -21,6 +21,7 @@ import {
   FiShield as FiShieldOutline,
   FiStar as FiStarOutline,
   FiTarget,
+  FiTool,
   FiUsers,
 } from "react-icons/fi";
 import { ChevronDown, Edit2, LucideUser, Save, Shield, Star, X as LucideX } from "lucide-react";
@@ -1240,27 +1241,14 @@ interface TariffStrategySectionProps {
 }
 
 export function PacksTabSection({
-  renderSection,
   activeMissionServiceIds,
   activeMissionServiceLabels,
 }: PacksTabSectionProps) {
   return (
-    <div>
-      {renderSection(
-        "Composer l'offre",
-        <FiBriefcase />,
-        <>
-          <p>
-            Sélectionnez les services inclus, donnez un nom clair à l&apos;offre, puis reliez-la aux tarifs et contrats.
-          </p>
-          <ServicePackageManager
-            activeMissionServiceIds={activeMissionServiceIds}
-            activeMissionServiceLabels={activeMissionServiceLabels}
-          />
-        </>,
-        false,
-      )}
-    </div>
+    <ServicePackageManager
+      activeMissionServiceIds={activeMissionServiceIds}
+      activeMissionServiceLabels={activeMissionServiceLabels}
+    />
   );
 }
 
@@ -1542,7 +1530,7 @@ export function ConciergeProfileActiveTabContent({
     case "missions":
       return wrapProfileTab({
         title: "Profil missions",
-        description: "Configurez les prestations acceptées, la couverture et les disponibilités qui alimentent vos missions.",
+        description: "Configurez les prestations acceptées, votre zone d'intervention et vos disponibilités pour recevoir des missions adaptées à votre activité.",
         metrics: [
           { label: "Progression", value: `${missionProgressControls.missionProgressPercent}%`, hint: `${missionProgressControls.missionProgressDoneCount}/${missionProgressControls.missionProgressSteps.length} étapes`, detailSectionId: "progression", href: `/dashboard/concierge/profile?tab=missions#${missionProgressControls.missionProgressSteps.find((step) => !step.done)?.sectionId ?? missionSectionIds.SERVICES}` },
           { label: "Services", value: String(missionOverviewStats.displayedActiveMissionCount), hint: "Prestations acceptées", detailSectionId: "services", href: `/dashboard/concierge/profile?tab=missions#${missionSectionIds.SERVICES}` },
@@ -3018,14 +3006,12 @@ export function ConciergePacksTabContent({
   activeMissionServiceLabels,
 }: PacksTabSectionProps & { styles: Record<string, string> }) {
   return (
-    <div className={styles.financeGrid}>
-      <div className={styles.financeCard}>
-        <PacksTabSection
-          renderSection={renderSection}
-          activeMissionServiceIds={activeMissionServiceIds}
-          activeMissionServiceLabels={activeMissionServiceLabels}
-        />
-      </div>
+    <div className={styles.packsTabPage}>
+      <PacksTabSection
+        renderSection={renderSection}
+        activeMissionServiceIds={activeMissionServiceIds}
+        activeMissionServiceLabels={activeMissionServiceLabels}
+      />
     </div>
   );
 }
@@ -3477,36 +3463,178 @@ export function ConciergeMissionsTabContent({
   renderField,
   sectionIds,
   editingSection,
-  missionProgressControls,
   missionOverviewStats,
-  missionQuoteControls,
   missionFoundationControls,
 }: ConciergeMissionsTabContentProps) {
-  const missionRows = missionQuoteControls.missionRows.slice(0, 3);
+  const activeServiceLabels = missionOverviewStats.activeMissionRawLabels;
+  const zonesCount = missionOverviewStats.missionAvailability?.zones.length ?? 0;
+  const availabilityLabel =
+    missionOverviewStats.missionOpenDaysCount > 0 ? "Bien configurée" : "À configurer";
+  const catalogueCategories = [
+    {
+      id: "accueil",
+      title: "Accueil voyageurs",
+      image: CONCIERGE_CARD_COVER_OPTIONS[0].url,
+      description: "Check-in, check-out, remise des clés, état des lieux...",
+      keywords: ["accueil", "check", "clé", "cle", "arrivée", "arrivee", "départ", "depart", "voyageur"],
+    },
+    {
+      id: "menage",
+      title: "Ménage & entretien",
+      image: CONCIERGE_CARD_COVER_OPTIONS[1].url,
+      description: "Ménage, linge, réassort, produits d'entretien...",
+      keywords: ["ménage", "menage", "linge", "entretien", "nettoyage", "réassort", "reassort"],
+    },
+    {
+      id: "maintenance",
+      title: "Maintenance",
+      image: CONCIERGE_CARD_COVER_OPTIONS[3].url,
+      description: "Petites réparations, signalements, suivi artisans...",
+      keywords: ["maintenance", "réparation", "reparation", "artisan", "dépannage", "depannage", "technique"],
+    },
+    {
+      id: "complementaires",
+      title: "Services complémentaires",
+      image: CONCIERGE_CARD_COVER_OPTIONS[5].url,
+      description: "Accueil personnalisé, courses, assistance et besoins ponctuels...",
+      keywords: [],
+    },
+  ].map((category, categoryIndex, categories) => {
+    const services = activeServiceLabels.filter((label) => {
+      const normalized = label.toLowerCase();
+      if (category.keywords.length === 0) {
+        return !categories
+          .slice(0, categoryIndex)
+          .some((previous) => previous.keywords.some((keyword) => normalized.includes(keyword)));
+      }
+      return category.keywords.some((keyword) => normalized.includes(keyword));
+    });
+
+    return { ...category, services };
+  }).filter((category) => category.services.length > 0);
+  const activeCategoriesCount = catalogueCategories.length;
 
   return (
-    <div className={styles.missionsFocusedLayout}>
-      <DashboardPanel title="Missions en cours" className={styles.missionsCurrentPanel}>
-        {missionRows.length > 0 ? (
-          <div className={styles.missionsCurrentList}>
-            {missionRows.map((mission) => (
-              <div key={mission.id} className={styles.missionsCurrentItem}>
-                <div>
-                  <strong>{mission.title}</strong>
-                  <span>{mission.status}</span>
-                </div>
-                <Link href="/dashboard/concierge/missions">Voir</Link>
+    <div className={styles.missionsPage}>
+      <div className={styles.configurationArea}>
+        <section className={styles.configurationSummary}>
+          <div className={styles.summaryHeader}>
+            <span className={styles.summaryIcon}>
+              <ClipboardCheck size={18} />
+            </span>
+            <div>
+              <h2 className={styles.summaryTitle}>Aperçu de votre configuration</h2>
+              <p className={styles.summaryDescription}>
+                Voici un résumé des éléments qui alimentent vos prochaines missions.
+              </p>
+            </div>
+          </div>
+
+          <div className={styles.configurationStats}>
+            <div className={styles.configStat}>
+              <span className={styles.configStatIcon}><FiBriefcase /></span>
+              <div>
+                <strong className={styles.configStatValue}>{activeCategoriesCount}</strong>
+                <span className={styles.configStatLabel}>Catégories actives</span>
               </div>
+            </div>
+            <div className={styles.configStat}>
+              <span className={styles.configStatIcon}><ClipboardCheck size={16} /></span>
+              <div>
+                <strong className={styles.configStatValue}>{missionOverviewStats.displayedActiveMissionCount}</strong>
+                <span className={styles.configStatLabel}>Services proposés</span>
+              </div>
+            </div>
+            <div className={styles.configStat}>
+              <span className={styles.configStatIcon}><MapPinned size={16} /></span>
+              <div>
+                <strong className={styles.configStatValue}>{zonesCount}</strong>
+                <span className={styles.configStatLabel}>Zones d'intervention</span>
+              </div>
+            </div>
+            <div className={styles.configStat}>
+              <span className={styles.configStatIcon}><FiClockOutline /></span>
+              <div>
+                <strong className={`${styles.configStatValue} ${missionOverviewStats.missionOpenDaysCount > 0 ? styles.configStatSuccess : ""}`}>
+                  {availabilityLabel}
+                </strong>
+                <span className={styles.configStatLabel}>Disponibilité</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside className={styles.helpCard}>
+          <h2 className={styles.helpTitle}>
+            <ShieldCheck size={18} />
+            Bon à savoir
+          </h2>
+          <p className={styles.helpText}>
+            Les services proposés ici seront visibles par les propriétaires lors de la création de leurs demandes.
+          </p>
+          <Link href="/dashboard/owner/demandes" className={styles.textLink}>
+            Voir comment ça fonctionne →
+          </Link>
+        </aside>
+      </div>
+
+      <section className={styles.servicesSection}>
+        <div className={styles.sectionHeading}>
+          <div className={styles.sectionHeadingLeft}>
+            <span className={styles.sectionIcon}><FiTool /></span>
+            <h2 className={styles.sectionTitle}>Services proposés pour les missions</h2>
+          </div>
+          <Link href="#services-missions-catalogue" className={styles.editCatalogueButton}>
+            Modifier le catalogue
+          </Link>
+        </div>
+
+        <div className={styles.catalogueHeader}>
+          <div>
+            <span className={styles.catalogueEyebrow}>Catalogue missions</span>
+            <h3 className={styles.catalogueTitle}>Services proposés</h3>
+            <p className={styles.catalogueDescription}>
+              Retrouvez ici votre offre active, regroupée par famille de services pour une lecture plus claire.
+            </p>
+          </div>
+          <div className={styles.catalogueCounters}>
+            <div className={styles.catalogueCounter}>
+              <span className={styles.counterLabel}>Catégories</span>
+              <strong className={styles.counterValue}>{activeCategoriesCount}</strong>
+            </div>
+            <div className={styles.catalogueCounter}>
+              <span className={styles.counterLabel}>Services</span>
+              <strong className={styles.counterValue}>{missionOverviewStats.displayedActiveMissionCount}</strong>
+            </div>
+          </div>
+        </div>
+
+        {catalogueCategories.length > 0 ? (
+          <div className={styles.serviceCategories}>
+            {catalogueCategories.map((category) => (
+              <article key={category.id} className={styles.serviceCategory}>
+                <img src={category.image} alt="" className={styles.serviceImage} />
+                <div className={styles.serviceCategoryContent}>
+                  <h3 className={styles.serviceCategoryTitle}>{category.title}</h3>
+                  <span className={styles.serviceCount}>
+                    {category.services.length} service{category.services.length > 1 ? "s" : ""}
+                  </span>
+                  <p className={styles.serviceDescription}>{category.description}</p>
+                  <Link href="#services-missions-catalogue" className={styles.serviceButton}>
+                    Voir les services →
+                  </Link>
+                </div>
+              </article>
             ))}
           </div>
         ) : (
           <p className={styles.missionsEmptyText}>
-            Aucune mission en cours à afficher ici. Cette page sert surtout à configurer les services qui généreront les prochaines missions.
+            Aucun service actif pour le moment. Activez vos prestations pour alimenter ce catalogue.
           </p>
         )}
-      </DashboardPanel>
+      </section>
 
-      <DashboardPanel title="Services proposés pour les missions" className={styles.missionsServicesPanel}>
+      <div id="services-missions-catalogue" className={styles.missionsServicesPanel}>
         <MissionsPrimarySections
           styles={styles}
           renderSection={renderSection}
@@ -3537,7 +3665,7 @@ export function ConciergeMissionsTabContent({
           toMissionTypeId={missionFoundationControls.toMissionTypeId}
           normalizeMissionSchedule={missionFoundationControls.normalizeMissionSchedule}
         />
-      </DashboardPanel>
+      </div>
     </div>
   );
 }

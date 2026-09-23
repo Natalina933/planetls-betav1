@@ -20,6 +20,7 @@ import {
   normalizeServicePackageName,
   normalizeServicePackageText,
 } from "@/types/servicePackages";
+import { CONCIERGE_CARD_COVER_OPTIONS } from "@/features/public-concierges";
 import styles from "./ServicePackageManager.module.scss";
 
 interface Service {
@@ -99,6 +100,16 @@ const PACK_ACCENTS: Array<{ id: PackAccent; label: string }> = [
 
 const toAccentClassName = (accent: PackAccent) =>
   `templateCard${accent.charAt(0).toUpperCase()}${accent.slice(1)}`;
+
+const getTemplateImage = (templateId: string) => {
+  if (templateId === "essentiel") return CONCIERGE_CARD_COVER_OPTIONS[0].url;
+  if (templateId === "confort") return CONCIERGE_CARD_COVER_OPTIONS[1].url;
+  if (templateId === "premium") return CONCIERGE_CARD_COVER_OPTIONS[3].url;
+  return CONCIERGE_CARD_COVER_OPTIONS[5].url;
+};
+
+const getTemplateState = (templateId: string) =>
+  templateId === "premium" ? "Recommandé" : "Prêt à adapter";
 
 const normalizePackage = (pkg: ApiPackage, services: Service[]): ServicePackage => {
   const idsFromItems = Array.isArray(pkg.services_package_items)
@@ -196,6 +207,22 @@ const ServicePackageManager: React.FC<Props> = ({
           !usedAccents.has(template.accent),
       ),
     [existingPackageNames, usedAccents],
+  );
+  const templateNameSet = useMemo(
+    () =>
+      new Set(
+        DEFAULT_SERVICE_PACK_TEMPLATES.map((template) =>
+          normalizeServicePackageName(template.name),
+        ),
+      ),
+    [],
+  );
+  const customPackagesCount = useMemo(
+    () =>
+      packages.filter(
+        (pkg) => !templateNameSet.has(normalizeServicePackageName(pkg.name)),
+      ).length,
+    [packages, templateNameSet],
   );
 
   React.useEffect(() => {
@@ -496,17 +523,67 @@ const ServicePackageManager: React.FC<Props> = ({
       <div className={styles.header}>
         <div>
           <h2>
-            <Sparkles size={24} /> Offres
+            <Sparkles size={24} /> Composer l&apos;offre
           </h2>
-          <p>Visualisez vos packs et composez une nouvelle offre.</p>
+          <p>
+            Sélectionnez les services inclus, donnez un nom clair à l&apos;offre,
+            puis reliez-la aux tarifs et contrats.
+          </p>
         </div>
         <button
           type="button"
           className={styles.backButton}
           onClick={() => router.back()}
         >
-          Retour
+          Retour aux offres
         </button>
+      </div>
+
+      <div className={styles.packsOverview}>
+        <section className={styles.packsSummary}>
+          <div className={styles.packsSummaryHeader}>
+            <span className={styles.packStatIcon}>
+              <Package size={17} />
+            </span>
+            <div>
+              <h3 className={styles.packsSummaryTitle}>Vos packs en un coup d&apos;œil</h3>
+              <p className={styles.packsSummaryText}>
+                Créez et gérez vos offres packagées pour répondre aux besoins des propriétaires.
+              </p>
+            </div>
+          </div>
+          <div className={styles.packsStats}>
+            <div className={styles.packStat}>
+              <span className={styles.packStatIcon}><Package size={16} /></span>
+              <div>
+                <strong className={styles.packStatValue}>{packages.length}</strong>
+                <span className={styles.packStatLabel}>Packs actifs</span>
+              </div>
+            </div>
+            <div className={styles.packStat}>
+              <span className={styles.packStatIcon}><Sparkles size={16} /></span>
+              <div>
+                <strong className={styles.packStatValue}>{suggestedTemplates.length}</strong>
+                <span className={styles.packStatLabel}>Modèles disponibles</span>
+              </div>
+            </div>
+            <div className={styles.packStat}>
+              <span className={styles.packStatIcon}><Tag size={16} /></span>
+              <div>
+                <strong className={styles.packStatValue}>{customPackagesCount}</strong>
+                <span className={styles.packStatLabel}>Packs personnalisés</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside className={styles.packsHelp}>
+          <h3 className={styles.packsHelpTitle}>Bon à savoir</h3>
+          <p className={styles.packsHelpText}>
+            Les packs vous permettent de valoriser vos services, de simplifier vos propositions
+            et de gagner du temps dans vos devis.
+          </p>
+        </aside>
       </div>
 
       <div className={`${styles.content} ${!selectedPackage ? styles.contentSingle : ""}`}>
@@ -786,7 +863,10 @@ const ServicePackageManager: React.FC<Props> = ({
                 <div className={styles.templatesHeader}>
                   <div>
                     <h5>{packages.length === 0 ? "Modèles proposés" : "Autres modèles disponibles"}</h5>
-                    <p>Des bases prêtes.</p>
+                    <p>
+                      Des bases prêtes à l&apos;emploi, que vous pouvez adapter à vos services
+                      et à votre zone d&apos;intervention.
+                    </p>
                   </div>
                 </div>
                 <div className={styles.templateGrid}>
@@ -796,21 +876,23 @@ const ServicePackageManager: React.FC<Props> = ({
                       className={`${styles.templateCard} ${styles[toAccentClassName(template.accent)]}`}
                     >
                       <div className={styles.templateVisual}>
-                        <span className={styles.templateVisualWindow} />
-                        <span className={styles.templateVisualKey} />
-                        <span className={styles.templateVisualTag} />
+                        <img
+                          src={getTemplateImage(template.id)}
+                          alt=""
+                          className={styles.templateImage}
+                        />
                         <div className={styles.templateVisualCopy}>
                           <span>{template.category}</span>
                           <strong>{template.name}</strong>
-                          <small>{template.id === "premium" ? "Recommandé" : "Prêt à adapter"}</small>
+                          <small>{getTemplateState(template.id)}</small>
                         </div>
                       </div>
                       <div className={styles.templateTopRow}>
                         <span className={styles.templateCategory}>{template.category}</span>
                         {template.id === "premium" ? (
-                          <span className={styles.templateRecommended}>Recommandé</span>
+                          <span className={styles.templateRecommended}>{getTemplateState(template.id)}</span>
                         ) : (
-                          <span className={styles.templateState}>Prêt à adapter</span>
+                          <span className={styles.templateState}>{getTemplateState(template.id)}</span>
                         )}
                       </div>
                       <div className={styles.templateBody}>
@@ -832,7 +914,7 @@ const ServicePackageManager: React.FC<Props> = ({
                         onClick={() => handleCreateTemplate(template)}
                         disabled={isSubmitting}
                       >
-                        {isSubmitting ? "Enregistrement..." : "Utiliser ce modèle"}
+                        {isSubmitting ? "Enregistrement..." : "Utiliser ce modèle →"}
                       </button>
                     </article>
                   ))}
