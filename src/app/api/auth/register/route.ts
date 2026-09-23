@@ -29,6 +29,32 @@ const formatLastName = (val?: string | null) => {
   return cleaned ? cleaned.toLocaleUpperCase("fr-FR") : cleaned;
 };
 
+const normalizeUsernamePart = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const buildUsernameBase = (data: {
+  email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  username?: string | null;
+}) => {
+  const explicitUsername = normalizeUsernamePart(data.username ?? "");
+  if (explicitUsername.length >= 3) return explicitUsername.slice(0, 30);
+
+  const fullName = normalizeUsernamePart([data.firstName, data.lastName].filter(Boolean).join(" "));
+  if (fullName.length >= 3) return fullName.slice(0, 30);
+
+  const emailName = normalizeUsernamePart(data.email.split("@")[0] ?? "");
+  if (emailName.length >= 3) return emailName.slice(0, 30);
+
+  return "utilisateur";
+};
+
 const mapYearsToInt = (years?: string | null): number | null => {
   if (!years) return null;
   if (years.startsWith("0-1")) return 1;
@@ -165,7 +191,7 @@ const resolveKnownLocation = async (location: string | null) => {
 };
 
 const registerSchema = z.object({
-  username: z.string().min(3).max(30).trim(),
+  username: z.string().min(3).max(30).trim().optional(),
   password: z.string().min(8),
   email: z.string().email().toLowerCase().trim(),
   firstName: z.string().min(1).max(50).transform(formatFirstName),
@@ -220,6 +246,29 @@ export async function POST(req: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
+    const resolveUniqueUsername = async (base: string) => {
+      const normalizedBase = normalizeUsernamePart(base).slice(0, 30) || "utilisateur";
+      const candidateBase = normalizedBase.slice(0, 30);
+
+      for (let index = 0; index < 100; index += 1) {
+        const suffix = index === 0 ? "" : `-${index + 1}`;
+        const trimmedBase =
+          suffix.length > 0
+            ? candidateBase.slice(0, Math.max(3, 30 - suffix.length))
+            : candidateBase;
+        const candidate = `${trimmedBase}${suffix}`.slice(0, 30);
+        const { data: existingUser, error } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("username", candidate)
+          .maybeSingle();
+
+        if (error) throw error;
+        if (!existingUser) return candidate;
+      }
+
+      throw new Error("Impossible de générer un nom d'utilisateur unique");
+    };
     const resolvedLocation = await resolveKnownLocation(data.location ?? null);
     if (data.location && !resolvedLocation) {
       return NextResponse.json(
@@ -248,25 +297,14 @@ export async function POST(req: NextRequest) {
       serviceRadiusKm: data.serviceRadiusKm,
     });
 
-    const { data: existingUser } = await supabase
-      .from("profiles")
-      .select("username")
-      .eq("username", data.username)
-      .maybeSingle();
-
-    if (existingUser) {
-      return NextResponse.json(
-        { error: "Nom d'utilisateur deja pris" },
-        { status: 409 }
-      );
-    }
+    const username = await resolveUniqueUsername(buildUsernameBase(data));
 
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: data.email,
       password: data.password,
       email_confirm: true,
       user_metadata: {
-        username: data.username,
+        username,
         role: role,
       },
     });
@@ -283,7 +321,7 @@ export async function POST(req: NextRequest) {
       .from("profiles")
       .insert({
         id: userId,
-        username: data.username,
+        username,
         first_name: data.firstName,
         last_name: data.lastName,
         email: data.email,
@@ -307,8 +345,8 @@ export async function POST(req: NextRequest) {
         website: data.businessLink,
         experience_level: data.experienceLevel,
         years_experience: mapYearsToInt(data.yearsExperience),
-        onboarding_complete: true,
-        onboarding_completed_at: new Date().toISOString(),
+        onboarding_complete: false,
+        onboarding_completed_at: null,
       });
 
     if (profileError) {
@@ -317,7 +355,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { success: true, user: { id: userId, username: data.username, role } },
+      { success: true, user: { id: userId, username, role } },
       { status: 201 }
     );
   } catch (err) {

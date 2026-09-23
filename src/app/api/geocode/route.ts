@@ -204,10 +204,17 @@ function normalizeSuggestion(item: NominatimItem) {
 function buildSuggestionKey(
   item: NonNullable<ReturnType<typeof normalizeSuggestion>>,
 ) {
+  const normalizedDisplayName = item.displayName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+
   return [
     item.label.trim().toLowerCase(),
     (item.country ?? "").trim().toLowerCase(),
-    (item.district ?? "").trim().toLowerCase(),
+    normalizedDisplayName,
   ].join("|");
 }
 

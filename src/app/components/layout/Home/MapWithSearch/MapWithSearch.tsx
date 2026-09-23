@@ -6,7 +6,6 @@ import React, {
   useCallback,
   useMemo,
   useRef,
-  JSX,
 } from "react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -22,7 +21,7 @@ import AccessPopup from "../../../popups/AccessPopup/AccessPopup";
 import ExperiencePopup, {
   ExperienceLevel,
 } from "@/app/components/popups/ExperiencePopup/ExperiencePopup";
-import OnboardingStepHeader from "@/app/components/onboarding/OnboardingStepHeader/OnboardingStepHeader";
+import ReadabilityControls from "@/app/components/onboarding/ReadabilityControls/ReadabilityControls";
 import useReadabilityScale from "@/app/components/onboarding/useReadabilityScale";
 import { trackOnboardingEvent } from "@/app/lib/onboardingAnalytics";
 
@@ -66,6 +65,8 @@ interface LocationSuggestion {
   placeId: string;
   label: string;
   displayName: string;
+  subtitle?: string;
+  country?: string | null;
 }
 
 interface GeocodeLookupPayload {
@@ -73,29 +74,6 @@ interface GeocodeLookupPayload {
   label?: string;
   displayName?: string;
 }
-
-const DESCRIPTIONS: Record<CategoryKey, JSX.Element> = {
-  proprietaire: (
-    <>
-      <span className={styles.highlightGold}>Trouvez la conciergerie idéale</span>{" "}
-      pour simplifier la gestion de vos locations et maximiser vos revenus.
-    </>
-  ),
-  concierge: (
-    <>
-      <span className={styles.highlightGold}>
-        Accédez directement aux propriétaires
-      </span>{" "}
-      qui recherchent une conciergerie fiable et professionnelle.
-    </>
-  ),
-  artisan: (
-    <>
-      <span className={styles.highlightGold}>Découvrez les artisans locaux</span>{" "}
-      pour valoriser vos biens et soutenir le circuit court.
-    </>
-  ),
-};
 
 const CATEGORY_ORDER: CategoryKey[] = [
   "proprietaire",
@@ -108,6 +86,47 @@ const SEARCH_TARGETS: Record<CategoryKey, string> = {
   concierge: "proprietaire",
   artisan: "proprietaire",
 };
+
+const ROLE_LABELS: Record<CategoryKey, string> = {
+  proprietaire: "Propriétaire",
+  concierge: "Concierge",
+  artisan: "Artisan",
+};
+
+const ROLE_DESCRIPTIONS: Record<CategoryKey, string> = {
+  proprietaire: "Je cherche des professionnels pour m'aider à gérer mon logement.",
+  concierge: "Je propose mes services aux propriétaires.",
+  artisan: "J'interviens pour l'entretien, la réparation et les services spécialisés.",
+};
+
+const ROLE_INTROS: Record<CategoryKey, { title: string; text: string; placeholder: string }> = {
+  proprietaire: {
+    title: "Où se situe votre logement ?",
+    text: "Indiquez sa localisation pour trouver les professionnels disponibles à proximité.",
+    placeholder: "Ville ou arrondissement du logement",
+  },
+  concierge: {
+    title: "Où exercez-vous principalement ?",
+    text: "Indiquez votre secteur principal pour vous connecter aux propriétaires à proximité.",
+    placeholder: "Ville ou secteur principal",
+  },
+  artisan: {
+    title: "Quelle est votre zone principale d'intervention ?",
+    text: "Indiquez votre secteur principal pour découvrir les besoins proches de votre activité.",
+    placeholder: "Ville ou secteur d'intervention",
+  },
+};
+
+const getSuggestionSubtitle = (suggestion: LocationSuggestion) =>
+  suggestion.subtitle?.replace(/,\s*/g, " · ") ||
+  suggestion.displayName
+    .split(",")
+    .slice(1, 3)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join(" · ") ||
+  suggestion.country ||
+  suggestion.displayName;
 
 export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const pathname = usePathname();
@@ -308,7 +327,14 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         return;
       }
 
-      setShowExperiencePopup(true);
+      const params = new URLSearchParams({
+        category: selectedCategory,
+        searchTarget,
+        location: resolvedLocation,
+      }).toString();
+
+      router.push(`/complete-registration?${params}`);
+      onClose();
       trackOnboardingEvent({
         step: 1,
         category: selectedCategory,
@@ -316,7 +342,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         metadata: { location: resolvedLocation, onboardingVariant: signupMode },
       });
     },
-    [location, resolveLocationLabel, selectedCategory, signupMode]
+    [location, onClose, resolveLocationLabel, router, searchTarget, selectedCategory, signupMode]
   );
 
   const handleExperienceSelect = useCallback(
@@ -388,9 +414,9 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         signupMode: formData.signupMode,
         onboardingGoal: formData.onboardingGoal || onboardingGoal,
         supportNeed: formData.supportNeed,
-        existingTools: formData.existingTools.join(","),
+        existingTools: formData.existingTools.join(" · "),
         businessLink: formData.businessLink,
-        propertyTypes: formData.propertyTypes.join(","),
+        propertyTypes: formData.propertyTypes.join(" · "),
         propertyType: formData.propertyType,
         needVolume: formData.needVolume,
         tradeBody: formData.tradeBody,
@@ -398,7 +424,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         firstRequestTemplate: formData.firstRequestTemplate,
         category: selectedCategory,
         searchTarget,
-        option: selectedOptions.join(","),
+        option: selectedOptions.join(" · "),
         location: (validatedLocation ?? location).trim(),
         experienceLevel,
         yearsExperience,
@@ -471,6 +497,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   }, [categories]);
 
   const accessInitialData = useMemo(() => ({ signupMode, onboardingGoal }), [signupMode, onboardingGoal]);
+  const selectedIntro = selectedCategory ? ROLE_INTROS[selectedCategory] : null;
 
   return (
     <>
@@ -511,68 +538,76 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
             </Button>
 
             <section className={styles.categorySearchSection}>
-              <OnboardingStepHeader
-                title="Étape 1/5 - Votre région"
-                step={1}
-                readabilityScale={readabilityScale}
-                onReadabilityChange={setReadabilityScale}
-              />
+              <div className={styles.modalHeader}>
+                <div>
+                  <h2 id="modal-title">Rejoignez PlanetLS</h2>
+                  <p>Commençons par faire connaissance.</p>
+                </div>
+                <ReadabilityControls
+                  value={readabilityScale}
+                  onChange={setReadabilityScale}
+                  className={styles.readabilityControls}
+                />
+              </div>
 
-              <h2 id="modal-title">
-                Inscrivez-vous et connectez-vous aux bons partenaires
-              </h2>
+              <div className={styles.roleSection}>
+                <h3>Vous êtes :</h3>
+                <div
+                  className={styles.tripleToggleGroup}
+                  role="group"
+                  aria-label="Catégories"
+                >
+                  {orderedCategories.map(({ key, label, icon }) => {
+                    const Icon = iconMap[icon];
+                    const isActive = selectedCategory === key;
 
-              <div
-                className={styles.tripleToggleGroup}
-                role="group"
-                aria-label="Catégories"
-              >
-                {orderedCategories.map(({ key, label, icon }) => {
-                  const Icon = iconMap[icon];
-                  const isActive = selectedCategory === key;
-
-                  return (
-                    <Button
-                      key={key}
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      aria-pressed={isActive}
-                      aria-label={`Catégorie ${label}`}
-                      className={`${styles.tripleToggleButton} ${
-                        isActive ? styles.active : ""
-                      }`}
-                      onClick={() => handleCategoryChange(key)}
-                    >
-                      {key === "concierge" ? (
-                        <Image
-                          src="/icons/Mini_logo.svg"
-                          alt=""
-                          className={styles.toggleLogo}
-                          aria-hidden="true"
-                          width={20}
-                          height={20}
-                        />
-                      ) : (
-                        Icon && <Icon className={styles.toggleIcon} />
-                      )}
-                      <span>{label}</span>
-                    </Button>
-                  );
-                })}
+                    return (
+                      <Button
+                        key={key}
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        aria-pressed={isActive}
+                        aria-label={`Catégorie ${label}`}
+                        className={`${styles.tripleToggleButton} ${
+                          isActive ? styles.active : ""
+                        }`}
+                        onClick={() => handleCategoryChange(key)}
+                      >
+                        {key === "concierge" ? (
+                          <Image
+                            src="/icons/Mini_logo.svg"
+                            alt=""
+                            className={styles.toggleLogo}
+                            aria-hidden="true"
+                            width={20}
+                            height={20}
+                          />
+                        ) : (
+                          Icon && <Icon className={styles.toggleIcon} />
+                        )}
+                        <span className={styles.roleContent}>
+                          <span>{ROLE_LABELS[key] ?? label}</span>
+                          <small>{ROLE_DESCRIPTIONS[key]}</small>
+                        </span>
+                      </Button>
+                    );
+                  })}
+                </div>
               </div>
 
               {status === "success" && selectedCategory && (
-                <div className={styles.categoryTextBubble1900}>
-                  {DESCRIPTIONS[selectedCategory]}
+                <div className={styles.locationIntro}>
+                  <h3>{selectedIntro?.title}</h3>
+                  <p>{selectedIntro?.text}</p>
                 </div>
               )}
 
               <SearchBar
                 className={styles.searchBar}
                 value={location}
-                placeholder="Votre ville ou arrondissement"
-                buttonLabel="Rechercher"
+                placeholder={selectedIntro?.placeholder ?? "Votre ville ou arrondissement"}
+                buttonLabel={validatedLocation ? "Continuer" : "Rechercher"}
                 buttonClassName={validatedLocation ? styles.searchButtonReady : ""}
                 inputRef={searchInputRef}
                 onSearch={handleSearch}
@@ -606,10 +641,16 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
                       }}
                     >
                       <strong>{suggestion.label}</strong>
-                      <span>{suggestion.displayName}</span>
+                      <span>{getSuggestionSubtitle(suggestion)}</span>
                     </button>
                   ))}
                 </div>
+              ) : null}
+
+              {validatedLocation ? (
+                <p className={styles.reassuranceText}>
+                  La création de votre compte ne prend qu'une minute. Vous pourrez compléter votre profil ensuite.
+                </p>
               ) : null}
 
             </section>

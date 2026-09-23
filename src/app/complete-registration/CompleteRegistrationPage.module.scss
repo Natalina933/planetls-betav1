@@ -1,702 +1,233 @@
-@use "sass:color";
 @use "../styles/abstracts/variables" as *;
-@use "../styles/abstracts/_mixins" as *;
 
-/* ============================================================================
-  THEME
-============================================================================ */
-
-$gold: #d4af37;
-$gold-light: color.adjust($gold, $lightness: 14%);
-$gold-dark: color.adjust($gold, $lightness: -18%);
-$text-main: var(--color-text, #1f1f1f);
-$bg-page: var(--background, #faf9f6);
-$bg-card: #ffffff;
-$border-soft: rgba(0, 0, 0, 0.08);
-
-$radius-lg: 20px;
-$radius-md: 14px;
-$radius-sm: 10px;
-
-$shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.06);
-$shadow-hover: 0 10px 34px rgba(0, 0, 0, 0.1);
-
-/* ============================================================================
-  PAGE CONTAINER
-============================================================================ */
+$gold: #c9a227;
+$gold-dark: #8c6905;
+$night: #24344a;
+$muted: #697587;
+$paper: #fffdf8;
+$line: rgba(177, 139, 39, 0.18);
+$shadow: 0 24px 70px rgba(25, 38, 54, 0.12), 0 4px 16px rgba(25, 38, 54, 0.05);
 
 .pageContainer {
-  max-width: 920px;
-  margin: 3rem auto;
-  padding: 2.5rem;
-  background: $bg-page;
-  border-radius: $radius-lg;
-  box-shadow: $shadow-soft;
+  width: min(1120px, calc(100vw - 32px));
+  margin: 32px auto;
+  padding: clamp(24px, 4vw, 48px);
+  border: 1px solid $line;
+  border-radius: 24px;
+  background: linear-gradient(rgba(255, 253, 248, 0.96), rgba(255, 253, 248, 0.96)), $paper;
+  box-shadow: $shadow;
+  color: $night;
   font-family: var(--font-inter), var(--font-text), system-ui, sans-serif;
-  color: $text-main;
 }
 
-/* ============================================================================
-  TITLES
-============================================================================ */
-
-.title {
-  text-align: center;
-  font-size: 2.1rem;
-  font-weight: 700;
-  color: $gold-dark;
-  margin-bottom: 3rem;
+.onboardingHeader {
   position: relative;
+  margin: 22px 0 30px;
+  text-align: center;
 
   &::after {
     content: "";
     display: block;
-    width: 90px;
-    height: 3px;
-    background: linear-gradient(to right, transparent, $gold, transparent);
-    margin: 0.8rem auto 0;
+    width: 64px;
+    height: 2px;
+    margin: 18px auto 0;
+    border-radius: 999px;
+    background: $gold;
   }
 }
 
-.section,
-.recapSection,
-.form {
-  background: $bg-card;
-  border-radius: $radius-lg;
-  padding: 2rem;
-  margin-bottom: 2.2rem;
-  box-shadow: 0 4px 16px rgba($gold, 0.06);
+.stepKicker {
+  margin: 0 0 8px;
+  color: $gold-dark;
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-/* ============================================================================
-  RECAP
-============================================================================ */
+.title {
+  margin: 0;
+  color: #22344c;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-weight: 700;
+  line-height: 1.08;
+  text-align: center;
+}
+
+.subtitle {
+  margin: 10px 0 0;
+  color: #657184;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
 
 .recapSection {
-  h2 {
-    color: $gold-dark;
-    font-size: 1.35rem;
-    margin-bottom: 1.4rem;
-  }
-}
-
-.locationError {
-  margin: 0 0 1rem;
-  padding: 0.85rem 1rem;
-  border-radius: $radius-md;
-  border: 1px solid rgba(231, 76, 60, 0.18);
-  background: rgba(231, 76, 60, 0.08);
-  color: #b9382b;
-  font-size: 0.92rem;
-  font-weight: 600;
-}
-
-.localPromise {
-  margin: -1.5rem 0 1.8rem;
-  padding: 0.8rem 1rem;
-  border-radius: $radius-md;
-  background: rgba($gold, 0.12);
-  border: 1px solid rgba($gold, 0.25);
-  color: $gold-dark;
-  font-size: 0.94rem;
-  font-weight: 600;
-}
-
-.recapGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 0.8rem;
+  justify-items: center;
+  gap: 18px;
+  padding: 32px 0 8px;
+  text-align: center;
 }
 
-.recapTopline {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem;
-  margin-bottom: 0.9rem;
+.recapMuted {
+  max-width: 560px;
+  margin: 0;
+  color: $muted;
+  font-size: 1rem;
+  line-height: 1.55;
 }
 
 .recapActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.55rem;
-  margin-bottom: 0.9rem;
+  justify-content: center;
+  gap: 10px;
 }
 
-.recapPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.45rem 0.75rem;
-  border-radius: 999px;
-  background: rgba($gold, 0.12);
-  border: 1px solid rgba($gold, 0.18);
-  color: $gold-dark;
-  font-size: 0.86rem;
+.locationError {
+  width: 100%;
+  margin: 0 0 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(196, 67, 53, 0.18);
+  border-radius: 12px;
+  background: rgba(196, 67, 53, 0.08);
+  color: #aa352b;
+  font-size: 0.92rem;
   font-weight: 700;
 }
 
-.recapCompact {
-  display: grid;
-  grid-template-columns: 0.9fr 1.2fr 1fr;
-  gap: 0.8rem;
-
-  @media (max-width: 820px) {
-    grid-template-columns: 1fr;
-  }
-}
-.recapBlock {
-  position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at top left, rgba($gold, 0.16), transparent 42%),
-    linear-gradient(135deg, #fffdf8, #f7f1e3);
-  border-radius: $radius-md;
-  padding: 1rem 1rem 0.95rem;
-  border: 1px solid rgba($gold, 0.18);
-  box-shadow: 0 10px 28px rgba($gold, 0.09);
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: auto -24px -28px auto;
-    width: 88px;
-    height: 88px;
-    border-radius: 50%;
-    background: rgba($gold, 0.12);
-    filter: blur(2px);
-    pointer-events: none;
-  }
-
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 14px 34px rgba($gold, 0.14);
-    border-color: rgba($gold, 0.28);
-  }
-}
-
-.recapBlockTitle {
+.journeySummary {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  margin-bottom: 0.55rem;
-
-  strong {
-    color: $gold-dark;
-    font-size: 0.98rem;
-    letter-spacing: 0.01em;
-  }
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 32px;
+  padding: 18px 20px;
+  border: 1px solid rgba(201, 162, 39, 0.18);
+  border-radius: 16px;
+  background: #fbf7eb;
 }
 
-.recapIcon {
+.journeyTitle {
+  width: 100%;
+  margin: 0 0 6px;
+  color: $night;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.15rem;
+}
+
+.journeyTag {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid rgba(201, 162, 39, 0.25);
   border-radius: 999px;
-  background: linear-gradient(135deg, $gold-light, $gold);
-  color: #fffaf0;
-  box-shadow: 0 6px 16px rgba($gold, 0.25);
-  transform: rotate(-6deg);
-  transition: transform 0.22s ease, box-shadow 0.22s ease;
-
-  .recapBlock:hover & {
-    transform: rotate(0deg) scale(1.05);
-    box-shadow: 0 8px 18px rgba($gold, 0.3);
-  }
-}
-
-.recapMiniBadge {
-  display: inline-flex;
-  width: fit-content;
-  margin: 0 0 0.7rem;
-  padding: 0.3rem 0.65rem;
-  border-radius: 999px;
-  background: rgba($gold, 0.16);
-  color: $gold-dark;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.recapIdentityCopy {
-  display: grid;
-  gap: 0.24rem;
-  min-width: 0;
-}
-
-.recapIdentityEyebrow {
-  display: inline-flex;
-  width: fit-content;
-  margin: 0;
-  padding: 0.28rem 0.62rem;
-  border-radius: 999px;
-  background: rgba($gold, 0.14);
-  color: $gold-dark;
-  font-size: 0.86rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-}
-
-.recapIdentityMeta {
-  margin: 0;
-  color: rgba($text-main, 0.8);
-  font-size: 0.9rem;
-  line-height: 1.35;
-
-  &:nth-of-type(2) {
-    color: $text-main;
-    font-weight: 600;
-  }
-}
-
-.recapIdentityDescription {
-  margin: 0.35rem 0 0;
-  padding-top: 0.55rem;
-  border-top: 1px dashed rgba($gold, 0.2);
-  color: rgba($text-main, 0.92);
-  font-size: 0.92rem;
-  line-height: 1.5;
-}
-.recapAvatarRow {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.85rem;
-  align-items: start;
-
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.recapAvatarWrap {
-  position: relative;
-  display: inline-flex;
-}
-
-.recapAvatar {
-  width: 72px;
-  height: 72px;
-  object-fit: cover;
-  border-radius: 20px;
-  border: 1px solid rgba($gold, 0.18);
-  background: #fff;
-  box-shadow: 0 6px 18px rgba($gold, 0.12);
-}
-
-.recapCameraButton {
-  position: absolute;
-  right: -5px;
-  bottom: -5px;
-  width: 28px;
-  height: 28px;
-  border: 1px solid rgba(44, 36, 24, 0.9);
-  border-radius: 999px;
-  background: radial-gradient(circle at 30% 0, #ffdf9a, #c79a3b);
-  box-shadow:
-    0 10px 20px rgba(0, 0, 0, 0.22),
-    0 0 0 1px rgba(255, 255, 255, 0.2);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #302312;
-  cursor: pointer;
-  transition:
-    transform 0.16s ease-out,
-    box-shadow 0.16s ease-out,
-    filter 0.16s ease-out;
-
-  svg {
-    width: 14px;
-    height: 14px;
-  }
-
-  &:hover {
-    transform: translateY(-1px) scale(1.04);
-    box-shadow:
-      0 14px 24px rgba(0, 0, 0, 0.28),
-      0 0 0 1px rgba(255, 255, 255, 0.24);
-    filter: brightness(1.03);
-  }
-
-  &:active {
-    transform: translateY(1px) scale(0.97);
-  }
-
-  &:focus-visible {
-    outline: 2px solid rgba($gold, 0.45);
-    outline-offset: 2px;
-  }
-}
-
-.hiddenFileInput {
-  display: none;
-}
-
-.recapMuted {
-  margin: 0;
-  color: rgba($text-main, 0.72);
+  background: rgba(255, 255, 255, 0.8);
+  color: #745d18;
   font-size: 0.88rem;
+  font-weight: 600;
 }
 
-.recapIdentityCopy {
-  display: grid;
-  gap: 0.18rem;
-  min-width: 0;
-}
-
-.recapIdentityEyebrow {
-  margin: 0;
-  color: $gold-dark;
-  font-size: 1rem;
-  font-weight: 800;
-}
-
-.recapIdentityMeta {
-  margin: 0;
-  color: rgba($text-main, 0.82);
-  font-size: 0.9rem;
-  line-height: 1.35;
-}
-
-.recapIdentityDescription {
-  margin: 0.35rem 0 0;
-  color: rgba($text-main, 0.9);
-  font-size: 0.91rem;
-  line-height: 1.5;
-}
-
-.recapCard {
-  position: relative;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.18rem 0.6rem;
-  align-content: start;
-  min-height: 100px;
-  background: linear-gradient(135deg, #fffdf8, #f8f4ea);
-  border-radius: $radius-md;
-  padding: 0.75rem 0.8rem 0.8rem;
-  text-align: left;
-  border: 1px solid rgba($gold, 0.16);
-  box-shadow: 0 8px 24px rgba($gold, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba($gold, 0.12);
-  }
-
-  strong {
-    display: block;
-    grid-column: 2;
-    grid-row: 1;
-    align-self: center;
-    color: $gold-dark;
-    margin-bottom: 0;
-    font-size: 0.88rem;
-  }
-
-  p {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    margin: 0;
-    font-size: 0.9rem;
-    line-height: 1.4;
-  }
-}
-
-.servicesCard {
-  min-height: 92px;
-}
-
-.serviceList {
-  display: grid;
-  gap: 0.18rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-
-  li {
-    position: relative;
-    padding-left: 0.8rem;
-    font-size: 0.86rem;
-    line-height: 1.34;
-
-    &::before {
-      content: "";
-      position: absolute;
-      top: 0.48rem;
-      left: 0;
-      width: 0.3rem;
-      height: 0.3rem;
-      border-radius: 999px;
-      background: linear-gradient(135deg, $gold, $gold-dark);
-      box-shadow: 0 0 0 2px rgba($gold, 0.12);
-    }
-  }
-}
-
-.detailList {
-  display: grid;
-  gap: 0.35rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-
-  li {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.8rem;
-    padding-bottom: 0.3rem;
-    border-bottom: 1px dashed rgba($gold, 0.16);
-  }
-
-  span {
-    color: rgba($text-main, 0.72);
-    font-size: 0.84rem;
-  }
-
-  strong {
-    color: $text-main;
-    font-size: 0.86rem;
-    text-align: right;
-  }
-}
-
-.recapIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.9rem;
-  height: 1.9rem;
-  grid-column: 1;
-  grid-row: 1;
-  align-self: center;
+.modifyButton {
+  min-height: 36px;
+  margin-left: auto;
+  padding: 0 14px;
+  border: 1px solid rgba(36, 52, 74, 0.14);
   border-radius: 999px;
-  background: rgba($gold, 0.16);
-  color: $gold-dark;
-  font-size: 0.9rem;
-}
-
-.nextActionsSection {
-  background: $bg-card;
-  border-radius: $radius-lg;
-  padding: 1.6rem;
-  margin-bottom: 2.2rem;
-  border: 1px solid rgba($gold, 0.14);
-
-  h2 {
-    margin: 0 0 1rem;
-    color: $gold-dark;
-    font-size: 1.15rem;
-  }
-}
-
-.readinessText {
-  margin: -0.35rem 0 1rem;
-  color: rgba($text-main, 0.76);
-  font-size: 0.92rem;
-  font-weight: 700;
-}
-
-.nextActionsGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.8rem;
-
-  div {
-    border: 1px solid $border-soft;
-    border-radius: $radius-md;
-    padding: 0.95rem;
-    background: $bg-page;
-  }
-
-  strong {
-    display: block;
-    margin-bottom: 0.35rem;
-    color: $gold-dark;
-  }
-
-  p {
-    margin: 0;
-    font-size: 0.9rem;
-    line-height: 1.45;
-  }
-}
-
-/* ============================================================================
-  PROFIL PRO
-============================================================================ */
-
-.editButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  border-radius: 999px;
-  border: 1px solid $gold;
-  background: transparent;
-  color: $gold-dark;
-  padding: 0.45rem 1rem;
+  background: #fff;
+  color: $night;
   cursor: pointer;
-  transition: all 0.25s ease;
+  font-weight: 700;
 
   &:hover {
-    background: $gold;
-    color: white;
-    box-shadow: 0 0 10px rgba($gold, 0.4);
-  }
-}
-
-/* ============================================================================
-  AVATAR
-============================================================================ */
-
-.avatarSection {
-  background: $bg-card;
-  border-radius: $radius-lg;
-  padding: 2rem;
-  margin-bottom: 2.2rem;
-  border: 1px solid rgba($gold, 0.12);
-
-  h3 {
-    margin-bottom: 1rem;
+    border-color: rgba(201, 162, 39, 0.45);
     color: $gold-dark;
   }
 }
 
-.avatarSectionLayout {
+.accountLayout {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
-  gap: 1rem;
-  align-items: start;
-
-  @media (max-width: 820px) {
-    grid-template-columns: 1fr;
-  }
+  grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.75fr);
+  gap: 40px;
+  margin-top: 32px;
 }
 
-.avatarUploadPane {
+.accountForm {
   min-width: 0;
 }
 
-.avatarSummaryPane {
-  min-width: 0;
-
-  .recapBlock {
-    height: 100%;
-  }
+.formSection {
+  margin-bottom: 28px;
 }
 
-.recapAvatarOnly {
+.formSectionTitle {
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-height: 112px;
+  gap: 10px;
+  margin: 0 0 16px;
+  color: $night;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.3rem;
 }
 
-/* ============================================================================
-  FORM
-============================================================================ */
-
-.form {
-  h2 {
-    color: $gold-dark;
-    margin-bottom: 1.5rem;
-  }
-
-  input {
-    width: 100%;
-    padding: 0.8rem 1rem;
-    border-radius: $radius-sm;
-    border: 1px solid $border-soft;
-    margin-bottom: 0.9rem;
-    font-size: 0.95rem;
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
-
-    &:focus {
-      border-color: $gold;
-      box-shadow: 0 0 6px rgba($gold, 0.3);
-      outline: none;
-    }
-  }
-}
-
-.mobileAccountOverlay {
-  display: none;
-}
-
-.mobileAccountSheet {
+.nameFields {
   display: grid;
-  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
 
-  input {
-    width: 100%;
-    padding: 0.8rem 1rem;
-    border-radius: $radius-sm;
-    border: 1px solid $border-soft;
-    margin-bottom: 0.65rem;
-    font-size: 0.95rem;
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+.field {
+  display: block;
+  margin-bottom: 14px;
+}
 
-    &:focus {
-      border-color: $gold;
-      box-shadow: 0 0 6px rgba($gold, 0.3);
-      outline: none;
-    }
+.fieldLabel {
+  display: block;
+  margin-bottom: 7px;
+  color: #334258;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.fieldInput {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 16px;
+  border: 1px solid #dddfe3;
+  border-radius: 10px;
+  background: #fff;
+  color: #26374d;
+  font-size: 1rem;
+  outline: none;
+
+  &:focus {
+    border-color: $gold;
+    box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.1);
   }
 }
 
-.mobileAccountHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.2rem;
-
-  p {
-    margin: 0 0 0.15rem;
-    color: rgba($text-main, 0.64);
-    font-size: 0.78rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  h2 {
-    margin: 0;
-    color: $gold-dark;
-    font-size: 1.18rem;
-    line-height: 1.2;
-  }
-
-  button {
-    flex: 0 0 auto;
-    min-width: 2.25rem;
-    color: $gold-dark;
-    box-shadow: none;
-  }
+.fieldHint {
+  display: block;
+  margin: 6px 0 0;
+  color: #788291;
+  font-size: 0.8rem;
 }
-
-/* ============================================================================
-  PASSWORD
-============================================================================ */
 
 .passwordWrapper {
   position: relative;
 
   button {
     position: absolute;
-    right: 0.8rem;
     top: 50%;
-    transform: translateY(-50%);
+    right: 0.8rem;
     min-height: 0;
     padding: 0;
-    cursor: pointer;
     color: $gold-dark;
-    font-size: 1.1rem;
-    box-shadow: none !important;
+    box-shadow: none;
+    transform: translateY(-50%);
 
     &:hover {
       background: transparent;
@@ -706,169 +237,178 @@ $shadow-hover: 0 10px 34px rgba(0, 0, 0, 0.1);
 }
 
 .passwordRules {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 18px;
+  margin: 10px 0 18px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #faf7ef;
+  color: #667181;
+  font-size: 0.82rem;
   list-style: none;
-  padding: 0;
-  margin: 0.6rem 0 1.2rem;
-  font-size: 0.85rem;
 
   li {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.45rem;
+  }
+
+  svg {
+    color: #b8b1a2;
   }
 }
 
-.valid {
-  color: #2ecc71;
-}
+.validRule {
+  color: #426c3a;
 
-.invalid {
-  color: #e74c3c;
+  svg {
+    color: #4f8a45;
+  }
 }
-
-/* ============================================================================
-  FEEDBACK
-============================================================================ */
 
 .errorMsg,
 .successMsg {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.85rem;
   margin-bottom: 0.6rem;
+  font-size: 0.85rem;
 }
 
 .errorMsg {
-  color: #e74c3c;
+  color: #c44335;
 }
 
 .successMsg {
-  color: #2ecc71;
+  color: #2f7d46;
 }
 
-/* ============================================================================
-  SUBMIT
-============================================================================ */
-
 .submitButton {
-  margin-top: 1.6rem;
   width: 100%;
-  min-height: 48px;
-  font-size: 1rem;
-  font-weight: 600;
-  background: linear-gradient(135deg, $gold, $gold-light);
-  color: #fffaf0;
-  box-shadow: 0 0 12px rgba($gold, 0.35);
-  transition: all 0.3s ease;
+  min-height: 58px;
+  margin-top: 4px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #b78a13, #d0a72b);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  box-shadow: 0 10px 24px rgba(177, 139, 39, 0.18);
 
   &:hover:not(:disabled) {
-    box-shadow: 0 0 18px rgba($gold, 0.55);
     transform: translateY(-1px);
   }
 
   &:disabled {
-    background: #ccc;
+    background: #dedede;
     box-shadow: none;
     cursor: not-allowed;
   }
 }
 
-/* ============================================================================
-  RESPONSIVE
-============================================================================ */
+.sideReassurance {
+  align-self: start;
+  padding: 28px 24px;
+  border-left: 1px solid rgba(36, 52, 74, 0.1);
+  text-align: center;
+}
 
-@media (max-width: 768px) {
-  .pageContainer {
-    margin: 0;
-    min-height: 100dvh;
-    padding: 1.15rem 1rem calc(9rem + env(safe-area-inset-bottom));
-    border-radius: 0;
-    overflow: visible;
-  }
+.sideReassuranceTitle {
+  margin: 0 0 8px;
+  color: $night;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.45rem;
+}
 
-  .section,
-  .recapSection,
-  .form,
-  .avatarSection {
-    padding: 1.1rem;
-    margin-bottom: 1.2rem;
-    border-radius: $radius-md;
-  }
+.sideReassuranceText {
+  margin: 0 0 24px;
+  color: $muted;
+  line-height: 1.55;
+}
 
-  .nextActionsGrid {
-    grid-template-columns: 1fr;
-  }
+.benefitList {
+  display: grid;
+  gap: 16px;
+  text-align: left;
+}
 
-  .recapTopline,
-  .recapActions {
+.benefit {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+
+  > span {
     display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #fbf5e5;
+    color: $gold-dark;
+  }
+}
+
+.benefitTitle {
+  display: block;
+  margin-bottom: 2px;
+  color: $night;
+  font-weight: 700;
+}
+
+.benefitText {
+  margin: 0;
+  color: #737d8c;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 900px) {
+  .accountLayout {
     grid-template-columns: 1fr;
   }
 
-  .recapPill,
-  .editButton {
-    width: 100%;
-    justify-content: center;
-    text-align: center;
+  .sideReassurance {
+    border-top: 1px solid rgba(36, 52, 74, 0.1);
+    border-left: 0;
   }
+}
 
-  .detailList li {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.15rem;
-  }
-
-  .detailList strong {
-    text-align: left;
-  }
-
-  .mobileAccountOverlay {
-    position: fixed;
-    inset: 0;
-    z-index: 80;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding: 1rem 0.85rem calc(0.85rem + env(safe-area-inset-bottom));
-    background: linear-gradient(to top, rgba(32, 25, 14, 0.45), rgba(32, 25, 14, 0));
-    pointer-events: none;
-  }
-
-  .mobileAccountSheet {
-    width: min(100%, 420px);
-    max-height: min(78dvh, 620px);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    padding: 1rem;
-    border: 1px solid rgba($gold, 0.22);
+@media (max-width: 600px) {
+  .pageContainer {
+    width: calc(100vw - 20px);
+    margin: 10px auto;
+    padding: 20px 16px;
     border-radius: 18px;
-    background: rgba(255, 255, 255, 0.98);
-    box-shadow: 0 -18px 48px rgba(0, 0, 0, 0.18);
-    pointer-events: auto;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .nameFields,
+  .passwordRules {
+    grid-template-columns: 1fr;
+  }
+
+  .modifyButton {
+    width: 100%;
+    margin-left: 0;
   }
 }
 
 :global(body[data-readability="on"]) {
   .pageContainer {
-    font-size: 1.14rem;
     background: #ffffff;
+    font-size: 1.14rem;
   }
 
-  .title {
-    font-size: 2.5rem;
-  }
-
-  .recapCard p,
-  .profileList li,
-  .recapPill,
-  .editButton,
-  .submitButton,
-  .mobileAccountSheet button,
-  .mobileAccountHeader p,
-  .mobileAccountHeader h2,
-  .nextActionsGrid p,
-  .form input {
+  .fieldInput,
+  .fieldHint,
+  .passwordRules,
+  .benefitText,
+  .journeyTag,
+  .submitButton {
     font-size: 1.12rem;
     line-height: 1.58;
   }
@@ -879,23 +419,12 @@ $shadow-hover: 0 10px 34px rgba(0, 0, 0, 0.1);
     font-size: 1.16rem;
   }
 
-  .title {
-    font-size: 2.55rem;
-  }
-
-  .recapCard p,
-  .profileList li,
-  .recapPill,
-  .editButton,
-  .submitButton,
-  .mobileAccountSheet button,
-  .mobileAccountHeader p,
-  .mobileAccountHeader h2,
-  .nextActionsGrid p,
-  .form input,
-  .mobileAccountSheet input,
-  .localPromise,
-  .locationError {
+  .fieldInput,
+  .fieldHint,
+  .passwordRules,
+  .benefitText,
+  .journeyTag,
+  .submitButton {
     font-size: 1.14rem;
     line-height: 1.62;
   }
@@ -911,19 +440,12 @@ $shadow-hover: 0 10px 34px rgba(0, 0, 0, 0.1);
     line-height: 1.2;
   }
 
-  .recapCard p,
-  .profileList li,
-  .recapPill,
-  .editButton,
-  .submitButton,
-  .mobileAccountSheet button,
-  .mobileAccountHeader p,
-  .mobileAccountHeader h2,
-  .nextActionsGrid p,
-  .form input,
-  .mobileAccountSheet input,
-  .localPromise,
-  .locationError {
+  .fieldInput,
+  .fieldHint,
+  .passwordRules,
+  .benefitText,
+  .journeyTag,
+  .submitButton {
     font-size: 1.3rem;
     line-height: 1.72;
   }
