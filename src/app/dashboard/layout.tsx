@@ -3,16 +3,14 @@
 import type { ReactNode } from "react";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Compass, Sun } from "lucide-react";
+import { Sun } from "lucide-react";
 import Sidebar from "@/app/components/dashboard/Sidebar/Sidebar";
 import Navbar from "@/app/components/dashboard/navbar/DashboardNavbar";
 import { DashboardMobileExperience } from "@/app/components/dashboard/mobile/DashboardMobileExperience";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { DashboardBottomNav } from "@/components/dashboard/DashboardLayout/DashboardBottomNav";
 import { useOwnerDashboardData } from "./owner/useOwnerDashboardData";
-import "@/app/styles/abstracts/_dashboards.scss";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -95,61 +93,61 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </Suspense>
       <div ref={mainRef} className={`dashboard-main ${isSidebarOpen ? "with-sidebar" : "no-sidebar"}`}>
         <Navbar isSidebarOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
-        {showHeaderBandeau ? <div className={`headerBandeau ${isOwnerPage ? "ownerHeaderBandeau" : ""}`}>
-          <Image
-            src="/images/generated/dashboard/dashboard-header-bandeau.png"
-            alt="Bandeau chaleureux du tableau de bord"
-            fill
-            sizes="100vw"
-            priority={isOwnerPage}
-          />
-          <div className="headerOverlay">
-            <div className="headerHero conciergeHeaderHero">
-              <div className="headerIdentity">
-                <span className="headerAvatar" aria-hidden="true">
-                  <Compass size={22} />
-                </span>
-                <div className="headerCopy">
-                  <span className="headerEyebrow">{isConciergePage ? "Espace conciergerie" : isOwnerPage ? "Espace propriétaire" : isAdminPage ? "Espace administrateur" : "Espace artisan"}</span>
-                  <h1>{isConciergePage ? `Bonjour ${user?.firstName || user?.company_name || ""},` : isOwnerPage ? (isOwnerHome ? `Bonjour ${user?.firstName || user?.company_name || "Propriétaire"} 👋` : currentOwnerSectionLabel) : `Bonjour ${user?.firstName || user?.company_name || ""},`}</h1>
-                  <p>{isConciergePage ? "Une nouvelle journée pour faire la différence." : isOwnerPage ? "Vos logements créent de beaux souvenirs, suivez-les en un coup d'œil." : isAdminPage ? "Gardez une vision claire de la plateforme et de son activité." : "Des interventions bien préparées, des clients satisfaits."}</p>
-                  <blockquote>{isConciergePage ? <>« Prendre soin des lieux,<br />c&apos;est prendre soin des gens »</> : isOwnerPage ? <>« Des séjours sereins,<br />des logements qui performent »</> : isAdminPage ? <>« Une plateforme fiable,<br />des équipes accompagnées »</> : <>« Des interventions soignées,<br />une confiance qui dure »</>}</blockquote>
+        {showHeaderBandeau ? (
+          <div className={`headerBandeau ${isOwnerPage ? "ownerHeaderBandeau" : ""}`}>
+            <Image
+              src="/images/generated/dashboard/dashboard-header-bandeau.png"
+              alt="Bandeau du tableau de bord"
+              fill
+              sizes="100vw"
+              priority={isOwnerPage}
+            />
+            <div className="headerOverlay">
+              <div className="headerHero conciergeHeaderHero">
+                <div className="headerIdentity">
+                  <div className="headerCopy">
+                    <span className="headerEyebrow">
+                      {isConciergePage ? "Espace conciergerie" : isOwnerPage ? "Espace propriétaire" : isAdminPage ? "Espace administrateur" : "Espace artisan"}
+                    </span>
+                    <h1>
+                      {isConciergePage
+                        ? `Bonjour ${user?.firstName || user?.company_name || ""}`
+                        : isOwnerPage
+                          ? (isOwnerHome ? `Bonjour ${user?.firstName || user?.company_name || "Propriétaire"}` : currentOwnerSectionLabel)
+                          : `Bonjour ${user?.firstName || user?.company_name || ""} `}
+                    </h1>
+                  </div>
                 </div>
-              </div>
-              <div className="headerActionRow conciergeHeaderAside">
-                <div className="conciergeWeather">
-                  <strong>{(isConciergeHome || isOwnerHome || isAdminPage || isProviderPage) ? new Intl.DateTimeFormat("fr-FR", { weekday: "long" }).format(new Date()) : "Mardi"}</strong>
-                  <span>{(isConciergeHome || isOwnerHome || isAdminPage || isProviderPage) ? new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" }).format(new Date()) : "9 septembre 2026"}</span>
-                  {(isConciergeHome || isOwnerHome || isAdminPage || isProviderPage) && <hr className="conciergeWeatherDivider" />}<b><Sun size={30} strokeWidth={1.5} aria-hidden="true" /> <em>24°C</em></b>
-                  <small>Le Barcarès{(isConciergeHome || isOwnerHome) && <span className="conciergeWeatherExample">Exemple météo</span>}</small>
-                </div>
-                <div className="headerActionLinks">
-                  {isConciergePage ? (
-                    <>
-                      <a href="/dashboard/concierge/planning" className="headerActionPrimary">Voir le planning</a>
-                      <a href="/dashboard/concierge/demandes" className="headerActionSecondary">Ouvrir les demandes</a>
-                    </>
-                  ) : isOwnerPage ? (
-                    <>
-                      <Link href="/dashboard/owner/planning" className="headerActionPrimary">Voir mes réservations</Link>
-                      <Link href="/dashboard/owner/logements" className="headerActionSecondary">Ouvrir mes logements</Link>
-                    </>
-                  ) : isAdminPage ? (
-                    <>
-                      <Link href="/dashboard/admin" className="headerActionPrimary">Voir le pilotage</Link>
-                      <Link href="/dashboard/admin/developpement" className="headerActionSecondary">Ouvrir le registre</Link>
-                    </>
-                  ) : (
-                    <>
-                      <Link href="/dashboard/provider/planning" className="headerActionPrimary">Voir mon planning</Link>
-                      <Link href="/dashboard/provider/devis" className="headerActionSecondary">Ouvrir mes devis</Link>
-                    </>
-                  )}
+
+                <div className="headerActionRow conciergeHeaderAside">
+                  <div className="conciergeWeather">
+                    <div className="weatherTopline">
+                      <span>M&eacute;t&eacute;o locale</span>
+                    </div>
+                    <div className="weatherMain">
+                      <div className="weatherDate">
+                        <strong>
+                          {new Intl.DateTimeFormat("fr-FR", {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "long"
+                          }).format(new Date())}
+                        </strong>
+                        <small>Le Barcar&egrave;s</small>
+                      </div>
+                      <div className="weatherTemp">
+                        <Sun size={22} strokeWidth={2.2} aria-hidden="true" />
+                        <span>24&deg;C</span>
+                      </div>
+                    </div>
+                    <p className="weatherStatus">Ensoleill&eacute;, conditions id&eacute;ales pour les arriv&eacute;es.</p>
+                  </div>
+
                 </div>
               </div>
             </div>
           </div>
-        </div> : null}
+        ) : null}
         {isOwnerPage && pathname !== "/dashboard/owner" ? (
           isCompactOwnerPage ? <div className="owner-business-shortcuts">
             <DashboardBottomNav items={ownerBottomNavItems} ariaLabel="Navigation propriétaire" />

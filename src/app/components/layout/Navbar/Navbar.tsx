@@ -6,16 +6,26 @@ import { useRouter, usePathname } from "next/navigation";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useTheme, type Theme } from "@/app/providers/ThemeProvider";
 import { useUserType } from "@/app/context/UserTypeContext";
-import { WorkspaceRoleIcon } from "@/components/ui";
 import { useSearchPopup } from "../../../context/SearchPopupContext";
+import { FiRepeat } from "react-icons/fi";
 import styles from "./Navbar.module.scss";
-
+import Image from "next/image";
 const Icons = {
-  FaUser: dynamic(() => import("react-icons/fa").then((mod) => mod.FaUser), { ssr: false }),
-  FaSearch: dynamic(() => import("react-icons/fa").then((mod) => mod.FaSearch), { ssr: false }),
-  FaTachometerAlt: dynamic(() => import("react-icons/fa").then((mod) => mod.FaTachometerAlt), { ssr: false }),
-  FaPalette: dynamic(() => import("react-icons/fa").then((mod) => mod.FaPalette), { ssr: false }),
-  FaExchangeAlt: dynamic(() => import("react-icons/fa").then((mod) => mod.FaExchangeAlt), { ssr: false }),
+  FaUser: dynamic(() => import("react-icons/fa").then((mod) => mod.FaUser), {
+    ssr: false,
+  }),
+  FaSearch: dynamic(
+    () => import("react-icons/fa").then((mod) => mod.FaSearch),
+    { ssr: false },
+  ),
+  FaTachometerAlt: dynamic(
+    () => import("react-icons/fa").then((mod) => mod.FaTachometerAlt),
+    { ssr: false },
+  ),
+  FaPalette: dynamic(
+    () => import("react-icons/fa").then((mod) => mod.FaPalette),
+    { ssr: false },
+  ),
 };
 
 const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
@@ -31,7 +41,9 @@ type WorkspaceOption = {
   current?: boolean;
 };
 
-function getWorkspaceFromRole(role: string | null | undefined): WorkspaceOption["id"] | null {
+function getWorkspaceFromRole(
+  role: string | null | undefined,
+): WorkspaceOption["id"] | null {
   const normalized = String(role ?? "")
     .toLowerCase()
     .normalize("NFD")
@@ -41,8 +53,15 @@ function getWorkspaceFromRole(role: string | null | undefined): WorkspaceOption[
 
   if (normalized.includes("admin")) return "admin";
   if (normalized.includes("concierge")) return "concierge";
-  if (normalized.includes("owner") || normalized.includes("proprietaire")) return "owner";
-  if (normalized.includes("provider") || normalized.includes("artisan")) return "provider";
+
+  if (normalized.includes("owner") || normalized.includes("proprietaire")) {
+    return "owner";
+  }
+
+  if (normalized.includes("provider") || normalized.includes("artisan")) {
+    return "provider";
+  }
+
   return null;
 }
 
@@ -51,39 +70,50 @@ const fallbackWorkspaces: Record<WorkspaceOption["id"], WorkspaceOption> = {
     id: "owner",
     label: "Propriétaire",
     href: "/dashboard/owner",
-    description: "Logements, demandes et missions.",
+    description: "Tester le parcours et les outils côté propriétaire.",
   },
+
   concierge: {
     id: "concierge",
     label: "Conciergerie",
     href: "/dashboard/concierge",
-    description: "Demandes recues, planning et devis.",
+    description: "Tester le parcours et les outils côté conciergerie.",
   },
+
   provider: {
     id: "provider",
     label: "Artisan",
     href: "/dashboard/provider",
-    description: "Interventions, clients et devis.",
+    description: "Tester le parcours et les outils côté prestataire.",
   },
+
   admin: {
     id: "admin",
     label: "Administrateur",
     href: "/dashboard/admin",
-    description: "Contrôle global de la plateforme.",
+    description: "Accéder au pilotage et à l’administration de PlanetLS.",
   },
 };
 
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
+
   const { theme, changeTheme, themes, labels, getCurrentLabel } = useTheme();
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
-  const [workspaceLoadingId, setWorkspaceLoadingId] = useState<WorkspaceOption["id"] | null>(null);
+
+  const [workspaceLoadingId, setWorkspaceLoadingId] = useState<
+    WorkspaceOption["id"] | null
+  >(null);
+
   const [workspaces, setWorkspaces] = useState<WorkspaceOption[]>([]);
+
   const [showWarning, setShowWarning] = useState(false);
   const [warningDeadline, setWarningDeadline] = useState<number | null>(null);
+
   const [warningSecondsLeft, setWarningSecondsLeft] = useState(
     Math.floor(WARNING_BEFORE_LOGOUT / 1000),
   );
@@ -93,27 +123,48 @@ export default function Navbar() {
   const { setSearchOpen } = useSearchPopup();
 
   const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const warningTimeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const warningTimeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
   const showWarningRef = useRef(false);
+
   const extendButtonRef = useRef<HTMLButtonElement | null>(null);
+
   const warningModalRef = useRef<HTMLDivElement | null>(null);
+
   const themeMenuRef = useRef<HTMLDivElement | null>(null);
-  const workspaceMenuRef = useRef<HTMLDivElement | null>(null);
+
+  const workspaceMenuRef = useRef<HTMLLIElement | null>(null);
 
   const isAuthenticated = status === "authenticated";
   const isDashboardRoute = pathname?.startsWith("/dashboard");
+
+  const roleWorkspace = getWorkspaceFromRole(session?.user?.role);
+
   const currentWorkspace =
     workspaces.find((workspace) => workspace.current) ??
-    (getWorkspaceFromRole(session?.user?.role)
-      ? fallbackWorkspaces[getWorkspaceFromRole(session?.user?.role) as WorkspaceOption["id"]]
+    (roleWorkspace
+      ? fallbackWorkspaces[roleWorkspace]
       : fallbackWorkspaces.owner);
-  const visibleWorkspaces = workspaces.length ? workspaces : Object.values(fallbackWorkspaces);
+
+  const visibleWorkspaces = workspaces.length
+    ? workspaces
+    : Object.values(fallbackWorkspaces);
 
   const getDashboardPath = () => {
     if (!userType) {
       const role = session?.user?.role;
-      if (role === "concierge" || role === "concierge_pro") return "/dashboard/concierge";
-      if (role === "owner" || role === "owner_pro") return "/dashboard/owner";
+
+      if (role === "concierge" || role === "concierge_pro") {
+        return "/dashboard/concierge";
+      }
+
+      if (role === "owner" || role === "owner_pro") {
+        return "/dashboard/owner";
+      }
+
       if (
         role === "provider" ||
         role === "provider_pro" ||
@@ -122,6 +173,7 @@ export default function Navbar() {
       ) {
         return "/dashboard/provider";
       }
+
       return "/dashboard";
     }
 
@@ -129,8 +181,14 @@ export default function Navbar() {
   };
 
   const clearInactivityTimers = useCallback(() => {
-    if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
-    if (warningTimeoutIdRef.current) clearTimeout(warningTimeoutIdRef.current);
+    if (timeoutIdRef.current) {
+      clearTimeout(timeoutIdRef.current);
+    }
+
+    if (warningTimeoutIdRef.current) {
+      clearTimeout(warningTimeoutIdRef.current);
+    }
+
     timeoutIdRef.current = null;
     warningTimeoutIdRef.current = null;
   }, []);
@@ -152,13 +210,16 @@ export default function Navbar() {
     if (isAuthenticated && isDashboardRoute) {
       const warningId = setTimeout(() => {
         showWarningRef.current = true;
+
         setShowWarning(true);
+
         setWarningDeadline(Date.now() + WARNING_BEFORE_LOGOUT);
+
         setWarningSecondsLeft(Math.floor(WARNING_BEFORE_LOGOUT / 1000));
       }, INACTIVITY_TIMEOUT - WARNING_BEFORE_LOGOUT);
 
       const logoutId = setTimeout(() => {
-        handleAutoLogout();
+        void handleAutoLogout();
       }, INACTIVITY_TIMEOUT);
 
       warningTimeoutIdRef.current = warningId;
@@ -168,8 +229,10 @@ export default function Navbar() {
 
   const extendSession = useCallback(() => {
     showWarningRef.current = false;
+
     setShowWarning(false);
     setWarningDeadline(null);
+
     resetInactivityTimer();
   }, [resetInactivityTimer]);
 
@@ -177,6 +240,7 @@ export default function Navbar() {
     if (!showWarning) return;
 
     const prevOverflow = document.body.style.overflow;
+
     document.body.style.overflow = "hidden";
 
     extendButtonRef.current?.focus();
@@ -189,19 +253,24 @@ export default function Navbar() {
 
     const onMouseDownCapture = (e: MouseEvent) => {
       const target = e.target as Node;
+
       if (warningModalRef.current?.contains(target)) {
         return;
       }
+
       e.stopPropagation();
       e.preventDefault();
     };
 
     window.addEventListener("keydown", onKeyDown);
+
     document.addEventListener("mousedown", onMouseDownCapture, true);
 
     return () => {
       window.removeEventListener("keydown", onKeyDown);
+
       document.removeEventListener("mousedown", onMouseDownCapture, true);
+
       document.body.style.overflow = prevOverflow;
     };
   }, [showWarning, extendSession]);
@@ -209,10 +278,17 @@ export default function Navbar() {
   useEffect(() => {
     if (!isAuthenticated || !isDashboardRoute) return;
 
-    const events = ["mousedown", "keydown", "scroll", "touchstart", "mousemove"];
+    const events = [
+      "mousedown",
+      "keydown",
+      "scroll",
+      "touchstart",
+      "mousemove",
+    ];
 
     const handleActivity = () => {
       if (showWarningRef.current) return;
+
       resetInactivityTimer();
     };
 
@@ -226,14 +302,23 @@ export default function Navbar() {
       events.forEach((event) => {
         window.removeEventListener(event, handleActivity);
       });
+
       clearInactivityTimers();
     };
-  }, [isAuthenticated, isDashboardRoute, pathname, clearInactivityTimers, resetInactivityTimer]);
+  }, [
+    isAuthenticated,
+    isDashboardRoute,
+    pathname,
+    clearInactivityTimers,
+    resetInactivityTimer,
+  ]);
 
   useEffect(() => {
     if (isAuthenticated && !isDashboardRoute) {
       clearInactivityTimers();
+
       showWarningRef.current = false;
+
       setShowWarning(false);
       setWarningDeadline(null);
     }
@@ -247,11 +332,16 @@ export default function Navbar() {
     if (!showWarning || !warningDeadline) return;
 
     const tick = () => {
-      const seconds = Math.max(0, Math.ceil((warningDeadline - Date.now()) / 1000));
+      const seconds = Math.max(
+        0,
+        Math.ceil((warningDeadline - Date.now()) / 1000),
+      );
+
       setWarningSecondsLeft(seconds);
     };
 
     tick();
+
     const intervalId = window.setInterval(tick, 1000);
 
     return () => {
@@ -269,17 +359,26 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
-      if (themeMenuRef.current && !themeMenuRef.current.contains(e.target as Node)) {
+      if (
+        themeMenuRef.current &&
+        !themeMenuRef.current.contains(e.target as Node)
+      ) {
         setThemeMenuOpen(false);
       }
-      if (workspaceMenuRef.current && !workspaceMenuRef.current.contains(e.target as Node)) {
+
+      if (
+        workspaceMenuRef.current &&
+        !workspaceMenuRef.current.contains(e.target as Node)
+      ) {
         setWorkspaceMenuOpen(false);
       }
     };
 
     if (themeMenuOpen || workspaceMenuOpen) {
       document.addEventListener("mousedown", handleOutsideClick);
-      return () => document.removeEventListener("mousedown", handleOutsideClick);
+
+      return () =>
+        document.removeEventListener("mousedown", handleOutsideClick);
     }
   }, [themeMenuOpen, workspaceMenuOpen]);
 
@@ -292,21 +391,40 @@ export default function Navbar() {
     let cancelled = false;
 
     async function loadWorkspaces() {
-      const roleWorkspace = getWorkspaceFromRole(session?.user?.role);
-      const fallback = roleWorkspace ? [fallbackWorkspaces[roleWorkspace]] : [];
+      const workspaceFromRole = getWorkspaceFromRole(session?.user?.role);
+
+      const fallback = workspaceFromRole
+        ? [fallbackWorkspaces[workspaceFromRole]]
+        : [];
 
       try {
-        const response = await fetch("/api/profiles/workspaces", { cache: "no-store" });
+        const response = await fetch("/api/profiles/workspaces", {
+          cache: "no-store",
+        });
+
         if (!response.ok) {
-          if (!cancelled) setWorkspaces(fallback);
+          if (!cancelled) {
+            setWorkspaces(fallback);
+          }
+
           return;
         }
 
-        const payload = (await response.json()) as { workspaces?: WorkspaceOption[] };
-        const nextWorkspaces = Array.isArray(payload.workspaces) ? payload.workspaces : fallback;
-        if (!cancelled) setWorkspaces(nextWorkspaces.length ? nextWorkspaces : fallback);
+        const payload = (await response.json()) as {
+          workspaces?: WorkspaceOption[];
+        };
+
+        const nextWorkspaces = Array.isArray(payload.workspaces)
+          ? payload.workspaces
+          : fallback;
+
+        if (!cancelled) {
+          setWorkspaces(nextWorkspaces.length ? nextWorkspaces : fallback);
+        }
       } catch {
-        if (!cancelled) setWorkspaces(fallback);
+        if (!cancelled) {
+          setWorkspaces(fallback);
+        }
       }
     }
 
@@ -319,11 +437,15 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     closeMenu();
-    await signOut({ callbackUrl: "/" });
+
+    await signOut({
+      callbackUrl: "/",
+    });
   };
 
   const handleGoToDashboard = () => {
     closeMenu();
+
     router.push(currentWorkspace?.href ?? getDashboardPath());
   };
 
@@ -331,18 +453,34 @@ export default function Navbar() {
     closeMenu();
     setWorkspaceMenuOpen(false);
 
+    /*
+     * Mode démonstration.
+     *
+     * Lorsqu'un visiteur n'est pas connecté, PlanetLS tente
+     * d'ouvrir le profil de démonstration correspondant.
+     *
+     * Ce comportement pourra être retiré lorsque le site
+     * ne sera plus présenté en version bêta.
+     */
     if (!isAuthenticated) {
       setWorkspaceLoadingId(workspace.id);
 
       try {
         const response = await fetch("/api/auth/dev-workspace-login", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ workspace: workspace.id }),
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            workspace: workspace.id,
+          }),
         });
 
         if (!response.ok) {
           router.push(`/login?workspace=${workspace.id}`);
+
           return;
         }
 
@@ -354,6 +492,7 @@ export default function Navbar() {
 
         if (!payload.email || !payload.password) {
           router.push(`/login?workspace=${workspace.id}`);
+
           return;
         }
 
@@ -365,13 +504,16 @@ export default function Navbar() {
 
         if (result?.error) {
           router.push(`/login?workspace=${workspace.id}`);
+
           return;
         }
 
         window.location.assign(payload.href || workspace.href);
+
         return;
       } catch {
         router.push(`/login?workspace=${workspace.id}`);
+
         return;
       } finally {
         setWorkspaceLoadingId(null);
@@ -381,14 +523,25 @@ export default function Navbar() {
     if (isAuthenticated && workspace.profileId) {
       const response = await fetch("/api/profiles/workspaces", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profileId: workspace.profileId }),
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          profileId: workspace.profileId,
+        }),
       }).catch(() => null);
 
       if (response?.ok) {
-        const payload = (await response.json().catch(() => ({}))) as { href?: string };
+        const payload = (await response.json().catch(() => ({}))) as {
+          href?: string;
+        };
+
         router.push(payload.href || workspace.href);
+
         router.refresh();
+
         return;
       }
     }
@@ -398,12 +551,15 @@ export default function Navbar() {
 
   const handleLogin = () => {
     closeMenu();
+
     router.push("/login");
   };
 
   const handleRegister = () => {
     closeMenu();
+
     setSearchOpen(true);
+
     if (pathname !== "/home") {
       router.push("/home");
     }
@@ -412,35 +568,41 @@ export default function Navbar() {
   const canSelectWorkspace = (workspace: WorkspaceOption) =>
     isAuthenticated ? Boolean(workspace.profileId) : true;
 
-  const workspaceHeaderText = isAuthenticated
-    ? "Profils rattaches a votre compte"
-    : "Accès rapide aux espaces en cours de test";
-
   return (
     <>
       <nav className={styles.navbar}>
+        {/* Sélecteur de thème */}
         <div className={styles.themeSwitcher} ref={themeMenuRef}>
           <button
+            type="button"
             className={styles.themeTrigger}
             onClick={() => setThemeMenuOpen(!themeMenuOpen)}
-            title="Changer de theme"
-            aria-label="Changer de theme"
+            title="Changer de thème"
+            aria-label="Changer de thème"
+            aria-haspopup="menu"
+            aria-expanded={themeMenuOpen}
           >
             <Icons.FaPalette size={18} />
+
             <span className={styles.themeLabel}>{getCurrentLabel()}</span>
           </button>
 
           {themeMenuOpen && (
-            <div className={styles.themeDropdown}>
+            <div className={styles.themeDropdown} role="menu">
               {Object.entries(themes).map(([key, value]) => (
                 <button
+                  type="button"
                   key={key}
-                  className={`${styles.themeOption} ${theme === value ? styles.active : ""}`}
+                  className={`${styles.themeOption} ${
+                    theme === value ? styles.active : ""
+                  }`}
                   onClick={() => {
                     changeTheme(value as Theme);
+
                     setThemeMenuOpen(false);
                   }}
-                  aria-label={`Selectionner theme ${labels[value as Theme]}`}
+                  aria-label={`Sélectionner le thème ${labels[value as Theme]}`}
+                  role="menuitem"
                 >
                   {labels[value as Theme]}
                 </button>
@@ -449,192 +611,233 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* <div className={styles.workspaceSwitcher} ref={workspaceMenuRef}>
-          <button
-            type="button"
-            className={styles.workspaceTrigger}
-            onClick={() => setWorkspaceMenuOpen((open) => !open)}
-            aria-haspopup="menu"
-            aria-expanded={workspaceMenuOpen}
-          >
-            <Icons.FaExchangeAlt size={17} />
-            <span>Espaces</span>
-            <strong>{currentWorkspace?.label ?? "Profil"}</strong>
-          </button>
-
-          {workspaceMenuOpen ? (
-            <div className={styles.workspaceDropdown} role="menu">
-              <div className={styles.workspaceDropdownHeader}>
-                <strong>Changer d'espace</strong>
-                <span>{workspaceHeaderText}</span>
-              </div>
-              {visibleWorkspaces.map((workspace) => (
-                <button
-                  key={workspace.id}
-                  type="button"
-                  className={`${styles.workspaceOption} ${workspace.current ? styles.workspaceOptionActive : ""} ${
-                    !canSelectWorkspace(workspace) ? styles.workspaceOptionDisabled : ""
-                  }`}
-                  onClick={() => handleWorkspaceSelect(workspace)}
-                  disabled={!canSelectWorkspace(workspace) || workspaceLoadingId !== null}
-                  aria-busy={workspaceLoadingId === workspace.id}
-                  role="menuitem"
-                >
-                  <span>
-                    <strong>{workspace.label}</strong>
-                    <small>{workspace.description}</small>
-                  </span>
-                  {workspaceLoadingId === workspace.id ? <em>Connexion...</em> : null}
-                  {workspace.current ? <em>Actuel</em> : null}
-                  {!canSelectWorkspace(workspace) ? (
-                    <em className={styles.workspaceUnavailable}>Non rattache</em>
-                  ) : null}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div> */}
-
+        {/* Menu mobile */}
         <button
+          type="button"
           className={`${styles.burger} ${menuOpen ? styles.open : ""}`}
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Menu"
+          aria-expanded={menuOpen}
         >
-          <span></span>
-          <span></span>
-          <span></span>
+          <span />
+          <span />
+          <span />
         </button>
 
         <ul className={`${styles.menu} ${menuOpen ? styles.open : ""}`}>
-          <li className={styles["nav-search"]}>
-            <button
-              onClick={() => {
-                router.push("/map-list?filter=concierge");
-                closeMenu();
-              }}
-              className={styles.navButton}
-              aria-label="Ouvrir la recherche de profils"
-            >
-              <Icons.FaSearch size={18} /> Recherche
-            </button>
-          </li>
-
+          {/* Inscription */}
           {!isAuthenticated && (
             <li className={styles["auth-inscription"]}>
               <button
+                type="button"
                 onClick={handleRegister}
                 className={styles.navButton}
-                aria-label="Acceder a l'inscription"
+                aria-label="Accéder à l'inscription"
               >
                 S&apos;inscrire
               </button>
             </li>
           )}
 
+          {/* Changement d'espace */}
           {!isDashboardRoute && (
-            <li className={styles.workspaceSwitcher}>
+            <li className={styles.workspaceSwitcher} ref={workspaceMenuRef}>
               <button
                 type="button"
                 className={styles.workspaceTrigger}
                 onClick={() => setWorkspaceMenuOpen((open) => !open)}
                 aria-haspopup="menu"
                 aria-expanded={workspaceMenuOpen}
-          >
-            <Icons.FaExchangeAlt size={17} />
-            <span>{currentWorkspace?.label ?? "Changer d'espace"}</span>
-            {currentWorkspace ? (
-              <WorkspaceRoleIcon
-                role={currentWorkspace.id}
-                label={currentWorkspace.label}
-                size={30}
-                className={styles.workspaceTriggerIcon}
-              />
-            ) : null}
-          </button>
+                aria-label={`Changement d'espace · ${
+                  currentWorkspace?.label ?? "Profil"
+                }`}
+              >
+                <FiRepeat
+                  className={styles.workspaceTriggerIcon}
+                  aria-hidden="true"
+                />
+
+                <span className={styles.workspaceTriggerLabel}>
+                  <span className={styles.workspaceTriggerPrefix}>
+                    Changement d&apos;espace
+                  </span>
+
+                  <span
+                    className={styles.workspaceTriggerSeparator}
+                    aria-hidden="true"
+                  >
+                    ·
+                  </span>
+
+                  <strong className={styles.workspaceTriggerRole}>
+                    {currentWorkspace?.label ?? "Profil"}
+                  </strong>
+                </span>
+
+                <span
+                  className={`${styles.workspaceChevron} ${
+                    workspaceMenuOpen ? styles.workspaceChevronOpen : ""
+                  }`}
+                  aria-hidden="true"
+                >
+                  ▾
+                </span>
+              </button>
 
               {workspaceMenuOpen ? (
                 <div className={styles.workspaceDropdown} role="menu">
                   <div className={styles.workspaceDropdownHeader}>
-                    <strong>Changer d'espace</strong>
-                    <span>{workspaceHeaderText}</span>
+                    <strong>Accès rapide aux espaces PlanetLS</strong>
+
+                    <span>
+                      Sélectionnez un profil pour découvrir et tester son
+                      parcours.
+                    </span>
                   </div>
-                  {visibleWorkspaces.map((workspace) => (
-                    <button
-                      key={workspace.id}
-                      type="button"
-                      className={`${styles.workspaceOption} ${workspace.current ? styles.workspaceOptionActive : ""} ${
-                        !canSelectWorkspace(workspace) ? styles.workspaceOptionDisabled : ""
-                      }`}
-                      onClick={() => handleWorkspaceSelect(workspace)}
-                      disabled={!canSelectWorkspace(workspace) || workspaceLoadingId !== null}
-                      aria-busy={workspaceLoadingId === workspace.id}
-                      role="menuitem"
-                    >
-                      <span>
-                        <strong className={styles.workspaceOptionLabel}>
-                          <WorkspaceRoleIcon
-                            role={workspace.id}
-                            label={workspace.label}
-                            size={28}
-                            className={styles.workspaceOptionIcon}
-                          />
-                          {workspace.label}
-                        </strong>
-                        <small>{workspace.description}</small>
-                      </span>
-                      {workspaceLoadingId === workspace.id ? <em>Connexion...</em> : null}
-                      {workspace.current ? <em>Actuel</em> : null}
-                      {!canSelectWorkspace(workspace) ? (
-                        <em className={styles.workspaceUnavailable}>Non rattache</em>
-                      ) : null}
-                    </button>
-                  ))}
+
+                  {visibleWorkspaces.map((workspace) => {
+                    const selectable = canSelectWorkspace(workspace);
+
+                    return (
+                      <button
+                        key={workspace.id}
+                        type="button"
+                        className={`${styles.workspaceOption} ${
+                          workspace.current ? styles.workspaceOptionActive : ""
+                        } ${!selectable ? styles.workspaceOptionDisabled : ""}`}
+                        onClick={() => handleWorkspaceSelect(workspace)}
+                        disabled={!selectable || workspaceLoadingId !== null}
+                        aria-busy={workspaceLoadingId === workspace.id}
+                        role="menuitem"
+                      >
+                        <span>
+                          <strong className={styles.workspaceOptionLabel}>
+                            <Image
+                              src={
+                                workspace.id === "owner"
+                                  ? "/images/workspaces/proprietaire.png"
+                                  : workspace.id === "concierge"
+                                    ? "/images/workspaces/concierge.png"
+                                    : workspace.id === "provider"
+                                      ? "/images/workspaces/artisan.png"
+                                      : "/images/workspaces/administrateur.png"
+                              }
+                              alt=""
+                              width={100}
+                              height={100}
+                              className={styles.workspaceOptionIcon}
+                              aria-hidden="true"
+                            />
+
+                            {workspace.label}
+                          </strong>
+
+                          <p>{workspace.description}</p>
+                        </span>
+
+                        {workspaceLoadingId === workspace.id ? (
+                          <em>Connexion...</em>
+                        ) : null}
+
+                        {workspace.current ? <em>Actuel</em> : null}
+
+                        {!selectable ? (
+                          <em className={styles.workspaceUnavailable}>
+                            Non rattaché
+                          </em>
+                        ) : null}
+                        {selectable ? (
+                          <span
+                            className={styles.workspaceOptionArrow}
+                            aria-hidden="true"
+                          >
+                            →
+                          </span>
+                        ) : null}
+                      </button>
+                    );
+                  })}
                 </div>
               ) : null}
             </li>
           )}
 
+          {/* Dashboard */}
           {isAuthenticated && !isDashboardRoute && (
             <li className={styles["auth-dashboard"]}>
-              <button type="button" onClick={handleGoToDashboard} className={styles.dashboardButton}>
-                <Icons.FaTachometerAlt size={18} /> Mon espace
+              <button
+                type="button"
+                onClick={handleGoToDashboard}
+                className={styles.dashboardButton}
+              >
+                <Icons.FaTachometerAlt size={18} />
+                Mon espace
               </button>
             </li>
           )}
 
+          {/* Connexion / déconnexion */}
           <li className={styles["auth-connexion"]}>
             {isAuthenticated ? (
-              <button type="button" onClick={handleLogout} className={styles.logoutButton}>
-                <Icons.FaUser size={18} /> Se deconnecter
+              <button
+                type="button"
+                onClick={handleLogout}
+                className={styles.logoutButton}
+              >
+                <Icons.FaUser size={18} />
+                Se déconnecter
               </button>
             ) : (
-              <button type="button" onClick={handleLogin} className={styles.loginButton}>
-                <Icons.FaUser size={18} /> Se connecter
+              <button
+                type="button"
+                onClick={handleLogin}
+                className={styles.loginButton}
+              >
+                <Icons.FaUser size={18} />
+                Se connecter
               </button>
             )}
           </li>
         </ul>
       </nav>
 
+      {/* Avertissement d'inactivité */}
       {showWarning && (
         <div className={styles.warningOverlay}>
-          <div className={styles.warningModal} ref={warningModalRef}>
-            <h3>Session bientot expiree</h3>
-            <p>Vous serez deconnecte dans 2 minutes en raison d&apos;inactivite.</p>
-            <p className={styles.warningSubtext}>
-              Temps restant: <strong>{warningTimeLabel}</strong>. Cliquez sur
-              &quot;Rester connecte&quot; pour continuer votre session.
+          <div
+            className={styles.warningModal}
+            ref={warningModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="session-warning-title"
+          >
+            <h3 id="session-warning-title">Session bientôt expirée</h3>
+
+            <p>
+              Vous serez déconnecté dans 2 minutes en raison d&apos;inactivité.
             </p>
+
+            <p className={styles.warningSubtext}>
+              Temps restant : <strong>{warningTimeLabel}</strong>. Cliquez sur
+              &quot;Rester connecté&quot; pour continuer votre session.
+            </p>
+
             <div className={styles.warningActions}>
               <button
+                type="button"
                 ref={extendButtonRef}
                 onClick={extendSession}
                 className={styles.extendButton}
               >
-                Rester connecte
+                Rester connecté
               </button>
-              <button onClick={handleAutoLogout} className={styles.logoutNowButton}>
-                Se deconnecter
+
+              <button
+                type="button"
+                onClick={handleAutoLogout}
+                className={styles.logoutNowButton}
+              >
+                Se déconnecter
               </button>
             </div>
           </div>

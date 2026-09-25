@@ -126,7 +126,7 @@ test("accueil propriétaire : composants réels, cinq résolutions et interactio
   });
   await page.goto("/dashboard/owner", { timeout: 180_000 });
   await expect(
-    page.getByRole("heading", { name: "Bonjour Nathalie 👋" }),
+    page.getByRole("heading", { name: "Bonjour Nathalie" }),
   ).toBeVisible();
   for (const width of [1600, 1366, 1024, 768, 390]) {
     await page.setViewportSize({ width, height: 1000 });
@@ -150,7 +150,7 @@ test("accueil propriétaire : composants réels, cinq résolutions et interactio
     expect(
       await metrics.evaluate((el) => getComputedStyle(el).backgroundColor),
     ).toBe("rgb(255, 253, 248)");
-    const h1 = page.getByRole("heading", { name: "Bonjour Nathalie 👋" });
+    const h1 = page.getByRole("heading", { name: "Bonjour Nathalie" });
     expect(
       await h1.evaluate((el) => parseFloat(getComputedStyle(el).fontSize)),
     ).toBeCloseTo(width <= 780 ? 34 : Math.min(48, Math.max(32, width * 0.033)), 0);

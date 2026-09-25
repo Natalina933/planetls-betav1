@@ -15,7 +15,7 @@ export const ownerDashboardContent = {
   bedrooms: (count: number) => `${count} chambre${count > 1 ? "s" : ""}`,
   bathrooms: (count: number) => `${count} salle${count > 1 ? "s" : ""} de bain`,
   area: (count: number) => `${count} m²`,
-  greeting: (name: string) => `Bonjour ${name} 👋`,
+  greeting: (name: string) => `Bonjour ${name} `,
   calm: "Tout est sous contrôle pour vos locations.",
   attention: "Vos locations en un coup d’œil.",
   intro:

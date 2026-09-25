@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, Bell, User, CheckCircle, Palette, LogOut, LayoutDashboard, UserCircle } from "lucide-react";
+import { Menu, Bell, User, Palette, LogOut, LayoutDashboard, UserCircle } from "lucide-react";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import {
   getOwnerReplySignature,
@@ -15,8 +15,6 @@ import {
 } from "@/app/components/dashboard/notifications/serviceRequestNotifications";
 import { useTheme, type Theme } from "@/app/providers/ThemeProvider";
 import { ReadabilityControlsIcon } from "@/components/dashboard";
-import { WorkspaceRoleIcon } from "@/components/ui";
-import { DashboardCommandCenter } from "./DashboardCommandCenter";
 import styles from "./DashboardNavbar.module.scss";
 
 interface DashboardNavbarProps {
@@ -86,7 +84,6 @@ const ROLE_LABELS = {
   artisan_pro: "Artisan PRO",
 } as const;
 
-const DEFAULT_COMPANY_NAME = "Mon espace";
 const AVATAR_FALLBACK = "/icons/account-svgrepo-com.svg";
 
 const getRoleLabel = (role?: string | null): string => {
@@ -97,9 +94,9 @@ const getRoleLabel = (role?: string | null): string => {
   return role.charAt(0).toUpperCase() + role.slice(1);
 };
 
-const getWorkspaceRoleIconRole = (
+const getWorkspaceRoleImageSrc = (
   role?: string | null,
-): "owner" | "concierge" | "provider" | "admin" | null => {
+): string | null => {
   const normalized = String(role ?? "")
     .toLowerCase()
     .normalize("NFD")
@@ -107,20 +104,12 @@ const getWorkspaceRoleIconRole = (
     .trim();
 
   if (!normalized) return null;
-  if (normalized.includes("admin")) return "admin";
-  if (normalized.includes("concierge")) return "concierge";
-  if (normalized.includes("owner") || normalized.includes("proprietaire")) return "owner";
-  if (normalized.includes("provider") || normalized.includes("artisan")) return "provider";
+  if (normalized.includes("admin")) return "/images/workspaces/administrateur.png";
+  if (normalized.includes("concierge")) return "/images/workspaces/concierge.png";
+  if (normalized.includes("owner") || normalized.includes("proprietaire")) return "/images/workspaces/proprietaire.png";
+  if (normalized.includes("provider") || normalized.includes("artisan")) return "/images/workspaces/artisan.png";
   return null;
 };
-
-const getTimeBasedGreeting = (): string => {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Bonjour";
-  if (hour < 18) return "Bon après-midi";
-  return "Bonsoir";
-};
-
 const getNotificationKindLabel = (kind: NotificationItem["kind"]) => {
   if (kind === "mission") return "Mission";
   if (kind === "quote") return "Devis";
@@ -227,17 +216,13 @@ export default function DashboardNavbar({
   const notificationRef = useRef<HTMLDivElement | null>(null);
   const themeMenuRef = useRef<HTMLDivElement | null>(null);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
-  const { theme, changeTheme, themes, labels, getCurrentLabel } = useTheme();
+  const { theme, changeTheme, themes, labels } = useTheme();
 
-  const isPro = useMemo(() => user?.role?.endsWith("_pro"), [user?.role]);
   const roleLabel = useMemo(() => getRoleLabel(user?.role), [user?.role]);
-  const roleIcon = useMemo(() => getWorkspaceRoleIconRole(user?.role), [user?.role]);
+  const workspaceImageSrc = useMemo(() => getWorkspaceRoleImageSrc(user?.role), [user?.role]);
 
   const avatarSrc = user?.avatar_url || AVATAR_FALLBACK;
   const userName = user?.username || user?.email?.split("@")[0] || "Utilisateur";
-  const companyName = user?.company_name || DEFAULT_COMPANY_NAME;
-  const greetingName = user?.firstName || user?.username || "vous";
-  const timeBasedGreeting = getTimeBasedGreeting();
   const userRole = user?.role ?? null;
   const notificationsPageHref = useMemo(() => getNotificationsPageHref(userRole), [userRole]);
   const dashboardHomeHref = useMemo(() => getDashboardHomeHref(userRole), [userRole]);
@@ -612,25 +597,24 @@ export default function DashboardNavbar({
         <div className={styles.titleBlock}>
           <div className={styles.pageContext}>
             <span className={styles.pageTitle}>{pageTitle}</span>
-            <span className={styles.userNameInline}>{userName}</span>
           </div>
         </div>
 
-        {roleLabel && roleIcon && (
+        {roleLabel && workspaceImageSrc && (
           <div className={styles.userRole} aria-label={`Role : ${roleLabel}`} title={roleLabel}>
-            <WorkspaceRoleIcon
-              role={roleIcon}
-              label={roleLabel}
-              size={34}
-              className={styles.userRoleIcon}
+            <Image
+              src={workspaceImageSrc}
+              alt=""
+              width={40}
+              height={40}
+              className={styles.userRoleImage}
+              aria-hidden="true"
             />
           </div>
         )}
       </div>
 
       <div className={styles.rightSection}>
-        <DashboardCommandCenter role={userRole} pathname={pathname} pageTitle={pageTitle} />
-
         <div className={styles.themeSwitcher} ref={themeMenuRef}>
           <button
             className={styles.themeTrigger}
@@ -639,8 +623,7 @@ export default function DashboardNavbar({
             aria-label="Changer de thème"
             type="button"
           >
-            <Palette size={18} />
-            <span className={styles.themeLabel}>{getCurrentLabel()}</span>
+            <Palette size={18} aria-hidden="true" />
           </button>
 
           {themeMenuOpen && (
@@ -664,24 +647,6 @@ export default function DashboardNavbar({
         </div>
 
         <ReadabilityControlsIcon />
-
-        {isAuthenticated && (
-          <div className={styles.rightInfoBlock}>
-            <div className={styles.greetingBlock}>
-              <p className={styles.companyName}>{companyName}</p>
-              <p className={styles.greeting}>
-                {timeBasedGreeting} {greetingName}
-              </p>
-            </div>
-
-            {isPro && (
-              <div className={styles.proBadge} role="status" aria-label="Compte professionnel">
-                <CheckCircle size={14} aria-hidden="true" />
-                <span>PRO</span>
-              </div>
-            )}
-          </div>
-        )}
 
         {isAuthenticated && (
           <div className={styles.notificationsWrapper} ref={notificationRef}>
@@ -819,12 +784,14 @@ export default function DashboardNavbar({
                 <strong className={styles.accountName}>{userName}</strong>
                 {user?.email ? <span className={styles.accountEmail}>{user.email}</span> : null}
                 <span className={styles.accountRole}>
-                  {roleIcon ? (
-                    <WorkspaceRoleIcon
-                      role={roleIcon}
-                      label={roleLabel}
-                      size={26}
-                      className={styles.accountRoleIcon}
+                  {workspaceImageSrc ? (
+                    <Image
+                      src={workspaceImageSrc}
+                      alt=""
+                      width={28}
+                      height={28}
+                      className={styles.accountRoleImage}
+                      aria-hidden="true"
                     />
                   ) : null}
                   <span>{roleLabel}</span>
