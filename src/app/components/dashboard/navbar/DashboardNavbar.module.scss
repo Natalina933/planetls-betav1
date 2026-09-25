@@ -177,7 +177,8 @@
   background:
     radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.95), transparent 55%),
     linear-gradient(180deg, rgba(var.$gold-light, 0.55), rgba(255, 255, 255, 0.9));
-  box-shadow: 0 10px 18px rgba(41, 28, 13, 0.08);
+
+    box-shadow: 0 10px 18px rgba(41, 28, 13, 0.08);
   transition: var.$transition;
 
   &:hover,
