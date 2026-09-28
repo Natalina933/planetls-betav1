@@ -176,6 +176,7 @@ export type Database = {
           travel_fee: number | null;
           onboarding_complete: boolean;
           onboarding_completed_at: string | null;
+          image: string | null;
         };
         Insert: {
           additional_info?: string | null;
@@ -225,6 +226,7 @@ export type Database = {
           travel_fee?: number | null;
           onboarding_complete?: boolean;
           onboarding_completed_at?: string | null;
+          image?: string | null;
         };
         Update: {
           additional_info?: string | null;
@@ -273,6 +275,7 @@ export type Database = {
           bic?: string | null;
           onboarding_complete?: boolean;
           onboarding_completed_at?: string | null;
+          image?: string | null;
         };
         Relationships: [
           {

@@ -1,5 +1,26 @@
 # Master Plan PlanetLS
 
+### Profil propriétaire : résumé et indicateur de coordonnées — 27 septembre 2026
+
+- **🟠 Partiel — P2 Important** : résumé intégré à la carte d’identité (expérience, structure et date réelle d’inscription si valide ; rôle affiché une seule fois). Suppression des cartes isolées « Badge vérifié » et « Résumé du profil » pour le propriétaire ; présentation conservée dans sa seule section éditable, coordonnées conservées dans les sections compte/adresse. La carte photo conserve son éditeur sans répéter nom, rôle et coordonnées.
+- Décision : le calcul existant `isVerified` constate uniquement la présence des coordonnées, pas une vérification d’identité. Son affichage propriétaire devient « Coordonnées renseignées / Coordonnées à compléter », dans un détail dépliable du bloc de complétion. Contradiction corrigée : l’ancien libellé « Badge vérifié » suggérait une validation PlanetLS sans preuve dans ce calcul.
+- Preuves : `EditableUnifiedProfilePage.tsx`, `ConciergeProfilePage.module.scss`. Autres rôles inchangés. Aucun nouvel accès aux données, aucune API, permission ou migration modifiée ; vérification RLS sans objet pour cette présentation des données déjà chargées.
+- Validation : TypeScript réussi, ESLint ciblé sans erreur (deux avertissements préexistants sur les images), SCSS compilé, diff ciblé propre et UTF-8 sans BOM confirmé. Prochaine action : vérifier en session connectée le rendu mobile/desktop, le détail du repère et l’édition de photo. Une véritable vérification d’identité reste hors périmètre ; aucune validation réelle n’est revendiquée par ce repère.
+
+### Photo de profil : accès à la fenêtre de sélection — 26 septembre 2026
+
+- **🟠 Partiel — P1 Prioritaire** : `AvatarUpload.tsx` rend maintenant sa fenêtre dans `document.body` via un portail React. Elle échappe ainsi aux ancêtres avec `transform` et `overflow: hidden` des sections de profil. Le sélecteur de fichier est déclenché directement par le clic, sans temporisation.
+- Preuve : `ConciergeProfilePage.module.scss` conserve une transformation et masque les débordements sur `.sectionContent` ; la fenêtre était auparavant descendante de cette section. Correction commune aux usages existants du composant, sans modification des API ou des données.
+- Validation : `npm run typecheck` et lint ciblé réussis. Restent la sélection et le recadrage en session connectée, puis la sauvegarde et le rechargement. Le blocage précis de l’utilisateur reste à confirmer ; une éventuelle erreur serveur n’est pas expliquée par cette correction visuelle.
+- Permissions/RLS : revue ciblée de `api/profiles/avatar/route.ts` : session requise, chemin Storage construit avec l’identifiant authentifié, suppression refusée pour un autre préfixe utilisateur. Parcours serveur via service role existant ; upload autorisé et refus interutilisateurs non testés en session réelle. Aucune migration. Prochaine action : vérifier le parcours connecté et le message exact en cas d’échec.
+
+### Entrée publique vers les espaces de démonstration — 26 septembre 2026
+
+- **🟠 Partiel — P1 Prioritaire** : la navbar de `/home` et `/` ouvre pour les visiteurs le menu existant avec les quatre illustrations de `/images/workspaces/`. Chaque carte mène vers `/login?workspace=…`, sans connexion automatique depuis la navbar. La constante locale `PUBLIC_BETA_WORKSPACE_ACCESS` reste à passer à `false` après la bêta. Le Login et les parcours authentifiés sont conservés.
+- Preuves : `Navbar.tsx`, `LoginPage.tsx` et `api/auth/dev-workspace-login/route.ts`. Contradiction : le code local affichait déjà le bouton sans condition de session hors dashboard ; l’absence signalée sur Vercel n’est pas expliquée par cette condition. Déploiement non vérifié.
+- Limite bloquante : l’API existante refuse la production et les hôtes autres que localhost ; le sélecteur du Login reste donc indisponible sur Vercel. Elle prépare aussi le compte administrateur via des écritures Supabase : son ouverture publique n’est pas activée dans cette correction de navbar.
+- Décision et prochaine action : conserver ce verrou ; définir un environnement et des comptes de démonstration isolés avant toute ouverture serveur. Aucune API, permission ou donnée Supabase modifiée ; vérifications RLS sans objet pour le seul lien ajouté. `npm run typecheck` réussi via `npm.cmd` ; déploiement et parcours Vercel restent à vérifier.
+
 ### LOT 2F - Mode de prestation concierge canonique `profiles.service_mode` — 22 septembre 2026
 
 - Persistance canonique **🟢 Terminé — P1 Prioritaire**. Nouvelle colonne `profiles.service_mode` (text null, CHECK `null | a_la_carte | full_management | both`, pas de default, pas de backfill) via migration `supabase/migrations/20260922120000_add_profiles_service_mode.sql` (idempotente, `add column if not exists` + `drop constraint if exists`).

@@ -1194,7 +1194,27 @@ $transition-slow: 380ms $easing-soft;
 }
 
 .profileInfoGridSecondary {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.profileDetailWide {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.profilePage .fieldsGrid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+}
+
+.profilePage .fieldValue {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.profilePage .sectionHeader {
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 .profileInfoCard {
@@ -1243,6 +1263,7 @@ $transition-slow: 380ms $easing-soft;
 
 .profilePage .sectionContentOpen {
   padding: 1rem;
+  max-height: none;
 }
 
 @media (max-width: 1180px) {
@@ -1305,6 +1326,101 @@ $transition-slow: 380ms $easing-soft;
     align-items: flex-start;
     flex-direction: column;
     gap: 0.3rem;
+  }
+}
+
+.profilePage.ownerProfile {
+  --profile-ink: var(--ds-color-primary-hover);
+  --profile-sage: var(--ds-color-primary-soft);
+  --profile-gold: var(--ds-color-accent);
+  --profile-ivory: var(--ds-color-background);
+  gap: var(--ds-space-4);
+
+  .profileSectionLead { font-size: 0.8125rem; line-height: 1.5; }
+  .profileTopGrid { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: start; }
+  .publicProfileCard { grid-column: auto; grid-template-rows: 96px auto; }
+  .publicProfileCover { min-height: 0; height: 96px; }
+  .publicProfileBody { gap: var(--ds-space-4); padding: var(--ds-space-4); }
+  .publicProfileIdentity { position: relative; margin-top: -36px; align-items: flex-end; }
+  .publicProfileIdentity > div:last-child { min-width: 0; padding-top: 28px; }
+  .publicProfileIdentity h2 { font: 600 clamp(1.25rem, 2vw, 1.65rem)/1.2 var(--ds-font-heading); overflow-wrap: anywhere; }
+  .publicProfileIdentity p, .publicProfileText { font-size: 0.8125rem; overflow-wrap: anywhere; }
+  .publicProfileAvatar { width: 72px; height: 72px; box-shadow: none; border-color: var(--ds-color-surface); }
+  .publicProfileBadge { padding: 0; border: 0; background: none; color: var(--ds-color-primary-hover); }
+  .publicProfileStats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ds-space-2); }
+  .publicProfileStats div { padding: var(--ds-space-2); background: var(--ds-color-background); }
+  .publicProfileStats strong { font-size: 0.8125rem; overflow-wrap: anywhere; }
+  .publicProfileStats span { font-size: 0.625rem; }
+  .publicProfileCard, .profileCompletion, .section, .badgeCard {
+    border: 1px solid color-mix(in srgb, var(--ds-color-primary) 14%, transparent);
+    border-radius: var(--ds-radius-md);
+    background: var(--ds-color-surface);
+    box-shadow: var(--ds-shadow-sm);
+  }
+  .profileCompletion { gap: var(--ds-space-3); padding: var(--ds-space-4); }
+  .profileCompletionHeader { flex-direction: row; align-items: baseline; gap: var(--ds-space-2); }
+  .profileCompletionHeader span { font: 600 1.0625rem/1.3 var(--ds-font-heading); }
+  .profileCompletionHeader strong { white-space: nowrap; font-size: 1.375rem; }
+  .profileCompletionTrack { height: 5px; }
+  .profileCompletionTrack span { background: var(--ds-color-primary); }
+  .profileCompletionList { gap: var(--ds-space-1); }
+  .profileCompletionItem { grid-template-columns: 78px minmax(0, 1fr); padding: var(--ds-space-2); border: 0; }
+  .profileCompletionItem strong { font-size: 0.8125rem; }
+  .profileCompletionItem span { font-size: 0.625rem; }
+  .profileCompletionItemDone { background: var(--ds-color-primary-soft); }
+  .profileCompletionItemMissing { background: color-mix(in srgb, var(--ds-color-accent) 10%, var(--ds-color-surface)); }
+  .profileCompletion p { font-size: 0.75rem; }
+  .profileCompletionAction { min-height: 44px; padding: var(--ds-space-2) var(--ds-space-3); background: var(--ds-color-primary-hover); font-size: 0.8125rem; }
+  .profileCompletionAction:focus-visible { outline: 2px solid var(--ds-color-accent); outline-offset: 3px; }
+  .profileInfoGrid, .profileInfoGridSecondary { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .profileInfoGrid > :first-child { grid-column: 1 / -1; }
+  .profileDetailWide { grid-column: auto; }
+  .ownerSummaryLabel {
+    margin: 0 0 calc(-1 * var(--ds-space-2));
+    color: var(--ds-color-text-secondary);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .ownerMembership {
+    margin: 0;
+    color: var(--ds-color-text-secondary);
+    font-size: 0.75rem;
+  }
+  .ownerTrustDetails {
+    border-top: 1px solid color-mix(in srgb, var(--ds-color-primary) 14%, transparent);
+    padding-top: var(--ds-space-3);
+    font-size: 0.75rem;
+
+    summary { cursor: pointer; min-height: 44px; align-content: center; color: var(--ds-color-primary-hover); }
+    summary svg { margin-inline: var(--ds-space-1); vertical-align: middle; }
+    summary:focus-visible { outline: 2px solid var(--ds-color-accent); outline-offset: 2px; }
+    p { margin-top: var(--ds-space-2); }
+  }
+  .section { height: auto; margin: 0; }
+  .sectionHeader { padding: var(--ds-space-3) var(--ds-space-4); gap: var(--ds-space-2); }
+  .sectionIcon { width: 30px; height: 30px; background: var(--ds-color-primary-hover); }
+  .sectionContentOpen { padding: var(--ds-space-4); }
+  .sectionIntroText { margin: 0 0 var(--ds-space-3); font-size: 0.8125rem; line-height: 1.5; }
+  .fieldsGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ds-space-3); }
+  .fieldRow { gap: var(--ds-space-1); margin: 0; min-width: 0; }
+  .fieldLabel { margin: 0; font-size: 0.75rem; }
+  .fieldValue { padding: var(--ds-space-1) 0; min-height: 0; font-size: 0.875rem; }
+  .profilePhotoCard .sectionContentOpen > div {
+    padding: var(--ds-space-4); gap: var(--ds-space-4);
+    border-radius: var(--ds-radius-md); box-shadow: none;
+    background: var(--ds-color-primary-hover);
+  }
+  .badgeCard { padding: var(--ds-space-4); }
+
+  @media (max-width: 1024px) {
+    .profileTopGrid, .profileInfoGrid, .profileInfoGridSecondary { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .fieldsGrid { grid-template-columns: minmax(0, 1fr); }
+    .publicProfileIdentity { gap: var(--ds-space-3); }
+    .publicProfileAvatar { width: 60px; height: 60px; }
   }
 }
 

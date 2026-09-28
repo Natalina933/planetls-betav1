@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import {
   FaArrowsAltH,
@@ -135,7 +136,7 @@ export default function AvatarUpload({
 
   const openModal = useCallback(() => {
     setIsModalOpen(true);
-    setTimeout(() => fileInputRef.current?.click(), 100);
+    fileInputRef.current?.click();
   }, []);
 
   const closeModal = useCallback(() => {
@@ -239,8 +240,8 @@ export default function AvatarUpload({
         />
       </div>
 
-      {isModalOpen && (
-        <>
+      {isModalOpen && createPortal(
+        <div className={styles.container}>
           <div
             className={styles.modalOverlay}
             onClick={closeModal}
@@ -395,7 +396,8 @@ export default function AvatarUpload({
               </button>
             </div>
           </div>
-        </>
+        </div>,
+        document.body,
       )}
     </div>
   );

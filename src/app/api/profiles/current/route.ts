@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getApiAuthContext } from "@/server/auth/apiAuth";
 import { fetchCurrentProfile } from "@/server/profiles/currentProfile";
 
+
 export async function GET(req: NextRequest) {
   const { userId } = await getApiAuthContext(req);
 

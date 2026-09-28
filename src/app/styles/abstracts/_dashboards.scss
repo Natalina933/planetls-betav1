@@ -1,10 +1,10 @@
 /* src/app/styles/abstracts/_dashboards.scss */
 
-@use './variables' as var;
+@use "./variables" as var;
 @use "sass:map";
 
 /* Navigation compacte des pages métier propriétaire sélectionnées par le layout. */
-.owner-business-shortcuts>nav {
+.owner-business-shortcuts > nav {
   position: static;
   display: flex;
   flex-wrap: wrap;
@@ -30,7 +30,7 @@
     font-weight: 500;
   }
 
-  a>span:first-child {
+  a > span:first-child {
     gap: var(--ds-space-1);
   }
 
@@ -38,7 +38,7 @@
     display: none;
   }
 
-  a>span:first-child>span {
+  a > span:first-child > span {
     position: static;
     font-size: var(--ds-text-xs);
     min-width: 0;
@@ -53,18 +53,24 @@
    ========================================================================== */
 
 $themes: (
-  light: (paper: var.$mucha-paper,
+  light: (
+    paper: var.$mucha-paper,
     ink: var.$mucha-ink,
     gold: var.$gold-soft,
-    text: var.$text-dark ),
-  dark: (paper: var.$mucha-paper-black,
+    text: var.$text-dark,
+  ),
+  dark: (
+    paper: var.$mucha-paper-black,
     ink: var.$text-light,
     gold: var.$gold-dark,
-    text: var.$text-light ),
-  sepia: (paper: var.$sepia-paper,
+    text: var.$text-light,
+  ),
+  sepia: (
+    paper: var.$sepia-paper,
     ink: var.$sepia-ink,
     gold: var.$gold-soft,
-    text: var.$text-dark )
+    text: var.$text-dark,
+  ),
 );
 
 // Helper function pour accéder aux valeurs de thème
@@ -85,7 +91,9 @@ $themes: (
   background: var(--ds-color-background);
   font-family: var(--ds-font-body);
   color: var(--ds-color-text-primary);
-  transition: background-color var(--ds-motion-normal) var(--ds-ease-premium), color var(--ds-motion-normal) var(--ds-ease-premium);
+  transition:
+    background-color var(--ds-motion-normal) var(--ds-ease-premium),
+    color var(--ds-motion-normal) var(--ds-ease-premium);
 }
 
 .dashboard-main {
@@ -142,7 +150,8 @@ $themes: (
   overflow: hidden;
   border-radius: 0;
   height: clamp(160px, 13vw, 210px);
-  border-bottom: 1px solid color-mix(in srgb, var(--ds-color-primary) 20%, transparent);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--ds-color-primary) 20%, transparent);
 }
 
 .headerBandeau img {
@@ -157,7 +166,11 @@ $themes: (
 }
 
 .ownerHeaderBandeau {
-  border-bottom-color: color-mix(in srgb, var(--ds-color-primary) 24%, transparent);
+  border-bottom-color: color-mix(
+    in srgb,
+    var(--ds-color-primary) 24%,
+    transparent
+  );
   box-shadow: var(--ds-shadow-md);
 }
 
@@ -171,7 +184,13 @@ $themes: (
   justify-content: flex-start;
   padding: clamp(0.46rem, 0.9vw, 0.72rem);
   background:
-    linear-gradient(105deg, rgba(12, 9, 6, 0.46), rgba(12, 9, 6, 0.22) 32%, rgba(12, 9, 6, 0.05) 62%, transparent),
+    linear-gradient(
+      105deg,
+      rgba(12, 9, 6, 0.46),
+      rgba(12, 9, 6, 0.22) 32%,
+      rgba(12, 9, 6, 0.05) 62%,
+      transparent
+    ),
     linear-gradient(to bottom, rgba(12, 9, 6, 0.22), transparent 58%);
   color: white;
 }
@@ -184,7 +203,11 @@ $themes: (
   width: min(760px, 76%);
   padding: clamp(0.42rem, 0.72vw, 0.58rem);
   border-radius: 14px;
-  background: linear-gradient(110deg, rgba(18, 13, 8, 0.62), rgba(18, 13, 8, 0.38));
+  background: linear-gradient(
+    110deg,
+    rgba(18, 13, 8, 0.62),
+    rgba(18, 13, 8, 0.38)
+  );
   border: 1px solid rgba(255, 255, 255, 0.16);
   box-shadow: 0 14px 30px rgba(18, 12, 7, 0.2);
   backdrop-filter: blur(8px);
@@ -566,7 +589,11 @@ body.dark {
 [data-theme="mucha-dark"] {
   .dashboard-root {
     background:
-      radial-gradient(circle at top right, rgba(212, 175, 55, 0.12), transparent 34%),
+      radial-gradient(
+        circle at top right,
+        rgba(212, 175, 55, 0.12),
+        transparent 34%
+      ),
       linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
     color: #f0f0f0;
   }
@@ -637,17 +664,26 @@ body.dark {
 
   .dashboard-root {
     background:
-      radial-gradient(circle at top left, rgba(212, 175, 55, 0.16), transparent 38%),
-      repeating-linear-gradient(90deg,
+      radial-gradient(
+        circle at top left,
+        rgba(212, 175, 55, 0.16),
+        transparent 38%
+      ),
+      repeating-linear-gradient(
+        90deg,
         rgba(212, 175, 55, 0.03) 0 2px,
-        transparent 2px 14px),
+        transparent 2px 14px
+      ),
       linear-gradient(180deg, #f4f6f8 0%, #ebeff2 100%);
     color: #2c3e50;
   }
 
   .dashboard-content {
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(247, 249, 252, 0.98));
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.94),
+      rgba(247, 249, 252, 0.98)
+    );
     border: 1px solid #d5dbdf;
     box-shadow: 0 16px 34px rgba(44, 62, 80, 0.11);
   }
@@ -734,7 +770,12 @@ body.dark {
   padding: clamp(1rem, 2vw, 2rem);
   border: 0;
   border-radius: 0;
-  background: linear-gradient(90deg, rgba(25, 30, 25, 0.5), rgba(25, 30, 25, 0.12) 72%, transparent);
+  background: linear-gradient(
+    90deg,
+    rgba(25, 30, 25, 0.5),
+    rgba(25, 30, 25, 0.12) 72%,
+    transparent
+  );
   box-shadow: none;
   backdrop-filter: none;
 }
@@ -808,8 +849,8 @@ body.dark {
 
 .conciergeWeather {
   display: grid;
-  min-width: 260px;
-  max-width: 330px;
+  min-width: 154px;
+  max-width: 100%;
   gap: 0.65rem;
   padding: 1rem;
   border: 1px solid rgb(255 255 255 / 0.62);
@@ -845,14 +886,15 @@ body.dark {
 
 .conciergeWeather strong {
   color: var(--ds-color-text-primary);
-  font: 700 1.05rem/1.1 var(--ds-font-heading);
+  font: 700 1.2rem/1.1 var(--ds-font-heading);
   text-transform: capitalize;
 }
 
+.conciergeWeatherDate,
 .conciergeWeather small {
   color: var(--ds-color-text-secondary);
-  font-size: 0.78rem;
-  font-weight: 650;
+  font-size: 0.68rem;
+  font-weight: 400;
 }
 
 .weatherTemp {
@@ -919,7 +961,7 @@ body.dark {
     padding: var(--ds-space-page);
   }
 
-  .dashboard-main>header {
+  .dashboard-main > header {
     position: absolute;
     top: 0;
     left: 0;
@@ -934,8 +976,8 @@ body.dark {
     min-height: 220px;
   }
 
-  .headerBandeau>img {
-    filter: saturate(.78);
+  .headerBandeau > img {
+    filter: saturate(0.78);
     object-position: center 50%;
   }
 
@@ -947,10 +989,7 @@ body.dark {
   .conciergeHeaderHero {
     width: 100%;
     height: 100%;
-    padding:
-      calc(var(--dashboard-nav-height, 80px) + 18px)
-      24px
-      22px;
+    padding: calc(var(--dashboard-nav-height, 80px) + 18px) 24px 22px;
     background: transparent;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 24px;
@@ -994,8 +1033,9 @@ body.dark {
     text-transform: capitalize;
   }
 
+  .conciergeWeatherDate,
   .conciergeWeather small {
-    font-size: 0.78rem;
+    font-size: 13px;
   }
 
   .headerActionLinks {
@@ -1049,37 +1089,138 @@ body.dark {
 }
 
 .dashboard-root[data-dashboard-hero] .conciergeWeather {
-  padding: 1rem;
-  gap: 0.65rem;
+  display: grid;
+  min-width: 220px;
+  max-width: 270px;
+  gap: 0;
+  padding: 14px 18px 15px;
 
-  b {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 0;
-    color: var(--ds-color-gold);
+  border: 1px solid rgb(255 255 255 / 0.7);
+  border-radius: 14px;
+
+  background: linear-gradient(
+    145deg,
+    rgb(255 253 248 / 0.9),
+    rgb(248 241 226 / 0.82)
+  );
+
+  color: var(--ds-color-text-primary);
+
+  box-shadow:
+    0 10px 28px rgb(44 54 45 / 0.08),
+    inset 0 1px 0 rgb(255 255 255 / 0.7);
+
+  backdrop-filter: blur(10px);
+
+  strong {
+    display: block;
+
+    color: var(--ds-color-primary-hover);
+
+    font-family: var(--ds-font-heading);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.15;
+
+    text-transform: capitalize;
   }
 
-  em {
-    font-size: 26px;
-    color: var(--ds-color-primary-hover);
+  .conciergeWeatherDate {
+    display: block;
+    margin-top: 2px;
+
+    color: var(--ds-color-text-secondary);
+
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.25;
   }
 
   .conciergeWeatherDivider {
     width: 100%;
     height: 1px;
+
+    margin: 10px 0 11px;
+
     border: 0;
-    margin: 8px 0;
-    background: linear-gradient(90deg, #b68a4330, #b68a43, #b68a4330);
+
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(182 138 67 / 0.48) 20%,
+      rgb(182 138 67 / 0.72) 50%,
+      rgb(182 138 67 / 0.48) 80%,
+      transparent
+    );
+  }
+
+  b {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin: 0;
+
+    color: #b8862d;
+
+    svg {
+      width: 29px;
+      height: 29px;
+      flex: 0 0 auto;
+
+      color: #b8862d;
+      stroke-width: 1.55;
+    }
+  }
+
+  em {
+    color: var(--ds-color-primary-hover);
+
+    font-family: var(--ds-font-heading);
+    font-size: 27px;
+    font-weight: 650;
+    font-style: normal;
+    line-height: 1;
+  }
+
+  small {
+    display: grid;
+    gap: 2px;
+
+    margin-top: 8px;
+
+    color: var(--ds-color-primary-hover);
+
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.25;
   }
 
   .conciergeWeatherExample {
     display: block;
+
+    color: var(--ds-color-text-secondary);
+
     font-size: 11px;
-    color: #68645c;
+    font-weight: 500;
+  }
+
+  .conciergeWeatherDetails {
+    display: block;
+
+    margin-top: 5px;
+    padding-top: 6px;
+
+    border-top: 1px solid rgb(182 138 67 / 0.16);
+
+    color: var(--ds-color-text-secondary);
+
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: normal;
   }
 }
-
 @media (min-width: (map.get(var.$breakpoints, dashboard-stack) + 1px)) {
   .dashboard-root[data-dashboard-hero] .headerActionLinks {
     display: grid;
@@ -1091,5 +1232,406 @@ body.dark {
     text-align: center;
     padding: 8px;
     min-width: 0;
+  }
+}
+/* ==========================================================================
+   PLANETLS — BANDEAU DASHBOARD V2
+   Hiérarchie : contexte de page à gauche / météo à droite
+   ========================================================================== */
+
+.dashboard-root[data-dashboard-hero] {
+  .headerBandeau {
+    position: relative;
+    height: clamp(190px, 18vw, 235px);
+    min-height: 190px;
+    overflow: hidden;
+    border-bottom: 1px solid
+      color-mix(in srgb, var(--ds-color-primary) 16%, transparent);
+    box-shadow: 0 8px 24px rgb(35 57 46 / 0.06);
+  }
+
+  .headerBandeau > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 52%;
+    filter: saturate(0.82) brightness(0.98);
+    transform: none;
+  }
+
+  .headerOverlay {
+    height: 100%;
+    padding: 0;
+
+    background:
+      linear-gradient(
+        90deg,
+        rgb(255 250 240 / 0.94) 0%,
+        rgb(255 250 240 / 0.8) 32%,
+        rgb(255 250 240 / 0.28) 60%,
+        rgb(255 250 240 / 0.08) 100%
+      );
+  }
+
+  .conciergeHeaderHero {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    min-height: 0;
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: clamp(24px, 4vw, 64px);
+
+    padding:
+      calc(var(--dashboard-nav-height, 64px) + 22px)
+      clamp(24px, 4vw, 64px)
+      24px;
+
+    background: transparent;
+  }
+
+  .headerIdentity {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .headerCopy {
+    position: relative;
+    display: grid;
+    gap: 5px;
+    max-width: 560px;
+    min-width: 0;
+    padding-left: 16px;
+  }
+
+  .headerCopy::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    left: 0;
+    width: 2px;
+    border-radius: 999px;
+    background: linear-gradient(
+      180deg,
+      #d4af37,
+      #b8862d
+    );
+  }
+
+  .headerEyebrow {
+    display: inline-flex;
+    width: fit-content;
+
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+
+    color: #9b722d;
+
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .headerCopy h1 {
+    margin: 0;
+
+    color: #234033;
+
+    font-family: var(--ds-font-heading);
+    font-size: clamp(1.7rem, 3vw, 2.65rem);
+    font-weight: 650;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+
+    text-shadow: 0 1px 0 rgb(255 255 255 / 0.45);
+  }
+
+  .headerCopy p {
+    display: block;
+    max-width: 52ch;
+    margin: 4px 0 0;
+
+    color: #53665b;
+
+    font-size: clamp(0.78rem, 1vw, 0.9rem);
+    font-weight: 500;
+    line-height: 1.45;
+
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+  }
+
+  .conciergeHeaderAside {
+    align-self: center;
+    justify-self: end;
+  }
+
+  .conciergeWeather {
+    width: clamp(220px, 20vw, 255px);
+    min-width: 220px;
+    max-width: 255px;
+
+    padding: 13px 16px 14px;
+    gap: 0;
+
+    border: 1px solid rgb(255 255 255 / 0.76);
+    border-radius: 14px;
+
+    background:
+      linear-gradient(
+        145deg,
+        rgb(255 253 248 / 0.92),
+        rgb(247 240 226 / 0.84)
+      );
+
+    box-shadow:
+      0 12px 32px rgb(44 54 45 / 0.09),
+      inset 0 1px 0 rgb(255 255 255 / 0.82);
+
+    backdrop-filter: blur(12px);
+  }
+
+  .conciergeWeather strong {
+    display: block;
+
+    color: #28483a;
+
+    font-family: var(--ds-font-heading);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.15;
+
+    text-transform: capitalize;
+  }
+
+  .conciergeWeatherDate {
+    display: block;
+    margin-top: 2px;
+
+    color: #68766e;
+
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .conciergeWeatherDivider {
+    width: 100%;
+    height: 1px;
+    margin: 9px 0 10px;
+    border: 0;
+
+    background: linear-gradient(
+      90deg,
+      rgb(184 134 45 / 0.12),
+      rgb(184 134 45 / 0.62),
+      rgb(184 134 45 / 0.12)
+    );
+  }
+
+  .conciergeWeather b {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0;
+
+    color: #b8862d;
+
+    svg {
+      width: 29px;
+      height: 29px;
+      flex: 0 0 auto;
+      color: #b8862d;
+      stroke-width: 1.5;
+    }
+  }
+
+  .conciergeWeather em {
+    color: #28483a;
+
+    font-family: var(--ds-font-heading);
+    font-size: 28px;
+    font-weight: 650;
+    font-style: normal;
+    line-height: 1;
+  }
+
+  .conciergeWeather small {
+    display: grid;
+    gap: 2px;
+    margin-top: 7px;
+
+    color: #28483a;
+
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .conciergeWeatherExample {
+    color: #68766e;
+
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .conciergeWeatherDetails {
+    display: block;
+
+    margin-top: 5px;
+    padding-top: 6px;
+
+    border-top: 1px solid rgb(184 134 45 / 0.18);
+
+    color: #68766e;
+
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: normal;
+  }
+}
+
+/* Tablette */
+@media (max-width: map.get(var.$breakpoints, dashboard-stack)) {
+  .dashboard-root[data-dashboard-hero] {
+    .headerBandeau {
+      height: auto;
+      min-height: 300px;
+    }
+
+    .conciergeHeaderHero {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+
+      padding:
+        calc(var(--dashboard-nav-height, 64px) + 20px)
+        20px
+        22px;
+
+      gap: 18px;
+    }
+
+    .headerCopy h1 {
+      font-size: clamp(1.55rem, 4vw, 2.1rem);
+    }
+
+    .conciergeWeather {
+      width: 215px;
+      min-width: 215px;
+    }
+  }
+}
+
+/* Mobile */
+@media (max-width: 720px) {
+  .dashboard-root[data-dashboard-hero] {
+    .headerBandeau {
+      min-height: 390px;
+    }
+
+    .headerBandeau > img {
+      object-position: 60% center;
+    }
+
+    .headerOverlay {
+      background:
+        linear-gradient(
+          180deg,
+          rgb(255 250 240 / 0.94) 0%,
+          rgb(255 250 240 / 0.76) 54%,
+          rgb(255 250 240 / 0.38) 100%
+        );
+    }
+
+    .conciergeHeaderHero {
+      grid-template-columns: 1fr;
+      align-content: start;
+      gap: 16px;
+
+      padding:
+        calc(var(--dashboard-nav-height, 64px) + 18px)
+        16px
+        20px;
+    }
+
+    .headerCopy {
+      max-width: 100%;
+    }
+
+    .headerCopy h1 {
+      font-size: clamp(1.55rem, 7vw, 2rem);
+    }
+
+    .conciergeHeaderAside {
+      justify-self: stretch;
+      width: 100%;
+    }
+
+    .conciergeWeather {
+      width: min(100%, 290px);
+      min-width: 0;
+      max-width: 290px;
+    }
+  }
+}
+
+// Ajustements limités à la fiche propriétaire.
+.dashboard-root[data-dashboard-hero][data-owner-profile] {
+  .headerBandeau { height: auto; min-height: 0; box-shadow: none; }
+  .headerBandeau > img { filter: saturate(0.65); }
+  .headerOverlay {
+    position: relative;
+    height: auto;
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--ds-color-background) 96%, transparent),
+      color-mix(in srgb, var(--ds-color-background) 86%, transparent) 48%,
+      color-mix(in srgb, var(--ds-color-background) 55%, transparent)
+    );
+  }
+  .conciergeHeaderHero {
+    height: auto;
+    padding: calc(var(--dashboard-nav-height, 80px) + var(--ds-space-4)) var(--ds-space-page) var(--ds-space-4);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 290px);
+    align-items: center;
+    gap: var(--ds-space-4);
+  }
+  .headerCopy { border-left: 2px solid var(--ds-color-accent); padding-left: var(--ds-space-4); }
+  .headerCopy::before { content: none; }
+  .headerEyebrow {
+    display: block; margin-bottom: var(--ds-space-1);
+    color: var(--ds-color-accent); font-size: 0.6875rem;
+    font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .headerCopy h1 { font-size: clamp(1.75rem, 2.4vw, 2.25rem); color: var(--ds-color-primary-hover); }
+  .headerCopy p { max-width: 46ch; font-size: 0.8125rem; color: var(--ds-color-text-secondary); }
+  .conciergeHeaderAside { width: 100%; min-width: 0; justify-self: stretch; }
+  .conciergeWeather {
+    width: 100%; min-width: 0; max-width: none; padding: var(--ds-space-3) var(--ds-space-4);
+    border-radius: var(--ds-radius-md); box-shadow: var(--ds-shadow-sm);
+    border-color: color-mix(in srgb, var(--ds-color-accent) 22%, transparent);
+    background: color-mix(in srgb, var(--ds-color-background) 88%, transparent);
+    backdrop-filter: blur(8px);
+  }
+  .conciergeWeather strong, .conciergeWeather em, .conciergeWeather small { color: var(--ds-color-primary-hover); }
+  .conciergeWeatherDate, .conciergeWeatherExample, .conciergeWeatherDetails { color: var(--ds-color-text-secondary); }
+  .conciergeWeatherDivider { margin: var(--ds-space-2) 0; }
+  .conciergeWeather b svg { color: var(--ds-color-accent); }
+  .conciergeWeatherDetails { font-size: 0.6875rem; }
+  @media (max-width: 720px) {
+    .conciergeHeaderHero { grid-template-columns: minmax(0, 1fr); }
+    .conciergeHeaderAside { max-width: 320px; justify-self: start; }
+    .headerOverlay {
+      background: color-mix(in srgb, var(--ds-color-background) 88%, transparent);
+    }
   }
 }

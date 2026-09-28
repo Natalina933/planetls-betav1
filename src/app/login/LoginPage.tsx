@@ -10,6 +10,13 @@ import { Button, Input } from "@/components/ui";
 type WorkspaceKey = "owner" | "concierge" | "provider" | "admin";
 type QuickWorkspace = { key: WorkspaceKey; label: string; href: string };
 
+const workspacePresentation: Record<WorkspaceKey, { label: string; description: string; image: string }> = {
+  owner: { label: "Propriétaire", description: "Logements, demandes et collaborations", image: "proprietaire" },
+  concierge: { label: "Concierge", description: "Services, missions et propriétaires", image: "concierge" },
+  provider: { label: "Artisan", description: "Interventions, demandes et activité", image: "artisan" },
+  admin: { label: "Administration", description: "Pilotage de PlanetLS", image: "administrateur" },
+};
+
 const validateEmail = (email: string): boolean =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -57,10 +64,12 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [quickWorkspaces, setQuickWorkspaces] = useState<QuickWorkspace[]>([]);
   const [preparingWorkspace, setPreparingWorkspace] = useState<WorkspaceKey | null>(null);
+  const [selectedWorkspace, setSelectedWorkspace] = useState<WorkspaceKey | null>(null);
   const [quickLoginMessage, setQuickLoginMessage] = useState("");
 
   const prepareWorkspaceCredentials = async (workspace: WorkspaceKey) => {
     setPreparingWorkspace(workspace);
+    setSelectedWorkspace(null);
     setQuickLoginMessage("");
 
     try {
@@ -81,13 +90,14 @@ export default function LoginPage() {
 
       setFormData({ email: payload.email, password: payload.password });
       setErrors({});
+      setSelectedWorkspace(workspace);
       setQuickLoginMessage(
-        `Identifiants ${payload.label ?? workspace} proposés. Vous pouvez maintenant vous connecter.`,
+        "Les identifiants de démonstration sont prêts.",
       );
       window.history.replaceState(null, "", `/login?workspace=${workspace}`);
     } catch {
       setQuickLoginMessage(
-        "Impossible de préparer ce compte. Vérifiez la configuration Supabase locale.",
+        "Impossible de préparer cet espace. Veuillez réessayer.",
       );
     } finally {
       setPreparingWorkspace(null);
@@ -287,11 +297,10 @@ export default function LoginPage() {
               priority
             />
             <div className={styles.visualText}>
-              <span className={styles.visualEyebrow}>Tableau de bord privé</span>
-              <h2>Reprenez le fil de vos biens, missions et partenaires.</h2>
+              <span className={styles.visualEyebrow}>Propriétaire · Concierge · Artisan</span>
+              <h2>Retrouvez votre espace.</h2>
               <p>
-                Un accès unique pour propriétaires, conciergeries et artisans, avec les actions
-                importantes au bon endroit.
+                Un accès unique pour gérer vos logements, vos missions et vos collaborations.
               </p>
             </div>
 
@@ -319,11 +328,6 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className={styles.visualStats} aria-label="Repères de connexion">
-              <span>Demandes</span>
-              <span>Missions</span>
-              <span>Factures</span>
-            </div>
           </div>
         </aside>
 
@@ -332,15 +336,15 @@ export default function LoginPage() {
             <span className={styles.eyebrow}>Espace sécurisé</span>
             <h1 className={styles.title}>Connexion</h1>
             <p className={styles.subtitle}>
-              Accédez à votre espace pour gérer vos demandes, vos missions et votre activité.
+              Retrouvez votre activité là où vous l’avez laissée.
             </p>
           </div>
           <form onSubmit={handleSubmit} className={styles.form} noValidate>
             {quickWorkspaces.length > 0 ? (
               <section className={styles.quickAccess} aria-labelledby="quick-access-title">
                 <div>
-                  <strong id="quick-access-title">Accès rapide de travail</strong>
-                  <p>Choisissez un espace pour proposer un compte existant dans Supabase.</p>
+                  <strong id="quick-access-title">Changer d’espace</strong>
+                  <p>Explorez PlanetLS depuis l’espace que vous souhaitez découvrir.</p>
                 </div>
                 <div className={styles.quickAccessButtons}>
                   {quickWorkspaces.map((workspace) => (
@@ -351,17 +355,41 @@ export default function LoginPage() {
                       size="sm"
                       disabled={preparingWorkspace !== null || loading}
                       aria-busy={preparingWorkspace === workspace.key}
+                      aria-pressed={selectedWorkspace === workspace.key}
+                      className={selectedWorkspace === workspace.key ? styles.workspaceSelected : undefined}
                       onClick={() => void prepareWorkspaceCredentials(workspace.key)}
                     >
-                      {preparingWorkspace === workspace.key
-                        ? "Préparation..."
-                        : workspace.label}
+                      <span className={styles.workspaceOption}>
+                        <Image
+                          src={`/images/workspaces/${workspacePresentation[workspace.key].image}.png`}
+                          alt=""
+                          width={112}
+                          height={112}
+                          className={styles.workspaceIllustration}
+                        />
+                        <span className={styles.workspaceText}>
+                          <span className={styles.workspaceName}>
+                            {workspacePresentation[workspace.key].label}
+                          </span>
+                          <span className={styles.workspaceDescription}>
+                            {preparingWorkspace === workspace.key
+                              ? "Préparation…"
+                              : workspacePresentation[workspace.key].description}
+                          </span>
+                        </span>
+                        {selectedWorkspace === workspace.key ? (
+                          <span className={styles.workspaceCheck} aria-hidden="true">✓</span>
+                        ) : null}
+                      </span>
                     </Button>
                   ))}
                 </div>
                 {quickLoginMessage ? (
                   <p className={styles.quickAccessMessage} role="status">
-                    {quickLoginMessage}
+                    {selectedWorkspace ? (
+                      <span>✓ Espace {workspacePresentation[selectedWorkspace].label} sélectionné</span>
+                    ) : null}
+                    <span>{quickLoginMessage}</span>
                   </p>
                 ) : null}
               </section>

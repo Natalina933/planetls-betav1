@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, usePathname } from "next/navigation";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useTheme, type Theme } from "@/app/providers/ThemeProvider";
 import { useUserType } from "@/app/context/UserTypeContext";
 import { useSearchPopup } from "../../../context/SearchPopupContext";
@@ -30,6 +30,8 @@ const Icons = {
 
 const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
 const WARNING_BEFORE_LOGOUT = 2 * 60 * 1000;
+// Accès public temporaire : passer à false à la fin de la bêta.
+const PUBLIC_BETA_WORKSPACE_ACCESS = true;
 
 type WorkspaceOption = {
   id: "owner" | "concierge" | "provider" | "admin";
@@ -105,10 +107,6 @@ export default function Navbar() {
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
 
-  const [workspaceLoadingId, setWorkspaceLoadingId] = useState<
-    WorkspaceOption["id"] | null
-  >(null);
-
   const [workspaces, setWorkspaces] = useState<WorkspaceOption[]>([]);
 
   const [showWarning, setShowWarning] = useState(false);
@@ -140,6 +138,8 @@ export default function Navbar() {
 
   const isAuthenticated = status === "authenticated";
   const isDashboardRoute = pathname?.startsWith("/dashboard");
+  const showPublicWorkspaceAccess =
+    PUBLIC_BETA_WORKSPACE_ACCESS && (pathname === "/home" || pathname === "/");
 
   const roleWorkspace = getWorkspaceFromRole(session?.user?.role);
 
@@ -453,73 +453,11 @@ export default function Navbar() {
     closeMenu();
     setWorkspaceMenuOpen(false);
 
-    /*
-     * Mode démonstration.
-     *
-     * Lorsqu'un visiteur n'est pas connecté, PlanetLS tente
-     * d'ouvrir le profil de démonstration correspondant.
-     *
-     * Ce comportement pourra être retiré lorsque le site
-     * ne sera plus présenté en version bêta.
-     */
+    // Le Login existant prépare les identifiants de démonstration.
     if (!isAuthenticated) {
-      setWorkspaceLoadingId(workspace.id);
-
-      try {
-        const response = await fetch("/api/auth/dev-workspace-login", {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          body: JSON.stringify({
-            workspace: workspace.id,
-          }),
-        });
-
-        if (!response.ok) {
-          router.push(`/login?workspace=${workspace.id}`);
-
-          return;
-        }
-
-        const payload = (await response.json()) as {
-          email?: string;
-          password?: string;
-          href?: string;
-        };
-
-        if (!payload.email || !payload.password) {
-          router.push(`/login?workspace=${workspace.id}`);
-
-          return;
-        }
-
-        const result = await signIn("credentials", {
-          redirect: false,
-          email: payload.email,
-          password: payload.password,
-        });
-
-        if (result?.error) {
-          router.push(`/login?workspace=${workspace.id}`);
-
-          return;
-        }
-
-        window.location.assign(payload.href || workspace.href);
-
-        return;
-      } catch {
-        router.push(`/login?workspace=${workspace.id}`);
-
-        return;
-      } finally {
-        setWorkspaceLoadingId(null);
-      }
+      router.push(`/login?workspace=${workspace.id}`);
+      return;
     }
-
     if (isAuthenticated && workspace.profileId) {
       const response = await fetch("/api/profiles/workspaces", {
         method: "POST",
@@ -640,7 +578,7 @@ export default function Navbar() {
           )}
 
           {/* Changement d'espace */}
-          {!isDashboardRoute && (
+          {!isDashboardRoute && (isAuthenticated || showPublicWorkspaceAccess) && (
             <li className={styles.workspaceSwitcher} ref={workspaceMenuRef}>
               <button
                 type="button"
@@ -648,9 +586,9 @@ export default function Navbar() {
                 onClick={() => setWorkspaceMenuOpen((open) => !open)}
                 aria-haspopup="menu"
                 aria-expanded={workspaceMenuOpen}
-                aria-label={`Changement d'espace · ${
+                aria-label={isAuthenticated ? `Changement d'espace · ${
                   currentWorkspace?.label ?? "Profil"
-                }`}
+                }` : "Changement d’espace"}
               >
                 <FiRepeat
                   className={styles.workspaceTriggerIcon}
@@ -662,7 +600,7 @@ export default function Navbar() {
                     Changement d&apos;espace
                   </span>
 
-                  <span
+                  {isAuthenticated && <><span
                     className={styles.workspaceTriggerSeparator}
                     aria-hidden="true"
                   >
@@ -671,7 +609,7 @@ export default function Navbar() {
 
                   <strong className={styles.workspaceTriggerRole}>
                     {currentWorkspace?.label ?? "Profil"}
-                  </strong>
+                  </strong></>}
                 </span>
 
                 <span
@@ -706,8 +644,7 @@ export default function Navbar() {
                           workspace.current ? styles.workspaceOptionActive : ""
                         } ${!selectable ? styles.workspaceOptionDisabled : ""}`}
                         onClick={() => handleWorkspaceSelect(workspace)}
-                        disabled={!selectable || workspaceLoadingId !== null}
-                        aria-busy={workspaceLoadingId === workspace.id}
+                        disabled={!selectable}
                         role="menuitem"
                       >
                         <span>
@@ -734,10 +671,6 @@ export default function Navbar() {
 
                           <p>{workspace.description}</p>
                         </span>
-
-                        {workspaceLoadingId === workspace.id ? (
-                          <em>Connexion...</em>
-                        ) : null}
 
                         {workspace.current ? <em>Actuel</em> : null}
 

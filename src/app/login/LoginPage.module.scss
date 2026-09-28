@@ -11,7 +11,11 @@ $danger: #e74c3c;
   min-height: calc(100dvh - 96px);
   padding: clamp(0.75rem, 2vw, 2rem);
   background:
-    linear-gradient(135deg, rgba(247, 241, 229, 0.86), rgba(255, 252, 246, 0.96)),
+    linear-gradient(
+      135deg,
+      rgba(247, 241, 229, 0.86),
+      rgba(255, 252, 246, 0.96)
+    ),
     url("/textures/elegant-fibers.png");
   color: $ink;
 }
@@ -53,7 +57,12 @@ $danger: #e74c3c;
   inset: 0;
   z-index: 1;
   background:
-    linear-gradient(90deg, rgba(31, 22, 13, 0.76), rgba(31, 22, 13, 0.26) 58%, rgba(31, 22, 13, 0.1)),
+    linear-gradient(
+      90deg,
+      rgba(31, 22, 13, 0.76),
+      rgba(31, 22, 13, 0.26) 58%,
+      rgba(31, 22, 13, 0.1)
+    ),
     linear-gradient(180deg, rgba(31, 22, 13, 0.16), rgba(31, 22, 13, 0.82));
 }
 
@@ -159,7 +168,11 @@ $danger: #e74c3c;
   border-radius: 28px;
   background:
     radial-gradient(circle at top, rgba($gold, 0.16), transparent 35%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 250, 240, 0.92));
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.94),
+      rgba(255, 250, 240, 0.92)
+    );
   color: $ink;
   font-family: var(--font-inter), var(--font-text), system-ui, sans-serif;
 }
@@ -224,40 +237,241 @@ $danger: #e74c3c;
 
 .quickAccess {
   display: grid;
-  gap: 0.75rem;
-  margin-bottom: 0.35rem;
-  padding: 0.9rem;
-  border: 1px solid rgba($gold, 0.24);
+  gap: 0.9rem;
+  margin-bottom: 0.5rem;
+  padding: 1rem;
+
+  border: 1px solid rgba(35, 83, 66, 0.14);
   border-radius: 16px;
-  background: rgba($gold, 0.07);
+
+  background: linear-gradient(
+    135deg,
+    rgba(247, 250, 247, 0.98),
+    rgba(255, 252, 246, 0.98)
+  );
+
+  box-shadow: 0 8px 24px rgba(39, 55, 47, 0.04);
+}
+.quickAccessIcon {
+  display: grid;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+
+  place-items: center;
+
+  border: 1px solid rgba($gold, 0.2);
+  border-radius: 10px;
+
+  background: rgba($gold, 0.1);
+  color: #9b781f;
 }
 
 .quickAccess strong {
-  color: #4b3715;
+  display: block;
+
+  margin: 0;
+
+  color: #193f34;
+
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .quickAccess p {
-  margin: 0.25rem 0 0;
-  color: $muted;
-  font-size: 0.86rem;
+  margin: 0.2rem 0 0;
+
+  color: rgba(45, 65, 57, 0.7);
+  font-size: 0.78rem;
   line-height: 1.45;
 }
 
 .quickAccessButtons {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
+  gap: 0.55rem;
+}
+.quickAccessButtons button {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  white-space: normal;
+  min-height: 62px;
+  padding: 0.7rem 0.8rem;
+
+  border: 1px solid rgba(35, 83, 66, 0.14);
+  border-radius: 11px;
+
+  background: rgba(255, 255, 255, 0.9);
+  color: #243b33;
+
+  text-align: left;
+
+  box-shadow: none;
+
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
-.quickAccessButtons button {
-  width: 100%;
+.quickAccessButtons button:hover:not(:disabled) {
+  transform: translateY(-1px);
+
+  border-color: rgba(30, 103, 80, 0.34);
+
+  background: #f4f8f5;
+
+  box-shadow:
+    0 6px 16px rgba(33, 67, 55, 0.07);
 }
+
+.quickAccessButtons button:focus-visible {
+  outline: 3px solid rgba(30, 103, 80, 0.16);
+  outline-offset: 2px;
+}
+/* =========================================================
+   CONFIRMATION
+   ========================================================= */
 
 .quickAccess .quickAccessMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+
   margin: 0;
-  color: $gold-dark;
-  font-weight: 700;
+  padding: 0.6rem 0.7rem;
+
+  border: 1px solid rgba(30, 103, 80, 0.13);
+  border-radius: 8px;
+
+  background: rgba(232, 244, 237, 0.72);
+
+  color: #1d5d49;
+
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.4;
 }
+
+/* =========================================================
+   CONTENU D'UNE CARTE ESPACE
+   ========================================================= */
+
+.workspaceOption {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+
+  width: 100%;
+  min-width: 0;
+}
+
+.workspaceIcon {
+  display: grid;
+  flex: 0 0 36px;
+
+  width: 36px;
+  height: 36px;
+
+  place-items: center;
+
+  border: 1px solid rgba($gold, 0.18);
+  border-radius: 9px;
+
+  background: #faf6e9;
+  color: #a27d20;
+
+  font-size: 1rem;
+}
+
+.workspaceText {
+  display: grid;
+  gap: 0.08rem;
+
+  min-width: 0;
+}
+
+.workspaceName {
+  overflow: hidden;
+
+  color: #183f34;
+
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.workspaceDescription {
+  overflow: hidden;
+
+  color: rgba(54, 70, 63, 0.62);
+
+  font-size: 0.65rem;
+  font-weight: 400;
+
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+/* =========================================================
+   ESPACE SÉLECTIONNÉ
+   ========================================================= */
+
+.workspaceSelected {
+  border-color: #193f34 !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #edf6f1,
+      #f8faf6
+    ) !important;
+
+  box-shadow:
+    0 0 0 1px rgba(26, 101, 77, 0.05),
+    0 6px 16px rgba(31, 75, 59, 0.07) !important;
+}
+
+.workspaceSelected .workspaceIcon {
+  border-color: rgba(30, 103, 80, 0.18);
+
+  background: #dfeee7;
+  color: #1c674f;
+}
+
+.workspaceCheck {
+  display: grid;
+
+  flex: 0 0 22px;
+
+  width: 22px;
+  height: 22px;
+
+  margin-left: auto;
+
+  place-items: center;
+
+  border-radius: 50%;
+
+  background: #1e6750;
+  color: #fff;
+
+  font-size: 0.65rem;
+}
+
+
 
 .inputWrapper,
 .passwordInputWrapper {
@@ -272,7 +486,11 @@ $danger: #e74c3c;
   padding: 0.8rem 1rem;
   border: 1px solid rgba(108, 83, 35, 0.18);
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(251, 247, 239, 0.98));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.98),
+    rgba(251, 247, 239, 0.98)
+  );
   color: $ink;
   font-size: 0.98rem;
   transition:
@@ -387,7 +605,11 @@ $danger: #e74c3c;
   .pageContainer,
   .form {
     border-color: rgba(198, 167, 92, 0.2);
-    background: linear-gradient(180deg, rgba(30, 22, 15, 0.96), rgba(20, 14, 10, 0.96));
+    background: linear-gradient(
+      180deg,
+      rgba(30, 22, 15, 0.96),
+      rgba(20, 14, 10, 0.96)
+    );
     color: #f7f0db;
   }
 
@@ -409,18 +631,26 @@ $danger: #e74c3c;
   }
 
   .quickAccess {
-    border-color: rgba(198, 167, 92, 0.24);
-    background: rgba(198, 167, 92, 0.08);
+    border-color: rgba(35, 83, 66, 0.24);
+    background: #f7faf7;
+  }
+
+  .quickAccess strong {
+    color: #193f34;
   }
 
   .quickAccess p {
-    color: rgba(244, 232, 196, 0.72);
+    color: #40574d;
   }
 
   .input,
   .inputError {
     border-color: rgba(198, 167, 92, 0.2);
-    background: linear-gradient(180deg, rgba(21, 15, 12, 0.95), rgba(34, 25, 19, 0.95));
+    background: linear-gradient(
+      180deg,
+      rgba(21, 15, 12, 0.95),
+      rgba(34, 25, 19, 0.95)
+    );
     color: #fff7e6;
   }
 
@@ -504,5 +734,298 @@ $danger: #e74c3c;
 
   .quickAccessButtons {
     grid-template-columns: 1fr;
+  }
+  
+}
+/* =========================================================
+   CHANGEMENT D'ESPACE
+   Cohérent avec le workspace switcher de la navbar
+   ========================================================= */
+
+.quickAccess {
+  display: grid;
+  gap: 0.9rem;
+  margin-bottom: 0.5rem;
+  padding: 1rem;
+
+  border: 1px solid rgba(41, 75, 62, 0.18);
+  border-radius: 14px;
+
+  background: #fcf9f3;
+
+  box-shadow:
+    0 8px 24px rgba(39, 55, 47, 0.04);
+}
+
+.quickAccess::before {
+  content: "";
+  width: 72px;
+  height: 1px;
+  background: #b68a43;
+}
+
+.workspaceIllustration {
+  grid-column: 1;
+  grid-row: 1;
+  width: 112px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.quickAccessHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.quickAccessIcon {
+  display: grid;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+
+  place-items: center;
+
+  border: 1px solid rgba($gold, 0.2);
+  border-radius: 10px;
+
+  background: rgba($gold, 0.1);
+  color: #9b781f;
+}
+
+.quickAccess strong {
+  display: block;
+
+  margin: 0;
+
+  color: #294b3e;
+
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.quickAccess p {
+  margin: 0.2rem 0 0;
+
+  color: #657269;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+/* =========================================================
+   ESPACES
+   ========================================================= */
+
+.quickAccessButtons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 0.55rem;
+}
+
+/*
+ * Ces styles peuvent être appliqués aux Button existants.
+ * Pas besoin de créer un nouveau composant UI global.
+ */
+.quickAccessButtons button {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  white-space: normal;
+  min-height: 108px;
+  padding: 0.7rem 0.8rem;
+
+  border: 1px solid rgba(41, 75, 62, 0.18);
+  border-radius: 14px;
+
+  background: #fffdf8;
+  color: #243b33;
+
+  text-align: left;
+
+  box-shadow: none;
+
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.quickAccessButtons button:hover:not(:disabled) {
+  transform: none;
+
+  border-color: rgba(30, 103, 80, 0.34);
+
+  background: #f0f4ec;
+
+  box-shadow:
+    0 6px 16px rgba(33, 67, 55, 0.07);
+}
+
+.quickAccessButtons button:focus-visible {
+  outline: 2px solid #294b3e;
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   CONTENU D'UNE CARTE ESPACE
+   ========================================================= */
+
+.workspaceOption {
+  display: grid;
+  grid-template-columns: min(112px, 40%) minmax(0, 1fr);
+  align-items: center;
+  gap: 0.7rem;
+
+  width: 100%;
+  min-width: 0;
+}
+
+.workspaceIcon {
+  display: grid;
+  flex: 0 0 36px;
+
+  width: 36px;
+  height: 36px;
+
+  place-items: center;
+
+  border: 1px solid rgba($gold, 0.18);
+  border-radius: 9px;
+
+  background: #faf6e9;
+  color: #a27d20;
+
+  font-size: 1rem;
+}
+
+.workspaceText {
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  gap: 0.35rem;
+
+  min-width: 0;
+}
+
+.workspaceName {
+  overflow: hidden;
+
+  color: #173e34;
+  font-family: Georgia, serif;
+
+  font-size: 1rem;
+  font-weight: 400;
+  text-transform: none;
+
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.workspaceDescription {
+  overflow: hidden;
+
+  color: #657269;
+
+  font-size: 0.75rem;
+  font-weight: 400;
+
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+/* =========================================================
+   ESPACE SÉLECTIONNÉ
+   ========================================================= */
+
+.workspaceSelected {
+  border-color: #193f34 !important;
+
+  background: #eef1e9 !important;
+
+  box-shadow:
+    0 0 0 1px rgba(26, 101, 77, 0.05),
+    0 6px 16px rgba(31, 75, 59, 0.07) !important;
+}
+
+.workspaceSelected .workspaceIcon {
+  border-color: rgba(30, 103, 80, 0.18);
+
+  background: #dfeee7;
+  color: #1c674f;
+}
+
+.workspaceCheck {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  display: grid;
+
+  flex: 0 0 22px;
+
+  width: 22px;
+  height: 22px;
+
+  margin-left: auto;
+
+  place-items: center;
+
+  border-radius: 50%;
+
+  background: #1e6750;
+  color: #fff;
+
+  font-size: 0.75rem;
+}
+
+/* =========================================================
+   CONFIRMATION
+   ========================================================= */
+
+.quickAccess .quickAccessMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+
+  margin: 0;
+  padding: 0.6rem 0.7rem;
+
+  border: 1px solid rgba(30, 103, 80, 0.13);
+  border-radius: 8px;
+
+  background: rgba(232, 244, 237, 0.72);
+
+  color: #1d5d49;
+
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 560px) {
+  .quickAccess {
+    padding: 0.85rem;
+  }
+
+  .quickAccessButtons {
+    grid-template-columns: 1fr;
+  }
+
+  .quickAccessButtons button {
+    min-height: 58px;
   }
 }
