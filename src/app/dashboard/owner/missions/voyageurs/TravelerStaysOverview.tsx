@@ -188,6 +188,7 @@ export default function TravelerStaysOverview(props: Props) {
             <p><Users size={16} aria-hidden="true" /> {row.guests} voyageurs</p>
             <p><CalendarDays size={16} aria-hidden="true" /> Arrivée : {dateLabel(row.arrival, true)}</p>
             <p>Conciergerie : {row.concierge}</p><StayStatus row={row} />
+            <ConciergeUnavailableNotice row={row} />
             <Button variant="secondary" size="sm" onClick={() => onFollow(row.id)}>Voir le séjour</Button>
           </Card>)}</div> : <Card className={styles.empty} tone="outlined">
             <DashboardEmptyState icon={<CalendarDays size={32} aria-hidden="true" />} title="Aucun séjour prévu pour le moment" copy="Lorsque vous connaissez votre prochaine réservation, transmettez les informations à votre conciergerie pour préparer l’arrivée dans de bonnes conditions." />
