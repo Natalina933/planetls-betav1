@@ -501,6 +501,22 @@
   font-weight: 800;
 }
 
+.laterAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: #6d7583;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
 .actions p {
   max-width: 520px;
   margin: 0;
@@ -547,7 +563,8 @@
   }
 
   .primaryAction,
-  .secondaryAction {
+  .secondaryAction,
+  .laterAction {
     width: 100%;
   }
 }

@@ -205,12 +205,14 @@ type OwnerPostSignupOnboardingProps = {
   open: boolean;
   currentStep?: OwnerOnboardingStep;
   onClose: () => void;
+  onPostpone?: () => void;
 };
 
 export default function OwnerPostSignupOnboarding({
   open,
   currentStep = "welcome",
   onClose,
+  onPostpone = onClose,
 }: OwnerPostSignupOnboardingProps) {
   const [step, setStep] = useState<OwnerOnboardingStep>(currentStep);
   const [managementMode, setManagementMode] = useState<OwnerOnboardingManagementMode | "">("");
@@ -529,6 +531,9 @@ export default function OwnerPostSignupOnboarding({
           <ChevronLeft size={18} aria-hidden="true" />
           Retour
         </button>
+        <button type="button" className={styles.laterAction} onClick={onPostpone}>
+          Je le ferai plus tard
+        </button>
         <button type="submit" className={styles.primaryAction} disabled={saving || loadingProfile}>
           {saving ? "Enregistrement..." : "Continuer"}
           <ArrowRight size={18} aria-hidden="true" />
@@ -573,6 +578,9 @@ export default function OwnerPostSignupOnboarding({
         <button type="button" className={styles.primaryAction} onClick={() => setStep("project")}>
           Configurer mon espace
           <ArrowRight size={18} aria-hidden="true" />
+        </button>
+        <button type="button" className={styles.laterAction} onClick={onPostpone}>
+          Je le ferai plus tard
         </button>
         <p>
           Quelques minutes suffisent. Vous pourrez modifier ces informations plus tard depuis votre espace
@@ -704,6 +712,9 @@ export default function OwnerPostSignupOnboarding({
           <ChevronLeft size={18} aria-hidden="true" />
           Retour
         </button>
+        <button type="button" className={styles.laterAction} onClick={onPostpone}>
+          Je le ferai plus tard
+        </button>
         <button type="submit" className={styles.primaryAction} disabled={saving || loadingProfile}>
           {saving ? "Enregistrement..." : "Continuer"}
           <ArrowRight size={18} aria-hidden="true" />
@@ -791,6 +802,9 @@ export default function OwnerPostSignupOnboarding({
         <button type="button" className={styles.secondaryAction} onClick={() => setStep("housing")}>
           <ChevronLeft size={18} aria-hidden="true" />
           Retour
+        </button>
+        <button type="button" className={styles.laterAction} onClick={onPostpone}>
+          Je le ferai plus tard
         </button>
         <button type="submit" className={styles.primaryAction} disabled={saving || loadingProfile}>
           {saving ? "Enregistrement..." : "Terminer la configuration"}

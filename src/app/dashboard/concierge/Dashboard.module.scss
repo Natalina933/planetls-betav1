@@ -28,6 +28,59 @@
   gap: 1.2rem;
 }
 
+.configurationCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 249, 0.94)),
+    var(--theme-soft-surface);
+  box-shadow: 0 16px 36px rgba(17, 37, 29, 0.08);
+}
+
+.configurationCard h3,
+.configurationCard p {
+  margin: 0;
+}
+
+.configurationCard h3 {
+  margin-top: 0.25rem;
+  color: var(--theme-accent-strong);
+  font-family: var(--ds-font-heading, var(--font-primary, "Segoe UI", sans-serif));
+}
+
+.configurationCard p {
+  margin-top: 0.35rem;
+  color: var(--theme-text-soft);
+  line-height: 1.55;
+}
+
+.configurationCard strong {
+  display: block;
+  margin-top: 0.45rem;
+  color: var(--theme-accent-strong);
+  font-size: 0.86rem;
+}
+
+.configurationIcon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(15, 139, 98, 0.1);
+  color: var(--theme-accent-strong);
+  line-height: 1;
+}
+
+.configurationIcon svg {
+  display: block;
+}
+
 .primaryGrid {
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
   align-items: start;
@@ -219,8 +272,11 @@
 }
 
 .primaryLink {
+  border: 0;
   background: linear-gradient(135deg, var(--theme-accent), var(--theme-accent-strong));
   color: #fff;
+  cursor: pointer;
+  font: inherit;
   box-shadow: 0 14px 30px rgba(15, 139, 98, 0.2);
 }
 
@@ -765,7 +821,8 @@
 
   .timelineRow,
   .missionFocusCard,
-  .widgetToggle {
+  .widgetToggle,
+  .configurationCard {
     grid-template-columns: 1fr;
   }
 
@@ -853,7 +910,8 @@
 .inspirationManager,
 .inspirationLibrary,
 .searchPresetCard,
-.inspirationVideoCard {
+.inspirationVideoCard,
+.configurationCard {
   border-color: rgba(17, 24, 39, 0.1);
   border-radius: 8px;
   background: #ffffff;

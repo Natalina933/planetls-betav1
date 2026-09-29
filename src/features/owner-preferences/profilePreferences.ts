@@ -95,6 +95,13 @@ export type OwnerProfilePreferences = {
   ownerOnboardingV1: OwnerOnboardingV1 | null;
 };
 
+export type OwnerOnboardingProgress = {
+  completed: number;
+  total: 3;
+  isComplete: boolean;
+  nextStep: "project" | "housing" | "organization" | "complete";
+};
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -220,6 +227,28 @@ export function parseOwnerOnboardingV1(value: unknown): OwnerOnboardingV1 | null
     requestOrg: readNullableEnum(value.requestOrg, OWNER_ONBOARDING_REQUEST_ORGS),
     billingPref: readNullableEnum(value.billingPref, OWNER_ONBOARDING_BILLING_PREFS),
     proOrg: readNullableEnum(value.proOrg, OWNER_ONBOARDING_PRO_ORGS),
+  };
+}
+
+export function getOwnerOnboardingProgress(
+  onboarding: OwnerOnboardingV1 | null | undefined,
+): OwnerOnboardingProgress {
+  const projectComplete = Boolean(onboarding?.managementMode && onboarding?.situation);
+  const housingComplete = Boolean(onboarding?.helpFrequency);
+  const organizationComplete = Boolean(onboarding?.requestOrg && onboarding?.billingPref && onboarding?.proOrg);
+  const completed = [projectComplete, housingComplete, organizationComplete].filter(Boolean).length;
+
+  return {
+    completed,
+    total: 3,
+    isComplete: completed === 3,
+    nextStep: !projectComplete
+      ? "project"
+      : !housingComplete
+        ? "housing"
+        : !organizationComplete
+          ? "organization"
+          : "complete",
   };
 }
 

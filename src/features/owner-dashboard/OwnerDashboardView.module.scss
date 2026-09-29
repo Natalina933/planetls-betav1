@@ -237,6 +237,50 @@
   gap: var(--ds-space-3);
 }
 
+.configurationCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--ds-space-4);
+  padding: 20px;
+  border: 1px solid var(--pls-border);
+  border-radius: var(--pls-radius-lg);
+  background: var(--pls-white);
+  box-shadow: var(--pls-shadow);
+
+  h2 {
+    margin-top: 4px;
+  }
+
+  p {
+    margin-top: 6px;
+    color: var(--pls-text-secondary);
+    max-width: 68ch;
+  }
+
+  strong {
+    display: block;
+    margin-top: 8px;
+    color: var(--pls-primary);
+    font-size: 13px;
+  }
+}
+
+.configurationIcon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--pls-gold-soft, var(--pls-primary-soft));
+  color: var(--pls-gold, var(--pls-primary));
+  line-height: 1;
+
+  svg {
+    display: block;
+  }
+}
+
 .ownerKpis + .metrics {
   display: none;
 }
@@ -771,6 +815,11 @@
 
   .ownerKpis {
     grid-template-columns: 1fr;
+  }
+
+  .configurationCard {
+    grid-template-columns: 1fr;
+    align-items: start;
   }
 
   .hero {

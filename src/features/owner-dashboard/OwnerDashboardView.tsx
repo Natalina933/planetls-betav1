@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { toHousingPhotoUrl } from "@/app/lib/housingPhotoUrl";
 import Link from "next/link";
-import { ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, CircleCheck, Euro, FileText, House, MessageCircle, Plus, Search, Sparkles, Wrench } from "lucide-react";
+import { ArrowUpRight, CalendarDays, Check, ChevronLeft, ChevronRight, CircleCheck, Euro, FileText, House, MessageCircle, Plus, Search, Sparkles, Wrench } from "lucide-react";
 import type { useOwnerDashboardData } from "@/app/dashboard/owner/useOwnerDashboardData";
 import { matchesHousingReference } from "@/app/lib/listingReferences";
 import { ownerDashboardContent as copy } from "./ownerDashboardContent";
@@ -94,7 +94,23 @@ function StayCalendar({ stays, properties }: { stays: Mission[]; properties: Dat
   </Section>;
 }
 
-export default function OwnerDashboardView({ data, userId }: { data: Data; name: string; userId: string }) {
+type ConfigurationStatus = {
+  completed: number;
+  total: number;
+  isComplete: boolean;
+  onResume: () => void;
+};
+
+export default function OwnerDashboardView({
+  data,
+  userId,
+  configurationStatus,
+}: {
+  data: Data;
+  name: string;
+  userId: string;
+  configurationStatus?: ConfigurationStatus;
+}) {
   const [query, setQuery] = useState("");
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const stays = data.missions.filter((mission) => isStay(mission) && !isCanceled(mission));
@@ -178,6 +194,28 @@ export default function OwnerDashboardView({ data, userId }: { data: Data; name:
     { id: "empty-intervention", dateLabel: "À venir", date: "—", time: "—", title: "Logement", description: "Intervention", meta: "Aucune intervention planifiée", status: "warning" as const, statusLabel: "À confirmer" },
   ];
   return <div className={styles.dashboard} data-owner-dashboard="">
+    {configurationStatus ? <section className={styles.configurationCard} aria-label="Configuration de votre espace">
+      <span className={styles.configurationIcon}>
+        <Check size={20} aria-hidden="true" />
+      </span>
+      <div>
+        <span className={styles.eyebrow}>CONFIGURATION</span>
+        <h2>{configurationStatus.isComplete ? "Configuration terminée" : "Finalisez votre espace"}</h2>
+        <p>
+          {configurationStatus.isComplete
+            ? "Votre espace propriétaire contient les préférences essentielles pour guider vos prochaines demandes."
+            : "Complétez les dernières informations pour adapter votre espace propriétaire à votre façon de travailler."}
+        </p>
+        <strong>
+          {configurationStatus.completed} étape{configurationStatus.completed > 1 ? "s" : ""} sur {configurationStatus.total} complétée{configurationStatus.completed > 1 ? "s" : ""}
+        </strong>
+      </div>
+      {configurationStatus.isComplete ? (
+        <ButtonLink className={styles.primary} href="/dashboard/owner/objectifs">Voir mes préférences</ButtonLink>
+      ) : (
+        <Button className={styles.primary} onClick={configurationStatus.onResume}>Terminer ma configuration</Button>
+      )}
+    </section> : null}
     <div className={styles.ownerKpis}>{ownerKpis.map(({ label, value, icon: Icon, hint, statusTone }) => <DashboardMetricCard key={label} label={label} value={value} detail={hint} icon={<Icon size={20} aria-hidden="true" />} statusTone={statusTone} showLabel />)}</div>
     <div className={styles.metrics}>{[
       { label: copy.upcoming, value: arrivals.length, icon: CalendarDays, hint: copy.recentData },

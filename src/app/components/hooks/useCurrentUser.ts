@@ -14,6 +14,11 @@ export interface CurrentUser {
   company_name?: string | null;
   avatar_url?: string | null;
   availability_hours?: string | null;
+  experience_level?: string | null;
+  legal_form?: string | null;
+  location?: string | null;
+  city?: string | null;
+  service_mode?: string | null;
   service_radius_km?: number | null;
   service_area?: string | null;
   onboarding_complete?: boolean | null;
@@ -94,6 +99,11 @@ export function useCurrentUser() {
       company_name: sessionUser.company_name ?? current?.company_name ?? null,
       avatar_url: sessionUser.avatar_url ?? current?.avatar_url ?? null,
       availability_hours: current?.availability_hours ?? null,
+      experience_level: current?.experience_level ?? null,
+      legal_form: current?.legal_form ?? null,
+      location: current?.location ?? null,
+      city: current?.city ?? null,
+      service_mode: current?.service_mode ?? null,
       service_radius_km: current?.service_radius_km ?? null,
       service_area: current?.service_area ?? null,
       onboarding_complete: current?.onboarding_complete ?? null,
@@ -140,6 +150,11 @@ export function useCurrentUser() {
         company_name: user?.company_name ?? session.user.company_name ?? null,
         avatar_url: user?.avatar_url ?? session.user.avatar_url ?? null,
         availability_hours: user?.availability_hours ?? null,
+        experience_level: user?.experience_level ?? null,
+        legal_form: user?.legal_form ?? null,
+        location: user?.location ?? null,
+        city: user?.city ?? null,
+        service_mode: user?.service_mode ?? null,
         service_radius_km: user?.service_radius_km ?? null,
         service_area: user?.service_area ?? null,
         onboarding_complete: user?.onboarding_complete ?? null,

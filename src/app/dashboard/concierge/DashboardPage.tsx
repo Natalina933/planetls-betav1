@@ -115,6 +115,34 @@ function getGreetingLabel() {
   return "Bonsoir";
 }
 
+function getConciergeOnboardingDeferredKey(userId: string) {
+  return `planetls:onboarding-deferred:concierge:${userId}`;
+}
+
+function getConciergeOnboardingProgress(user: CurrentUser | null) {
+  const activityComplete = Boolean(user?.experience_level && user?.legal_form);
+  const servicesComplete = user?.service_mode === "a_la_carte" || user?.service_mode === "full_management" || user?.service_mode === "both";
+  const organizationComplete = Boolean(
+    (user?.location?.trim() || user?.service_area?.trim() || user?.city?.trim()) &&
+    typeof user?.service_radius_km === "number" &&
+    user.service_radius_km > 0,
+  );
+  const completed = [activityComplete, servicesComplete, organizationComplete].filter(Boolean).length;
+
+  return {
+    completed,
+    total: 3,
+    isComplete: completed === 3,
+    nextStep: !activityComplete
+      ? "activity"
+      : !servicesComplete
+        ? "services"
+        : !organizationComplete
+          ? "organization"
+          : "complete",
+  } as const;
+}
+
 
 type DashboardOwnerCard = {
   id: string;
@@ -558,8 +586,19 @@ export default function DashboardPage() {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
 
   useEffect(() => {
-    setOnboardingOpen(user?.onboarding_complete === false);
-  }, [user?.onboarding_complete]);
+    if (!user?.id || user.onboarding_complete !== false) {
+      setOnboardingOpen(false);
+      return;
+    }
+
+    let deferred = false;
+    try {
+      deferred = window.sessionStorage.getItem(getConciergeOnboardingDeferredKey(String(user.id))) === "true";
+    } catch {
+      deferred = false;
+    }
+    setOnboardingOpen(!deferred);
+  }, [user?.id, user?.onboarding_complete]);
 
   useEffect(() => {
     try {
@@ -1189,12 +1228,34 @@ export default function DashboardPage() {
   }
 
   const PriorityIcon = getPriorityIcon(priorityRequest);
+  const conciergeProgress = getConciergeOnboardingProgress(user);
+  const resumeConciergeOnboarding = () => {
+    if (!user?.id) return;
+    try {
+      window.sessionStorage.removeItem(getConciergeOnboardingDeferredKey(String(user.id)));
+    } catch {
+      // La configuration reste accessible même si sessionStorage est indisponible.
+    }
+    setOnboardingOpen(true);
+  };
+  const postponeConciergeOnboarding = () => {
+    if (user?.id) {
+      try {
+        window.sessionStorage.setItem(getConciergeOnboardingDeferredKey(String(user.id)), "true");
+      } catch {
+        // Le report ne doit jamais bloquer la fermeture.
+      }
+    }
+    setOnboardingOpen(false);
+  };
 
   return (
     <div className="theme-concierge">
       <ConciergePostSignupOnboarding
         open={onboardingOpen && user?.onboarding_complete === false}
+        currentStep={conciergeProgress.nextStep}
         onClose={() => setOnboardingOpen(false)}
+        onPostpone={postponeConciergeOnboarding}
       />
       <UnifiedRoleDashboard
         role="concierge"
@@ -1286,6 +1347,32 @@ export default function DashboardPage() {
         ]}
         leftPrimary={
           <div className={styles.leftPrimaryStack}>
+            <section className={styles.configurationCard} aria-label="Configuration de votre espace">
+              <span className={styles.configurationIcon}>
+                <CheckCircle2 size={20} aria-hidden="true" />
+              </span>
+              <div>
+                <span className={styles.sectionEyebrow}>CONFIGURATION</span>
+                <h3>{user?.onboarding_complete === true || conciergeProgress.isComplete ? "Configuration terminée" : "Finalisez votre espace"}</h3>
+                <p>
+                  {user?.onboarding_complete === true || conciergeProgress.isComplete
+                    ? "Votre cockpit contient les informations essentielles pour présenter votre activité."
+                    : "Complétez les dernières informations pour adapter votre cockpit à votre activité."}
+                </p>
+                <strong>
+                  {conciergeProgress.completed} étape{conciergeProgress.completed > 1 ? "s" : ""} sur {conciergeProgress.total} complétée{conciergeProgress.completed > 1 ? "s" : ""}
+                </strong>
+              </div>
+              {user?.onboarding_complete === true || conciergeProgress.isComplete ? (
+                <Link href="/dashboard/concierge/profile" className={styles.primaryLink}>
+                  Voir mon profil
+                </Link>
+              ) : (
+                <button type="button" className={styles.primaryLink} onClick={resumeConciergeOnboarding}>
+                  Terminer ma configuration
+                </button>
+              )}
+            </section>
             <ConciergeRoutePreview events={todayPlanning} />
             <div className={styles.primaryGrid}>
               <article className={styles.priorityHeroCard}>

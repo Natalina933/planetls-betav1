@@ -177,6 +177,7 @@ type ConciergePostSignupOnboardingProps = {
   open: boolean;
   currentStep?: ConciergeOnboardingStep;
   onClose: () => void;
+  onPostpone?: () => void;
 };
 
 const getBusinessStepIndex = (step: ConciergeOnboardingStep) => {
@@ -197,6 +198,7 @@ export default function ConciergePostSignupOnboarding({
   open,
   currentStep = "welcome",
   onClose,
+  onPostpone = onClose,
 }: ConciergePostSignupOnboardingProps) {
   const [step, setStep] = useState<ConciergeOnboardingStep>(currentStep);
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel | "">("");
@@ -502,6 +504,9 @@ export default function ConciergePostSignupOnboarding({
           Configurer mon profil
           <ArrowRight size={18} aria-hidden="true" />
         </button>
+        <button type="button" className={styles.laterAction} onClick={onPostpone}>
+          Je le ferai plus tard
+        </button>
         <p>Quelques minutes suffisent. Vous pourrez modifier ces informations plus tard depuis votre profil.</p>
       </div>
     </>
@@ -583,6 +588,9 @@ export default function ConciergePostSignupOnboarding({
         <button type="button" className={styles.secondaryAction} onClick={() => setStep("welcome")}>
           <ChevronLeft size={18} aria-hidden="true" />
           Retour
+        </button>
+        <button type="button" className={styles.laterAction} onClick={onPostpone}>
+          Je le ferai plus tard
         </button>
         <button type="submit" className={styles.primaryAction} disabled={saving || loadingProfile}>
           {saving ? "Enregistrement..." : "Continuer"}
@@ -686,6 +694,9 @@ export default function ConciergePostSignupOnboarding({
           <ChevronLeft size={18} aria-hidden="true" />
           Retour
         </button>
+        <button type="button" className={styles.laterAction} onClick={onPostpone}>
+          Je le ferai plus tard
+        </button>
         <button type="submit" className={styles.primaryAction} disabled={saving || loadingProfile}>
           {saving ? "Enregistrement..." : "Continuer"}
           <ArrowRight size={18} aria-hidden="true" />
@@ -766,6 +777,9 @@ export default function ConciergePostSignupOnboarding({
         <button type="button" className={styles.secondaryAction} onClick={() => setStep("services")}>
           <ChevronLeft size={18} aria-hidden="true" />
           Retour
+        </button>
+        <button type="button" className={styles.laterAction} onClick={onPostpone}>
+          Je le ferai plus tard
         </button>
         <button type="submit" className={styles.primaryAction} disabled={saving || loadingProfile}>
           {saving ? "Enregistrement..." : "Continuer"}
