@@ -455,6 +455,9 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
         : null,
     })),
   );
+  const numericHousingIds = housingIds
+    .map((housingId) => Number(housingId))
+    .filter((value) => Number.isFinite(value) && value > 0);
 
   const { data: recipients, error: recipientsError } = await dbAny
     .from("service_request_recipients")
@@ -475,31 +478,34 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
     ),
   );
 
-  const { data: conciergeProfiles, error: conciergeProfilesError } = await dbAny
-    .from("profiles")
-    .select("id, first_name, last_name, username, company_name, avatar_url, image")
-    .in("id", conciergeIds.length > 0 ? conciergeIds : ["00000000-0000-0000-0000-000000000000"]);
+  const [
+    { data: conciergeProfiles, error: conciergeProfilesError },
+    { data: properties, error: propertiesError },
+    { data: housingRows, error: housingError },
+  ] = await Promise.all([
+    dbAny
+      .from("profiles")
+      .select("id, first_name, last_name, username, company_name, avatar_url, image")
+      .in("id", conciergeIds.length > 0 ? conciergeIds : ["00000000-0000-0000-0000-000000000000"]),
+    dbAny
+      .from("properties")
+      .select("id, name, city")
+      .in("id", propertyIds.length > 0 ? propertyIds : ["00000000-0000-0000-0000-000000000000"]),
+    dbAny
+      .from("housing")
+      .select("id, nom_logement, ville")
+      .in("id", numericHousingIds.length > 0 ? numericHousingIds : [-1]),
+  ]);
 
   if (conciergeProfilesError) {
     console.error("[GET /api/service-requests] owner concierge profiles error:", conciergeProfilesError);
     throw new Error("Impossible de charger les profils concierges.");
   }
 
-  const { data: properties, error: propertiesError } = await dbAny
-    .from("properties")
-    .select("id, name, city")
-    .in("id", propertyIds.length > 0 ? propertyIds : ["00000000-0000-0000-0000-000000000000"]);
-
   if (propertiesError) {
     console.error("[GET /api/service-requests] owner properties error:", propertiesError);
     throw new Error("Impossible de charger les logements lies.");
   }
-
-  const numericHousingIds = housingIds.map((housingId) => Number(housingId)).filter((value) => Number.isFinite(value) && value > 0);
-  const { data: housingRows, error: housingError } = await dbAny
-    .from("housing")
-    .select("id, nom_logement, ville")
-    .in("id", numericHousingIds.length > 0 ? numericHousingIds : [-1]);
 
   if (housingError) {
     console.error("[GET /api/service-requests] owner housing error:", housingError);
@@ -542,15 +548,29 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
     recipientsByRequestId.set(recipient.service_request_id, current);
   });
 
-  const { data: conversations, error: conversationsError } = await dbAny
-    .from("contact_conversations")
-    .select("id, concierge_profile_id, owner_profile_id, source, source_reference, created_at")
-    .eq("owner_profile_id", ownerId)
-    .eq("source", "search")
-    .in(
-      "concierge_profile_id",
-      conciergeIds.length > 0 ? conciergeIds : ["00000000-0000-0000-0000-000000000000"],
-    );
+  const [
+    { data: conversations, error: conversationsError },
+    { data: quotes, error: quotesError },
+  ] = await Promise.all([
+    dbAny
+      .from("contact_conversations")
+      .select("id, concierge_profile_id, owner_profile_id, source, source_reference, created_at")
+      .eq("owner_profile_id", ownerId)
+      .eq("source", "search")
+      .in(
+        "concierge_profile_id",
+        conciergeIds.length > 0 ? conciergeIds : ["00000000-0000-0000-0000-000000000000"],
+      ),
+    dbAny
+      .from("quotes")
+      .select("id, quote_number, status, owner_profile_id, concierge_profile_id, service_request_id, service_request_recipient_id, created_at, metadata")
+      .eq("owner_profile_id", ownerId)
+      .neq("status", "draft")
+      .in(
+        "concierge_profile_id",
+        conciergeIds.length > 0 ? conciergeIds : ["00000000-0000-0000-0000-000000000000"],
+      ),
+  ]);
 
   if (conversationsError) {
     console.error("[GET /api/service-requests] owner conversations error:", conversationsError);
@@ -574,16 +594,6 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
       fallbackConversationByConcierge.set(conciergeId, conversation);
     }
   });
-
-  const { data: quotes, error: quotesError } = await dbAny
-    .from("quotes")
-    .select("id, quote_number, status, owner_profile_id, concierge_profile_id, service_request_id, service_request_recipient_id, created_at, metadata")
-    .eq("owner_profile_id", ownerId)
-    .neq("status", "draft")
-    .in(
-      "concierge_profile_id",
-      conciergeIds.length > 0 ? conciergeIds : ["00000000-0000-0000-0000-000000000000"],
-    );
 
   if (quotesError) {
     console.error("[GET /api/service-requests] owner quotes error:", quotesError);

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   buildOwnerConciergeSearchDefaults,
   buildOwnerRequestFormDefaults,
+  EMPTY_OWNER_ONBOARDING_V1,
   getOwnerProfilePreferences,
   mergeOwnerPreferencesIntoAvailabilityHours,
 } from "../features/owner-preferences/profilePreferences.ts";
@@ -41,6 +42,7 @@ test("owner profile preferences read merged onboarding and preferences with pref
     recurringExpectations: "Menage, linge et controle consommables",
     firstRequestTemplate: "Base recurrente",
     propertyTypes: [],
+    ownerOnboardingV1: null,
   });
 });
 
@@ -98,6 +100,7 @@ test("owner request form defaults reuse saved profile preferences", () => {
     recurringExpectations: "Menage et linge a chaque depart",
     firstRequestTemplate: "Menage apres depart",
     propertyTypes: ["Appartement"],
+    ownerOnboardingV1: null,
   });
 
   assert.deepEqual(defaults, {
@@ -138,6 +141,72 @@ test("owner concierge search defaults reuse the saved property context", () => {
       propertyType: "Maison",
     },
   );
+});
+
+test("owner onboarding v1 empty object stays stable", () => {
+  assert.deepEqual(EMPTY_OWNER_ONBOARDING_V1, {
+    managementMode: null,
+    needs: [],
+    situation: null,
+    helpFrequency: null,
+    requestOrg: null,
+    billingPref: null,
+    proOrg: null,
+  });
+});
+
+test("owner onboarding v1 is read and merged without touching legacy preferences", () => {
+  const availabilityHours = JSON.stringify({
+    onboarding: { signupMode: "simple" },
+    preferences: {
+      ownerGoal: "find_concierge",
+      collaborationType: "regular",
+      frequency: "monthly",
+      ownerOnboardingV1: {
+        managementMode: "supported",
+        needs: ["cleaning", "linen"],
+        situation: "already_renting",
+        helpFrequency: "regular",
+        requestOrg: "bookings",
+        billingPref: "monthly",
+        proOrg: "main_professional",
+      },
+    },
+  });
+
+  const parsed = getOwnerProfilePreferences(availabilityHours);
+  assert.deepEqual(parsed.ownerOnboardingV1, {
+    managementMode: "supported",
+    needs: ["cleaning", "linen"],
+    situation: "already_renting",
+    helpFrequency: "regular",
+    requestOrg: "bookings",
+    billingPref: "monthly",
+    proOrg: "main_professional",
+  });
+  assert.equal(parsed.collaborationType, "regular");
+  assert.equal(parsed.frequency, "monthly");
+
+  const merged = JSON.parse(
+    mergeOwnerPreferencesIntoAvailabilityHours(availabilityHours, {
+      ownerOnboardingV1: {
+        managementMode: "full_delegation",
+        needs: ["check_in", "full_management"],
+      },
+    }),
+  ) as Record<string, unknown>;
+  const nextPreferences = merged.preferences as Record<string, unknown>;
+  assert.equal(nextPreferences.collaborationType, "regular");
+  assert.equal(nextPreferences.frequency, "monthly");
+  assert.deepEqual(nextPreferences.ownerOnboardingV1, {
+    managementMode: "full_delegation",
+    needs: ["check_in", "full_management"],
+    situation: "already_renting",
+    helpFrequency: "regular",
+    requestOrg: "bookings",
+    billingPref: "monthly",
+    proOrg: "main_professional",
+  });
 });
 
 test("parseOnboardingDetails now reads new owner preference aliases", () => {

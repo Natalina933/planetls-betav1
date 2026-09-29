@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
 
   const { data: profile, error } = await db
     .from("profiles")
-    .select("city")
+    .select("city, location, service_area")
     .eq("id", userId)
     .maybeSingle();
 
@@ -37,7 +37,10 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const city = profile.city?.trim();
+  const city =
+    profile.city?.trim() ||
+    profile.location?.trim() ||
+    profile.service_area?.trim();
 
   if (!city) {
     return NextResponse.json(

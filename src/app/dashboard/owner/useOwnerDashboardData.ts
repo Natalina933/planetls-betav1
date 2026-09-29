@@ -179,7 +179,7 @@ export function useOwnerDashboardData(
               "Impossible de charger vos messages.",
             ),
             fetchJsonOrThrow<{ items?: OwnerServiceRequestRow[] }>(
-              "/api/service-requests?view=owner&limit=200",
+              "/api/service-requests?view=owner&limit=30",
               "Impossible de charger vos demandes.",
             ),
           ]);

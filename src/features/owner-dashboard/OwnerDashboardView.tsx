@@ -39,10 +39,6 @@ const isCurrentMonth = (value: string | null | undefined, now: Date) => {
   return Boolean(date && date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth());
 };
 const isSameLocalDay = (left: Date, right: Date) => left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth() && left.getDate() === right.getDate();
-const dateTimeLabel = (value?: string | null) => {
-  const date = validDate(value);
-  return date?.toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) ?? undefined;
-};
 const shortDateLabel = (value: Date) => value.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 const timeOnlyLabel = (value?: string | null) => validDate(value)?.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) ?? undefined;
 const relativeDateLabel = (value: Date, today: Date) => {
@@ -144,22 +140,15 @@ export default function OwnerDashboardView({ data, userId }: { data: Data; name:
     if (start && isSameLocalDay(start, today)) {
       items.push({
         id: `${mission.id}-start`,
-        time: dateTimeLabel(mission.scheduled_start),
-        title: isStay(mission) ? "Arrivée" : isCleaningMission(mission) ? "Ménage" : mission.title || "Intervention",
-        ...(isStay(mission) ? { title: "Check-in" } : isCleaningMission(mission) ? { title: "Ménage" } : {}),
-        description: timelineProperty,
-        meta,
         status: isStay(mission) ? "active" : isCleaningMission(mission) ? "success" : timelineStatus(mission.status),
         statusLabel,
-        ...{
-          dateLabel: relativeDateLabel(start, today),
-          date: shortDateLabel(start),
-          time: timeOnlyLabel(mission.scheduled_start),
-          imageUrl: timelineImageUrl,
-          title: timelinePropertyName,
-          description: isStay(mission) ? "Arrivée" : isCleaningMission(mission) ? "Ménage" : mission.title || "Intervention",
-          meta: [isStay(mission) ? "Check-in" : null, timeOnlyLabel(mission.scheduled_start), meta].filter(Boolean).join(" · ") || undefined,
-        },
+        dateLabel: relativeDateLabel(start, today),
+        date: shortDateLabel(start),
+        time: timeOnlyLabel(mission.scheduled_start),
+        imageUrl: timelineImageUrl,
+        title: timelinePropertyName,
+        description: isStay(mission) ? "Arrivée" : isCleaningMission(mission) ? "Ménage" : mission.title || "Intervention",
+        meta: [isStay(mission) ? "Check-in" : null, timeOnlyLabel(mission.scheduled_start), meta].filter(Boolean).join(" · ") || undefined,
         sortDate: start.getTime(),
       });
     }
@@ -167,22 +156,15 @@ export default function OwnerDashboardView({ data, userId }: { data: Data; name:
     if (isStay(mission) && end && isSameLocalDay(end, today)) {
       items.push({
         id: `${mission.id}-end`,
-        time: dateTimeLabel(mission.scheduled_end),
-        title: "Départ",
-        ...{ title: "Check-out" },
-        description: timelineProperty,
-        meta,
         status: "warning",
         statusLabel,
-        ...{
-          dateLabel: relativeDateLabel(end, today),
-          date: shortDateLabel(end),
-          time: timeOnlyLabel(mission.scheduled_end),
-          imageUrl: timelineImageUrl,
-          title: timelinePropertyName,
-          description: "Départ",
-          meta: ["Check-out", timeOnlyLabel(mission.scheduled_end), meta].filter(Boolean).join(" · ") || undefined,
-        },
+        dateLabel: relativeDateLabel(end, today),
+        date: shortDateLabel(end),
+        time: timeOnlyLabel(mission.scheduled_end),
+        imageUrl: timelineImageUrl,
+        title: timelinePropertyName,
+        description: "Départ",
+        meta: ["Check-out", timeOnlyLabel(mission.scheduled_end), meta].filter(Boolean).join(" · ") || undefined,
         sortDate: end.getTime(),
       });
     }

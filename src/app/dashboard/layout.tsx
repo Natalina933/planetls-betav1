@@ -132,7 +132,7 @@ export default function DashboardLayout({
     ongoingMissions,
     pendingInvoices,
     unreadConversationCount,
-  } = useOwnerDashboardData(Boolean(isAuthenticated && isOwnerPage));
+  } = useOwnerDashboardData(Boolean(isAuthenticated && isOwnerPage && !isOwnerHome));
 
   const ownerBottomNavItems = useMemo(
     () => [
@@ -283,6 +283,13 @@ export default function DashboardLayout({
         });
 
         if (!response.ok) {
+          if (response.status === 422 || response.status === 404) {
+            if (!cancelled) {
+              setWeather(null);
+            }
+            return;
+          }
+
           throw new Error(
             `Weather request failed: ${response.status}`,
           );

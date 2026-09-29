@@ -77,6 +77,7 @@ export function UserTypeProvider({ children }: { children: ReactNode }) {
     const isDashboardRoute = Boolean(pathname?.startsWith("/dashboard/"));
     if (!isDashboardRoute) return;
     if (status !== "authenticated") return;
+    if (inferSidebarUserTypeFromPath(pathname)) return;
 
     async function fetchUserType() {
       try {

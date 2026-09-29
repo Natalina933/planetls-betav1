@@ -1,6 +1,6 @@
 // src/types/supabase.ts
 import type { ContractDraft } from "@/features/housing-collaborations/contractConditions";
-import type { ConciergeServiceMode } from "./profile";
+import type { ConciergeServiceMode } from "./conciergeServiceMode";
 export type Json =
   | string
   | number

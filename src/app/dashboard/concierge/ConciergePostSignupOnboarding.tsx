@@ -10,7 +10,7 @@ import {
   toMissionTypeId,
 } from "./profile/profileMissionPricing";
 import { formatExperienceLabel } from "./profile/profilePageConstants";
-import type { ConciergeServiceMode } from "@/types/profile";
+import type { ConciergeServiceMode } from "@/types/conciergeServiceMode";
 import styles from "./ConciergePostSignupOnboarding.module.scss";
 
 export type ConciergeOnboardingStep = "welcome" | "activity" | "services" | "organization" | "complete";
@@ -314,7 +314,6 @@ export default function ConciergePostSignupOnboarding({
         throw new Error(payload?.error || "Impossible d'enregistrer votre activité.");
       }
 
-      window.dispatchEvent(new Event("user-profile-updated"));
       setStep("services");
       setMessage("Votre activité est enregistrée. Vous pouvez maintenant choisir vos services.");
     } catch (error) {
@@ -347,21 +346,24 @@ export default function ConciergePostSignupOnboarding({
         throw new Error("Choisissez une façon de travailler pour continuer.");
       }
 
-      const parsed = parseMissionPayload(availabilityHours);
-      const missionProfile = buildMissionProfileFromSelection(parsed, selectedServices, toMissionTypeId);
-      const legacy = buildLegacyFromMissionProfile(missionProfile);
-      const nextAvailabilityHours = JSON.stringify({
-        ...parseAvailabilityPayloadRaw(availabilityHours),
-        missionProfile,
-        missionCatalog: legacy.missionCatalog,
-        preferences: legacy.preferences,
-      });
+      let nextAvailabilityHours = availabilityHours;
+      if (serviceMode === "a_la_carte" || serviceMode === "both") {
+        const parsed = parseMissionPayload(availabilityHours);
+        const missionProfile = buildMissionProfileFromSelection(parsed, selectedServices, toMissionTypeId);
+        const legacy = buildLegacyFromMissionProfile(missionProfile);
+        nextAvailabilityHours = JSON.stringify({
+          ...parseAvailabilityPayloadRaw(availabilityHours),
+          missionProfile,
+          missionCatalog: legacy.missionCatalog,
+          preferences: legacy.preferences,
+        });
+      }
 
       const response = await fetch("/api/profiles", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          availability_hours: nextAvailabilityHours,
+          ...(nextAvailabilityHours !== availabilityHours ? { availability_hours: nextAvailabilityHours } : {}),
           service_mode: serviceMode,
         }),
       });
@@ -371,9 +373,8 @@ export default function ConciergePostSignupOnboarding({
         throw new Error(payload?.error || "Impossible d'enregistrer vos services.");
       }
 
-      setAvailabilityHours(nextAvailabilityHours);
+      setAvailabilityHours(payload.availability_hours ?? nextAvailabilityHours);
       setPersistedServiceMode(parseServiceMode(payload.service_mode) || serviceMode);
-      window.dispatchEvent(new Event("user-profile-updated"));
       setStep("organization");
       setMessage("Vos services sont enregistrés.");
     } catch (error) {
@@ -424,7 +425,6 @@ export default function ConciergePostSignupOnboarding({
       }
 
       setAvailabilityHours(nextAvailabilityHours);
-      window.dispatchEvent(new Event("user-profile-updated"));
       setStep("complete");
       setMessage("Votre organisation est enregistrée. Vous pouvez finaliser votre configuration.");
     } catch (error) {

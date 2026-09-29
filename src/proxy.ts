@@ -69,6 +69,8 @@ export async function proxy(req: NextRequest) {
         { status: 403, headers: { "Cache-Control": "no-store" } },
       );
     }
+
+    return NextResponse.next();
   }
 
   if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {

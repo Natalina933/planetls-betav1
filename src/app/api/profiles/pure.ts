@@ -1,6 +1,6 @@
 // Import relatif : ce module est importé par les tests Node (src/tests/*.test.mts)
-// qui ne résolvent pas l'alias "@/". Le type canonique reste unique (src/types/profile.ts).
-import { CONCIERGE_SERVICE_MODES } from "../../../types/profile.ts";
+// qui ne résolvent pas l'alias "@".
+import { CONCIERGE_SERVICE_MODES } from "../../../types/conciergeServiceMode.ts";
 
 const OWNER_ROLES = new Set(["owner", "owner_pro"]);
 const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro"]);
@@ -168,7 +168,6 @@ export function getProfilePatchPolicy(role: string | null | undefined, isAdmin: 
         "skills",
         "iban",
         "bic",
-        "service_mode",
       ]),
       numberFields: new Set([
         "avatar_scale",

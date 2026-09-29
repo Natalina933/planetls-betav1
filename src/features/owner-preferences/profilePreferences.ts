@@ -44,6 +44,42 @@ const OWNER_RESPONSIBILITY_LEVELS: OwnerResponsibilityLevel[] = [
   "unknown",
 ];
 
+export type OwnerOnboardingManagementMode = "autonomous" | "supported" | "full_delegation";
+
+export type OwnerOnboardingNeed =
+  | "check_in"
+  | "check_out"
+  | "cleaning"
+  | "linen"
+  | "maintenance"
+  | "traveler_messages"
+  | "full_management"
+  | "other";
+
+export type OwnerOnboardingSituation =
+  | "first_rental"
+  | "already_renting"
+  | "looking_for_professional"
+  | "already_with_professional";
+
+export type OwnerOnboardingHelpFrequency = "occasional" | "regular" | "very_regular";
+
+export type OwnerOnboardingRequestOrg = "bookings" | "regular" | "both";
+
+export type OwnerOnboardingBillingPref = "per_mission" | "monthly" | "both";
+
+export type OwnerOnboardingProOrg = "main_professional" | "multiple_professionals" | "depending_on_needs";
+
+export type OwnerOnboardingV1 = {
+  managementMode: OwnerOnboardingManagementMode | null;
+  needs: OwnerOnboardingNeed[];
+  situation: OwnerOnboardingSituation | null;
+  helpFrequency: OwnerOnboardingHelpFrequency | null;
+  requestOrg: OwnerOnboardingRequestOrg | null;
+  billingPref: OwnerOnboardingBillingPref | null;
+  proOrg: OwnerOnboardingProOrg | null;
+};
+
 export type OwnerProfilePreferences = {
   ownerGoal: OwnerRequestGoal;
   collaborationType: OwnerCollaborationType;
@@ -56,6 +92,7 @@ export type OwnerProfilePreferences = {
   recurringExpectations: string;
   firstRequestTemplate: string;
   propertyTypes: string[];
+  ownerOnboardingV1: OwnerOnboardingV1 | null;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -88,6 +125,141 @@ function readEnum<Value extends string>(
     : fallback;
 }
 
+const OWNER_ONBOARDING_MANAGEMENT_MODES: readonly OwnerOnboardingManagementMode[] = [
+  "autonomous",
+  "supported",
+  "full_delegation",
+];
+
+const OWNER_ONBOARDING_NEEDS: readonly OwnerOnboardingNeed[] = [
+  "check_in",
+  "check_out",
+  "cleaning",
+  "linen",
+  "maintenance",
+  "traveler_messages",
+  "full_management",
+  "other",
+];
+
+const OWNER_ONBOARDING_SITUATIONS: readonly OwnerOnboardingSituation[] = [
+  "first_rental",
+  "already_renting",
+  "looking_for_professional",
+  "already_with_professional",
+];
+
+const OWNER_ONBOARDING_HELP_FREQUENCIES: readonly OwnerOnboardingHelpFrequency[] = [
+  "occasional",
+  "regular",
+  "very_regular",
+];
+
+const OWNER_ONBOARDING_REQUEST_ORGS: readonly OwnerOnboardingRequestOrg[] = ["bookings", "regular", "both"];
+
+const OWNER_ONBOARDING_BILLING_PREFS: readonly OwnerOnboardingBillingPref[] = [
+  "per_mission",
+  "monthly",
+  "both",
+];
+
+const OWNER_ONBOARDING_PRO_ORGS: readonly OwnerOnboardingProOrg[] = [
+  "main_professional",
+  "multiple_professionals",
+  "depending_on_needs",
+];
+
+export const EMPTY_OWNER_ONBOARDING_V1: OwnerOnboardingV1 = {
+  managementMode: null,
+  needs: [],
+  situation: null,
+  helpFrequency: null,
+  requestOrg: null,
+  billingPref: null,
+  proOrg: null,
+};
+
+function readNullableEnum<Value extends string>(
+  value: unknown,
+  allowed: readonly Value[],
+): Value | null {
+  return typeof value === "string" && allowed.includes(value as Value) ? (value as Value) : null;
+}
+
+function readOnboardingNeedList(value: unknown): OwnerOnboardingNeed[] {
+  if (!Array.isArray(value)) return [];
+  const allowed = new Set<string>(OWNER_ONBOARDING_NEEDS);
+  const selected: OwnerOnboardingNeed[] = [];
+  for (const item of value) {
+    if (typeof item !== "string") continue;
+    const trimmed = item.trim();
+    if (trimmed && allowed.has(trimmed) && !selected.includes(trimmed as OwnerOnboardingNeed)) {
+      selected.push(trimmed as OwnerOnboardingNeed);
+    }
+  }
+  return selected;
+}
+
+export function parseOwnerOnboardingV1(value: unknown): OwnerOnboardingV1 | null {
+  if (!isRecord(value)) return null;
+  const hasAnyKey =
+    "managementMode" in value ||
+    "needs" in value ||
+    "situation" in value ||
+    "helpFrequency" in value ||
+    "requestOrg" in value ||
+    "billingPref" in value ||
+    "proOrg" in value;
+  if (!hasAnyKey) return null;
+
+  return {
+    managementMode: readNullableEnum(value.managementMode, OWNER_ONBOARDING_MANAGEMENT_MODES),
+    needs: readOnboardingNeedList(value.needs),
+    situation: readNullableEnum(value.situation, OWNER_ONBOARDING_SITUATIONS),
+    helpFrequency: readNullableEnum(value.helpFrequency, OWNER_ONBOARDING_HELP_FREQUENCIES),
+    requestOrg: readNullableEnum(value.requestOrg, OWNER_ONBOARDING_REQUEST_ORGS),
+    billingPref: readNullableEnum(value.billingPref, OWNER_ONBOARDING_BILLING_PREFS),
+    proOrg: readNullableEnum(value.proOrg, OWNER_ONBOARDING_PRO_ORGS),
+  };
+}
+
+function sanitizeOwnerOnboardingV1(
+  value: unknown,
+  current: OwnerOnboardingV1 | null,
+): OwnerOnboardingV1 | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  if (!isRecord(value)) return current;
+  const fallback: OwnerOnboardingV1 = current ?? EMPTY_OWNER_ONBOARDING_V1;
+  return {
+    managementMode:
+      value.managementMode === undefined
+        ? fallback.managementMode
+        : readNullableEnum(value.managementMode, OWNER_ONBOARDING_MANAGEMENT_MODES),
+    needs:
+      value.needs === undefined ? [...fallback.needs] : readOnboardingNeedList(value.needs),
+    situation:
+      value.situation === undefined
+        ? fallback.situation
+        : readNullableEnum(value.situation, OWNER_ONBOARDING_SITUATIONS),
+    helpFrequency:
+      value.helpFrequency === undefined
+        ? fallback.helpFrequency
+        : readNullableEnum(value.helpFrequency, OWNER_ONBOARDING_HELP_FREQUENCIES),
+    requestOrg:
+      value.requestOrg === undefined
+        ? fallback.requestOrg
+        : readNullableEnum(value.requestOrg, OWNER_ONBOARDING_REQUEST_ORGS),
+    billingPref:
+      value.billingPref === undefined
+        ? fallback.billingPref
+        : readNullableEnum(value.billingPref, OWNER_ONBOARDING_BILLING_PREFS),
+    proOrg:
+      value.proOrg === undefined
+        ? fallback.proOrg
+        : readNullableEnum(value.proOrg, OWNER_ONBOARDING_PRO_ORGS),
+  };
+}
 function parseAvailabilityHoursPayload(value?: string | null): Record<string, unknown> {
   if (!value) return {};
 
@@ -142,6 +314,7 @@ export function getOwnerProfilePreferences(value?: string | null): OwnerProfileP
     recurringExpectations: readString(source.recurringExpectations ?? source.expectedServices),
     firstRequestTemplate: readString(source.firstRequestTemplate),
     propertyTypes: readStringArray(source.propertyTypes),
+    ownerOnboardingV1: parseOwnerOnboardingV1(preferences.ownerOnboardingV1),
   };
 }
 
@@ -161,7 +334,11 @@ export function mergeOwnerPreferencesIntoAvailabilityHours(
   const nextDefaults = getServiceRequestBriefDefaults(nextOwnerGoal);
   const nextPropertyType = readString(input.propertyType) || currentPreferences.propertyType;
   const nextNeedVolume = readString(input.needVolume) || currentPreferences.needVolume;
-  const nextPreferences = {
+  const nextOwnerOnboardingV1 = sanitizeOwnerOnboardingV1(
+    input.ownerOnboardingV1,
+    currentPreferences.ownerOnboardingV1,
+  );
+  const nextPreferences: Record<string, unknown> = {
     ...existingPreferences,
     ownerGoal: nextOwnerGoal,
     collaborationType: readEnum(
@@ -191,6 +368,14 @@ export function mergeOwnerPreferencesIntoAvailabilityHours(
         ? currentPreferences.propertyTypes
         : readStringArray(existingPreferences.propertyTypes),
   };
+
+  if (nextOwnerOnboardingV1 !== undefined) {
+    if (nextOwnerOnboardingV1 === null) {
+      delete nextPreferences.ownerOnboardingV1;
+    } else {
+      nextPreferences.ownerOnboardingV1 = nextOwnerOnboardingV1;
+    }
+  }
 
   return JSON.stringify({
     ...payload,

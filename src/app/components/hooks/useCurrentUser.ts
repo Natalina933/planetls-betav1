@@ -20,9 +20,58 @@ export interface CurrentUser {
   onboarding_completed_at?: string | null;
 }
 
+let currentUserCache: { userId: string; user: CurrentUser } | null = null;
+let currentUserRequest: { userId: string; promise: Promise<CurrentUser> } | null = null;
+
+async function fetchCurrentUserProfile(userId: string) {
+  if (currentUserCache?.userId === userId) {
+    return currentUserCache.user;
+  }
+
+  if (currentUserRequest?.userId === userId) {
+    return currentUserRequest.promise;
+  }
+
+  const promise = fetch("/api/profiles/current", {
+    cache: "no-store",
+  }).then(async (res) => {
+    if (!res.ok) {
+      const text = await res.text();
+      console.error(
+        "Erreur chargement profil:",
+        res.status,
+        res.statusText,
+        text,
+      );
+      throw new Error("Erreur chargement profil");
+    }
+
+    const data: CurrentUser = await res.json();
+    currentUserCache = { userId, user: data };
+    return data;
+  }).finally(() => {
+    if (currentUserRequest?.userId === userId) {
+      currentUserRequest = null;
+    }
+  });
+
+  currentUserRequest = { userId, promise };
+  return promise;
+}
+
+function clearCurrentUserCache(userId?: string) {
+  if (!userId || currentUserCache?.userId === userId) {
+    currentUserCache = null;
+  }
+  if (!userId || currentUserRequest?.userId === userId) {
+    currentUserRequest = null;
+  }
+}
+
 export function useCurrentUser() {
   const { data: session, status } = useSession();
   const sessionUser = session?.user;
+  const sessionUserId = sessionUser?.id;
 
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -53,22 +102,7 @@ export function useCurrentUser() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/profiles/current", {
-        cache: "no-store",
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        console.error(
-          "Erreur chargement profil:",
-          res.status,
-          res.statusText,
-          text
-        );
-        throw new Error("Erreur chargement profil");
-      }
-
-      const data: CurrentUser = await res.json();
+      const data = await fetchCurrentUserProfile(sessionUser.id);
       setUser(data);
     } catch (error) {
       console.error("useCurrentUser:", error);
@@ -84,6 +118,7 @@ export function useCurrentUser() {
 
   useEffect(() => {
     const handleUpdate = () => {
+      clearCurrentUserCache(sessionUserId);
       fetchUser();
     };
 
@@ -92,7 +127,7 @@ export function useCurrentUser() {
     return () => {
       window.removeEventListener("user-profile-updated", handleUpdate);
     };
-  }, [fetchUser]);
+  }, [fetchUser, sessionUserId]);
 
   const resolvedUser: CurrentUser | null = session?.user?.id
     ? {
