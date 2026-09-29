@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { insertMissionWithOptionalMetadata } from "@/app/api/_shared/missionInsert";
-import { OWNER_RESERVATION_ROLES, cleanString, isRecord, type ReservationRow } from "@/app/api/_shared/reservations";
+import { RESERVATION_PARTICIPANT_ROLES, cleanString, isRecord, type ReservationRow } from "@/app/api/_shared/reservations";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
 import { getHousingReferenceId } from "@/app/lib/listingReferences";
@@ -62,6 +62,17 @@ function readAssignments(body: Record<string, unknown>) {
     .filter((item): item is { need: NeedKey; collaborationId: string } => Boolean(item.need && item.collaborationId));
 }
 
+function defaultAssignmentsFromReservation(reservation: ReservationRow) {
+  const metadata = isRecord(reservation.metadata) ? reservation.metadata : {};
+  const collaborationId = cleanString(metadata.collaboration_id);
+  const actions = Array.isArray(metadata.requested_actions) ? metadata.requested_actions : [];
+  if (!collaborationId) return [];
+
+  return actions
+    .map((action) => ({ need: normalizeNeed(action), collaborationId }))
+    .filter((item): item is { need: NeedKey; collaborationId: string } => Boolean(item.need));
+}
+
 function explicitNeedsFromReservation(reservation: ReservationRow) {
   const metadata = isRecord(reservation.metadata) ? reservation.metadata : {};
   const actions = Array.isArray(metadata.requested_actions) ? metadata.requested_actions : [];
@@ -108,17 +119,12 @@ function missionTitle(need: NeedKey) {
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const guard = await requireApiRole(req, OWNER_RESERVATION_ROLES);
+    const guard = await requireApiRole(req, RESERVATION_PARTICIPANT_ROLES);
     if (!guard.ok) return guard.response;
     const { userId, role } = guard.auth;
     const { id } = await params;
     const reservationId = decodeURIComponent(id);
     const body = (await req.json()) as Record<string, unknown>;
-    const assignments = readAssignments(body);
-
-    if (assignments.length === 0) {
-      return NextResponse.json({ error: "Au moins une attribution explicite est requise." }, { status: 400 });
-    }
 
     const { data: reservationData, error: reservationError } = await dbAny
       .from("reservations")
@@ -130,14 +136,26 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!reservationData) return NextResponse.json({ error: "Réservation introuvable." }, { status: 404 });
 
     const reservation = reservationData as ReservationRow;
-    if (role !== "admin" && role !== "super_admin" && reservation.owner_profile_id !== userId) {
+    if (
+      role !== "admin" &&
+      role !== "super_admin" &&
+      reservation.owner_profile_id !== userId &&
+      reservation.concierge_profile_id !== userId
+    ) {
       return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
+    }
+
+    const assignments = readAssignments(body);
+    const resolvedAssignments = assignments.length > 0 ? assignments : defaultAssignmentsFromReservation(reservation);
+
+    if (resolvedAssignments.length === 0) {
+      return NextResponse.json({ error: "Aucune prestation exploitable pour ce séjour." }, { status: 400 });
     }
 
     const housingId = getHousingReferenceId({ propertyId: reservation.property_id ?? null, metadata: reservation.metadata ?? null });
     if (!housingId) return NextResponse.json({ error: "Logement de la réservation non résolu." }, { status: 400 });
 
-    const uniqueCollaborationIds = Array.from(new Set(assignments.map((item) => item.collaborationId)));
+    const uniqueCollaborationIds = Array.from(new Set(resolvedAssignments.map((item) => item.collaborationId)));
     const { data: collaborationData, error: collaborationError } = await dbAny
       .from("housing_collaborations")
       .select("id,housing_id,owner_profile_id,concierge_profile_id,status")
@@ -146,12 +164,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (collaborationError) return NextResponse.json({ error: "Impossible de vérifier les collaborations." }, { status: 500 });
 
     const collaborations = new Map(((collaborationData ?? []) as CollaborationRow[]).map((item) => [item.id, item]));
-    const invalidCollaboration = assignments.find((assignment) => {
+    const invalidCollaboration = resolvedAssignments.find((assignment) => {
       const collaboration = collaborations.get(assignment.collaborationId);
       return (
         !collaboration ||
         collaboration.status !== "active" ||
         collaboration.owner_profile_id !== reservation.owner_profile_id ||
+        collaboration.concierge_profile_id !== reservation.concierge_profile_id ||
         String(collaboration.housing_id) !== housingId
       );
     });
@@ -191,7 +210,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const explicitNeeds = explicitNeedsFromReservation(reservation);
     const createdOrReused: MissionRow[] = [];
 
-    for (const assignment of assignments) {
+    for (const assignment of resolvedAssignments) {
       const collaboration = collaborations.get(assignment.collaborationId)!;
       const contract = contracts.get(collaboration.id);
       const version = contract ? versionByContract.get(contract.id) ?? null : null;

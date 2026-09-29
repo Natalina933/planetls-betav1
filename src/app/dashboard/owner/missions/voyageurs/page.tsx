@@ -1510,6 +1510,8 @@ function OwnerTravelerMissionsContent() {
       concierge: getMetadataString(mission, "concierge_name") || getMissionConciergeName(partners, mission),
       guests: getGuestCount(mission), arrival: mission.scheduled_start, departure: mission.scheduled_end,
       status, statusLabel: getMissionStatusLabel(mission),
+      conciergeUnavailable: mission.metadata?.concierge_unavailable === true,
+      conciergeUnavailableReason: getMetadataString(mission, "concierge_unavailable_reason"),
       isPending: !isMissionPlannedByConcierge(mission) && mission.status !== "completed",
       isPlanned: isMissionPlannedByConcierge(mission), isUrgent: hasMissionIncident(mission),
       isUpcoming: !terminal && status !== "in_progress" && Boolean(mission.scheduled_start && Date.parse(mission.scheduled_start) >= Date.now()),

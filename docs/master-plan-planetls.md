@@ -1,5 +1,11 @@
 # Master Plan PlanetLS
 
+### Prise en charge concierge des séjours — 28 septembre 2026
+
+- Avancement LOT 5B **🟡 En cours — P1 Prioritaire** : `/dashboard/concierge/sejours` expose l'action visible `Prendre en charge`, réutilise l'état `acknowledged` de `/api/reservations/[id]`, puis appelle `POST /api/owner/reservations/[id]/missions` pour créer ou réutiliser une mission par prestation demandée depuis `reservation.metadata.requested_actions` et `collaboration_id`.
+- Garde-fou confirmé : l'endpoint de création missions reste idempotent via la clé `reservation + besoin + collaboration` et accepte désormais le participant concierge lié au séjour sans autorité client sur la concierge mission.
+- Limites inchangées : pas de remplacement concierge, indisponibilité, annulation/synchronisation de dates, regroupement en intervention ou refonte planning dans ce lot.
+
 ### Profil propriétaire : résumé et indicateur de coordonnées — 27 septembre 2026
 
 - **🟠 Partiel — P2 Important** : résumé intégré à la carte d’identité (expérience, structure et date réelle d’inscription si valide ; rôle affiché une seule fois). Suppression des cartes isolées « Badge vérifié » et « Résumé du profil » pour le propriétaire ; présentation conservée dans sa seule section éditable, coordonnées conservées dans les sections compte/adresse. La carte photo conserve son éditeur sans répéter nom, rôle et coordonnées.

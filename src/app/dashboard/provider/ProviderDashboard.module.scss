@@ -523,3 +523,43 @@
     align-items: flex-start;
   }
 }
+
+.providerUnified {
+  gap: var(--ds-space-4);
+}
+
+.providerUnified :global([class*="heroCard"]) {
+  border-radius: var(--ds-radius-control);
+  border-left: 4px solid var(--dash-accent);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.providerUnified :global([class*="kpiSection"]) {
+  gap: var(--ds-space-3);
+}
+
+.providerUnified :global([class*="dashboardGrid"]) {
+  gap: var(--ds-space-4);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.42fr);
+}
+
+.providerUnified :global([class*="embeddedModule"]) {
+  border-radius: var(--ds-radius-control);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.providerUnified .priorityHero,
+.providerUnified .panelCard,
+.providerUnified .requestCard,
+.providerUnified .quickActionCard {
+  border-radius: var(--ds-radius-card);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+@media (max-width: 1180px) {
+  .providerUnified :global([class*="dashboardGrid"]) {
+    grid-template-columns: 1fr;
+  }
+}

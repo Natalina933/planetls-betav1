@@ -314,7 +314,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     let workflowEventTitle = "Reservation mise a jour";
     let workflowEventBody: string | null = null;
 
-    if (action === "acknowledge") {
+    if (action === "acknowledge" || action === "take_over") {
       if (!canManageAsConcierge(role)) {
         return NextResponse.json({ error: "Seule la conciergerie peut accuser reception." }, { status: 403 });
       }
@@ -323,8 +323,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       nextMetadata.last_acknowledged_by = userId;
       changedFields.push("status", "acknowledged_at");
       workflowEventType = "reservation_acknowledged";
-      workflowEventTitle = "Reservation accusee reception";
+      workflowEventTitle = action === "take_over" ? "Séjour pris en charge" : "Reservation accusee reception";
       workflowEventBody = "La conciergerie a confirme la prise en charge du sejour.";
+    } else if (action === "report_unavailable") {
+      if (!canManageAsConcierge(role)) {
+        return NextResponse.json({ error: "Seule la conciergerie peut signaler une indisponibilité." }, { status: 403 });
+      }
+      nextMetadata.concierge_unavailable = true;
+      nextMetadata.concierge_unavailable_at = new Date().toISOString();
+      nextMetadata.concierge_unavailable_by = userId;
+      nextMetadata.concierge_unavailable_reason = cleanString(body.reason) ?? cleanString(patch.reason);
+      changedFields.push("metadata");
+      workflowEventType = "reservation_concierge_unavailable";
+      workflowEventTitle = "Conciergerie indisponible";
+      workflowEventBody = cleanString(nextMetadata.concierge_unavailable_reason) ?? "La conciergerie a signalé une indisponibilité pour ce séjour.";
     } else if (action === "cancel") {
       updatePayload.status = "canceled";
       updatePayload.canceled_at = new Date().toISOString();

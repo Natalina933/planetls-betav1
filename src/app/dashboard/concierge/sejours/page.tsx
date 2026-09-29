@@ -47,6 +47,7 @@ type StayReservationDetail = {
     owner_notes?: string | null;
     concierge_notes?: string | null;
     status?: string | null;
+    metadata?: Record<string, unknown> | null;
     updated_at?: string | null;
   } | null;
   timeline?: ReservationTimelineItem[];
@@ -116,6 +117,10 @@ function formatTimelineDate(value: string | null | undefined) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
+}
+
+function isReservationUnavailable(detail: StayReservationDetail | null) {
+  return detail?.reservation?.metadata?.concierge_unavailable === true;
 }
 
 function ProgressBar({ value }: { value: number }) {
@@ -270,7 +275,7 @@ export default function ConciergeTravelerStaysPage() {
   }, [detailSuccess]);
 
   async function updateReservation(payload: Record<string, unknown>) {
-    if (!selectedStay?.id) return;
+    if (!selectedStay?.id) return null;
     setDetailSaving(true);
     setDetailError(null);
     setDetailSuccess(null);
@@ -284,8 +289,10 @@ export default function ConciergeTravelerStaysPage() {
       if (!response.ok) throw new Error(data?.error || "Impossible de mettre a jour le sejour.");
       setSelectedDetail(data);
       setDetailSuccess("Suivi collaboratif mis a jour.");
+      return data;
     } catch (err) {
       setDetailError(err instanceof Error ? err.message : "Impossible de mettre a jour le sejour.");
+      return null;
     } finally {
       setDetailSaving(false);
     }
@@ -300,9 +307,37 @@ export default function ConciergeTravelerStaysPage() {
     });
   }
 
-  async function handleConciergeAction(action: "acknowledge" | "completed" | "in_stay") {
-    if (action === "acknowledge") {
-      await updateReservation({ action: "acknowledge" });
+  async function handleConciergeAction(action: "take_over" | "report_unavailable" | "completed" | "in_stay") {
+    if (action === "take_over") {
+      const updatedDetail = await updateReservation({ action: "take_over" });
+      if (!updatedDetail || !selectedStay?.id) return;
+
+      setDetailSaving(true);
+      setDetailError(null);
+      try {
+        const response = await fetch(`/api/owner/reservations/${encodeURIComponent(selectedStay.id)}/missions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        });
+        const payload = (await response.json()) as { error?: string };
+        if (!response.ok) throw new Error(payload?.error || "Impossible de créer les missions du séjour.");
+        setDetailSuccess("Séjour pris en charge. Les missions sont à jour.");
+      } catch (err) {
+        setSelectedDetail(updatedDetail);
+        setDetailError(err instanceof Error ? err.message : "Impossible de créer les missions du séjour.");
+      } finally {
+        setDetailSaving(false);
+      }
+      return;
+    }
+
+    if (action === "report_unavailable") {
+      const confirmed = window.confirm("Signaler votre indisponibilité pour ce séjour ?");
+      if (!confirmed) return;
+      const reason = window.prompt("Motif facultatif", "") ?? "";
+      const updatedDetail = await updateReservation({ action: "report_unavailable", reason });
+      if (updatedDetail) setDetailSuccess("Indisponibilité signalée pour ce séjour.");
       return;
     }
 
@@ -334,6 +369,8 @@ export default function ConciergeTravelerStaysPage() {
       })
       .sort((a, b) => new Date(a.checkIn ?? 0).getTime() - new Date(b.checkIn ?? 0).getTime());
   }, [filter, normalizedStays, query]);
+
+  const selectedReservationUnavailable = isReservationUnavailable(selectedDetail);
 
   return (
     <DashboardOperationalPage
@@ -453,7 +490,9 @@ export default function ConciergeTravelerStaysPage() {
           {selectedStay ? (
             <>
               <div className={styles.detailHeader}>
-                <span className={statusClass(selectedStay.status)}>{TRAVELER_STAY_STATUS_LABELS[selectedStay.status]}</span>
+                <span className={statusClass(selectedReservationUnavailable ? "incident_open" : selectedStay.status)}>
+                  {selectedReservationUnavailable ? "Indisponible" : TRAVELER_STAY_STATUS_LABELS[selectedStay.status]}
+                </span>
                 <h2>{selectedStay.primaryTraveler.displayName}</h2>
                 <p>{selectedStay.propertyLabel}</p>
               </div>
@@ -570,9 +609,22 @@ export default function ConciergeTravelerStaysPage() {
                     <button type="button" onClick={() => void handleSaveCollaborativeBrief()} disabled={detailSaving}>
                       {detailSaving ? "Enregistrement..." : "Enregistrer le brief"}
                     </button>
-                    {(selectedDetail?.reservation?.status === "shared" || selectedDetail?.reservation?.status === "draft") ? (
-                      <button type="button" onClick={() => void handleConciergeAction("acknowledge")} disabled={detailSaving}>
-                        Accuser reception
+                    {selectedDetail?.reservation?.status === "acknowledged" ? (
+                      <button type="button" disabled>
+                        Pris en charge
+                      </button>
+                    ) : selectedDetail?.reservation?.status === "shared" || selectedDetail?.reservation?.status === "draft" ? (
+                      <button type="button" onClick={() => void handleConciergeAction("take_over")} disabled={detailSaving}>
+                        Prendre en charge
+                      </button>
+                    ) : null}
+                    {selectedReservationUnavailable ? (
+                      <button type="button" disabled>
+                        Indisponible
+                      </button>
+                    ) : selectedDetail?.reservation?.status !== "completed" && selectedDetail?.reservation?.status !== "canceled" ? (
+                      <button type="button" onClick={() => void handleConciergeAction("report_unavailable")} disabled={detailSaving}>
+                        Signaler une indisponibilité
                       </button>
                     ) : null}
                     {selectedDetail?.reservation?.status !== "in_stay" && selectedDetail?.reservation?.status !== "completed" ? (

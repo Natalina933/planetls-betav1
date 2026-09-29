@@ -1177,6 +1177,7 @@ export default function AdminDashboard() {
     <div className="theme-admin">
       <UnifiedRoleDashboard
         role="admin"
+        className={styles.adminUnified}
         visualVariant="admin-prototype"
         title="Aujourd'hui sur PlanetLS"
         subtitle="Les signaux a traiter, l'activite du reseau et les operations qui demandent votre attention."

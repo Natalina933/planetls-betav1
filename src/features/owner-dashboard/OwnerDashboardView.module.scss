@@ -231,6 +231,16 @@
   margin-top: -18px;
 }
 
+.ownerKpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--ds-space-3);
+}
+
+.ownerKpis + .metrics {
+  display: none;
+}
+
 .metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -242,6 +252,8 @@
   grid-template-columns: 1fr 40px;
   gap: var(--ds-space-1) var(--ds-space-3);
   padding: 20px;
+  border-radius: var(--ds-radius-control);
+  box-shadow: var(--ds-shadow-sm);
 
   >.icon {
     grid-column: 2;
@@ -272,16 +284,23 @@
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--pls-radius-md);
+  width: 38px;
+  height: 38px;
+  border-radius: var(--ds-radius-control);
   background: var(--pls-gold-soft, var(--pls-primary-soft));
   color: var(--pls-gold, var(--pls-primary));
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 .nextArrival,
 .dashboard .nextArrival {
   padding: 0;
+  overflow: hidden;
+  border-left: 4px solid var(--pls-primary);
 }
 
 .nextArrivalBody {
@@ -294,8 +313,10 @@
   display: grid;
   place-items: center;
   min-height: 150px;
-  border-radius: var(--pls-radius-md);
-  background: var(--pls-beige-soft);
+  border-radius: var(--ds-radius-control);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--pls-gold) 18%, transparent), transparent 34%),
+    var(--pls-beige-soft);
   color: var(--pls-primary);
 }
 
@@ -746,6 +767,10 @@
 @media (max-width: 680px) {
   .dashboard {
     gap: 20px;
+  }
+
+  .ownerKpis {
+    grid-template-columns: 1fr;
   }
 
   .hero {

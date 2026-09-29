@@ -22,6 +22,8 @@ export type StayOverviewRow = {
   isPlanned: boolean;
   isUrgent: boolean;
   isUpcoming: boolean;
+  conciergeUnavailable?: boolean;
+  conciergeUnavailableReason?: string;
 };
 
 type Collaboration = {
@@ -78,7 +80,19 @@ function matchesStatus(row: StayOverviewRow, value: string) {
 }
 
 function StayStatus({ row }: { row: StayOverviewRow }) {
+  if (row.conciergeUnavailable) return <Badge variant="danger">Concierge indisponible</Badge>;
   return <Badge variant={row.isUrgent ? "danger" : row.status === "completed" ? "success" : row.isPending ? "warning" : "neutral"}>{row.statusLabel}</Badge>;
+}
+
+function ConciergeUnavailableNotice({ row }: { row: StayOverviewRow }) {
+  if (!row.conciergeUnavailable) return null;
+  return (
+    <div className={styles.unavailableNotice}>
+      <strong>Solution de remplacement nécessaire</strong>
+      <p>La concierge ne peut pas prendre en charge ce séjour.</p>
+      {row.conciergeUnavailableReason ? <small>{row.conciergeUnavailableReason}</small> : null}
+    </div>
+  );
 }
 
 export default function TravelerStaysOverview(props: Props) {
@@ -111,7 +125,7 @@ export default function TravelerStaysOverview(props: Props) {
     { id: "guests", label: "Voyageurs", render: row => `${row.guests} voyageur(s)` },
     { id: "dates", label: "Dates", render: row => <span>{dateLabel(row.arrival)}<br />→ {dateLabel(row.departure)}</span> },
     { id: "concierge", label: "Conciergerie", render: row => row.concierge },
-    { id: "status", label: "Statut", render: row => <StayStatus row={row} /> },
+    { id: "status", label: "Statut", render: row => <><StayStatus row={row} /><ConciergeUnavailableNotice row={row} /></> },
   ];
 
   return <div className={styles.overview}>

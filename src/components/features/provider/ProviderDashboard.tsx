@@ -449,6 +449,7 @@ export default function ProviderDashboardPage() {
     <div className="theme-artisan">
       <UnifiedRoleDashboard
         role="artisan"
+        className={styles.providerUnified}
         title={`${getGreetingLabel()} ${displayName || "artisan"}`}
         subtitle={error || `${ARTISAN_DASHBOARD_CONFIG.subtitle} pour ${displayName}.`}
         experienceBadge={workspace?.summary.is_pro ? "Artisan PRO" : "Artisan Standard"}

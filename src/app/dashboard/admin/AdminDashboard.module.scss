@@ -1120,6 +1120,60 @@
   gap: 0.35rem;
 }
 
+.adminUnified {
+  gap: var(--ds-space-4);
+}
+
+.adminUnified :global([class*="heroCard"]) {
+  border-radius: var(--ds-radius-control);
+  border-left: 4px solid var(--ds-color-primary);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.adminUnified :global([class*="heroTitleWrap"]) h1 {
+  font-size: clamp(1.55rem, 2.2vw, 2.35rem);
+  letter-spacing: 0;
+}
+
+.adminUnified :global([class*="heroActions"]) {
+  grid-template-columns: repeat(3, minmax(0, max-content));
+}
+
+.adminUnified :global([class*="kpiSection"]) {
+  gap: var(--ds-space-3);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.adminUnified :global([class*="dashboardGrid"]) {
+  gap: var(--ds-space-4);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.42fr);
+}
+
+.adminUnified :global([class*="embeddedModule"]) {
+  border-radius: var(--ds-radius-control);
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.adminUnified .panel,
+.adminUnified .metricCard,
+.adminUnified .priorityItem,
+.adminUnified .activityItem,
+.adminUnified .shortcutCard,
+.adminUnified .heroStoryCard {
+  border-radius: var(--ds-radius-card);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+@media (max-width: 1180px) {
+  .adminUnified :global([class*="heroActions"]),
+  .adminUnified :global([class*="kpiSection"]),
+  .adminUnified :global([class*="dashboardGrid"]) {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 1200px) {
   .loadingGrid,
   .metricsGrid {

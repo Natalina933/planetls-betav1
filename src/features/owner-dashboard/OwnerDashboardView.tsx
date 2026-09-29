@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { toHousingPhotoUrl } from "@/app/lib/housingPhotoUrl";
 import Link from "next/link";
-import { ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, CircleCheck, FileText, House, MessageCircle, Plus, Search, Sparkles, Wrench } from "lucide-react";
+import { ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, CircleCheck, Euro, FileText, House, MessageCircle, Plus, Search, Sparkles, Wrench } from "lucide-react";
 import type { useOwnerDashboardData } from "@/app/dashboard/owner/useOwnerDashboardData";
 import { matchesHousingReference } from "@/app/lib/listingReferences";
 import { ownerDashboardContent as copy } from "./ownerDashboardContent";
@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/Badge/Badge";
 import { Input } from "@/components/ui/Input/Input";
 import { Select } from "@/components/ui/Select/Select";
 import { Textarea } from "@/components/ui/Textarea/Textarea";
+import { DashboardMetricCard, DashboardTimelineCard, type DashboardTimelineItem, type DashboardTimelineStatus } from "@/components/ui/dashboard/saas";
 import styles from "./OwnerDashboardView.module.scss";
 
 type Data = ReturnType<typeof useOwnerDashboardData>;
@@ -22,9 +23,46 @@ type Mission = Data["missions"][number];
 const root = "/dashboard/owner";
 const validDate = (value?: string | null) => value && Number.isFinite(Date.parse(value)) ? new Date(value) : null;
 const dateLabel = (value?: string | null) => validDate(value)?.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) ?? copy.unknownDate;
+const moneyLabel = (value: number) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(value);
 const isStay = (mission: Mission) => (mission.metadata?.mission_kind || mission.metadata?.kind) === "traveler_stay";
 const isCanceled = (mission: Mission) => ["canceled", "cancelled", "rejected"].includes(mission.status ?? "");
 const normalize = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("fr");
+const isWithinNextDays = (value: string | null | undefined, start: Date, days: number) => {
+  const date = validDate(value);
+  if (!date) return false;
+  const end = new Date(start);
+  end.setDate(end.getDate() + days);
+  return date >= start && date <= end;
+};
+const isCurrentMonth = (value: string | null | undefined, now: Date) => {
+  const date = validDate(value);
+  return Boolean(date && date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth());
+};
+const isSameLocalDay = (left: Date, right: Date) => left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth() && left.getDate() === right.getDate();
+const dateTimeLabel = (value?: string | null) => {
+  const date = validDate(value);
+  return date?.toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) ?? undefined;
+};
+const shortDateLabel = (value: Date) => value.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+const timeOnlyLabel = (value?: string | null) => validDate(value)?.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) ?? undefined;
+const relativeDateLabel = (value: Date, today: Date) => {
+  if (isSameLocalDay(value, today)) return "Aujourd'hui";
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  if (isSameLocalDay(value, tomorrow)) return "Demain";
+  return "À venir";
+};
+const timelineStatus = (status?: string | null): DashboardTimelineStatus => {
+  if (status === "completed") return "success";
+  if (status === "in_progress" || status === "scheduled" || status === "date_confirmed") return "active";
+  if (status === "cancelled" || status === "canceled" || status === "rejected") return "danger";
+  if (status === "date_requested" || status === "date_proposed" || status === "to_schedule") return "warning";
+  return "pending";
+};
+const isCleaningMission = (mission: Mission) => {
+  const text = `${mission.title ?? ""} ${mission.description ?? ""}`.toLocaleLowerCase("fr");
+  return text.includes("ménage") || text.includes("menage");
+};
 
 function Section({ title, href, label, children, id }: { title: string; href?: string; label?: string; children: ReactNode; id?: string }) {
   return <Card variant="large" className={styles.card} id={id}><CardHeader className={styles.sectionHeader}><h2>{title}</h2>{href && <ButtonLink variant={label === copy.addProperty ? "primary" : "ghost"} className={label === copy.addProperty ? styles.primary : styles.sectionLink} href={href}>{label ?? copy.all}<ArrowUpRight size={15} aria-hidden="true" /></ButtonLink>}</CardHeader><CardBody className={styles.sectionBody}>{children}</CardBody></Card>;
@@ -68,6 +106,10 @@ export default function OwnerDashboardView({ data, userId }: { data: Data; name:
   const interventions = data.missions.filter((mission) => !isStay(mission) && !isCanceled(mission));
   const propertyName = (mission: Mission) => data.properties.find((property) => matchesHousingReference({ propertyId: mission.property_id ?? null, metadata: mission.metadata ?? null }, property.id))?.nom_logement ?? copy.unknownProperty;
   const pendingQuotes = data.quotes.filter((quote) => ["sent", "pending"].includes(quote.status ?? ""));
+  const upcomingMissions = data.missions.filter((mission) => !isCanceled(mission) && isWithinNextDays(mission.scheduled_start, today, 7));
+  const monthlyExpenses = data.invoices
+    .filter((invoice) => invoice.status !== "canceled" && isCurrentMonth(invoice.created_at || invoice.due_date || invoice.updated_at, today))
+    .reduce((total, invoice) => total + (invoice.total_amount ?? invoice.balance_amount ?? 0), 0);
   const nextArrival = arrivals[0] ?? null;
   const nextArrivalNights = nextArrival ? (() => {
     const start = validDate(nextArrival.scheduled_start);
@@ -84,9 +126,77 @@ export default function OwnerDashboardView({ data, userId }: { data: Data; name:
   const documents = [...data.latestQuotes.map((quote) => ({ id: `quote-${quote.id}`, title: quote.quote_number || copy.estimate, type: copy.estimate, href: `${root}/devis` })), ...data.latestInvoices.map((invoice) => ({ id: `invoice-${invoice.id}`, title: invoice.invoice_number || copy.invoice, type: copy.invoice, href: `${root}/factures` }))];
   const searchItems = [...data.properties.map((property) => ({ id: `housing-${property.id}`, title: property.nom_logement || copy.unknownProperty, detail: property.ville || "", href: `${root}/logements/${property.id}` })), ...arrivals.map((stay) => ({ id: stay.id, title: stay.title || copy.upcoming, detail: propertyName(stay), href: `${root}/missions/${stay.id}` })), ...documents.map((document) => ({ ...document, detail: document.type }))];
   const results = query.trim() ? searchItems.filter((item) => normalize(`${item.title} ${item.detail}`).includes(normalize(query.trim()))) : [];
+  const ownerKpis = [
+    { label: "Missions à venir", value: String(upcomingMissions.length), icon: CalendarDays, hint: "7 prochains jours", statusTone: "info" as const },
+    { label: "Demandes en attente", value: String(data.requestsCount), icon: CircleCheck, hint: "À suivre", statusTone: "success" as const },
+    { label: "Devis à décider", value: String(pendingQuotes.length), icon: FileText, hint: "Action requise", statusTone: "warning" as const },
+    { label: "Dépenses du mois", value: moneyLabel(monthlyExpenses), icon: Euro, hint: "Prestations du mois", statusTone: "primary" as const },
+  ];
+  const nextStepItems = data.missions.flatMap((mission): (DashboardTimelineItem & { sortDate: number })[] => {
+    if (isCanceled(mission)) return [];
+    const timelineProperty = data.properties.find((property) => matchesHousingReference({ propertyId: mission.property_id ?? null, metadata: mission.metadata ?? null }, property.id));
+    const timelinePropertyName = timelineProperty?.nom_logement ?? "Logement";
+    const timelineImageUrl = timelineProperty?.photo_principale ? toHousingPhotoUrl(timelineProperty.photo_principale, timelineProperty.id) : undefined;
+    const statusLabel = copy.statuses[mission.status ?? ""] ?? undefined;
+    const meta = mission.concierge_name ? `Intervenant : ${mission.concierge_name}` : undefined;
+    const items: (DashboardTimelineItem & { sortDate: number })[] = [];
+    const start = validDate(mission.scheduled_start);
+    if (start && isSameLocalDay(start, today)) {
+      items.push({
+        id: `${mission.id}-start`,
+        time: dateTimeLabel(mission.scheduled_start),
+        title: isStay(mission) ? "Arrivée" : isCleaningMission(mission) ? "Ménage" : mission.title || "Intervention",
+        ...(isStay(mission) ? { title: "Check-in" } : isCleaningMission(mission) ? { title: "Ménage" } : {}),
+        description: timelineProperty,
+        meta,
+        status: isStay(mission) ? "active" : isCleaningMission(mission) ? "success" : timelineStatus(mission.status),
+        statusLabel,
+        ...{
+          dateLabel: relativeDateLabel(start, today),
+          date: shortDateLabel(start),
+          time: timeOnlyLabel(mission.scheduled_start),
+          imageUrl: timelineImageUrl,
+          title: timelinePropertyName,
+          description: isStay(mission) ? "Arrivée" : isCleaningMission(mission) ? "Ménage" : mission.title || "Intervention",
+          meta: [isStay(mission) ? "Check-in" : null, timeOnlyLabel(mission.scheduled_start), meta].filter(Boolean).join(" · ") || undefined,
+        },
+        sortDate: start.getTime(),
+      });
+    }
+    const end = validDate(mission.scheduled_end);
+    if (isStay(mission) && end && isSameLocalDay(end, today)) {
+      items.push({
+        id: `${mission.id}-end`,
+        time: dateTimeLabel(mission.scheduled_end),
+        title: "Départ",
+        ...{ title: "Check-out" },
+        description: timelineProperty,
+        meta,
+        status: "warning",
+        statusLabel,
+        ...{
+          dateLabel: relativeDateLabel(end, today),
+          date: shortDateLabel(end),
+          time: timeOnlyLabel(mission.scheduled_end),
+          imageUrl: timelineImageUrl,
+          title: timelinePropertyName,
+          description: "Départ",
+          meta: ["Check-out", timeOnlyLabel(mission.scheduled_end), meta].filter(Boolean).join(" · ") || undefined,
+        },
+        sortDate: end.getTime(),
+      });
+    }
+    return items;
+  }).sort((a, b) => a.sortDate - b.sortDate).slice(0, 4).map(({ sortDate: _sortDate, ...item }) => item);
+  const emptyTomorrow = new Date(today);
+  emptyTomorrow.setDate(emptyTomorrow.getDate() + 1);
+  const displayedNextStepItems = nextStepItems.length ? nextStepItems : [
+    { id: "empty-departure", dateLabel: "Aujourd'hui", date: shortDateLabel(today), time: "10:00", title: "Logement", description: "Départ", meta: "Aucun séjour planifié", status: "pending" as const, statusLabel: "À venir" },
+    { id: "empty-arrival", dateLabel: "Demain", date: shortDateLabel(emptyTomorrow), time: "16:00", title: "Logement", description: "Arrivée", meta: "Aucun séjour planifié", status: "pending" as const, statusLabel: "À venir" },
+    { id: "empty-intervention", dateLabel: "À venir", date: "—", time: "—", title: "Logement", description: "Intervention", meta: "Aucune intervention planifiée", status: "warning" as const, statusLabel: "À confirmer" },
+  ];
   return <div className={styles.dashboard} data-owner-dashboard="">
-    <div className={styles.search}><Search size={20} aria-hidden="true" /><label className={styles.srOnly} htmlFor="owner-search">{copy.searchLabel}</label><Input bare id="owner-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={copy.search} aria-describedby="owner-search-scope" /></div><p id="owner-search-scope" className={styles.muted}>{copy.searchScope}</p>
-    {query.trim() && <div className={styles.card} aria-live="polite">{results.length ? results.map((item) => <Link className={styles.row} href={item.href} key={item.id}><strong>{item.title}</strong><span>{item.detail}</span><ArrowUpRight size={16} /></Link>) : copy.noResults}</div>}
+    <div className={styles.ownerKpis}>{ownerKpis.map(({ label, value, icon: Icon, hint, statusTone }) => <DashboardMetricCard key={label} label={label} value={value} detail={hint} icon={<Icon size={20} aria-hidden="true" />} statusTone={statusTone} showLabel />)}</div>
     <div className={styles.metrics}>{[
       { label: copy.upcoming, value: arrivals.length, icon: CalendarDays, hint: copy.recentData },
       { label: copy.actions, value: actions.reduce((total, action) => total + action.count, 0), icon: CircleCheck, hint: copy.recentData },
@@ -109,8 +219,10 @@ export default function OwnerDashboardView({ data, userId }: { data: Data; name:
         </div>
       </CardBody>
     </Card> : null}
+    <div className={styles.search}><Search size={20} aria-hidden="true" /><label className={styles.srOnly} htmlFor="owner-search">{copy.searchLabel}</label><Input bare id="owner-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={copy.search} aria-describedby="owner-search-scope" /></div><p id="owner-search-scope" className={styles.muted}>{copy.searchScope}</p>
+    {query.trim() && <div className={styles.card} aria-live="polite">{results.length ? results.map((item) => <Link className={styles.row} href={item.href} key={item.id}><strong>{item.title}</strong><span>{item.detail}</span><ArrowUpRight size={16} /></Link>) : copy.noResults}</div>}
     <div className={styles.twoColumns}>
-      <Section title={copy.arrivals} href={`${root}/planning`} label={copy.calendarLink}>{arrivals.length ? arrivals.slice(0, 3).map((stay) => <Link className={styles.row} key={stay.id} href={`${root}/missions/${stay.id}`}><span className={styles.icon}><CalendarDays size={20} /></span><div><strong>{stay.title || copy.upcoming}</strong><span>{propertyName(stay)}</span><small>{dateLabel(stay.scheduled_start)} → {dateLabel(stay.scheduled_end)}</small></div><ArrowUpRight size={17} /></Link>) : <p className={styles.empty}>{copy.noArrivals}</p>}</Section>
+      <DashboardTimelineCard title="Prochaines étapes" actionLabel="Voir le calendrier" onAction={() => { window.location.href = `${root}/planning`; }} items={displayedNextStepItems} />
       <Section title={copy.actions}>{actions.length ? actions.map((action) => <Link className={styles.row} key={action.label} href={action.href}><CircleCheck size={19} aria-hidden="true" /><strong>{action.label}</strong><Badge className={styles.badge}>{action.count}</Badge><ChevronRight size={16} /></Link>) : <p className={styles.empty}>{copy.noActions}</p>}</Section>
     </div>
     <Section title={copy.properties} href={`${root}/logements/create`} label={copy.addProperty}><div className={styles.propertyGrid}>{data.properties.slice(0, 3).map((property) => <Card className={styles.property} key={property.id}><div className={styles.propertyImage}>{property.photo_principale ? <Image src={toHousingPhotoUrl(property.photo_principale, property.id)} unoptimized alt={property.nom_logement || copy.unknownProperty} fill sizes="(max-width: 700px) 100vw, 33vw" /> : <House size={52} aria-hidden="true" />}<Badge className={styles.badge} data-tone={["active", "published"].includes(property.statut ?? "") ? "success" : "warning"}>{["active", "published"].includes(property.statut ?? "") ? copy.online : copy.draft}</Badge></div><div className={styles.propertyBody}><h3>{property.nom_logement || copy.unknownProperty}</h3><p>{property.ville || copy.unknownProperty}</p><p className={styles.muted}>{[property.infos?.property_type, typeof property.infos?.guest_capacity === "number" ? copy.guests(property.infos.guest_capacity) : null].filter(Boolean).join(" · ")}</p><p className={styles.muted}>{[typeof property.infos?.bedroom_count === "number" ? copy.bedrooms(property.infos.bedroom_count) : null, typeof property.infos?.bathroom_count === "number" ? copy.bathrooms(property.infos.bathroom_count) : null, typeof property.infos?.surface_sqm === "number" ? copy.area(property.infos.surface_sqm) : null].filter(Boolean).join(" · ")}</p><p className={styles.muted}>{property.infos?.equipements?.slice(0, 3).join(" · ")}</p><div className={styles.propertyActions}><Link href={`${root}/logements/${property.id}`}>{copy.details}<ArrowUpRight size={15} /></Link><Link href={`${root}/logements/${property.id}`}>{copy.edit}</Link></div></div></Card>)}</div>{!data.properties.length && <div className={styles.empty}><House size={35} /><p>{copy.noProperties}</p><ButtonLink className={styles.primary} href={`${root}/logements/create`}><Plus size={17} />{copy.addProperty}</ButtonLink></div>}<ButtonLink variant="ghost" className={styles.sectionLink} href={`${root}/logements`}>{copy.allPropertiesLink}<ArrowUpRight size={15} aria-hidden="true" /></ButtonLink></Section>
