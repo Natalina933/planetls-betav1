@@ -1250,6 +1250,10 @@ body.dark {
     box-shadow: 0 8px 24px rgb(35 57 46 / 0.06);
   }
 
+  .headerBandeau:has(.conciergeWeather[data-weather-expanded]) {
+    height: clamp(225px, 21vw, 275px);
+  }
+
   .headerBandeau > img {
     width: 100%;
     height: 100%;
@@ -1375,12 +1379,18 @@ body.dark {
   }
 
   .conciergeWeather {
+    position: relative;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
     width: clamp(220px, 20vw, 255px);
     min-width: 220px;
     max-width: 255px;
+    transform: none;
 
-    padding: 13px 16px 14px;
-    gap: 0;
+    padding: 12px 16px;
+    gap: 2px 12px;
 
     border: 1px solid rgb(255 255 255 / 0.76);
     border-radius: 14px;
@@ -1401,6 +1411,8 @@ body.dark {
 
   .conciergeWeather strong {
     display: block;
+    grid-column: 1;
+    grid-row: 1;
 
     color: #28483a;
 
@@ -1414,6 +1426,8 @@ body.dark {
 
   .conciergeWeatherDate {
     display: block;
+    grid-column: 1;
+    grid-row: 2;
     margin-top: 2px;
 
     color: #68766e;
@@ -1424,30 +1438,22 @@ body.dark {
   }
 
   .conciergeWeatherDivider {
-    width: 100%;
-    height: 1px;
-    margin: 9px 0 10px;
-    border: 0;
-
-    background: linear-gradient(
-      90deg,
-      rgb(184 134 45 / 0.12),
-      rgb(184 134 45 / 0.62),
-      rgb(184 134 45 / 0.12)
-    );
+    display: none;
   }
 
   .conciergeWeather b {
     display: flex;
     align-items: center;
-    gap: 9px;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    gap: 7px;
     margin: 0;
 
     color: #b8862d;
 
     svg {
-      width: 29px;
-      height: 29px;
+      width: 24px;
+      height: 24px;
       flex: 0 0 auto;
       color: #b8862d;
       stroke-width: 1.5;
@@ -1458,16 +1464,22 @@ body.dark {
     color: #28483a;
 
     font-family: var(--ds-font-heading);
-    font-size: 28px;
+    font-size: 22px;
     font-weight: 650;
     font-style: normal;
     line-height: 1;
   }
 
   .conciergeWeather small {
-    display: grid;
+    position: relative;
+    display: block;
+    grid-column: 1 / -1;
     gap: 2px;
     margin-top: 7px;
+    padding-top: 7px;
+    padding-right: 32px;
+
+    border-top: 1px solid rgb(184 134 45 / 0.18);
 
     color: #28483a;
 
@@ -1477,19 +1489,44 @@ body.dark {
   }
 
   .conciergeWeatherExample {
+    display: block;
+
     color: #68766e;
 
     font-size: 11px;
     font-weight: 500;
   }
 
+  .conciergeWeatherToggle {
+    position: absolute;
+    top: 7px;
+    right: 0;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 24px;
+    height: 20px;
+    margin-top: 0;
+    padding: 0;
+
+    border: 0;
+    border-radius: 999px;
+    background: rgb(184 134 45 / 0.12);
+    color: #8f6925;
+    cursor: pointer;
+
+    svg {
+      transition: transform 160ms ease;
+    }
+  }
+
   .conciergeWeatherDetails {
-    display: block;
+    display: none;
 
     margin-top: 5px;
     padding-top: 6px;
-
-    border-top: 1px solid rgb(184 134 45 / 0.18);
 
     color: #68766e;
 
@@ -1497,6 +1534,20 @@ body.dark {
     font-weight: 500;
     line-height: 1.4;
     white-space: normal;
+  }
+
+  .conciergeWeatherToggle[aria-expanded="true"] + .conciergeWeatherDetails {
+    display: block;
+  }
+
+  .conciergeWeather[data-weather-expanded] {
+    .conciergeWeatherToggle svg {
+      transform: rotate(180deg);
+    }
+
+    .conciergeWeatherDetails {
+      display: block;
+    }
   }
 }
 
@@ -1527,6 +1578,7 @@ body.dark {
     .conciergeWeather {
       width: 215px;
       min-width: 215px;
+      transform: none;
     }
   }
 }

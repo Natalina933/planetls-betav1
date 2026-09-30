@@ -5,6 +5,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
+  ChevronDown,
   Cloud,
   CloudDrizzle,
   CloudFog,
@@ -102,6 +103,7 @@ export default function DashboardLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [sidebarBreakpoint, setSidebarBreakpoint] = useState(0);
   const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [weatherDetailsOpen, setWeatherDetailsOpen] = useState(false);
 
   const { user, isAuthenticated } = useCurrentUser();
 
@@ -283,16 +285,15 @@ export default function DashboardLayout({
         });
 
         if (!response.ok) {
-          if (response.status === 422 || response.status === 404) {
-            if (!cancelled) {
-              setWeather(null);
-            }
-            return;
+          console.warn(
+            `[dashboard] Weather unavailable: ${response.status}`,
+          );
+
+          if (!cancelled) {
+            setWeather(null);
           }
 
-          throw new Error(
-            `Weather request failed: ${response.status}`,
-          );
+          return;
         }
 
         const data = (await response.json()) as WeatherData;
@@ -424,16 +425,6 @@ export default function DashboardLayout({
               <div className="headerHero conciergeHeaderHero">
                 <div className="headerIdentity">
                   <div className="headerCopy">
-                    <span className="headerEyebrow">
-                      {isConciergePage
-                        ? "Espace conciergerie"
-                        : isOwnerPage
-                          ? "Espace propriétaire"
-                          : isAdminPage
-                            ? "Espace administrateur"
-                            : "Espace artisan"}
-                    </span>
-
                     <h1>
                       {isConciergePage
                         ? `Bonjour ${
@@ -463,6 +454,7 @@ export default function DashboardLayout({
                 <div className="headerActionRow conciergeHeaderAside">
                   <div
                     className="conciergeWeather"
+                    data-weather-expanded={weatherDetailsOpen ? "" : undefined}
                     aria-label={
                       weather
                         ? `Météo à ${weather.location.city} : ${weather.current.condition.label}`
@@ -517,6 +509,28 @@ export default function DashboardLayout({
                             {weather.current.condition.label}
                           </span>
 
+                          <button
+                            type="button"
+                            className="conciergeWeatherToggle"
+                            aria-expanded={weatherDetailsOpen}
+                            aria-label={
+                              weatherDetailsOpen
+                                ? "Masquer le ressenti meteo"
+                                : "Afficher le ressenti meteo"
+                            }
+                            title={
+                              weatherDetailsOpen
+                                ? "Masquer le ressenti"
+                                : "Afficher le ressenti"
+                            }
+                            onClick={() =>
+                              setWeatherDetailsOpen((open) => !open)
+                            }
+                          >
+                            <ChevronDown aria-hidden="true" size={16} />
+                          </button>
+
+                          {weatherDetailsOpen ? (
                           <span className="conciergeWeatherDetails">
                             Ressenti{" "}
                             {Math.round(
@@ -532,6 +546,7 @@ export default function DashboardLayout({
                             )}{" "}
                             km/h
                           </span>
+                          ) : null}
                         </>
                       ) : null}
                     </small>
