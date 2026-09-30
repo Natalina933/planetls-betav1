@@ -101,6 +101,33 @@ type ConfigurationStatus = {
   onResume: () => void;
 };
 
+const configurationSteps = [
+  { key: "project", label: "Projet" },
+  { key: "housing", label: "Logement" },
+  { key: "organization", label: "Organisation" },
+] as const;
+
+function getConfigurationCopy(completed: number) {
+  if (completed === 0) {
+    return {
+      title: "Finalisez votre espace",
+      actionLabel: "Configurer mes préférences",
+    };
+  }
+
+  if (completed >= 3) {
+    return {
+      title: "Votre espace est configuré",
+      actionLabel: "Voir mes préférences",
+    };
+  }
+
+  return {
+    title: "Finalisez votre espace",
+    actionLabel: "Continuer",
+  };
+}
+
 export default function OwnerDashboardView({
   data,
   userId,
@@ -193,28 +220,34 @@ export default function OwnerDashboardView({
     { id: "empty-arrival", dateLabel: "Demain", date: shortDateLabel(emptyTomorrow), time: "16:00", title: "Logement", description: "Arrivée", meta: "Aucun séjour planifié", status: "pending" as const, statusLabel: "À venir" },
     { id: "empty-intervention", dateLabel: "À venir", date: "—", time: "—", title: "Logement", description: "Intervention", meta: "Aucune intervention planifiée", status: "warning" as const, statusLabel: "À confirmer" },
   ];
+  const configurationTotal = configurationStatus?.total ?? configurationSteps.length;
+  const configurationCompleted = Math.max(0, Math.min(configurationStatus?.completed ?? 0, configurationTotal));
+  const configurationCopy = getConfigurationCopy(configurationCompleted);
+  const configurationCountLabel = `${configurationCompleted} sur ${configurationTotal} complété${configurationCompleted > 1 ? "s" : ""}`;
   return <div className={styles.dashboard} data-owner-dashboard="">
     {configurationStatus ? <section className={styles.configurationCard} aria-label="Configuration de votre espace">
-      <span className={styles.configurationIcon}>
-        <Check size={20} aria-hidden="true" />
-      </span>
-      <div>
+      <div className={styles.configurationHeading}>
         <span className={styles.eyebrow}>CONFIGURATION</span>
-        <h2>{configurationStatus.isComplete ? "Configuration terminée" : "Finalisez votre espace"}</h2>
-        <p>
-          {configurationStatus.isComplete
-            ? "Votre espace propriétaire contient les préférences essentielles pour guider vos prochaines demandes."
-            : "Complétez les dernières informations pour adapter votre espace propriétaire à votre façon de travailler."}
-        </p>
-        <strong>
-          {configurationStatus.completed} étape{configurationStatus.completed > 1 ? "s" : ""} sur {configurationStatus.total} complétée{configurationStatus.completed > 1 ? "s" : ""}
-        </strong>
+        <h2>{configurationCopy.title}</h2>
       </div>
-      {configurationStatus.isComplete ? (
-        <ButtonLink className={styles.primary} href="/dashboard/owner/objectifs">Voir mes préférences</ButtonLink>
-      ) : (
-        <Button className={styles.primary} onClick={configurationStatus.onResume}>Terminer ma configuration</Button>
-      )}
+      <div className={styles.configurationFlow}>
+        <ol className={styles.configurationProgress} aria-label={configurationCountLabel}>
+          {configurationSteps.map((step, index) => {
+            const isDone = index < configurationCompleted;
+            const isCurrent = !isDone && index === configurationCompleted && configurationCompleted < configurationSteps.length;
+            return (
+              <li key={step.key} className={isDone ? styles.configurationStepDone : isCurrent ? styles.configurationStepCurrent : undefined}>
+                <span className={styles.configurationBubble}>{isDone ? <Check size={14} strokeWidth={3} aria-hidden="true" /> : null}</span>
+                <span>{step.label}</span>
+              </li>
+            );
+          })}
+        </ol>
+        <div className={styles.configurationFooter}>
+          <strong>{configurationCountLabel}</strong>
+          <ButtonLink className={styles.configurationAction} href="/dashboard/owner/objectifs">{configurationCopy.actionLabel}</ButtonLink>
+        </div>
+      </div>
     </section> : null}
     <div className={styles.ownerKpis}>{ownerKpis.map(({ label, value, icon: Icon, hint, statusTone }) => <DashboardMetricCard key={label} label={label} value={value} detail={hint} icon={<Icon size={20} aria-hidden="true" />} statusTone={statusTone} showLabel />)}</div>
     <div className={styles.metrics}>{[

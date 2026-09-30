@@ -10,6 +10,7 @@
 @use "abstracts/functions";
 @use "abstracts/mixins";
 @use "abstracts/dashboards";
+@use "abstracts/dashboard-theme";
 
 // 2. Thèmes : Variables CSS pour chaque thème
 // Doit être APRÈS abstracts mais AVANT base

@@ -1,0 +1,152 @@
+/* Theme visuel du dashboard, scope pour eviter les effets de bord globaux. */
+
+.dashboard-root {
+  --thm-color-bg: #fdfbf7;
+  --thm-color-bg-soft: #f8f4ec;
+  --thm-color-cream: #f3ecdd;
+  --thm-color-surface: #ffffff;
+  --thm-color-surface-tinted: #fffdf8;
+  --thm-color-text: #1e293b;
+  --thm-color-text-secondary: #475569;
+  --thm-color-text-muted: #64748b;
+  --thm-color-forest: #2f6b4f;
+  --thm-color-forest-hover: #255640;
+  --thm-color-forest-soft: #e7f0ea;
+  --thm-color-terracotta: #bf6a4a;
+  --thm-color-terracotta-hover: #a5573b;
+  --thm-color-terracotta-soft: #f8ebe5;
+  --thm-color-border: #e7e0d3;
+  --thm-color-border-strong: #d6cdba;
+  --thm-font-heading: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --thm-font-body: Inter, "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+  --thm-text-xs: 0.75rem;
+  --thm-text-sm: 0.875rem;
+  --thm-text-base: 1rem;
+  --thm-text-lg: 1.125rem;
+  --thm-text-xl: 1.25rem;
+  --thm-text-2xl: 1.5rem;
+  --thm-text-3xl: 1.875rem;
+  --thm-weight-regular: 400;
+  --thm-weight-medium: 500;
+  --thm-weight-semibold: 600;
+  --thm-weight-bold: 700;
+  --thm-leading-tight: 1.2;
+  --thm-leading-snug: 1.35;
+  --thm-leading-body: 1.6;
+  --thm-shadow-xs: 0 1px 2px rgba(30, 41, 59, 0.04);
+  --thm-shadow-sm: 0 1px 3px rgba(30, 41, 59, 0.06), 0 1px 2px rgba(30, 41, 59, 0.04);
+  --thm-shadow-md: 0 4px 12px rgba(30, 41, 59, 0.08), 0 2px 4px rgba(30, 41, 59, 0.04);
+  --thm-shadow-lg: 0 10px 24px rgba(30, 41, 59, 0.1), 0 4px 8px rgba(30, 41, 59, 0.05);
+  --thm-shadow-focus: 0 0 0 3px rgba(47, 107, 79, 0.25);
+  --thm-radius-sm: 8px;
+  --thm-radius-md: 12px;
+  --thm-radius-lg: 16px;
+  --thm-radius-pill: 999px;
+  --thm-space-2: 0.5rem;
+  --thm-space-3: 0.75rem;
+  --thm-space-4: 1rem;
+  --thm-space-5: 1.5rem;
+  --thm-transition-duration: 180ms;
+  --thm-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+  --thm-transition: var(--thm-transition-duration) var(--thm-transition-timing);
+}
+
+.dashboard-root .card {
+  box-sizing: border-box;
+  padding: var(--thm-space-5);
+  background-color: var(--thm-color-surface);
+  border: 1px solid var(--thm-color-border);
+  border-radius: var(--thm-radius-lg);
+  box-shadow: var(--thm-shadow-sm);
+  color: var(--thm-color-text);
+  transition:
+    box-shadow var(--thm-transition),
+    border-color var(--thm-transition),
+    transform var(--thm-transition);
+}
+
+.dashboard-root .card:hover {
+  border-color: var(--thm-color-border-strong);
+  box-shadow: var(--thm-shadow-md);
+  transform: translateY(-2px);
+}
+
+.dashboard-root .card:focus-visible {
+  outline: none;
+  box-shadow: var(--thm-shadow-md), var(--thm-shadow-focus);
+}
+
+.dashboard-root .header-search input {
+  box-sizing: border-box;
+  padding: var(--thm-space-3) var(--thm-space-4);
+  font-family: var(--thm-font-body);
+  font-size: var(--thm-text-sm);
+  line-height: var(--thm-leading-snug);
+  color: var(--thm-color-text);
+  background-color: var(--thm-color-bg);
+  border: 1px solid var(--thm-color-border);
+  border-radius: var(--thm-radius-pill);
+  box-shadow: var(--thm-shadow-xs);
+  transition:
+    background-color var(--thm-transition),
+    border-color var(--thm-transition),
+    box-shadow var(--thm-transition);
+}
+
+.dashboard-root .header-search input::placeholder {
+  color: var(--thm-color-text-muted);
+  opacity: 1;
+}
+
+.dashboard-root .header-search input:focus {
+  outline: none;
+  background-color: var(--thm-color-surface);
+  border-color: var(--thm-color-forest);
+  box-shadow: var(--thm-shadow-focus);
+}
+
+.dashboard-root .header-search input:focus-visible {
+  outline: 2px solid var(--thm-color-forest);
+  outline-offset: 2px;
+}
+
+.dashboard-root :where(h1, h2) {
+  font-family: var(--thm-font-heading);
+  color: var(--thm-color-text);
+}
+
+.dashboard-root h1 {
+  font-size: var(--thm-text-3xl);
+  font-weight: var(--thm-weight-bold);
+  line-height: var(--thm-leading-tight);
+}
+
+.dashboard-root h2 {
+  font-size: var(--thm-text-xl);
+  font-weight: var(--thm-weight-semibold);
+  line-height: var(--thm-leading-snug);
+}
+
+.dashboard-root p {
+  font-family: var(--thm-font-body);
+  font-size: var(--thm-text-base);
+  font-weight: var(--thm-weight-regular);
+  line-height: var(--thm-leading-body);
+  color: var(--thm-color-text-secondary);
+}
+
+.dashboard-root strong {
+  font-weight: var(--thm-weight-semibold);
+  color: var(--thm-color-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-root .card,
+  .dashboard-root .header-search input {
+    transition: none;
+  }
+
+  .dashboard-root .card:hover {
+    transform: none;
+  }
+}

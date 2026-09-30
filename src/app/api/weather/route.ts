@@ -42,6 +42,13 @@ export async function GET(req: NextRequest) {
     profile.location?.trim() ||
     profile.service_area?.trim();
 
+  console.info("[weather] city", {
+    city: profile.city ?? null,
+    location: profile.location ?? null,
+    service_area: profile.service_area ?? null,
+    selected: city || null,
+  });
+
   if (!city) {
     return NextResponse.json(
       { error: "Profile city not configured" },
@@ -49,11 +56,19 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  let weatherStage: "geocoding" | "provider" = "geocoding";
+
   try {
     // 1. Transformer la ville en coordonnées GPS
+    console.info("[weather] geocoding_start", { query: city });
     const location = await geocodeLocation(city);
 
     if (!location) {
+      console.warn("[weather] geocoding_failed", {
+        query: city,
+        reason: "not_found",
+      });
+
       return NextResponse.json(
         { error: "City not found" },
         { status: 404 },
@@ -61,17 +76,42 @@ export async function GET(req: NextRequest) {
     }
 
     // 2. Récupérer la météo avec les coordonnées
+    console.info("[weather] geocoding_success", {
+      query: city,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      displayName: location.displayName,
+    });
+
+    console.info("[weather] provider_start", {
+      latitude: location.latitude,
+      longitude: location.longitude,
+    });
+
+    weatherStage = "provider";
+
     const weather = await fetchWeather(
       location.latitude,
       location.longitude,
     );
 
     if (!weather) {
+      console.warn("[weather] provider_failed", {
+        latitude: location.latitude,
+        longitude: location.longitude,
+        reason: "missing_current_weather",
+      });
+
       return NextResponse.json(
         { error: "Weather data unavailable" },
         { status: 502 },
       );
     }
+
+    console.info("[weather] provider_success", {
+      temperature: weather.temperature,
+      weatherCode: weather.weatherCode,
+    });
 
     // 3. Retourner la localisation + la météo
     return NextResponse.json(
@@ -87,6 +127,12 @@ export async function GET(req: NextRequest) {
       { status: 200 },
     );
   } catch (error) {
+    console.error(
+      weatherStage === "geocoding"
+        ? "[weather] geocoding_failed"
+        : "[weather] provider_failed",
+      error,
+    );
     console.error("[weather] Weather request error:", error);
 
     return NextResponse.json(
