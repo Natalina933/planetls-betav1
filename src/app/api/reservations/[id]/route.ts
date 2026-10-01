@@ -9,6 +9,14 @@ import {
   type PropertyMini,
   type ReservationRow,
 } from "@/app/api/_shared/reservations";
+import {
+  buildReservationScheduleChangeSet,
+  identifyImpactedStayMissions,
+  type ImpactedStayMission,
+  type LinkedStayMissionLike,
+  type ReservationScheduleChange,
+  type StayMissionStep,
+} from "@/app/api/_shared/reservationScheduleChanges";
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { createOrReuseStayMissions, type StayMissionAssignmentRow } from "@/app/api/_shared/stayMissionAssignments";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
@@ -314,6 +322,70 @@ async function cancelLinkedReservationMissions(input: {
   };
 }
 
+async function loadScheduleImpactedMissions(reservationId: string, impactedSteps: StayMissionStep[]) {
+  if (impactedSteps.length === 0) return [] as ImpactedStayMission[];
+
+  const loadLinkedMissions = async (useReservationLink: boolean) =>
+    dbAny
+      .from("missions")
+      .select(
+        useReservationLink
+          ? "id,reservation_id,title,status,scheduled_start,scheduled_end,metadata"
+          : "id,title,status,scheduled_start,scheduled_end,metadata",
+      )
+      .or(
+        useReservationLink
+          ? `reservation_id.eq.${reservationId},metadata->>reservation_id.eq.${reservationId},metadata->>reservation_workflow_id.eq.${reservationId}`
+          : `metadata->>reservation_id.eq.${reservationId},metadata->>reservation_workflow_id.eq.${reservationId}`,
+      );
+
+  const firstAttempt = await loadLinkedMissions(true);
+  const message = `${firstAttempt.error?.message ?? ""} ${firstAttempt.error?.details ?? ""}`.toLowerCase();
+  const missionResult =
+    (firstAttempt.error?.code === "PGRST204" || firstAttempt.error?.code === "42703" || message.includes("reservation_id"))
+      ? await loadLinkedMissions(false)
+      : firstAttempt;
+
+  if (missionResult.error) {
+    console.error("[PATCH /api/reservations/[id]] impacted missions lookup error:", missionResult.error);
+    return [] as ImpactedStayMission[];
+  }
+
+  return identifyImpactedStayMissions((missionResult.data ?? []) as LinkedStayMissionLike[], impactedSteps);
+}
+
+function scheduleFieldLabel(field: string) {
+  if (field === "check_in_at") return "Arrivee";
+  if (field === "check_out_at") return "Depart";
+  if (field === "arrival_time_window") return "Fenetre arrivee";
+  if (field === "departure_time_window") return "Fenetre depart";
+  return field;
+}
+
+function scheduleValueLabel(value: string | null) {
+  if (!value) return "non renseigne";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function scheduleChangeBody(changes: ReservationScheduleChange[], impactedMissions: ImpactedStayMission[]) {
+  const summary = changes
+    .map((change) => `${scheduleFieldLabel(change.field)} : ${scheduleValueLabel(change.previous)} -> ${scheduleValueLabel(change.next)}`)
+    .join(" | ");
+  const impacted =
+    impactedMissions.length > 0
+      ? `${impactedMissions.length} mission(s) peuvent necessiter une verification par la conciergerie.`
+      : "Aucune mission existante n'a ete identifiee comme potentiellement impactee.";
+  return `${summary}. ${impacted}`;
+}
+
 async function loadReservationContext(id: string) {
   const loadLinkedMissions = async (useReservationLink: boolean) => {
     return dbAny
@@ -461,6 +533,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     let workflowEventBody: string | null = null;
     let takeOverMissions: StayMissionAssignmentRow[] | null = null;
     let cancellationPropagation: Awaited<ReturnType<typeof cancelLinkedReservationMissions>> | null = null;
+    let scheduleChanges: ReservationScheduleChange[] = [];
+    let impactedMissions: ImpactedStayMission[] = [];
 
     if (action === "acknowledge" || action === "take_over") {
       if (!canManageAsConcierge(role)) {
@@ -518,6 +592,26 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       workflowEventTitle = "Reservation annulee";
       workflowEventBody = cleanString(nextMetadata.cancel_reason) ?? "Le sejour partage a ete annule.";
     } else {
+      const scheduleChangeSet = buildReservationScheduleChangeSet(reservation, patch);
+      if (!scheduleChangeSet.ok) {
+        return NextResponse.json({ error: scheduleChangeSet.error }, { status: 400 });
+      }
+      if (scheduleChangeSet.changedFields.length > 0) {
+        Object.assign(updatePayload, scheduleChangeSet.updatePayload);
+        changedFields.push(...scheduleChangeSet.changedFields);
+        scheduleChanges = scheduleChangeSet.changes;
+        impactedMissions = await loadScheduleImpactedMissions(reservationId, scheduleChangeSet.impactedSteps);
+        workflowEventType = "reservation_schedule_updated";
+        workflowEventTitle =
+          scheduleChanges.some((change) => change.scope === "arrival") &&
+          scheduleChanges.some((change) => change.scope === "departure")
+            ? "Arrivee et depart modifies"
+            : scheduleChanges.some((change) => change.scope === "arrival")
+              ? "Arrivee modifiee"
+              : "Depart modifie";
+        workflowEventBody = scheduleChangeBody(scheduleChanges, impactedMissions);
+      }
+
       if (hasOwnPatchField(patch, "access_instructions")) {
         const accessInstructions = cleanString(patch.access_instructions);
         if ((accessInstructions ?? null) !== cleanString(reservation.access_instructions)) {
@@ -545,8 +639,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       }
 
       if (changedFields.includes("access_instructions") || changedFields.includes("owner_notes") || changedFields.includes("concierge_notes")) {
-        workflowEventTitle = "Brief collaboratif mis a jour";
-        workflowEventBody = "Les consignes ou notes partagees du sejour ont ete mises a jour.";
+        if (scheduleChanges.length === 0) {
+          workflowEventTitle = "Brief collaboratif mis a jour";
+          workflowEventBody = "Les consignes ou notes partagees du sejour ont ete mises a jour.";
+        }
       }
 
       if (cleanString(patch.status)) {
@@ -621,6 +717,19 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           action,
           changed_fields: changedFields,
           status: cleanString((data as ReservationRow).status),
+          schedule_changes: scheduleChanges.length > 0 ? scheduleChanges : undefined,
+          impacted_missions:
+            scheduleChanges.length > 0
+              ? impactedMissions.map((mission) => ({
+                  id: mission.id,
+                  title: mission.title,
+                  status: mission.status,
+                  step: mission.step,
+                  impact_reason: mission.impact_reason,
+                  scheduled_start: mission.scheduled_start,
+                  scheduled_end: mission.scheduled_end,
+                }))
+              : undefined,
           take_over_mission_count: takeOverMissions?.length ?? undefined,
           canceled_mission_count:
             cancellationPropagation && cancellationPropagation.ok ? cancellationPropagation.canceled.length : undefined,
@@ -641,6 +750,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         : data,
       stay: context.stay ?? null,
       timeline: context.timeline ?? [],
+      changed_fields: changedFields,
+      schedule_changes: scheduleChanges,
+      impacted_missions: impactedMissions,
       take_over:
         action === "take_over"
           ? {

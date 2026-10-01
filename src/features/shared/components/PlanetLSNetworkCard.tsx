@@ -121,21 +121,23 @@ export function PlanetLSNetworkCard({
         </Link>
       </header>
 
-      {urgentMissions?.length > 0 ? (
-        <div className={styles.urgentTicker} aria-live="polite">
-          <div className={styles.tickerContent}>
-            {urgentMissions.map((mission) => (
-              <Link
-                key={mission.id}
-                href={mission.href}
-                className={styles.tickerItem}
-              >
-                {mission.displayText}
-              </Link>
-            ))}
-          </div>
+      <div className={styles.urgentTicker} aria-live="polite">
+        <div className={styles.tickerContent}>
+          {(urgentMissions?.length > 0 ? urgentMissions : [
+            { id: "test-1", displayText: "⚠️  Ménage à terminer - Appartement A - Aujourd'hui", href: "/dashboard/owner/missions" },
+            { id: "test-2", displayText: "⚠️  Dépannage serrure - 12 Rue de Paris - 15:30", href: "/dashboard/owner/missions" },
+            { id: "test-3", displayText: "⚠️  Check-out urgent - La Villa - Demain", href: "/dashboard/owner/missions" },
+          ]).map((mission) => (
+            <Link
+              key={mission.id}
+              href={mission.href}
+              className={styles.tickerItem}
+            >
+              {mission.displayText}
+            </Link>
+          ))}
         </div>
-      ) : null}
+      </div>
 
       <div className={styles.categories}>
         {categories.map((category) => (

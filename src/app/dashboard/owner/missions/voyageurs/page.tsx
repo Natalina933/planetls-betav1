@@ -147,6 +147,10 @@ type ReservationDetailPayload = {
     owner_name?: string | null;
     concierge_name?: string | null;
     property_label?: string | null;
+    check_in_at?: string | null;
+    check_out_at?: string | null;
+    arrival_time_window?: string | null;
+    departure_time_window?: string | null;
     access_instructions?: string | null;
     owner_notes?: string | null;
     concierge_notes?: string | null;
@@ -154,6 +158,8 @@ type ReservationDetailPayload = {
     updated_at?: string | null;
   } | null;
   timeline?: ReservationTimelineItem[];
+  changed_fields?: string[];
+  impacted_missions?: Array<{ id: string; title?: string | null; status?: string | null; step?: string | null }>;
 };
 
 type TravelerMissionForm = {
@@ -358,6 +364,20 @@ function buildDateTime(date: string, time: string) {
   if (!date) return null;
   const parsed = new Date(`${date}T${time || "00:00"}`);
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+}
+
+function toDatetimeLocal(value: string | null | undefined) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const offset = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+}
+
+function fromDatetimeLocal(value: string) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
 function toIsoDate(day: string, month: string | undefined, year = new Date().getFullYear()) {
@@ -1215,6 +1235,10 @@ function OwnerTravelerMissionsContent() {
   const [focusedReservationDraft, setFocusedReservationDraft] = useState({
     accessInstructions: "",
     ownerNotes: "",
+    checkInAt: "",
+    checkOutAt: "",
+    arrivalWindow: "",
+    departureWindow: "",
   });
   const [planningText, setPlanningText] = useState("");
   const [parsedStayDrafts, setParsedStayDrafts] = useState<Record<string, ParsedStayDraft>>({});
@@ -1413,8 +1437,19 @@ function OwnerTravelerMissionsContent() {
     setFocusedReservationDraft({
       accessInstructions: focusedReservationDetail?.reservation?.access_instructions ?? "",
       ownerNotes: focusedReservationDetail?.reservation?.owner_notes ?? "",
+      checkInAt: toDatetimeLocal(focusedReservationDetail?.reservation?.check_in_at),
+      checkOutAt: toDatetimeLocal(focusedReservationDetail?.reservation?.check_out_at),
+      arrivalWindow: focusedReservationDetail?.reservation?.arrival_time_window ?? "",
+      departureWindow: focusedReservationDetail?.reservation?.departure_time_window ?? "",
     });
-  }, [focusedReservationDetail?.reservation?.access_instructions, focusedReservationDetail?.reservation?.owner_notes]);
+  }, [
+    focusedReservationDetail?.reservation?.access_instructions,
+    focusedReservationDetail?.reservation?.arrival_time_window,
+    focusedReservationDetail?.reservation?.check_in_at,
+    focusedReservationDetail?.reservation?.check_out_at,
+    focusedReservationDetail?.reservation?.departure_time_window,
+    focusedReservationDetail?.reservation?.owner_notes,
+  ]);
 
   useEffect(() => {
     if (!focusedReservationSuccess) return;
@@ -1437,7 +1472,11 @@ function OwnerTravelerMissionsContent() {
         const data = (await response.json()) as ReservationDetailPayload & { error?: string };
         if (!response.ok) throw new Error(data?.error || "Impossible de mettre a jour le sejour.");
         setFocusedReservationDetail(data);
-        setFocusedReservationSuccess("Brief proprietaire mis a jour.");
+        setFocusedReservationSuccess(
+          data.impacted_missions?.length
+            ? `Sejour mis a jour. ${data.impacted_missions.length} mission(s) peuvent necessiter une verification par la conciergerie.`
+            : "Sejour mis a jour.",
+        );
         return true;
       } catch (err) {
         setFocusedReservationError(err instanceof Error ? err.message : "Impossible de mettre a jour le sejour.");
@@ -1450,13 +1489,39 @@ function OwnerTravelerMissionsContent() {
   );
 
   const saveFocusedReservationBrief = useCallback(async () => {
+    const checkInAt = fromDatetimeLocal(focusedReservationDraft.checkInAt);
+    const checkOutAt = fromDatetimeLocal(focusedReservationDraft.checkOutAt);
+    if (focusedReservationDraft.checkInAt && !checkInAt) {
+      setFocusedReservationError("Date d'arrivee invalide.");
+      return;
+    }
+    if (focusedReservationDraft.checkOutAt && !checkOutAt) {
+      setFocusedReservationError("Date de depart invalide.");
+      return;
+    }
+    if (checkInAt && checkOutAt && new Date(checkOutAt).getTime() <= new Date(checkInAt).getTime()) {
+      setFocusedReservationError("La date de depart doit etre posterieure a la date d'arrivee.");
+      return;
+    }
     await patchFocusedReservation({
       patch: {
+        check_in_at: checkInAt,
+        check_out_at: checkOutAt,
+        arrival_time_window: focusedReservationDraft.arrivalWindow,
+        departure_time_window: focusedReservationDraft.departureWindow,
         access_instructions: focusedReservationDraft.accessInstructions,
         owner_notes: focusedReservationDraft.ownerNotes,
       },
     });
-  }, [focusedReservationDraft.accessInstructions, focusedReservationDraft.ownerNotes, patchFocusedReservation]);
+  }, [
+    focusedReservationDraft.accessInstructions,
+    focusedReservationDraft.arrivalWindow,
+    focusedReservationDraft.checkInAt,
+    focusedReservationDraft.checkOutAt,
+    focusedReservationDraft.departureWindow,
+    focusedReservationDraft.ownerNotes,
+    patchFocusedReservation,
+  ]);
 
   const cancelFocusedReservation = useCallback(async () => {
     if (!focusedMission?.id) return;
@@ -1857,6 +1922,50 @@ function OwnerTravelerMissionsContent() {
                 </span>
                 {focusedReservationLoading ? <p className={styles.meta}>Chargement du suivi collaboratif...</p> : null}
                 {focusedReservationError ? <p className={styles.meta}>{focusedReservationError}</p> : null}
+                <div className={styles.editorialCardBlock}>
+                  <label htmlFor="stay-check-in-at">Arrivée</label>
+                  <Input
+                    id="stay-check-in-at"
+                    type="datetime-local"
+                    value={focusedReservationDraft.checkInAt}
+                    onChange={(event) =>
+                      setFocusedReservationDraft((current) => ({ ...current, checkInAt: event.target.value }))
+                    }
+                  />
+                </div>
+                <div className={styles.editorialCardBlock}>
+                  <label htmlFor="stay-check-out-at">Départ</label>
+                  <Input
+                    id="stay-check-out-at"
+                    type="datetime-local"
+                    value={focusedReservationDraft.checkOutAt}
+                    onChange={(event) =>
+                      setFocusedReservationDraft((current) => ({ ...current, checkOutAt: event.target.value }))
+                    }
+                  />
+                </div>
+                <div className={styles.editorialCardBlock}>
+                  <label htmlFor="stay-arrival-window">Fenêtre arrivée</label>
+                  <Input
+                    id="stay-arrival-window"
+                    value={focusedReservationDraft.arrivalWindow}
+                    onChange={(event) =>
+                      setFocusedReservationDraft((current) => ({ ...current, arrivalWindow: event.target.value }))
+                    }
+                    placeholder="Ex. 15:00-17:00"
+                  />
+                </div>
+                <div className={styles.editorialCardBlock}>
+                  <label htmlFor="stay-departure-window">Fenêtre départ</label>
+                  <Input
+                    id="stay-departure-window"
+                    value={focusedReservationDraft.departureWindow}
+                    onChange={(event) =>
+                      setFocusedReservationDraft((current) => ({ ...current, departureWindow: event.target.value }))
+                    }
+                    placeholder="Ex. avant 10:00"
+                  />
+                </div>
                 <div className={styles.editorialCardBlock}>
                   <label htmlFor="stay-access-instructions">Accès et consignes</label>
                   <Textarea

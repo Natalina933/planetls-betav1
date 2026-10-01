@@ -84,7 +84,7 @@
   overflow: hidden;
   width: 100%;
   padding: 8px 0;
-  background: var(--ds-color-primary);
+  background: #2d5a3d;
   border-radius: var(--pls-radius-sm);
   margin-bottom: 8px;
 }
@@ -95,7 +95,7 @@
   align-items: center;
   white-space: nowrap;
   animation: tickerScroll 30s linear infinite;
-  
+
   &:hover {
     animation-play-state: paused;
   }
@@ -105,18 +105,18 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--ds-color-gold);
+  color: #c9a969;
   font-size: 13px;
   font-weight: 600;
   line-height: 1.4;
   text-decoration: none;
   white-space: nowrap;
-  
+
   &:hover {
     text-decoration: underline;
     text-underline-offset: 2px;
   }
-  
+
   &:focus-visible {
     outline: var(--ds-focus-outline);
     outline-offset: 2px;

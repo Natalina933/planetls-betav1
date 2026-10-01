@@ -245,9 +245,9 @@ export default function OwnerDashboardView({
           name: property.nom_logement,
           city: property.ville,
         }))}
-        urgentMissions={data.missions.filter(
+        urgentMissions={data.missions?.filter(
           (mission) => mission.priority === "urgent" && !isCanceled(mission)
-        )}
+        ) ?? []}
       />
     </div>
     <section className={styles.ownerKpis} aria-label="Indicateurs principaux propriétaire">
