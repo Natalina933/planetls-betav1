@@ -10,6 +10,7 @@ import {
   type ReservationRow,
 } from "@/app/api/_shared/reservations";
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
+import { createOrReuseStayMissions, type StayMissionAssignmentRow } from "@/app/api/_shared/stayMissionAssignments";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
 import type { TravelerStayMissionRow } from "@/app/lib/travelerStaySupabase";
@@ -31,6 +32,12 @@ type WorkflowEventRow = {
   action_href?: string | null;
   metadata?: Record<string, unknown> | null;
   created_at?: string | null;
+};
+
+type MissionEventRow = {
+  id: string;
+  mission_id?: string | null;
+  payload?: Record<string, unknown> | null;
 };
 
 type ReservationTimelineItem = {
@@ -166,6 +173,145 @@ function dedupeTimeline(items: ReservationTimelineItem[]) {
 
 function hasOwnPatchField(patch: Record<string, unknown>, key: string) {
   return Object.prototype.hasOwnProperty.call(patch, key);
+}
+
+const CANCELABLE_MISSION_STATUSES = new Set([
+  "draft",
+  "assigned",
+  "to_schedule",
+  "date_requested",
+  "date_proposed",
+  "date_confirmed",
+  "scheduled",
+  "accepted",
+  "in_progress",
+  "awaiting_owner_validation",
+]);
+
+function missionCanBeCanceled(status: unknown) {
+  return typeof status === "string" && CANCELABLE_MISSION_STATUSES.has(status.trim().toLowerCase());
+}
+
+function missionWasCanceledFromReservation(mission: { status?: string | null; metadata?: unknown }, reservationId: string) {
+  const metadata = isRecord(mission.metadata) ? mission.metadata : {};
+  return (
+    cleanString(mission.status) === "canceled" &&
+    metadata.canceled_from_reservation === true &&
+    (cleanString(metadata.reservation_id) === reservationId || cleanString(metadata.reservation_workflow_id) === reservationId)
+  );
+}
+
+async function cancelLinkedReservationMissions(input: {
+  reservationId: string;
+  actorProfileId: string;
+  reason: string | null;
+}) {
+  const loadLinkedMissions = async (useReservationLink: boolean) =>
+    dbAny
+      .from("missions")
+      .select(
+        useReservationLink
+          ? "id,reservation_id,status,metadata"
+          : "id,status,metadata",
+      )
+      .or(
+        useReservationLink
+          ? `reservation_id.eq.${input.reservationId},metadata->>reservation_id.eq.${input.reservationId},metadata->>reservation_workflow_id.eq.${input.reservationId}`
+          : `metadata->>reservation_id.eq.${input.reservationId},metadata->>reservation_workflow_id.eq.${input.reservationId}`,
+      );
+
+  const isMissingReservationLinkColumn = (error: { code?: string; message?: string; details?: string } | null) => {
+    const message = `${error?.message ?? ""} ${error?.details ?? ""}`.toLowerCase();
+    return (
+      (error?.code === "PGRST204" || error?.code === "42703" || message.includes("could not find") || message.includes("column")) &&
+      message.includes("reservation_id")
+    );
+  };
+
+  const firstAttempt = await loadLinkedMissions(true);
+  const missionResult = isMissingReservationLinkColumn(firstAttempt.error) ? await loadLinkedMissions(false) : firstAttempt;
+  if (missionResult.error) return { ok: false, error: missionResult.error, canceled: [], preserved: [], reconciledEvents: [] };
+
+  const missions = ((missionResult.data ?? []) as Array<{ id: string; status?: string | null; metadata?: unknown }>);
+  const cancelable = missions.filter((mission) => missionCanBeCanceled(mission.status));
+  const preserved = missions.filter((mission) => !missionCanBeCanceled(mission.status));
+  const canceled: Array<{ id: string; previous_status: string | null }> = [];
+  const reconciledEvents: string[] = [];
+  const missionIds = missions.map((mission) => mission.id).filter(Boolean);
+  const existingEventMissionIds = new Set<string>();
+
+  if (missionIds.length > 0) {
+    const { data: existingEvents, error: existingEventError } = await dbAny
+      .from("mission_events")
+      .select("id,mission_id,payload")
+      .in("mission_id", missionIds)
+      .eq("event_type", "canceled")
+      .contains("payload", { reservation_id: input.reservationId, source: "reservation_cancel" });
+
+    if (existingEventError) return { ok: false, error: existingEventError, canceled, preserved, reconciledEvents };
+
+    for (const event of (existingEvents ?? []) as MissionEventRow[]) {
+      const missionId = cleanString(event.mission_id);
+      if (missionId) existingEventMissionIds.add(missionId);
+    }
+  }
+
+  const ensureCancellationEvent = async (mission: { id: string; status?: string | null }) => {
+    if (existingEventMissionIds.has(mission.id)) return { ok: true as const };
+
+    const { error } = await dbAny.from("mission_events").insert({
+      mission_id: mission.id,
+      actor_profile_id: input.actorProfileId,
+      event_type: "canceled",
+      payload: {
+        reservation_id: input.reservationId,
+        reason: input.reason,
+        source: "reservation_cancel",
+        previous_status: mission.status ?? null,
+      },
+    });
+
+    if (error) return { ok: false as const, error };
+    existingEventMissionIds.add(mission.id);
+    reconciledEvents.push(mission.id);
+    return { ok: true as const };
+  };
+
+  for (const mission of cancelable) {
+    const metadata = isRecord(mission.metadata) ? mission.metadata : {};
+    const canceledAt = new Date().toISOString();
+    const patch = {
+      status: "canceled",
+      canceled_at: canceledAt,
+      cancel_reason: input.reason,
+      metadata: {
+        ...metadata,
+        canceled_from_reservation: true,
+        reservation_canceled_at: canceledAt,
+        reservation_canceled_by: input.actorProfileId,
+        reservation_cancel_reason: input.reason,
+      },
+    };
+    const { error } = await dbAny.from("missions").update(patch).eq("id", mission.id);
+    if (error) return { ok: false, error, canceled, preserved, reconciledEvents };
+
+    canceled.push({ id: mission.id, previous_status: mission.status ?? null });
+    const eventResult = await ensureCancellationEvent(mission);
+    if (!eventResult.ok) return { ok: false, error: eventResult.error, canceled, preserved, reconciledEvents };
+  }
+
+  for (const mission of preserved) {
+    if (!missionWasCanceledFromReservation(mission, input.reservationId)) continue;
+    const eventResult = await ensureCancellationEvent(mission);
+    if (!eventResult.ok) return { ok: false, error: eventResult.error, canceled, preserved, reconciledEvents };
+  }
+
+  return {
+    ok: true,
+    canceled,
+    preserved: preserved.map((mission) => ({ id: mission.id, status: mission.status ?? null })),
+    reconciledEvents,
+  };
 }
 
 async function loadReservationContext(id: string) {
@@ -313,18 +459,43 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     let workflowEventType = "reservation_updated";
     let workflowEventTitle = "Reservation mise a jour";
     let workflowEventBody: string | null = null;
+    let takeOverMissions: StayMissionAssignmentRow[] | null = null;
+    let cancellationPropagation: Awaited<ReturnType<typeof cancelLinkedReservationMissions>> | null = null;
 
     if (action === "acknowledge" || action === "take_over") {
       if (!canManageAsConcierge(role)) {
         return NextResponse.json({ error: "Seule la conciergerie peut accuser reception." }, { status: 403 });
       }
-      updatePayload.status = "acknowledged";
-      updatePayload.acknowledged_at = new Date().toISOString();
-      nextMetadata.last_acknowledged_by = userId;
-      changedFields.push("status", "acknowledged_at");
+      const alreadyAcknowledged = action === "take_over" && cleanString(reservation.status) === "acknowledged";
+      if (action === "take_over") {
+        const missionResult = await createOrReuseStayMissions({ db: dbAny, reservation, body });
+        if (!missionResult.ok) {
+          return NextResponse.json(
+            {
+              error: missionResult.error,
+              take_over_status: "missions_failed",
+              reservation_status: cleanString(reservation.status),
+            },
+            { status: missionResult.status },
+          );
+        }
+        takeOverMissions = missionResult.missions;
+      }
+      if (takeOverMissions) {
+        nextMetadata.take_over_missions_synced_at = new Date().toISOString();
+        nextMetadata.take_over_mission_count = takeOverMissions.length;
+      }
+      if (!alreadyAcknowledged) {
+        updatePayload.status = "acknowledged";
+        updatePayload.acknowledged_at = new Date().toISOString();
+        nextMetadata.last_acknowledged_by = userId;
+        changedFields.push("status", "acknowledged_at");
+      }
       workflowEventType = "reservation_acknowledged";
       workflowEventTitle = action === "take_over" ? "Séjour pris en charge" : "Reservation accusee reception";
-      workflowEventBody = "La conciergerie a confirme la prise en charge du sejour.";
+      workflowEventBody = takeOverMissions
+        ? `La conciergerie a confirme la prise en charge du sejour. Missions synchronisees: ${takeOverMissions.length}.`
+        : "La conciergerie a confirme la prise en charge du sejour.";
     } else if (action === "report_unavailable") {
       if (!canManageAsConcierge(role)) {
         return NextResponse.json({ error: "Seule la conciergerie peut signaler une indisponibilité." }, { status: 403 });
@@ -412,7 +583,25 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     if (error || !data) {
       console.error("[PATCH /api/reservations/[id]] update error:", error);
-      return NextResponse.json({ error: "Mise a jour reservation impossible." }, { status: 500 });
+      return NextResponse.json(
+        {
+          error: "Mise a jour reservation impossible.",
+          missions: takeOverMissions ?? undefined,
+          take_over_status: takeOverMissions ? "reservation_update_failed_after_missions" : undefined,
+        },
+        { status: 500 },
+      );
+    }
+
+    if (action === "cancel") {
+      cancellationPropagation = await cancelLinkedReservationMissions({
+        reservationId,
+        actorProfileId: userId,
+        reason: cleanString(nextMetadata.cancel_reason),
+      });
+      if (!cancellationPropagation.ok) {
+        console.error("[PATCH /api/reservations/[id]] mission cancellation propagation error:", cancellationPropagation.error);
+      }
     }
 
     if (changedFields.length > 0 || action === "acknowledge" || action === "cancel") {
@@ -432,12 +621,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           action,
           changed_fields: changedFields,
           status: cleanString((data as ReservationRow).status),
+          take_over_mission_count: takeOverMissions?.length ?? undefined,
+          canceled_mission_count:
+            cancellationPropagation && cancellationPropagation.ok ? cancellationPropagation.canceled.length : undefined,
+          preserved_mission_count:
+            cancellationPropagation && cancellationPropagation.ok ? cancellationPropagation.preserved.length : undefined,
         },
       });
     }
 
     const context = await loadReservationContext(reservationId);
-    return NextResponse.json({
+    const responsePayload = {
       reservation: context.reservation
         ? {
             ...context.reservation,
@@ -447,6 +641,34 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         : data,
       stay: context.stay ?? null,
       timeline: context.timeline ?? [],
+      take_over:
+        action === "take_over"
+          ? {
+              status: "complete",
+              missions: takeOverMissions ?? [],
+            }
+          : undefined,
+      cancellation:
+        action === "cancel"
+          ? cancellationPropagation && cancellationPropagation.ok
+            ? {
+                status: "propagated",
+                canceled_missions: cancellationPropagation.canceled,
+                preserved_missions: cancellationPropagation.preserved,
+                reconciled_event_mission_ids: cancellationPropagation.reconciledEvents,
+              }
+            : {
+                status: "partial",
+                error: "Le séjour est annulé mais la propagation aux missions a échoué.",
+                canceled_missions: cancellationPropagation?.canceled ?? [],
+                preserved_missions: cancellationPropagation?.preserved ?? [],
+                reconciled_event_mission_ids: cancellationPropagation?.reconciledEvents ?? [],
+              }
+          : undefined,
+    };
+
+    return NextResponse.json(responsePayload, {
+      status: action === "cancel" && cancellationPropagation && !cancellationPropagation.ok ? 207 : 200,
     });
   } catch (error) {
     console.error("[PATCH /api/reservations/[id]] ERROR:", error);

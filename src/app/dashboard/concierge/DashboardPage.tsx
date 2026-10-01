@@ -61,6 +61,7 @@ import {
   type ConciergeDashboardPreferences,
   type ConciergeWidgetId,
 } from "./dashboardModes";
+import { DashboardConfigurationCard, CONCIERGE_CONFIGURATION_STEPS } from "@/features/shared/components";
 import {
   buildAvailabilityHoursWithInspirationLibrary,
   buildYoutubeSearchUrl,
@@ -1228,7 +1229,6 @@ export default function DashboardPage() {
   }
 
   const PriorityIcon = getPriorityIcon(priorityRequest);
-  const conciergeProgress = getConciergeOnboardingProgress(user);
   const resumeConciergeOnboarding = () => {
     if (!user?.id) return;
     try {
@@ -1237,6 +1237,10 @@ export default function DashboardPage() {
       // La configuration reste accessible même si sessionStorage est indisponible.
     }
     setOnboardingOpen(true);
+  };
+  const conciergeProgress = {
+    ...getConciergeOnboardingProgress(user),
+    onResume: resumeConciergeOnboarding,
   };
   const postponeConciergeOnboarding = () => {
     if (user?.id) {
@@ -1347,32 +1351,15 @@ export default function DashboardPage() {
         ]}
         leftPrimary={
           <div className={styles.leftPrimaryStack}>
-            <section className={styles.configurationCard} aria-label="Configuration de votre espace">
-              <span className={styles.configurationIcon}>
-                <CheckCircle2 size={20} aria-hidden="true" />
-              </span>
-              <div>
-                <span className={styles.sectionEyebrow}>CONFIGURATION</span>
-                <h3>{user?.onboarding_complete === true || conciergeProgress.isComplete ? "Configuration terminée" : "Finalisez votre espace"}</h3>
-                <p>
-                  {user?.onboarding_complete === true || conciergeProgress.isComplete
-                    ? "Votre cockpit contient les informations essentielles pour présenter votre activité."
-                    : "Complétez les dernières informations pour adapter votre cockpit à votre activité."}
-                </p>
-                <strong>
-                  {conciergeProgress.completed} étape{conciergeProgress.completed > 1 ? "s" : ""} sur {conciergeProgress.total} complétée{conciergeProgress.completed > 1 ? "s" : ""}
-                </strong>
-              </div>
-              {user?.onboarding_complete === true || conciergeProgress.isComplete ? (
-                <Link href="/dashboard/concierge/profile" className={styles.primaryLink}>
-                  Voir mon profil
-                </Link>
-              ) : (
-                <button type="button" className={styles.primaryLink} onClick={resumeConciergeOnboarding}>
-                  Terminer ma configuration
-                </button>
-              )}
-            </section>
+            <DashboardConfigurationCard
+              steps={CONCIERGE_CONFIGURATION_STEPS}
+              configurationStatus={{
+                completed: conciergeProgress.completed,
+                total: conciergeProgress.total,
+                isComplete: user?.onboarding_complete === true || conciergeProgress.isComplete,
+                onResume: resumeConciergeOnboarding,
+              }}
+            />
             <ConciergeRoutePreview events={todayPlanning} />
             <div className={styles.primaryGrid}>
               <article className={styles.priorityHeroCard}>

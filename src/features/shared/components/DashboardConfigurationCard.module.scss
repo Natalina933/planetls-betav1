@@ -1,0 +1,165 @@
+.configurationCard {
+  display: grid;
+  width: 100%;
+  max-width: 444px;
+  gap: 14px;
+  padding: 20px 22px 22px;
+  border: 1px solid var(--pls-border);
+  border-radius: var(--pls-radius-lg);
+  background: var(--pls-white);
+  box-shadow: var(--pls-shadow);
+
+  h2 {
+    margin: 0;
+    color: var(--pls-text);
+    font-family: var(--ds-font-body);
+    font-size: 17px;
+    font-weight: 750;
+    line-height: 1.18;
+    letter-spacing: 0;
+  }
+}
+
+.configurationCardExpanded {
+  width: 100%;
+  max-width: none;
+  justify-self: stretch;
+}
+
+.configurationHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+}
+
+.configurationCount {
+  color: var(--pls-text-secondary);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.configurationFlow {
+  display: grid;
+  gap: 13px;
+  min-width: 0;
+}
+
+.configurationFooter {
+  display: block;
+  margin-top: 0;
+}
+
+.configurationAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--pls-primary);
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: none;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--pls-primary-hover);
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+  }
+
+  &::after {
+    display: none;
+  }
+}
+
+.configurationProgress {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.configurationProgress li {
+  display: grid;
+  align-items: start;
+  gap: 8px;
+  min-width: 0;
+  color: var(--pls-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: left;
+}
+
+.configurationStepDone {
+  color: var(--pls-primary);
+}
+
+.configurationStepCurrent {
+  color: var(--pls-primary);
+}
+
+.configurationBubble {
+  display: block;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--pls-border) 78%, var(--pls-white));
+}
+
+.configurationStepDone .configurationBubble {
+  background: var(--pls-primary);
+}
+
+.configurationStepCurrent .configurationBubble {
+  background: var(--pls-gold, var(--pls-primary));
+}
+
+.configurationStepLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  white-space: nowrap;
+
+  svg {
+    flex: 0 0 auto;
+  }
+}
+
+// Responsive styles
+@media (max-width: 680px) {
+  .configurationCard {
+    max-width: 100%;
+    padding: 16px;
+  }
+
+  .configurationHeading {
+    gap: 12px;
+  }
+
+  .configurationProgress {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .configurationProgress li {
+    gap: 7px;
+    font-size: 11px;
+  }
+
+  .configurationAction {
+    white-space: normal;
+  }
+}

@@ -1,5 +1,4 @@
 import { IconType } from "react-icons";
-import { ownerDashboardContent } from "@/features/owner-dashboard/ownerDashboardContent";
 import {
   FiBell,
   FiBookOpen,
@@ -43,77 +42,52 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
   ],
 
   owner: [
-    { label: "Tableau de bord", path: "/dashboard/owner", icon: DashboardGaugeIcon },
+    { section: "Pilotage", label: "Tableau de bord", path: "/dashboard/owner", icon: DashboardGaugeIcon },
     {
-      section: "Gestion",
-      label: ownerDashboardContent.navigation.properties,
-      path: "/dashboard/owner/logements/overview",
+      label: "Mes logements",
+      path: "/dashboard/owner/logements",
       icon: DashboardHomeIcon,
       children: [
         { label: "Tous mes logements", path: "/dashboard/owner/logements", icon: DashboardHousesIcon },
         { label: "Ajouter un logement", path: "/dashboard/owner/logements/create", icon: DashboardHomeIcon },
         { label: "Équipements & stocks", path: "/dashboard/owner/stocks", icon: FiBox },
-        { label: "Documents", path: "/dashboard/owner/documents", icon: FiFileText },
       ],
     },
+    { label: "Calendrier", path: "/dashboard/owner/planning", icon: FiCalendar },
+    { section: "Collaborations", label: "Rechercher un partenaire", path: "/dashboard/owner/concierges", icon: FiSearch },
     {
-      label: ownerDashboardContent.navigation.reservations,
-      path: "/dashboard/owner/missions/voyageurs",
+      label: "Mes demandes",
+      path: "/dashboard/owner/demandes",
+      icon: FiMessageSquare,
+      notificationKey: "owner-service-replies",
+    },
+    { label: "Mes partenaires", path: "/dashboard/owner/conciergerie/partenaires", icon: FiUsers },
+    {
+      section: "Activité",
+      label: "Missions",
+      path: "/dashboard/owner/missions/overview",
       icon: FiBookOpen,
       children: [
         { label: "Séjours", path: "/dashboard/owner/missions/voyageurs", icon: FiUsers },
-        { label: "Calendrier", path: "/dashboard/owner/planning", icon: FiCalendar },
-      ],
-    },
-    {
-      label: ownerDashboardContent.navigation.interventions,
-      path: "/dashboard/owner/missions/overview",
-      icon: FiCalendar,
-      children: [
         { label: "Arrivées & départs", path: "/dashboard/owner/planning?type=movements", icon: FiCalendar },
         { label: "Maintenance", path: "/dashboard/owner/planning?type=maintenance", icon: FiTool },
         { label: "Alertes & urgences", path: "/dashboard/owner/alertes", icon: FiBell },
         { label: "Litiges", path: "/dashboard/owner/litiges", icon: FiMessageSquare },
       ],
     },
+    { label: "Messages", path: "/dashboard/owner/messages", icon: FiMessageSquare },
+    { section: "Gestion", label: "Devis", path: "/dashboard/owner/devis", icon: FiFileText },
     {
-      label: "Conciergeries",
-      section: "Mon équipe",
-      path: "/dashboard/owner/conciergerie/overview",
-      icon: FiUsers,
-      children: [
-        {
-          label: "Mes partenaires",
-          path: "/dashboard/owner/conciergerie/partenaires",
-          icon: FiUsers,
-          notificationKey: "owner-service-replies",
-        },
-        { label: "Trouver une conciergerie", path: "/dashboard/owner/concierges", icon: FiSearch },
-        {
-          label: "Mes demandes",
-          path: "/dashboard/owner/demandes",
-          icon: FiMessageSquare,
-          notificationKey: "owner-service-replies",
-        },
-      ],
-    },
-    { label: ownerDashboardContent.navigation.messages, path: "/dashboard/owner/messages", icon: FiMessageSquare },
-    {
-      label: "Finances",
-      section: "Finances",
-      path: "/dashboard/owner/finances/overview",
+      label: "Factures",
+      path: "/dashboard/owner/factures",
       icon: FiCreditCard,
       children: [
-        { label: "Devis", path: "/dashboard/owner/devis", icon: FiFileText },
-        { label: "Factures", path: "/dashboard/owner/factures", icon: FiCreditCard },
+        { label: "Suivi financier", path: "/dashboard/owner/finances/overview", icon: FiCreditCard },
         { label: "Règlements", path: "/dashboard/owner/reglement", icon: FiSettings },
       ],
     },
-    {
-      label: ownerDashboardContent.navigation.settings,
-      path: "/dashboard/owner/settings?tab=overview",
-      icon: FiUser,
-    },
+    { label: "Documents", path: "/dashboard/owner/documents", icon: FiFileText },
+    { section: "En bas", label: "Paramètres", path: "/dashboard/owner/settings?tab=overview", icon: FiUser },
   ],
 
   concierge: [

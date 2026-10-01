@@ -38,6 +38,7 @@ type ConciergeProfileRow = {
   availability_hours: string | null;
   emergency_service: boolean | null;
   role: string | null;
+  created_at: string | null;
 };
 
 type ConciergeReviewRow = {
@@ -57,15 +58,20 @@ type ServiceCatalogRow = {
   service: string | null;
 };
 
-async function loadConciergeProfiles(limit: number, proOnly: boolean): Promise<ConciergeProfileRow[]> {
+async function loadConciergeProfiles(
+  limit: number,
+  proOnly: boolean,
+  recentFirst: boolean,
+): Promise<ConciergeProfileRow[]> {
   const targetRoles = proOnly ? ["concierge_pro"] : ["concierge", "concierge_pro"];
-  const { data: profiles, error: profilesError } = await db
+  let profileQuery = db
     .from("profiles")
     .select(
-    "id, avatar_url, image, first_name, last_name, username, company_name, city, postal_code, country, service_area, location, service_radius_km, hourly_rate, monthly_rate, experience_level, years_experience, option, availability_hours, emergency_service, role",
+      "id, avatar_url, image, first_name, last_name, username, company_name, city, postal_code, country, service_area, location, service_radius_km, hourly_rate, monthly_rate, experience_level, years_experience, option, availability_hours, emergency_service, role, created_at",
     )
-    .in("role", targetRoles)
-    .limit(limit);
+    .in("role", targetRoles);
+  if (recentFirst) profileQuery = profileQuery.order("created_at", { ascending: false });
+  const { data: profiles, error: profilesError } = await profileQuery.limit(limit);
 
   if (!profilesError) {
     return ((profiles ?? []) as unknown) as ConciergeProfileRow[];
@@ -76,13 +82,14 @@ async function loadConciergeProfiles(limit: number, proOnly: boolean): Promise<C
     throw new Error("Erreur chargement concierges.");
   }
 
-  const { data: fallbackProfiles, error: fallbackError } = await db
+  let fallbackQuery = db
     .from("profiles")
     .select(
-      "id, avatar_url, first_name, last_name, username, company_name, city, country, service_area, service_radius_km, hourly_rate, monthly_rate, years_experience, option, role",
+      "id, avatar_url, first_name, last_name, username, company_name, city, country, service_area, service_radius_km, hourly_rate, monthly_rate, years_experience, option, role, created_at",
     )
-    .in("role", targetRoles)
-    .limit(limit);
+    .in("role", targetRoles);
+  if (recentFirst) fallbackQuery = fallbackQuery.order("created_at", { ascending: false });
+  const { data: fallbackProfiles, error: fallbackError } = await fallbackQuery.limit(limit);
 
   if (fallbackError) {
     console.error("[GET /api/profiles/concierges] fallback profiles error:", fallbackError);
@@ -105,6 +112,7 @@ async function loadConciergeProfiles(limit: number, proOnly: boolean): Promise<C
     years_experience: number | null;
     option: string | null;
     role: string | null;
+    created_at: string | null;
   }>).map((profile) => ({
     ...profile,
     avatar_url: profile.avatar_url ?? null,
@@ -188,7 +196,11 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url);
     const filters = buildConciergeSearchFilters(url.searchParams);
 
-    const conciergeRows = await loadConciergeProfiles(filters.limit * 3, filters.proOnly);
+    const conciergeRows = await loadConciergeProfiles(
+      filters.limit * 3,
+      filters.proOnly,
+      url.searchParams.get("recentFirst") === "1",
+    );
     const profileIds = conciergeRows.map((profile) => profile.id);
 
     const reviews = await loadConciergeReviews(profileIds);
@@ -271,6 +283,7 @@ export async function GET(req: NextRequest) {
           reviews_count: ratings.length,
           latest_review_comment: latestReview?.comment ?? null,
           latest_review_at: latestReview?.created_at ?? null,
+          created_at: profile.created_at,
         };
       });
 

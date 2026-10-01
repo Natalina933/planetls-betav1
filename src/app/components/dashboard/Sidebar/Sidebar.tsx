@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
+import { FiChevronDown, FiX } from "react-icons/fi";
 import { getOwnerActivePath } from "./ownerNavigation";
 import { useUserType } from "@/app/context/UserTypeContext";
 import {
@@ -179,25 +180,29 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
           </div>
         ) : null}
         <div className={styles.header}>
-          <span className={styles.title}>
-            {userType ? `Espace ${roleLabels[userType] || userType}` : "Chargement..."}
-          </span>
+          {userType === "owner" ? (
+            <div className={styles.ownerBrand} aria-label="PlanetLS - Espace propriétaire">
+              <span className={styles.ownerBrandMark} aria-hidden="true">P</span>
+              <span className={styles.ownerBrandText}>
+                <strong>PlanetLS</strong>
+                <span>
+                  Espace propriétaire
+                  <FiChevronDown aria-hidden="true" />
+                </span>
+              </span>
+            </div>
+          ) : (
+            <span className={styles.title}>
+              {userType ? `Espace ${roleLabels[userType] || userType}` : "Chargement..."}
+            </span>
+          )}
           <button
             type="button"
             onClick={toggleSidebar}
             className={styles.closeBtn}
             aria-label="Fermer la sidebar"
           >
-            <svg
-              width="24"
-              height="24"
-              fill="none"
-              stroke="currentColor"
-              className={styles.closeIcon}
-            >
-              <line x1="4" y1="4" x2="20" y2="20" strokeWidth="2" />
-              <line x1="20" y1="4" x2="4" y2="20" strokeWidth="2" />
-            </svg>
+            <FiX className={styles.closeIcon} aria-hidden="true" />
           </button>
         </div>
 
@@ -205,22 +210,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
           {menuItems.length === 0 ? (
             <p>Aucun menu disponible</p>
           ) : (
-            menuItems.map((item) => (
-              <React.Fragment key={item.label}>
-              {(userType === "owner" || userType === "concierge") && item.section ? <p className={styles.sectionLabel}>{item.section}</p> : null}
-              <SidebarItem
-                key={item.label}
-                item={item}
-                toggleSidebar={userType === "owner" ? () => { if (isMobileViewport) toggleSidebar(); } : toggleSidebar}
-                notificationCounts={notificationCounts}
-                ownerNavigation={userType === "owner" ? {
-                  activePath: ownerActivePath,
-                  open: openOwnerGroup === item.label,
-                  onToggle: () => setOwnerGroup({ key: navigationKey, label: openOwnerGroup === item.label ? null : item.label }),
-                } : undefined}
-              />
-              </React.Fragment>
-            ))
+            menuItems.map((item) => {
+              const isOwnerBottomItem = userType === "owner" && item.section === "En bas";
+
+              return (
+                <div
+                  key={item.label}
+                  className={isOwnerBottomItem ? styles.ownerBottomGroup : undefined}
+                >
+                  {(userType === "owner" || userType === "concierge") && item.section && !isOwnerBottomItem ? <p className={styles.sectionLabel}>{item.section}</p> : null}
+                  <SidebarItem
+                    item={item}
+                    toggleSidebar={userType === "owner" ? () => { if (isMobileViewport) toggleSidebar(); } : toggleSidebar}
+                    notificationCounts={notificationCounts}
+                    ownerNavigation={userType === "owner" ? {
+                      activePath: ownerActivePath,
+                      open: openOwnerGroup === item.label,
+                      onToggle: () => setOwnerGroup({ key: navigationKey, label: openOwnerGroup === item.label ? null : item.label }),
+                    } : undefined}
+                  />
+                </div>
+              );
+            })
           )}
         </nav>
 

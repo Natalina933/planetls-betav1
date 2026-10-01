@@ -199,89 +199,150 @@
 .ownerKpis {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  overflow: hidden;
+  border: 1px solid var(--pls-border);
+  border-radius: var(--pls-radius-lg);
+  background: var(--pls-white);
+  box-shadow: 0 8px 20px rgb(35 57 46 / 0.045);
 }
 
-.ownerKpis > article {
-  min-height: 84px;
-  padding: 12px;
-  border-radius: var(--pls-radius-md);
+.dashboardHighlights {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: stretch;
+  gap: var(--ds-space-4);
+  min-width: 0;
 }
 
-.ownerKpis > article > span:first-child {
-  width: 38px;
-  height: 38px;
-  border-radius: var(--pls-radius-sm);
+.ownerKpiCell {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  min-width: 0;
+  min-height: 112px;
+  padding: 18px 20px;
+  color: var(--pls-text);
+  border-left: 1px solid var(--pls-border);
+  text-decoration: none;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+
+  &:first-child {
+    border-left: 0;
+  }
+
+  &:hover {
+    background: color-mix(in srgb, var(--pls-primary-soft) 42%, transparent);
+  }
+
+  &:focus-visible {
+    position: relative;
+    z-index: 1;
+    outline: var(--ds-focus-outline);
+    outline-offset: -3px;
+  }
 }
 
-.ownerKpis > article p {
-  line-height: 1.2;
+.ownerKpiCell[data-tone="attention"] .ownerKpiValue {
+  color: var(--pls-status-warning-text);
+}
+
+.ownerKpiCell[data-tone="calm"] .ownerKpiValue {
+  color: var(--pls-primary);
+}
+
+.ownerKpiLabel {
+  color: var(--pls-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.ownerKpiValue {
+  color: var(--pls-text);
+  font: 700 clamp(28px, 3vw, 36px)/0.95 var(--ds-font-heading);
+  letter-spacing: 0;
+}
+
+.ownerKpiHint {
+  color: var(--pls-text-secondary);
+  font-size: 13px;
+  line-height: 1.25;
 }
 
 .configurationCard {
   display: grid;
-  grid-template-columns: minmax(185px, 0.34fr) minmax(0, 1fr);
-  align-items: center;
-  gap: 18px;
-  min-height: 104px;
-  padding: 14px 16px;
-  border: 1px solid var(--pls-border);
-  border-radius: var(--pls-radius-lg);
-  background: var(--pls-white);
-  box-shadow: var(--ds-shadow-sm);
+  justify-self: end;
+  width: min(100%, 444px);
+  gap: 14px;
+  padding: 20px 22px 22px;
+  border: 1px solid color-mix(in srgb, var(--pls-border) 82%, transparent);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--pls-white) 94%, var(--pls-beige-soft)), var(--pls-white));
+  box-shadow:
+    0 14px 32px rgb(35 57 46 / 0.06),
+    inset 0 1px 0 rgb(255 255 255 / 0.72);
 
   h2 {
-    margin-top: 2px;
-    font-size: clamp(18px, 2vw, 22px);
-    line-height: 1.12;
-  }
-
-  strong {
-    display: block;
-    color: var(--pls-text-secondary);
-    font-size: 12px;
-    font-weight: 600;
+    margin: 0;
+    color: var(--pls-text);
+    font-family: var(--ds-font-body);
+    font-size: 17px;
+    font-weight: 750;
+    line-height: 1.18;
+    letter-spacing: 0;
   }
 }
 
 .configurationHeading {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-}
-
-.configurationFlow {
-  display: grid;
-  grid-template-columns: minmax(270px, 1fr) auto;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 16px;
   min-width: 0;
 }
 
-.configurationFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 0;
+.configurationCount {
+  color: var(--pls-text-secondary);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1;
   white-space: nowrap;
 }
 
+.configurationFlow {
+  display: grid;
+  gap: 13px;
+  min-width: 0;
+}
+
+.configurationFooter {
+  display: block;
+  margin-top: 0;
+}
+
 .configurationAction {
-  min-height: 34px;
-  padding: 6px 10px;
-  border: 1px solid var(--pls-border);
-  border-radius: var(--pls-radius-sm);
-  background: var(--pls-white);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--pls-primary);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   box-shadow: none;
   white-space: nowrap;
 
   &:hover {
-    border-color: var(--pls-primary);
-    background: var(--pls-primary-soft);
+    color: var(--pls-primary-hover);
+    background: transparent;
     box-shadow: none;
     transform: none;
   }
@@ -292,105 +353,61 @@
 }
 
 .configurationProgress {
-  --configuration-bubble: 22px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-items: start;
-  gap: 0;
-  width: min(100%, 520px);
-  max-width: none;
+  gap: 10px;
+  width: 100%;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .configurationProgress li {
-  position: relative;
   display: grid;
-  justify-items: center;
-  gap: 5px;
+  align-items: start;
+  gap: 8px;
   min-width: 0;
   color: var(--pls-text-secondary);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  text-align: center;
-
-  &::before,
-  &::after {
-    content: "";
-    position: absolute;
-    top: calc(var(--configuration-bubble) / 2);
-    z-index: 0;
-    height: 1px;
-    background: color-mix(in srgb, var(--pls-gold, var(--pls-primary)) 42%, var(--pls-border));
-  }
-
-  &::before {
-    left: 0;
-    right: calc(50% + (var(--configuration-bubble) / 2));
-  }
-
-  &::after {
-    left: calc(50% + (var(--configuration-bubble) / 2));
-    right: 0;
-  }
-
-  &:first-child::before,
-  &:last-child::after {
-    display: none;
-  }
+  line-height: 1.15;
+  text-align: left;
 }
 
 .configurationStepDone {
   color: var(--pls-primary);
-
-  &::before,
-  &::after {
-    background: var(--pls-primary);
-  }
 }
 
 .configurationStepCurrent {
   color: var(--pls-primary);
-
-  &::before {
-    background: var(--pls-primary);
-  }
-}
-
-.configurationStepDone + li::before {
-  background: var(--pls-primary);
 }
 
 .configurationBubble {
-  position: relative;
-  z-index: 1;
-  display: inline-grid;
-  place-items: center;
-  width: var(--configuration-bubble);
-  height: var(--configuration-bubble);
-  border: 1px solid var(--pls-border-strong);
-  border-radius: 50%;
-  background: var(--pls-white);
-  color: var(--pls-primary);
-  line-height: 1;
-
-  svg {
-    display: block;
-  }
+  display: block;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--pls-border) 78%, var(--pls-white));
 }
 
 .configurationStepDone .configurationBubble {
-  border-color: var(--pls-primary);
   background: var(--pls-primary);
-  color: var(--pls-white);
 }
 
 .configurationStepCurrent .configurationBubble {
-  border-color: var(--pls-gold, var(--pls-primary));
-  background: var(--pls-gold-soft, var(--pls-primary-soft));
-  border-width: 2px;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--pls-gold, var(--pls-primary)) 14%, transparent);
+  background: var(--pls-gold, var(--pls-primary));
+}
+
+.configurationStepLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  white-space: nowrap;
+
+  svg {
+    flex: 0 0 auto;
+  }
 }
 
 .ownerKpis + .metrics {
@@ -929,17 +946,24 @@
   }
 
   .configurationCard {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    justify-self: stretch;
+    width: 100%;
   }
 
-  .configurationFlow {
-    grid-template-columns: 1fr;
-    gap: 10px;
+  .dashboardHighlights {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .configurationFooter {
-    justify-content: space-between;
+  .ownerKpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ownerKpiCell:nth-child(odd) {
+    border-left: 0;
+  }
+
+  .ownerKpiCell:nth-child(n + 3) {
+    border-top: 1px solid var(--pls-border);
   }
 }
 
@@ -949,33 +973,34 @@
   }
 
   .ownerKpis {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .configurationCard {
-    grid-template-columns: 1fr;
-    align-items: start;
+  .ownerKpiCell {
+    min-height: 100px;
     padding: 15px;
   }
 
+  .configurationCard {
+    padding: 16px;
+  }
+
+  .configurationHeading {
+    gap: 12px;
+  }
+
   .configurationProgress {
-    --configuration-bubble: 22px;
     width: 100%;
+    gap: 8px;
   }
 
   .configurationProgress li {
-    gap: 5px;
-    font-size: 10px;
-  }
-
-  .configurationFooter {
-    flex-wrap: wrap;
-    gap: var(--ds-space-2);
-    max-width: 100%;
+    gap: 7px;
+    font-size: 11px;
   }
 
   .configurationAction {
-    min-height: 34px;
+    white-space: normal;
   }
 
   .metrics,

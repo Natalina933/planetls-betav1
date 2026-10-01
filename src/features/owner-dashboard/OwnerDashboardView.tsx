@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { toHousingPhotoUrl } from "@/app/lib/housingPhotoUrl";
 import Link from "next/link";
-import { ArrowUpRight, CalendarDays, Check, ChevronLeft, ChevronRight, CircleCheck, Euro, FileText, House, MessageCircle, Plus, Search, Sparkles, Wrench } from "lucide-react";
+import { ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, CircleCheck, FileText, House, MessageCircle, Plus, Search, Sparkles, Wrench } from "lucide-react";
 import type { useOwnerDashboardData } from "@/app/dashboard/owner/useOwnerDashboardData";
 import { matchesHousingReference } from "@/app/lib/listingReferences";
 import { ownerDashboardContent as copy } from "./ownerDashboardContent";
@@ -15,7 +15,9 @@ import { Badge } from "@/components/ui/Badge/Badge";
 import { Input } from "@/components/ui/Input/Input";
 import { Select } from "@/components/ui/Select/Select";
 import { Textarea } from "@/components/ui/Textarea/Textarea";
-import { DashboardMetricCard, DashboardTimelineCard, type DashboardTimelineItem, type DashboardTimelineStatus } from "@/components/ui/dashboard/saas";
+import { DashboardTimelineCard, type DashboardTimelineItem, type DashboardTimelineStatus } from "@/components/ui/dashboard/saas";
+import { DashboardConfigurationCard, OWNER_CONFIGURATION_STEPS } from "@/features/shared/components";
+import { OwnerNetworkSpotlight } from "./OwnerNetworkSpotlight";
 import styles from "./OwnerDashboardView.module.scss";
 
 type Data = ReturnType<typeof useOwnerDashboardData>;
@@ -23,10 +25,10 @@ type Mission = Data["missions"][number];
 const root = "/dashboard/owner";
 const validDate = (value?: string | null) => value && Number.isFinite(Date.parse(value)) ? new Date(value) : null;
 const dateLabel = (value?: string | null) => validDate(value)?.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) ?? copy.unknownDate;
-const moneyLabel = (value: number) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(value);
 const isStay = (mission: Mission) => (mission.metadata?.mission_kind || mission.metadata?.kind) === "traveler_stay";
 const isCanceled = (mission: Mission) => ["canceled", "cancelled", "rejected"].includes(mission.status ?? "");
 const normalize = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("fr");
+const normalizeStatus = (value: unknown) => typeof value === "string" ? value.trim().toLowerCase() : "";
 const isWithinNextDays = (value: string | null | undefined, start: Date, days: number) => {
   const date = validDate(value);
   if (!date) return false;
@@ -59,6 +61,26 @@ const isCleaningMission = (mission: Mission) => {
   const text = `${mission.title ?? ""} ${mission.description ?? ""}`.toLocaleLowerCase("fr");
   return text.includes("ménage") || text.includes("menage");
 };
+const isMissionToOrganize = (mission: Mission) => {
+  if (isStay(mission) || isCanceled(mission)) return false;
+  const status = normalizeStatus(mission.status);
+  const workflowStatus = normalizeStatus(mission.workflow_status);
+  const hasAssignee = Boolean(mission.concierge_name?.trim());
+  return !hasAssignee || ["to_schedule", "date_requested", "date_proposed"].includes(status) || ["to_schedule", "date_requested", "date_proposed"].includes(workflowStatus);
+};
+const isOwnerDecisionQuote = (quote: Data["quotes"][number]) => ["sent", "pending"].includes(normalizeStatus(quote.status));
+const requestHasPendingQuote = (request: Data["serviceRequests"][number]) => (
+  normalizeStatus(request.quote_workflow_status) === "quote_pending" ||
+  normalizeStatus(request.status) === "quoted" ||
+  request.recipients?.some((recipient) => ["quoted", "sent"].includes(normalizeStatus(recipient.quote_status))) === true
+);
+const isOwnerActionRequest = (request: Data["serviceRequests"][number]) => {
+  const status = normalizeStatus(request.status);
+  const workflowStatus = normalizeStatus(request.request_workflow_status ?? request.workflow_status);
+  if (["draft", "information_requested"].includes(status) || ["draft", "information_requested"].includes(workflowStatus)) return true;
+  return requestHasPendingQuote(request);
+};
+const countLabel = (count: number, singular: string, plural: string) => `${count} ${count > 1 ? plural : singular}`;
 
 function Section({ title, href, label, children, id }: { title: string; href?: string; label?: string; children: ReactNode; id?: string }) {
   return <Card variant="large" className={styles.card} id={id}><CardHeader className={styles.sectionHeader}><h2>{title}</h2>{href && <ButtonLink variant={label === copy.addProperty ? "primary" : "ghost"} className={label === copy.addProperty ? styles.primary : styles.sectionLink} href={href}>{label ?? copy.all}<ArrowUpRight size={15} aria-hidden="true" /></ButtonLink>}</CardHeader><CardBody className={styles.sectionBody}>{children}</CardBody></Card>;
@@ -101,33 +123,6 @@ type ConfigurationStatus = {
   onResume: () => void;
 };
 
-const configurationSteps = [
-  { key: "project", label: "Projet" },
-  { key: "housing", label: "Logement" },
-  { key: "organization", label: "Organisation" },
-] as const;
-
-function getConfigurationCopy(completed: number) {
-  if (completed === 0) {
-    return {
-      title: "Finalisez votre espace",
-      actionLabel: "Configurer mes préférences",
-    };
-  }
-
-  if (completed >= 3) {
-    return {
-      title: "Votre espace est configuré",
-      actionLabel: "Voir mes préférences",
-    };
-  }
-
-  return {
-    title: "Finalisez votre espace",
-    actionLabel: "Continuer",
-  };
-}
-
 export default function OwnerDashboardView({
   data,
   userId,
@@ -144,11 +139,17 @@ export default function OwnerDashboardView({
   const arrivals = stays.filter((stay) => (validDate(stay.scheduled_start)?.getTime() ?? 0) >= today.getTime()).sort((a, b) => Date.parse(a.scheduled_start!) - Date.parse(b.scheduled_start!));
   const interventions = data.missions.filter((mission) => !isStay(mission) && !isCanceled(mission));
   const propertyName = (mission: Mission) => data.properties.find((property) => matchesHousingReference({ propertyId: mission.property_id ?? null, metadata: mission.metadata ?? null }, property.id))?.nom_logement ?? copy.unknownProperty;
-  const pendingQuotes = data.quotes.filter((quote) => ["sent", "pending"].includes(quote.status ?? ""));
-  const upcomingMissions = data.missions.filter((mission) => !isCanceled(mission) && isWithinNextDays(mission.scheduled_start, today, 7));
+  const pendingQuotes = data.quotes.filter(isOwnerDecisionQuote);
+  const upcomingStays = stays.filter((stay) => isWithinNextDays(stay.scheduled_start, today, 7));
+  const missionsToOrganize = data.missions.filter(isMissionToOrganize);
+  const actionRequests = data.serviceRequests.filter(isOwnerActionRequest);
+  const actionsRequiredCount = pendingQuotes.length + actionRequests.length;
   const monthlyExpenses = data.invoices
     .filter((invoice) => invoice.status !== "canceled" && isCurrentMonth(invoice.created_at || invoice.due_date || invoice.updated_at, today))
     .reduce((total, invoice) => total + (invoice.total_amount ?? invoice.balance_amount ?? 0), 0);
+  const actionsRequiredHint = actionsRequiredCount > 0
+    ? [pendingQuotes.length ? countLabel(pendingQuotes.length, "devis", "devis") : null, actionRequests.length ? countLabel(actionRequests.length, "demande", "demandes") : null].filter(Boolean).join(" · ")
+    : "Rien à traiter";
   const nextArrival = arrivals[0] ?? null;
   const nextArrivalNights = nextArrival ? (() => {
     const start = validDate(nextArrival.scheduled_start);
@@ -166,10 +167,10 @@ export default function OwnerDashboardView({
   const searchItems = [...data.properties.map((property) => ({ id: `housing-${property.id}`, title: property.nom_logement || copy.unknownProperty, detail: property.ville || "", href: `${root}/logements/${property.id}` })), ...arrivals.map((stay) => ({ id: stay.id, title: stay.title || copy.upcoming, detail: propertyName(stay), href: `${root}/missions/${stay.id}` })), ...documents.map((document) => ({ ...document, detail: document.type }))];
   const results = query.trim() ? searchItems.filter((item) => normalize(`${item.title} ${item.detail}`).includes(normalize(query.trim()))) : [];
   const ownerKpis = [
-    { label: "Missions à venir", value: String(upcomingMissions.length), icon: CalendarDays, hint: "7 prochains jours", statusTone: "info" as const },
-    { label: "Demandes en attente", value: String(data.requestsCount), icon: CircleCheck, hint: "À suivre", statusTone: "success" as const },
-    { label: "Devis à décider", value: String(pendingQuotes.length), icon: FileText, hint: "Action requise", statusTone: "warning" as const },
-    { label: "Dépenses du mois", value: moneyLabel(monthlyExpenses), icon: Euro, hint: "Prestations du mois", statusTone: "primary" as const },
+    { label: "Séjours à venir", value: String(upcomingStays.length), hint: upcomingStays.length > 0 ? "7 prochains jours" : "Aucun séjour prévu", href: `${root}/planning` },
+    { label: "Missions à organiser", value: String(missionsToOrganize.length), hint: missionsToOrganize.length > 0 ? "Sans intervenant" : "Tout est organisé", href: `${root}/missions/overview`, tone: missionsToOrganize.length > 0 ? "attention" : "calm" },
+    { label: "Actions requises", value: String(actionsRequiredCount), hint: actionsRequiredHint, href: `${root}/devis`, tone: actionsRequiredCount > 0 ? "attention" : "calm" },
+    { label: "Résultat du mois", value: "—", hint: "Données incomplètes", href: `${root}/finances/overview`, tone: monthlyExpenses > 0 ? "neutral" : "calm" },
   ];
   const nextStepItems = data.missions.flatMap((mission): (DashboardTimelineItem & { sortDate: number })[] => {
     if (isCanceled(mission)) return [];
@@ -220,36 +221,53 @@ export default function OwnerDashboardView({
     { id: "empty-arrival", dateLabel: "Demain", date: shortDateLabel(emptyTomorrow), time: "16:00", title: "Logement", description: "Arrivée", meta: "Aucun séjour planifié", status: "pending" as const, statusLabel: "À venir" },
     { id: "empty-intervention", dateLabel: "À venir", date: "—", time: "—", title: "Logement", description: "Intervention", meta: "Aucune intervention planifiée", status: "warning" as const, statusLabel: "À confirmer" },
   ];
-  const configurationTotal = configurationStatus?.total ?? configurationSteps.length;
+  const configurationTotal = configurationStatus?.total ?? OWNER_CONFIGURATION_STEPS.length;
   const configurationCompleted = Math.max(0, Math.min(configurationStatus?.completed ?? 0, configurationTotal));
-  const configurationCopy = getConfigurationCopy(configurationCompleted);
-  const configurationCountLabel = `${configurationCompleted} sur ${configurationTotal} complété${configurationCompleted > 1 ? "s" : ""}`;
+  const configurationStatusToPass = configurationStatus
+    ? {
+        completed: configurationCompleted,
+        total: configurationTotal,
+        isComplete: configurationStatus.isComplete,
+        onResume: configurationStatus.onResume,
+      }
+    : undefined;
   return <div className={styles.dashboard} data-owner-dashboard="">
-    {configurationStatus ? <section className={styles.configurationCard} aria-label="Configuration de votre espace">
-      <div className={styles.configurationHeading}>
-        <span className={styles.eyebrow}>CONFIGURATION</span>
-        <h2>{configurationCopy.title}</h2>
-      </div>
-      <div className={styles.configurationFlow}>
-        <ol className={styles.configurationProgress} aria-label={configurationCountLabel}>
-          {configurationSteps.map((step, index) => {
-            const isDone = index < configurationCompleted;
-            const isCurrent = !isDone && index === configurationCompleted && configurationCompleted < configurationSteps.length;
-            return (
-              <li key={step.key} className={isDone ? styles.configurationStepDone : isCurrent ? styles.configurationStepCurrent : undefined}>
-                <span className={styles.configurationBubble}>{isDone ? <Check size={14} strokeWidth={3} aria-hidden="true" /> : null}</span>
-                <span>{step.label}</span>
-              </li>
-            );
-          })}
-        </ol>
-        <div className={styles.configurationFooter}>
-          <strong>{configurationCountLabel}</strong>
-          <ButtonLink className={styles.configurationAction} href="/dashboard/owner/objectifs">{configurationCopy.actionLabel}</ButtonLink>
-        </div>
-      </div>
-    </section> : null}
-    <div className={styles.ownerKpis}>{ownerKpis.map(({ label, value, icon: Icon, hint, statusTone }) => <DashboardMetricCard key={label} label={label} value={value} detail={hint} icon={<Icon size={20} aria-hidden="true" />} statusTone={statusTone} showLabel />)}</div>
+    <div className={styles.dashboardHighlights}>
+      {configurationStatusToPass ? (
+        <DashboardConfigurationCard
+          steps={OWNER_CONFIGURATION_STEPS}
+          configurationStatus={configurationStatusToPass}
+          expanded
+        />
+      ) : null}
+      <OwnerNetworkSpotlight
+        housing={data.properties.map((property) => ({
+          name: property.nom_logement,
+          city: property.ville,
+        }))}
+        urgentMissions={data.missions.filter(
+          (mission) => mission.priority === "urgent" && !isCanceled(mission)
+        )}
+      />
+    </div>
+    <section className={styles.ownerKpis} aria-label="Indicateurs principaux propriétaire">
+      {ownerKpis.map(({ label, value, hint, href, tone }) => {
+        const content = <>
+          <span className={styles.ownerKpiLabel}>{label}</span>
+          <strong className={styles.ownerKpiValue}>{value}</strong>
+          <span className={styles.ownerKpiHint}>{hint}</span>
+        </>;
+        return href ? (
+          <Link key={label} className={styles.ownerKpiCell} href={href} data-tone={tone}>
+            {content}
+          </Link>
+        ) : (
+          <article key={label} className={styles.ownerKpiCell} data-tone={tone}>
+            {content}
+          </article>
+        );
+      })}
+    </section>
     <div className={styles.metrics}>{[
       { label: copy.upcoming, value: arrivals.length, icon: CalendarDays, hint: copy.recentData },
       { label: copy.actions, value: actions.reduce((total, action) => total + action.count, 0), icon: CircleCheck, hint: copy.recentData },

@@ -92,9 +92,18 @@ type OwnerConversationRow = {
 
 type OwnerServiceRequestRow = {
   id: string;
+  status?: string | null;
+  workflow_status?: string | null;
+  request_workflow_status?: string | null;
+  quote_workflow_status?: string | null;
+  mission_workflow_status?: string | null;
   property_housing_id?: string | number | null;
   selected_concierge_name?: string | null;
   selected_concierge_profile_id?: string | null;
+  recipients?: Array<{
+    status?: string | null;
+    quote_status?: string | null;
+  }>;
 };
 
 function isActiveHousingStatus(status: string | null) {

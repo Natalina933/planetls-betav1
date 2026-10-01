@@ -96,6 +96,10 @@ $themes: (
     color var(--ds-motion-normal) var(--ds-ease-premium);
 }
 
+.dashboard-root[data-owner-dashboard] {
+  --ds-layout-sidebar: 252px;
+}
+
 .dashboard-main {
   flex: 1;
   min-width: 0;

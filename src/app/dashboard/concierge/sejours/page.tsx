@@ -53,6 +53,13 @@ type StayReservationDetail = {
   timeline?: ReservationTimelineItem[];
 };
 
+type TakeOverStatus = "missions_failed" | "reservation_update_failed_after_missions";
+
+type ReservationPatchResponse = StayReservationDetail & {
+  error?: string;
+  take_over_status?: TakeOverStatus;
+};
+
 const FILTERS: Array<{ id: StayFilter; label: string }> = [
   { id: "all", label: "Tous" },
   { id: "today", label: "Aujourd'hui" },
@@ -87,6 +94,16 @@ function formatDateTime(value: string | null | undefined) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
+}
+
+function takeoverErrorMessage(data: ReservationPatchResponse) {
+  if (data.take_over_status === "reservation_update_failed_after_missions") {
+    return "Les missions ont été créées ou réutilisées, mais la prise en charge du séjour n'a pas été enregistrée. Vous pouvez réessayer.";
+  }
+  if (data.take_over_status === "missions_failed") {
+    return data.error || "Les missions du séjour n'ont pas pu être créées. La prise en charge n'a pas été enregistrée.";
+  }
+  return data.error || "Impossible de mettre à jour le séjour.";
 }
 
 function formatDate(value: string | null | undefined) {
@@ -285,8 +302,8 @@ export default function ConciergeTravelerStaysPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = (await response.json()) as StayReservationDetail & { error?: string };
-      if (!response.ok) throw new Error(data?.error || "Impossible de mettre a jour le sejour.");
+      const data = (await response.json()) as ReservationPatchResponse;
+      if (!response.ok) throw new Error(takeoverErrorMessage(data));
       setSelectedDetail(data);
       setDetailSuccess("Suivi collaboratif mis a jour.");
       return data;
@@ -311,24 +328,7 @@ export default function ConciergeTravelerStaysPage() {
     if (action === "take_over") {
       const updatedDetail = await updateReservation({ action: "take_over" });
       if (!updatedDetail || !selectedStay?.id) return;
-
-      setDetailSaving(true);
-      setDetailError(null);
-      try {
-        const response = await fetch(`/api/owner/reservations/${encodeURIComponent(selectedStay.id)}/missions`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({}),
-        });
-        const payload = (await response.json()) as { error?: string };
-        if (!response.ok) throw new Error(payload?.error || "Impossible de créer les missions du séjour.");
-        setDetailSuccess("Séjour pris en charge. Les missions sont à jour.");
-      } catch (err) {
-        setSelectedDetail(updatedDetail);
-        setDetailError(err instanceof Error ? err.message : "Impossible de créer les missions du séjour.");
-      } finally {
-        setDetailSaving(false);
-      }
+      setDetailSuccess("Séjour pris en charge. Les missions sont à jour.");
       return;
     }
 

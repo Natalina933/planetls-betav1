@@ -32,6 +32,7 @@ import {
   type ProviderInterventionItem,
   type ProviderQuoteItem,
 } from "@/app/dashboard/provider/useProviderDashboardData";
+import { DashboardConfigurationCard, PROVIDER_CONFIGURATION_STEPS, getProviderConfigurationProgress } from "@/features/shared/components";
 import styles from "@/app/dashboard/provider/ProviderDashboard.module.scss";
 
 function getDateTime(value: string | null | undefined) {
@@ -169,6 +170,11 @@ function getQuoteClientLabel(quote: ProviderQuoteItem) {
 
 export default function ProviderDashboardPage() {
   const { workspace, dashboard, error, isLoading, displayName } = useProviderDashboardData();
+
+  const providerProgress = useMemo(
+    () => getProviderConfigurationProgress(workspace?.profile),
+    [workspace?.profile],
+  );
 
   const interventions = useMemo(() => dashboard?.interventions ?? [], [dashboard?.interventions]);
   const clients = useMemo(() => dashboard?.clients ?? [], [dashboard?.clients]);
@@ -506,6 +512,15 @@ export default function ProviderDashboardPage() {
         ]}
         leftPrimary={
           <div className={styles.sectionBlock}>
+            <DashboardConfigurationCard
+              steps={PROVIDER_CONFIGURATION_STEPS}
+              configurationStatus={{
+                completed: providerProgress.completed,
+                total: providerProgress.total,
+                isComplete: providerProgress.isComplete,
+                onResume: () => {},
+              }}
+            />
             <article className={styles.priorityHero}>
               <span className={styles.priorityBadge}>
                 {priorityIntervention?.priority === "urgent" ? "Intervention urgente" : "Mission prioritaire"}
