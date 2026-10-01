@@ -1,3 +1,8 @@
+// DOCUMENT HISTORIQUE - ne pas utiliser comme source de vérité actuelle.
+// Ces exemples citent l'ancienne couche de thèmes et les variables
+// --color-* / --background. Pour le nouveau code, utiliser DESIGN_SYSTEM.md
+// et les tokens canoniques --ds-* de src/styles/tokens/tokens.css.
+//
 // ============================================
 // EXEMPLES D'UTILISATION DU SYSTÈME DE THÈMES
 // ============================================

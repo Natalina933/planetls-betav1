@@ -1,3 +1,11 @@
+# DOCUMENT HISTORIQUE - ne pas utiliser comme source de vérité actuelle
+
+Ce guide concerne une ancienne intégration de thème basée sur `ThemeContext`
+et les variables `--color-*` / `--background`. Les chemins cités ici ne doivent
+pas piloter les prochaines modifications. La source actuelle du Design System
+est `DESIGN_SYSTEM.md`, avec `src/styles/tokens/tokens.css` pour les tokens
+modernes `--ds-*`.
+
 # 🎨 Guide d'Intégration Finale - Système de Thèmes
 
 ## ✅ Étapes d'Intégration Complètes

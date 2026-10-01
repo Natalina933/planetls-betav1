@@ -4,7 +4,9 @@ Ce dossier contient la couche de fondation visuelle partagée du projet.
 
 ## Tokens
 
-Les tokens globaux vivent dans `src/styles/_variables.scss`.
+Les tokens globaux canoniques vivent dans `src/styles/tokens/tokens.css`.
+`src/styles/_variables.scss` et les façades Sass historiques restent des
+couches de compatibilité.
 
 Priorité d'usage :
 

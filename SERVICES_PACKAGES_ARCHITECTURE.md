@@ -1,3 +1,15 @@
+# DOCUMENT DE RÉFÉRENCE HISTORIQUE - à lire avec l'état actuel du code
+
+Ce document a été rédigé comme proposition d'architecture. Une partie du flux
+existe désormais dans le code : `ServicePackageManager`, `PricingGridManager`,
+`ContractTemplateManager`, les routes dashboard et les tables
+`services_packages`, `services_package_items`, `pricing_packages` et
+`contract_templates` sont présentes dans les migrations Supabase et les types.
+
+Ne pas recréer ces tables depuis les exemples SQL ci-dessous. Pour l'état réel,
+vérifier `docs/master-plan-planetls.md`, les migrations Supabase et les routes
+API actuelles.
+
 # 🎯 Architecture Professionnelle : Services → Tarifs → Contrats
 
 ## 📋 Vue d'ensemble

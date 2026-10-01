@@ -1,3 +1,11 @@
+# DOCUMENT HISTORIQUE - ne pas utiliser comme source de vérité actuelle
+
+Ce guide décrit une ancienne couche de thèmes `src/app/styles/themes/` et ses
+variables `--color-*` / `--background`. Pour tout nouveau travail UI, utiliser
+`DESIGN_SYSTEM.md` et `src/styles/tokens/tokens.css`, dont les tokens `--ds-*`
+sont canoniques. Les fichiers de thèmes existants sont une compatibilité, pas
+une nouvelle source de tokens ni une invitation à créer une palette parallèle.
+
 # 🎨 Système de Thèmes - Documentation
 
 ## Vue d'ensemble

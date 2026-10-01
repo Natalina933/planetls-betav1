@@ -1,3 +1,15 @@
+# DOCUMENT HISTORIQUE - ne pas utiliser comme source de vérité actuelle
+
+Ce document décrit une ancienne implémentation du système de thèmes. Il cite
+`ThemeContext`, des chemins et des variables `--color-*` / `--background`
+qui ne sont plus la source canonique du Design System PlanetLS.
+
+Sources actuelles à utiliser :
+
+- `DESIGN_SYSTEM.md`
+- `src/styles/tokens/tokens.css` pour les tokens modernes `--ds-*`
+- `src/components/ui/` pour les primitives réellement disponibles
+
 # 🎨 Résumé des Améliorations de Thèmes
 
 ## ✅ Travail Effectué

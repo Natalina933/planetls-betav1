@@ -1,5 +1,34 @@
 # Master Plan PlanetLS
 
+### Équipe d'agents PlanetLS — 1er octobre 2026
+
+- Agents IA spécialisés **✅ Terminé — P2 Important** : création de `Développeur PlanetLS`, `Auditeur métier PlanetLS`, `Auditeur sécurité & data PlanetLS` et `Auditeur performance PlanetLS` dans `.github/agents/`, au même format que l'auditeur design existant.
+- Gouvernance : les quatre agents héritent des Instructions projet et renvoient vers les sources canoniques (`docs/master-plan-planetls.md`, `DESIGN_SYSTEM.md`, `src/styles/tokens/tokens.css`, `DESIGN.md`) sans recopier les règles globales. Les documents HISTORIQUE sont explicitement exclus comme preuves actuelles.
+- Droits : seul `Développeur PlanetLS` reçoit un rôle général de modification via l'outil `edit`. Les auditeurs design, métier, sécurité/data et performance restent lecture/inspection/vérification avec `read`, `search`, `execute`; l'usage de `execute` est limité aux commandes de lecture, inspection ou vérification.
+- Limites : aucune modification applicative, Supabase, migration, API, RLS, route ou logique métier. Les agents ne remplacent pas les vérifications projet ni les preuves code/tests exigées par les missions importantes.
+
+### Nettoyage documentaire et sources de vérité IA — 1er octobre 2026
+
+- Documentation projet **✅ Terminé — P2 Important** : les guides de thèmes historiques (`THEMES_SUMMARY.md`, `INTEGRATION_GUIDE.md`, `src/app/styles/themes/README.md`, `src/app/styles/themes/EXAMPLES.md`) sont explicitement marqués comme non canoniques. Ils ne doivent plus guider les agents vers `ThemeContext`, `--color-*` ou `--background`.
+- Source Design System confirmée : `DESIGN_SYSTEM.md` décrit l'architecture, `src/styles/tokens/tokens.css` reste la source des tokens modernes `--ds-*`, et `src/components/ui/` reste la bibliothèque de primitives. Le skill `DESIGN.md` explique la méthode d'usage sans devenir une seconde source de tokens.
+- Documentation services/packs/tarifs/contrats : `SERVICES_PACKAGES_ARCHITECTURE.md` est conservé comme référence historique ; les tables et composants cités existent déjà en partie dans le code et les migrations, donc ses exemples SQL ne doivent pas être rejoués comme une nouvelle consigne.
+- Limites : aucune modification applicative, API, Supabase, migration, RLS, route ou logique métier. Les futurs agents PlanetLS ne sont pas créés dans cette mission ; la documentation nettoyée prépare seulement leur cadrage.
+
+### Mise en avant du réseau professionnel Owner — 1er octobre 2026
+
+- Composant partagé `PlanetLSNetworkCard` intégré au dashboard Owner **🟠 Partiel — P2 Important**. Le contenu est configurable pour les prochains espaces, mais seul Owner est branché dans ce lot.
+- La sélection réutilise `GET /api/profiles/concierges` et la ville des logements Owner ; la réponse de recherche transporte désormais `profiles.created_at` et la requête charge les profils les plus récents en premier. Le profil le plus récent de la ville renseignée est préféré, sinon le plus récent de la sélection retournée. Aucun statut actif fiable n'étant exposé par cette API, il n'est pas utilisé.
+- Limites : la route existante ne couvre que les concierges ; compteurs « partenaires », « services » et « nouveaux » omis car les résultats sont limités et la date d'inscription ne permet pas de calculer un compteur global. Aucune disponibilité n'est affichée. Aucun changement de migration, RLS ou workflow métier.
+- Vérifications locales : `npm run typecheck`, ESLint ciblé et `git diff --check` réussis. L'endpoint existant conserve son contrôle owner côté serveur ; le refus cross-rôle n'a pas été retesté dans ce lot.
+- Prochaine action : recette visuelle Owner en Light/Sepia/Dark et validation de la sélection en session connectée ; étendre aux espaces Concierge et Artisan/Prestataire seulement avec leurs sources métier fiables.
+
+### Navigation latérale propriétaire — 30 septembre 2026
+
+- Sidebar Owner **🟡 En cours — P2 Important** réorganisée uniquement dans `src/app/components/dashboard/Sidebar/` : sections `Pilotage`, `Collaborations`, `Activité`, `Gestion` et `En bas`, sans créer de route, API, donnée métier, permission ou seconde sidebar.
+- Structure livrée : `Tableau de bord`, `Mes logements`, `Calendrier`, `Rechercher un partenaire`, `Mes demandes`, `Mes partenaires`, `Missions`, `Messages`, `Devis`, `Factures`, `Documents`, `Paramètres`. Les accès existants hors structure principale restent conservés en sous-entrées : ajout logement, stocks, séjours, arrivées/départs, maintenance, alertes, litiges, suivi financier et règlements.
+- Limite : aucune entrée `Aide` n'est ajoutée, faute de route owner claire existante. Le changement d'espace reste porté par le mécanisme existant de la navbar/dashboard navbar ; la sidebar affiche seulement l'identité `PlanetLS / Espace propriétaire`.
+- Preuves locales : existence des routes owner relue, `npm run typecheck` réussi et `git diff --check` ciblé réussi. Reste à faire : recette visuelle connectée desktop/mobile et Light/Sepia/Dark.
+
 ### Onboarding post-inscription propriétaire LOT 1 — 29 septembre 2026
 
 - Onboarding post-inscription propriétaire, remplacement du parcours `business+` **🟡 En cours — P1 Prioritaire**. Sur `/dashboard/owner`, `OwnerPostSignupOnboarding.tsx` remplace l'ancienne popup de première connexion `FirstLoginOnboardingPopup path="business+"` et son marqueur localStorage ; la modale ne s'affiche que si `useCurrentUser().user.onboarding_complete === false`, comme le parcours concierge.
