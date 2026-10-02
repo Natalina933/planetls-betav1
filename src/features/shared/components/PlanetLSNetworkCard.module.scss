@@ -27,7 +27,7 @@
 
 .eyebrow,
 .featuredLabel {
-  color: var(--ds-color-primary);
+  color: #c9a969;
   font-size: var(--ds-text-xs);
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -35,7 +35,7 @@
 }
 
 .intro h2 {
-  color: var(--pls-text);
+  color: #c9a969;
   font-family: var(--ds-font-heading);
   font-size: clamp(16px, 1.5vw, 19px);
   font-weight: 650;
@@ -105,7 +105,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #c9a969;
+  color: #d4af37;
   font-size: 13px;
   font-weight: 600;
   line-height: 1.4;
@@ -197,15 +197,12 @@
   border-radius: 50%;
   background: color-mix(in srgb, var(--ds-color-primary) 12%, var(--pls-white));
   color: var(--ds-color-primary);
-}
 
-.iconPlaceholder {
-  display: block;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: currentColor;
-  opacity: 0.7;
+  img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+  }
 }
 
 .categoryContent {
@@ -343,6 +340,7 @@
   font-size: var(--ds-text-xs);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .services {

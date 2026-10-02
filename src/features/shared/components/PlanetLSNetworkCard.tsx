@@ -92,18 +92,21 @@ export function PlanetLSNetworkCard({
       label: "Conciergerie & accueil",
       description: "Accueil & gestion des séjours",
       href: "/dashboard/owner/concierges?categories=Accueil",
+      icon: "/icons/door-to-door-svgrepo-com.svg",
     },
     {
       key: "menage",
       label: "Ménage & linge",
       description: "Nettoyage, linge et remises à neuf",
       href: "/dashboard/owner/concierges?categories=Ménage,Linge",
+      icon: "/icons/washing-machine-svgrepo-com.svg",
     },
     {
       key: "maintenance",
       label: "Maintenance & dépannage",
       description: "Réparation, entretien, urgences",
       href: "/dashboard/owner/concierges?categories=Maintenance",
+      icon: "/icons/hammer-icon.svg",
     },
   ];
 
@@ -143,7 +146,15 @@ export function PlanetLSNetworkCard({
         {categories.map((category) => (
           <article key={category.key} className={styles.category}>
             <span className={styles.categoryIcon} aria-hidden="true">
-              <span className={styles.iconPlaceholder} />
+              {category.icon && (
+                <Image
+                  src={category.icon}
+                  alt=""
+                  width={18}
+                  height={18}
+                  unoptimized
+                />
+              )}
             </span>
             <div className={styles.categoryContent}>
               <h3>{category.label}</h3>
