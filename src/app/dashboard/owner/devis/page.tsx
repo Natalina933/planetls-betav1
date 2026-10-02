@@ -107,6 +107,9 @@ type AcceptedWorkflowPayload = {
   accepted_workflow?: {
     mission_id?: string | null;
     invoice_id?: string | null;
+    collaboration_id?: string | null;
+    collaboration_status?: string | null;
+    collaboration_kind?: string | null;
   } | null;
   completed_action?: {
     next_action?: string | null;
@@ -202,16 +205,30 @@ function getAcceptedWorkflowMessage(payload: AcceptedWorkflowPayload) {
     payload.completed_action?.next_action && payload.completed_action.next_action.trim()
       ? ` Prochaine étape : ${payload.completed_action.next_action.trim()}`
       : "";
+  const kind = payload.accepted_workflow?.collaboration_kind ?? null;
+  const link = payload.completed_action?.next_href ?? null;
+  const actionLink =
+    kind === "transmit_stay" && link ? { label: "Transmettre un séjour", href: link } : null;
+  const contractLink =
+    kind === "finalize_contract" || kind === "contract_scheduled"
+      ? { label: "Finaliser mon contrat", href: "/dashboard/owner/devis#collaborations-en-attente" }
+      : null;
   const missionReady = Boolean(payload.accepted_workflow?.mission_id);
   const invoiceReady = Boolean(payload.accepted_workflow?.invoice_id);
 
+  if (kind === "transmit_stay") {
+    return { message: `Accepté : collaboration active.${nextAction}`, actionLink, contractLink: null };
+  }
+  if (kind === "contract_scheduled") {
+    return { message: `Accepté : contrat signé, démarrage programmé.${nextAction}`, actionLink: null, contractLink };
+  }
   if (missionReady && invoiceReady) {
-    return `Accepté : la conciergerie devient partenaire. La mission commerciale est créée et une facture brouillon est disponible dans les finances.${nextAction || " Vous pouvez ensuite transmettre les séjours voyageurs."}`;
+    return { message: `Accepté : la mission commerciale est créée et une facture brouillon est disponible dans les finances.${nextAction || " Finalisez votre contrat avant de transmettre un séjour."}`, actionLink: null, contractLink };
   }
   if (missionReady) {
-    return `Accepté : la conciergerie devient partenaire. La mission commerciale est créée.${nextAction || " Vous pouvez ensuite transmettre les séjours voyageurs depuis l’espace dédié."}`;
+    return { message: `Accepté : la mission commerciale est créée.${nextAction || " Finalisez votre contrat avant de transmettre un séjour."}`, actionLink: null, contractLink };
   }
-  return `Accepté : la collaboration est validée et les onglets partenaires, demandes et finances sont synchronisés.${nextAction}`;
+  return { message: `Accepté : devis validé.${nextAction}`, actionLink: null, contractLink };
 }
 
 function getQuoteWorkflowSteps(quote: OwnerQuoteRow): WorkflowTimelineStep[] {
@@ -275,6 +292,7 @@ function OwnerQuotesContent() {
   const [selectingRequestId, setSelectingRequestId] = useState<string | null>(null);
   const [busyQuoteAction, setBusyQuoteAction] = useState<string | null>(null);
   const [rejectReasons, setRejectReasons] = useState<Record<string, string>>({});
+  const [successLink, setSuccessLink] = useState<{ label: string; href: string } | null>(null);
   const targetQuoteId = searchParams.get("quote");
   const targetRequestId = searchParams.get("request");
 
@@ -487,6 +505,7 @@ function OwnerQuotesContent() {
     try {
       setSelectingRequestId(requestId);
       setSuccess(null);
+      setSuccessLink(null);
       setError(null);
 
       const response = await fetch(`/api/service-requests/${requestId}/select`, {
@@ -499,7 +518,9 @@ function OwnerQuotesContent() {
       if (!response.ok) throw new Error(ownerApiError("Impossible de retenir ce concierge.", payload?.error));
 
       await loadData();
-      setSuccess(getAcceptedWorkflowMessage(payload as AcceptedWorkflowPayload));
+      const accepted = getAcceptedWorkflowMessage(payload as AcceptedWorkflowPayload);
+      setSuccess(accepted.message);
+      setSuccessLink(accepted.actionLink ?? accepted.contractLink ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : ownerApiError("Impossible de retenir ce concierge."));
     } finally {
@@ -511,6 +532,7 @@ function OwnerQuotesContent() {
     try {
       setBusyQuoteAction(`${quoteId}:${status}`);
       setSuccess(null);
+      setSuccessLink(null);
       setError(null);
 
       const response = await fetch(`/api/quotes/${quoteId}/status`, {
@@ -526,11 +548,13 @@ function OwnerQuotesContent() {
       if (!response.ok) throw new Error(ownerApiError("Impossible de mettre à jour ce devis.", payload?.error));
 
       await loadData();
-      setSuccess(
-        status === "accepted"
-          ? getAcceptedWorkflowMessage(payload as AcceptedWorkflowPayload)
-          : "Refus enregistré : le devis est sorti de la comparaison active et la conciergerie est notifiée.",
-      );
+      if (status === "accepted") {
+        const accepted = getAcceptedWorkflowMessage(payload as AcceptedWorkflowPayload);
+        setSuccess(accepted.message);
+        setSuccessLink(accepted.actionLink ?? accepted.contractLink ?? null);
+      } else {
+        setSuccess("Refus enregistré : le devis est sorti de la comparaison active et la conciergerie est notifiée.");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : ownerApiError("Impossible de mettre à jour ce devis."));
     } finally {
@@ -611,7 +635,22 @@ function OwnerQuotesContent() {
 
         {loading ? <AsyncState loading loadingPresentation="text" loadingLabel="Chargement des devis...">{null}</AsyncState> : null}
         {!loading && error ? <Alert tone="danger" appearance="message" announcement="assertive" action={<Button variant="secondary" onClick={() => void loadData()}>Réessayer</Button>}>{error}</Alert> : null}
-        {success ? <Alert tone="success" appearance="message" announcement="polite">{success}</Alert> : null}
+        {success ? (
+          <Alert
+            tone="success"
+            appearance="message"
+            announcement="polite"
+            action={
+              successLink ? (
+                <ButtonLink size="compact" variant="primary" href={successLink.href}>
+                  {successLink.label}
+                </ButtonLink>
+              ) : undefined
+            }
+          >
+            {success}
+          </Alert>
+        ) : null}
 
         {!loading && !error && groupedQuotes.length === 0 ? (
           <EmptyState
@@ -928,10 +967,10 @@ function OwnerQuotesContent() {
                               ) : null}
                               {quote.status === "accepted" ? (
                                 <ButtonLink size="compact"
-                                  href={`/dashboard/owner/missions/voyageurs?quote=${encodeURIComponent(quote.id)}`}
+                                  href="/dashboard/owner/devis#collaborations-en-attente"
                                   variant="primary"
                                 >
-                                  Transmettre un séjour voyageur
+                                  Finaliser mon contrat
                                 </ButtonLink>
                               ) : null}
                             </>

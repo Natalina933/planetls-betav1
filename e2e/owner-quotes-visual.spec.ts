@@ -26,7 +26,7 @@ async function fixtures(page:Page,context:BrowserContext) {
       if(state.mode==="action-error") return route.fulfill({status:500,json:{error:"Action indisponible"}});
       if(path.endsWith("/status")) state.statuses[path.split("/")[3]]=body.status;
       if(path.endsWith("/select")) state.statuses[`quote-${body.recipient_id.split("-").at(-1)}`]="accepted";
-      json={accepted_workflow:{mission_id:"mission-1",invoice_id:"invoice-1"}};
+      json={accepted_workflow:{mission_id:"mission-1",invoice_id:"invoice-1",collaboration_id:null,collaboration_status:"pending_handover",collaboration_kind:"finalize_contract"},completed_action:{next_action:"Devis accepté : finalisez votre contrat avec votre concierge avant de transmettre un séjour.",next_href:null,visible_in:["devis","demandes","messages"]}};
     } else if(["/api/housing","/api/invoices","/api/missions","/api/reviews"].includes(path)) json=[];
     await route.fulfill({json});
   });return state;
@@ -96,7 +96,7 @@ test("devis : consultation, acceptation, refus et sélection",async({page,contex
   const popup=await popupPromise;
   await expect(popup.getByRole("heading")).toHaveText("Devis simulé");await popup.close();
   await page.getByRole("button",{name:"Accepter le devis",exact:true}).click();
-  await expect(page.getByRole("link",{name:"Transmettre un séjour voyageur"})).toHaveAttribute("href","/dashboard/owner/missions/voyageurs?quote=quote-4");
+  await expect(page.getByRole("link",{name:"Finaliser mon contrat"}).first()).toBeVisible();
   expect(state.calls).toContainEqual({path:"/api/quotes/quote-4/status",body:{status:"accepted"}});
   await page.goto("/dashboard/owner/devis?quote=quote-0");
   await page.getByRole("textbox",{name:"Motif de refus du devis"}).fill("Budget dépassé");
@@ -105,7 +105,7 @@ test("devis : consultation, acceptation, refus et sélection",async({page,contex
   expect(state.calls).toContainEqual({path:"/api/quotes/quote-0/status",body:{status:"rejected",reason:"Budget dépassé"}});
   await page.goto("/dashboard/owner/devis?quote=quote-1");
   await page.getByRole("button",{name:"Retenir ce concierge",exact:true}).click();
-  await expect(page.getByRole("link",{name:"Transmettre un séjour voyageur"})).toBeVisible();
+  await expect(page.getByRole("link",{name:"Finaliser mon contrat"}).first()).toBeVisible();
   expect(state.calls).toContainEqual({path:"/api/service-requests/request-1/select",body:{recipient_id:"recipient-1"}});
   expect(state.errors).toEqual([]);
 });
@@ -132,7 +132,7 @@ test("devis : chargement, échec de décision et reprise", async ({ page, contex
   state.mode = "action-error";
   await page.getByRole("button", { name: "Accepter le devis", exact: true }).click();
   await expect(page.getByRole("alert").filter({ hasText: "Action indisponible" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Transmettre un séjour voyageur" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Finaliser mon contrat" })).toHaveCount(0);
   state.mode = "ready";
   await page.getByRole("button", { name: "Réessayer", exact: true }).click();
   await page.getByRole("button", { name: "Accepter le devis", exact: true }).click();

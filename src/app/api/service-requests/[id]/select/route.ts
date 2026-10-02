@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { awardAcceptedQuote, QuoteAwardError, finalizeAcceptedQuoteWorkflow } from "@/app/api/_shared/acceptedQuoteWorkflow";
+import { getCollaborationNextAction } from "@/app/api/_shared/collaborationNextAction";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { createHousingFromQuote, validateHousingFromQuote, QuoteHousingValidationError } from "@/app/api/profiles/housing/shared";
 import { upsertAcceptedHousingCollaboration } from "@/app/api/_shared/housingCollaboration";
@@ -181,6 +182,11 @@ export async function POST(
       return NextResponse.json({ error: "Impossible de finaliser la sélection." }, { status: 500 });
     }
 
+    // LOT 1A : même lecture seule du statut réel de collaboration que l'autre route d'acceptation.
+    const collaborationNextAction = selectedQuote?.id
+      ? await getCollaborationNextAction({ db: dbAny, quoteId: selectedQuote.id, serviceRequestId: id })
+      : null;
+
     return NextResponse.json(
       {
         request: updatedRequest,
@@ -188,6 +194,17 @@ export async function POST(
         accepted_workflow: {
           mission_id: acceptedWorkflow?.mission?.id ?? selectedQuote?.mission_id ?? null,
           invoice_id: acceptedWorkflow?.invoice?.id ?? null,
+          collaboration_id: collaborationNextAction?.collaborationId ?? null,
+          collaboration_status: collaborationNextAction?.collaborationStatus ?? null,
+          collaboration_kind: collaborationNextAction?.kind ?? null,
+        },
+        completed_action: {
+          request_status: "accepted",
+          next_action:
+            collaborationNextAction?.nextAction ??
+            "Devis accepté : finalisez votre contrat avec votre concierge avant de transmettre un séjour.",
+          next_href: collaborationNextAction?.nextHref ?? null,
+          visible_in: collaborationNextAction?.visibleIn ?? ["devis", "demandes", "messages"],
         },
         auto_housing: autoHousing,
       },

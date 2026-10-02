@@ -35,6 +35,7 @@ export function PendingCollaborations({ refreshKey }: { refreshKey?: unknown }) 
 
   return (
     <Section tone="outlined" aria-label="Collaborations en attente" aria-busy={loading}>
+      <span id="collaborations-en-attente" aria-hidden="true" />
       <CardHeader variant="plain"><h2>Collaborations en attente</h2></CardHeader>
       {loading ? <p role="status">Chargement des collaborations…</p> : error ? (
         <div role="alert">

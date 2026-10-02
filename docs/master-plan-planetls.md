@@ -1,5 +1,16 @@
 # Master Plan PlanetLS
 
+### Signal de prochaine action post-acceptation — 2 octobre 2026
+
+- Signal de collaboration post-acceptation **🟡 En cours — P1 Prioritaire**. Nouveau helper en lecture seule `src/app/api/_shared/collaborationNextAction.ts` (`getCollaborationNextAction`) branché sur les deux parcours d'acceptation `PATCH /api/quotes/[id]/status` et `POST /api/service-requests/[id]/select`.
+- Règle métier : un devis `accepted` ne prouve jamais une collaboration `active`. Seul le statut réel `housing_collaborations.status` (lié par `quote_id`, cohérent avec `service_request_id`) et les signatures réelles (`services_contracts -> services_contract_versions -> contract_version_signatures`) décident de la prochaine action `finalize_contract | contract_scheduled | transmit_stay`.
+- Réponses API étendues : `accepted_workflow` transporte `collaboration_id/status/kind` et `completed_action` transporte `next_action`, `next_href` et `visible_in`. La page `src/app/dashboard/owner/devis/page.tsx` affiche la prochaine action réelle et un lien de poursuite (`Transmettre un séjour` si collaboration active, sinon `Finaliser mon contrat`).
+- Ancre `#collaborations-en-attente` ajoutée dans `PendingCollaborations.tsx` pour que le lien `Finaliser mon contrat` pointe vers un bloc réel.
+- Aucune migration, aucun RPC, aucune RLS, aucun changement de mission, facture ou collaboration : lecture seule uniquement.
+- Limites connues : les statuts de collaboration ne sont pas encore alignés sur la cible `pending/active/paused/ended`; les signatures ne sont lues que si un contrat canonique existe ; la page devis ne distingue pas encore visuellement `contract_scheduled` (démarrage programmé) d'une collaboration `active`.
+- Preuves locales : `npm run typecheck` OK, ESLint ciblé OK (7 fichiers), `node --experimental-strip-types --test src/tests/collaboration-next-action.test.mts` 3/3 et `commercial-workflow.test.mts` 3/3. Le test E2E `e2e/owner-quotes-visual.spec.ts` a été mis à jour mais non exécuté (Docker/Supabase local indisponible dans l'environnement).
+- Prochaine action : exécuter l'E2E `owner-quotes-visual` sur un environnement local, puis propager le même signal côté concierge et artisan (`Mon Réseau` / `Mon Activité` / `Mon Suivi`).
+
 ### Équipe d'agents PlanetLS — 1er octobre 2026
 
 - Agents IA spécialisés **✅ Terminé — P2 Important** : création de `Développeur PlanetLS`, `Auditeur métier PlanetLS`, `Auditeur sécurité & data PlanetLS` et `Auditeur performance PlanetLS` dans `.github/agents/`, au même format que l'auditeur design existant.

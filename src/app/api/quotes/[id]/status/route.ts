@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { awardAcceptedQuote, QuoteAwardError, finalizeAcceptedQuoteWorkflow } from "@/app/api/_shared/acceptedQuoteWorkflow";
+import { getCollaborationNextAction } from "@/app/api/_shared/collaborationNextAction";
 import { upsertAcceptedHousingCollaboration } from "@/app/api/_shared/housingCollaboration";
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { deriveQuoteWorkflowStatus } from "@/app/lib/commercialWorkflow";
@@ -481,6 +482,12 @@ export async function PATCH(
       },
     });
 
+    // LOT 1A : lecture seule du statut réel de collaboration (jamais de devis accepted => active).
+    const collaborationNextAction =
+      nextStatus === "accepted"
+        ? await getCollaborationNextAction({ db: untypedDb, quoteId: id, serviceRequestId })
+        : null;
+
     return NextResponse.json({
       ...updated,
       mission_id: workflowResult?.mission?.id ?? updated.mission_id,
@@ -491,28 +498,28 @@ export async function PATCH(
       accepted_workflow: {
         mission_id: workflowResult?.mission?.id ?? updated.mission_id ?? null,
         invoice_id: workflowResult?.invoice?.id ?? null,
+        collaboration_id: collaborationNextAction?.collaborationId ?? null,
+        collaboration_status: collaborationNextAction?.collaborationStatus ?? null,
+        collaboration_kind: collaborationNextAction?.kind ?? null,
       },
       completed_action: {
         request_status: syncedRequestStatus,
         next_action:
           nextStatus === "accepted"
-            ? workflowResult?.mission?.id
-              ? "Choisir ou confirmer la date de mission, puis transmettre les séjours voyageurs."
-              : "Créer ou rattacher la mission commerciale avant de transmettre les séjours voyageurs."
+            ? (collaborationNextAction?.nextAction ??
+              "Devis accepté : finalisez votre contrat avec votre concierge avant de transmettre un séjour.")
             : nextStatus === "sent"
               ? "Attendre la décision du propriétaire ou relancer depuis la conversation."
               : "Comparer les autres devis actifs ou relancer une nouvelle recherche si nécessaire.",
         next_href:
-          nextStatus === "accepted" && workflowResult?.mission?.id
-            ? `/dashboard/owner/missions/${workflowResult.mission.id}`
-            : nextStatus === "accepted"
-              ? "/dashboard/owner/demandes"
-              : nextStatus === "sent"
-                ? `/dashboard/owner/devis?quote=${id}`
-                : "/dashboard/owner/devis",
+          nextStatus === "accepted"
+            ? (collaborationNextAction?.nextHref ?? null)
+            : nextStatus === "sent"
+              ? `/dashboard/owner/devis?quote=${id}`
+              : "/dashboard/owner/devis",
         visible_in:
           nextStatus === "accepted"
-            ? ["planning", "missions", "finances", "partenaires"]
+            ? (collaborationNextAction?.visibleIn ?? ["devis", "demandes", "messages"])
             : nextStatus === "sent"
               ? ["devis_recus", "demandes", "messages"]
               : ["devis_clotures", "demandes", "messages"],
