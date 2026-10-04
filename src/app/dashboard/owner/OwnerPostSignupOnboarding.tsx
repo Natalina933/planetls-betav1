@@ -1,28 +1,30 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, CalendarCheck, ChevronLeft, Home, ListChecks, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { ArrowRight, ChevronLeft, Home, ListChecks, X } from "lucide-react";
 import { buildOwnerHousingCompletion } from "@/app/dashboard/shared/categoryCompletion";
 import {
   EMPTY_OWNER_ONBOARDING_V1,
   getOwnerProfilePreferences,
-  type OwnerOnboardingBillingPref,
   type OwnerOnboardingHelpFrequency,
   type OwnerOnboardingManagementMode,
   type OwnerOnboardingNeed,
-  type OwnerOnboardingProOrg,
-  type OwnerOnboardingRequestOrg,
   type OwnerOnboardingSituation,
   type OwnerOnboardingV1,
   type OwnerProfilePreferences,
 } from "@/features/owner-preferences/profilePreferences";
 import styles from "./OwnerPostSignupOnboarding.module.scss";
 
-export type OwnerOnboardingStep = "welcome" | "project" | "housing" | "organization" | "complete";
+export type OwnerOnboardingStep = "welcome" | "project" | "housing" | "complete";
 
 type CurrentProfilePayload = {
   availability_hours?: string | null;
+  location?: string | null;
+  city?: string | null;
+  service_area?: string | null;
   error?: string;
 };
 
@@ -34,7 +36,8 @@ type Option<Value extends string> = {
   description?: string;
 };
 
-const ONBOARDING_STEPS: OwnerOnboardingStep[] = ["project", "housing", "organization"];
+const ONBOARDING_STEPS: OwnerOnboardingStep[] = ["project", "housing"];
+const DEFAULT_CONCIERGE_SEARCH_RADIUS_KM = "20";
 
 const WELCOME_ITEMS = [
   {
@@ -48,12 +51,6 @@ const WELCOME_ITEMS = [
     title: "Vos logements",
     description: "Votre rythme d'accompagnement et l'état réel de vos logements.",
     icon: Home,
-  },
-  {
-    number: 3,
-    title: "Votre organisation",
-    description: "L'organisation de vos demandes, la facturation et le nombre de professionnels.",
-    icon: CalendarCheck,
   },
 ];
 
@@ -127,56 +124,6 @@ const SITUATION_OPTIONS: Array<Option<OwnerOnboardingSituation>> = [
   },
 ];
 
-const REQUEST_ORG_OPTIONS: Array<Option<OwnerOnboardingRequestOrg>> = [
-  {
-    value: "bookings",
-    label: "Selon mes réservations",
-    description: "Je crée mes besoins au fur et à mesure des arrivées, départs et séjours.",
-  },
-  {
-    value: "regular",
-    label: "Besoins réguliers",
-    description: "Certaines prestations reviennent régulièrement.",
-  },
-  { value: "both", label: "Les deux", description: "J'ai des besoins réguliers et ponctuels." },
-];
-
-const BILLING_PREF_OPTIONS: Array<Option<OwnerOnboardingBillingPref>> = [
-  {
-    value: "per_mission",
-    label: "Par mission",
-    description: "Chaque mission peut être réglée individuellement.",
-  },
-  {
-    value: "monthly",
-    label: "En fin de mois",
-    description: "Les prestations réalisées sont regroupées.",
-  },
-  {
-    value: "both",
-    label: "Les deux",
-    description: "Le mode de règlement pourra être choisi selon la collaboration.",
-  },
-];
-
-const PRO_ORG_OPTIONS: Array<Option<OwnerOnboardingProOrg>> = [
-  {
-    value: "main_professional",
-    label: "Un professionnel principal",
-    description: "Je souhaite travailler principalement avec la même personne.",
-  },
-  {
-    value: "multiple_professionals",
-    label: "Plusieurs professionnels",
-    description: "Je souhaite pouvoir faire intervenir différentes personnes selon mes besoins.",
-  },
-  {
-    value: "depending_on_needs",
-    label: "Selon les besoins",
-    description: "Je préfère décider selon le logement et les prestations.",
-  },
-];
-
 function labelOf<Value extends string>(options: Array<Option<Value>>, value: Value | null): string {
   if (!value) return "";
   return options.find((option) => option.value === value)?.label ?? "";
@@ -203,7 +150,7 @@ function readHousingCity(housing: OwnerHousingRow): string {
 
 type OwnerPostSignupOnboardingProps = {
   open: boolean;
-  currentStep?: OwnerOnboardingStep;
+  currentStep?: OwnerOnboardingStep | "organization";
   onClose: () => void;
   onPostpone?: () => void;
 };
@@ -214,15 +161,16 @@ export default function OwnerPostSignupOnboarding({
   onClose,
   onPostpone = onClose,
 }: OwnerPostSignupOnboardingProps) {
-  const [step, setStep] = useState<OwnerOnboardingStep>(currentStep);
+  const router = useRouter();
+  const [step, setStep] = useState<OwnerOnboardingStep>(() =>
+    currentStep === "organization" ? "housing" : currentStep,
+  );
   const [managementMode, setManagementMode] = useState<OwnerOnboardingManagementMode | "">("");
   const [needs, setNeeds] = useState<OwnerOnboardingNeed[]>([]);
   const [situation, setSituation] = useState<OwnerOnboardingSituation | "">("");
   const [helpFrequency, setHelpFrequency] = useState<OwnerOnboardingHelpFrequency | "">("");
-  const [requestOrg, setRequestOrg] = useState<OwnerOnboardingRequestOrg | "">("");
-  const [billingPref, setBillingPref] = useState<OwnerOnboardingBillingPref | "">("");
-  const [proOrg, setProOrg] = useState<OwnerOnboardingProOrg | "">("");
   const [preferences, setPreferences] = useState<OwnerProfilePreferences | null>(null);
+  const [signupCity, setSignupCity] = useState("");
   const [housings, setHousings] = useState<OwnerHousingRow[]>([]);
   const [housingDeferred, setHousingDeferred] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(false);
@@ -232,7 +180,8 @@ export default function OwnerPostSignupOnboarding({
 
   useEffect(() => {
     if (!open) return;
-    setStep(currentStep);
+    // L'étape historique « organization » n'est plus proposée : reprendre au logement.
+    setStep(currentStep === "organization" ? "housing" : currentStep);
   }, [currentStep, open]);
 
   useEffect(() => {
@@ -262,9 +211,11 @@ export default function OwnerPostSignupOnboarding({
         setNeeds(onboarding.needs);
         setSituation(onboarding.situation ?? "");
         setHelpFrequency(onboarding.helpFrequency ?? "");
-        setRequestOrg(onboarding.requestOrg ?? "");
-        setBillingPref(onboarding.billingPref ?? "");
-        setProOrg(onboarding.proOrg ?? "");
+        setSignupCity(
+          [profile.city, profile.location, profile.service_area]
+            .map((value) => (typeof value === "string" ? value.trim() : ""))
+            .find((value) => value.length > 0) ?? "",
+        );
       } catch (error) {
         if (isMounted) {
           setMessage(error instanceof Error ? error.message : "Impossible de charger votre profil.");
@@ -296,8 +247,6 @@ export default function OwnerPostSignupOnboarding({
       isMounted = false;
     };
   }, [open]);
-
-  if (!open) return null;
 
   const persistOwnerOnboarding = async (patch: Partial<OwnerOnboardingV1>) => {
     const base = preferences ?? getOwnerProfilePreferences(null);
@@ -366,30 +315,10 @@ export default function OwnerPostSignupOnboarding({
         throw new Error("Sélectionnez la fréquence à laquelle vous avez besoin d'aide pour continuer.");
       }
       await persistOwnerOnboarding({ helpFrequency });
-      setStep("organization");
-      setMessage("Votre rythme d'accompagnement est enregistré. Terminons par votre organisation.");
+      setStep("complete");
+      setMessage("Votre rythme d'accompagnement est enregistré. Votre espace est prêt.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Impossible d'enregistrer vos logements.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const saveOrganization = async (event: FormEvent) => {
-    event.preventDefault();
-    if (saving || loadingProfile) return;
-    setSaving(true);
-    setMessage("");
-
-    try {
-      if (!requestOrg || !billingPref || !proOrg) {
-        throw new Error("Complétez les trois choix d'organisation pour continuer.");
-      }
-      await persistOwnerOnboarding({ requestOrg, billingPref, proOrg });
-      setStep("complete");
-      setMessage("Votre organisation est enregistrée. Vous pouvez finaliser votre configuration.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Impossible d'enregistrer votre organisation.");
     } finally {
       setSaving(false);
     }
@@ -434,12 +363,24 @@ export default function OwnerPostSignupOnboarding({
   };
 
   const housingCompletion = buildOwnerHousingCompletion(housings);
-  const stepIndex = ONBOARDING_STEPS.indexOf(step);
+  const conciergeSearchParams = useMemo(() => {
+    const params = new URLSearchParams();
+    if (signupCity.trim()) {
+      params.set("city", signupCity.trim());
+    }
+    params.set("radiusKm", DEFAULT_CONCIERGE_SEARCH_RADIUS_KM);
+    return params.toString();
+  }, [signupCity]);
+  const conciergeSearchHref = conciergeSearchParams
+    ? `/dashboard/owner/concierges?${conciergeSearchParams}`
+    : "/dashboard/owner/concierges";
+
+  const openConciergeSearch = () => {
+    onClose();
+    router.push(conciergeSearchHref);
+  };
+  const stepIndex = ONBOARDING_STEPS.indexOf(step === "complete" ? "housing" : step);
   const selectedNeedLabels = needs.map((need) => labelOf(NEED_OPTIONS, need)).filter(Boolean);
-  const situationLabel = labelOf(SITUATION_OPTIONS, situation || null);
-  const requestOrgLabel = labelOf(REQUEST_ORG_OPTIONS, requestOrg || null);
-  const billingPrefLabel = labelOf(BILLING_PREF_OPTIONS, billingPref || null);
-  const proOrgLabel = labelOf(PRO_ORG_OPTIONS, proOrg || null);
 
   const renderProgress = () => (
     <div className={styles.progress} aria-label="Progression de l'onboarding propriétaire">
@@ -452,7 +393,7 @@ export default function OwnerPostSignupOnboarding({
   const renderProject = () => (
     <form onSubmit={saveProject} className={styles.activityForm}>
       <div className={styles.header}>
-        <span className={styles.kicker}>Étape 1 sur 3</span>
+        <span className={styles.kicker}>Étape 1 sur 2</span>
         <h2 id="owner-onboarding-title">Votre projet</h2>
         <p>Dites-nous comment vous souhaitez gérer vos logements pour adapter votre espace propriétaire.</p>
       </div>
@@ -554,8 +495,6 @@ export default function OwnerPostSignupOnboarding({
         </p>
       </div>
 
-      {renderProgress()}
-
       <div className={styles.steps}>
         {WELCOME_ITEMS.map((item) => {
           const Icon = item.icon;
@@ -565,7 +504,7 @@ export default function OwnerPostSignupOnboarding({
                 <Icon size={22} aria-hidden="true" />
               </span>
               <div>
-                <span className={styles.stepNumber}>{item.number}</span>
+                <span className={styles.stepNumber}>{item.number} / 2</span>
                 <h3>{item.title}</h3>
                 <p>{item.description}</p>
               </div>
@@ -602,9 +541,9 @@ export default function OwnerPostSignupOnboarding({
   const renderHousing = () => (
     <form onSubmit={saveHousing} className={styles.activityForm}>
       <div className={styles.header}>
-        <span className={styles.kicker}>Étape 2 sur 3</span>
+        <span className={styles.kicker}>Étape 2 sur 2</span>
         <h2 id="owner-onboarding-title">Vos logements &amp; besoins</h2>
-        <p>Vérifions vos logements et la fréquence à laquelle vous avez besoin d'aide.</p>
+        <p>Vérifions vos logements et la fréquence à laquelle vous avez besoin d&apos;aide.</p>
       </div>
 
       {renderProgress()}
@@ -723,161 +662,36 @@ export default function OwnerPostSignupOnboarding({
     </form>
   );
 
-  const renderOrganization = () => (
-    <form onSubmit={saveOrganization} className={styles.activityForm}>
-      <div className={styles.header}>
-        <span className={styles.kicker}>Étape 3 sur 3</span>
-        <h2 id="owner-onboarding-title">Votre organisation</h2>
-        <p>Dernière étape : indiquez-nous comment vous préférez organiser vos demandes et vos collaborations.</p>
-      </div>
-
-      {renderProgress()}
-
-      <section className={styles.formSection}>
-        <div className={styles.sectionHeading}>
-          <h3>Comment souhaitez-vous organiser vos demandes ?</h3>
-        </div>
-        <div className={styles.choiceGrid}>
-          {REQUEST_ORG_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className={`${styles.choiceCard} ${requestOrg === option.value ? styles.choiceCardSelected : ""}`}
-              aria-pressed={requestOrg === option.value}
-              onClick={() => setRequestOrg(requestOrg === option.value ? "" : option.value)}
-            >
-              <strong>{option.label}</strong>
-              <span>{option.description}</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.formSection}>
-        <div className={styles.sectionHeading}>
-          <h3>Comment préférez-vous régler vos prestations ?</h3>
-        </div>
-        <div className={styles.choiceGrid}>
-          {BILLING_PREF_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className={`${styles.choiceCard} ${billingPref === option.value ? styles.choiceCardSelected : ""}`}
-              aria-pressed={billingPref === option.value}
-              onClick={() => setBillingPref(billingPref === option.value ? "" : option.value)}
-            >
-              <strong>{option.label}</strong>
-              <span>{option.description}</span>
-            </button>
-          ))}
-        </div>
-        <p className={styles.modelNote}>
-          Ce choix indique votre préférence. Les conditions définitives seront convenues avec le professionnel.
-        </p>
-      </section>
-
-      <section className={styles.formSection}>
-        <div className={styles.sectionHeading}>
-          <h3>Comment souhaitez-vous travailler avec vos professionnels ?</h3>
-        </div>
-        <div className={styles.choiceGrid}>
-          {PRO_ORG_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className={`${styles.choiceCard} ${proOrg === option.value ? styles.choiceCardSelected : ""}`}
-              aria-pressed={proOrg === option.value}
-              onClick={() => setProOrg(proOrg === option.value ? "" : option.value)}
-            >
-              <strong>{option.label}</strong>
-              <span>{option.description}</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {message ? <p className={styles.feedback}>{message}</p> : null}
-
-      <div className={styles.actionBar}>
-        <button type="button" className={styles.secondaryAction} onClick={() => setStep("housing")}>
-          <ChevronLeft size={18} aria-hidden="true" />
-          Retour
-        </button>
-        <button type="button" className={styles.laterAction} onClick={onPostpone}>
-          Je le ferai plus tard
-        </button>
-        <button type="submit" className={styles.primaryAction} disabled={saving || loadingProfile}>
-          {saving ? "Enregistrement..." : "Terminer la configuration"}
-          <ArrowRight size={18} aria-hidden="true" />
-        </button>
-      </div>
-    </form>
-  );
-
   const renderComplete = () => (
-    <>
-      <div className={styles.header}>
-        <span className={styles.successBadge}>Configuration terminée</span>
-        <h2 id="owner-onboarding-title">Votre espace est prêt</h2>
-        <p>Vous avez terminé la configuration essentielle de votre espace propriétaire.</p>
-      </div>
+    <div className={`${styles.complete} ${styles.completePremium}`}>
+      <p className={styles.completeEyebrow}>Bienvenue sur PlanetLS</p>
+      <h2 id="owner-onboarding-title" className={styles.completeTitle}>
+        Votre espace est prêt
+      </h2>
+      <Image
+        src="/ornements/divider.png"
+        alt=""
+        aria-hidden="true"
+        width={320}
+        height={24}
+        className={styles.completeDivider}
+      />
+      <p className={styles.completeDescription}>
+        Découvrez les concierges proches de chez vous pour donner vie à votre projet.
+      </p>
 
-      {renderProgress()}
-
-      <div className={styles.summaryGrid} aria-label="Récapitulatif de votre onboarding">
-        <section className={styles.summaryCard}>
-          <h3>Projet</h3>
-          <ul>
-            {managementMode ? <li>{labelOf(MANAGEMENT_MODE_OPTIONS, managementMode)}</li> : null}
-            {situationLabel ? <li>{situationLabel}</li> : null}
-            {selectedNeedLabels.length > 0 ? <li>{selectedNeedLabels.slice(0, 3).join(" · ")}</li> : null}
-            {selectedNeedLabels.length > 3 ? (
-              <li>{`+${selectedNeedLabels.length - 3} autre(s) besoin(s)`}</li>
-            ) : null}
-            {!managementMode && selectedNeedLabels.length === 0 && !situationLabel ? <li>Non renseigné</li> : null}
-          </ul>
-        </section>
-
-        <section className={styles.summaryCard}>
-          <h3>Logements</h3>
-          <ul>
-            {helpFrequency ? <li>{labelOf(HELP_FREQUENCY_OPTIONS, helpFrequency)}</li> : null}
-            <li>{`${housings.length} logement(s) enregistré(s)`}</li>
-            <li>{`Complétude : ${housingCompletion.completedCount}/${housingCompletion.totalCount}`}</li>
-          </ul>
-        </section>
-
-        <section className={styles.summaryCard}>
-          <h3>Organisation</h3>
-          <ul>
-            {requestOrgLabel ? <li>{`Demandes : ${requestOrgLabel}`}</li> : null}
-            {billingPrefLabel ? <li>{`Facturation : ${billingPrefLabel}`}</li> : null}
-            {proOrgLabel ? <li>{proOrgLabel}</li> : null}
-            {!requestOrgLabel && !billingPrefLabel && !proOrgLabel ? <li>Non renseigné</li> : null}
-          </ul>
-        </section>
-      </div>
-
-      <section className={styles.nextBlock}>
-        <h3>Et maintenant ?</h3>
-        <p>Votre espace est prêt. Vous pourrez compléter vos logements et vos préférences à votre rythme.</p>
-        <div className={styles.nextActions}>
-          <Link className={styles.secondaryAction} href="/dashboard/owner/logements">
-            Ajouter un logement
-          </Link>
-          <Link className={styles.secondaryAction} href="/dashboard/owner/objectifs">
-            Affiner mes préférences
-          </Link>
-        </div>
-      </section>
+      <button type="button" className={styles.primaryAction} onClick={openConciergeSearch}>
+        Trouver ma concierge
+        <ArrowRight size={18} aria-hidden="true" />
+      </button>
+      <p className={styles.completeHint}>Vous pourrez compléter vos préférences plus tard.</p>
 
       {message ? <p className={styles.feedback}>{message}</p> : null}
 
       <div className={styles.actionBar}>
-        <button type="button" className={styles.secondaryAction} onClick={() => setStep("organization")}>
-          <ChevronLeft size={18} aria-hidden="true" />
-          Retour
-        </button>
+        <Link className={styles.secondaryAction} href="/dashboard/owner/logements">
+          Ajouter un logement
+        </Link>
         <button
           type="button"
           className={styles.primaryAction}
@@ -887,8 +701,10 @@ export default function OwnerPostSignupOnboarding({
           {finalizing ? "Finalisation..." : "Découvrir mon espace"}
         </button>
       </div>
-    </>
+    </div>
   );
+
+  if (!open) return null;
 
   return (
     <div className={styles.overlay} role="dialog" aria-modal="true" aria-labelledby="owner-onboarding-title">
@@ -900,7 +716,6 @@ export default function OwnerPostSignupOnboarding({
         {step === "welcome" ? renderWelcome() : null}
         {step === "project" ? renderProject() : null}
         {step === "housing" ? renderHousing() : null}
-        {step === "organization" ? renderOrganization() : null}
         {step === "complete" ? renderComplete() : null}
       </section>
     </div>

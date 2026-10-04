@@ -97,7 +97,7 @@ export type OwnerProfilePreferences = {
 
 export type OwnerOnboardingProgress = {
   completed: number;
-  total: 3;
+  total: 2;
   isComplete: boolean;
   nextStep: "project" | "housing" | "organization" | "complete";
 };
@@ -235,20 +235,17 @@ export function getOwnerOnboardingProgress(
 ): OwnerOnboardingProgress {
   const projectComplete = Boolean(onboarding?.managementMode && onboarding?.situation);
   const housingComplete = Boolean(onboarding?.helpFrequency);
-  const organizationComplete = Boolean(onboarding?.requestOrg && onboarding?.billingPref && onboarding?.proOrg);
-  const completed = [projectComplete, housingComplete, organizationComplete].filter(Boolean).length;
+  const completed = [projectComplete, housingComplete].filter(Boolean).length;
 
   return {
     completed,
-    total: 3,
-    isComplete: completed === 3,
+    total: 2,
+    isComplete: completed === 2,
     nextStep: !projectComplete
       ? "project"
       : !housingComplete
         ? "housing"
-        : !organizationComplete
-          ? "organization"
-          : "complete",
+        : "complete",
   };
 }
 
