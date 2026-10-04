@@ -5,7 +5,7 @@ import useSWR from "swr";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { MapContainer, Marker, Popup, TileLayer, Circle, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 import L, { LatLngExpression } from "leaflet";
@@ -28,7 +28,7 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-interface Profile {
+export interface Profile {
   id: string;
   name: string;
   type: "concierge";
@@ -36,6 +36,48 @@ interface Profile {
   latitude: number;
   longitude: number;
   services?: string[];
+}
+
+export type SearchMapProps = {
+  profiles: Profile[];
+  center: { latitude: number; longitude: number };
+  radiusKm: number;
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  fitAllProfiles?: boolean;
+  ariaLabel?: string;
+};
+
+function SearchMapViewport({ center, radiusKm, selectedId, profiles, fitAllProfiles }: SearchMapProps) {
+  const map = useMap();
+  useEffect(() => {
+    const bounds = L.latLng(center.latitude, center.longitude).toBounds(Math.max(radiusKm, 1) * 2000);
+    if (fitAllProfiles) profiles.forEach((profile) => bounds.extend(L.latLng(profile.latitude, profile.longitude).toBounds(Math.max(radiusKm, 1) * 2000)));
+    map.fitBounds(bounds, { animate: false });
+    const observer = new ResizeObserver(() => map.invalidateSize());
+    observer.observe(map.getContainer());
+    return () => observer.disconnect();
+  }, [map, center.latitude, center.longitude, radiusKm, fitAllProfiles, profiles]);
+  useEffect(() => {
+    const selected = profiles.find((profile) => profile.id === selectedId);
+    if (selected) map.panTo([selected.latitude, selected.longitude]);
+  }, [map, selectedId, profiles]);
+  return null;
+}
+
+function ConciergeSearchMap(props: SearchMapProps) {
+  return <MapContainer center={[props.center.latitude, props.center.longitude]} zoom={11}
+    style={{ height: "100%", width: "100%" }} aria-label={props.ariaLabel || "Carte des concierges à proximité"}>
+    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
+    <SearchMapViewport {...props} />
+    {(props.fitAllProfiles ? props.profiles : [props.center]).map((point, index) => <Circle key={index} center={[point.latitude, point.longitude]} radius={props.radiusKm * 1000}
+      pathOptions={{ color: "var(--ds-color-accent)", weight: 1, fillOpacity: 0.05 }} />)}
+    {props.profiles.map((profile, index) => <Marker key={profile.id} position={[profile.latitude, profile.longitude]}
+      icon={L.divIcon({ className: "", html: `<span style="display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--ds-color-${props.selectedId === profile.id ? "primary" : "accent"});color:var(--ds-color-text-inverse);border:2px solid var(--ds-color-surface)">${index + 1}</span>`, iconSize: [32, 32], iconAnchor: [16, 16] })}
+      zIndexOffset={props.selectedId === profile.id ? 1000 : 0} eventHandlers={{ click: () => props.onSelect(profile.id) }}>
+      <Popup><strong>{profile.name}</strong><p>{profile.city}</p><p>{profile.services?.join(" · ")}</p></Popup>
+    </Marker>)}
+  </MapContainer>;
 }
 
 const fetcher = async (url: string): Promise<Profile[]> => {
@@ -113,7 +155,12 @@ const fetcher = async (url: string): Promise<Profile[]> => {
   return mappedProfiles;
 };
 
-export default function MapWithList() {
+export default function MapWithList(props: SearchMapProps | Record<string, never>) {
+  if ("profiles" in props) return <ConciergeSearchMap {...props as SearchMapProps} />;
+  return <PublicMapWithList />;
+}
+
+function PublicMapWithList() {
   const searchParams = useSearchParams();
 
   const filter = searchParams.get("filter") ?? "concierge";

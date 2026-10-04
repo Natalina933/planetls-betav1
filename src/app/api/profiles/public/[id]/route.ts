@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { normalizeProfileLocationFields } from "../../../../lib/profileLocation.ts";
 import { parsePublicConciergeServices } from "../../public-concierges/shared";
+import { readSearchZones } from "@/features/owner-concierges/lib/geography";
 
 type PublicProfileRow = {
   id: string;
@@ -98,6 +99,7 @@ export async function GET(
         country: profile.country,
         service_area: normalizedProfile.service_area,
         service_radius_km: profile.service_radius_km,
+        intervention_zones: readSearchZones(profile.availability_hours),
         experience_level: profile.experience_level,
         years_experience: profile.years_experience,
         hourly_rate: profile.hourly_rate,

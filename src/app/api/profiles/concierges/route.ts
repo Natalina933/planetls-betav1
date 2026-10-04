@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { geocodeLocation, isGeocodingServiceError } from "@/server/location/geocodeLocation";
+import { locateConcierges } from "./geographicSearch";
 import { normalizeProfileLocationFields } from "../../../lib/profileLocation.ts";
 import {
   applyConciergeSearchFilters,
@@ -62,6 +64,8 @@ async function loadConciergeProfiles(
   limit: number,
   proOnly: boolean,
   recentFirst: boolean,
+  offset = 0,
+  stableOrder = false,
 ): Promise<ConciergeProfileRow[]> {
   const targetRoles = proOnly ? ["concierge_pro"] : ["concierge", "concierge_pro"];
   let profileQuery = db
@@ -71,7 +75,8 @@ async function loadConciergeProfiles(
     )
     .in("role", targetRoles);
   if (recentFirst) profileQuery = profileQuery.order("created_at", { ascending: false });
-  const { data: profiles, error: profilesError } = await profileQuery.limit(limit);
+  if (stableOrder) profileQuery = profileQuery.order("id");
+  const { data: profiles, error: profilesError } = await profileQuery.range(offset, offset + limit - 1);
 
   if (!profilesError) {
     return ((profiles ?? []) as unknown) as ConciergeProfileRow[];
@@ -89,7 +94,8 @@ async function loadConciergeProfiles(
     )
     .in("role", targetRoles);
   if (recentFirst) fallbackQuery = fallbackQuery.order("created_at", { ascending: false });
-  const { data: fallbackProfiles, error: fallbackError } = await fallbackQuery.limit(limit);
+  if (stableOrder) fallbackQuery = fallbackQuery.order("id");
+  const { data: fallbackProfiles, error: fallbackError } = await fallbackQuery.range(offset, offset + limit - 1);
 
   if (fallbackError) {
     console.error("[GET /api/profiles/concierges] fallback profiles error:", fallbackError);
@@ -195,16 +201,35 @@ export async function GET(req: NextRequest) {
 
     const url = new URL(req.url);
     const filters = buildConciergeSearchFilters(url.searchParams);
+    const geographic = url.searchParams.get("geographic") === "1";
+    const center = geographic && filters.city ? await geocodeLocation(filters.city) : null;
+    if (geographic && !center) return NextResponse.json({ error: "Ville introuvable. Choisissez une ville reconnue." }, { status: 422 });
 
     const conciergeRows = await loadConciergeProfiles(
-      filters.limit * 3,
+      geographic ? 500 : filters.limit * 3,
       filters.proOnly,
       url.searchParams.get("recentFirst") === "1",
+      0,
+      geographic,
     );
+    if (geographic) {
+      while (conciergeRows.length % 500 === 0 && conciergeRows.length > 0) {
+        const page = await loadConciergeProfiles(500, filters.proOnly, false, conciergeRows.length, true);
+        conciergeRows.push(...page);
+        if (page.length < 500) break;
+      }
+    }
     const profileIds = conciergeRows.map((profile) => profile.id);
 
-    const reviews = await loadConciergeReviews(profileIds);
-    const pricingPackages = await loadPricingPackages(profileIds);
+    const reviews: ConciergeReviewRow[] = [];
+    if (geographic) {
+      for (let offset = 0; offset < profileIds.length; offset += 500) {
+        reviews.push(...await loadConciergeReviews(profileIds.slice(offset, offset + 500)));
+      }
+    } else {
+      reviews.push(...await loadConciergeReviews(profileIds));
+    }
+    const pricingPackages = geographic && !filters.propertyType ? [] : await loadPricingPackages(profileIds);
     const serviceCatalog = await loadServiceCatalog();
     const categoryByService = new Map<string, string>();
     serviceCatalog.forEach((entry) => {
@@ -244,6 +269,7 @@ export async function GET(req: NextRequest) {
           location: profile.location,
         });
         const displayName =
+          (geographic ? profile.company_name : null) ||
           `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() ||
           profile.company_name ||
           profile.username ||
@@ -284,10 +310,17 @@ export async function GET(req: NextRequest) {
           latest_review_comment: latestReview?.comment ?? null,
           latest_review_at: latestReview?.created_at ?? null,
           created_at: profile.created_at,
+          ...(geographic ? { availability_hours: profile.availability_hours } : {}),
         };
       });
 
-    const results = applyConciergeSearchFilters(enrichedResults, filters, categoryByService);
+    const candidates = applyConciergeSearchFilters(enrichedResults, geographic ? {
+      ...filters, city: "", radiusKm: null, availableOnly: false, limit: Number.MAX_SAFE_INTEGER,
+    } : filters, categoryByService);
+    const located = geographic && center ? await locateConcierges(candidates.map((item) => ({
+      ...item, availability_hours: item.availability_hours ?? null,
+    })), center, filters.radiusKm ?? 20) : null;
+    const results = located ? located.results.map(({ availability_hours: _privateSchedule, ...item }) => item) : candidates;
     const availableFilters = buildAvailableConciergeFilters(enrichedResults, categoryByService);
 
       return NextResponse.json({
@@ -304,10 +337,17 @@ export async function GET(req: NextRequest) {
         radius_km: filters.radiusKm,
       },
       total: results.length,
+      ...(geographic ? { center, unlocated: located?.unlocated ?? 0 } : {}),
+      ...(located?.geocodingDeferred ? { warning: "Le service de localisation est temporairement limité. Certains profils n’ont pas pu être vérifiés ; les résultats peuvent être incomplets." } : {}),
       available_filters: availableFilters,
       items: results,
     });
   } catch (err) {
+    if (isGeocodingServiceError(err)) {
+      return NextResponse.json({ error: err.message, retryAfterSeconds: err.retryAfterSeconds }, {
+        status: 503, headers: { "Retry-After": String(err.retryAfterSeconds) },
+      });
+    }
     console.error("[GET /api/profiles/concierges] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }

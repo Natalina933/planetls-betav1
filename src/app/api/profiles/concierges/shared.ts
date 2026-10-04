@@ -237,8 +237,8 @@ export function mapPropertyTypesByProfile(rows: PricingPackageRow[]) {
   return byProfile;
 }
 
-export function applyConciergeSearchFilters(
-  results: SearchResultInput[],
+export function applyConciergeSearchFilters<T extends SearchResultInput>(
+  results: T[],
   filters: ConciergeSearchFilters,
   categoryByService: Map<string, string> = new Map(),
 ) {
