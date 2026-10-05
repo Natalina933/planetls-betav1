@@ -20,6 +20,8 @@ type ResultsGridProps = {
   viewMode: ViewMode;
   onToggleSelection: (itemId: string) => void;
   onCreateAlert: () => void;
+  resultMode?: "standard" | "stay";
+  stayActionLabel?: string;
 };
 
 export function ResultsGrid({
@@ -35,6 +37,8 @@ export function ResultsGrid({
   viewMode,
   onToggleSelection,
   onCreateAlert,
+  resultMode = "standard",
+  stayActionLabel,
 }: ResultsGridProps) {
   const showSearchEmpty = !loading && !error && items.length === 0 && hasSubmittedSearch;
   const showIdleEmpty = !loading && !error && items.length === 0 && !hasSubmittedSearch;
@@ -130,6 +134,8 @@ export function ResultsGrid({
             isSelected={selectedIds.has(item.id)}
             filters={filters}
             onToggle={onToggleSelection}
+            mode={resultMode}
+            stayActionLabel={stayActionLabel}
           />
         ))}
       </div>

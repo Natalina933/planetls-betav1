@@ -6,6 +6,7 @@ import { contractConditionsSchema, type ContractConditions, type ContractDraft, 
 
 const labels: Record<string, string> = {
   CHECK_IN: "Check-in", CHECK_OUT: "Check-out", LINGE: "Linge", MENAGE: "Ménage",
+  COURSES: "Courses / préparation avant arrivée",
   ANNONCE: "Annonce", RESERVATIONS: "Réservations", COMPLEMENT: "Prestation complémentaire",
 };
 const initialConditions = (): ContractConditions => ({

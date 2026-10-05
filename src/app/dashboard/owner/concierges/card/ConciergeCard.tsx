@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import { Button, ButtonLink } from "@/components/ui";
+import { ConciergeAvatar } from "@/features/owner-concierges/components/ConciergeAvatar";
 import { ConciergePreviewCard } from "@/features/public-concierges";
 import type { ConciergeSearchRow } from "../conciergeSearchTypes";
 import { getPrimaryActionLabel } from "../conciergeSearchUtils";
@@ -14,6 +15,8 @@ type ConciergeCardProps = {
   isSelected: boolean;
   filters: OwnerConciergeSearchFilters;
   onToggle: (itemId: string) => void;
+  mode?: "standard" | "stay";
+  stayActionLabel?: string;
 };
 
 const normalizeMatchValue = (value: string) =>
@@ -63,7 +66,83 @@ function getMatchHighlights(item: ConciergeSearchRow, filters: OwnerConciergeSea
   return highlights;
 }
 
-function ConciergeCardComponent({ item, index, isSelected, filters, onToggle }: ConciergeCardProps) {
+function getLocation(item: ConciergeSearchRow) {
+  return [item.city, item.service_area, item.location].find((value) => typeof value === "string" && value.trim()) ?? null;
+}
+
+function getPrimaryServices(item: ConciergeSearchRow) {
+  return item.services
+    .flatMap((service) => service.split(/[;,|\n\r]+/g))
+    .map((service) => service.replace(/[[\]"]/g, "").replace(/[()]/g, "").replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+}
+
+function getProfessionalType(item: ConciergeSearchRow) {
+  return item.experience_level || item.services[0] || "Professionnel PlanetLS";
+}
+
+function ConciergeCardComponent({
+  item,
+  index,
+  isSelected,
+  filters,
+  onToggle,
+  mode = "standard",
+  stayActionLabel = "Demander cette prestation",
+}: ConciergeCardProps) {
+  if (mode === "stay") {
+    const services = getPrimaryServices(item);
+    const visibleServices = services.slice(0, 3);
+    const hiddenServices = Math.max(services.length - visibleServices.length, 0);
+    const location = getLocation(item);
+
+    return (
+      <article
+        role="article"
+        aria-label={`Profil professionnel ${item.display_name}`}
+        className={`${styles.stayCard} ${isSelected ? styles.stayCardSelected : ""}`}
+        style={{ ["--card-index" as string]: String(index) }}
+      >
+        <div className={styles.stayCardHead}>
+          <ConciergeAvatar
+            src={item.avatar_url}
+            alt={item.display_name}
+            width={54}
+            height={54}
+            className={styles.stayAvatar}
+          />
+          <div className={styles.stayIdentity}>
+            <h3>{item.display_name}</h3>
+            <p>{getProfessionalType(item)}</p>
+            {location ? <span>{location}</span> : null}
+          </div>
+        </div>
+
+        {visibleServices.length > 0 ? (
+          <div className={styles.stayServices} aria-label="Services principaux">
+            {visibleServices.map((service) => (
+              <span key={`${item.id}-${service}`}>{service}</span>
+            ))}
+            {hiddenServices > 0 ? <span>+{hiddenServices}</span> : null}
+          </div>
+        ) : null}
+
+        <div className={styles.stayActions}>
+          <ButtonLink href={`/concierges/${item.id}`} variant="secondary" size="sm">
+            Voir le profil
+          </ButtonLink>
+          <Button
+            aria-pressed={isSelected}
+            aria-label={`${isSelected ? "Retirer" : "Sélectionner"} ${item.display_name}`}
+            onClick={() => onToggle(item.id)}
+          >
+            {isSelected ? "Sélectionné" : stayActionLabel}
+          </Button>
+        </div>
+      </article>
+    );
+  }
+
   return (
     <article
       role="article"

@@ -559,6 +559,47 @@
   min-width: 0;
 }
 
+.staySearchContext {
+  @extend %soft-panel;
+  @extend %inner-stroke;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 1rem 1.1rem;
+  background:
+    radial-gradient(circle at top right, rgba(74, 124, 89, 0.1), transparent 28%),
+    linear-gradient(180deg, rgba(255, 253, 248, 0.98), rgba(243, 247, 240, 0.96));
+}
+
+.staySearchContext h2 {
+  margin: 0.12rem 0 0;
+  color: var(--owner-ink);
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
+.stayContextFacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.stayContextFacts span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.26rem 0.64rem;
+  border: 1px solid rgba(53, 81, 58, 0.14);
+  border-radius: var(--ui-button-radius);
+  background: rgba(255, 255, 255, 0.78);
+  color: #365743;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
 .resultsHeader {
   @extend %soft-panel;
   @extend %inner-stroke;

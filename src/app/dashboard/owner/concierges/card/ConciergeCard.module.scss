@@ -13,6 +13,89 @@
   max-width: none;
 }
 
+.stayCard {
+  position: relative;
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid rgba(57, 86, 65, 0.16);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 248, 0.98), rgba(246, 241, 232, 0.96));
+  box-shadow: 0 10px 22px rgba(35, 45, 38, 0.06);
+}
+
+.stayCardSelected {
+  border-color: rgba(184, 148, 92, 0.55);
+  box-shadow:
+    0 14px 28px rgba(35, 45, 38, 0.08),
+    0 0 0 2px rgba(184, 148, 92, 0.12);
+}
+
+.stayCardHead {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.stayAvatar {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid rgba(184, 148, 92, 0.24);
+  background: #fffdf8;
+}
+
+.stayIdentity {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+}
+
+.stayIdentity h3 {
+  margin: 0;
+  color: #263b30;
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.stayIdentity p,
+.stayIdentity span {
+  margin: 0;
+  color: #6b6258;
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.stayServices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.stayServices span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0.22rem 0.58rem;
+  border: 1px solid rgba(57, 86, 65, 0.14);
+  border-radius: 999px;
+  background: rgba(245, 249, 244, 0.92);
+  color: #365743;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.stayActions {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 0.65rem;
+}
+
 .card {
   --card-bg: #fffbf6;
   --card-bg-soft: #f7efe5;

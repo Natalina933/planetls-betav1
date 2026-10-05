@@ -45,6 +45,12 @@ type RequestPanelProps = {
     city: string;
     recipients: string[];
   } | null;
+  stayContext?: {
+    reservationId: string;
+    stayNeedLabel: string;
+    propertyLabel?: string | null;
+    periodLabel?: string | null;
+  } | null;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   onRequestFormChange: <Key extends keyof RequestFormState>(
     key: Key,
@@ -155,6 +161,7 @@ export function RequestPanel({
   requestError,
   lastSubmittedStatus,
   lastSentSummary,
+  stayContext = null,
   onSubmit,
   onRequestFormChange,
   getCitySuggestions,
@@ -193,6 +200,17 @@ export function RequestPanel({
         </div>
         <span className={styles.requestCount}>{selectedConcierges.length} concierge(s)</span>
       </div>
+
+      {stayContext ? (
+        <div className={styles.selectionSummary} role="status">
+          <span className={styles.requestSectionLabel}>Contexte séjour</span>
+          <strong>{stayContext.stayNeedLabel}</strong>
+          <div className={styles.summaryChips}>
+            {stayContext.propertyLabel ? <span className={styles.summaryChip}>{stayContext.propertyLabel}</span> : null}
+            {stayContext.periodLabel ? <span className={styles.summaryChip}>{stayContext.periodLabel}</span> : null}
+          </div>
+        </div>
+      ) : null}
 
       <div className={styles.selectionSummary}>
         <div className={styles.panelSummary}>

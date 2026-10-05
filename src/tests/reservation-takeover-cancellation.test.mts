@@ -105,11 +105,14 @@ test("reservation cancellation preserves terminal mission history", () => {
 });
 
 test("stay need normalization accepts known requested services", () => {
-  const helper = read("../app/api/_shared/stayMissionAssignments.ts");
+  // Catalogue canonique partagé : stayMissionAssignments ré-exporte normalizeStayNeed depuis stayNeeds.
+  const helper = read("../app/api/_shared/stayNeeds.ts");
+  const assignments = read("../app/api/_shared/stayMissionAssignments.ts");
 
   assert.match(helper, /normalized === "checkin" \|\| normalized === "arrival"/);
   assert.match(helper, /normalized === "checkout" \|\| normalized === "departure"/);
   assert.match(helper, /normalized === "cleaning" \|\| normalized === "menage" \|\| normalized === "ménage"/);
   assert.match(helper, /normalized === "linen" \|\| normalized === "linge"/);
   assert.match(helper, /return null/);
+  assert.match(assignments, /export \{ normalizeStayNeed \}/);
 });

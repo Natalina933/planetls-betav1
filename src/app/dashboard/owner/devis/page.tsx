@@ -223,10 +223,10 @@ function getAcceptedWorkflowMessage(payload: AcceptedWorkflowPayload) {
     return { message: `Accepté : contrat signé, démarrage programmé.${nextAction}`, actionLink: null, contractLink };
   }
   if (missionReady && invoiceReady) {
-    return { message: `Accepté : la mission commerciale est créée et une facture brouillon est disponible dans les finances.${nextAction || " Finalisez votre contrat avant de transmettre un séjour."}`, actionLink: null, contractLink };
+    return { message: `Accepté : la mission commerciale est créée et une facture brouillon est disponible dans les finances.${nextAction || (kind ? " Finalisez votre contrat avant de transmettre un séjour." : "")}`, actionLink: null, contractLink };
   }
   if (missionReady) {
-    return { message: `Accepté : la mission commerciale est créée.${nextAction || " Finalisez votre contrat avant de transmettre un séjour."}`, actionLink: null, contractLink };
+    return { message: `Accepté : la mission commerciale est créée.${nextAction || (kind ? " Finalisez votre contrat avant de transmettre un séjour." : "")}`, actionLink: null, contractLink };
   }
   return { message: `Accepté : devis validé.${nextAction}`, actionLink: null, contractLink };
 }

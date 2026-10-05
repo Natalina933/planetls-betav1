@@ -3,6 +3,7 @@ import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { awardAcceptedQuote, QuoteAwardError, finalizeAcceptedQuoteWorkflow } from "@/app/api/_shared/acceptedQuoteWorkflow";
 import { getCollaborationNextAction } from "@/app/api/_shared/collaborationNextAction";
 import { upsertAcceptedHousingCollaboration } from "@/app/api/_shared/housingCollaboration";
+import { loadStayServiceRequestContext } from "@/app/api/_shared/stayServiceRequestContext";
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { deriveQuoteWorkflowStatus } from "@/app/lib/commercialWorkflow";
 import { db } from "@/app/lib/dbServer";
@@ -17,6 +18,18 @@ async function loadMissionReservationId(missionId: string | null | undefined) {
   const { data } = await untypedDb.from("missions").select("reservation_id, metadata").eq("id", missionId).maybeSingle();
   const row = data as { reservation_id?: string | null; metadata?: Record<string, unknown> | null } | null;
   return row?.reservation_id ?? (typeof row?.metadata?.reservation_id === "string" ? row.metadata.reservation_id : null);
+}
+
+function readEarlyServiceRequestId(row: { service_request_id?: unknown; metadata?: unknown }) {
+  if (typeof row.service_request_id === "string" && row.service_request_id.trim()) {
+    return row.service_request_id.trim();
+  }
+  const metadata =
+    row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
+      ? (row.metadata as Record<string, unknown>)
+      : null;
+  const fromMetadata = metadata?.service_request_id;
+  return typeof fromMetadata === "string" && fromMetadata.trim() ? fromMetadata.trim() : null;
 }
 
 type QuoteStatus =
@@ -285,7 +298,14 @@ export async function PATCH(
       return NextResponse.json({ error: "Devis introuvable" }, { status: 404 });
     }
 
-    const housingValidation = nextStatus === "accepted"
+    // Explicit stay context ("demande ponctuelle de séjour"): loaded before
+    // housing validation so a stay-only acceptance never requires a housing row.
+    const stayContext =
+      nextStatus === "accepted"
+        ? await loadStayServiceRequestContext(untypedDb, readEarlyServiceRequestId(existing))
+        : null;
+
+    const housingValidation = nextStatus === "accepted" && !stayContext
       ? await validateHousingFromQuote({
           quoteId: id,
           expectedOwnerProfileId: OWNER_BILLING_ROLES.has(role) ? userId : existing.owner_profile_id,
@@ -423,20 +443,24 @@ export async function PATCH(
         serviceRequestRecipientId,
       });
 
-      try {
-        autoHousingResult = await createHousingFromQuote(id, existing.concierge_profile_id, linkedHousingId);
-        await upsertAcceptedHousingCollaboration({
-          db: untypedDb,
-          housingId: autoHousingResult.housingId,
-          ownerProfileId: existing.owner_profile_id,
-          conciergeProfileId: existing.concierge_profile_id,
-          quoteId: id,
-          missionId: workflowResult?.mission?.id ?? updated.mission_id ?? null,
-          request: acceptedServiceRequest,
-        });
-      } catch (autoHousingError) {
-        if (autoHousingError instanceof QuoteHousingValidationError) throw autoHousingError;
-        console.error("[PATCH /api/quotes/:id/status] auto housing error:", autoHousingError);
+      // Stay-scoped acceptance: mission + invoice only, no housing row and no
+      // collaboration (the main concierge on reservations stays unchanged).
+      if (!stayContext) {
+        try {
+          autoHousingResult = await createHousingFromQuote(id, existing.concierge_profile_id, linkedHousingId);
+          await upsertAcceptedHousingCollaboration({
+            db: untypedDb,
+            housingId: autoHousingResult.housingId,
+            ownerProfileId: existing.owner_profile_id,
+            conciergeProfileId: existing.concierge_profile_id,
+            quoteId: id,
+            missionId: workflowResult?.mission?.id ?? updated.mission_id ?? null,
+            request: acceptedServiceRequest,
+          });
+        } catch (autoHousingError) {
+          if (autoHousingError instanceof QuoteHousingValidationError) throw autoHousingError;
+          console.error("[PATCH /api/quotes/:id/status] auto housing error:", autoHousingError);
+        }
       }
     }
 
@@ -483,8 +507,10 @@ export async function PATCH(
     });
 
     // LOT 1A : lecture seule du statut réel de collaboration (jamais de devis accepted => active).
+    // Intervention ponctuelle liée à un séjour (stayContext explicite) : aucune
+    // collaboration durable => aucune action « finaliser le contrat ».
     const collaborationNextAction =
-      nextStatus === "accepted"
+      nextStatus === "accepted" && !stayContext
         ? await getCollaborationNextAction({ db: untypedDb, quoteId: id, serviceRequestId })
         : null;
 
@@ -506,8 +532,10 @@ export async function PATCH(
         request_status: syncedRequestStatus,
         next_action:
           nextStatus === "accepted"
-            ? (collaborationNextAction?.nextAction ??
-              "Devis accepté : finalisez votre contrat avec votre concierge avant de transmettre un séjour.")
+            ? (stayContext
+                ? null
+                : (collaborationNextAction?.nextAction ??
+                  "Devis accepté : finalisez votre contrat avec votre concierge avant de transmettre un séjour."))
             : nextStatus === "sent"
               ? "Attendre la décision du propriétaire ou relancer depuis la conversation."
               : "Comparer les autres devis actifs ou relancer une nouvelle recherche si nécessaire.",

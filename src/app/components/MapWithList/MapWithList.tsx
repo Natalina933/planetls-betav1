@@ -3,10 +3,8 @@
 import React, { useEffect, useState } from "react";
 import useSWR from "swr";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 import { MapContainer, Marker, Popup, TileLayer, Circle, useMap } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
 
 import L, { LatLngExpression } from "leaflet";
 import { useSearchParams } from "next/navigation";

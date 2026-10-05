@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { awardAcceptedQuote, QuoteAwardError, finalizeAcceptedQuoteWorkflow } from "@/app/api/_shared/acceptedQuoteWorkflow";
 import { getCollaborationNextAction } from "@/app/api/_shared/collaborationNextAction";
+import { readStayContext } from "@/app/api/_shared/stayServiceRequestContext";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { createHousingFromQuote, validateHousingFromQuote, QuoteHousingValidationError } from "@/app/api/profiles/housing/shared";
 import { upsertAcceptedHousingCollaboration } from "@/app/api/_shared/housingCollaboration";
@@ -122,7 +123,13 @@ export async function POST(
     if (!selectedQuote) {
       throw new QuoteHousingValidationError("Aucun devis correspondant à cette demande et à cette concierge ne peut être sélectionné.");
     }
-    const housingValidation = await validateHousingFromQuote({
+    // Explicit stay context ("demande ponctuelle de séjour"): acceptance must
+    // create the stay mission only, without housing validation, housing row or
+    // collaboration (the main concierge on reservations stays unchanged).
+    const stayContext = readStayContext(requestRow);
+    const housingValidation = stayContext
+      ? null
+      : await validateHousingFromQuote({
           quoteId: selectedQuote.id,
           expectedOwnerProfileId: userId,
           expectedConciergeProfileId: selectedRecipient.concierge_profile_id,
@@ -145,32 +152,34 @@ export async function POST(
 
       const housingId = housingValidation?.housingId ?? null;
 
-      try {
-        autoHousing = await createHousingFromQuote(
-          selectedQuote.id,
-          selectedRecipient.concierge_profile_id,
-          housingId,
-        );
+      if (!stayContext) {
         try {
-          await upsertAcceptedHousingCollaboration({
-            db: dbAny,
-            housingId: autoHousing.housingId,
-            ownerProfileId: requestRow.owner_profile_id ?? userId,
-            conciergeProfileId: selectedRecipient.concierge_profile_id,
-            quoteId: selectedQuote.id,
-            missionId: acceptedWorkflow?.mission?.id ?? selectedQuote.mission_id ?? null,
-            request: requestRow,
-          });
-        } catch (collaborationError) {
-          console.error("[service-requests/select] collaboration record error:", collaborationError);
+          autoHousing = await createHousingFromQuote(
+            selectedQuote.id,
+            selectedRecipient.concierge_profile_id,
+            housingId,
+          );
+          try {
+            await upsertAcceptedHousingCollaboration({
+              db: dbAny,
+              housingId: autoHousing.housingId,
+              ownerProfileId: requestRow.owner_profile_id ?? userId,
+              conciergeProfileId: selectedRecipient.concierge_profile_id,
+              quoteId: selectedQuote.id,
+              missionId: acceptedWorkflow?.mission?.id ?? selectedQuote.mission_id ?? null,
+              request: requestRow,
+            });
+          } catch (collaborationError) {
+            console.error("[service-requests/select] collaboration record error:", collaborationError);
+          }
+        } catch (housingError) {
+          if (housingError instanceof QuoteHousingValidationError) throw housingError;
+          console.error("[service-requests/select] housing collaboration link error:", housingError);
+          return NextResponse.json(
+            { error: "La conciergerie est sélectionnée, mais le logement n'a pas pu être rattaché." },
+            { status: 500 },
+          );
         }
-      } catch (housingError) {
-        if (housingError instanceof QuoteHousingValidationError) throw housingError;
-        console.error("[service-requests/select] housing collaboration link error:", housingError);
-        return NextResponse.json(
-          { error: "La conciergerie est sélectionnée, mais le logement n'a pas pu être rattaché." },
-          { status: 500 },
-        );
       }
     }
 
@@ -183,7 +192,9 @@ export async function POST(
     }
 
     // LOT 1A : même lecture seule du statut réel de collaboration que l'autre route d'acceptation.
-    const collaborationNextAction = selectedQuote?.id
+    // Intervention ponctuelle liée à un séjour (stayContext explicite) : pas de
+    // collaboration durable, donc pas d'action « finaliser le contrat ».
+    const collaborationNextAction = selectedQuote?.id && !stayContext
       ? await getCollaborationNextAction({ db: dbAny, quoteId: selectedQuote.id, serviceRequestId: id })
       : null;
 
@@ -200,9 +211,10 @@ export async function POST(
         },
         completed_action: {
           request_status: "accepted",
-          next_action:
-            collaborationNextAction?.nextAction ??
-            "Devis accepté : finalisez votre contrat avec votre concierge avant de transmettre un séjour.",
+          next_action: stayContext
+            ? null
+            : (collaborationNextAction?.nextAction ??
+              "Devis accepté : finalisez votre contrat avec votre concierge avant de transmettre un séjour."),
           next_href: collaborationNextAction?.nextHref ?? null,
           visible_in: collaborationNextAction?.visibleIn ?? ["devis", "demandes", "messages"],
         },

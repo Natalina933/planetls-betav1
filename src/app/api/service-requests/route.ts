@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
+import { validateStayServiceRequestContext } from "@/app/api/_shared/stayServiceRequestContext";
+import type { NeedKey } from "@/app/api/_shared/stayNeeds";
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { deriveCommercialWorkflowStatus } from "@/app/lib/commercialWorkflow";
 import { db } from "@/app/lib/dbServer";
@@ -65,6 +67,8 @@ interface CreateServiceRequestBody {
   budget_max?: number | null;
   currency?: string | null;
   recipient_ids?: string[];
+  reservation_id?: string | null;
+  stay_need?: string | null;
 }
 
 const OWNER_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
@@ -102,6 +106,10 @@ const createServiceRequestSchema = z.object({
   budget_max: z.coerce.number().nonnegative().max(100000000).optional().nullable(),
   currency: z.string().trim().length(3).optional().nullable(),
   recipient_ids: z.array(z.string().uuid()).max(100).optional(),
+  // One-off stay-specific request: explicit stay context (never inferred
+  // from request_type). Requires reservation_id + stay_need validated server-side.
+  reservation_id: z.string().uuid().optional().nullable(),
+  stay_need: z.string().trim().max(40).optional().nullable(),
 });
 
 const updateServiceRequestSchema = createServiceRequestSchema
@@ -974,6 +982,22 @@ export async function POST(req: NextRequest) {
       summary: briefMetadata.request_summary,
     });
 
+    // Explicit stay context: validated server-side (stay exists, owned by the
+    // authenticated owner, property matches, stay_need in the canonical set).
+    let stayContext: { reservationId: string; stayNeed: NeedKey; propertyId: string | null } | null = null;
+    if (typeof body.reservation_id === "string" && body.reservation_id.trim()) {
+      const stayValidation = await validateStayServiceRequestContext(dbAny, {
+        userId,
+        reservationId: body.reservation_id.trim(),
+        stayNeed: body.stay_need ?? null,
+        propertyId: typeof body.property_id === "string" ? body.property_id : null,
+      });
+      if (!stayValidation.ok) {
+        return NextResponse.json({ error: stayValidation.error }, { status: stayValidation.status });
+      }
+      stayContext = stayValidation.context;
+    }
+
     let validRecipientIds: string[] = [];
     if (recipientIds.length > 0) {
       const { data: conciergeProfiles, error: conciergeProfilesError } = await dbAny
@@ -1005,7 +1029,7 @@ export async function POST(req: NextRequest) {
 
     const insertPayload = {
       owner_profile_id: userId,
-      property_id: body.property_id ?? null,
+      property_id: stayContext?.propertyId ?? body.property_id ?? null,
       request_type: requestType,
       status: (validRecipientIds.length > 0 ? "sent" : "draft") as ServiceRequestStatus,
       title,
@@ -1019,6 +1043,8 @@ export async function POST(req: NextRequest) {
       urgency: body.urgency === true,
       budget_max: typeof body.budget_max === "number" ? body.budget_max : null,
       currency: normalizeCurrency(body.currency),
+      reservation_id: stayContext?.reservationId ?? null,
+      stay_need: stayContext?.stayNeed ?? null,
       metadata: {
         origin: validRecipientIds.length > 0 ? "owner_search_flow" : "owner_direct_request",
         region: typeof body.region === "string" ? body.region.trim() || null : null,
@@ -1043,7 +1069,9 @@ export async function POST(req: NextRequest) {
     let createdRequest: ServiceRequestRow | null = null;
     let requestError: unknown = null;
 
-    const existingHousingRequest = housingId && requestType !== "renfort" ? await findOwnerRequestForHousing(userId, housingId) : null;
+    // A stay-specific request is always a new request: it must never be merged
+    // into (or blocked by) the classic per-housing draft reuse.
+    const existingHousingRequest = !stayContext && housingId && requestType !== "renfort" ? await findOwnerRequestForHousing(userId, housingId) : null;
     if (existingHousingRequest) {
       const { count: recipientCount, error: existingRecipientsError } = await dbAny
         .from("service_request_recipients")

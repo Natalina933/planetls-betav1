@@ -1,17 +1,13 @@
 import { insertMissionWithOptionalMetadata } from "@/app/api/_shared/missionInsert";
 import { cleanString, isRecord, type ReservationRow } from "@/app/api/_shared/reservations";
+import { normalizeStayNeed, SERVICE_CODES, type NeedKey } from "@/app/api/_shared/stayNeeds";
 import type { LooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
 import { getHousingReferenceId } from "@/app/lib/listingReferences";
 
-const SERVICE_CODES = {
-  checkin: "CHECK_IN",
-  checkout: "CHECK_OUT",
-  cleaning: "MENAGE",
-  linen: "LINGE",
-} as const;
+// Canonical vocabulary lives in stayNeeds.ts (shared with stay service requests).
+export { normalizeStayNeed };
 
-type NeedKey = keyof typeof SERVICE_CODES;
 type CollaborationRow = {
   id: string;
   housing_id: number | string;
@@ -41,16 +37,6 @@ export type StayMissionAssignmentRow = {
 export type StayMissionAssignmentResult =
   | { ok: true; missions: StayMissionAssignmentRow[]; status: 201 }
   | { ok: false; error: string; status: number };
-
-export function normalizeStayNeed(value: unknown): NeedKey | null {
-  if (typeof value !== "string") return null;
-  const normalized = value.trim().toLowerCase().replace(/[_\s-]+/g, "");
-  if (normalized === "checkin" || normalized === "arrival") return "checkin";
-  if (normalized === "checkout" || normalized === "departure") return "checkout";
-  if (normalized === "cleaning" || normalized === "menage" || normalized === "ménage") return "cleaning";
-  if (normalized === "linen" || normalized === "linge") return "linen";
-  return null;
-}
 
 export function readStayMissionAssignments(body: Record<string, unknown>) {
   const rawAssignments = Array.isArray(body.assignments) ? body.assignments : [];
@@ -108,6 +94,8 @@ function missionTiming(reservation: ReservationRow, need: NeedKey) {
       return { start: addMinutes(reservation.check_out_at, 60), end: addMinutes(reservation.check_out_at, 180) };
     case "linen":
       return { start: addMinutes(reservation.check_out_at, 90), end: addMinutes(reservation.check_out_at, 150) };
+    case "courses":
+      return { start: addMinutes(reservation.check_in_at, -180), end: reservation.check_in_at };
   }
 }
 
@@ -115,7 +103,8 @@ function missionTitle(need: NeedKey) {
   if (need === "checkin") return "Check-in";
   if (need === "checkout") return "Check-out";
   if (need === "cleaning") return "Ménage";
-  return "Linge";
+  if (need === "linen") return "Linge";
+  return "Courses / préparation";
 }
 
 export async function createOrReuseStayMissions(input: {

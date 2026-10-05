@@ -1,4 +1,5 @@
 import { insertMissionWithOptionalMetadata } from "./missionInsert.ts";
+import { readStayContext } from "./stayServiceRequestContext.ts";
 import type { LooseSupabaseClient } from "./untypedSupabase.ts";
 
 type DbClient = LooseSupabaseClient;
@@ -59,6 +60,9 @@ type ServiceRequestWorkflowRow = {
   urgency?: boolean | null;
   owner_profile_id?: string | null;
   selected_concierge_profile_id?: string | null;
+  mission_id?: string | null;
+  reservation_id?: string | null;
+  stay_need?: string | null;
   metadata?: Record<string, unknown> | null;
 };
 
@@ -67,6 +71,8 @@ type MissionWorkflowRow = {
   title?: string | null;
   status?: string | null;
   scheduled_start?: string | null;
+  reservation_id?: string | null;
+  metadata?: unknown;
 };
 
 const round2 = (value: number): number => Math.round(value * 100) / 100;
@@ -112,6 +118,27 @@ async function findOrCreateMission(input: {
     if (missionRow?.id) return missionRow;
   }
 
+  // Explicit stay context ("demande ponctuelle de séjour"): reuse any mission
+  // already created for the same stay + request + quote (crash retry guard).
+  const stayContext = readStayContext(request);
+  if (stayContext) {
+    const { data: stayMissions } = await db
+      .from("missions")
+      .select("id, title, status, scheduled_start, reservation_id, metadata")
+      .eq("reservation_id", stayContext.reservationId)
+      .limit(50);
+
+    const existingStayMission = (Array.isArray(stayMissions) ? stayMissions : []).find((row) => {
+      const missionMetadata = isRecord((row as MissionWorkflowRow).metadata) ? ((row as MissionWorkflowRow).metadata as Record<string, unknown>) : null;
+      return (
+        missionMetadata &&
+        getMetadataString(missionMetadata, "service_request_id") === serviceRequestId &&
+        getMetadataString(missionMetadata, "quote_id") === quote.id
+      );
+    }) as MissionWorkflowRow | undefined;
+    if (existingStayMission?.id) return existingStayMission;
+  }
+
   if (!quote.concierge_profile_id) return null;
   const { data: linkedQuoteItems } = await db
     .from("quote_items")
@@ -134,6 +161,12 @@ async function findOrCreateMission(input: {
     deposit_percent: quoteMetadata.deposit_percent ?? null,
     deposit_required: quoteMetadata.deposit_required ?? null,
     planning_origin: request?.desired_date ? "service_request_desired_date" : "to_schedule",
+    ...(stayContext
+      ? {
+          reservation_id: stayContext.reservationId,
+          ...(stayContext.stayNeed ? { stay_need: stayContext.stayNeed } : {}),
+        }
+      : {}),
   };
 
   const { data, error } = await insertMissionWithOptionalMetadata<MissionWorkflowRow>(
@@ -152,6 +185,9 @@ async function findOrCreateMission(input: {
       scheduled_start: request?.desired_date ?? null,
       scheduled_end: null,
       metadata: missionMetadata,
+      // One-off stay mission: linked to the stay, without touching
+      // reservations.concierge_profile_id (main concierge stays responsible).
+      ...(stayContext ? { reservation_id: stayContext.reservationId } : {}),
     },
     "id, title, status, scheduled_start",
     "id, title, status, scheduled_start",
@@ -338,5 +374,5 @@ export async function finalizeAcceptedQuoteWorkflow(input: QuoteWorkflowInput) {
     });
   }
 
-  return { mission, invoice };
+  return { mission, invoice, stayScoped: Boolean(readStayContext(request)) };
 }

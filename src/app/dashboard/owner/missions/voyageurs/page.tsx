@@ -25,6 +25,7 @@ import {
   X,
 } from "lucide-react";
 import { getCanonicalListingId } from "@/app/lib/listingReferences";
+import { normalizeStayNeed, type NeedKey } from "@/app/api/_shared/stayNeeds";
 import { Alert, AsyncState, Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
 import { ServiceRequestCard, type ServiceRequestCardTone, type ServiceRequestFact, type ServiceRequestMilestone } from "@/features/service-requests";
 import { formatDateValue } from "@/app/utils/formatters";
@@ -156,6 +157,9 @@ type ReservationDetailPayload = {
     concierge_notes?: string | null;
     status?: string | null;
     updated_at?: string | null;
+  } | null;
+  stay?: {
+    missions?: Array<{ id: string; step?: string | null; status?: string | null }>;
   } | null;
   timeline?: ReservationTimelineItem[];
   changed_fields?: string[];
@@ -921,6 +925,39 @@ function getMissionHeaderImage(mission: MissionRow) {
   return "/images/carousel/planetls-private-voyageurs.png";
 }
 
+const stayNeedLabels: Record<NeedKey, string> = {
+  checkin: "Check-in",
+  checkout: "Check-out",
+  cleaning: "Ménage",
+  linen: "Linge",
+  courses: "Courses",
+};
+
+function getOpenStayNeeds(mission: MissionRow, detail: ReservationDetailPayload | null): NeedKey[] {
+  const requestedActions = Array.isArray(mission.metadata?.requested_actions)
+    ? mission.metadata.requested_actions
+    : [];
+  const requestedNeeds = Array.from(
+    new Set(requestedActions.map(normalizeStayNeed).filter((need): need is NeedKey => Boolean(need))),
+  );
+  const existingSteps = new Set(
+    (detail?.stay?.missions ?? [])
+      .filter((item) => item.status !== "canceled")
+      .map((item) => normalizeStayNeed(item.step))
+      .filter((need): need is NeedKey => Boolean(need)),
+  );
+
+  return requestedNeeds.filter((need) => !existingSteps.has(need));
+}
+
+function buildProfessionalSearchHref(reservationId: string, stayNeed: NeedKey) {
+  const params = new URLSearchParams({
+    reservation_id: reservationId,
+    stay_need: stayNeed,
+  });
+  return `/dashboard/owner/concierges?${params.toString()}`;
+}
+
 function buildTitle(form: TravelerMissionForm) {
   const name = [form.firstName, form.lastName].filter(Boolean).join(" ").trim() || "voyageurs";
   return `Séjour ${name}`;
@@ -1398,6 +1435,10 @@ function OwnerTravelerMissionsContent() {
   const focusedMission = useMemo(
     () => missions.find((mission) => mission.id === focusedMissionId) ?? missions[0] ?? null,
     [missions, focusedMissionId],
+  );
+  const openStayNeeds = useMemo(
+    () => (focusedMission ? getOpenStayNeeds(focusedMission, focusedReservationDetail) : []),
+    [focusedMission, focusedReservationDetail],
   );
 
   useEffect(() => {
@@ -1997,6 +2038,26 @@ function OwnerTravelerMissionsContent() {
                   </div>
                 ) : null}
                 {focusedReservationSuccess ? <p className={`${styles.message} ${styles.messageSuccess}`}>{focusedReservationSuccess}</p> : null}
+                {focusedMission && openStayNeeds.length > 0 ? (
+                  <div className={styles.editorialCardBlock}>
+                    <strong>Prestations à pourvoir</strong>
+                    <p className={styles.meta}>
+                      Ces prestations sont demandées pour ce séjour et ne sont pas encore rattachées à une mission.
+                    </p>
+                    <div className={styles.heroActions}>
+                      {openStayNeeds.map((need) => (
+                        <ButtonLink
+                          key={need}
+                          href={buildProfessionalSearchHref(focusedMission.id, need)}
+                          variant="primary"
+                          className={styles.buttonSecondary}
+                        >
+                          Trouver un professionnel · {stayNeedLabels[need]}
+                        </ButtonLink>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
                 <div className={styles.heroActions}>
                   <button type="button" className={styles.buttonSecondary} onClick={() => void saveFocusedReservationBrief()} disabled={focusedReservationSaving}>
                     {focusedReservationSaving ? "Enregistrement..." : "Mettre à jour le brief"}
