@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
-import { FiChevronDown, FiX } from "react-icons/fi";
+import { FiX } from "react-icons/fi";
 import { getOwnerActivePath } from "./ownerNavigation";
 import { useUserType } from "@/app/context/UserTypeContext";
 import {
@@ -173,23 +173,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
           }`}
         aria-label="Sidebar"
       >
-        {isConciergeWorkspace ? (
-          <div className={styles.conciergeBrand}>
-            <Image src="/icons/logoCompletv2-gold.svg" alt="PlanetLS" width={132} height={42} priority />
-            <span>Conciergerie</span>
-          </div>
-        ) : null}
         <div className={styles.header}>
-          {userType === "owner" ? (
+          {userType === "owner" || isConciergeWorkspace ? (
             <div className={styles.ownerBrand} aria-label="PlanetLS - Espace propriétaire">
-              <span className={styles.ownerBrandMark} aria-hidden="true">P</span>
-              <span className={styles.ownerBrandText}>
-                <strong>PlanetLS</strong>
-                <span>
-                  Espace propriétaire
-                  <FiChevronDown aria-hidden="true" />
-                </span>
-              </span>
+              <Image
+                src="/logo/Logo%20PlanetLS%20_%20globe%20dor%C3%A9%20et%20%C3%A9l%C3%A9gance%20verte.png"
+                alt="PlanetLS"
+                width={176}
+                height={59}
+                className={styles.ownerBrandLogo}
+                priority
+              />
             </div>
           ) : (
             <span className={styles.title}>

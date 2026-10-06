@@ -20,8 +20,8 @@ export const metadata: Metadata = {
     follow: true,
   },
   icons: {
-    icon: "/icons/Mini_logo.svg",
-    apple: "/icons/Mini_logo.svg",
+    icon: "/logo/planetls-emblem-icon.png",
+    apple: "/logo/planetls-emblem-icon.png",
   },
   manifest: "/manifest.json",
 };

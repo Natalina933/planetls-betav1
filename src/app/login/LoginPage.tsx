@@ -289,7 +289,7 @@ export default function LoginPage() {
 
           <div className={styles.visualContent}>
             <Image
-              src="/icons/logoCompletv2-gold.svg"
+              src="/logo/Logo%20PlanetLS%20_%20globe%20dor%C3%A9%20et%20%C3%A9l%C3%A9gance%20verte.png"
               alt="Planet LS"
               width={178}
               height={54}

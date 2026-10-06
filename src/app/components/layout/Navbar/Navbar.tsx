@@ -2,14 +2,31 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useTheme, type Theme } from "@/app/providers/ThemeProvider";
 import { useUserType } from "@/app/context/UserTypeContext";
 import { useSearchPopup } from "../../../context/SearchPopupContext";
-import { FiRepeat } from "react-icons/fi";
+import {
+  FiRepeat,
+  FiSun,
+  FiUser,
+  FiMenu,
+  FiX,
+  FiHome,
+  FiBriefcase,
+  FiTool,
+  FiHelpCircle,
+  FiLayers,
+  FiBookOpen,
+  FiChevronDown,
+} from "react-icons/fi";
+
 import styles from "./Navbar.module.scss";
 import Image from "next/image";
+
+// Import des icônes Fa existantes pour compatibilité
 const Icons = {
   FaUser: dynamic(() => import("react-icons/fa").then((mod) => mod.FaUser), {
     ssr: false,
@@ -30,7 +47,6 @@ const Icons = {
 
 const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
 const WARNING_BEFORE_LOGOUT = 2 * 60 * 1000;
-// Accès public temporaire : passer à false à la fin de la bêta.
 const PUBLIC_BETA_WORKSPACE_ACCESS = true;
 
 type WorkspaceOption = {
@@ -93,11 +109,16 @@ const fallbackWorkspaces: Record<WorkspaceOption["id"], WorkspaceOption> = {
     id: "admin",
     label: "Administrateur",
     href: "/dashboard/admin",
-    description: "Accéder au pilotage et à l’administration de PlanetLS.",
+    description: "Accéder au pilotage et à l'administration de PlanetLS.",
   },
 };
 
-export default function Navbar() {
+interface NavbarProps {
+  isHome?: boolean;
+  showThemeOnDesktop?: boolean;
+}
+
+export default function Navbar({ isHome = false, showThemeOnDesktop = true }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -121,19 +142,14 @@ export default function Navbar() {
   const { setSearchOpen } = useSearchPopup();
 
   const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const warningTimeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
-
   const showWarningRef = useRef(false);
 
   const extendButtonRef = useRef<HTMLButtonElement | null>(null);
-
   const warningModalRef = useRef<HTMLDivElement | null>(null);
-
   const themeMenuRef = useRef<HTMLDivElement | null>(null);
-
   const workspaceMenuRef = useRef<HTMLLIElement | null>(null);
 
   const isAuthenticated = status === "authenticated";
@@ -453,7 +469,6 @@ export default function Navbar() {
     closeMenu();
     setWorkspaceMenuOpen(false);
 
-    // Le Login existant prépare les identifiants de démonstration.
     if (!isAuthenticated) {
       router.push(`/login?workspace=${workspace.id}`);
       return;
@@ -509,45 +524,47 @@ export default function Navbar() {
   return (
     <>
       <nav className={styles.navbar}>
-        {/* Sélecteur de thème */}
-        <div className={styles.themeSwitcher} ref={themeMenuRef}>
-          <button
-            type="button"
-            className={styles.themeTrigger}
-            onClick={() => setThemeMenuOpen(!themeMenuOpen)}
-            title="Changer de thème"
-            aria-label="Changer de thème"
-            aria-haspopup="menu"
-            aria-expanded={themeMenuOpen}
-          >
-            <Icons.FaPalette size={18} />
+        {/* Sélecteur de thème - Masqué sur mobile car géré par le Header */}
+        {showThemeOnDesktop && (
+          <div className={styles.themeSwitcher} ref={themeMenuRef}>
+            <button
+              type="button"
+              className={styles.themeTrigger}
+              onClick={() => setThemeMenuOpen(!themeMenuOpen)}
+              title="Changer de thème"
+              aria-label="Changer de thème"
+              aria-haspopup="menu"
+              aria-expanded={themeMenuOpen}
+            >
+              <FiSun size={16} />
+              <span className={styles.themeLabel}>{getCurrentLabel()}</span>
+              <FiChevronDown size={14} aria-hidden="true" />
+            </button>
 
-            <span className={styles.themeLabel}>{getCurrentLabel()}</span>
-          </button>
+            {themeMenuOpen && (
+              <div className={styles.themeDropdown} role="menu">
+                {Object.entries(themes).map(([key, value]) => (
+                  <button
+                    type="button"
+                    key={key}
+                    className={`${styles.themeOption} ${
+                      theme === value ? styles.active : ""
+                    }`}
+                    onClick={() => {
+                      changeTheme(value as Theme);
 
-          {themeMenuOpen && (
-            <div className={styles.themeDropdown} role="menu">
-              {Object.entries(themes).map(([key, value]) => (
-                <button
-                  type="button"
-                  key={key}
-                  className={`${styles.themeOption} ${
-                    theme === value ? styles.active : ""
-                  }`}
-                  onClick={() => {
-                    changeTheme(value as Theme);
-
-                    setThemeMenuOpen(false);
-                  }}
-                  aria-label={`Sélectionner le thème ${labels[value as Theme]}`}
-                  role="menuitem"
-                >
-                  {labels[value as Theme]}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+                      setThemeMenuOpen(false);
+                    }}
+                    aria-label={`Sélectionner le thème ${labels[value as Theme]}`}
+                    role="menuitem"
+                  >
+                    {labels[value as Theme]}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Menu mobile */}
         <button
@@ -563,6 +580,75 @@ export default function Navbar() {
         </button>
 
         <ul className={`${styles.menu} ${menuOpen ? styles.open : ""}`}>
+          {/* Liens de navigation pour mobile */}
+          {isHome && (
+            <>
+              <li>
+                <Link 
+                  href="#proprietaires" 
+                  className={styles.navLink}
+                  onClick={closeMenu}
+                >
+                  <FiHome size={16} aria-hidden="true" />
+                  Propriétaires
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="#conciergeries" 
+                  className={styles.navLink}
+                  onClick={closeMenu}
+                >
+                  <FiBriefcase size={16} aria-hidden="true" />
+                  Concierges
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="#artisans" 
+                  className={styles.navLink}
+                  onClick={closeMenu}
+                >
+                  <FiTool size={16} aria-hidden="true" />
+                  Artisans
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="#fonctionnement" 
+                  className={styles.navLink}
+                  onClick={closeMenu}
+                >
+                  <FiHelpCircle size={16} aria-hidden="true" />
+                  Comment ça marche ?
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="#services" 
+                  className={styles.navLink}
+                  onClick={closeMenu}
+                >
+                  <FiLayers size={16} aria-hidden="true" />
+                  Nos services
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="#conseils" 
+                  className={styles.navLink}
+                  onClick={closeMenu}
+                >
+                  <FiBookOpen size={16} aria-hidden="true" />
+                  Conseils
+                </Link>
+              </li>
+              <li className={styles.menuSeparator}>
+                <hr aria-hidden="true" />
+              </li>
+            </>
+          )}
+
           {/* Inscription */}
           {!isAuthenticated && (
             <li className={styles["auth-inscription"]}>
@@ -572,6 +658,7 @@ export default function Navbar() {
                 className={styles.navButton}
                 aria-label="Accéder à l'inscription"
               >
+                <FiUser size={16} aria-hidden="true" />
                 S&apos;inscrire
               </button>
             </li>
@@ -588,7 +675,7 @@ export default function Navbar() {
                 aria-expanded={workspaceMenuOpen}
                 aria-label={isAuthenticated ? `Changement d'espace · ${
                   currentWorkspace?.label ?? "Profil"
-                }` : "Changement d’espace"}
+                }` : "Changement d'espace"}
               >
                 <FiRepeat
                   className={styles.workspaceTriggerIcon}
@@ -612,14 +699,13 @@ export default function Navbar() {
                   </strong></>}
                 </span>
 
-                <span
+                <FiChevronDown
                   className={`${styles.workspaceChevron} ${
                     workspaceMenuOpen ? styles.workspaceChevronOpen : ""
                   }`}
                   aria-hidden="true"
-                >
-                  ▾
-                </span>
+                  size={14}
+                />
               </button>
 
               {workspaceMenuOpen ? (
@@ -703,7 +789,7 @@ export default function Navbar() {
                 onClick={handleGoToDashboard}
                 className={styles.dashboardButton}
               >
-                <Icons.FaTachometerAlt size={18} />
+                <Icons.FaTachometerAlt size={16} />
                 Mon espace
               </button>
             </li>
@@ -717,7 +803,7 @@ export default function Navbar() {
                 onClick={handleLogout}
                 className={styles.logoutButton}
               >
-                <Icons.FaUser size={18} />
+                <FiUser size={16} aria-hidden="true" />
                 Se déconnecter
               </button>
             ) : (
@@ -726,7 +812,7 @@ export default function Navbar() {
                 onClick={handleLogin}
                 className={styles.loginButton}
               >
-                <Icons.FaUser size={18} />
+                <FiUser size={16} aria-hidden="true" />
                 Se connecter
               </button>
             )}

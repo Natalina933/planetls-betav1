@@ -576,7 +576,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
                       >
                         {key === "concierge" ? (
                           <Image
-                            src="/icons/Mini_logo.svg"
+                            src="/logo/planetls-favicon-icon.png"
                             alt=""
                             className={styles.toggleLogo}
                             aria-hidden="true"

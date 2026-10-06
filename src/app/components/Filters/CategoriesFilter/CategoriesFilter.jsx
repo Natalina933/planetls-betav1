@@ -11,7 +11,7 @@ const FILTERS = [
   {
     key: "concierge",
     label: "Concierges",
-    icon: "/icons/Mon_logo.svg",
+    icon: "/logo/planetls-favicon-icon.png",
   },
   {
     key: "artisan",
