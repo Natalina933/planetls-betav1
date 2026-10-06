@@ -31,6 +31,9 @@ type ConciergeProfileRow = {
   country: string | null;
   service_area: string | null;
   location: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  geocoded_at: string | null;
   service_radius_km: number | null;
   hourly_rate: number | null;
   monthly_rate: number | null;
@@ -71,7 +74,7 @@ async function loadConciergeProfiles(
   let profileQuery = db
     .from("profiles")
     .select(
-      "id, avatar_url, image, first_name, last_name, username, company_name, city, postal_code, country, service_area, location, service_radius_km, hourly_rate, monthly_rate, experience_level, years_experience, option, availability_hours, emergency_service, role, created_at",
+      "id, avatar_url, image, first_name, last_name, username, company_name, city, postal_code, country, service_area, location, latitude, longitude, geocoded_at, service_radius_km, hourly_rate, monthly_rate, experience_level, years_experience, option, availability_hours, emergency_service, role, created_at",
     )
     .in("role", targetRoles);
   if (recentFirst) profileQuery = profileQuery.order("created_at", { ascending: false });
@@ -125,6 +128,9 @@ async function loadConciergeProfiles(
     image: null,
     postal_code: null,
     location: null,
+    latitude: null,
+    longitude: null,
+    geocoded_at: null,
     experience_level: null,
     availability_hours: null,
     emergency_service: null,
@@ -296,6 +302,8 @@ export async function GET(req: NextRequest) {
           country: profile.country,
           service_area: normalizedProfile.service_area,
           location: normalizedProfile.location,
+          latitude: profile.latitude,
+          longitude: profile.longitude,
           service_radius_km: profile.service_radius_km,
           hourly_rate: profile.hourly_rate,
           monthly_rate: profile.monthly_rate,

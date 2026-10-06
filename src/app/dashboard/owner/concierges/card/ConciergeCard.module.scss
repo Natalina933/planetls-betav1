@@ -16,14 +16,15 @@
 .stayCard {
   position: relative;
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 1rem;
+  align-items: center;
   min-width: 0;
-  padding: 1rem;
-  border: 1px solid rgba(57, 86, 65, 0.16);
-  border-radius: 8px;
-  background:
-    linear-gradient(180deg, rgba(255, 253, 248, 0.98), rgba(246, 241, 232, 0.96));
-  box-shadow: 0 10px 22px rgba(35, 45, 38, 0.06);
+  padding: 1rem 1.05rem;
+  border: 1px solid rgba(57, 86, 65, 0.14);
+  border-radius: 20px;
+  background: #fffdf8;
+  box-shadow: 0 14px 30px rgba(47, 38, 27, 0.06);
 }
 
 .stayCardSelected {
@@ -38,6 +39,7 @@
   align-items: center;
   gap: 0.85rem;
   min-width: 0;
+  grid-column: 1;
 }
 
 .stayAvatar {
@@ -75,6 +77,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
+  grid-column: 1;
+  padding-left: calc(54px + 0.85rem);
 }
 
 .stayServices span {
@@ -90,10 +94,38 @@
   font-weight: 700;
 }
 
+.matchHighlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  grid-column: 1;
+  padding-left: calc(54px + 0.85rem);
+}
+
+.matchHighlights span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0.22rem 0.58rem;
+  border: 1px solid rgba(184, 148, 92, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 250, 239, 0.95);
+  color: #6b4d23;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
 .stayActions {
   display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  grid-template-columns: minmax(150px, 1fr);
   gap: 0.65rem;
+  min-width: 190px;
+}
+
+.stayActions :is(a, button) {
+  width: 100%;
 }
 
 .card {
@@ -511,6 +543,21 @@
 }
 
 @media (max-width: 720px) {
+  .stayCard {
+    grid-template-columns: 1fr;
+  }
+
+  .stayServices,
+  .matchHighlights {
+    padding-left: 0;
+  }
+
+  .stayActions {
+    grid-column: auto;
+    grid-row: auto;
+    min-width: 0;
+  }
+
   .card {
     padding: 1rem;
   }

@@ -1,5 +1,18 @@
 # Master Plan PlanetLS
 
+### Géocodage profils et recherche concierges — 5 octobre 2026
+
+- Données `profiles` **🟠 Partiel — P1 Prioritaire** : migration distante `20261005143000_profiles_geocoding_fields.sql` appliquée seule, ajoutant `latitude`, `longitude` et `geocoded_at` nullable avec contraintes de validité, sans valeur par défaut `0`. La route `/api/profiles/concierges` retourne désormais `latitude`/`longitude` quand le schéma les expose, avec fallback de drift schema conservé.
+- Nettoyage contrôlé : 33 profils validés ont reçu uniquement `city` par UUID explicite, après backup local `supabase/.temp/profiles-city-cleanup-backup-20261005.json` et rollback SQL `scripts/rollback-profiles-city-cleanup-20261005.sql`. Répartition réelle : Paris 24, Lyon 5, Vendôme 2, Nantes 1, Lille 1 ; écart documentaire constaté avec l'ancien total Paris 22, qui ne totalisait pas 33.
+- Backfill : `scripts/backfill-profile-geocodes.mjs --apply` utilise `geocodeLocation` existant, whitelist stricte, idempotence sur coordonnées existantes et ignore les villes hors périmètre. 87 profils géocodés par le script, puis 2 profils de la revue manuelle restaurés à coordonnées nulles ; état final confirmé : 85 profils avec coordonnées valides, 66 profils douteux conservés sans coordonnées.
+- Preuves : colonnes lues via Supabase REST, contraintes `profiles_latitude_valid` et `profiles_longitude_valid` vérifiées par refus `23514`, `npx tsc --noEmit --incremental false --pretty false` **PASS**, `npm run build` **PASS**. Migrations locales `20261005120000` et `20261005130000` restent non appliquées à distance ; elles ont été écartées temporairement localement uniquement pour éviter une écriture distante hors périmètre, puis restaurées.
+
+### Refonte visuelle recherche professionnels propriétaire — 5 octobre 2026
+
+- Page `/dashboard/owner/concierges` **🟠 Partiel — P1 Prioritaire** : la route rend désormais directement le moteur propriétaire refondu, avec entrée `LE RÉSEAU PLANETLS`, recherche compacte, prestations repliées, filtres avancés repliables, résultats en liste, carte latérale compacte et shortlist limitée à la préparation de demande. Les anciens blocs de page recherche `Parcours propriétaire`, KPI recherche et suivi `Demandes concierge` sont retirés de cette page sans supprimer les fonctionnalités de demandes ailleurs.
+- Parcours conservé : sélection de professionnels, préparation/envoi de demande, contexte séjour `reservation_id`/`stay_need`, routes API et backend inchangés. L'ancien composant visuel `GeographicConciergeSearch` non rendu est supprimé avec son SCSS dédié pour éviter une divergence entre route et UI cible.
+- Preuves locales : TypeScript ciblé projet **PASS**, ESLint ciblé fichiers TS/TSX modifiés **PASS**, `git diff --check` **PASS** hors avertissements CRLF SCSS non bloquants, fichiers UI modifiés UTF-8 sans BOM et sans mojibake. Recette navigateur responsive et console réelle encore à confirmer sur l'instance locale/prod.
+
 ### UI prestation à pourvoir liée à un séjour — 5 octobre 2026
 
 - Parcours UI Séjour → prestation à pourvoir → recherche professionnel **🟠 Partiel — P1 Prioritaire** : la fiche séjour propriétaire expose les besoins ouverts issus de `requested_actions` et des missions déjà liées au séjour, puis oriente vers `/dashboard/owner/concierges?reservation_id=<id>&stay_need=<need>`. Le mode séjour côté recherche est déclenché uniquement par `reservation_id` + `stay_need` normalisé, avec bannière de contexte, carte professionnelle compacte sans donnée inventée et demande ponctuelle préremplie.
@@ -5325,6 +5338,7 @@ Idées nouvelles enregistrées sans implémentation :
 - Ajouter une table métier `billing_subscriptions` ou équivalent pour séparer rôle courant, statut Stripe, plan actif, période de renouvellement et incidents de synchronisation.
 - Ajouter un cockpit admin `Abonnements & paiements` branché sur `stripe_events`, `invoices`, échecs et retours manuels.
 - Créer un test E2E dédié `concierge_pro_subscription` couvrant `checkout -> webhook/return -> statut -> gating`.
+- Rendez-vous visio entre utilisateurs — idée future : permettre à terme de proposer une visioconférence quand un échange direct est utile (`propriétaire ↔ concierge`, `propriétaire ↔ prestataire/artisan`, `concierge ↔ prestataire`). Points d'entrée à étudier plus tard : messagerie, demande, relation/collaboration. Principe produit : `Messagerie = échanger -> Visio = se rencontrer -> Contrat = s'engager`. Aucun fournisseur ni développement visio choisi dans ce lot.
 
 ### Veille concurrentielle -> services et opportunités PlanetLS
 

@@ -23,6 +23,8 @@ export type ConciergeSearchRow = {
   reviews_count: number;
   latest_review_comment: string | null;
   latest_review_at: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 export type ConciergeSearchPayload = {

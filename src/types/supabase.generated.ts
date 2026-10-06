@@ -2326,6 +2326,7 @@ export type Database = {
           emergency_service: boolean | null
           experience_level: string | null
           facebook: string | null
+          geocoded_at: string | null
           first_name: string | null
           hourly_rate: number | null
           iban: string | null
@@ -2337,8 +2338,10 @@ export type Database = {
           intervention_zone_locked: boolean
           last_name: string | null
           legal_form: string | null
+          latitude: number | null
           linkedin: string | null
           location: string | null
+          longitude: number | null
           monthly_rate: number | null
           onboarding_complete: boolean
           onboarding_completed_at: string | null
@@ -2387,6 +2390,7 @@ export type Database = {
           emergency_service?: boolean | null
           experience_level?: string | null
           facebook?: string | null
+          geocoded_at?: string | null
           first_name?: string | null
           hourly_rate?: number | null
           iban?: string | null
@@ -2398,8 +2402,10 @@ export type Database = {
           intervention_zone_locked?: boolean
           last_name?: string | null
           legal_form?: string | null
+          latitude?: number | null
           linkedin?: string | null
           location?: string | null
+          longitude?: number | null
           monthly_rate?: number | null
           onboarding_complete?: boolean
           onboarding_completed_at?: string | null
@@ -2448,6 +2454,7 @@ export type Database = {
           emergency_service?: boolean | null
           experience_level?: string | null
           facebook?: string | null
+          geocoded_at?: string | null
           first_name?: string | null
           hourly_rate?: number | null
           iban?: string | null
@@ -2459,8 +2466,10 @@ export type Database = {
           intervention_zone_locked?: boolean
           last_name?: string | null
           legal_form?: string | null
+          latitude?: number | null
           linkedin?: string | null
           location?: string | null
+          longitude?: number | null
           monthly_rate?: number | null
           onboarding_complete?: boolean
           onboarding_completed_at?: string | null

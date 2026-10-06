@@ -155,6 +155,9 @@ export type Database = {
           postal_code: string | null;
           city: string | null;
           country: string | null;
+          latitude: number | null;
+          longitude: number | null;
+          geocoded_at: string | null;
           website: string | null;
           linkedin: string | null;
           instagram: string | null;
@@ -205,6 +208,9 @@ export type Database = {
           postal_code?: string | null;
           city?: string | null;
           country?: string | null;
+          latitude?: number | null;
+          longitude?: number | null;
+          geocoded_at?: string | null;
           website?: string | null;
           linkedin?: string | null;
           instagram?: string | null;
@@ -255,6 +261,9 @@ export type Database = {
           postal_code?: string | null;
           city?: string | null;
           country?: string | null;
+          latitude?: number | null;
+          longitude?: number | null;
+          geocoded_at?: string | null;
           website?: string | null;
           linkedin?: string | null;
           instagram?: string | null;

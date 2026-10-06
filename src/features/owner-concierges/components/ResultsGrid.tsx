@@ -50,10 +50,10 @@ export function ResultsGrid({
           className={styles.emptyState}
           title={
             filtersLabel
-              ? `Aucun concierge disponible pour ${filtersLabel}.`
-              : "Aucun concierge disponible pour cette recherche."
+              ? `Aucun professionnel trouvé pour ${filtersLabel}.`
+              : "Aucun professionnel trouvé avec ces critères."
           }
-          description="Créez une alerte pour être prévenue dès qu'un concierge correspond à cette zone."
+          description="Essayez d'augmenter le rayon ou de retirer une prestation."
           primaryAction={
             filtersLabel ? (
               <Button type="button" variant="primary" className={styles.primaryBtn} onClick={onCreateAlert}>
@@ -74,10 +74,10 @@ export function ResultsGrid({
       {showIdleEmpty ? (
         <EmptyState
           className={styles.emptyState}
-          title="Lancez une recherche pour voir les concierges disponibles."
+          title="Lancez une recherche pour voir les professionnels disponibles."
           description={
             hasSearchCriteria
-              ? "Vos filtres sont prêts. Cliquez sur Rechercher pour afficher les concierges disponibles."
+              ? "Vos filtres sont prêts. Cliquez sur Rechercher pour afficher les professionnels disponibles."
               : "Saisissez une ville ou un code postal pour affiner."
           }
         />

@@ -179,6 +179,7 @@ if (googleClientId && googleClientSecret) {
 }
 
 export const authOptions: NextAuthConfig = {
+  basePath: "/api/auth",
   session: {
     strategy: "jwt",
     maxAge: sessionMaxAgeSeconds,

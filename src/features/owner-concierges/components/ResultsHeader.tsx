@@ -1,4 +1,3 @@
-import { OptionToggleGroup } from "@/features/shared/components/OptionToggleGroup";
 import type { SortMode, ViewMode } from "@/features/owner-concierges/lib/search";
 
 type ResultsHeaderProps = {
@@ -6,62 +5,34 @@ type ResultsHeaderProps = {
   loading: boolean;
   hasSubmittedSearch: boolean;
   itemsCount: number;
+  summary: string;
   sortMode: SortMode;
   viewMode: ViewMode;
   onSortModeChange: (value: SortMode) => void;
   onViewModeChange: (value: ViewMode) => void;
 };
 
-const SORT_OPTIONS = [
-  { value: "available", label: "Disponibles" },
-  { value: "rating", label: "Mieux notés" },
-  { value: "pro", label: "PRO" },
-] as const;
-
-const VIEW_OPTIONS = [
-  { value: "cards", label: "Cartes" },
-  { value: "list", label: "Liste" },
-] as const;
-
 export function ResultsHeader({
   styles,
   loading,
   hasSubmittedSearch,
-  itemsCount,
-  sortMode,
-  viewMode,
-  onSortModeChange,
-  onViewModeChange,
+  itemsCount: _itemsCount,
+  summary,
+  sortMode: _sortMode,
+  viewMode: _viewMode,
+  onSortModeChange: _onSortModeChange,
+  onViewModeChange: _onViewModeChange,
 }: ResultsHeaderProps) {
   return (
     <div className={styles.resultsHeader}>
       <div>
         <p className={styles.eyebrow}>Résultats</p>
         <h2 className={styles.sectionTitle}>
-          {loading
-            ? "Recherche en cours..."
-            : hasSubmittedSearch
-              ? `${itemsCount} concierge(s) disponible(s)`
-              : "Aucun concierge affiché pour le moment"}
+          {loading ? "Recherche en cours..." : hasSubmittedSearch ? summary : "Aucun professionnel affiché pour le moment"}
         </h2>
       </div>
       <div className={styles.resultsTools}>
-        <OptionToggleGroup
-          ariaLabel="Tri des concierges"
-          options={SORT_OPTIONS}
-          value={sortMode}
-          onChange={onSortModeChange}
-          className={styles.sortTabs}
-          getClassName={(selected) => (selected ? styles.sortTabActive : styles.sortTab)}
-        />
-        <OptionToggleGroup
-          ariaLabel="Mode d'affichage"
-          options={VIEW_OPTIONS}
-          value={viewMode}
-          onChange={onViewModeChange}
-          className={styles.viewToggleDesktop}
-          getClassName={(selected) => (selected ? styles.viewToggleActive : styles.viewToggleBtn)}
-        />
+        <span className={styles.tagMuted}>Profils réels PlanetLS</span>
       </div>
     </div>
   );

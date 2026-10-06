@@ -1,21 +1,11 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {
-  CheckCircle2,
-  Clock3,
-  FilePenLine,
-  FileText,
-  Handshake,
-  MapPin,
-  PartyPopper,
-  Search as SearchIcon,
-  Send,
-} from "lucide-react";
 import { Button, ButtonLink } from "@/components/ui";
 import styles from "./OwnerConciergesPage.module.scss";
 import type { ServiceCatalogItem, SortMode, ViewMode } from "./conciergeSearchTypes";
@@ -34,8 +24,6 @@ import {
 import { getOwnerCitySuggestions } from "./locationSuggestions";
 import { upsertOwnerConciergeSearchAlert } from "../searchAlerts";
 import { ResultsGrid, ResultsHeader, RequestPanel, SearchFilters } from "@/features/owner-concierges/components";
-import { ConciergeAvatar } from "@/features/owner-concierges/components/ConciergeAvatar";
-import { OwnerJourneyRail } from "@/features/owner-dashboard";
 import { CONCIERGE_PROPERTY_TYPES } from "@/features/shared/data/propertyTypes";
 import type { RequestWorkflowStatus } from "@/app/lib/requestStatus";
 import { normalizeStayNeed, type NeedKey } from "@/app/api/_shared/stayNeeds";
@@ -51,6 +39,10 @@ import {
   getOwnerProfilePreferences,
 } from "@/features/owner-preferences/profilePreferences";
 import { focusFirstModalElement, trapFocusInModal } from "../modalAccessibility";
+
+const SearchMap = dynamic(() => import("@/app/components/MapWithList/MapWithList"), {
+  ssr: false,
+});
 
 const initialFilters: OwnerConciergeSearchFilters = {
   region: "",
@@ -171,6 +163,17 @@ function parseSliderValue(value: string) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 }
 
+function parseSearchRadius(value: string) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 20;
+}
+
+function formatResultsSummary(count: number, city: string) {
+  const professionLabel = count > 1 ? "professionnels trouvés" : "professionnel trouvé";
+  const cityLabel = city.trim() ? ` autour de ${city.trim()}` : "";
+  return `${count} ${professionLabel}${cityLabel}`;
+}
+
 function normalizeStatus(value: unknown) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
@@ -195,17 +198,6 @@ function getOwnerRequestStatus(request: OwnerServiceRequestRow) {
   return "sent";
 }
 
-function formatOwnerRequestStatus(request: OwnerServiceRequestRow) {
-  const status = getOwnerRequestStatus(request);
-  if (status === "accepted") return "Devis accepté";
-  if (status === "discussion") return "En discussion";
-  if (status === "viewed") return "Consultée";
-  if (status === "sent") return "Envoyée";
-  if (status === "declined") return "Refusée";
-  if (status === "expired") return "Expirée";
-  return "Brouillon";
-}
-
 function getQuoteCount(request: OwnerServiceRequestRow) {
   return (request.recipients ?? []).filter((recipient) => {
     const quoteStatus = normalizeStatus(recipient.quote_status);
@@ -213,25 +205,12 @@ function getQuoteCount(request: OwnerServiceRequestRow) {
   }).length;
 }
 
-function getAcceptedConcierge(request: OwnerServiceRequestRow) {
-  const selectedRecipient = (request.recipients ?? []).find((recipient) => normalizeStatus(recipient.status) === "selected");
-  return {
-    id: request.selected_concierge_profile_id || selectedRecipient?.concierge_profile_id || null,
-    name: request.selected_concierge_name || selectedRecipient?.concierge_name || "Concierge retenu",
-    avatarUrl: request.selected_concierge_avatar_url || selectedRecipient?.concierge_avatar_url || null,
-  };
-}
-
-function isRequestWaitingForReply(request: OwnerServiceRequestRow) {
-  return ["sent", "viewed"].includes(getOwnerRequestStatus(request)) && getQuoteCount(request) === 0;
-}
-
 function getOwnerRequestActionLabel(request: OwnerServiceRequestRow) {
   const status = getOwnerRequestStatus(request);
   if (status === "draft") return "Compléter";
   if (status === "accepted") return request.mission_id ? "Voir la mission" : "Confier une mission";
   if (getQuoteCount(request) > 0) return "Comparer les devis";
-  if (isRequestWaitingForReply(request)) return "Relancer / alerte";
+  if (["sent", "viewed"].includes(status) && getQuoteCount(request) === 0) return "Relancer / alerte";
   if (status === "discussion") return "Suivre l'échange";
   if (status === "declined" || status === "expired") return "Reprendre";
   return "Suivre";
@@ -267,7 +246,7 @@ export default function OwnerConciergesPageClient() {
   const [requestForm, setRequestForm] = useState<RequestFormState>(initialRequestForm);
   const [serviceCatalog, setServiceCatalog] = useState<ServiceCatalogItem[]>([]);
   const [ownerRequests, setOwnerRequests] = useState<OwnerServiceRequestRow[]>([]);
-  const [ownerRequestsLoading, setOwnerRequestsLoading] = useState(true);
+  const [, setOwnerRequestsLoading] = useState(true);
   const [openServiceSections, setOpenServiceSections] = useState<Record<string, boolean>>({});
   const [editingAlertId, setEditingAlertId] = useState<string | null>(null);
   const [lastSubmittedStatus, setLastSubmittedStatus] = useState<RequestWorkflowStatus | null>(null);
@@ -290,17 +269,6 @@ export default function OwnerConciergesPageClient() {
   const lastToastMessageRef = useRef<string | null>(null);
 
   const selectedIdSet = useMemo(() => new Set(selectedConciergeIds), [selectedConciergeIds]);
-  const stats = useMemo(
-    () =>
-      items.reduce(
-        (accumulator, item) => ({
-          totalPro: accumulator.totalPro + Number(item.is_pro),
-          totalAvailable: accumulator.totalAvailable + Number(item.is_available_now === true),
-        }),
-        { totalPro: 0, totalAvailable: 0 },
-      ),
-    [items],
-  );
   const clientOptions = useMemo(() => buildOwnerConciergeFilterOptions(items), [items]);
 
   const selectedConcierges = useMemo(
@@ -354,32 +322,6 @@ export default function OwnerConciergesPageClient() {
       .filter((value): value is string => Boolean(value));
     return mergeSortedOptions(serverOptions.categories, serviceDerived);
   }, [catalogServicesByCategory, categoriesByService, serverOptions.categories, serviceOptions]);
-  const visibleServicesByCategory = useMemo(() => {
-    if (catalogServicesByCategory.length > 0) {
-      return filters.selectedCategories
-        .map((category) => catalogServicesByCategory.find((group) => group.category === category))
-        .filter(
-          (
-            group,
-          ): group is {
-            category: string;
-            services: string[];
-          } => Boolean(group),
-        );
-    }
-
-    const allowedServices = new Set(serviceOptions);
-    return filters.selectedCategories
-      .map((category) => ({
-        category,
-        services: serviceCatalog
-          .filter((item) => category === item.category && allowedServices.has(item.service))
-          .map((item) => item.service)
-          .sort((left, right) => left.localeCompare(right, "fr")),
-      }))
-      .filter((group) => group.services.length > 0);
-  }, [catalogServicesByCategory, filters.selectedCategories, serviceCatalog, serviceOptions]);
-
   const propertyTypeOptions = useMemo(
     () => Array.from(CONCIERGE_PROPERTY_TYPES),
     [],
@@ -390,48 +332,6 @@ export default function OwnerConciergesPageClient() {
   const reservationIdParam = searchParams.get("reservation_id")?.trim() ?? "";
   const stayNeedParam = normalizeStayNeed(searchParams.get("stay_need"));
   const isStaySearchMode = Boolean(reservationIdParam && stayNeedParam);
-  const requestFollowUp = useMemo(() => {
-    const activeRequests = ownerRequests.filter((request) =>
-      ["draft", "sent", "viewed", "discussion"].includes(getOwnerRequestStatus(request)),
-    );
-    const acceptedRequests = ownerRequests.filter((request) => getOwnerRequestStatus(request) === "accepted");
-    const draftRequests = ownerRequests.filter((request) => getOwnerRequestStatus(request) === "draft");
-    const unansweredRequests = ownerRequests.filter(isRequestWaitingForReply);
-    const totalQuotes = ownerRequests.reduce((total, request) => total + getQuoteCount(request), 0);
-    const latestRequests = [...ownerRequests]
-      .sort((left, right) => new Date(right.created_at ?? 0).getTime() - new Date(left.created_at ?? 0).getTime())
-      .slice(0, 4);
-    const nextRequest =
-      [...ownerRequests]
-        .filter((request) => !["declined", "expired"].includes(getOwnerRequestStatus(request)))
-        .sort((left, right) => {
-          const rank = (request: OwnerServiceRequestRow) => {
-            const status = getOwnerRequestStatus(request);
-            if (status === "draft") return 0;
-            if (getQuoteCount(request) > 0 && status !== "accepted") return 1;
-            if (isRequestWaitingForReply(request)) return 2;
-            if (status === "accepted") return 3;
-            return 4;
-          };
-          const rankDiff = rank(left) - rank(right);
-          if (rankDiff !== 0) return rankDiff;
-          return new Date(right.created_at ?? 0).getTime() - new Date(left.created_at ?? 0).getTime();
-        })[0] ?? null;
-    const acceptedRequest = acceptedRequests[0] ?? null;
-    const acceptedConcierge = acceptedRequest ? getAcceptedConcierge(acceptedRequest) : null;
-
-    return {
-      activeRequests,
-      acceptedRequests,
-      draftRequests,
-      unansweredRequests,
-      totalQuotes,
-      latestRequests,
-      nextRequest,
-      acceptedRequest,
-      acceptedConcierge,
-    };
-  }, [ownerRequests]);
   const existingHousingRequest = useMemo(() => {
     if (!requestForm.housingId || requestForm.requestType === "renfort") return null;
     return (
@@ -443,6 +343,24 @@ export default function OwnerConciergesPageClient() {
   const existingHousingRequestIsBlocking = Boolean(
     existingHousingRequest && getOwnerRequestStatus(existingHousingRequest) !== "draft",
   );
+  const mapProfiles = useMemo(
+    () =>
+      sortedItems
+        .filter((item) => typeof item.latitude === "number" && typeof item.longitude === "number")
+        .map((item) => ({
+          id: item.id,
+          name: item.display_name,
+          type: "concierge" as const,
+          city: item.city || item.service_area || item.location || "",
+          latitude: item.latitude as number,
+          longitude: item.longitude as number,
+          services: item.services,
+        })),
+    [sortedItems],
+  );
+  const mapCenter = mapProfiles[0] ? { latitude: mapProfiles[0].latitude, longitude: mapProfiles[0].longitude } : null;
+  const appliedRadiusKm = parseSearchRadius(filters.radiusKm);
+  const resultsSummary = formatResultsSummary(items.length, filters.city);
 
   function updateFilters<Key extends keyof OwnerConciergeSearchFilters>(
     key: Key,
@@ -1048,73 +966,23 @@ export default function OwnerConciergesPageClient() {
   }
 
   const filtersLabel = [filters.city.trim()].filter(Boolean).join(" · ");
-  const activeRegion = filters.region?.trim() ?? "";
-  const cockpitMetrics = [
-    {
-      label: "Résultats",
-      value: `${items.length}`,
-      detail: hasSubmittedSearch ? `${stats.totalAvailable} disponible(s)` : "À lancer",
-      progress: hasSubmittedSearch ? (items.length > 0 ? Math.min(100, 24 + items.length * 12) : 8) : 0,
-      Icon: SearchIcon,
-    },
-    {
-      label: "Zone",
-      value: filters.radiusKm.trim() ? `${filters.radiusKm} km` : "Libre",
-      detail: filters.city.trim() || activeRegion || "Ville à préciser",
-      progress: filters.city.trim() || activeRegion ? 100 : 0,
-      Icon: MapPin,
-    },
-    {
-      label: "Sélection",
-      value: `${selectedConciergeIds.length}`,
-      detail: selectedConciergeIds.length > 0 ? "À contacter" : "Aucun profil",
-      progress: selectedConciergeIds.length > 0 ? Math.min(100, selectedConciergeIds.length * 25) : 0,
-      Icon: CheckCircle2,
-    },
-    {
-      label: "Devis",
-      value: `${requestFollowUp.totalQuotes}`,
-      detail:
-        requestFollowUp.acceptedRequests.length > 0
-          ? `${requestFollowUp.acceptedRequests.length} accepté(s)`
-          : "À recevoir",
-      progress: requestFollowUp.totalQuotes > 0 ? Math.min(100, 30 + requestFollowUp.totalQuotes * 25) : 0,
-      Icon: FileText,
-    },
-  ];
 
   return (
     <section className="dashboard-grid">
       <div className={styles.page}>
         <ToastContainer newestOnTop position="top-right" />
-        <OwnerJourneyRail activeStep={selectedConciergeIds.length > 0 ? "selection" : "search"} />
-        <section className={styles.cockpitStrip} aria-label="Pilotage recherche concierge">
-          {cockpitMetrics.map((metric) => (
-            <article key={metric.label} className={styles.cockpitCard}>
-              <span
-                className={styles.cockpitChart}
-                style={{ "--progress": `${Math.max(0, Math.min(100, metric.progress)) * 3.6}deg` } as React.CSSProperties}
-                aria-hidden="true"
-              >
-                <metric.Icon size={18} strokeWidth={2.2} />
-              </span>
-              <span className={styles.cockpitMeta}>
-                <span className={styles.cockpitLabel}>{metric.label}</span>
-                <strong className={styles.cockpitValue}>{metric.value}</strong>
-                <span className={styles.cockpitDetail}>{metric.detail}</span>
-              </span>
-            </article>
-          ))}
-        </section>
         <SearchFilters
           styles={styles}
           filters={filters}
           propertyTypeOptions={propertyTypeOptions}
           categoryOptions={categoryOptions}
-          visibleServicesByCategory={visibleServicesByCategory}
+          serviceOptions={serviceOptions}
+          visibleServicesByCategory={catalogServicesByCategory}
           openServiceSections={openServiceSections}
           loading={loading}
           viewMode={viewMode}
+          isStaySearchMode={isStaySearchMode}
+          stayNeedLabel={stayContext?.stayNeedLabel ?? (stayNeedParam ? stayNeedLabels[stayNeedParam] : null)}
           onSubmit={handleSubmit}
           onReset={resetFilters}
           onOpenMobileFilters={() => setMobileFiltersOpen(true)}
@@ -1146,6 +1014,18 @@ export default function OwnerConciergesPageClient() {
                     <span>{stayContext.stayNeedLabel}</span>
                   </div>
                 ) : null}
+                <div className={styles.stayCriteriaLine}>
+                  <span>{filters.city.trim() || "Localisation à préciser"}</span>
+                  <span>{filters.radiusKm.trim() ? `${filters.radiusKm.trim()} km` : "Rayon libre"}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                  >
+                    Modifier les critères
+                  </Button>
+                </div>
               </section>
             ) : null}
             <ResultsHeader
@@ -1153,6 +1033,7 @@ export default function OwnerConciergesPageClient() {
               loading={loading}
               hasSubmittedSearch={hasSubmittedSearch}
               itemsCount={items.length}
+              summary={resultsSummary}
               sortMode={sortMode}
               viewMode={viewMode}
               onSortModeChange={setSortMode}
@@ -1177,15 +1058,44 @@ export default function OwnerConciergesPageClient() {
           </div>
 
           <aside className={styles.sidebar}>
+            <section className={styles.mapPanel} aria-label="Carte des professionnels">
+              <div className={styles.mapPanelHeader}>
+                <div>
+                  <p className={styles.eyebrow}>Carte</p>
+                  <h2 className={styles.requestTitle}>Zone de recherche</h2>
+                </div>
+                <span className={styles.tagMuted}>
+                  {filters.radiusKm.trim() ? `${filters.radiusKm.trim()} km` : "Rayon libre"}
+                </span>
+              </div>
+              <div className={styles.mapFrame}>
+                {mapCenter && mapProfiles.length > 0 ? (
+                  <SearchMap
+                    center={mapCenter}
+                    radiusKm={appliedRadiusKm}
+                    selectedId={selectedConciergeIds[0] ?? null}
+                    onSelect={toggleConciergeSelection}
+                    profiles={mapProfiles}
+                    fitAllProfiles
+                    ariaLabel="Carte des professionnels trouvés"
+                  />
+                ) : (
+                  <div className={styles.mapEmpty}>
+                    <strong>Carte indisponible pour ces résultats.</strong>
+                    <span>Les profils retournés ne contiennent pas encore de coordonnées exploitables.</span>
+                  </div>
+                )}
+              </div>
+            </section>
             <div className={styles.requestDock}>
               <div>
-                <p className={styles.eyebrow}>Short-list</p>
-                <h2 className={styles.requestTitle}>Préparer une demande</h2>
+                <p className={styles.eyebrow}>Préparer une demande</p>
+                <h2 className={styles.requestTitle}>Professionnels sélectionnés</h2>
               </div>
               <p className={styles.requestIntro}>
                 {isStaySearchMode
-                  ? "Sélectionnez un professionnel, puis envoyez la demande liée au séjour."
-                  : "Sélectionnez les concierges à contacter, puis envoyez un brief court et exploitable."}
+                  ? "Sélectionnez le professionnel à qui demander cette prestation."
+                  : "Sélectionnez les professionnels que vous souhaitez contacter."}
               </p>
               {existingHousingRequestIsBlocking && existingHousingRequest ? (
                 <div className={styles.existingRequestNotice} role="status">
@@ -1204,7 +1114,7 @@ export default function OwnerConciergesPageClient() {
               ) : null}
               <div className={styles.selectionSummary}>
                 <span className={styles.requestSectionLabel}>Sélection</span>
-                <strong>{selectedConciergeIds.length} concierge(s) sélectionné(s)</strong>
+                <strong>{selectedConciergeIds.length} professionnel(s) sélectionné(s)</strong>
                 {selectedConcierges.length > 0 ? (
                   <div className={styles.summaryChips}>
                     {selectedConcierges.slice(0, 4).map((item) => (
@@ -1214,7 +1124,9 @@ export default function OwnerConciergesPageClient() {
                     ))}
                   </div>
                 ) : (
-                  <span className={styles.tagMuted}>Sélectionnez un profil dans les résultats.</span>
+                  <span className={styles.tagMuted}>
+                    Aucun professionnel sélectionné. Sélectionnez un profil dans les résultats pour préparer votre demande.
+                  </span>
                 )}
               </div>
               <Button
@@ -1224,173 +1136,21 @@ export default function OwnerConciergesPageClient() {
                 disabled={selectedConciergeIds.length === 0 || existingHousingRequestIsBlocking}
                 onClick={openRequestComposer}
               >
-                {isStaySearchMode ? "Demander cette prestation" : "Lancer la recherche"}
+                {isStaySearchMode ? "Demander cette prestation" : "Préparer ma demande"}
               </Button>
               <ButtonLink href="/dashboard/owner/demandes" variant="secondary" className={styles.secondaryBtn}>
-                Suivre mes demandes
+                Voir mes demandes
               </ButtonLink>
-            </div>
-
-            <div className={styles.followUpPanel}>
-              <div className={styles.followUpHeader}>
-                <div>
-                  <p className={styles.eyebrow}>Suivi</p>
-                  <h2 className={styles.requestTitle}>Demandes concierge</h2>
-                </div>
-                <ButtonLink href="/dashboard/owner/demandes" variant="secondary" className={styles.secondaryBtn}>
-                  Ouvrir
-                </ButtonLink>
-              </div>
-
-              <div className={styles.followUpMetrics}>
-                <div className={styles.followUpMetric}>
-                  <FilePenLine size={16} aria-hidden="true" />
-                  <span>Brouillons</span>
-                  <strong>{requestFollowUp.draftRequests.length}</strong>
-                </div>
-                <div className={styles.followUpMetric}>
-                  <Clock3 size={16} aria-hidden="true" />
-                  <span>Sans réponse</span>
-                  <strong>{requestFollowUp.unansweredRequests.length}</strong>
-                </div>
-                <div className={styles.followUpMetric}>
-                  <FileText size={16} aria-hidden="true" />
-                  <span>Devis</span>
-                  <strong>{requestFollowUp.totalQuotes}</strong>
-                </div>
-                <div className={styles.followUpMetric}>
-                  <CheckCircle2 size={16} aria-hidden="true" />
-                  <span>Validées</span>
-                  <strong>{requestFollowUp.acceptedRequests.length}</strong>
-                </div>
-              </div>
-
-              {requestFollowUp.nextRequest ? (
-                <article className={styles.followUpNextAction}>
-                  <div>
-                    <span>Prochaine action</span>
-                    <strong>{requestFollowUp.nextRequest.title}</strong>
-                    <small>
-                      {formatOwnerRequestStatus(requestFollowUp.nextRequest)}
-                      {requestFollowUp.nextRequest.property_name ? ` · ${requestFollowUp.nextRequest.property_name}` : ""}
-                    </small>
-                  </div>
-                  <ButtonLink
-                    href={buildOwnerRequestActionHref(requestFollowUp.nextRequest)}
-                    variant="secondary"
-                    className={styles.secondaryBtn}
-                  >
-                    {getOwnerRequestActionLabel(requestFollowUp.nextRequest)}
-                  </ButtonLink>
-                </article>
-              ) : null}
-
-              {!ownerRequestsLoading && ownerRequests.length === 0 ? (
-                <article className={styles.firstRequestCard}>
-                  <div className={styles.confettiMark} aria-hidden="true">
-                    <PartyPopper size={20} />
-                    <span />
-                    <span />
-                    <span />
-                    <span />
-                  </div>
-                  <div>
-                    <strong>Première demande de conciergerie</strong>
-                    <p>
-                      Choisissez les services utiles, contactez les bons profils, puis gardez la date du devis accepté
-                      comme anniversaire de collaboration.
-                    </p>
-                  </div>
-                </article>
-              ) : requestFollowUp.acceptedRequest && requestFollowUp.acceptedConcierge ? (
-                <article className={styles.acceptedConciergeCard}>
-                  <div className={styles.acceptedConciergeTop}>
-                    <ConciergeAvatar
-                      src={requestFollowUp.acceptedConcierge.avatarUrl}
-                      alt={requestFollowUp.acceptedConcierge.name}
-                      width={44}
-                      height={44}
-                      className={styles.acceptedConciergeAvatar}
-                    />
-                    <div>
-                      <span>Devis accepté</span>
-                      <strong>{requestFollowUp.acceptedConcierge.name}</strong>
-                    </div>
-                  </div>
-                  <p>{requestFollowUp.acceptedRequest.title}</p>
-                  <div className={styles.followUpChips}>
-                    {requestFollowUp.acceptedRequest.property_name ? (
-                      <span>{requestFollowUp.acceptedRequest.property_name}</span>
-                    ) : null}
-                    {requestFollowUp.acceptedRequest.city ? <span>{requestFollowUp.acceptedRequest.city}</span> : null}
-                    <span>Partenaire retenu</span>
-                  </div>
-                  <ButtonLink
-                    href={buildOwnerRequestActionHref(requestFollowUp.acceptedRequest)}
-                    variant="primary"
-                    className={styles.primaryBtn}
-                  >
-                    {getOwnerRequestActionLabel(requestFollowUp.acceptedRequest)}
-                  </ButtonLink>
-                  {requestFollowUp.acceptedConcierge.id ? (
-                    <ButtonLink
-                      href={`/concierges/${encodeURIComponent(requestFollowUp.acceptedConcierge.id)}`}
-                      variant="secondary"
-                      className={styles.secondaryBtn}
-                    >
-                      Voir la fiche concierge
-                    </ButtonLink>
-                  ) : null}
-                </article>
-              ) : (
-                <div className={styles.followUpEmpty}>
-                  <Handshake size={18} aria-hidden="true" />
-                  <span>Aucun devis accepté pour le moment.</span>
-                </div>
-              )}
-
-              <div className={styles.followUpList}>
-                <div className={styles.followUpListHeader}>
-                  <span>Dernières demandes</span>
-                  {ownerRequestsLoading ? <small>Chargement...</small> : null}
-                </div>
-                {requestFollowUp.latestRequests.length > 0 ? (
-                  requestFollowUp.latestRequests.map((request) => (
-                    <article className={styles.followUpRequestRow} key={request.id}>
-                      <Send size={15} aria-hidden="true" />
-                      <div>
-                        <strong>{request.title}</strong>
-                        <span>
-                          {formatOwnerRequestStatus(request)}
-                          {getQuoteCount(request) > 0 ? ` · ${getQuoteCount(request)} devis` : ""}
-                        </span>
-                      </div>
-                      <ButtonLink
-                        href={buildOwnerRequestActionHref(request)}
-                        variant="secondary"
-                        size="sm"
-                        className={styles.followUpRowAction}
-                      >
-                        {getOwnerRequestActionLabel(request)}
-                      </ButtonLink>
-                    </article>
-                  ))
-                ) : !ownerRequestsLoading && ownerRequests.length === 0 ? (
-                  <p className={styles.followUpEmptyText}>La première recherche apparaîtra ici.</p>
-                ) : (
-                  <p className={styles.followUpEmptyText}>Aucune demande envoyée.</p>
-                )}
-              </div>
             </div>
           </aside>
         </div>
 
         <div className={styles.mobileSelectionBar}>
           <div className={styles.mobileSelectionCopy}>
-            <strong>{selectedConciergeIds.length} concierge(s) sélectionné(s)</strong>
+            <strong>{selectedConciergeIds.length} professionnel(s) sélectionné(s)</strong>
             <span>
               {selectedConciergeIds.length > 0
-                ? "Finalisez votre brief ou ajustez votre sélection."
+                ? "Préparez votre demande ou ajustez votre sélection."
                 : "Ajoutez des profils pour envoyer une demande."}
             </span>
           </div>
@@ -1401,7 +1161,7 @@ export default function OwnerConciergesPageClient() {
             disabled={selectedConciergeIds.length === 0 || existingHousingRequestIsBlocking}
             onClick={openRequestComposer}
           >
-            {isStaySearchMode ? "Demander cette prestation" : "Lancer la recherche"}
+            {isStaySearchMode ? "Demander cette prestation" : "Préparer ma demande"}
           </Button>
         </div>
 
@@ -1418,9 +1178,9 @@ export default function OwnerConciergesPageClient() {
             >
               <div className={styles.modalHeader}>
                 <div>
-                  <p className={styles.eyebrow}>Recherche concierge</p>
+                  <p className={styles.eyebrow}>Demande</p>
                   <h2 id="owner-request-composer-title" className={styles.requestTitle}>
-                    {isStaySearchMode ? "Demander cette prestation" : "Lancer une recherche concierge"}
+                    {isStaySearchMode ? "Demander cette prestation" : "Préparer ma demande"}
                   </h2>
                 </div>
                 <Button
@@ -1507,10 +1267,13 @@ export default function OwnerConciergesPageClient() {
                   filters={filters}
                   propertyTypeOptions={propertyTypeOptions}
                   categoryOptions={categoryOptions}
-                  visibleServicesByCategory={visibleServicesByCategory}
+                  serviceOptions={serviceOptions}
+                  visibleServicesByCategory={catalogServicesByCategory}
                   openServiceSections={openServiceSections}
                   loading={loading}
                   viewMode={viewMode}
+                  isStaySearchMode={isStaySearchMode}
+                  stayNeedLabel={stayContext?.stayNeedLabel ?? (stayNeedParam ? stayNeedLabels[stayNeedParam] : null)}
                   onSubmit={handleSubmit}
                   onReset={resetFilters}
                   onOpenMobileFilters={() => setMobileFiltersOpen(true)}

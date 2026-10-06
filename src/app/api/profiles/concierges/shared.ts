@@ -13,6 +13,8 @@ type SearchResultInput = {
   country: string | null;
   service_area: string | null;
   location?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   service_radius_km: number | null;
   hourly_rate: number | null;
   monthly_rate: number | null;

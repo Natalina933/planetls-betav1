@@ -1,3 +1,6 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import FilterSliders from "@/app/components/ui/FilterSliders";
 import { Button, Checkbox, Select, ServiceCategoryIcon } from "@/components/ui";
 import { FilterChipGroup } from "@/features/shared/components/FilterChipGroup";
@@ -11,10 +14,13 @@ type SearchFiltersProps = {
   filters: OwnerConciergeSearchFilters;
   propertyTypeOptions: string[];
   categoryOptions: string[];
+  serviceOptions: string[];
   visibleServicesByCategory: Array<{ category: string; services: string[] }>;
   openServiceSections: Record<string, boolean>;
   loading: boolean;
   viewMode: ViewMode;
+  isStaySearchMode?: boolean;
+  stayNeedLabel?: string | null;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   onReset: () => void;
   onOpenMobileFilters: () => void;
@@ -35,43 +41,85 @@ const VIEW_OPTIONS = [
   { value: "list", label: "Liste" },
 ] as const;
 
+const QUICK_SERVICE_LABELS = ["Ménage", "Check-in / Check-out", "Linge", "Maintenance", "Accueil voyageurs"];
+const RADIUS_OPTIONS = ["10", "20", "30", "50", "100"];
+
+function normalizeServiceLabel(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function findServiceOption(options: string[], label: string) {
+  const normalizedLabel = normalizeServiceLabel(label);
+  const normalizedParts = normalizedLabel.split("/").map((part) => part.trim()).filter(Boolean);
+
+  return options.find((option) => {
+    const normalizedOption = normalizeServiceLabel(option);
+    return normalizedOption === normalizedLabel || normalizedParts.some((part) => normalizedOption.includes(part));
+  });
+}
+
 export function SearchFilters({
   styles,
   mode = "full",
   filters,
   propertyTypeOptions,
-  categoryOptions,
+  categoryOptions: _categoryOptions,
+  serviceOptions,
   visibleServicesByCategory,
   openServiceSections,
   loading,
   viewMode,
+  isStaySearchMode = false,
+  stayNeedLabel = null,
   onSubmit,
   onReset,
   onOpenMobileFilters,
   onViewModeChange,
   onFilterChange,
-  onToggleCategory,
+  onToggleCategory: _onToggleCategory,
   onToggleService,
   onToggleServiceSection,
   getCitySuggestions,
   parseSliderValue,
 }: SearchFiltersProps) {
+  const [serviceQuery, setServiceQuery] = useState("");
+  const [allServicesOpen, setAllServicesOpen] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+
+  const quickServices = useMemo(
+    () =>
+      QUICK_SERVICE_LABELS.map((label) => ({
+        label,
+        value: findServiceOption(serviceOptions, label),
+      })).filter((item): item is { label: string; value: string } => Boolean(item.value)),
+    [serviceOptions],
+  );
+
+  const filteredServiceOptions = useMemo(() => {
+    const query = normalizeServiceLabel(serviceQuery);
+    return serviceOptions
+      .filter((service) => !query || normalizeServiceLabel(service).includes(query))
+      .slice(0, 80);
+  }, [serviceOptions, serviceQuery]);
+
+  const selectedServices = filters.selectedServices;
+
   return (
     <div className={mode === "full" ? styles.hero : ""}>
       {mode === "full" ? (
         <>
           <div className={styles.heroCopy}>
-            <span className={styles.eyebrow}>Mise en relation</span>
-            <h1 className={styles.title}>Recherche concierge</h1>
+            <span className={styles.eyebrow}>Le réseau PlanetLS</span>
+            <h1 className={styles.title}>Trouver un professionnel</h1>
+            <p className={styles.heroSubtitle}>Trouvez le bon partenaire autour de votre logement.</p>
           </div>
 
           <div className={styles.mobileHeroActions}>
-            <Button
-              type="button"
-              variant="secondary"
-              className={styles.secondaryBtn}
-              onClick={onOpenMobileFilters}
-            >
+            <Button type="button" variant="secondary" className={styles.secondaryBtn} onClick={onOpenMobileFilters}>
               Filtres
             </Button>
             <OptionToggleGroup
@@ -86,7 +134,7 @@ export function SearchFilters({
         </>
       ) : null}
 
-      <form className={mode === "full" ? styles.searchShell : ""} onSubmit={onSubmit}>
+      <form className={mode === "full" ? styles.searchShell : styles.compactSearchShell} onSubmit={onSubmit}>
         <div className={styles.searchBar}>
           <div className={`${styles.field} ${styles.searchField}`}>
             <span id="search-city-label">Ville ou code postal</span>
@@ -100,137 +148,214 @@ export function SearchFilters({
           </div>
 
           <label className={styles.field}>
-            <span>Type de bien</span>
+            <span>Rayon</span>
             <Select
-              aria-label="Type de bien"
-              value={filters.propertyType}
-              onChange={(event) => onFilterChange("propertyType", event.target.value)}
+              aria-label="Rayon de recherche"
+              value={filters.radiusKm}
+              onChange={(event) => onFilterChange("radiusKm", event.target.value)}
             >
-              <option value="">Tous</option>
-              {propertyTypeOptions.map((option) => (
+              <option value="">Libre</option>
+              {RADIUS_OPTIONS.map((option) => (
                 <option key={option} value={option}>
-                  {option}
+                  {option} km
                 </option>
               ))}
             </Select>
           </label>
 
-          <div className={styles.sliderFilters}>
-            <FilterSliders
-              title="Budget et rayon"
-              budget={{
-                label: "Budget max",
-                value: parseSliderValue(filters.budgetMax),
-                min: 0,
-                max: 300,
-                step: 10,
-                helperText: "0 = libre",
-                formatValue: (value) => (value === 0 ? "Libre" : `${value} EUR/h`),
-                onChange: (value) => onFilterChange("budgetMax", value === 0 ? "" : String(value)),
-              }}
-              radius={{
-                label: "Rayon",
-                value: parseSliderValue(filters.radiusKm),
-                min: 0,
-                max: 100,
-                step: 5,
-                unit: "km",
-                helperText: "0 = libre",
-                formatValue: (value) => (value === 0 ? "Libre" : `${value} km`),
-                onChange: (value) => onFilterChange("radiusKm", value === 0 ? "" : String(value)),
-              }}
-            />
-          </div>
-
           <div className={styles.searchActions}>
             <Button type="submit" variant="primary" className={styles.primaryBtn} disabled={loading}>
               {loading ? "Recherche..." : "Rechercher"}
             </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              className={styles.secondaryBtn}
-              onClick={onReset}
-              disabled={loading}
-            >
+            <Button type="button" variant="secondary" className={styles.secondaryBtn} onClick={onReset} disabled={loading}>
               Réinitialiser
             </Button>
           </div>
         </div>
 
-        <div className={styles.searchMeta}>
-          <div className={styles.servicesBlock}>
-            <span className={styles.blockLabel}>Services</span>
-            <FilterChipGroup
-              items={categoryOptions}
-              selectedItems={filters.selectedCategories}
-              onToggle={onToggleCategory}
-              className={styles.serviceChips}
-              emptyLabel="Les catégories apparaîtront après le premier chargement."
-              getClassName={(selected) => (selected ? styles.serviceChipActive : styles.serviceChip)}
-            />
-          </div>
+        {!isStaySearchMode ? (
+          <section className={styles.servicePicker} aria-labelledby="service-picker-title">
+            <div className={styles.servicePickerHeader}>
+              <span className={styles.blockLabel} id="service-picker-title">
+                De quel service avez-vous besoin ?
+              </span>
+              <label className={`${styles.field} ${styles.serviceSearchField}`}>
+                <span>Rechercher une prestation</span>
+                <input
+                  type="search"
+                  value={serviceQuery}
+                  onChange={(event) => setServiceQuery(event.target.value)}
+                  placeholder="Rechercher une prestation..."
+                />
+              </label>
+            </div>
 
-          <div className={styles.servicesBlock}>
-            <span className={styles.blockLabel}>Détails</span>
-            {filters.selectedCategories.length === 0 ? (
-              <span className={styles.tagMuted}>Choisissez un service.</span>
-            ) : visibleServicesByCategory.length === 0 ? (
-              <span className={styles.tagMuted}>Aucun détail disponible.</span>
-            ) : (
-              <div className={styles.serviceSections}>
-                {visibleServicesByCategory.map((group) => {
-                  const isOpen = openServiceSections[group.category] ?? true;
-                  const selectedCount = group.services.filter((service) =>
-                    filters.selectedServices.includes(service),
-                  ).length;
+            <div className={styles.serviceChips} aria-label="Raccourcis prestations">
+              {quickServices.map((service) => (
+                <Button
+                  key={`${service.label}-${service.value}`}
+                  type="button"
+                  variant="ghost"
+                  className={selectedServices.includes(service.value) ? styles.serviceChipActive : styles.serviceChip}
+                  aria-pressed={selectedServices.includes(service.value)}
+                  onClick={() => onToggleService(service.value)}
+                >
+                  {service.label}
+                </Button>
+              ))}
+            </div>
 
-                  return (
-                    <section key={group.category} className={styles.serviceSection}>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className={styles.serviceSectionHeader}
-                        onClick={() => onToggleServiceSection(group.category)}
-                        aria-expanded={isOpen}
-                      >
-                        <span className={styles.serviceSectionTitle}>
-                          <ServiceCategoryIcon category={group.category} size={17} />
-                          {group.category}
-                        </span>
-                        <span className={styles.serviceSectionMeta}>
-                          {selectedCount}/{group.services.length} {isOpen ? "-" : "+"}
-                        </span>
-                      </Button>
-
-                      {isOpen ? (
-                        <FilterChipGroup
-                          items={group.services}
-                          selectedItems={filters.selectedServices}
-                          onToggle={onToggleService}
-                          className={styles.serviceSectionBody}
-                          getClassName={(selected) =>
-                            selected ? styles.serviceChipActive : styles.serviceChip
-                          }
-                        />
-                      ) : null}
-                    </section>
-                  );
-                })}
+            {selectedServices.length > 0 ? (
+              <div className={styles.selectedServices} aria-label="Services sélectionnés">
+                <span className={styles.blockLabel}>Services sélectionnés</span>
+                <div className={styles.serviceChips}>
+                  {selectedServices.map((service) => (
+                    <Button
+                      key={service}
+                      type="button"
+                      variant="ghost"
+                      className={styles.selectedServiceChip}
+                      onClick={() => onToggleService(service)}
+                    >
+                      {service} ×
+                    </Button>
+                  ))}
+                </div>
               </div>
-            )}
-          </div>
+            ) : null}
 
-          <Checkbox
-            aria-label="Afficher uniquement les concierges PRO"
-            checked={filters.proOnly}
-            onChange={(event) => onFilterChange("proOnly", event.target.checked)}
-            label="PRO uniquement"
-            className={styles.checkboxInput}
-            labelClassName={styles.checkboxLabel}
-          />
-        </div>
+            <Button
+              type="button"
+              variant="ghost"
+              className={styles.allServicesToggle}
+              onClick={() => setAllServicesOpen((value) => !value)}
+              aria-expanded={allServicesOpen}
+            >
+              {allServicesOpen ? "Replier les prestations" : "+ Voir toutes les prestations"}
+            </Button>
+
+            {allServicesOpen ? (
+              <div className={styles.allServicesPanel}>
+                {visibleServicesByCategory.length > 0 ? (
+                  <div className={styles.serviceSections}>
+                    {visibleServicesByCategory.map((group) => {
+                      const groupServices = group.services.filter((service) => {
+                        if (!serviceQuery.trim()) return true;
+                        return normalizeServiceLabel(service).includes(normalizeServiceLabel(serviceQuery));
+                      });
+                      if (groupServices.length === 0) return null;
+
+                      const isOpen = openServiceSections[group.category] ?? true;
+                      const selectedCount = groupServices.filter((service) => selectedServices.includes(service)).length;
+
+                      return (
+                        <section key={group.category} className={styles.serviceSection}>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className={styles.serviceSectionHeader}
+                            onClick={() => onToggleServiceSection(group.category)}
+                            aria-expanded={isOpen}
+                          >
+                            <span className={styles.serviceSectionTitle}>
+                              <ServiceCategoryIcon category={group.category} size={17} />
+                              {group.category}
+                            </span>
+                            <span className={styles.serviceSectionMeta}>
+                              {selectedCount}/{groupServices.length} {isOpen ? "-" : "+"}
+                            </span>
+                          </Button>
+
+                          {isOpen ? (
+                            <FilterChipGroup
+                              items={groupServices}
+                              selectedItems={selectedServices}
+                              onToggle={onToggleService}
+                              className={styles.serviceSectionBody}
+                              getClassName={(selected) => (selected ? styles.serviceChipActive : styles.serviceChip)}
+                            />
+                          ) : null}
+                        </section>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <FilterChipGroup
+                    items={filteredServiceOptions}
+                    selectedItems={selectedServices}
+                    onToggle={onToggleService}
+                    className={styles.serviceSectionBody}
+                    emptyLabel="Aucune prestation disponible."
+                    getClassName={(selected) => (selected ? styles.serviceChipActive : styles.serviceChip)}
+                  />
+                )}
+              </div>
+            ) : null}
+          </section>
+        ) : (
+          <div className={styles.stayServiceLock}>
+            <span className={styles.blockLabel}>Prestation recherchée</span>
+            <strong>{stayNeedLabel ?? selectedServices[0] ?? "Prestation du séjour"}</strong>
+          </div>
+        )}
+
+        <section className={styles.advancedShell}>
+          <Button
+            type="button"
+            variant="ghost"
+            className={styles.allServicesToggle}
+            onClick={() => setAdvancedOpen((value) => !value)}
+            aria-expanded={advancedOpen}
+          >
+            {advancedOpen ? "Replier les filtres avancés" : "Filtres avancés"}
+          </Button>
+
+          {advancedOpen ? (
+            <div className={styles.advancedFilters}>
+              <label className={styles.field}>
+                <span>Type de bien</span>
+                <Select
+                  aria-label="Type de bien"
+                  value={filters.propertyType}
+                  onChange={(event) => onFilterChange("propertyType", event.target.value)}
+                >
+                  <option value="">Tous</option>
+                  {propertyTypeOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </Select>
+              </label>
+
+              <div className={styles.budgetCompact}>
+                <FilterSliders
+                  title="Budget"
+                  budget={{
+                    label: "Budget max",
+                    value: parseSliderValue(filters.budgetMax),
+                    min: 0,
+                    max: 300,
+                    step: 10,
+                    helperText: "0 = libre",
+                    formatValue: (value) => (value === 0 ? "Libre" : `${value} EUR/h`),
+                    onChange: (value) => onFilterChange("budgetMax", value === 0 ? "" : String(value)),
+                  }}
+                />
+              </div>
+
+              <Checkbox
+                aria-label="Afficher uniquement les professionnels PRO"
+                checked={filters.proOnly}
+                onChange={(event) => onFilterChange("proOnly", event.target.checked)}
+                label="PRO uniquement"
+                className={styles.checkboxInput}
+                labelClassName={styles.checkboxLabel}
+              />
+            </div>
+          ) : null}
+        </section>
       </form>
     </div>
   );

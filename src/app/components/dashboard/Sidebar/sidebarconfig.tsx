@@ -92,52 +92,27 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
 
   concierge: [
     { label: "Tableau de bord", path: "/dashboard/concierge", icon: DashboardGaugeIcon },
-    { section: "Mon activité", label: "Missions", path: "/dashboard/concierge/missions", icon: FiCalendar },
-    { label: "Planning & tournées", path: "/dashboard/concierge/planning", icon: FiCalendar },
-    { label: "Urgences", path: "/dashboard/concierge/urgences", icon: FiBell },
+    { label: "Calendrier", path: "/dashboard/concierge/planning", icon: FiCalendar },
+
+    { section: "MON RÉSEAU", label: "Rechercher un propriétaire", path: "/dashboard/concierge/recherche", icon: FiSearch },
     {
-      section: "Commercial",
-      label: "Demandes",
+      label: "Mes demandes",
       path: "/dashboard/concierge/demandes",
       icon: FiMessageSquare,
       notificationKey: "concierge-requests",
     },
-    { label: "Devis", path: "/dashboard/concierge/billing", icon: FiFileText },
-    { label: "Collaborations", path: "/dashboard/concierge/contacts", icon: FiUsers },
-    { label: "Contrats", path: "/dashboard/concierge/contract-templates", icon: FiClipboard },
-    { label: "Offre de services", path: "/dashboard/concierge/missions/overview", icon: FiPackage },
-    { label: "Prospection", path: "/dashboard/concierge/recherche", icon: FiSearch },
-    {
-      section: "Clients",
-      label: "Propriétaires",
-      path: "/dashboard/concierge/proprietaires/overview",
-      icon: FiUsers,
-    },
-    { label: "Logements", path: "/dashboard/concierge/logements", icon: DashboardHousesIcon },
-    { label: "Voyageurs & séjours", path: "/dashboard/concierge/sejours", icon: FiUsers },
-    {
-      section: "Prestataires",
-      label: "Artisans & interventions",
-      path: "/dashboard/concierge/maintenance",
-      icon: FiTool,
-    },
-    { section: "Gestion", label: "Messages", path: "/dashboard/concierge/messages", icon: FiMessageSquare },
+    { label: "Mes partenaires", path: "/dashboard/concierge/contacts", icon: FiUsers },
+
+    { section: "MON ACTIVITÉ", label: "Logements", path: "/dashboard/concierge/logements", icon: DashboardHousesIcon },
+    { label: "Séjours", path: "/dashboard/concierge/sejours", icon: FiUsers },
+    { label: "Interventions", path: "/dashboard/concierge/maintenance", icon: FiTool },
+    { label: "Messages", path: "/dashboard/concierge/messages", icon: FiMessageSquare },
+
+    { section: "MON SUIVI", label: "Devis", path: "/dashboard/concierge/billing", icon: FiFileText },
+    { label: "Factures", path: "/dashboard/concierge/billing", icon: FiCreditCard },
     { label: "Documents", path: "/dashboard/concierge/profile?tab=documents", icon: FiFileText },
-    { label: "Stocks", path: "/dashboard/concierge/stocks", icon: FiBox },
-    { label: "Facturation", path: "/dashboard/concierge/billing", icon: FiCreditCard },
-    {
-      section: "Pilotage",
-      label: "Finances",
-      path: "/dashboard/concierge/finances/overview",
-      icon: FiCreditCard,
-    },
-    { label: "Objectifs", path: "/dashboard/concierge/objectifs", icon: DashboardGaugeIcon },
-    { label: "Simulation de revenus", path: "/dashboard/concierge/finances/simulation", icon: FiCreditCard },
-    { section: "Configuration", label: "Mon profil", path: "/dashboard/concierge/profile", icon: FiUser },
-    { label: "Mon équipe", path: "/dashboard/concierge/equipe", icon: FiUsers },
-    { label: "Tarifs", path: "/dashboard/concierge/pricing", icon: FiCreditCard },
-    { label: "Packs de services", path: "/dashboard/concierge/services-packages", icon: FiPackage },
-    { label: "Paramètres", path: "/dashboard/concierge/settings", icon: FiSettings },
+
+    { section: "En bas", label: "Paramètres", path: "/dashboard/concierge/settings", icon: FiSettings },
   ],
 
   provider: [
