@@ -3,26 +3,50 @@
 $gold: #c9a227;
 $gold-dark: #8c6905;
 $night: #24344a;
+$green: #14342b;
+$green-soft: #255b48;
 $muted: #697587;
 $paper: #fffdf8;
 $line: rgba(177, 139, 39, 0.18);
 $shadow: 0 24px 70px rgba(25, 38, 54, 0.12), 0 4px 16px rgba(25, 38, 54, 0.05);
 
 .pageContainer {
+  position: relative;
   width: min(1120px, calc(100vw - 32px));
-  margin: 32px auto;
-  padding: clamp(24px, 4vw, 48px);
+  margin: 22px auto;
+  padding: clamp(20px, 3vw, 36px);
   border: 1px solid $line;
   border-radius: 24px;
-  background: linear-gradient(rgba(255, 253, 248, 0.96), rgba(255, 253, 248, 0.96)), $paper;
-  box-shadow: $shadow;
+  background:
+    linear-gradient(rgba(255, 253, 248, 0.986), rgba(255, 253, 248, 0.986)),
+    url("/textures/mucha-background-pattern.png"),
+    $paper;
+  background-size: auto, 280px, auto;
+  box-shadow:
+    $shadow,
+    0 0 0 1px rgba(201, 162, 39, 0.12);
   color: $night;
   font-family: var(--font-inter), var(--font-text), system-ui, sans-serif;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-top: 4px solid rgba(201, 162, 39, 0.82);
+    pointer-events: none;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .onboardingHeader {
   position: relative;
-  margin: 22px 0 30px;
+  margin: 8px auto 20px;
+  max-width: 760px;
   text-align: center;
 
   &::after {
@@ -30,14 +54,14 @@ $shadow: 0 24px 70px rgba(25, 38, 54, 0.12), 0 4px 16px rgba(25, 38, 54, 0.05);
     display: block;
     width: 64px;
     height: 2px;
-    margin: 18px auto 0;
+    margin: 14px auto 0;
     border-radius: 999px;
     background: $gold;
   }
 }
 
 .stepKicker {
-  margin: 0 0 8px;
+  margin: 0 0 7px;
   color: $gold-dark;
   font-size: 0.86rem;
   font-weight: 800;
@@ -49,16 +73,16 @@ $shadow: 0 24px 70px rgba(25, 38, 54, 0.12), 0 4px 16px rgba(25, 38, 54, 0.05);
   margin: 0;
   color: #22344c;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-size: clamp(2.1rem, 3.4vw, 3rem);
   font-weight: 700;
   line-height: 1.08;
   text-align: center;
 }
 
 .subtitle {
-  margin: 10px 0 0;
+  margin: 7px 0 0;
   color: #657184;
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   line-height: 1.5;
 }
 
@@ -98,79 +122,110 @@ $shadow: 0 24px 70px rgba(25, 38, 54, 0.12), 0 4px 16px rgba(25, 38, 54, 0.05);
 }
 
 .journeySummary {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(160px, auto) minmax(0, 1fr) minmax(0, 1.45fr) auto;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 0 0 32px;
-  padding: 18px 20px;
-  border: 1px solid rgba(201, 162, 39, 0.18);
-  border-radius: 16px;
-  background: #fbf7eb;
+  gap: 8px;
+  margin: 0 0 20px;
+  padding: 11px 14px;
+  border: 1px solid rgba(201, 162, 39, 0.38);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(20, 52, 43, 0.98), rgba(37, 91, 72, 0.95)),
+    $green;
+  color: #fffaf0;
+  box-shadow: 0 14px 32px rgba(20, 52, 43, 0.18);
 }
 
 .journeyTitle {
-  width: 100%;
-  margin: 0 0 6px;
-  color: $night;
+  margin: 0;
+  color: #fffaf0;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.15rem;
+  font-size: 1.04rem;
 }
 
 .journeyTag {
   display: inline-flex;
   align-items: center;
   gap: 7px;
+  min-width: 0;
   min-height: 36px;
-  padding: 0 13px;
-  border: 1px solid rgba(201, 162, 39, 0.25);
+  padding: 0 11px;
+  border: 1px solid rgba(255, 250, 240, 0.2);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.8);
-  color: #745d18;
-  font-size: 0.88rem;
-  font-weight: 600;
+  background: rgba(255, 250, 240, 0.11);
+  color: #fffaf0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.2;
+
+  svg {
+    flex: 0 0 auto;
+    color: $gold;
+  }
 }
 
 .modifyButton {
-  min-height: 36px;
-  margin-left: auto;
+  min-height: 40px;
+  margin-left: 0;
   padding: 0 14px;
-  border: 1px solid rgba(36, 52, 74, 0.14);
+  border: 1px solid rgba(201, 162, 39, 0.6);
   border-radius: 999px;
-  background: #fff;
-  color: $night;
+  background: rgba(255, 250, 240, 0.96);
+  color: $green;
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 800;
 
   &:hover {
-    border-color: rgba(201, 162, 39, 0.45);
-    color: $gold-dark;
+    border-color: rgba(255, 250, 240, 0.95);
+    background: $gold;
+    color: $green;
   }
 }
 
 .accountLayout {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.75fr);
-  gap: 40px;
-  margin-top: 32px;
+  grid-template-columns: minmax(0, 1.42fr) minmax(300px, 0.78fr);
+  gap: 24px;
+  margin-top: 0;
 }
 
 .accountForm {
   min-width: 0;
+  padding: 22px;
+  border: 1px solid rgba(36, 52, 74, 0.09);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 16px 38px rgba(25, 38, 54, 0.08);
 }
 
 .formSection {
-  margin-bottom: 28px;
+  margin-bottom: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(36, 52, 74, 0.08);
+
+  &:last-of-type {
+    margin-bottom: 16px;
+  }
 }
 
 .formSectionTitle {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 0 0 16px;
-  color: $night;
+  margin: 0 0 14px;
+  color: $green;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.3rem;
+  font-size: 1.34rem;
+
+  &::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    background: $gold;
+    box-shadow: 0 0 0 5px rgba(201, 162, 39, 0.12);
+  }
 }
 
 .nameFields {
@@ -181,31 +236,31 @@ $shadow: 0 24px 70px rgba(25, 38, 54, 0.12), 0 4px 16px rgba(25, 38, 54, 0.05);
 
 .field {
   display: block;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .fieldLabel {
   display: block;
   margin-bottom: 7px;
-  color: #334258;
+  color: #24344a;
   font-size: 0.9rem;
   font-weight: 600;
 }
 
 .fieldInput {
   width: 100%;
-  min-height: 54px;
-  padding: 0 16px;
-  border: 1px solid #dddfe3;
-  border-radius: 10px;
-  background: #fff;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid rgba(36, 52, 74, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.96);
   color: #26374d;
   font-size: 1rem;
   outline: none;
 
   &:focus {
     border-color: $gold;
-    box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.1);
+    box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.16);
   }
 }
 
@@ -240,10 +295,11 @@ $shadow: 0 24px 70px rgba(25, 38, 54, 0.12), 0 4px 16px rgba(25, 38, 54, 0.05);
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px 18px;
-  margin: 10px 0 18px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  background: #faf7ef;
+  margin: 8px 0 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(201, 162, 39, 0.18);
+  border-radius: 14px;
+  background: rgba(251, 247, 235, 0.84);
   color: #667181;
   font-size: 0.82rem;
   list-style: none;
@@ -286,14 +342,14 @@ $shadow: 0 24px 70px rgba(25, 38, 54, 0.12), 0 4px 16px rgba(25, 38, 54, 0.05);
 
 .submitButton {
   width: 100%;
-  min-height: 58px;
-  margin-top: 4px;
+  min-height: 50px;
+  margin-top: 0;
   border-radius: 14px;
-  background: linear-gradient(135deg, #b78a13, #d0a72b);
-  color: #fff;
-  font-size: 1.05rem;
-  font-weight: 700;
-  box-shadow: 0 10px 24px rgba(177, 139, 39, 0.18);
+  background: linear-gradient(135deg, $green, $green-soft);
+  color: #fffaf0;
+  font-size: 1rem;
+  font-weight: 800;
+  box-shadow: 0 12px 28px rgba(20, 52, 43, 0.2);
 
   &:hover:not(:disabled) {
     transform: translateY(-1px);
@@ -307,44 +363,71 @@ $shadow: 0 24px 70px rgba(25, 38, 54, 0.12), 0 4px 16px rgba(25, 38, 54, 0.05);
 }
 
 .sideReassurance {
+  position: relative;
   align-self: start;
   padding: 28px 24px;
-  border-left: 1px solid rgba(36, 52, 74, 0.1);
-  text-align: center;
+  border: 1px solid rgba(201, 162, 39, 0.42);
+  border-radius: 20px;
+  background:
+    linear-gradient(135deg, rgba(20, 52, 43, 0.98), rgba(37, 91, 72, 0.95)),
+    $green;
+  color: #fffaf0;
+  text-align: left;
+  box-shadow: 0 16px 38px rgba(20, 52, 43, 0.18);
+  overflow: hidden;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: -34px;
+    right: -36px;
+    width: 170px;
+    height: 170px;
+    background: url("/ornements/ornement-right.svg") center / contain no-repeat;
+    opacity: 0.1;
+    pointer-events: none;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .sideReassuranceTitle {
   margin: 0 0 8px;
-  color: $night;
+  color: #fffaf0;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.45rem;
+  font-size: clamp(1.8rem, 2.5vw, 2rem);
+  line-height: 1.08;
 }
 
 .sideReassuranceText {
-  margin: 0 0 24px;
-  color: $muted;
+  margin: 0 0 20px;
+  color: rgba(255, 250, 240, 0.82);
+  font-size: 0.95rem;
   line-height: 1.55;
 }
 
 .benefitList {
   display: grid;
-  gap: 16px;
+  gap: 18px;
   text-align: left;
 }
 
 .benefit {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
-  gap: 10px;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 12px;
   align-items: start;
 
   > span {
     display: grid;
     place-items: center;
-    width: 34px;
-    height: 34px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    background: #fbf5e5;
+    background: rgba(255, 250, 240, 0.96);
     color: $gold-dark;
   }
 }
@@ -352,25 +435,36 @@ $shadow: 0 24px 70px rgba(25, 38, 54, 0.12), 0 4px 16px rgba(25, 38, 54, 0.05);
 .benefitTitle {
   display: block;
   margin-bottom: 2px;
-  color: $night;
+  color: #fffaf0;
   font-weight: 700;
 }
 
 .benefitText {
   margin: 0;
-  color: #737d8c;
-  font-size: 0.82rem;
-  line-height: 1.4;
+  color: rgba(255, 250, 240, 0.76);
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 @media (max-width: 900px) {
-  .accountLayout {
+  .journeySummary {
     grid-template-columns: 1fr;
+    align-items: stretch;
   }
 
-  .sideReassurance {
-    border-top: 1px solid rgba(36, 52, 74, 0.1);
-    border-left: 0;
+  .journeyTitle {
+    text-align: center;
+  }
+
+  .journeyTag {
+    justify-content: center;
+    border-radius: 14px;
+    padding: 8px 11px;
+    overflow-wrap: anywhere;
+  }
+
+  .accountLayout {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -378,12 +472,31 @@ $shadow: 0 24px 70px rgba(25, 38, 54, 0.12), 0 4px 16px rgba(25, 38, 54, 0.05);
   .pageContainer {
     width: calc(100vw - 20px);
     margin: 10px auto;
-    padding: 20px 16px;
+    padding: 18px 14px;
     border-radius: 18px;
   }
 
   .title {
-    font-size: 2rem;
+    font-size: clamp(1.9rem, 9vw, 2.35rem);
+    line-height: 1.12;
+  }
+
+  .subtitle {
+    font-size: 1.04rem;
+  }
+
+  .onboardingHeader {
+    margin-bottom: 16px;
+  }
+
+  .accountForm,
+  .sideReassurance {
+    padding: 18px 16px;
+    border-radius: 18px;
+  }
+
+  .sideReassurance {
+    padding: 20px 16px;
   }
 
   .nameFields,
@@ -394,6 +507,14 @@ $shadow: 0 24px 70px rgba(25, 38, 54, 0.12), 0 4px 16px rgba(25, 38, 54, 0.05);
   .modifyButton {
     width: 100%;
     margin-left: 0;
+  }
+
+  .sideReassurance {
+    text-align: center;
+  }
+
+  .benefit {
+    text-align: left;
   }
 }
 

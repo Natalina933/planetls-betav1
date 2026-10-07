@@ -1,7 +1,7 @@
 .page {
   display: grid;
-  gap: 32px;
-  padding: 32px 20px 64px;
+  gap: 28px;
+  padding: 28px 20px 56px;
   background:
     radial-gradient(circle at top left, rgba(206, 173, 120, 0.22), transparent 26%),
     radial-gradient(circle at top right, rgba(98, 123, 88, 0.14), transparent 28%),
@@ -34,7 +34,7 @@
 }
 
 .heroCopy {
-  padding: 40px;
+  padding: 34px;
 }
 
 .kicker,
@@ -62,8 +62,8 @@
 }
 
 .heroCopy h1 {
-  max-width: 12ch;
-  font-size: clamp(2.8rem, 5vw, 4.9rem);
+  max-width: 15ch;
+  font-size: clamp(2.35rem, 3.8vw, 3rem);
 }
 
 .lead,
@@ -72,13 +72,13 @@
 .bottomCta p,
 .pathCard p {
   color: #5f4e38;
-  font-size: 1.02rem;
-  line-height: 1.65;
+  font-size: 0.98rem;
+  line-height: 1.55;
 }
 
 .lead {
   max-width: 60ch;
-  margin: 18px 0 0;
+  margin: 14px 0 0;
 }
 
 .heroActions,
@@ -124,8 +124,8 @@
 
 .heroPanel {
   display: grid;
-  gap: 16px;
-  padding: 28px;
+  gap: 14px;
+  padding: 24px;
 }
 
 .heroVisual {
@@ -140,7 +140,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
-  margin-top: 22px;
+  margin-top: 16px;
 }
 
 .panelMetrics article {
@@ -173,14 +173,14 @@
 .pathGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  gap: 16px;
 }
 
 .pathCard {
   display: grid;
-  gap: 14px;
-  padding: 24px;
-  min-height: 360px;
+  gap: 12px;
+  padding: 20px;
+  min-height: 318px;
 }
 
 .pathVisual {
@@ -198,15 +198,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
+  width: 40px;
+  height: 40px;
   border-radius: 14px;
 }
 
 .pathCard h3 {
   margin: 0;
   color: #2d2418;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
 }
 
 .inlineLink {

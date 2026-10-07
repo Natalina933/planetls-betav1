@@ -4,7 +4,23 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ArrowRight, ChevronLeft, Home, ListChecks, X } from "lucide-react";
+import {
+  ArrowRight,
+  BriefcaseBusiness,
+  CalendarDays,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Handshake,
+  Home,
+  Info,
+  LayoutDashboard,
+  ListChecks,
+  Search,
+  Users,
+  X,
+} from "lucide-react";
 import { buildOwnerHousingCompletion } from "@/app/dashboard/shared/categoryCompletion";
 import {
   EMPTY_OWNER_ONBOARDING_V1,
@@ -72,6 +88,12 @@ const MANAGEMENT_MODE_OPTIONS: Array<Option<OwnerOnboardingManagementMode>> = [
   },
 ];
 
+const MANAGEMENT_MODE_ICONS: Record<OwnerOnboardingManagementMode, typeof Home> = {
+  autonomous: Home,
+  supported: Users,
+  full_delegation: BriefcaseBusiness,
+};
+
 const NEED_OPTIONS: Array<Option<OwnerOnboardingNeed>> = [
   { value: "check_in", label: "Accueil / Check-in" },
   { value: "check_out", label: "Départ / Check-out" },
@@ -80,8 +102,17 @@ const NEED_OPTIONS: Array<Option<OwnerOnboardingNeed>> = [
   { value: "maintenance", label: "Maintenance / petites réparations" },
   { value: "traveler_messages", label: "Gestion des messages voyageurs" },
   { value: "full_management", label: "Gestion complète du logement" },
-  { value: "other", label: "Autre" },
 ];
+
+const NEED_ICONS: Partial<Record<OwnerOnboardingNeed, string>> = {
+  check_in: "/icons/planetls-check-in.svg",
+  check_out: "/icons/planetls-check-out.svg",
+  cleaning: "/icons/to-clean-svgrepo-com.svg",
+  linen: "/icons/washing-machine-svgrepo-com.svg",
+  maintenance: "/icons/hammer-icon.svg",
+  traveler_messages: "/icons/message-suggestions-svgrepo-com.svg",
+  full_management: "/icons/account-management-svgrepo-com.svg",
+};
 
 const HELP_FREQUENCY_OPTIONS: Array<Option<OwnerOnboardingHelpFrequency>> = [
   {
@@ -124,10 +155,29 @@ const SITUATION_OPTIONS: Array<Option<OwnerOnboardingSituation>> = [
   },
 ];
 
-function labelOf<Value extends string>(options: Array<Option<Value>>, value: Value | null): string {
-  if (!value) return "";
-  return options.find((option) => option.value === value)?.label ?? "";
-}
+const SITUATION_ICONS: Record<OwnerOnboardingSituation, typeof Home> = {
+  first_rental: CalendarDays,
+  already_renting: Home,
+  looking_for_professional: Search,
+  already_with_professional: Handshake,
+};
+
+const NEED_SUMMARY_LABELS: Record<OwnerOnboardingNeed, string> = {
+  check_in: "Accueil / Check-in",
+  check_out: "Départ / Check-out",
+  cleaning: "Ménage",
+  linen: "Gestion du linge",
+  maintenance: "Maintenance / petites réparations",
+  traveler_messages: "Gestion des messages voyageurs",
+  full_management: "Gestion complète du logement",
+  other: "Autre",
+};
+
+const HELP_FREQUENCY_ICONS: Record<OwnerOnboardingHelpFrequency, string> = {
+  occasional: "/icons/planetls-calendar-occasional.svg",
+  regular: "/icons/planetls-calendar-regular.svg",
+  very_regular: "/icons/planetls-calendar-very-regular.svg",
+};
 
 function readHousingRows(payload: unknown): OwnerHousingRow[] {
   if (Array.isArray(payload)) return payload as OwnerHousingRow[];
@@ -380,7 +430,10 @@ export default function OwnerPostSignupOnboarding({
     router.push(conciergeSearchHref);
   };
   const stepIndex = ONBOARDING_STEPS.indexOf(step === "complete" ? "housing" : step);
-  const selectedNeedLabels = needs.map((need) => labelOf(NEED_OPTIONS, need)).filter(Boolean);
+  const selectedNeedItems = needs.map((need) => ({
+    value: need,
+    label: NEED_SUMMARY_LABELS[need],
+  }));
 
   const renderProgress = () => (
     <div className={styles.progress} aria-label="Progression de l'onboarding propriétaire">
@@ -406,18 +459,29 @@ export default function OwnerPostSignupOnboarding({
           <p>Vous pourrez ajuster ce choix plus tard depuis vos objectifs de collaboration.</p>
         </div>
         <div className={styles.choiceGrid}>
-          {MANAGEMENT_MODE_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className={`${styles.choiceCard} ${managementMode === option.value ? styles.choiceCardSelected : ""}`}
-              aria-pressed={managementMode === option.value}
-              onClick={() => setManagementMode(managementMode === option.value ? "" : option.value)}
-            >
-              <strong>{option.label}</strong>
-              <span>{option.description}</span>
-            </button>
-          ))}
+          {MANAGEMENT_MODE_OPTIONS.map((option) => {
+            const Icon = MANAGEMENT_MODE_ICONS[option.value] ?? Home;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                className={`${styles.choiceCard} ${managementMode === option.value ? styles.choiceCardSelected : ""}`}
+                aria-pressed={managementMode === option.value}
+                onClick={() => setManagementMode(managementMode === option.value ? "" : option.value)}
+              >
+                <span className={styles.choiceIcon} aria-hidden="true">
+                  <Icon size={21} strokeWidth={2.1} />
+                </span>
+                <span className={styles.choiceContent}>
+                  <strong>{option.label}</strong>
+                  <span>{option.description}</span>
+                </span>
+                <span className={styles.choiceChevron} aria-hidden="true">
+                  <ChevronRight size={16} strokeWidth={2.4} />
+                </span>
+              </button>
+            );
+          })}
         </div>
       </section>
 
@@ -429,6 +493,7 @@ export default function OwnerPostSignupOnboarding({
         <div className={styles.serviceOptions}>
           {NEED_OPTIONS.map((option) => {
             const selected = needs.includes(option.value);
+            const iconSrc = NEED_ICONS[option.value] ?? "/icons/check-1-svgrepo-com.svg";
             return (
               <button
                 key={option.value}
@@ -437,6 +502,14 @@ export default function OwnerPostSignupOnboarding({
                 aria-pressed={selected}
                 onClick={() => toggleNeed(option.value)}
               >
+                <Image
+                  src={iconSrc}
+                  alt=""
+                  aria-hidden="true"
+                  width={18}
+                  height={18}
+                  className={styles.serviceOptionIcon}
+                />
                 {option.label}
               </button>
             );
@@ -450,18 +523,29 @@ export default function OwnerPostSignupOnboarding({
           <p>Votre réponse nous aide à vous proposer le bon niveau d'accompagnement.</p>
         </div>
         <div className={styles.choiceGrid}>
-          {SITUATION_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className={`${styles.choiceCard} ${situation === option.value ? styles.choiceCardSelected : ""}`}
-              aria-pressed={situation === option.value}
-              onClick={() => setSituation(situation === option.value ? "" : option.value)}
-            >
-              <strong>{option.label}</strong>
-              <span>{option.description}</span>
-            </button>
-          ))}
+          {SITUATION_OPTIONS.map((option) => {
+            const Icon = SITUATION_ICONS[option.value] ?? Home;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                className={`${styles.choiceCard} ${situation === option.value ? styles.choiceCardSelected : ""}`}
+                aria-pressed={situation === option.value}
+                onClick={() => setSituation(situation === option.value ? "" : option.value)}
+              >
+                <span className={styles.choiceIcon} aria-hidden="true">
+                  <Icon size={21} strokeWidth={2.1} />
+                </span>
+                <span className={styles.choiceContent}>
+                  <strong>{option.label}</strong>
+                  <span>{option.description}</span>
+                </span>
+                <span className={styles.choiceChevron} aria-hidden="true">
+                  <ChevronRight size={16} strokeWidth={2.4} />
+                </span>
+              </button>
+            );
+          })}
         </div>
       </section>
 
@@ -549,7 +633,7 @@ export default function OwnerPostSignupOnboarding({
       {renderProgress()}
 
       <section className={styles.formSection}>
-        <div className={styles.sectionHeading}>
+        <div className={`${styles.sectionHeading} ${styles.numberedHeading}`} data-step-number="1">
           <h3>{housingRows.length > 0 ? "Vos logements" : "Ajoutez votre premier logement"}</h3>
           {housingRows.length > 0 ? (
             <p>Ces logements sont déjà enregistrés dans votre espace propriétaire.</p>
@@ -583,6 +667,7 @@ export default function OwnerPostSignupOnboarding({
             </p>
             <div className={styles.housingActions}>
               <Link className={styles.secondaryAction} href="/dashboard/owner/logements">
+                <Home size={18} aria-hidden="true" />
                 {housingRows.length > 1 ? "Voir mes logements" : "Compléter mon logement"}
               </Link>
             </div>
@@ -594,9 +679,11 @@ export default function OwnerPostSignupOnboarding({
         ) : (
           <div className={styles.housingActions}>
             <Link className={styles.primaryAction} href="/dashboard/owner/logements/create">
+              <Home size={18} aria-hidden="true" />
               Ajouter mon logement
             </Link>
             <button type="button" className={styles.secondaryAction} onClick={() => setHousingDeferred(true)}>
+              <Clock size={18} aria-hidden="true" />
               Je le ferai plus tard
             </button>
           </div>
@@ -604,19 +691,27 @@ export default function OwnerPostSignupOnboarding({
       </section>
 
       <section className={styles.formSection}>
-        <div className={styles.sectionHeading}>
+        <div className={`${styles.sectionHeading} ${styles.numberedHeading}`} data-step-number="2">
           <h3>Vos besoins</h3>
-          {selectedNeedLabels.length > 0 ? (
+          {selectedNeedItems.length > 0 ? (
             <p>Vous avez indiqué avoir besoin de :</p>
           ) : (
             <p>Vous n'avez pas encore sélectionné de besoin particulier.</p>
           )}
         </div>
-        {selectedNeedLabels.length > 0 ? (
+        {selectedNeedItems.length > 0 ? (
           <ul className={styles.needChips}>
-            {selectedNeedLabels.map((label) => (
-              <li key={label} className={styles.needChip}>
-                {label}
+            {selectedNeedItems.map((option) => (
+              <li key={option.value} className={styles.needChip}>
+                <span className={styles.needChipIcon} aria-hidden="true">
+                  <Image
+                    src={NEED_ICONS[option.value] ?? "/icons/check-1-svgrepo-com.svg"}
+                    alt=""
+                    width={22}
+                    height={22}
+                  />
+                </span>
+                {option.label}
               </li>
             ))}
           </ul>
@@ -624,27 +719,42 @@ export default function OwnerPostSignupOnboarding({
       </section>
 
       <section className={styles.formSection}>
-        <div className={styles.sectionHeading}>
+        <div className={`${styles.sectionHeading} ${styles.numberedHeading}`} data-step-number="3">
           <h3>À quelle fréquence avez-vous généralement besoin d'aide ?</h3>
           <p>Une seule réponse possible. Vous pourrez l'ajuster plus tard.</p>
         </div>
-        <div className={styles.choiceGrid}>
-          {HELP_FREQUENCY_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className={`${styles.choiceCard} ${helpFrequency === option.value ? styles.choiceCardSelected : ""}`}
-              aria-pressed={helpFrequency === option.value}
-              onClick={() => setHelpFrequency(helpFrequency === option.value ? "" : option.value)}
-            >
-              <strong>{option.label}</strong>
-              <span>{option.description}</span>
-            </button>
-          ))}
+        <div className={styles.frequencyGrid}>
+          {HELP_FREQUENCY_OPTIONS.map((option) => {
+            const selected = helpFrequency === option.value;
+            const iconSrc = HELP_FREQUENCY_ICONS[option.value];
+            return (
+              <button
+                key={option.value}
+                type="button"
+                className={`${styles.frequencyCard} ${selected ? styles.frequencyCardSelected : ""}`}
+                aria-pressed={selected}
+                onClick={() => setHelpFrequency(selected ? "" : option.value)}
+              >
+                <span className={styles.frequencyIcon} aria-hidden="true">
+                  <Image src={iconSrc} alt="" width={46} height={46} />
+                </span>
+                <span className={styles.frequencyContent}>
+                  <strong>{option.label}</strong>
+                  <span>{option.description}</span>
+                </span>
+                <span className={styles.frequencyCheck} aria-hidden="true" />
+              </button>
+            );
+          })}
         </div>
       </section>
 
-      {message ? <p className={styles.feedback}>{message}</p> : null}
+      {message ? (
+        <p className={`${styles.feedback} ${styles.infoFeedback}`}>
+          <Info size={18} aria-hidden="true" />
+          {message}
+        </p>
+      ) : null}
 
       <div className={styles.actionBar}>
         <button type="button" className={styles.secondaryAction} onClick={() => setStep("project")}>
@@ -669,36 +779,49 @@ export default function OwnerPostSignupOnboarding({
         Votre espace est prêt
       </h2>
       <Image
-        src="/ornements/divider.png"
+        src="/images/owner-objectifs/owner-objectifs-project.jpg"
         alt=""
         aria-hidden="true"
-        width={320}
-        height={24}
-        className={styles.completeDivider}
+        width={620}
+        height={260}
+        className={styles.completeIllustration}
       />
       <p className={styles.completeDescription}>
         Découvrez les concierges proches de chez vous pour donner vie à votre projet.
       </p>
 
-      <button type="button" className={styles.primaryAction} onClick={openConciergeSearch}>
+      <button type="button" className={`${styles.primaryAction} ${styles.conciergeAction}`} onClick={openConciergeSearch}>
+        <Search size={18} aria-hidden="true" />
         Trouver ma concierge
         <ArrowRight size={18} aria-hidden="true" />
       </button>
       <p className={styles.completeHint}>Vous pourrez compléter vos préférences plus tard.</p>
 
-      {message ? <p className={styles.feedback}>{message}</p> : null}
+      <div className={styles.completeConfirmation}>
+        <span aria-hidden="true">
+          <Check size={20} strokeWidth={2.8} />
+        </span>
+        <span>
+          <strong>Votre rythme d&apos;accompagnement est enregistrÃ©.</strong>
+          <span>Votre espace est prÃªt.</span>
+        </span>
+      </div>
 
+      <span className={styles.completeActionSeparator} aria-hidden="true" />
       <div className={styles.actionBar}>
-        <Link className={styles.secondaryAction} href="/dashboard/owner/logements">
+        <Link className={`${styles.secondaryAction} ${styles.completeSecondaryAction}`} href="/dashboard/owner/logements">
+          <Home size={18} aria-hidden="true" />
           Ajouter un logement
         </Link>
         <button
           type="button"
-          className={styles.primaryAction}
+          className={`${styles.primaryAction} ${styles.completeMainAction}`}
           onClick={finalizeOnboarding}
           disabled={finalizing}
         >
+          <LayoutDashboard size={18} aria-hidden="true" />
           {finalizing ? "Finalisation..." : "Découvrir mon espace"}
+          <ArrowRight size={18} aria-hidden="true" />
         </button>
       </div>
     </div>

@@ -4,6 +4,7 @@ import React, { ChangeEvent, FormEvent, useEffect, useRef, useState } from "reac
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { FaCheckCircle, FaEye, FaEyeSlash, FaMapMarkerAlt, FaTimesCircle, FaUser } from "react-icons/fa";
+import { BarChart3, Home, Users } from "lucide-react";
 import { Button, Input } from "@/components/ui";
 import OnboardingStepHeader from "@/app/components/onboarding/OnboardingStepHeader/OnboardingStepHeader";
 import useReadabilityScale from "@/app/components/onboarding/useReadabilityScale";
@@ -56,6 +57,8 @@ const BENEFITS: Record<string, Array<{ title: string; text: string }>> = {
     { title: "Un profil évolutif", text: "Complétez vos services, disponibilités et préférences quand vous le souhaitez." },
   ],
 };
+
+const BENEFIT_ICONS = [Home, Users, BarChart3] as const;
 
 const getDashboardPathFromCategory = (category: string): string => {
   switch (category) {
@@ -443,17 +446,20 @@ export default function CompleteRegistrationPage() {
             Votre compte sera créé en quelques instants. Vous pourrez ensuite compléter votre profil à votre rythme.
           </p>
           <div className={styles.benefitList}>
-            {benefits.map((benefit) => (
-              <div key={benefit.title} className={styles.benefit}>
-                <span aria-hidden="true">
-                  <FaCheckCircle />
-                </span>
-                <div>
-                  <strong className={styles.benefitTitle}>{benefit.title}</strong>
-                  <p className={styles.benefitText}>{benefit.text}</p>
+            {benefits.map((benefit, index) => {
+              const BenefitIcon = BENEFIT_ICONS[index] ?? Home;
+              return (
+                <div key={benefit.title} className={styles.benefit}>
+                  <span aria-hidden="true">
+                    <BenefitIcon size={20} strokeWidth={2.2} />
+                  </span>
+                  <div>
+                    <strong className={styles.benefitTitle}>{benefit.title}</strong>
+                    <p className={styles.benefitText}>{benefit.text}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </aside>
       </div>

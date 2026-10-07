@@ -7,7 +7,6 @@ import React, {
   useMemo,
   useRef,
 } from "react";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { FaTimes } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
@@ -127,6 +126,32 @@ const getSuggestionSubtitle = (suggestion: LocationSuggestion) =>
     .join(" · ") ||
   suggestion.country ||
   suggestion.displayName;
+
+const normalizeSuggestionKey = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+
+const getUniqueLocationSuggestions = (suggestions: LocationSuggestion[]) => {
+  const seen = new Set<string>();
+
+  return suggestions.filter((suggestion) => {
+    const visibleKey = normalizeSuggestionKey(
+      `${suggestion.label}|${getSuggestionSubtitle(suggestion)}`,
+    );
+    const fallbackKey = normalizeSuggestionKey(
+      `${suggestion.label}|${suggestion.subtitle ?? ""}|${suggestion.displayName}`,
+    );
+    const key = visibleKey || fallbackKey;
+
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
 
 export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const pathname = usePathname();
@@ -250,7 +275,9 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
           throw new Error(payload.error || "Recherche de ville impossible.");
         }
 
-        setLocationSuggestions(Array.isArray(payload.suggestions) ? payload.suggestions : []);
+        setLocationSuggestions(
+          Array.isArray(payload.suggestions) ? getUniqueLocationSuggestions(payload.suggestions) : [],
+        );
       } catch {
         if (controller.signal.aborted) {
           return;
@@ -574,18 +601,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
                         }`}
                         onClick={() => handleCategoryChange(key)}
                       >
-                        {key === "concierge" ? (
-                          <Image
-                            src="/logo/planetls-favicon-icon.png"
-                            alt=""
-                            className={styles.toggleLogo}
-                            aria-hidden="true"
-                            width={20}
-                            height={20}
-                          />
-                        ) : (
-                          Icon && <Icon className={styles.toggleIcon} />
-                        )}
+                        {Icon ? <Icon className={styles.toggleIcon} aria-hidden="true" /> : null}
                         <span className={styles.roleContent}>
                           <span>{ROLE_LABELS[key] ?? label}</span>
                           <small>{ROLE_DESCRIPTIONS[key]}</small>

@@ -24,10 +24,10 @@
 
   width: calc(100% - 32px);
   max-width: 1500px;
-  margin: 16px auto 0;
-  padding: 0 20px;
+  margin: 12px auto 0;
+  padding: 0 18px;
 
-  min-height: 96px;
+  min-height: 80px;
 
   background: rgba(248, 243, 233, 0.95);
   /* Fond ivoire chaud légèrement translucide */
@@ -75,7 +75,7 @@
 
   img {
     display: block;
-    width: 320px;
+    width: 176px;
     height: auto;
     max-width: 100%;
     transition: transform 0.3s ease;
@@ -96,7 +96,7 @@
   justify-content: center;
   flex: 1 1 auto;
   min-width: 0;
-  gap: var(--ds-space-4);
+  gap: var(--ds-space-3);
 }
 
 .homeMenuWrapper {
@@ -111,8 +111,8 @@
   justify-content: center;
   gap: var(--ds-space-2);
 
-  min-height: 46px;
-  padding: 0.5rem 1.25rem;
+  min-height: 44px;
+  padding: 0.45rem 1rem;
 
   background: var(--ds-color-primary);
   /* Fond doré */
@@ -173,7 +173,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--ds-space-4);
+  gap: var(--ds-space-3);
   min-width: 0;
 
   a {
@@ -312,9 +312,9 @@
 /* Séparateur vertical avant les actions utilisateur */
 .actionsSeparator {
   width: 1px;
-  height: 40px;
+  height: 34px;
   background: var(--ds-color-border-soft);
-  margin: 0 var(--ds-space-3);
+  margin: 0 var(--ds-space-2);
 }
 
 /* =========================================================
@@ -439,7 +439,7 @@
   top: 0;
   z-index: 100;
   min-height: 76px;
-  padding: 10px clamp(1rem, 2vw, 1.75rem);
+  padding: 8px clamp(1rem, 2vw, 1.5rem);
   gap: clamp(0.8rem, 1.6vw, 1.5rem);
   background: rgba(252, 249, 243, 0.97);
   border-bottom: 1px solid #dfd3bf;
@@ -447,6 +447,6 @@
   backdrop-filter: blur(12px);
 
   .logoWrapper img {
-    width: clamp(240px, 20vw, 320px);
+    width: clamp(168px, 13vw, 196px);
   }
 }

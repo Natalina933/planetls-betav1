@@ -11,11 +11,11 @@
 
 .modal {
   position: relative;
-  width: min(760px, calc(100vw - 32px));
+  width: min(860px, calc(100vw - 32px));
   max-height: calc(100dvh - 32px);
   overflow-x: hidden;
   overflow-y: auto;
-  padding: clamp(24px, 4vw, 42px);
+  padding: clamp(24px, 3vw, 38px) clamp(24px, 3.8vw, 46px);
   border: 1px solid rgba(177, 139, 39, 0.18);
   border-radius: 24px;
   background:
@@ -23,6 +23,16 @@
     #fffdf8;
   box-shadow: 0 24px 70px rgba(25, 38, 54, 0.18), 0 4px 16px rgba(25, 38, 54, 0.08);
   color: #24344a;
+}
+
+.modal:has(.completePremium) {
+  width: min(960px, calc(100vw - 32px));
+  background-image:
+    linear-gradient(rgba(255, 250, 237, 0.74), rgba(255, 250, 237, 0.78)),
+    url("/images/Terrasse méditerranéenne surplombant la mer.png");
+  background-size: cover;
+  background-position: center;
+  color: #14342b;
 }
 
 .modal::before {
@@ -40,7 +50,9 @@
 .progress,
 .steps,
 .actions,
-.activityForm {
+.activityForm,
+.complete,
+.completePremium {
   position: relative;
   z-index: 1;
 }
@@ -62,9 +74,9 @@
 
 .header {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   max-width: 620px;
-  margin: 0 auto 24px;
+  margin: 0 auto 20px;
   padding-right: 42px;
   text-align: center;
 }
@@ -81,20 +93,20 @@
   margin: 0;
   color: #22344c;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(2rem, 4vw, 3rem);
-  line-height: 1.08;
+  font-size: clamp(2rem, 3vw, 2.45rem);
+  line-height: 1.1;
 }
 
 .header p {
   margin: 0;
   color: #657184;
-  font-size: 1rem;
-  line-height: 1.55;
+  font-size: 0.96rem;
+  line-height: 1.5;
 }
 
 .header .lead {
   color: #24344a;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 800;
 }
 
@@ -111,11 +123,94 @@
   text-transform: uppercase;
 }
 
+.complete {
+  display: grid;
+  justify-items: center;
+  gap: 0;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: clamp(6px, 1.2vw, 10px) clamp(4px, 1.5vw, 12px) clamp(4px, 1vw, 8px);
+  text-align: center;
+}
+
+.completePremium .header {
+  margin-bottom: 18px;
+  padding-right: 0;
+}
+
+.completePremium .header::after {
+  content: "";
+  justify-self: center;
+  width: 58px;
+  height: 2px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #c9a227 18%, #c9a227 82%, transparent);
+}
+
+.completePremium .header h2 {
+  color: #14342b;
+  font-size: clamp(2.12rem, 3vw, 2.38rem);
+}
+
+.completePremium .header p {
+  color: #365246;
+  font-size: 1.02rem;
+}
+
+.completePremium .successBadge {
+  background: #fbf5e5;
+}
+
+.completePremium .progress {
+  margin-bottom: 22px;
+}
+
+.completePremium .primaryAction {
+  min-height: 50px;
+  border: 1px solid rgba(177, 139, 39, 0.55);
+  background: linear-gradient(135deg, #14342b, #1e5a43);
+  box-shadow: 0 10px 22px rgba(20, 52, 43, 0.2);
+  font-size: 1rem;
+}
+
+.completePremium .primaryAction:hover {
+  filter: brightness(1.06);
+}
+
+.completeActionSeparator {
+  display: grid;
+  grid-template-columns: 72px auto 72px;
+  align-items: center;
+  gap: 10px;
+  width: min(180px, 62%);
+  margin-top: 22px;
+  background:
+    linear-gradient(45deg, transparent 42%, rgba(201, 162, 39, 0.72) 43% 57%, transparent 58%) center / 12px 12px no-repeat,
+    linear-gradient(-45deg, transparent 42%, rgba(201, 162, 39, 0.72) 43% 57%, transparent 58%) center / 12px 12px no-repeat;
+  color: rgba(201, 162, 39, 0.68);
+}
+
+.completeActionSeparator::before,
+.completeActionSeparator::after {
+  content: "";
+  height: 1px;
+  background: rgba(201, 162, 39, 0.24);
+}
+
+.completeActionSeparator::before {
+  grid-column: 1;
+}
+
+.completeActionSeparator::after {
+  grid-column: 3;
+}
+
 .progress {
   display: flex;
   justify-content: center;
   gap: 9px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .progress span {
@@ -139,11 +234,11 @@
 .activityForm,
 .formSection {
   display: grid;
-  gap: 18px;
+  gap: 16px;
 }
 
 .activityForm {
-  gap: 22px;
+  gap: 20px;
 }
 
 .formSection {
@@ -159,7 +254,7 @@
   margin: 0;
   color: #24344a;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.22rem;
+  font-size: 1.18rem;
 }
 
 .sectionHeading p {
@@ -178,7 +273,7 @@
   display: grid;
   gap: 6px;
   min-width: 0;
-  padding: 15px;
+  padding: 14px 15px;
   border: 1px solid rgba(36, 52, 74, 0.1);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.74);
@@ -190,12 +285,13 @@
 
 .choiceCard strong {
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.03rem;
+  font-size: 1rem;
+  line-height: 1.25;
 }
 
 .choiceCard span {
   color: #697587;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   line-height: 1.42;
 }
 
@@ -348,7 +444,10 @@
 .nextBlock {
   position: relative;
   z-index: 1;
-  background: #fbf7eb;
+  width: min(560px, 100%);
+  margin-top: 16px;
+  background: rgba(251, 247, 235, 0.84);
+  text-align: left;
 }
 
 .nextBlock p {
@@ -461,12 +560,19 @@
   margin-top: 4px;
 }
 
+.complete .actionBar {
+  width: min(560px, 100%);
+  margin-top: 16px;
+  padding-top: 0;
+  border-top: 0;
+}
+
 .primaryAction {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  min-height: 52px;
+  min-height: 48px;
   padding: 0 22px;
   border: 0;
   border-radius: 14px;
@@ -490,7 +596,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 48px;
+  min-height: 46px;
   padding: 0 16px;
   border: 1px solid rgba(36, 52, 74, 0.14);
   border-radius: 14px;
@@ -556,6 +662,18 @@
 
   .summaryGrid {
     grid-template-columns: 1fr;
+  }
+
+  .complete {
+    padding: 4px 0 0;
+  }
+
+  .completePremium .header {
+    text-align: left;
+  }
+
+  .completePremium .header::after {
+    justify-self: start;
   }
 
   .actionBar {

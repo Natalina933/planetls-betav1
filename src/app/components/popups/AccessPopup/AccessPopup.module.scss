@@ -8,7 +8,7 @@
 }
 
 .popup {
-  @include common.container(840px, 1.3rem);
+  @include common.container(820px, 1.15rem);
   @include common.mobileBottomSheet(1rem);
   overflow: hidden;
 
@@ -46,7 +46,7 @@
 }
 
 .introText {
-  margin: 0 0 0.95rem;
+  margin: 0 0 0.8rem;
   text-align: center;
   color: #5b6578;
   font-size: 0.95rem;
@@ -56,7 +56,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.58rem;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -82,7 +82,8 @@
     border-radius: 10px;
     color: #161922;
     font-size: 0.92rem;
-    padding: 0.58rem 0.72rem;
+    min-height: 46px;
+    padding: 0.52rem 0.68rem;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
     &:focus {
@@ -121,8 +122,8 @@
 
 .conciergeFields {
   display: grid;
-  gap: 0.65rem;
-  padding: 0.9rem;
+  gap: 0.6rem;
+  padding: 0.8rem;
   border: 1px solid rgba(212, 175, 55, 0.28);
   border-radius: 16px;
   background: rgba(212, 175, 55, 0.06);
@@ -136,8 +137,8 @@
 
 .profileVariantFields {
   display: grid;
-  gap: 0.65rem;
-  padding: 0.9rem;
+  gap: 0.6rem;
+  padding: 0.8rem;
   border: 1px solid rgba(80, 103, 170, 0.22);
   border-radius: 16px;
   background: rgba(80, 103, 170, 0.06);
@@ -151,8 +152,8 @@
 
 .expressFlow {
   display: grid;
-  gap: 0.75rem;
-  padding: 0.9rem;
+  gap: 0.65rem;
+  padding: 0.8rem;
   border: 1px solid rgba(80, 103, 170, 0.24);
   border-radius: 16px;
   background: rgba(80, 103, 170, 0.06);
@@ -306,7 +307,7 @@
 }
 
 .radiusField {
-  padding: 0.8rem;
+  padding: 0.7rem;
   border-radius: 14px;
   border: 1.5px solid rgba(64, 120, 87, 0.28);
   background: linear-gradient(135deg, rgba(64, 120, 87, 0.1), rgba(212, 175, 55, 0.12));

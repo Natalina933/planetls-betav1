@@ -1,5 +1,12 @@
 # Master Plan PlanetLS
 
+### Densification UI inscription et onboarding — 7 octobre 2026
+
+- Parcours inscription/onboarding **✅ Terminé — P2 Important** : harmonisation visuelle ciblée des surfaces `/parcours`, `/complete-registration`, header public, popup d'accès, onboarding propriétaire et onboarding concierge. Le lot réduit l'échelle typographique, les paddings, les gaps, la hauteur des CTA et le logo public sans modifier les routes, API, sauvegardes, validations métier, Supabase, RLS ni migrations.
+- Décisions UI : conserver l'identité ivoire/vert profond/doré/serif et le motif existant, densifier via les styles partagés quand ils sont communs (`_popupCommon.scss`, `OnboardingStepHeader`) et scoper les ajustements aux parcours concernés quand le composant est spécifique. Le texte technique interne sur `"Complément de revenu"` a été retiré de l'interface concierge sans changer le modèle de données.
+- Preuves locales : `npx tsc --noEmit --incremental false --pretty false` **PASS**. Vérification responsive conceptuelle sur les règles SCSS : desktop plus compact, tablette en colonnes existantes, mobile conservé en une colonne avec contrôles tactiles. Aucune vérification navigateur/capture ni test E2E n'a été exécuté dans ce lot UI.
+- Limites connues : la réduction du header public s'appuie sur les styles existants de `Header`/`Navbar`; une recette visuelle réelle sur 1440, 1280, 1024, 768 et ~390 px reste recommandée avant présentation finale. Aucun impact RLS à documenter au-delà de l'absence de lecture/écriture Supabase nouvelle.
+
 ### P1 Ajouter une intervention concierge — 6 octobre 2026
 
 - Création manuelle d'intervention **✅ Terminé — P1 Prioritaire** : le dashboard Concierge expose désormais l'action `Ajouter une intervention` vers `/dashboard/concierge/interventions/new`. Le formulaire dédié utilise les composants UI existants (`Button`, `Input`, `Select`, `Textarea`, `Alert`) et crée une mission backend sans renommer le modèle `missions`.

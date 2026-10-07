@@ -576,10 +576,6 @@ export default function ConciergePostSignupOnboarding({
             </button>
           ))}
         </div>
-        <p className={styles.modelNote}>
-          "Complément de revenu" n'est pas enregistré ici : le modèle actuel ne dispose pas d'un champ dédié distinct
-          de la forme juridique.
-        </p>
       </section>
 
       {message ? <p className={styles.feedback}>{message}</p> : null}
@@ -790,7 +786,7 @@ export default function ConciergePostSignupOnboarding({
   );
 
   const renderComplete = () => (
-    <>
+    <div className={`${styles.complete} ${styles.completePremium}`}>
       <div className={styles.header}>
         <span className={styles.successBadge}>Prêt</span>
         <h2 id="concierge-onboarding-title">Votre profil est prêt</h2>
@@ -845,6 +841,7 @@ export default function ConciergePostSignupOnboarding({
       </section>
 
       {message ? <p className={styles.feedback}>{message}</p> : null}
+      <span className={styles.completeActionSeparator} aria-hidden="true" />
       <div className={styles.actionBar}>
         <button type="button" className={styles.secondaryAction} onClick={() => setStep("organization")}>
           <ChevronLeft size={18} aria-hidden="true" />
@@ -854,7 +851,7 @@ export default function ConciergePostSignupOnboarding({
           {finalizing ? "Finalisation..." : "Découvrir mon espace"}
         </button>
       </div>
-    </>
+    </div>
   );
   return (
     <div className={styles.overlay} role="dialog" aria-modal="true" aria-labelledby="concierge-onboarding-title">
