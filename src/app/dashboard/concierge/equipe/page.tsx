@@ -63,11 +63,11 @@ function buildDefaultMembers(profile: ProfilePayload | null): TeamMemberInput[] 
     },
     {
       id: "employee-cleaning-lead",
-      name: "Referent menage",
+      name: "Référent ménage",
       role: "lead",
-      title: "Employe terrain",
+      title: "Employé terrain",
       availability: "available",
-      skills: ["Menage", "Controle", "Photos"],
+      skills: ["Ménage", "Contrôle", "Photos"],
       dailyCapacityMinutes: 420,
     },
     {
@@ -76,7 +76,7 @@ function buildDefaultMembers(profile: ProfilePayload | null): TeamMemberInput[] 
       role: "collaborator",
       title: "Check-in et voyageurs",
       availability: "available",
-      skills: ["Accueil", "Cles", "Messages"],
+      skills: ["Accueil", "Clés", "Messages"],
       dailyCapacityMinutes: 360,
     },
     {
@@ -369,7 +369,7 @@ export default function EquipePage() {
         <div className={styles.header}>
           <div>
             <p className={styles.eyebrow}>Attribution</p>
-            <h2>Chaque mission peut etre attribuee</h2>
+            <h2>Chaque mission peut être attribuée</h2>
           </div>
           <Bell size={24} aria-hidden="true" />
         </div>

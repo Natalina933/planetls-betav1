@@ -25,6 +25,7 @@ export type DashboardMissionRow = {
   property_id?: string | null;
   scheduled_start: string | null;
   scheduled_end?: string | null;
+  metadata?: Record<string, unknown> | null;
 };
 
 export type ConciergeDashboardRequest = {

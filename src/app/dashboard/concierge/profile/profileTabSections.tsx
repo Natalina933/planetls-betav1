@@ -2415,11 +2415,11 @@ function FicheInspirationVideosSection({
 
       {videos.length === 0 ? (
         <div className={styles.videoEmptyState}>
-          <strong>Aucune video pour le moment</strong>
-          <p>Ajoutez vos liens YouTube ou Shorts pour vous constituer une bibliotheque d'inspiration.</p>
+          <strong>Aucune vidéo pour le moment</strong>
+          <p>Ajoutez vos liens YouTube ou Shorts pour vous constituer une bibliothèque d'inspiration.</p>
           {!isEditing ? (
             <button type="button" className={styles.videoInlineAction} onClick={() => beginSectionEdit(sectionId)}>
-              Ajouter des videos
+              Ajouter des vidéos
             </button>
           ) : null}
         </div>
@@ -2732,12 +2732,12 @@ export function FicheTabSection({
           action: toProfileAction("Gérer", "Web___R_seaux_sociaux"),
         },
         {
-          title: "Videos d'inspiration",
-          meta: `${inspirationVideos.length} video(s)`,
+          title: "Vidéos d'inspiration",
+          meta: `${inspirationVideos.length} vidéo(s)`,
           description:
             inspirationVideos.length > 0
-              ? "Vos inspirations video restent consultables directement dans la fiche."
-              : "Ajoutez vos videos YouTube et Shorts de reference.",
+              ? "Vos inspirations vidéo restent consultables directement dans la fiche."
+              : "Ajoutez vos vidéos YouTube et Shorts de référence.",
           action: toProfileAction("Organiser", ficheControls.sectionIds.INSPIRATION_VIDEOS),
         },
       ],
@@ -2776,7 +2776,7 @@ export function FicheTabSection({
         {
           label: "Visibilité",
           value: String(visibilityAssetsCount),
-          hint: "Liens + videos",
+          hint: "Liens + vidéos",
           detailSectionId: "visibilite",
           href: `${profileHref}#${ficheControls.sectionIds.INSPIRATION_VIDEOS}`,
         },
@@ -2824,7 +2824,7 @@ export function FicheTabSection({
         {
           label: "Liens",
           value: visibilityAssetsCount,
-          hint: "Site, réseaux, videos",
+          hint: "Site, réseaux, vidéos",
           icon: Globe2,
           tone: visibilityAssetsCount > 0 ? "success" : "info",
           detailSectionId: "visibilite",

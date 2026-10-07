@@ -30,8 +30,8 @@ export default function LogementCreateModal() {
             <p className={styles.eyebrow}>Logements Concierge</p>
             <h1 className={styles.title}>Nouveau logement, sans friction</h1>
             <p className={styles.muted}>
-              Deux flux distincts pour couvrir la creation guidee complete et la creation automatique
-              apres devis accepte, sans separer le proprietaire du logement.
+              Deux flux distincts pour couvrir la création guidée complète et la création automatique
+              après devis accepté, sans séparer le propriétaire du logement.
             </p>
           </div>
         </div>

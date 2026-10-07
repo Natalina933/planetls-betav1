@@ -566,27 +566,27 @@ export default function ConciergeTravelerStaysPage() {
                     <strong>{selectedDetail?.reservation?.owner_name || selectedStay.ownerName || "A confirmer"}</strong>
                   </div>
                   <div>
-                    <span>Derniere mise a jour</span>
+                    <span>Dernière mise à jour</span>
                     <strong>{formatTimelineDate(selectedDetail?.reservation?.updated_at || selectedStay.updatedAt)}</strong>
                   </div>
                 </div>
                 {selectedDetail?.reservation?.access_instructions ? (
                   <div className={styles.editorialBlock}>
-                    <strong>Consignes d'acces</strong>
+                    <strong>Consignes d'accès</strong>
                     <p>{selectedDetail.reservation.access_instructions}</p>
                   </div>
                 ) : (
-                  <p className={styles.note}>Aucune consigne d'acces canonique n'est encore renseignee.</p>
+                  <p className={styles.note}>Aucune consigne d'accès canonique n'est encore renseignée.</p>
                 )}
                 {selectedDetail?.reservation?.owner_notes ? (
                   <div className={styles.editorialBlock}>
-                    <strong>Note proprietaire</strong>
+                    <strong>Note propriétaire</strong>
                     <p>{selectedDetail.reservation.owner_notes}</p>
                   </div>
                 ) : null}
                 <div className={styles.editorialForm}>
                   <label className={styles.fieldLabel}>
-                    <span>Consignes d'acces partagees</span>
+                    <span>Consignes d'accès partagées</span>
                     <textarea
                       rows={3}
                       value={detailDraft.accessInstructions}

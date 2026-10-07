@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { insertMissionWithOptionalMetadata } from "@/app/api/_shared/missionInsert";
+import { authorizeMissionCreation } from "@/app/api/_shared/missionCreationAuthorization";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { deriveMissionWorkflowStatus } from "@/app/lib/commercialWorkflow";
@@ -362,7 +363,10 @@ export async function POST(req: NextRequest) {
       : "normal";
     const isOwnerCreator = OWNER_MISSION_ROLES.has(auth.role);
     const conciergeProfileId = isOwnerCreator ? body.concierge_profile_id : auth.userId;
-    const ownerProfileId = isOwnerCreator ? auth.userId : body.owner_profile_id ?? null;
+    const requestedOwnerProfileId = isOwnerCreator ? auth.userId : body.owner_profile_id ?? null;
+    const requestedReservationId =
+      body.reservation_id ??
+      (isRecord(body.metadata) && typeof body.metadata.reservation_id === "string" ? body.metadata.reservation_id : null);
 
     if (!conciergeProfileId || !isUuidLike(conciergeProfileId)) {
       return NextResponse.json(
@@ -371,15 +375,31 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const missionScope = await authorizeMissionCreation({
+      db: asLooseSupabaseClient(db),
+      actorProfileId: auth.userId,
+      actorRole: isOwnerCreator ? "owner" : "concierge",
+      conciergeProfileId,
+      ownerProfileId: requestedOwnerProfileId,
+      propertyId: body.property_id ?? null,
+      reservationId: requestedReservationId,
+      metadata: isRecord(body.metadata) ? body.metadata : null,
+    });
+    if (!missionScope.ok) {
+      return NextResponse.json({ error: missionScope.error }, { status: missionScope.status });
+    }
+    const missionMetadata = {
+      ...(isRecord(body.metadata) ? body.metadata : {}),
+      ...(missionScope.housingId ? { property_housing_id: missionScope.housingId } : {}),
+    };
+
     const { data, error } = await insertMissionWithOptionalMetadata<CreatedMissionRow>(
       db,
       {
         concierge_profile_id: conciergeProfileId,
-        owner_profile_id: ownerProfileId,
-        property_id: body.property_id ?? null,
-        reservation_id:
-          body.reservation_id ??
-          (isRecord(body.metadata) && typeof body.metadata.reservation_id === "string" ? body.metadata.reservation_id : null),
+        owner_profile_id: missionScope.ownerProfileId,
+        property_id: missionScope.propertyId,
+        reservation_id: missionScope.reservationId,
         service_id: body.service_id ?? null,
         title,
         description: body.description ?? null,
@@ -389,7 +409,7 @@ export async function POST(req: NextRequest) {
         currency: body.currency ?? "EUR",
         scheduled_start: body.scheduled_start ?? null,
         scheduled_end: body.scheduled_end ?? null,
-        metadata: body.metadata ?? {},
+        metadata: missionMetadata,
       },
       "id, concierge_profile_id, owner_profile_id, property_id, reservation_id, service_id, title, status, priority, amount, currency, scheduled_start, scheduled_end, metadata, created_at, updated_at",
       "id, concierge_profile_id, owner_profile_id, property_id, service_id, title, status, priority, amount, currency, scheduled_start, scheduled_end, metadata, created_at, updated_at",
@@ -414,14 +434,14 @@ export async function POST(req: NextRequest) {
       console.error("[POST /api/missions] mission_events error:", eventError);
     }
 
-    const serviceRequestId = getMetadataString(body.metadata, "service_request_id");
-    if (serviceRequestId && ownerProfileId) {
+    const serviceRequestId = getMetadataString(missionMetadata, "service_request_id");
+    if (serviceRequestId && missionScope.ownerProfileId) {
       const dbAny = asLooseSupabaseClient(db);
       const { data: serviceRequest } = await dbAny
         .from("service_requests")
         .select("metadata")
         .eq("id", serviceRequestId)
-        .eq("owner_profile_id", ownerProfileId)
+        .eq("owner_profile_id", missionScope.ownerProfileId)
         .maybeSingle();
       const requestMetadata = isRecord(serviceRequest?.metadata) ? serviceRequest.metadata : {};
       const { error: requestUpdateError } = await dbAny
@@ -436,7 +456,7 @@ export async function POST(req: NextRequest) {
           },
         })
         .eq("id", serviceRequestId)
-        .eq("owner_profile_id", ownerProfileId);
+        .eq("owner_profile_id", missionScope.ownerProfileId);
 
       if (requestUpdateError) {
         console.error("[POST /api/missions] service request link error:", requestUpdateError);
@@ -456,7 +476,7 @@ export async function POST(req: NextRequest) {
       actorProfileId: auth.userId,
       ownerProfileId: data.owner_profile_id,
       conciergeProfileId: data.concierge_profile_id,
-      reservationId: data.reservation_id ?? (getMetadataString(body.metadata, "reservation_id") || null),
+      reservationId: data.reservation_id ?? (getMetadataString(missionMetadata, "reservation_id") || null),
       serviceRequestId: serviceRequestId || null,
       missionId: data.id,
       eventType: "mission_created",

@@ -583,9 +583,7 @@
 :global([data-theme="mucha-dark"]) .routeStopBody strong,
 :global([data-theme="mucha-dark"]) .routeSummaryGrid strong,
 :global([data-theme="mucha-dark"]) .weekDate,
-:global([data-theme="mucha-dark"]) .weekEventTitle,
-:global([data-theme="mucha-dark"]) :global(.ConciergeProfilePage-module-scss-module__ObZtFG__missionSnapshotHeader h4),
-:global([data-theme="mucha-dark"]) :global(.ConciergeProfilePage-module-scss-module__ObZtFG__missionMetaItem strong) {
+:global([data-theme="mucha-dark"]) .weekEventTitle {
   color: #f8f3e8;
 }
 
@@ -601,8 +599,7 @@
 :global([data-theme="mucha-dark"]) .priorityEmpty,
 :global([data-theme="mucha-dark"]) .calendarFooter,
 :global([data-theme="mucha-dark"]) .weekEventMeta,
-:global([data-theme="mucha-dark"]) .weekEmpty,
-:global([data-theme="mucha-dark"]) :global(.ConciergeProfilePage-module-scss-module__ObZtFG__missionSnapshotNote) {
+:global([data-theme="mucha-dark"]) .weekEmpty {
   color: rgba(248, 241, 227, 0.94);
 }
 
@@ -617,9 +614,7 @@
 :global([data-theme="mucha-dark"]) .startPointGrid label,
 :global([data-theme="mucha-dark"]) .planningStatLabel,
 :global([data-theme="mucha-dark"]) .weekLabel,
-:global([data-theme="mucha-dark"]) .weekEventTime,
-:global([data-theme="mucha-dark"]) :global(.ConciergeProfilePage-module-scss-module__ObZtFG__missionSnapshotEyebrow),
-:global([data-theme="mucha-dark"]) :global(.ConciergeProfilePage-module-scss-module__ObZtFG__missionMetaItem span) {
+:global([data-theme="mucha-dark"]) .weekEventTime {
   color: #f5deb0;
 }
 
@@ -629,16 +624,10 @@
 :global([data-theme="mucha-dark"]) .routeStopItem,
 :global([data-theme="mucha-dark"]) .routeSummaryGrid span,
 :global([data-theme="mucha-dark"]) .weekColumn,
-:global([data-theme="mucha-dark"]) .planningAlertCard,
-:global([data-theme="mucha-dark"]) :global(.ConciergeProfilePage-module-scss-module__ObZtFG__missionSnapshotCard) {
+:global([data-theme="mucha-dark"]) .planningAlertCard {
   border-color: rgba(221, 185, 122, 0.22);
   background: linear-gradient(180deg, rgba(33, 35, 54, 0.96), rgba(22, 24, 39, 0.94));
   box-shadow: 0 16px 34px rgba(0, 0, 0, 0.26);
-}
-
-:global([data-theme="mucha-dark"]) :global(.ConciergeProfilePage-module-scss-module__ObZtFG__missionMetaItem) {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(221, 185, 122, 0.16);
 }
 
 :global([data-theme="mucha-dark"]) .weekColumnToday {

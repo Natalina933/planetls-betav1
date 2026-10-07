@@ -57,7 +57,7 @@ function getConversationContextLabel(source?: string | null, status?: string | n
     case "quote":
       return "Devis";
     case "search":
-      return "Recherche proprietaire";
+      return "Recherche propriétaire";
     case "service_request":
     case "request":
       return "Demande";

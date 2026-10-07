@@ -89,17 +89,6 @@ function isToday(value: string | null | undefined) {
   return date ? isSameLocalDay(date, new Date()) : false;
 }
 
-function getTomorrow() {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  return tomorrow;
-}
-
-function isTomorrow(value: string | Date | null | undefined) {
-  const date = getDateTime(value);
-  return date ? isSameLocalDay(date, getTomorrow()) : false;
-}
-
 function isWithinNextDays(value: string | Date | null | undefined, days: number) {
   const date = getDateTime(value);
   if (!date) return false;
@@ -108,6 +97,19 @@ function isWithinNextDays(value: string | Date | null | undefined, days: number)
   return date >= now && date <= max;
 }
 
+function getStartOfCurrentWeek() {
+  const date = new Date();
+  const day = date.getDay() || 7;
+  date.setDate(date.getDate() - day + 1);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function getEndOfCurrentWeek() {
+  const date = getStartOfCurrentWeek();
+  date.setDate(date.getDate() + 7);
+  return date;
+}
 
 function getGreetingLabel() {
   const hour = new Date().getHours();
@@ -184,6 +186,18 @@ function isMissionPendingValidation(status: string | null | undefined) {
 
 function isMissionClosed(status: string | null | undefined) {
   return ["completed", "cancelled", "canceled", "done"].includes((status ?? "").trim().toLowerCase());
+}
+
+function isMissionCompleted(status: string | null | undefined) {
+  return ["completed", "done"].includes((status ?? "").trim().toLowerCase());
+}
+
+function isMissionToPlan(status: string | null | undefined) {
+  return ["to_schedule", "date_requested"].includes((status ?? "").trim().toLowerCase());
+}
+
+function isMissionToConfirm(status: string | null | undefined) {
+  return ["date_proposed", "date_confirmed"].includes((status ?? "").trim().toLowerCase());
 }
 
 function isRequestAwaitingReply(status: string | null | undefined) {
@@ -695,18 +709,45 @@ export default function DashboardPage() {
     [planningEvents],
   );
 
-  const tomorrowPlanningCount = useMemo(
-    () => planningEvents.filter((event) => isTomorrow(event.start)).length,
-    [planningEvents],
+  const nextPlannedEvent = useMemo(() => {
+    const now = new Date();
+    return planningEvents.find((event) => event.start > now && !isSameLocalDay(event.start, now)) ?? null;
+  }, [planningEvents]);
+
+  const todayCompletedCount = useMemo(
+    () =>
+      missionRows.filter(
+        (mission) => isMissionCompleted(mission.status) && isToday(mission.scheduled_start),
+      ).length,
+    [missionRows],
   );
 
-  const tomorrowHousingCount = useMemo(() => {
-    const ids = new Set(
-      missionRows
-        .filter((mission) => !isMissionClosed(mission.status) && isTomorrow(mission.scheduled_start) && mission.property_id)
-        .map((mission) => mission.property_id),
-    );
-    return ids.size;
+  const toPlanCount = useMemo(
+    () => missionRows.filter((mission) => isMissionToPlan(mission.status)).length,
+    [missionRows],
+  );
+
+  const toConfirmCount = useMemo(
+    () => missionRows.filter((mission) => isMissionToConfirm(mission.status)).length,
+    [missionRows],
+  );
+
+  const weekActivity = useMemo(() => {
+    const now = new Date();
+    const weekStart = getStartOfCurrentWeek();
+    const weekEnd = getEndOfCurrentWeek();
+    const weekMissions = missionRows.filter((mission) => {
+      const date = getDateTime(mission.scheduled_start);
+      return Boolean(date && date >= weekStart && date < weekEnd);
+    });
+
+    return {
+      completed: weekMissions.filter((mission) => isMissionCompleted(mission.status)).length,
+      upcoming: weekMissions.filter((mission) => {
+        const date = getDateTime(mission.scheduled_start);
+        return Boolean(date && date >= now && !isMissionClosed(mission.status));
+      }).length,
+    };
   }, [missionRows]);
 
 
@@ -720,6 +761,7 @@ export default function DashboardPage() {
             matchesHousingReference(
               {
                 propertyId: mission.property_id ?? null,
+                metadata: mission.metadata ?? null,
               },
               housing.id,
             ) && !isMissionClosed(mission.status),
@@ -1208,8 +1250,8 @@ export default function DashboardPage() {
       icon: FileText,
     },
     {
-      label: "Créer une mission",
-      href: "/dashboard/concierge/demandes",
+      label: "Ajouter une intervention",
+      href: "/dashboard/concierge/interventions/new",
       icon: CalendarClock,
     },
     {
@@ -1268,13 +1310,17 @@ export default function DashboardPage() {
           <ConciergeReferenceDashboard
             events={todayPlanning}
             missionCount={todayPlanningCount}
-            tomorrowMissionCount={tomorrowPlanningCount}
-            housingCount={housings.length}
-            tomorrowHousingCount={tomorrowHousingCount}
-            housingActionsCount={housingActionsCount}
+            todayCompletedCount={todayCompletedCount}
+            todayStayCount={todayArrivals}
+            nextPlannedAt={nextPlannedEvent?.start ?? null}
+            toPlanCount={toPlanCount}
+            toConfirmCount={toConfirmCount}
+            weekCompletedCount={weekActivity.completed}
+            weekUpcomingCount={weekActivity.upcoming}
             pendingValidationCount={pendingValidationCount}
             unreadConversationCount={unreadConversationCount}
             urgentCount={urgentMissionCount + urgentRequests.length}
+            housingActionsCount={housingActionsCount}
             priorityTitle={priorityRequest?.property_name || priorityRequest?.title || "Aucune priorité terrain"}
             priorityDetail={priorityRequest ? `${priorityRequest.title} · ${priorityRequest.city || "Ville à préciser"}` : "Aucun point prioritaire détecté."}
             priorityHref={priorityRequest ? getRequestHref(priorityRequest) : "/dashboard/concierge/planning"}
@@ -1660,7 +1706,7 @@ export default function DashboardPage() {
           {
             id: "inspiration",
             title: "Bibliothèque d'inspiration",
-            subtitle: "Vos videos YouTube et Shorts restent visibles au coeur du cockpit concierge.",
+            subtitle: "Vos vidéos YouTube et Shorts restent visibles au cœur du cockpit concierge.",
             content: <ConciergeInspirationPanel availabilityHours={user?.availability_hours} />,
           },
           {
@@ -1711,7 +1757,7 @@ export default function DashboardPage() {
           {
             id: "actions",
             title: "Actions rapides",
-            subtitle: "Les gestes frequents sans chercher dans le menu.",
+            subtitle: "Les gestes fréquents sans chercher dans le menu.",
             content: (
               <div className={styles.quickActions}>
                 {quickActions.map((action) => {
@@ -1743,14 +1789,14 @@ export default function DashboardPage() {
           },
           {
             id: "ops",
-            title: "Controle terrain",
+            title: "Contrôle terrain",
             subtitle: "Cadence opérationnelle du jour",
             content: <UnifiedStatStack items={operationsStats} />,
           },
           {
             id: "alerts",
             title: "Urgences terrain",
-            subtitle: "Ce qui peut degrader l'exploitation si vous tardez",
+            subtitle: "Ce qui peut dégrader l'exploitation si vous tardez",
             content: (
               <div className={styles.alertGrid}>
                 <Link href="/dashboard/concierge/alertes" className={styles.alertCard}>

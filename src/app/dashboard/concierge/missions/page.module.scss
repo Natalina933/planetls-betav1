@@ -31,6 +31,13 @@
   -webkit-line-clamp: 2;
 }
 
+.housingLabel {
+  margin: 0.25rem 0 0;
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-text-sm);
+  font-weight: 700;
+}
+
 .cardFooter {
   display: flex;
   align-items: center;

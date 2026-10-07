@@ -122,9 +122,9 @@ function OwnerCrmPanel({ records, loading, error }: { records: OwnerCrmRecord[];
           </article>
         )) : (
           <article className={crmStyles.ownerCard}>
-            <h3>{loading ? "Chargement du CRM" : "Aucune fiche proprietaire"}</h3>
+            <h3>{loading ? "Chargement du CRM" : "Aucune fiche propriétaire"}</h3>
             <p className={crmStyles.empty}>
-              {loading ? "Consolidation des proprietaires en cours." : "Les fiches CRM apparaitront apres une conversation ou une creation de proprietaire."}
+              {loading ? "Consolidation des propriétaires en cours." : "Les fiches CRM apparaîtront après une conversation ou une création de propriétaire."}
             </p>
           </article>
         )}
@@ -137,7 +137,7 @@ function OwnerCrmPanel({ records, loading, error }: { records: OwnerCrmRecord[];
             <div><span>Logements</span><strong>{totals.logements}</strong></div>
             <div><span>Contrats</span><strong>{totals.contrats}</strong></div>
           </div>
-          <p>Rattachement des biens, contrats actifs et pieces contractuelles par proprietaire.</p>
+          <p>Rattachement des biens, contrats actifs et pièces contractuelles par propriétaire.</p>
         </article>
 
         <article className={crmStyles.moduleCard}>
@@ -146,7 +146,7 @@ function OwnerCrmPanel({ records, loading, error }: { records: OwnerCrmRecord[];
             <div><span>Revenus</span><strong>{formatEuroAmountLabel(totals.revenus, "0 EUR")}</strong></div>
             <div><span>Commissions</span><strong>{formatEuroAmountLabel(totals.commissions, "0 EUR")}</strong></div>
           </div>
-          <p>Vue financiere du portefeuille proprietaires et potentiel de marge par relation.</p>
+          <p>Vue financière du portefeuille propriétaires et potentiel de marge par relation.</p>
         </article>
 
         <article className={crmStyles.moduleCard}>
@@ -264,7 +264,7 @@ export default function ConciergeContactsPage() {
       chips={[
         `${crmRecords.length} fiche(s) CRM`,
         `${activeConversations.length} conversation(s) active(s)`,
-        `${crmOwnersToFollow.length} proprietaire(s) a relancer`,
+        `${crmOwnersToFollow.length} propriétaire(s) à relancer`,
       ]}
       actions={[
         { label: "Ouvrir la messagerie", href: "/dashboard/concierge/messages" },
