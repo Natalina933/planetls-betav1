@@ -97,6 +97,8 @@ import {
   parsePricingMeta,
   parseSeasonalPricing,
   PricingMetaConfig,
+  resolveConciergeMissionServiceValue,
+  type ConciergeMissionServiceResolution,
   StrategySimState,
   syncSeasonalPricingFromPricingV2,
   toMissionTypeId,
@@ -132,6 +134,7 @@ interface ActiveTariffServiceRow {
   id: string;
   label: string;
   category: string;
+  catalogResolution: ConciergeMissionServiceResolution;
 }
 
 interface ResolvedMissionZone {
@@ -604,6 +607,7 @@ export default function ConciergeProfilePage() {
         id: match ? String(match.id) : toMissionTypeId(label),
         label: match?.service ?? label,
         category: match?.category ?? "Mission",
+        catalogResolution: resolveConciergeMissionServiceValue(match?.service ?? label),
       };
     });
 

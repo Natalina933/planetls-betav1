@@ -8,6 +8,10 @@ import {
   type ProviderCurrentProfile,
   type ProviderWorkspacePayload,
 } from "./_components/providerProfile";
+import {
+  resolveProviderInterventionsCatalog,
+  resolveProviderProfileCatalog,
+} from "./_components/providerCatalogResolution";
 
 type ProviderClientItem = {
   id: string;
@@ -255,6 +259,17 @@ export function useProviderDashboardData() {
   const profile: ProviderCurrentProfile | null = workspace?.profile ?? null;
   const isLoading = !dashboard && !workspace && !error;
   const displayName = useMemo(() => buildProviderDisplayName(profile), [profile]);
+  const providerCatalogResolution = useMemo(
+    () => resolveProviderProfileCatalog({
+      category: profile?.category,
+      skills: profile?.skills,
+    }),
+    [profile?.category, profile?.skills],
+  );
+  const interventionCatalogResolutions = useMemo(
+    () => resolveProviderInterventionsCatalog(dashboard?.interventions ?? []),
+    [dashboard?.interventions],
+  );
   const locationLabel = useMemo(
     () => workspace?.summary.location || "Localisation a completer",
     [workspace],
@@ -288,6 +303,8 @@ export function useProviderDashboardData() {
     error,
     isLoading,
     displayName,
+    providerCatalogResolution,
+    interventionCatalogResolutions,
     locationLabel,
     stats,
     highlightedInterventions,

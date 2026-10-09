@@ -16,15 +16,15 @@
 .stayCard {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 1rem;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr) minmax(156px, 0.24fr);
+  gap: 1rem 1.15rem;
+  align-items: start;
   min-width: 0;
-  padding: 1rem 1.05rem;
+  padding: 0.78rem 0.9rem;
   border: 1px solid rgba(57, 86, 65, 0.14);
-  border-radius: 20px;
+  border-radius: 14px;
   background: #fffdf8;
-  box-shadow: 0 14px 30px rgba(47, 38, 27, 0.06);
+  box-shadow: 0 10px 22px rgba(47, 38, 27, 0.055);
 }
 
 .stayCardSelected {
@@ -36,17 +36,17 @@
 
 .stayCardHead {
   display: flex;
-  align-items: center;
-  gap: 0.85rem;
+  align-items: flex-start;
+  gap: 0.9rem;
   min-width: 0;
   grid-column: 1;
 }
 
 .stayAvatar {
-  width: 54px;
-  height: 54px;
+  width: 112px;
+  height: 112px;
   flex: 0 0 auto;
-  border-radius: 999px;
+  border-radius: 12px;
   object-fit: cover;
   border: 1px solid rgba(184, 148, 92, 0.24);
   background: #fffdf8;
@@ -60,8 +60,9 @@
 
 .stayIdentity h3 {
   margin: 0;
-  color: #263b30;
-  font-size: 1.05rem;
+  color: #0f463d;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.28rem;
   line-height: 1.2;
 }
 
@@ -73,12 +74,29 @@
   line-height: 1.35;
 }
 
+.stayMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.65rem;
+}
+
+.stayMeta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+}
+
+.stayBody {
+  display: grid;
+  gap: 0.55rem;
+  grid-column: 1;
+  padding-left: calc(112px + 0.9rem);
+}
+
 .stayServices {
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
-  grid-column: 1;
-  padding-left: calc(54px + 0.85rem);
 }
 
 .stayServices span {
@@ -87,9 +105,9 @@
   min-height: 28px;
   padding: 0.22rem 0.58rem;
   border: 1px solid rgba(57, 86, 65, 0.14);
-  border-radius: 999px;
-  background: rgba(245, 249, 244, 0.92);
-  color: #365743;
+  border-radius: 7px;
+  background: #e9f2e8;
+  color: #214f42;
   font-size: 0.76rem;
   font-weight: 700;
 }
@@ -98,8 +116,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
-  grid-column: 1;
-  padding-left: calc(54px + 0.85rem);
 }
 
 .matchHighlights span {
@@ -115,17 +131,40 @@
   font-weight: 700;
 }
 
+.stayStat {
+  margin: 0;
+  color: #657184;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
 .stayActions {
   display: grid;
   grid-column: 2;
-  grid-row: 1 / span 3;
+  grid-row: 1 / span 2;
   grid-template-columns: minmax(150px, 1fr);
-  gap: 0.65rem;
-  min-width: 190px;
+  gap: 0.52rem;
+  min-width: 156px;
 }
 
 .stayActions :is(a, button) {
   width: 100%;
+  min-height: 42px;
+  border-radius: 10px;
+  font-weight: 800;
+}
+
+.primaryAction {
+  background: #0f684f;
+  color: #fff;
+}
+
+.selectedAction {
+  display: inline-flex;
+  gap: 0.42rem;
+  border: 1px solid rgba(15, 104, 79, 0.28);
+  background: #e9f2e8;
+  color: #0f463d;
 }
 
 .card {
@@ -548,7 +587,8 @@
   }
 
   .stayServices,
-  .matchHighlights {
+  .matchHighlights,
+  .stayBody {
     padding-left: 0;
   }
 

@@ -374,6 +374,11 @@ test("pricing catalog helpers build, filter and group rows consistently", () => 
 
   const rows = buildPricingCatalogRows(services, priceMap, new Set([2]));
   assert.equal(rows[0]?.service.id, 2);
+  assert.equal(rows[0]?.catalogResolution.pricing, rows[0]?.pricing);
+  assert.equal(rows[0]?.catalogResolution.catalog.kind, "service");
+  if (rows[0]?.catalogResolution.catalog.kind === "service") {
+    assert.equal(rows[0].catalogResolution.catalog.slug, "cleaning_turnover");
+  }
   assert.equal(countConfiguredPricingRows(rows), 1);
 
   const filtered = filterPricingCatalogRows(rows, false);

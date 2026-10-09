@@ -2,13 +2,14 @@
 
 import React, { useEffect, useRef, useState, ChangeEvent, FormEvent } from "react";
 import Image from "next/image";
-import { signIn } from "next-auth/react";
+import { getProviders, signIn } from "next-auth/react";
 import styles from "./LoginPage.module.scss";
 import { FaEye, FaEyeSlash, FaTimesCircle, FaCheckCircle } from "react-icons/fa";
 import { Button, Input } from "@/components/ui";
 
 type WorkspaceKey = "owner" | "concierge" | "provider" | "admin";
 type QuickWorkspace = { key: WorkspaceKey; label: string; href: string };
+type SocialProvider = { id: string; name: string };
 
 const workspacePresentation: Record<WorkspaceKey, { label: string; description: string; image: string }> = {
   owner: { label: "Propriétaire", description: "Logements, demandes et collaborations", image: "proprietaire" },
@@ -66,6 +67,8 @@ export default function LoginPage() {
   const [preparingWorkspace, setPreparingWorkspace] = useState<WorkspaceKey | null>(null);
   const [selectedWorkspace, setSelectedWorkspace] = useState<WorkspaceKey | null>(null);
   const [quickLoginMessage, setQuickLoginMessage] = useState("");
+  const [socialProviders, setSocialProviders] = useState<SocialProvider[]>([]);
+  const [socialLoadingProvider, setSocialLoadingProvider] = useState<string | null>(null);
 
   const prepareWorkspaceCredentials = async (workspace: WorkspaceKey) => {
     setPreparingWorkspace(workspace);
@@ -122,6 +125,26 @@ export default function LoginPage() {
     syncAutofilledValues();
     const timeoutId = window.setTimeout(syncAutofilledValues, 250);
     return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSocialProviders() {
+      const providers = await getProviders().catch(() => null);
+      if (cancelled || !providers) return;
+
+      setSocialProviders(
+        Object.values(providers)
+          .filter((provider) => provider.id !== "credentials")
+          .map((provider) => ({ id: provider.id, name: provider.name })),
+      );
+    }
+
+    void loadSocialProviders();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -192,6 +215,35 @@ export default function LoginPage() {
     return payload?.user?.role ?? null;
   };
 
+  useEffect(() => {
+    const socialStatus = new URLSearchParams(window.location.search).get("social");
+    if (socialStatus !== "success") return;
+
+    let cancelled = false;
+
+    async function redirectAfterSocialLogin() {
+      setLoading(true);
+      setErrors({});
+
+      try {
+        const role = await resolveRoleFromSession();
+        if (cancelled) return;
+
+        window.location.assign(getDashboardPathFromRole(role));
+      } catch (error) {
+        console.error("[LoginPage] social redirect failed", error);
+        if (!cancelled) {
+          window.location.assign("/dashboard/owner");
+        }
+      }
+    }
+
+    void redirectAfterSocialLogin();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -206,6 +258,15 @@ export default function LoginPage() {
 
   const canSubmit = () =>
     formData.email && formData.password && !errors.email && !errors.password;
+
+  const handleSocialSignIn = async (providerId: string) => {
+    setSocialLoadingProvider(providerId);
+    setErrors({});
+
+    await signIn(providerId, {
+      callbackUrl: "/login?social=success",
+    });
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -340,6 +401,34 @@ export default function LoginPage() {
             </p>
           </div>
           <form onSubmit={handleSubmit} className={styles.form} noValidate>
+            {socialProviders.length > 0 ? (
+              <section className={styles.socialLogin} aria-label="Connexion avec un compte externe">
+                <div className={styles.socialButtons}>
+                  {socialProviders.map((provider) => (
+                    <Button
+                      key={provider.id}
+                      type="button"
+                      variant="outline"
+                      size="lg"
+                      disabled={loading || socialLoadingProvider !== null}
+                      className={styles.socialButton}
+                      onClick={() => void handleSocialSignIn(provider.id)}
+                    >
+                      <span className={styles.socialMark} aria-hidden="true">
+                        {provider.id === "google" ? "G" : provider.name.charAt(0)}
+                      </span>
+                      {socialLoadingProvider === provider.id
+                        ? "Connexion..."
+                        : `Continuer avec ${provider.name}`}
+                    </Button>
+                  ))}
+                </div>
+                <div className={styles.formDivider} aria-hidden="true">
+                  <span>ou</span>
+                </div>
+              </section>
+            ) : null}
+
             {quickWorkspaces.length > 0 ? (
               <section className={styles.quickAccess} aria-labelledby="quick-access-title">
                 <div>

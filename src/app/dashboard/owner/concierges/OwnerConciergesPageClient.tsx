@@ -24,6 +24,7 @@ import {
 import { getOwnerCitySuggestions } from "./locationSuggestions";
 import { upsertOwnerConciergeSearchAlert } from "../searchAlerts";
 import { ResultsGrid, ResultsHeader, RequestPanel, SearchFilters } from "@/features/owner-concierges/components";
+import { ConciergeAvatar } from "@/features/owner-concierges/components/ConciergeAvatar";
 import { CONCIERGE_PROPERTY_TYPES } from "@/features/shared/data/propertyTypes";
 import type { RequestWorkflowStatus } from "@/app/lib/requestStatus";
 import { normalizeStayNeed, type NeedKey } from "@/app/api/_shared/stayNeeds";
@@ -115,6 +116,9 @@ type OwnerRequestsPayload = {
 
 type CurrentOwnerProfilePayload = {
   availability_hours?: string | null;
+  city?: string | null;
+  location?: string | null;
+  service_area?: string | null;
 };
 
 type StaySearchContext = {
@@ -169,7 +173,11 @@ function parseSearchRadius(value: string) {
 }
 
 function formatResultsSummary(count: number, city: string) {
-  const professionLabel = count > 1 ? "professionnels trouvés" : "professionnel trouvé";
+  if (count === 0) {
+    return city.trim() ? `Aucune concierge trouvée autour de ${city.trim()}` : "Aucune concierge trouvée";
+  }
+
+  const professionLabel = count > 1 ? "concierges trouvées" : "concierge trouvée";
   const cityLabel = city.trim() ? ` autour de ${city.trim()}` : "";
   return `${count} ${professionLabel}${cityLabel}`;
 }
@@ -426,10 +434,17 @@ export default function OwnerConciergesPageClient() {
         const preferences = getOwnerProfilePreferences(payload.availability_hours);
         const requestDefaults = buildOwnerRequestFormDefaults(preferences);
         const searchDefaults = buildOwnerConciergeSearchDefaults(preferences);
+        const profileCity =
+          [payload.city, payload.location, payload.service_area]
+            .map((value) => (typeof value === "string" ? value.trim() : ""))
+            .find((value) => value.length > 0) ?? "";
 
         if (!cancelled) {
           setProfileRequestDefaults(requestDefaults);
-          setProfileSearchDefaults(searchDefaults);
+          setProfileSearchDefaults({
+            ...searchDefaults,
+            city: profileCity,
+          });
         }
       } catch {
         // Owner defaults are a convenience layer and should never block the page.
@@ -1058,7 +1073,7 @@ export default function OwnerConciergesPageClient() {
           </div>
 
           <aside className={styles.sidebar}>
-            <section className={styles.mapPanel} aria-label="Carte des professionnels">
+            <section className={styles.mapPanel} aria-label="Carte des concierges">
               <div className={styles.mapPanelHeader}>
                 <div>
                   <p className={styles.eyebrow}>Carte</p>
@@ -1077,7 +1092,7 @@ export default function OwnerConciergesPageClient() {
                     onSelect={toggleConciergeSelection}
                     profiles={mapProfiles}
                     fitAllProfiles
-                    ariaLabel="Carte des professionnels trouvés"
+                    ariaLabel="Carte des concierges trouvées"
                   />
                 ) : (
                   <div className={styles.mapEmpty}>
@@ -1088,14 +1103,17 @@ export default function OwnerConciergesPageClient() {
               </div>
             </section>
             <div className={styles.requestDock}>
-              <div>
-                <p className={styles.eyebrow}>Préparer une demande</p>
-                <h2 className={styles.requestTitle}>Professionnels sélectionnés</h2>
+              <div className={styles.requestHeader}>
+                <div>
+                  <p className={styles.eyebrow}>Ma sélection</p>
+                  <h2 className={styles.requestTitle}>Concierges sélectionnées</h2>
+                </div>
+                <span className={styles.selectionCount}>{selectedConciergeIds.length}</span>
               </div>
               <p className={styles.requestIntro}>
                 {isStaySearchMode
-                  ? "Sélectionnez le professionnel à qui demander cette prestation."
-                  : "Sélectionnez les professionnels que vous souhaitez contacter."}
+                  ? "Sélectionnez la concierge à qui demander cette prestation."
+                  : "Sélectionnez les concierges que vous souhaitez contacter."}
               </p>
               {existingHousingRequestIsBlocking && existingHousingRequest ? (
                 <div className={styles.existingRequestNotice} role="status">
@@ -1113,19 +1131,37 @@ export default function OwnerConciergesPageClient() {
                 </div>
               ) : null}
               <div className={styles.selectionSummary}>
-                <span className={styles.requestSectionLabel}>Sélection</span>
-                <strong>{selectedConciergeIds.length} professionnel(s) sélectionné(s)</strong>
                 {selectedConcierges.length > 0 ? (
-                  <div className={styles.summaryChips}>
-                    {selectedConcierges.slice(0, 4).map((item) => (
-                      <span key={item.id} className={styles.summaryChip}>
-                        {item.display_name}
-                      </span>
+                  <div className={styles.selectionRows}>
+                    {selectedConcierges.map((item) => (
+                      <div key={item.id} className={styles.selectionRow}>
+                        <ConciergeAvatar
+                          src={item.avatar_url}
+                          alt={item.display_name}
+                          width={42}
+                          height={42}
+                          className={styles.selectionAvatar}
+                        />
+                        <div className={styles.selectionInfo}>
+                          <strong>{item.display_name}</strong>
+                          <span>{item.city || item.service_area || item.location || "Zone à préciser"}</span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className={styles.selectionRemove}
+                          onClick={() => toggleConciergeSelection(item.id)}
+                          aria-label={`Retirer ${item.display_name} de la sélection`}
+                        >
+                          ×
+                        </Button>
+                      </div>
                     ))}
                   </div>
                 ) : (
                   <span className={styles.tagMuted}>
-                    Aucun professionnel sélectionné. Sélectionnez un profil dans les résultats pour préparer votre demande.
+                    Aucune concierge sélectionnée. Sélectionnez un profil dans les résultats pour préparer votre demande.
                   </span>
                 )}
               </div>
@@ -1147,7 +1183,7 @@ export default function OwnerConciergesPageClient() {
 
         <div className={styles.mobileSelectionBar}>
           <div className={styles.mobileSelectionCopy}>
-            <strong>{selectedConciergeIds.length} professionnel(s) sélectionné(s)</strong>
+            <strong>{selectedConciergeIds.length} concierge(s) sélectionnée(s)</strong>
             <span>
               {selectedConciergeIds.length > 0
                 ? "Préparez votre demande ou ajustez votre sélection."

@@ -227,6 +227,65 @@ $danger: #e74c3c;
   background: rgba(255, 255, 255, 0.9);
 }
 
+.socialLogin {
+  display: grid;
+  gap: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.socialButtons {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.socialButton {
+  width: 100%;
+  min-height: 50px;
+  justify-content: center;
+  gap: 0.75rem;
+  border-color: rgba(41, 75, 62, 0.18);
+  border-radius: 999px;
+  background: #fffdf8;
+  color: #243b33;
+  font-weight: 800;
+}
+
+.socialButton:hover:not(:disabled) {
+  border-color: rgba(30, 103, 80, 0.34);
+  background: #f4f8f5;
+}
+
+.socialMark {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba($gold, 0.24);
+  border-radius: 50%;
+  background: #fff;
+  color: #173e34;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.formDivider {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgba(75, 55, 21, 0.58);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.formDivider::before,
+.formDivider::after {
+  content: "";
+  height: 1px;
+  background: rgba($gold, 0.22);
+}
+
 .fieldLabel {
   display: inline-flex;
   margin-top: 0.25rem;

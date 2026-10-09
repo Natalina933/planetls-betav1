@@ -7,6 +7,11 @@ import {
   type OwnerRequestGoal,
   type OwnerResponsibilityLevel,
 } from "../../app/lib/serviceRequestBrief.ts";
+import {
+  resolveCommonServiceValue,
+  type CollaborationModeSlug,
+  type CommonServiceReference,
+} from "../../app/lib/commonServiceCatalog.ts";
 
 const OWNER_REQUEST_GOALS: OwnerRequestGoal[] = [
   "find_concierge",
@@ -102,6 +107,38 @@ export type OwnerOnboardingProgress = {
   nextStep: "project" | "housing" | "organization" | "complete";
 };
 
+export type OwnerOnboardingNeedResolution =
+  | {
+      kind: "service";
+      need: OwnerOnboardingNeed;
+      slug: string;
+      service: CommonServiceReference;
+    }
+  | {
+      kind: "family";
+      need: OwnerOnboardingNeed;
+      family: string;
+      reason: string;
+    }
+  | {
+      kind: "mode";
+      need: OwnerOnboardingNeed;
+      mode: CollaborationModeSlug;
+      label: string;
+    }
+  | {
+      kind: "ambiguous";
+      need: OwnerOnboardingNeed;
+      value: string;
+      candidates: CommonServiceReference[];
+      reason: string;
+    }
+  | {
+      kind: "unknown";
+      need: OwnerOnboardingNeed | string;
+      value: string;
+    };
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -185,6 +222,73 @@ export const EMPTY_OWNER_ONBOARDING_V1: OwnerOnboardingV1 = {
   billingPref: null,
   proOrg: null,
 };
+
+const OWNER_ONBOARDING_SERVICE_SLUGS: Partial<Record<OwnerOnboardingNeed, string>> = {
+  check_in: "guest_checkin",
+  check_out: "guest_checkout",
+};
+
+const OWNER_ONBOARDING_FAMILIES: Partial<Record<OwnerOnboardingNeed, string>> = {
+  cleaning: "Ménage",
+  linen: "Linge",
+  maintenance: "Maintenance légère",
+};
+
+export function resolveOwnerOnboardingNeedPreference(
+  value: OwnerOnboardingNeed | string,
+): OwnerOnboardingNeedResolution {
+  const need = typeof value === "string" ? value.trim() : "";
+  if (!need) return { kind: "unknown", need: value, value: need };
+
+  if (need === "full_management") {
+    const resolved = resolveCommonServiceValue("full_management");
+    if (resolved.kind === "collaboration_mode") {
+      return {
+        kind: "mode",
+        need,
+        mode: resolved.mode,
+        label: resolved.label,
+      };
+    }
+  }
+
+  const serviceSlug = OWNER_ONBOARDING_SERVICE_SLUGS[need as OwnerOnboardingNeed];
+  if (serviceSlug) {
+    const resolved = resolveCommonServiceValue(serviceSlug);
+    if (resolved.kind === "service") {
+      return {
+        kind: "service",
+        need: need as OwnerOnboardingNeed,
+        slug: serviceSlug,
+        service: resolved.service,
+      };
+    }
+    return { kind: "unknown", need, value: need };
+  }
+
+  const family = OWNER_ONBOARDING_FAMILIES[need as OwnerOnboardingNeed];
+  if (family) {
+    return {
+      kind: "family",
+      need: need as OwnerOnboardingNeed,
+      family,
+      reason: "Préférence propriétaire générale : ne pas convertir automatiquement en prestation détaillée.",
+    };
+  }
+
+  if (need === "traveler_messages") {
+    const resolved = resolveCommonServiceValue("admin_guest_communication");
+    return {
+      kind: "ambiguous",
+      need,
+      value: need,
+      candidates: resolved.kind === "service" ? [resolved.service] : [],
+      reason: "Communication voyageurs à confirmer avant conversion en prestation facturable.",
+    };
+  }
+
+  return { kind: "unknown", need, value: need };
+}
 
 function readNullableEnum<Value extends string>(
   value: unknown,
@@ -451,8 +555,24 @@ export function buildOwnerConciergeSearchDefaults(
   preferences: OwnerProfilePreferences,
 ): {
   propertyType: string;
+  selectedServices: string[];
 } {
+  const onboardingServices: Record<OwnerOnboardingNeed, string | null> = {
+    check_in: "Check-in",
+    check_out: "Check-out",
+    cleaning: "Ménage",
+    linen: "Linge",
+    maintenance: "Maintenance",
+    traveler_messages: "Gestion des messages voyageurs",
+    full_management: "Gestion complète du logement",
+    other: null,
+  };
+
   return {
     propertyType: preferences.propertyType || preferences.propertyTypes[0] || "",
+    selectedServices:
+      preferences.ownerOnboardingV1?.needs
+        .map((need) => onboardingServices[need])
+        .filter((value): value is string => Boolean(value)) ?? [],
   };
 }

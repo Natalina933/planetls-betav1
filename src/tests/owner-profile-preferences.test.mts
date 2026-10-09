@@ -6,6 +6,7 @@ import {
   EMPTY_OWNER_ONBOARDING_V1,
   getOwnerProfilePreferences,
   mergeOwnerPreferencesIntoAvailabilityHours,
+  resolveOwnerOnboardingNeedPreference,
 } from "../features/owner-preferences/profilePreferences.ts";
 import { parseOnboardingDetails } from "../features/onboarding-assistant/onboardingPayload.ts";
 
@@ -129,6 +130,7 @@ test("owner concierge search defaults reuse the saved property context", () => {
 
   assert.deepEqual(buildOwnerConciergeSearchDefaults(preferences), {
     propertyType: "Villa haut de gamme",
+    selectedServices: [],
   });
 
   assert.deepEqual(
@@ -139,6 +141,7 @@ test("owner concierge search defaults reuse the saved property context", () => {
     }),
     {
       propertyType: "Maison",
+      selectedServices: [],
     },
   );
 });
@@ -232,4 +235,53 @@ test("parseOnboardingDetails now reads new owner preference aliases", () => {
   assert.equal(parsed.needVolume, "monthly");
   assert.equal(parsed.propertyType, "Maison");
   assert.equal(parsed.firstRequestTemplate, "Base brief");
+});
+
+test("owner onboarding need preferences resolve to common catalog concepts without changing stored values", () => {
+  const checkIn = resolveOwnerOnboardingNeedPreference("check_in");
+  const checkOut = resolveOwnerOnboardingNeedPreference("check_out");
+  const cleaning = resolveOwnerOnboardingNeedPreference("cleaning");
+  const linen = resolveOwnerOnboardingNeedPreference("linen");
+  const maintenance = resolveOwnerOnboardingNeedPreference("maintenance");
+  const messages = resolveOwnerOnboardingNeedPreference("traveler_messages");
+  const fullManagement = resolveOwnerOnboardingNeedPreference("full_management");
+  const other = resolveOwnerOnboardingNeedPreference("other");
+
+  assert.equal(checkIn.kind, "service");
+  if (checkIn.kind === "service") {
+    assert.equal(checkIn.slug, "guest_checkin");
+    assert.equal(checkIn.service.id, null);
+  }
+  assert.equal(checkOut.kind, "service");
+  if (checkOut.kind === "service") {
+    assert.equal(checkOut.slug, "guest_checkout");
+    assert.equal(checkOut.service.id, null);
+  }
+
+  assert.equal(cleaning.kind, "family");
+  if (cleaning.kind === "family") assert.equal(cleaning.family, "Ménage");
+  assert.equal(linen.kind, "family");
+  if (linen.kind === "family") assert.equal(linen.family, "Linge");
+  assert.equal(maintenance.kind, "family");
+  if (maintenance.kind === "family") assert.equal(maintenance.family, "Maintenance légère");
+
+  assert.equal(messages.kind, "ambiguous");
+  if (messages.kind === "ambiguous") {
+    assert.equal(messages.candidates[0]?.slug, "admin_guest_communication");
+  }
+
+  assert.equal(fullManagement.kind, "mode");
+  if (fullManagement.kind === "mode") {
+    assert.equal(fullManagement.mode, "full_management");
+  }
+
+  assert.equal(other.kind, "unknown");
+});
+
+test("owner onboarding need preference resolver never converts unknown values silently", () => {
+  assert.deepEqual(resolveOwnerOnboardingNeedPreference("custom_need"), {
+    kind: "unknown",
+    need: "custom_need",
+    value: "custom_need",
+  });
 });

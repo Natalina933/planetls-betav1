@@ -221,7 +221,8 @@ const quoteSelect = `
     line_total,
     sort_order,
     service_id,
-    pricing_id
+    pricing_id,
+    metadata
   )
 `;
 

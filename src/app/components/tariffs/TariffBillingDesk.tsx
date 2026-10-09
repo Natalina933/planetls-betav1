@@ -31,6 +31,7 @@ type QuoteItem = {
   service_id?: number | null;
   pricing_id?: string | null;
   sort_order?: number;
+  metadata?: Record<string, unknown> | null;
 };
 
 type QuoteMeta = {
@@ -98,6 +99,36 @@ const formatMoney = (value?: number | null) => money.format(Number(value ?? 0));
 const formatDate = (value?: string | null) => (value ? new Date(value).toLocaleDateString("fr-FR") : "-");
 const formatPackageName = (value?: string | null) =>
   (value ?? "").replace(/\(\s*seed\s*\)/gi, "(Initial)").trim() || "Pack";
+
+const needsServiceClarification = (item: QuoteItem) => {
+  const status = item.metadata?.quote_service_clarification_status;
+  return status === "needs_clarification" || status === "needs_explicit_price";
+};
+
+const getOriginalServiceValues = (item: QuoteItem) =>
+  Array.isArray(item.metadata?.quote_service_original_values)
+    ? item.metadata.quote_service_original_values.filter((value): value is string => typeof value === "string")
+    : [];
+
+const buildClarifiedItemMetadata = (item: QuoteItem) => {
+  const metadata = item.metadata ?? {};
+  if (!needsServiceClarification(item)) return metadata;
+
+  const label = item.label.trim().toLowerCase();
+  const originalValues = getOriginalServiceValues(item).map((value) => value.trim().toLowerCase());
+  const hasExplicitPrice = Number.isFinite(Number(item.unit_price)) && Number(item.unit_price) > 0;
+  const hasSpecificLabel = label.length > 0 && !originalValues.includes(label);
+
+  if (item.service_id || item.pricing_id || (hasExplicitPrice && hasSpecificLabel)) {
+    return {
+      ...metadata,
+      quote_service_clarification_status: "resolved_manual",
+      quote_service_clarified_at: new Date().toISOString(),
+    };
+  }
+
+  return metadata;
+};
 
 const statusLabel = (status?: string | null) =>
   ({
@@ -374,7 +405,11 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
             payment_plan: normalizePaymentPlanType(editor.metadata?.payment_plan),
             deposit_required: normalizePaymentPlanType(editor.metadata?.payment_plan) === "deposit_then_balance",
           },
-          items: (editor.quote_items ?? []).map((item, index) => ({ ...item, sort_order: index })),
+          items: (editor.quote_items ?? []).map((item, index) => ({
+            ...item,
+            sort_order: index,
+            metadata: buildClarifiedItemMetadata(item),
+          })),
         }),
       });
       const payload = await response.json();
@@ -774,12 +809,26 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
                           />
                           <div className={styles.lineMeta}>
                             <span>{item.pricing_id ? "Tarif existant" : "Ligne libre"}</span>
+                            {needsServiceClarification(item) ? (
+                              <Tag tone="gold">
+                                {item.metadata?.quote_service_clarification_status === "needs_explicit_price"
+                                  ? "Prix à indiquer"
+                                  : "Prestation à préciser"}
+                              </Tag>
+                            ) : null}
                             {item.service_id ? (
                               <Tag tone="default">
                                 {serviceNames.get(Number(item.service_id)) || `Service #${item.service_id}`}
                               </Tag>
                             ) : null}
                           </div>
+                          {needsServiceClarification(item) ? (
+                            <p className={styles.clarificationHint}>
+                              {item.metadata?.quote_service_clarification_status === "needs_explicit_price"
+                                ? "Aucun tarif précis n'est disponible pour cette prestation. Indiquez le prix proposé."
+                                : "Cette demande indique une famille de prestations. Précisez le service proposé et son tarif avant de finaliser le devis."}
+                            </p>
+                          ) : null}
                           <div className={styles.lineSide}>
                             <strong>{formatMoney(Number(item.quantity || 0) * Number(item.unit_price || 0))}</strong>
                             <Button className={styles.actionGhost} variant="ghost" size="sm" onClick={() => removeItem(index)}>

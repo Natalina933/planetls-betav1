@@ -151,15 +151,17 @@
 .hero {
   @extend %soft-panel;
   display: grid;
-  gap: 1.35rem;
-  padding: clamp(1.25rem, 2.4vw, 2rem);
+  gap: 1rem;
+  padding: clamp(1rem, 2vw, 1.35rem);
   overflow: hidden;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
   border-color: rgba(73, 94, 73, 0.14);
   border-radius: 22px;
-  background: rgba(255, 252, 246, 0.92);
+  background:
+    linear-gradient(90deg, rgba(255, 253, 247, 0.96) 0%, rgba(255, 253, 247, 0.84) 48%, rgba(255, 253, 247, 0.5) 100%),
+    url("/images/Terrasse%20m%C3%A9diterran%C3%A9enne%20surplombant%20la%20mer.png") center / cover;
 }
 
 .hero::before {
@@ -176,7 +178,7 @@
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 0.7rem;
+  gap: 0.35rem;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -194,10 +196,10 @@
 .title {
   margin: 0;
   font-family: var(--font-primary), "Cormorant Garamond", "Times New Roman", serif;
-  font-size: clamp(2.15rem, 3vw, 3.35rem);
+  font-size: clamp(2.2rem, 3.6vw, 3.4rem);
   font-weight: 600;
   line-height: 0.95;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
   text-transform: none;
   color: var(--owner-ink);
   overflow-wrap: break-word;
@@ -219,8 +221,8 @@
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 1rem;
-  padding: clamp(1rem, 1.6vw, 1.35rem);
+  gap: 0.82rem;
+  padding: clamp(0.85rem, 1.4vw, 1.15rem);
   border-radius: 20px;
   border: 1px solid rgba(73, 94, 73, 0.13);
   background: #fffdf8;
@@ -255,8 +257,8 @@
 }
 
 .searchActions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(130px, 1fr);
   gap: 0.65rem;
 }
 
@@ -339,6 +341,24 @@
     border-color 180ms ease,
     box-shadow 180ms ease,
     background-color 180ms ease;
+}
+
+.locationControl {
+  position: relative;
+}
+
+.locationControl .fieldIcon {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  z-index: 2;
+  color: var(--owner-burgundy-deep);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.locationControl :global(input) {
+  padding-left: 2.45rem;
 }
 
 .field input:hover,
@@ -438,7 +458,7 @@
 
 .servicePickerHeader {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 280px);
   align-items: end;
   gap: 0.85rem;
 }
@@ -461,9 +481,24 @@
 .allServicesToggle {
   justify-self: start;
   min-height: 36px;
-  padding-inline: 0;
+  padding-inline: 0.15rem;
   color: var(--owner-burgundy-deep);
   font-weight: 800;
+}
+
+.advancedToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.advancedChevron,
+.advancedChevronOpen {
+  transition: transform 180ms ease;
+}
+
+.advancedChevronOpen {
+  transform: rotate(180deg);
 }
 
 .allServicesPanel {
@@ -478,18 +513,33 @@
 }
 
 .advancedFilters {
-  grid-template-columns: minmax(180px, 0.8fr) minmax(240px, 1fr) auto;
-  align-items: end;
+  grid-template-columns: minmax(180px, 0.82fr) minmax(260px, 1fr) minmax(150px, auto);
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--owner-line-soft);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.62);
 }
 
 .advancedShell {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.5rem;
   padding-top: 0.25rem;
 }
 
 .budgetCompact {
   min-width: 0;
+}
+
+.budgetCompact :global(.filter-sliders),
+.budgetCompact :global(fieldset) {
+  margin: 0;
+}
+
+.budgetCompact :global(h3),
+.budgetCompact :global(legend) {
+  margin-bottom: 0.35rem;
 }
 
 .stayServiceLock {
@@ -549,6 +599,13 @@
   span {
     line-height: 1.15;
   }
+}
+
+.serviceChipIcon {
+  color: #fff;
+  background: #0f684f;
+  border-radius: 999px;
+  padding: 1px;
 }
 
 .tagMuted {
@@ -723,8 +780,29 @@
 
 .resultsTools {
   display: grid;
+  grid-auto-flow: column;
   gap: 0.7rem;
+  align-items: center;
   justify-items: end;
+}
+
+.sortControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--owner-burgundy-deep);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.sortControl span {
+  white-space: nowrap;
+}
+
+.sortControl select {
+  min-height: 40px;
+  min-width: 150px;
+  border-radius: 10px;
 }
 
 .sectionTitle {
@@ -893,6 +971,74 @@
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(250, 243, 235, 0.9));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.selectionCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3rem;
+  min-height: 2rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #d7a842, #b98518);
+  color: #fff;
+  font-weight: 900;
+}
+
+.selectionRows {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.selectionRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.58rem 0;
+  border-bottom: 1px solid rgba(73, 94, 73, 0.1);
+}
+
+.selectionRow:last-child {
+  border-bottom: 0;
+}
+
+.selectionAvatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.selectionInfo {
+  display: grid;
+  gap: 0.08rem;
+  min-width: 0;
+}
+
+.selectionInfo strong,
+.selectionInfo span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selectionInfo strong {
+  color: var(--owner-ink);
+  font-size: 0.9rem;
+}
+
+.selectionInfo span {
+  color: var(--owner-muted);
+  font-size: 0.78rem;
+}
+
+.selectionRemove {
+  min-width: 2rem;
+  min-height: 2rem;
+  padding: 0;
+  color: var(--owner-muted);
 }
 
 .panelSummary,
@@ -1834,6 +1980,22 @@
   .badgesCol,
   .resultsTools {
     justify-items: start;
+  }
+
+  .resultsTools {
+    grid-auto-flow: row;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .sortControl {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .sortControl select {
+    flex: 1;
+    min-width: 0;
   }
 
   .selectionSummary,

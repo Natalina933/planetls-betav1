@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
+import { resolveRequestedServicesCatalog } from "@/app/api/_shared/requestedServicesCatalog";
 import { validateStayServiceRequestContext } from "@/app/api/_shared/stayServiceRequestContext";
 import type { NeedKey } from "@/app/api/_shared/stayNeeds";
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
@@ -948,6 +949,8 @@ export async function POST(req: NextRequest) {
       : "ponctuel";
 
     const requestedServices = normalizeStringArray(body.requested_services);
+    const requestedServiceCatalogResolutions = resolveRequestedServicesCatalog(requestedServices);
+    void requestedServiceCatalogResolutions;
     const desiredDate =
       typeof body.desired_date === "string" && body.desired_date.trim().length > 0
         ? body.desired_date

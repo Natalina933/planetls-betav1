@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
-
+import type { Json } from "@/types/supabase.generated";
 type QuoteStatus =
   | "draft"
   | "sent"
@@ -19,6 +19,7 @@ type QuoteItemInput = {
   service_id?: number | null;
   pricing_id?: string | null;
   sort_order?: number;
+  metadata?: Json;
 };
 
 type UpdateQuoteBody = {
@@ -31,7 +32,12 @@ type UpdateQuoteBody = {
   items?: QuoteItemInput[];
 };
 
-const ALLOWED_BILLING_ROLES = new Set(["admin", "super_admin", "concierge", "concierge_pro"]);
+const ALLOWED_BILLING_ROLES = new Set([
+  "admin",
+  "super_admin",
+  "concierge",
+  "concierge_pro",
+]);
 
 const round2 = (value: number): number => Math.round(value * 100) / 100;
 
@@ -81,7 +87,8 @@ const quoteSelect = `
     line_total,
     sort_order,
     service_id,
-    pricing_id
+    pricing_id,
+    metadata
   )
 `;
 
@@ -142,7 +149,10 @@ export async function PATCH(
 
     if (existingError) {
       console.error("[PATCH /api/quotes/:id] read error:", existingError);
-      return NextResponse.json({ error: "Erreur lecture devis" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Erreur lecture devis" },
+        { status: 500 },
+      );
     }
     if (!existing) {
       return NextResponse.json({ error: "Devis introuvable" }, { status: 404 });
@@ -159,7 +169,10 @@ export async function PATCH(
           .map((item, index) => ({
             id: item.id,
             label: typeof item.label === "string" ? item.label.trim() : "",
-            description: typeof item.description === "string" ? item.description.trim() : null,
+            description:
+              typeof item.description === "string"
+                ? item.description.trim()
+                : null,
             quantity: Number(item.quantity ?? 1),
             unit_price: Number(item.unit_price ?? 0),
             service_id:
@@ -170,7 +183,15 @@ export async function PATCH(
               item.pricing_id === null || item.pricing_id === undefined
                 ? null
                 : String(item.pricing_id),
-            sort_order: Number.isFinite(Number(item.sort_order)) ? Number(item.sort_order) : index,
+            sort_order: Number.isFinite(Number(item.sort_order))
+              ? Number(item.sort_order)
+              : index,
+            metadata:
+              item.metadata &&
+              typeof item.metadata === "object" &&
+              !Array.isArray(item.metadata)
+                ? item.metadata
+                : {},
           }))
           .filter(
             (item) =>
@@ -183,11 +204,15 @@ export async function PATCH(
       : [];
 
     const existingMetadata =
-      existing.metadata && typeof existing.metadata === "object" && !Array.isArray(existing.metadata)
+      existing.metadata &&
+      typeof existing.metadata === "object" &&
+      !Array.isArray(existing.metadata)
         ? (existing.metadata as Record<string, unknown>)
         : {};
     const nextMetadata =
-      body.metadata && typeof body.metadata === "object" && !Array.isArray(body.metadata)
+      body.metadata &&
+      typeof body.metadata === "object" &&
+      !Array.isArray(body.metadata)
         ? {
             ...existingMetadata,
             ...body.metadata,
@@ -195,7 +220,10 @@ export async function PATCH(
         : existingMetadata;
 
     const updatePayload: Record<string, unknown> = {
-      package_id: typeof body.package_id === "string" && body.package_id.trim() ? body.package_id : null,
+      package_id:
+        typeof body.package_id === "string" && body.package_id.trim()
+          ? body.package_id
+          : null,
       valid_until: body.valid_until ?? null,
       notes: body.notes ?? null,
       discount_amount: round2(Number(body.discount_amount ?? 0)),
@@ -213,14 +241,26 @@ export async function PATCH(
 
     if (updateError) {
       console.error("[PATCH /api/quotes/:id] update error:", updateError);
-      return NextResponse.json({ error: "Erreur mise à jour devis" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Erreur mise à jour devis" },
+        { status: 500 },
+      );
     }
 
     if (Array.isArray(body.items)) {
-      const { error: deleteItemsError } = await db.from("quote_items").delete().eq("quote_id", id);
+      const { error: deleteItemsError } = await db
+        .from("quote_items")
+        .delete()
+        .eq("quote_id", id);
       if (deleteItemsError) {
-        console.error("[PATCH /api/quotes/:id] delete items error:", deleteItemsError);
-        return NextResponse.json({ error: "Erreur mise à jour lignes devis" }, { status: 500 });
+        console.error(
+          "[PATCH /api/quotes/:id] delete items error:",
+          deleteItemsError,
+        );
+        return NextResponse.json(
+          { error: "Erreur mise à jour lignes devis" },
+          { status: 500 },
+        );
       }
 
       if (sanitizedItems.length > 0) {
@@ -235,13 +275,19 @@ export async function PATCH(
             unit_price: round2(item.unit_price),
             line_total: round2(item.quantity * item.unit_price),
             sort_order: item.sort_order,
-            metadata: {},
+            metadata: item.metadata,
           })),
         );
 
         if (insertItemsError) {
-          console.error("[PATCH /api/quotes/:id] insert items error:", insertItemsError);
-          return NextResponse.json({ error: "Erreur sauvegarde lignes devis" }, { status: 500 });
+          console.error(
+            "[PATCH /api/quotes/:id] insert items error:",
+            insertItemsError,
+          );
+          return NextResponse.json(
+            { error: "Erreur sauvegarde lignes devis" },
+            { status: 500 },
+          );
         }
       }
     }
@@ -268,7 +314,10 @@ export async function PATCH(
 
     if (hydratedError || !hydrated) {
       console.error("[PATCH /api/quotes/:id] hydrate error:", hydratedError);
-      return NextResponse.json({ error: "Erreur rechargement devis" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Erreur rechargement devis" },
+        { status: 500 },
+      );
     }
 
     return NextResponse.json(hydrated);
@@ -301,14 +350,20 @@ export async function DELETE(
 
     if (existingError) {
       console.error("[DELETE /api/quotes/:id] read error:", existingError);
-      return NextResponse.json({ error: "Erreur lecture devis" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Erreur lecture devis" },
+        { status: 500 },
+      );
     }
     if (!existing) {
       return NextResponse.json({ error: "Devis introuvable" }, { status: 404 });
     }
     if ((existing.status as QuoteStatus) !== "draft") {
       return NextResponse.json(
-        { error: "Seuls les devis brouillons non envoyés peuvent être supprimés." },
+        {
+          error:
+            "Seuls les devis brouillons non envoyés peuvent être supprimés.",
+        },
         { status: 400 },
       );
     }
@@ -321,11 +376,17 @@ export async function DELETE(
 
     if (invoicesError) {
       console.error("[DELETE /api/quotes/:id] invoices error:", invoicesError);
-      return NextResponse.json({ error: "Erreur vérification factures liées" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Erreur vérification factures liées" },
+        { status: 500 },
+      );
     }
     if (Array.isArray(linkedInvoices) && linkedInvoices.length > 0) {
       return NextResponse.json(
-        { error: "Ce devis ne peut plus être supprimé car une facture existe déjà." },
+        {
+          error:
+            "Ce devis ne peut plus être supprimé car une facture existe déjà.",
+        },
         { status: 400 },
       );
     }
@@ -341,7 +402,10 @@ export async function DELETE(
 
     if (deleteError) {
       console.error("[DELETE /api/quotes/:id] delete error:", deleteError);
-      return NextResponse.json({ error: "Erreur suppression devis" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Erreur suppression devis" },
+        { status: 500 },
+      );
     }
 
     return NextResponse.json({ success: true });

@@ -179,6 +179,16 @@ const HELP_FREQUENCY_ICONS: Record<OwnerOnboardingHelpFrequency, string> = {
   very_regular: "/icons/planetls-calendar-very-regular.svg",
 };
 
+const NEED_SEARCH_LABELS: Partial<Record<OwnerOnboardingNeed, string>> = {
+  check_in: "Check-in",
+  check_out: "Check-out",
+  cleaning: "Ménage",
+  linen: "Linge",
+  maintenance: "Maintenance",
+  traveler_messages: "Gestion des messages voyageurs",
+  full_management: "Gestion complète du logement",
+};
+
 function readHousingRows(payload: unknown): OwnerHousingRow[] {
   if (Array.isArray(payload)) return payload as OwnerHousingRow[];
   if (payload && typeof payload === "object" && Array.isArray((payload as { items?: unknown }).items)) {
@@ -418,15 +428,20 @@ export default function OwnerPostSignupOnboarding({
     if (signupCity.trim()) {
       params.set("city", signupCity.trim());
     }
+    const searchServices = needs
+      .map((need) => NEED_SEARCH_LABELS[need])
+      .filter((value): value is string => Boolean(value));
+    if (searchServices.length > 0) {
+      params.set("services", searchServices.join(","));
+    }
     params.set("radiusKm", DEFAULT_CONCIERGE_SEARCH_RADIUS_KM);
     return params.toString();
-  }, [signupCity]);
+  }, [needs, signupCity]);
   const conciergeSearchHref = conciergeSearchParams
     ? `/dashboard/owner/concierges?${conciergeSearchParams}`
     : "/dashboard/owner/concierges";
 
   const openConciergeSearch = () => {
-    onClose();
     router.push(conciergeSearchHref);
   };
   const stepIndex = ONBOARDING_STEPS.indexOf(step === "complete" ? "housing" : step);
@@ -779,7 +794,7 @@ export default function OwnerPostSignupOnboarding({
         Votre espace est prêt
       </h2>
       <Image
-        src="/images/owner-objectifs/owner-objectifs-project.jpg"
+        src="/images/Terrasse méditerranéenne surplombant la mer.png"
         alt=""
         aria-hidden="true"
         width={620}
@@ -802,8 +817,8 @@ export default function OwnerPostSignupOnboarding({
           <Check size={20} strokeWidth={2.8} />
         </span>
         <span>
-          <strong>Votre rythme d&apos;accompagnement est enregistrÃ©.</strong>
-          <span>Votre espace est prÃªt.</span>
+          <strong>Votre rythme d&apos;accompagnement est enregistré.</strong>
+          <span>Votre espace est prêt.</span>
         </span>
       </div>
 

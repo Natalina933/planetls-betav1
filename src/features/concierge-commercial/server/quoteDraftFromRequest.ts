@@ -1,4 +1,8 @@
 import { db } from "@/server/db/dbServer";
+import {
+  resolveRequestedServicesCatalog,
+  type RequestedServiceCatalogResolution,
+} from "@/app/api/_shared/requestedServicesCatalog";
 
 type ServiceRequestRow = {
   id: string;
@@ -60,6 +64,45 @@ export type PreparedQuoteDraft = {
   };
 };
 
+export type QuoteDraftClarificationStatus =
+  | "resolved_catalog"
+  | "needs_clarification"
+  | "needs_explicit_price";
+
+export type QuoteDraftMatchDiagnosticKind =
+  | "exact"
+  | "family_only"
+  | "ambiguous"
+  | "mode_only"
+  | "context_only"
+  | "unknown";
+
+export type QuoteDraftMatchDiagnostic = {
+  originalValue: string;
+  index: number;
+  catalogResolution: RequestedServiceCatalogResolution;
+  historicalServiceIds: number[];
+  historicalServiceSlugs: string[];
+  historicalMatchType: "none" | "textual";
+  diagnostic: QuoteDraftMatchDiagnosticKind;
+  confidence: "certain" | "needs_validation" | "none";
+  reason: string;
+};
+
+export type QuoteDraftServiceClarification = {
+  originalValue: string;
+  index: number;
+  diagnostic: QuoteDraftMatchDiagnosticKind;
+  confidence: QuoteDraftMatchDiagnostic["confidence"];
+  isPrecise: boolean;
+  needsClarification: boolean;
+  clarificationReason: string | null;
+  exactTariffAvailable: boolean;
+  explicitPriceRequired: boolean;
+  canonicalSlug: string | null;
+  historicalServiceIds: number[];
+};
+
 const round2 = (value: number) => Math.round(value * 100) / 100;
 
 const normalizeText = (value: string) =>
@@ -102,6 +145,163 @@ const findMatchedServiceIds = (
     .map((service) => service.id);
 };
 
+const findMatchedServicesForSingleRequest = (
+  requestedService: string,
+  servicesCatalog: ServiceCatalogRow[],
+) => {
+  const normalizedRequest = normalizeText(requestedService);
+  if (!normalizedRequest) return [];
+
+  return servicesCatalog.filter((service) => {
+    const normalizedService = normalizeText(service.service ?? "");
+    const haystack = getServiceSearchHaystack(service);
+    return haystack.includes(normalizedRequest) || normalizedRequest.includes(normalizedService);
+  });
+};
+
+const classifyQuoteDraftMatch = (
+  resolution: RequestedServiceCatalogResolution,
+  historicalMatches: ServiceCatalogRow[],
+): Pick<QuoteDraftMatchDiagnostic, "diagnostic" | "confidence" | "reason"> => {
+  if (resolution.kind === "service") {
+    if (resolution.service.id === null) {
+      return {
+        diagnostic: "exact",
+        confidence: "certain",
+        reason: "Prestation canonique précise sans ID historique numérique.",
+      };
+    }
+
+    const hasMatchingHistoricalId = historicalMatches.some(
+      (service) => service.id === resolution.service.id,
+    );
+    return {
+      diagnostic: "exact",
+      confidence: hasMatchingHistoricalId ? "certain" : "needs_validation",
+      reason: hasMatchingHistoricalId
+        ? "Prestation précise confirmée par le référentiel commun et le catalogue historique."
+        : "Prestation précise côté référentiel commun, mais aucun match historique direct.",
+    };
+  }
+
+  if (resolution.kind === "family") {
+    return {
+      diagnostic: "family_only",
+      confidence: "needs_validation",
+      reason: "Famille générale : le matching historique peut sélectionner une prestation plus précise.",
+    };
+  }
+
+  if (resolution.kind === "mode") {
+    return {
+      diagnostic: "mode_only",
+      confidence: "needs_validation",
+      reason: "Mode de collaboration : ne correspond pas à une prestation unitaire.",
+    };
+  }
+
+  if (resolution.kind === "context") {
+    return {
+      diagnostic: "context_only",
+      confidence: "needs_validation",
+      reason: "Contexte d'intervention : ne correspond pas à une prestation facturable précise.",
+    };
+  }
+
+  if (resolution.kind === "ambiguous") {
+    return {
+      diagnostic: "ambiguous",
+      confidence: "needs_validation",
+      reason: resolution.reason,
+    };
+  }
+
+  return {
+    diagnostic: "unknown",
+    confidence: "none",
+    reason: "Aucune correspondance fiable dans le référentiel commun.",
+  };
+};
+
+export function diagnoseQuoteDraftServiceMatches(
+  requestedServices: readonly string[],
+  servicesCatalog: ServiceCatalogRow[],
+): QuoteDraftMatchDiagnostic[] {
+  const catalogResolutions = resolveRequestedServicesCatalog(requestedServices);
+
+  return catalogResolutions.map((resolution) => {
+    const historicalMatches = findMatchedServicesForSingleRequest(
+      resolution.originalValue,
+      servicesCatalog,
+    );
+    const classification = classifyQuoteDraftMatch(resolution, historicalMatches);
+
+    return {
+      originalValue: resolution.originalValue,
+      index: resolution.index,
+      catalogResolution: resolution,
+      historicalServiceIds: historicalMatches.map((service) => service.id),
+      historicalServiceSlugs:
+        resolution.kind === "service"
+          ? [resolution.slug]
+          : resolution.kind === "family" && resolution.reference
+            ? [resolution.reference.slug]
+            : resolution.kind === "context" && resolution.reference
+              ? [resolution.reference.slug]
+              : resolution.kind === "ambiguous"
+                ? resolution.candidates.map((candidate) => candidate.slug)
+                : [],
+      historicalMatchType: historicalMatches.length > 0 ? "textual" : "none",
+      ...classification,
+    };
+  });
+}
+
+const getCanonicalSlug = (resolution: RequestedServiceCatalogResolution) =>
+  resolution.kind === "service"
+    ? resolution.slug
+    : resolution.kind === "family" && resolution.reference
+      ? resolution.reference.slug
+      : resolution.kind === "context" && resolution.reference
+        ? resolution.reference.slug
+        : null;
+
+export function clarifyQuoteDraftRequestedServices(
+  requestedServices: readonly string[],
+  servicesCatalog: ServiceCatalogRow[],
+  pricingRows: PricingRow[],
+): QuoteDraftServiceClarification[] {
+  const diagnostics = diagnoseQuoteDraftServiceMatches(requestedServices, servicesCatalog);
+  const pricedServiceIds = new Set(
+    pricingRows
+      .map((pricing) => pricing.service_id)
+      .filter((serviceId): serviceId is number => typeof serviceId === "number"),
+  );
+
+  return diagnostics.map((diagnostic) => {
+    const exactTariffAvailable =
+      diagnostic.diagnostic === "exact" &&
+      diagnostic.historicalServiceIds.some((serviceId) => pricedServiceIds.has(serviceId));
+    const isPrecise = diagnostic.diagnostic === "exact";
+    const explicitPriceRequired = isPrecise && !exactTariffAvailable;
+    const needsClarification = diagnostic.diagnostic !== "exact" || explicitPriceRequired;
+
+    return {
+      originalValue: diagnostic.originalValue,
+      index: diagnostic.index,
+      diagnostic: diagnostic.diagnostic,
+      confidence: diagnostic.confidence,
+      isPrecise,
+      needsClarification,
+      clarificationReason: needsClarification ? diagnostic.reason : null,
+      exactTariffAvailable,
+      explicitPriceRequired,
+      canonicalSlug: getCanonicalSlug(diagnostic.catalogResolution),
+      historicalServiceIds: diagnostic.historicalServiceIds,
+    };
+  });
+}
+
 const getBestMatchingPackage = (matchedServiceIds: number[], packages: PackageRow[]) => {
   if (matchedServiceIds.length === 0) return null;
 
@@ -133,7 +333,6 @@ export async function prepareQuoteDraftFromRequest(
         (value): value is string => typeof value === "string" && value.trim().length > 0,
       )
     : [];
-
   const [servicesCatalogResult, pricingResult, packagesResult] = await Promise.all([
     db.from("services_catalog").select("id, category, service, description"),
     db
@@ -155,8 +354,20 @@ export async function prepareQuoteDraftFromRequest(
   const packages = Array.isArray(packagesResult.data)
     ? (packagesResult.data as PackageRow[])
     : [];
+  const serviceClarifications = clarifyQuoteDraftRequestedServices(
+    requestedServices,
+    servicesCatalog,
+    pricingRows,
+  );
 
-  const matchedServiceIds = findMatchedServiceIds(requestedServices, servicesCatalog);
+  const autoPricedServiceIds = new Set(
+    serviceClarifications
+      .filter((clarification) => clarification.isPrecise && clarification.exactTariffAvailable)
+      .flatMap((clarification) => clarification.historicalServiceIds),
+  );
+  const matchedServiceIds = findMatchedServiceIds(requestedServices, servicesCatalog).filter((serviceId) =>
+    autoPricedServiceIds.has(serviceId),
+  );
   const matchedServiceSet = new Set(matchedServiceIds);
   const matchedPricingRows = pricingRows.filter(
     (pricing) => pricing.service_id !== null && matchedServiceSet.has(pricing.service_id),
@@ -184,17 +395,25 @@ export async function prepareQuoteDraftFromRequest(
               source: "service_request",
               service_request_id: request.id,
               matched_from_request: true,
+              quote_service_clarification_status: "resolved_catalog",
+              quote_service_clarification_reason: null,
             },
           };
         })
       : [
           {
-            service_id: matchedServiceIds[0] ?? null,
+            service_id:
+              serviceClarifications.find(
+                (clarification) =>
+                  clarification.isPrecise &&
+                  clarification.historicalServiceIds.length === 1 &&
+                  !clarification.explicitPriceRequired,
+              )?.historicalServiceIds[0] ?? null,
             pricing_id: null,
             label:
               requestedServices.length > 0
                 ? requestedServices.slice(0, 3).join(", ")
-                : request.title || "Prestation a chiffrer",
+                : request.title || "Prestation à chiffrer",
             description: request.description ?? null,
             quantity: 1,
             unit_price:
@@ -210,6 +429,22 @@ export async function prepareQuoteDraftFromRequest(
               source: "service_request",
               service_request_id: request.id,
               matched_from_request: false,
+              quote_service_clarification_status: serviceClarifications.some(
+                (clarification) => clarification.explicitPriceRequired,
+              )
+                ? "needs_explicit_price"
+                : "needs_clarification",
+              quote_service_clarification_reason:
+                serviceClarifications.find((clarification) => clarification.needsClarification)
+                  ?.clarificationReason ??
+                "Aucune prestation tarifée certaine n'a pu être déterminée automatiquement.",
+              quote_service_original_values: requestedServices,
+              quote_service_resolution_diagnostics: serviceClarifications.map((clarification) => ({
+                original_value: clarification.originalValue,
+                diagnostic: clarification.diagnostic,
+                canonical_slug: clarification.canonicalSlug,
+                explicit_price_required: clarification.explicitPriceRequired,
+              })),
             },
           },
         ];

@@ -14,6 +14,7 @@ export interface ProviderCurrentProfile {
   service_area?: string | null;
   role?: string | null;
   category?: string | null;
+  skills?: string[] | null;
 }
 
 export interface ProviderWorkspacePayload {

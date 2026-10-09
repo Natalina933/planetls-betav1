@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Check, ChevronDown, MapPin, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
 import FilterSliders from "@/app/components/ui/FilterSliders";
 import { Button, Checkbox, Select, ServiceCategoryIcon } from "@/components/ui";
 import { FilterChipGroup } from "@/features/shared/components/FilterChipGroup";
@@ -41,7 +42,7 @@ const VIEW_OPTIONS = [
   { value: "list", label: "Liste" },
 ] as const;
 
-const QUICK_SERVICE_LABELS = ["Ménage", "Check-in / Check-out", "Linge", "Maintenance", "Accueil voyageurs"];
+const QUICK_SERVICE_LABELS = ["Ménage", "Check-in / Check-out", "Linge", "Maintenance légère", "Accueil voyageurs"];
 const RADIUS_OPTIONS = ["10", "20", "30", "50", "100"];
 
 function normalizeServiceLabel(value: string) {
@@ -113,9 +114,11 @@ export function SearchFilters({
       {mode === "full" ? (
         <>
           <div className={styles.heroCopy}>
-            <span className={styles.eyebrow}>Le réseau PlanetLS</span>
-            <h1 className={styles.title}>Trouver un professionnel</h1>
-            <p className={styles.heroSubtitle}>Trouvez le bon partenaire autour de votre logement.</p>
+            <span className={styles.eyebrow}>Concierges</span>
+            <h1 className={styles.title}>Trouver une concierge</h1>
+            <p className={styles.heroSubtitle}>
+              Des professionnelles de confiance près de chez vous pour prendre soin de votre logement.
+            </p>
           </div>
 
           <div className={styles.mobileHeroActions}>
@@ -138,13 +141,16 @@ export function SearchFilters({
         <div className={styles.searchBar}>
           <div className={`${styles.field} ${styles.searchField}`}>
             <span id="search-city-label">Ville ou code postal</span>
-            <OwnerLocationAutocomplete
-              ariaLabel="Ville ou code postal"
-              value={filters.city}
-              onChange={(value) => onFilterChange("city", value)}
-              placeholder="Paris, 75015, Annecy..."
-              getSuggestions={getCitySuggestions}
-            />
+            <div className={styles.locationControl}>
+              <MapPin size={17} className={styles.fieldIcon} aria-hidden="true" />
+              <OwnerLocationAutocomplete
+                ariaLabel="Ville ou code postal"
+                value={filters.city}
+                onChange={(value) => onFilterChange("city", value)}
+                placeholder="Paris, 75015, Annecy..."
+                getSuggestions={getCitySuggestions}
+              />
+            </div>
           </div>
 
           <label className={styles.field}>
@@ -165,9 +171,11 @@ export function SearchFilters({
 
           <div className={styles.searchActions}>
             <Button type="submit" variant="primary" className={styles.primaryBtn} disabled={loading}>
+              <Search size={17} aria-hidden="true" />
               {loading ? "Recherche..." : "Rechercher"}
             </Button>
             <Button type="button" variant="secondary" className={styles.secondaryBtn} onClick={onReset} disabled={loading}>
+              <RotateCcw size={17} aria-hidden="true" />
               Réinitialiser
             </Button>
           </div>
@@ -191,18 +199,22 @@ export function SearchFilters({
             </div>
 
             <div className={styles.serviceChips} aria-label="Raccourcis prestations">
-              {quickServices.map((service) => (
-                <Button
-                  key={`${service.label}-${service.value}`}
-                  type="button"
-                  variant="ghost"
-                  className={selectedServices.includes(service.value) ? styles.serviceChipActive : styles.serviceChip}
-                  aria-pressed={selectedServices.includes(service.value)}
-                  onClick={() => onToggleService(service.value)}
-                >
-                  {service.label}
-                </Button>
-              ))}
+              {quickServices.map((service) => {
+                const isActive = selectedServices.includes(service.value);
+                return (
+                  <Button
+                    key={`${service.label}-${service.value}`}
+                    type="button"
+                    variant="ghost"
+                    className={isActive ? styles.serviceChipActive : styles.serviceChip}
+                    aria-pressed={isActive}
+                    onClick={() => onToggleService(service.value)}
+                  >
+                    {isActive ? <Check size={14} className={styles.serviceChipIcon} aria-hidden="true" /> : null}
+                    {service.label}
+                  </Button>
+                );
+              })}
             </div>
 
             {selectedServices.length > 0 ? (
@@ -231,7 +243,7 @@ export function SearchFilters({
               onClick={() => setAllServicesOpen((value) => !value)}
               aria-expanded={allServicesOpen}
             >
-              {allServicesOpen ? "Replier les prestations" : "+ Voir toutes les prestations"}
+              {allServicesOpen ? "Replier les prestations" : "+ Autres services"}
             </Button>
 
             {allServicesOpen ? (
@@ -304,11 +316,17 @@ export function SearchFilters({
           <Button
             type="button"
             variant="ghost"
-            className={styles.allServicesToggle}
+            className={`${styles.allServicesToggle} ${styles.advancedToggle}`}
             onClick={() => setAdvancedOpen((value) => !value)}
             aria-expanded={advancedOpen}
           >
-            {advancedOpen ? "Replier les filtres avancés" : "Filtres avancés"}
+            <SlidersHorizontal size={17} aria-hidden="true" />
+            <span>{advancedOpen ? "Replier les filtres avancés" : "Filtres avancés"}</span>
+            <ChevronDown
+              size={17}
+              className={advancedOpen ? styles.advancedChevronOpen : styles.advancedChevron}
+              aria-hidden="true"
+            />
           </Button>
 
           {advancedOpen ? (

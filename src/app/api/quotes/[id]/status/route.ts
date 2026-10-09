@@ -97,6 +97,73 @@ const OWNER_ALLOWED_STATUS = new Set<QuoteStatus>(["accepted", "rejected"]);
 const cleanReason = (value: unknown) =>
   typeof value === "string" ? value.trim().slice(0, 500) : "";
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+function isUnresolvedQuoteItem(item: {
+  service_id?: number | null;
+  pricing_id?: string | null;
+  label?: string | null;
+  unit_price?: number | null;
+  metadata?: unknown;
+}) {
+  const metadata = isRecord(item.metadata) ? item.metadata : {};
+  const status =
+    typeof metadata.quote_service_clarification_status === "string"
+      ? metadata.quote_service_clarification_status
+      : null;
+
+  if (status !== "needs_clarification" && status !== "needs_explicit_price") {
+    return false;
+  }
+
+  if (item.service_id || item.pricing_id) return false;
+
+  const originalValues = Array.isArray(metadata.quote_service_original_values)
+    ? metadata.quote_service_original_values.filter((value): value is string => typeof value === "string")
+    : [];
+  const label = typeof item.label === "string" ? item.label.trim().toLowerCase() : "";
+  const stillUsesOriginalLabel = originalValues.some((value) => value.trim().toLowerCase() === label);
+  const hasExplicitPrice = Number.isFinite(Number(item.unit_price)) && Number(item.unit_price) > 0;
+  const manuallyResolved =
+    metadata.quote_service_clarification_status === "resolved_manual" &&
+    hasExplicitPrice &&
+    label.length > 0 &&
+    !stillUsesOriginalLabel;
+
+  return !manuallyResolved;
+}
+
+async function validateQuoteBeforeSending(quoteId: string) {
+  const { data: items, error } = await untypedDb
+    .from("quote_items")
+    .select("id, label, service_id, pricing_id, unit_price, metadata")
+    .eq("quote_id", quoteId);
+
+  if (error) {
+    console.error("[PATCH /api/quotes/:id/status] quote_items validation error:", error);
+    return {
+      ok: false as const,
+      response: NextResponse.json({ error: "Erreur validation lignes devis" }, { status: 500 }),
+    };
+  }
+
+  const unresolvedItems = (Array.isArray(items) ? items : []).filter(isUnresolvedQuoteItem);
+  if (unresolvedItems.length === 0) return { ok: true as const };
+
+  return {
+    ok: false as const,
+    response: NextResponse.json(
+      {
+        error:
+          "Certaines prestations de ce devis doivent être précisées avant envoi. Choisissez une prestation claire et indiquez son tarif.",
+        clarification_required: true,
+      },
+      { status: 400 },
+    ),
+  };
+}
+
 async function notifyQuoteStatusChange(context: QuoteNotificationContext) {
   if (!context.ownerProfileId || !context.conciergeProfileId) return null;
 
@@ -296,6 +363,11 @@ export async function PATCH(
     }
     if (!existing) {
       return NextResponse.json({ error: "Devis introuvable" }, { status: 404 });
+    }
+
+    if (nextStatus === "sent") {
+      const validation = await validateQuoteBeforeSending(id);
+      if (!validation.ok) return validation.response;
     }
 
     // Explicit stay context ("demande ponctuelle de séjour"): loaded before

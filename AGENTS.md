@@ -85,3 +85,76 @@ Pour une intervention légère, terminer avec seulement :
 - Problème éventuel restant
 
 Réponse concise.
+
+## Classification rapide des missions Codex
+
+Avant toute intervention, identifier la catégorie de la demande pour ajuster
+la lecture du contexte, les vérifications et le compte rendu.
+
+### A — Visuel local
+
+CSS, SCSS, textes, icônes, composants de présentation ou ajustement mineur
+d'une interface existante.
+
+- Lire uniquement les fichiers ciblés et les dépendances nécessaires.
+- Ne pas relire le Master Plan sans impact métier, technique ou sécurité.
+- Préserver la logique existante et les composants, fonctions, styles et tokens déjà en place.
+- Effectuer des vérifications proportionnées : diff, `git diff --check`,
+  et vérification visuelle si le rendu le justifie.
+- Pour du TSX, lancer un typecheck seulement si des imports, types, props ou hooks sont concernés.
+
+### B — Fonctionnalité métier
+
+Onboarding, recherche, demandes, devis, contrats, séjours, missions,
+facturation ou tout parcours utilisateur significatif.
+
+- Examiner le parcours concerné et ses dépendances utiles.
+- Vérifier les API, états d'erreur, chargements, permissions et données persistées selon le contexte.
+- Exécuter les tests ciblés, puis un typecheck ; lancer un build seulement si le risque technique le justifie.
+- Mettre à jour le Master Plan selon les règles de pilotage existantes.
+
+### C — Base de données et sécurité
+
+Supabase, migrations, RLS, authentification, permissions, rôles, tenants ou
+écriture distante.
+
+- Faire un diagnostic préalable et vérifier les impacts avant toute action.
+- Prévoir le rollback, la sauvegarde ou la prévisualisation quand une migration est concernée.
+- Exécuter les tests de sécurité et de permissions adaptés.
+- Ne jamais effectuer d'écriture distante sans validation explicite.
+
+### D — Audit
+
+Analyse, cadrage, revue ou rapport sans demande de modification.
+
+- Travailler en lecture seule.
+- Limiter les recherches aux fichiers et dossiers concernés.
+- Produire un rapport sourcé et distinguer ce qui est vérifié de ce qui reste à confirmer.
+- Ne modifier aucun fichier et ne lancer aucun test d'exécution inutile.
+
+Si une mission A révèle un impact métier, technique ou sécurité, signaler le
+changement de catégorie avant d'élargir le périmètre.
+
+## Économie de contexte et de vérifications
+
+- Commencer par les fichiers nommés dans la demande.
+- Privilégier les recherches bornées au dossier concerné.
+- Éviter les sorties terminal volumineuses.
+- Ne pas relire intégralement les documents de gouvernance pour une modification mineure.
+- Ne pas relancer plusieurs fois les mêmes tests sans raison.
+- Ne pas créer de documentation redondante.
+- Préserver l'encodage UTF-8 sans BOM et les accents français ; ne pas effectuer
+  de conversion globale d'encodage.
+- Ne jamais supprimer un test nécessaire uniquement pour économiser des crédits.
+
+Pour une refonte importante de page, dashboard ou popup, réaliser une
+vérification navigateur desktop et mobile si l'outil est disponible, comparer
+avec la maquette lorsqu'elle est fournie, puis corriger les écarts dans le
+périmètre autorisé. Ne jamais prétendre avoir vérifié le rendu si aucune
+capture réelle n'a été réalisée. Pour un simple changement de couleur ou
+d'espacement, une capture n'est pas systématiquement nécessaire.
+
+Adapter le rapport final à la catégorie : court pour A, centré sur les impacts
+métier pour B, détaillé sur les preuves techniques et sécurité pour C, structuré
+et sourcé pour D. Ne pas répéter les instructions de la mission dans le rapport
+final.

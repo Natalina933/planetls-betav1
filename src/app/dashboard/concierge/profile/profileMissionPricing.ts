@@ -6,6 +6,12 @@ import type {
   WeekDay,
 } from "@/app/components/missions/types";
 import type { PricingV2Config, SeasonalPricingConfig } from "@/app/components/tariffs/types";
+import {
+  resolveCommonServiceById,
+  resolveCommonServiceValue,
+  type CollaborationModeSlug,
+  type CommonServiceReference,
+} from "../../../lib/commonServiceCatalog.ts";
 import type { ConciergeProfile as Profile } from "@/features/concierge-profile";
 
 export interface StrategySimState {
@@ -26,6 +32,64 @@ export interface PricingMetaConfig {
   commissionRatePct: number;
   setupFee: number;
 }
+
+export type ConciergeMissionServiceResolution =
+  | {
+      kind: "service";
+      value: string;
+      slug: string;
+      service: CommonServiceReference;
+    }
+  | {
+      kind: "family";
+      value: string;
+      family: string;
+      reason: string;
+    }
+  | {
+      kind: "mode";
+      value: string;
+      mode: CollaborationModeSlug;
+      label: string;
+    }
+  | {
+      kind: "context";
+      value: string;
+      context: "night_emergency";
+      reason: string;
+    }
+  | {
+      kind: "ambiguous";
+      value: string;
+      candidates: CommonServiceReference[];
+      reason: string;
+    }
+  | {
+      kind: "unknown";
+      value: string;
+    };
+
+export type ConciergePricingLineLike = {
+  service_id?: number | string | null;
+  serviceId?: number | string | null;
+  label?: string | null;
+  service?: string | null;
+  code?: string | null;
+  type?: unknown;
+  amount?: unknown;
+  unit?: unknown;
+  currency?: unknown;
+};
+
+export type ConciergePricingLineCatalogResolution<TLine extends ConciergePricingLineLike> = {
+  pricing: TLine;
+  identifier: {
+    serviceId: number | null;
+    value: string;
+    source: "service_id" | "serviceId" | "label" | "service" | "code" | "none";
+  };
+  catalog: ConciergeMissionServiceResolution;
+};
 
 export const DEFAULT_STRATEGY_SIM: StrategySimState = {
   segmentId: "",
@@ -113,6 +177,241 @@ export const DEFAULT_MISSION_CATALOG: MissionCatalogItem[] = [
     customizable: false,
   },
 ];
+
+const toConciergeMissionServiceKey = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+export function resolveConciergeMissionServiceValue(value: unknown): ConciergeMissionServiceResolution {
+  const rawValue = String(value ?? "").trim();
+  if (!rawValue) return { kind: "unknown", value: rawValue };
+  const missionId = toConciergeMissionServiceKey(rawValue);
+
+  if (missionId === "check-in-check-out") {
+    const legacyBundle = resolveCommonServiceValue("guest_checkin_checkout_legacy_bundle");
+    return {
+      kind: "ambiguous",
+      value: rawValue,
+      candidates: legacyBundle.kind === "service" ? [legacyBundle.service] : [],
+      reason: "Appellation groupée historique : ne pas scinder automatiquement en check-in et check-out.",
+    };
+  }
+
+  if (missionId === "menage") {
+    return {
+      kind: "family",
+      value: rawValue,
+      family: "Ménage",
+      reason: "Famille générale : ne pas convertir automatiquement en ménage entre voyageurs.",
+    };
+  }
+
+  if (missionId === "maintenance") {
+    return {
+      kind: "family",
+      value: rawValue,
+      family: "Maintenance légère",
+      reason: "Famille générale : ne pas attribuer automatiquement une compétence réglementée.",
+    };
+  }
+
+  if (missionId === "intendance") {
+    const legacyIntendance = resolveCommonServiceValue("legacy_intendance");
+    return {
+      kind: "ambiguous",
+      value: rawValue,
+      candidates: legacyIntendance.kind === "service" ? [legacyIntendance.service] : [],
+      reason: "Valeur transversale insuffisamment précise pour une prestation facturable.",
+    };
+  }
+
+  if (missionId === "accueil-voyageurs") {
+    return {
+      kind: "family",
+      value: rawValue,
+      family: "Accueil voyageurs",
+      reason: "Famille générale : ne pas assimiler automatiquement au check-in.",
+    };
+  }
+
+  if (missionId === "urgence-de-nuit") {
+    return {
+      kind: "context",
+      value: rawValue,
+      context: "night_emergency",
+      reason: "Modalité d'intervention : ne pas convertir en prestation technique spécialisée.",
+    };
+  }
+
+  const collaborationMode = resolveCommonServiceValue(rawValue);
+  if (collaborationMode.kind === "collaboration_mode") {
+    return {
+      kind: "mode",
+      value: rawValue,
+      mode: collaborationMode.mode,
+      label: collaborationMode.label,
+    };
+  }
+
+  if (collaborationMode.kind === "service") {
+    return {
+      kind: "service",
+      value: rawValue,
+      slug: collaborationMode.service.slug,
+      service: collaborationMode.service,
+    };
+  }
+
+  if (collaborationMode.kind === "ambiguous") {
+    return {
+      kind: "ambiguous",
+      value: rawValue,
+      candidates: collaborationMode.candidates,
+      reason: collaborationMode.reason,
+    };
+  }
+
+  return { kind: "unknown", value: rawValue };
+}
+
+const resolveConciergePricingServiceId = (
+  rawValue: number | string | null | undefined,
+): number | null => {
+  if (rawValue === null || rawValue === undefined || rawValue === "") return null;
+  const serviceId = Number(rawValue);
+  return Number.isInteger(serviceId) ? serviceId : null;
+};
+
+const resolveConciergePricingServiceReference = (
+  service: CommonServiceReference,
+): ConciergeMissionServiceResolution => {
+  if (service.id === 16 || service.slug === "guest_checkin_checkout_legacy_bundle") {
+    return {
+      kind: "ambiguous",
+      value: String(service.id ?? service.slug),
+      candidates: [service],
+      reason: "Forfait historique groupé : ne pas scinder automatiquement en check-in et check-out.",
+    };
+  }
+
+  if (service.id === 72 || service.slug === "legacy_menage") {
+    return {
+      kind: "family",
+      value: String(service.id ?? service.slug),
+      family: "Ménage",
+      reason: "Famille générale : ne pas convertir automatiquement en ménage entre voyageurs.",
+    };
+  }
+
+  if (service.id === 73 || service.slug === "legacy_intendance") {
+    return {
+      kind: "ambiguous",
+      value: String(service.id ?? service.slug),
+      candidates: [service],
+      reason: "Valeur transversale insuffisamment précise pour une prestation facturable.",
+    };
+  }
+
+  if (service.id === 74 || service.slug === "legacy_maintenance") {
+    return {
+      kind: "family",
+      value: String(service.id ?? service.slug),
+      family: "Maintenance légère",
+      reason: "Famille générale : ne pas attribuer automatiquement une compétence réglementée.",
+    };
+  }
+
+  if (service.id === 75 || service.slug === "legacy_night_emergency") {
+    return {
+      kind: "context",
+      value: String(service.id ?? service.slug),
+      context: "night_emergency",
+      reason: "Modalité d'intervention : ne pas convertir en prestation technique spécialisée.",
+    };
+  }
+
+  if (service.id === 76 || service.slug === "legacy_guest_reception") {
+    return {
+      kind: "family",
+      value: String(service.id ?? service.slug),
+      family: "Accueil voyageurs",
+      reason: "Famille générale : ne pas assimiler automatiquement au check-in.",
+    };
+  }
+
+  if (service.status === "ambiguous") {
+    return {
+      kind: "ambiguous",
+      value: String(service.id ?? service.slug),
+      candidates: [service],
+      reason: "Référence historique ambiguë : ne pas convertir automatiquement en prestation facturable.",
+    };
+  }
+
+  return {
+    kind: "service",
+    value: String(service.id ?? service.slug),
+    slug: service.slug,
+    service,
+  };
+};
+
+export function resolveConciergePricingLineCatalog<TLine extends ConciergePricingLineLike>(
+  pricing: TLine,
+): ConciergePricingLineCatalogResolution<TLine> {
+  const serviceIdSource =
+    pricing.service_id !== undefined ? "service_id" : pricing.serviceId !== undefined ? "serviceId" : null;
+  const serviceId = resolveConciergePricingServiceId(
+    serviceIdSource === "service_id" ? pricing.service_id : pricing.serviceId,
+  );
+
+  if (serviceId !== null) {
+    const service = resolveCommonServiceById(serviceId);
+    return {
+      pricing,
+      identifier: {
+        serviceId,
+        value: String(serviceId),
+        source: serviceIdSource ?? "service_id",
+      },
+      catalog: service
+        ? resolveConciergePricingServiceReference(service)
+        : { kind: "unknown", value: String(serviceId) },
+    };
+  }
+
+  const fallbackEntries = [
+    ["label", pricing.label],
+    ["service", pricing.service],
+    ["code", pricing.code],
+  ] as const;
+  const fallback = fallbackEntries.find(([, value]) => typeof value === "string" && value.trim());
+  const source = fallback?.[0] ?? "none";
+  const value = fallback?.[1]?.trim() ?? "";
+
+  return {
+    pricing,
+    identifier: {
+      serviceId: null,
+      value,
+      source,
+    },
+    catalog: resolveConciergeMissionServiceValue(value),
+  };
+}
+
+export function resolveConciergePricingLinesCatalog<TLine extends ConciergePricingLineLike>(
+  pricingLines: readonly TLine[] | null | undefined,
+): Array<ConciergePricingLineCatalogResolution<TLine>> {
+  return Array.isArray(pricingLines)
+    ? pricingLines.map((pricing) => resolveConciergePricingLineCatalog(pricing))
+    : [];
+}
 
 export const toMissionTypeId = (value: string) =>
   value

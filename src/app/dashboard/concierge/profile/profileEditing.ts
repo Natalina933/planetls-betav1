@@ -1,5 +1,10 @@
 import type { PricingFallbackInput } from "@/app/components/tariffs/pricingEngine";
 import type { PricingV2Config, SeasonalPricingConfig } from "@/app/components/tariffs/types";
+import {
+  resolveConciergePricingLineCatalog,
+  type ConciergePricingLineLike,
+  type ConciergePricingLineCatalogResolution,
+} from "./profileMissionPricing.ts";
 
 export type SectionEditSnapshots = Record<string, string>;
 export type OpenSectionsState = Record<string, boolean>;
@@ -20,6 +25,11 @@ interface PricingServiceLike {
 
 interface ServicePriceLike {
   service_id: number | null;
+  label?: string | null;
+  type?: unknown;
+  amount?: unknown;
+  unit?: unknown;
+  currency?: unknown;
 }
 
 interface PricingSegmentLike {
@@ -118,6 +128,7 @@ interface PricingCatalogRowLike<TService extends PricingServiceLike, TPrice> {
   service: TService;
   pricing: TPrice | null;
   isActiveMissionService: boolean;
+  catalogResolution: ConciergePricingLineCatalogResolution<ConciergePricingLineLike>;
 }
 
 interface ProfileIdentityLike {
@@ -539,11 +550,22 @@ export function buildPricingCatalogRows<
   servicePriceByServiceId: Map<number, TPrice>,
   activeServiceCatalogIdSet: Set<number>,
 ): Array<PricingCatalogRowLike<TService, TPrice>> {
-  const rows = services.map((service) => ({
-    service,
-    pricing: servicePriceByServiceId.get(service.id) ?? null,
-    isActiveMissionService: activeServiceCatalogIdSet.has(service.id),
-  }));
+  const rows = services.map((service) => {
+    const pricing = servicePriceByServiceId.get(service.id) ?? null;
+    const catalogPricingInput: ConciergePricingLineLike = pricing
+      ? (pricing as unknown as ConciergePricingLineLike)
+      : {
+          service_id: service.id,
+          label: service.service,
+          service: service.service,
+        };
+    return {
+      service,
+      pricing,
+      isActiveMissionService: activeServiceCatalogIdSet.has(service.id),
+      catalogResolution: resolveConciergePricingLineCatalog(catalogPricingInput),
+    };
+  });
 
   rows.sort((a, b) => {
     if (a.isActiveMissionService !== b.isActiveMissionService) {
