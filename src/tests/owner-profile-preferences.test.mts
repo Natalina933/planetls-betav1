@@ -250,12 +250,12 @@ test("owner onboarding need preferences resolve to common catalog concepts witho
   assert.equal(checkIn.kind, "service");
   if (checkIn.kind === "service") {
     assert.equal(checkIn.slug, "guest_checkin");
-    assert.equal(checkIn.service.id, null);
+    assert.equal(checkIn.service.slug, "guest_checkin");
   }
   assert.equal(checkOut.kind, "service");
   if (checkOut.kind === "service") {
     assert.equal(checkOut.slug, "guest_checkout");
-    assert.equal(checkOut.service.id, null);
+    assert.equal(checkOut.service.slug, "guest_checkout");
   }
 
   assert.equal(cleaning.kind, "family");
@@ -267,7 +267,9 @@ test("owner onboarding need preferences resolve to common catalog concepts witho
 
   assert.equal(messages.kind, "ambiguous");
   if (messages.kind === "ambiguous") {
-    assert.equal(messages.candidates[0]?.slug, "admin_guest_communication");
+    // `admin_guest_communication` n'existe pas dans le catalogue cible :
+    // aucun candidat artificiel n'est inventé (règle métier explicite du lot 4D).
+    assert.equal(messages.candidates.length, 0);
   }
 
   assert.equal(fullManagement.kind, "mode");

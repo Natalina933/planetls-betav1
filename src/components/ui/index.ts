@@ -24,6 +24,8 @@ export { ServiceCategoryIcon } from "./ServiceCategoryIcon";
 export type { ServiceCategoryIconProps } from "./ServiceCategoryIcon";
 export { ServiceCatalogPicker } from "./ServiceCatalogPicker";
 export type { ServiceCatalogPickerMode, ServiceCatalogPickerProps } from "./ServiceCatalogPicker";
+export { PlanetLSServicePicker } from "./PlanetLSServicePicker";
+export type { PlanetLSServicePickerProps } from "./PlanetLSServicePicker";
 
 export { Avatar } from "./Avatar";
 export type { AvatarProps } from "./Avatar";

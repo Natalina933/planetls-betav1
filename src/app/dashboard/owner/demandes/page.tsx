@@ -20,13 +20,14 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { Button, ButtonLink, Input, Select, ServiceCatalogPicker, Textarea } from "@/components/ui";
-import { normalizeServiceValues, type ServiceCatalogItem } from "@/app/lib/serviceCatalog";
+import { Button, ButtonLink, Input, PlanetLSServicePicker, Select, Textarea } from "@/components/ui";
+import { normalizePlanetLSSelection, resolvePlanetLSSelection } from "@/app/lib/planetlsServiceSelection";
 import { OwnerJourneyRail } from "@/features/owner-dashboard";
 import { ServiceRequestCard } from "@/features/service-requests";
 import { ownerApiError } from "../ownerFeedback";
 import { focusFirstModalElement, trapFocusInModal } from "../modalAccessibility";
 import styles from "./OwnerRequestsPage.module.scss";
+import { validatePlanetLSServiceRequest } from "@/app/lib/planetlsServiceRequestValidation";
 
 type RequestKind = "ponctuel" | "renfort" | "durable";
 type RelationStatus = "draft" | "sent" | "viewed" | "discussion" | "accepted" | "declined" | "expired";
@@ -194,7 +195,15 @@ function normalizeStatus(value: unknown) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
 
-const normalizeServices = normalizeServiceValues;
+function normalizePlanetLSServices(value: string) {
+  return normalizePlanetLSSelection(String(value ?? "").split(","));
+}
+
+function getPlanetLSServiceLabel(slug: string) {
+  return resolvePlanetLSSelection(slug)?.label ?? slug;
+}
+
+const normalizeServices = normalizePlanetLSServices;
 
 function formatDate(value: string | null | undefined) {
   if (!value) return "À confirmer";
@@ -486,7 +495,6 @@ export default function OwnerRequestsPage() {
   const [requests, setRequests] = useState<OwnerServiceRequestRow[]>([]);
   const [housing, setHousing] = useState<OwnerHousingRow[]>([]);
   const [quotes, setQuotes] = useState<OwnerQuoteRow[]>([]);
-  const [serviceCatalog, setServiceCatalog] = useState<ServiceCatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [deletingRequestId, setDeletingRequestId] = useState<string | null>(null);
@@ -514,17 +522,15 @@ export default function OwnerRequestsPage() {
     try {
       setLoading(true);
       setError(null);
-      const [requestsResponse, housingResponse, quotesResponse, catalogResponse] = await Promise.all([
+      const [requestsResponse, housingResponse, quotesResponse] = await Promise.all([
         fetch("/api/service-requests?limit=100", { cache: "no-store" }),
         fetch("/api/housing", { cache: "no-store" }),
         fetch("/api/quotes?limit=100", { cache: "no-store" }),
-        fetch("/api/services/services-catalog", { cache: "no-store" }),
       ]);
 
       const requestsPayload = (await requestsResponse.json()) as RequestsPayload;
       const housingPayload = await housingResponse.json();
       const quotesPayload = await quotesResponse.json();
-      const catalogPayload = await catalogResponse.json().catch(() => []);
 
       if (!requestsResponse.ok) throw new Error(ownerApiError("Impossible de charger les demandes.", requestsPayload?.error));
       if (!housingResponse.ok) throw new Error(ownerApiError("Impossible de charger les logements.", housingPayload?.error));
@@ -533,7 +539,6 @@ export default function OwnerRequestsPage() {
       setRequests(Array.isArray(requestsPayload.items) ? requestsPayload.items : []);
       setHousing(Array.isArray(housingPayload) ? housingPayload : []);
       setQuotes(Array.isArray(quotesPayload) ? quotesPayload : []);
-      setServiceCatalog(catalogResponse.ok && Array.isArray(catalogPayload) ? catalogPayload : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : ownerApiError("Impossible de charger les demandes."));
     } finally {
@@ -636,12 +641,20 @@ export default function OwnerRequestsPage() {
   const acceptedRequests = filteredRequests.filter((request) => getRelationStatus(request) === "accepted");
   const declinedRequests = filteredRequests.filter((request) => ["declined", "expired"].includes(getRelationStatus(request)));
   const normalizedServices = normalizeServices(form.requestedServices);
+  const unknownSelectedServices = normalizedServices.filter(
+    (slug) => !resolvePlanetLSSelection(slug),
+  );
+  const recognizedSelectedServices = normalizedServices.filter((slug) =>
+    Boolean(resolvePlanetLSSelection(slug)),
+  );
   const titleSuggestion = getRequestTitleSuggestion({
     ...form,
-    requestedServices: normalizedServices.join(", "),
+    requestedServices: recognizedSelectedServices
+      .map((slug) => getPlanetLSServiceLabel(slug))
+      .join(", "),
   });
-  const visibleSelectedServices = normalizedServices.slice(0, 8);
-  const hiddenSelectedServiceCount = Math.max(normalizedServices.length - visibleSelectedServices.length, 0);
+  const visibleSelectedServices = recognizedSelectedServices.slice(0, 8);
+  const hiddenSelectedServiceCount = Math.max(recognizedSelectedServices.length - visibleSelectedServices.length, 0);
   const existingRequestForSelectedHousing = useMemo(() => {
     if (editingRequestId || !form.propertyKey || form.requestType === "renfort") return null;
     return (
@@ -779,6 +792,12 @@ export default function OwnerRequestsPage() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const services = normalizeServices(form.requestedServices);
+    const recognizedServices = services.filter((slug) =>
+      Boolean(resolvePlanetLSSelection(slug)),
+    );
+    const unknownServices = services.filter(
+      (slug) => !resolvePlanetLSSelection(slug),
+    );
     if (existingRequestForSelectedHousing) {
       handleUseExistingRequest(existingRequestForSelectedHousing);
       return;
@@ -787,13 +806,37 @@ export default function OwnerRequestsPage() {
       setError("Ajoutez un titre clair à votre demande.");
       return;
     }
-    if (services.length === 0) {
-      setError("Ajoutez au moins un service recherché.");
+    if (recognizedServices.length === 0) {
+      setError(
+        unknownServices.length > 0
+          ? `Ces valeurs ne correspondent plus au catalogue PlanetLS : ${unknownServices.join(", ")}. Veuillez sélectionner à nouveau vos prestations.`
+          : "Sélectionnez au moins une prestation du catalogue.",
+      );
+      return;
+    }
+    if (unknownServices.length > 0) {
+      setError(
+        `Ces valeurs ne correspondent plus au catalogue PlanetLS : ${unknownServices.join(", ")}. Veuillez sélectionner à nouveau vos prestations.`,
+      );
       return;
     }
 
+    const catalogValidation = validatePlanetLSServiceRequest(
+      recognizedServices,
+      form.description,
+    );
+
+    if (!catalogValidation.valid) {
+      setError(
+        "Veuillez décrire votre besoin dans le champ « Description du besoin » pour les catégories de prestations sélectionnées.",
+      );
+      return;
+    }
+
+    setError(null);
+
     if (!editingRequestId) {
-      router.push(buildNewRequestSearchHref(form, services));
+      router.push(buildNewRequestSearchHref(form, recognizedServices));
       return;
     }
 
@@ -823,7 +866,7 @@ export default function OwnerRequestsPage() {
           title: form.title.trim(),
           description: form.description.trim() || null,
           property_name: form.propertyName.trim() || null,
-          requested_services: services,
+          requested_services: recognizedServices,
           region: form.region.trim() || null,
           city: form.city.trim() || null,
           postal_code: form.postalCode.trim() || null,
@@ -846,7 +889,7 @@ export default function OwnerRequestsPage() {
       setEditingRequestId(null);
       setForm(initialForm);
       setIsRequestModalOpen(false);
-      router.push(buildNewRequestSearchHref(form, services, editingRequestId));
+      router.push(buildNewRequestSearchHref(form, recognizedServices, editingRequestId));
     } catch (err) {
       setError(err instanceof Error ? err.message : ownerApiError("Impossible de créer la demande."));
     } finally {
@@ -1010,158 +1053,167 @@ export default function OwnerRequestsPage() {
                 <X size={18} aria-hidden="true" />
               </button>
             </div>
-        <form className={styles.formGrid} onSubmit={handleSubmit}>
-          <label className={styles.field}>
-            <span>Logement</span>
-            <Select value={form.propertyKey} onChange={(event) => handleHousingChange(event.target.value)}>
-              <option value="">Choisir un logement</option>
-              {housingOptions.map((option) => (
-                <option key={option.key} value={option.key}>{option.label}</option>
-              ))}
-            </Select>
-          </label>
-          {existingRequestForSelectedHousing ? (
-            <div className={`${styles.existingRequestNotice} ${styles.fullField}`} role="status">
-              <div>
-                <strong>Une demande existe déjà pour ce logement</strong>
-                <span>
-                  {statusMeta[getRelationStatus(existingRequestForSelectedHousing)].label} · {existingRequestForSelectedHousing.title}
-                </span>
-              </div>
-              <button
-                type="button"
-                className={styles.inlineAction}
-                onClick={() => handleUseExistingRequest(existingRequestForSelectedHousing)}
-              >
-                <FilePenLine size={15} /> {getRelationStatus(existingRequestForSelectedHousing) === "draft" ? "Compléter" : "Voir le suivi"}
-              </button>
-            </div>
-          ) : null}
-          <label className={styles.field}>
-            <span>Type de recherche</span>
-            <Select value={form.requestType} onChange={(event) => handleRequestTypeChange(event.target.value as RequestKind)}>
-              <option value="ponctuel">Besoin ponctuel</option>
-              <option value="renfort">Renfort / remplacement</option>
-              <option value="durable">Collaboration durable</option>
-            </Select>
-          </label>
-          <label className={styles.field}>
-            <span>Mode de collaboration</span>
-            <Select value={form.collaborationType} onChange={(event) => setForm((current) => ({ ...current, collaborationType: event.target.value }))}>
-              <option value="one_off">Mission ponctuelle</option>
-              <option value="regular">Collaboration régulière</option>
-              <option value="partial_management">Gestion partielle</option>
-              <option value="full_management">Gestion complète</option>
-              <option value="temporary_replacement">Remplacement temporaire</option>
-              <option value="trial">Test avant engagement</option>
-              <option value="onboarding">Accompagnement au démarrage</option>
-            </Select>
-          </label>
-          <label className={styles.field}>
-            <span>Rythme prévu</span>
-            <Select value={form.collaborationFrequency} onChange={(event) => setForm((current) => ({ ...current, collaborationFrequency: event.target.value }))}>
-              <option value="once">Une seule fois</option>
-              <option value="weekly">Chaque semaine</option>
-              <option value="monthly">Chaque mois</option>
-              <option value="seasonal">Selon la saison</option>
-              <option value="year_round">Toute l'année</option>
-              <option value="unknown">À définir ensemble</option>
-            </Select>
-          </label>
-          <label className={styles.field}>
-            <span>Responsabilité attendue</span>
-            <Select value={form.responsibilityLevel} onChange={(event) => setForm((current) => ({ ...current, responsibilityLevel: event.target.value }))}>
-              <option value="low">Exécution de tâches précises</option>
-              <option value="shared">Pilotage partagé</option>
-              <option value="full">Pilotage opérationnel complet</option>
-              <option value="unknown">À cadrer ensemble</option>
-            </Select>
-          </label>
-          <label className={styles.field}>
-            <span>Date de démarrage souhaitée</span>
-            <Input type="date" value={form.desiredDate} onChange={(event) => setForm((current) => ({ ...current, desiredDate: event.target.value }))} />
-          </label>
-          <label className={styles.field}>
-            <span>Durée ou période estimée</span>
-            <Input value={form.estimatedDuration} onChange={(event) => setForm((current) => ({ ...current, estimatedDuration: event.target.value }))} placeholder="Ex : saison été, 6 mois, toute l'année" />
-          </label>
-          <label className={styles.field}>
-            <span>Budget indicatif</span>
-            <div className={styles.amountRow}>
-              <Input type="number" min="0" value={form.budgetMax} onChange={(event) => setForm((current) => ({ ...current, budgetMax: event.target.value }))} placeholder="Sur devis" />
-              <Select value={form.currency} onChange={(event) => setForm((current) => ({ ...current, currency: event.target.value }))}>
-                {currencyOptions.map((currency) => <option key={currency} value={currency}>{currency}</option>)}
-              </Select>
-            </div>
-          </label>
-          <label className={`${styles.field} ${styles.fullField}`}>
-            <span>Titre</span>
-            <Input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Ex : gestion complète appartement centre-ville" />
-            <button type="button" className={styles.suggestionButton} onClick={() => setForm((current) => ({ ...current, title: titleSuggestion }))}>
-              Utiliser : {titleSuggestion}
-            </button>
-          </label>
-          <label className={styles.field}>
-            <span>Région</span>
-            <Input value={form.region} onChange={(event) => setForm((current) => ({ ...current, region: event.target.value }))} placeholder="Île-de-France, Occitanie..." />
-          </label>
-          <label className={styles.field}>
-            <span>Ville</span>
-            <Input value={form.city} onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))} placeholder="Paris" />
-          </label>
-          <label className={styles.field}>
-            <span>Code postal</span>
-            <Input value={form.postalCode} onChange={(event) => setForm((current) => ({ ...current, postalCode: event.target.value }))} inputMode="numeric" />
-          </label>
-          <label className={styles.field}>
-            <span>Rayon de recherche</span>
-            <div className={styles.amountRow}>
-              <Input type="number" min="0" max="100" step="5" value={form.radiusKm} onChange={(event) => setForm((current) => ({ ...current, radiusKm: event.target.value }))} placeholder="Libre" inputMode="numeric" />
-              <span className={styles.unitBox}>km</span>
-            </div>
-          </label>
-          <div className={`${styles.field} ${styles.fullField}`}>
-            <span>Services recherchés</span>
-            {serviceCatalog.length > 0 ? (
-              <ServiceCatalogPicker
-                items={serviceCatalog}
-                selected={normalizedServices}
-                onChange={(selected) => setForm((current) => ({ ...current, requestedServices: selected.join(", ") }))}
-                mode="request"
-              />
-            ) : null}
-            {serviceCatalog.length === 0 ? (
-              <Input value={form.requestedServices} onChange={(event) => setForm((current) => ({ ...current, requestedServices: event.target.value }))} placeholder="Ajouter un service libre, séparé par une virgule..." />
-            ) : null}
-            {normalizedServices.length > 0 ? (
-              <div className={styles.selectedServicesSummary}>
-                <span>{normalizedServices.length} service{normalizedServices.length > 1 ? "s" : ""} sélectionné{normalizedServices.length > 1 ? "s" : ""}</span>
-                <div className={styles.chipRow}>
-                  {visibleSelectedServices.map((service) => <span key={service} className={styles.serviceChip}>{service}</span>)}
-                  {hiddenSelectedServiceCount > 0 ? <span className={styles.serviceChip}>+{hiddenSelectedServiceCount}</span> : null}
+            <form className={styles.formGrid} onSubmit={handleSubmit}>
+              <label className={styles.field}>
+                <span>Logement</span>
+                <Select value={form.propertyKey} onChange={(event) => handleHousingChange(event.target.value)}>
+                  <option value="">Choisir un logement</option>
+                  {housingOptions.map((option) => (
+                    <option key={option.key} value={option.key}>{option.label}</option>
+                  ))}
+                </Select>
+              </label>
+              {existingRequestForSelectedHousing ? (
+                <div className={`${styles.existingRequestNotice} ${styles.fullField}`} role="status">
+                  <div>
+                    <strong>Une demande existe déjà pour ce logement</strong>
+                    <span>
+                      {statusMeta[getRelationStatus(existingRequestForSelectedHousing)].label} · {existingRequestForSelectedHousing.title}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.inlineAction}
+                    onClick={() => handleUseExistingRequest(existingRequestForSelectedHousing)}
+                  >
+                    <FilePenLine size={15} /> {getRelationStatus(existingRequestForSelectedHousing) === "draft" ? "Compléter" : "Voir le suivi"}
+                  </button>
                 </div>
+              ) : null}
+              <label className={styles.field}>
+                <span>Type de recherche</span>
+                <Select value={form.requestType} onChange={(event) => handleRequestTypeChange(event.target.value as RequestKind)}>
+                  <option value="ponctuel">Besoin ponctuel</option>
+                  <option value="renfort">Renfort / remplacement</option>
+                  <option value="durable">Collaboration durable</option>
+                </Select>
+              </label>
+              <label className={styles.field}>
+                <span>Mode de collaboration</span>
+                <Select value={form.collaborationType} onChange={(event) => setForm((current) => ({ ...current, collaborationType: event.target.value }))}>
+                  <option value="one_off">Mission ponctuelle</option>
+                  <option value="regular">Collaboration régulière</option>
+                  <option value="partial_management">Gestion partielle</option>
+                  <option value="full_management">Gestion complète</option>
+                  <option value="temporary_replacement">Remplacement temporaire</option>
+                  <option value="trial">Test avant engagement</option>
+                  <option value="onboarding">Accompagnement au démarrage</option>
+                </Select>
+              </label>
+              <label className={styles.field}>
+                <span>Rythme prévu</span>
+                <Select value={form.collaborationFrequency} onChange={(event) => setForm((current) => ({ ...current, collaborationFrequency: event.target.value }))}>
+                  <option value="once">Une seule fois</option>
+                  <option value="weekly">Chaque semaine</option>
+                  <option value="monthly">Chaque mois</option>
+                  <option value="seasonal">Selon la saison</option>
+                  <option value="year_round">Toute l'année</option>
+                  <option value="unknown">À définir ensemble</option>
+                </Select>
+              </label>
+              <label className={styles.field}>
+                <span>Responsabilité attendue</span>
+                <Select value={form.responsibilityLevel} onChange={(event) => setForm((current) => ({ ...current, responsibilityLevel: event.target.value }))}>
+                  <option value="low">Exécution de tâches précises</option>
+                  <option value="shared">Pilotage partagé</option>
+                  <option value="full">Pilotage opérationnel complet</option>
+                  <option value="unknown">À cadrer ensemble</option>
+                </Select>
+              </label>
+              <label className={styles.field}>
+                <span>Date de démarrage souhaitée</span>
+                <Input type="date" value={form.desiredDate} onChange={(event) => setForm((current) => ({ ...current, desiredDate: event.target.value }))} />
+              </label>
+              <label className={styles.field}>
+                <span>Durée ou période estimée</span>
+                <Input value={form.estimatedDuration} onChange={(event) => setForm((current) => ({ ...current, estimatedDuration: event.target.value }))} placeholder="Ex : saison été, 6 mois, toute l'année" />
+              </label>
+              <label className={styles.field}>
+                <span>Budget indicatif</span>
+                <div className={styles.amountRow}>
+                  <Input type="number" min="0" value={form.budgetMax} onChange={(event) => setForm((current) => ({ ...current, budgetMax: event.target.value }))} placeholder="Sur devis" />
+                  <Select value={form.currency} onChange={(event) => setForm((current) => ({ ...current, currency: event.target.value }))}>
+                    {currencyOptions.map((currency) => <option key={currency} value={currency}>{currency}</option>)}
+                  </Select>
+                </div>
+              </label>
+              <label className={`${styles.field} ${styles.fullField}`}>
+                <span>Titre</span>
+                <Input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Ex : gestion complète appartement centre-ville" />
+                <button type="button" className={styles.suggestionButton} onClick={() => setForm((current) => ({ ...current, title: titleSuggestion }))}>
+                  Utiliser : {titleSuggestion}
+                </button>
+              </label>
+              <label className={styles.field}>
+                <span>Région</span>
+                <Input value={form.region} onChange={(event) => setForm((current) => ({ ...current, region: event.target.value }))} placeholder="Île-de-France, Occitanie..." />
+              </label>
+              <label className={styles.field}>
+                <span>Ville</span>
+                <Input value={form.city} onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))} placeholder="Paris" />
+              </label>
+              <label className={styles.field}>
+                <span>Code postal</span>
+                <Input value={form.postalCode} onChange={(event) => setForm((current) => ({ ...current, postalCode: event.target.value }))} inputMode="numeric" />
+              </label>
+              <label className={styles.field}>
+                <span>Rayon de recherche</span>
+                <div className={styles.amountRow}>
+                  <Input type="number" min="0" max="100" step="5" value={form.radiusKm} onChange={(event) => setForm((current) => ({ ...current, radiusKm: event.target.value }))} placeholder="Libre" inputMode="numeric" />
+                  <span className={styles.unitBox}>km</span>
+                </div>
+              </label>
+              <div className={`${styles.field} ${styles.fullField}`}>
+                <span>Services recherchés</span>
+                <PlanetLSServicePicker
+                  selected={normalizedServices}
+                  onChange={(selected) => setForm((current) => ({ ...current, requestedServices: selected.join(", ") }))}
+                />
+                {unknownSelectedServices.length > 0 ? (
+                  <p className={`${styles.message} ${styles.messageError}`} role="alert">
+                    Ces valeurs ne correspondent plus au catalogue PlanetLS : {unknownSelectedServices.join(", ")}. Veuillez sélectionner à nouveau vos prestations.
+                  </p>
+                ) : null}
+                {recognizedSelectedServices.length > 0 ? (
+                  <div className={styles.selectedServicesSummary}>
+                    <span>{recognizedSelectedServices.length} service{recognizedSelectedServices.length > 1 ? "s" : ""} sélectionné{recognizedSelectedServices.length > 1 ? "s" : ""}</span>
+                    <div className={styles.chipRow}>
+                      {visibleSelectedServices.map((service) => <span key={service} className={styles.serviceChip}>{getPlanetLSServiceLabel(service)}</span>)}
+                      {hiddenSelectedServiceCount > 0 ? <span className={styles.serviceChip}>+{hiddenSelectedServiceCount}</span> : null}
+                    </div>
+                  </div>
+                ) : null}
               </div>
-            ) : null}
-          </div>
-          <label className={`${styles.field} ${styles.fullField}`}>
-            <span>Détails utiles</span>
-            <Textarea rows={4} value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Contexte du logement, services attendus, contraintes de collaboration..." />
-          </label>
-          <label className={`${styles.field} ${styles.fullField}`}>
-            <span>Contraintes à transmettre à la conciergerie</span>
-            <Textarea rows={3} value={form.propertyConstraints} onChange={(event) => setForm((current) => ({ ...current, propertyConstraints: event.target.value }))} placeholder="Accès, clés, horaires, linge, équipement fragile, règles du logement..." />
-          </label>
-          <div className={`${styles.formActions} ${styles.fullField}`}>
-            <Button type="submit" disabled={submitting}>
-              <Search size={16} aria-hidden="true" /> {submitting ? "Enregistrement..." : editingRequestId ? "Enregistrer et rechercher" : "Continuer vers les conciergeries"}
-            </Button>
-            {editingRequestId ? (
-              <Button type="button" variant="secondary" onClick={cancelEditRequest}>
-                Annuler
-              </Button>
-            ) : null}
-          </div>
-        </form>
+
+              {error ? (
+                <p
+                  className={`${styles.message} ${styles.messageError} ${styles.fullField}`}
+                  role="alert"
+                >
+                  {error}
+                </p>
+              ) : null}
+
+              <label className={`${styles.field} ${styles.fullField}`}>
+                <span>Description du besoin</span>
+                <Textarea rows={4} value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Décrivez les travaux ou prestations souhaités : nature du besoin, logement concerné, contraintes et précisions utiles..." />
+
+              </label>
+              <label className={`${styles.field} ${styles.fullField}`}>
+                <span>Contraintes à transmettre à la conciergerie</span>
+                <Textarea rows={3} value={form.propertyConstraints} onChange={(event) => setForm((current) => ({ ...current, propertyConstraints: event.target.value }))} placeholder="Accès, clés, horaires, linge, équipement fragile, règles du logement..." />
+              </label>
+              <div className={`${styles.formActions} ${styles.fullField}`}>
+                <Button type="submit" disabled={submitting}>
+                  <Search size={16} aria-hidden="true" /> {submitting ? "Enregistrement..." : editingRequestId ? "Enregistrer et rechercher" : "Continuer vers les conciergeries"}
+                </Button>
+                {editingRequestId ? (
+                  <Button type="button" variant="secondary" onClick={cancelEditRequest}>
+                    Annuler
+                  </Button>
+                ) : null}
+              </div>
+            </form>
           </section>
         </div>
       ) : null}

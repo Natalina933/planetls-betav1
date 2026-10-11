@@ -1,5 +1,5 @@
 import { normalizeAreaLabel } from "../../../lib/profileLocation.ts";
-
+import { matchPlanetLSService } from "../../../lib/planetlsServiceMatching.ts";
 type PricingPackageRow = {
   profile_id: string;
   property_type: string | null;
@@ -85,7 +85,9 @@ const cleanServiceLabel = (value: unknown): string | null => {
 };
 
 const hasAnyScheduleRange = (
-  schedule: Array<{ day?: string; ranges?: Array<{ start?: string; end?: string }> }> | undefined,
+  schedule:
+    | Array<{ day?: string; ranges?: Array<{ start?: string; end?: string }> }>
+    | undefined,
 ): boolean =>
   (schedule ?? []).some((day) =>
     (day?.ranges ?? []).some(
@@ -101,7 +103,9 @@ export const splitServices = (value: string): string[] => {
   try {
     const parsed = JSON.parse(value) as unknown;
     if (Array.isArray(parsed)) {
-      return parsed.map(cleanServiceLabel).filter((item): item is string => Boolean(item));
+      return parsed
+        .map(cleanServiceLabel)
+        .filter((item): item is string => Boolean(item));
     }
   } catch {
     // Legacy values can be malformed JSON-like strings, CSV, or newline-separated.
@@ -113,7 +117,9 @@ export const splitServices = (value: string): string[] => {
     .filter((item): item is string => Boolean(item));
 };
 
-const readActiveMissionServices = (availabilityHours: string | null): string[] => {
+const readActiveMissionServices = (
+  availabilityHours: string | null,
+): string[] => {
   if (!availabilityHours) return [];
 
   try {
@@ -159,7 +165,8 @@ export const isProfileAvailableNow = (input: {
   emergencyService?: boolean | null;
   isAvailableForUrgent?: boolean | null;
 }): boolean => {
-  if (input.isAvailableForUrgent === true || input.emergencyService === true) return true;
+  if (input.isAvailableForUrgent === true || input.emergencyService === true)
+    return true;
   if (!input.availabilityHours) return true;
 
   try {
@@ -167,10 +174,16 @@ export const isProfileAvailableNow = (input: {
       emergency24h?: boolean;
       rules?: { autoAcceptEmergency?: boolean };
       missionProfile?: { missions?: Array<{ isActive?: boolean }> };
-      schedule?: Array<{ day?: string; ranges?: Array<{ start?: string; end?: string }> }>;
+      schedule?: Array<{
+        day?: string;
+        ranges?: Array<{ start?: string; end?: string }>;
+      }>;
     };
 
-    if (parsed.emergency24h === true || parsed.rules?.autoAcceptEmergency === true) {
+    if (
+      parsed.emergency24h === true ||
+      parsed.rules?.autoAcceptEmergency === true
+    ) {
       return true;
     }
 
@@ -178,13 +191,17 @@ export const isProfileAvailableNow = (input: {
       return true;
     }
 
-    return (parsed.missionProfile?.missions ?? []).some((mission) => mission?.isActive === true);
+    return (parsed.missionProfile?.missions ?? []).some(
+      (mission) => mission?.isActive === true,
+    );
   } catch {
     return true;
   }
 };
 
-export function buildConciergeSearchFilters(searchParams: URLSearchParams): ConciergeSearchFilters {
+export function buildConciergeSearchFilters(
+  searchParams: URLSearchParams,
+): ConciergeSearchFilters {
   const categories = (searchParams.get("categories") ?? "")
     .split(",")
     .map((item) => item.trim())
@@ -200,7 +217,11 @@ export function buildConciergeSearchFilters(searchParams: URLSearchParams): Conc
 
   return {
     region: (searchParams.get("region") ?? "").trim(),
-    city: (searchParams.get("city") ?? searchParams.get("postalCode") ?? "").trim(),
+    city: (
+      searchParams.get("city") ??
+      searchParams.get("postalCode") ??
+      ""
+    ).trim(),
     postalCode: (searchParams.get("postalCode") ?? "").trim(),
     categories,
     services:
@@ -216,9 +237,13 @@ export function buildConciergeSearchFilters(searchParams: URLSearchParams): Conc
       (searchParams.get("availableOnly") ?? "1").trim().toLowerCase(),
     ),
     propertyType: (searchParams.get("propertyType") ?? "").trim(),
-    budgetMax: Number.isFinite(budgetMaxRaw) && budgetMaxRaw > 0 ? budgetMaxRaw : null,
-    radiusKm: Number.isFinite(radiusKmRaw) && radiusKmRaw > 0 ? radiusKmRaw : null,
-    limit: Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 120) : 48,
+    budgetMax:
+      Number.isFinite(budgetMaxRaw) && budgetMaxRaw > 0 ? budgetMaxRaw : null,
+    radiusKm:
+      Number.isFinite(radiusKmRaw) && radiusKmRaw > 0 ? radiusKmRaw : null,
+    limit: Number.isFinite(limitRaw)
+      ? Math.min(Math.max(limitRaw, 1), 120)
+      : 48,
   };
 }
 
@@ -226,11 +251,16 @@ export function mapPropertyTypesByProfile(rows: PricingPackageRow[]) {
   const byProfile = new Map<string, string[]>();
 
   rows.forEach((row) => {
-    const type = typeof row.property_type === "string" ? row.property_type.trim() : "";
+    const type =
+      typeof row.property_type === "string" ? row.property_type.trim() : "";
     if (!type) return;
 
     const current = byProfile.get(row.profile_id) ?? [];
-    if (!current.some((item) => normalizeSearchValue(item) === normalizeSearchValue(type))) {
+    if (
+      !current.some(
+        (item) => normalizeSearchValue(item) === normalizeSearchValue(type),
+      )
+    ) {
       current.push(type);
       byProfile.set(row.profile_id, current);
     }
@@ -247,7 +277,6 @@ export function applyConciergeSearchFilters<T extends SearchResultInput>(
   const regionNormalized = normalizeSearchValue(filters.region);
   const cityQueryNormalized = normalizeSearchValue(filters.city);
   const categoriesNormalized = filters.categories.map(normalizeSearchValue);
-  const servicesNormalized = filters.services.map(normalizeSearchValue);
   const propertyTypeNormalized = normalizeSearchValue(filters.propertyType);
 
   return results
@@ -292,32 +321,48 @@ export function applyConciergeSearchFilters<T extends SearchResultInput>(
             profile.services
               .map((service) => {
                 const normalizedService = normalizeSearchValue(service);
-                return categoryByService.get(normalizedService) ?? normalizedService;
+                return (
+                  categoryByService.get(normalizedService) ?? normalizedService
+                );
               })
               .filter(Boolean),
           ),
         );
-        const hasAllRequestedCategories = categoriesNormalized.every((category) =>
-          normalizedProfileCategories.some((item) => item.includes(category) || category.includes(item)),
+        const hasAllRequestedCategories = categoriesNormalized.every(
+          (category) =>
+            normalizedProfileCategories.some(
+              (item) => item.includes(category) || category.includes(item),
+            ),
         );
         if (!hasAllRequestedCategories) {
           return false;
         }
       }
 
-      if (servicesNormalized.length > 0) {
-        const normalizedProfileServices = profile.services.map(normalizeSearchValue);
-        const hasAllRequestedServices = servicesNormalized.every((service) =>
-          normalizedProfileServices.some((item) => item.includes(service)),
+      if (filters.services.length > 0) {
+        const hasAllRequestedServices = filters.services.every(
+          (requestedService) =>
+            profile.services.some((offeredService) => {
+              return (
+                matchPlanetLSService(requestedService, offeredService) ===
+                "match"
+              );
+            }),
         );
+
         if (!hasAllRequestedServices) {
           return false;
         }
       }
-
       if (propertyTypeNormalized) {
-        const normalizedPropertyTypes = (profile.property_types ?? []).map(normalizeSearchValue);
-        if (!normalizedPropertyTypes.some((item) => item.includes(propertyTypeNormalized))) {
+        const normalizedPropertyTypes = (profile.property_types ?? []).map(
+          normalizeSearchValue,
+        );
+        if (
+          !normalizedPropertyTypes.some((item) =>
+            item.includes(propertyTypeNormalized),
+          )
+        ) {
           return false;
         }
       }
@@ -368,12 +413,16 @@ export function buildAvailableConciergeFilters(
       const category = categoryByService.get(normalizeSearchValue(service));
       if (category) categories.add(category);
     });
-    (item.property_types ?? []).forEach((propertyType) => propertyTypes.add(propertyType));
+    (item.property_types ?? []).forEach((propertyType) =>
+      propertyTypes.add(propertyType),
+    );
   });
 
   return {
     categories: Array.from(categories).sort((a, b) => a.localeCompare(b)),
     services: Array.from(services).sort((a, b) => a.localeCompare(b)),
-    property_types: Array.from(propertyTypes).sort((a, b) => a.localeCompare(b)),
+    property_types: Array.from(propertyTypes).sort((a, b) =>
+      a.localeCompare(b),
+    ),
   };
 }

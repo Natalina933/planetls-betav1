@@ -1,6 +1,9 @@
 // Canonical stay-need vocabulary shared by stay mission assignments and
 // one-off stay service requests. Keep a single catalog for both usages.
-import { resolveCommonServiceValue, type CommonServiceReference } from "../../lib/commonServiceCatalog.ts";
+// Un besoin de séjour décrit ce dont le propriétaire a besoin ;
+// le catalogue cible définit ce qu'un professionnel peut proposer.
+import type { PlanetLSServiceTargetEntry } from "../../lib/planetlsServiceCatalogTarget.ts";
+import { resolvePlanetLSSelection } from "../../lib/planetlsServiceSelection.ts";
 
 export const SERVICE_CODES = {
   checkin: "CHECK_IN",
@@ -19,7 +22,7 @@ export const STAY_NEED_SERVICE_SLUGS: Record<NeedKey, string> = {
   checkout: "guest_checkout",
   cleaning: "cleaning_turnover",
   linen: "linen_change",
-  courses: "groceries_arrival",
+  courses: "shopping_supplies",
 };
 
 export type StayNeedCatalogResolution =
@@ -28,7 +31,15 @@ export type StayNeedCatalogResolution =
       need: NeedKey;
       historicalCode: (typeof SERVICE_CODES)[NeedKey];
       slug: string;
-      service: CommonServiceReference;
+      service: PlanetLSServiceTargetEntry;
+    }
+  | {
+      kind: "group";
+      need: NeedKey;
+      historicalCode: (typeof SERVICE_CODES)[NeedKey];
+      slug: string;
+      service: PlanetLSServiceTargetEntry;
+      reason: string;
     }
   | { kind: "unknown"; value: unknown };
 
@@ -52,9 +63,22 @@ export function resolveStayNeedCatalogService(value: unknown): StayNeedCatalogRe
   if (!need) return { kind: "unknown", value };
 
   const slug = getStayNeedServiceSlug(need);
-  const resolved = resolveCommonServiceValue(slug);
-  if (resolved.kind !== "service") {
+  const resolved = resolvePlanetLSSelection(slug);
+  if (!resolved) {
     return { kind: "unknown", value };
+  }
+
+  // Les courses correspondent à un groupe à qualifier :
+  // le besoin est reconnu mais ne prouve aucune prestation précise.
+  if (resolved.kind === "group") {
+    return {
+      kind: "group",
+      need,
+      historicalCode: SERVICE_CODES[need],
+      slug,
+      service: resolved,
+      reason: "Besoin reconnu, groupe à qualifier : aucune prestation précise attribuée automatiquement.",
+    };
   }
 
   return {
@@ -62,6 +86,6 @@ export function resolveStayNeedCatalogService(value: unknown): StayNeedCatalogRe
     need,
     historicalCode: SERVICE_CODES[need],
     slug,
-    service: resolved.service,
+    service: resolved,
   };
 }

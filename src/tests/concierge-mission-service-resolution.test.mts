@@ -15,10 +15,7 @@ test("concierge mission resolver preserves the historical check-in/check-out bun
   const resolution = resolveConciergeMissionServiceValue("check-in-check-out");
 
   assert.equal(resolution.kind, "ambiguous");
-  if (resolution.kind === "ambiguous") {
-    assert.equal(resolution.candidates[0]?.slug, "guest_checkin_checkout_legacy_bundle");
-    assert.match(resolution.reason, /ne pas scinder/i);
-  }
+  assert.match(resolution.reason, /sélectionnez check-in ou check-out/i);
 });
 
 test("concierge mission resolver keeps future check-in and check-out separate", () => {
@@ -34,6 +31,35 @@ test("concierge mission resolver keeps future check-in and check-out separate", 
   }
 });
 
+test("un concierge qui propose le ménage n'obtient que le ménage sélectionné", () => {
+  const cleaning = resolveConciergeMissionServiceValue("cleaning_standard");
+
+  assert.equal(cleaning.kind, "service");
+  if (cleaning.kind === "service") {
+    assert.equal(cleaning.slug, "cleaning_standard");
+  }
+});
+
+test("un concierge qui propose le check-in n'obtient pas le check-out", () => {
+  const checkin = resolveConciergeMissionServiceValue("guest_checkin");
+  const checkout = resolveConciergeMissionServiceValue("guest_checkout");
+
+  assert.equal(checkin.kind, "service");
+  assert.equal(checkout.kind, "service");
+  if (checkin.kind === "service" && checkout.kind === "service") {
+    assert.notEqual(checkin.slug, checkout.slug);
+  }
+});
+
+test("un groupe concierge reste à qualifier sans sous-prestations", () => {
+  const group = resolveConciergeMissionServiceValue("maintenance_minor_repairs");
+
+  assert.equal(group.kind, "group");
+  if (group.kind === "group") {
+    assert.equal(group.slug, "maintenance_minor_repairs");
+  }
+});
+
 test("concierge mission resolver keeps broad concierge services as families", () => {
   const cleaning = resolveConciergeMissionServiceValue("Ménage");
   const maintenance = resolveConciergeMissionServiceValue("maintenance");
@@ -46,11 +72,11 @@ test("concierge mission resolver keeps broad concierge services as families", ()
 
   if (cleaning.kind === "family") {
     assert.equal(cleaning.family, "Ménage");
-    assert.match(cleaning.reason, /ne pas convertir/i);
+    assert.match(cleaning.reason, /prestation de ménage précise/i);
   }
   if (maintenance.kind === "family") {
     assert.equal(maintenance.family, "Maintenance légère");
-    assert.match(maintenance.reason, /réglementée/i);
+    assert.match(maintenance.reason, /prestation de maintenance précise/i);
   }
   if (guestReception.kind === "family") {
     assert.equal(guestReception.family, "Accueil voyageurs");
@@ -63,9 +89,10 @@ test("concierge mission resolver keeps transversal and contextual values explici
   const nightEmergency = resolveConciergeMissionServiceValue("urgence-de-nuit");
 
   assert.equal(intendance.kind, "ambiguous");
-  if (intendance.kind === "ambiguous") {
-    assert.equal(intendance.candidates[0]?.slug, "legacy_intendance");
-  }
+  assert.deepEqual(
+    intendance.kind === "ambiguous" ? intendance.candidates : null,
+    [],
+  );
 
   assert.equal(nightEmergency.kind, "context");
   if (nightEmergency.kind === "context") {
@@ -122,8 +149,8 @@ test("concierge mission catalog ids and seasonal prices remain unchanged", () =>
 test("concierge pricing resolver enriches exact service prices without changing pricing data", () => {
   const price = {
     id: "price-cleaning",
-    service_id: 2,
-    label: "Ménage entre voyageurs",
+    service_id: null,
+    label: "Ménage entre deux séjours",
     type: "fixed",
     amount: 90,
     unit: "par prestation",
@@ -136,9 +163,9 @@ test("concierge pricing resolver enriches exact service prices without changing 
   assert.equal(resolved.pricing, price);
   assert.deepEqual(price, before);
   assert.deepEqual(resolved.identifier, {
-    serviceId: 2,
-    value: "2",
-    source: "service_id",
+    serviceId: null,
+    value: "Ménage entre deux séjours",
+    source: "label",
   });
   assert.equal(resolved.catalog.kind, "service");
   if (resolved.catalog.kind === "service") {
@@ -149,12 +176,34 @@ test("concierge pricing resolver enriches exact service prices without changing 
   assert.equal(resolved.pricing.currency, "EUR");
 });
 
+test("un tarif associé à une prestation précise conserve son montant", () => {
+  const price = {
+    label: "Check-in",
+    amount: 35,
+    unit: "par prestation",
+  };
+
+  const resolved = resolveConciergePricingLineCatalog(price);
+
+  assert.equal(resolved.catalog.kind, "service");
+  if (resolved.catalog.kind === "service") {
+    assert.equal(resolved.catalog.slug, "guest_checkin");
+  }
+  assert.equal(resolved.pricing.amount, 35);
+});
+
+test("une prestation non tarifée reste à chiffrer sur devis", () => {
+  const group = resolveConciergeMissionServiceValue("shopping_supplies");
+
+  assert.equal(group.kind, "group");
+});
+
 test("concierge pricing resolver keeps general and ambiguous tariff references explicit", () => {
   const prices = [
-    { service_id: 16, label: "Check-in / Check-out", amount: 75, unit: "par prestation" },
+    { label: "Check-in / Check-out", amount: 75, unit: "par prestation" },
     { label: "Ménage", amount: 45, unit: "par heure" },
-    { service_id: 73, label: "Intendance", amount: 12, unit: "%" },
-    { service_id: 75, label: "Urgence de nuit", amount: 20, unit: "pourcentage" },
+    { label: "Intendance", amount: 12, unit: "%" },
+    { label: "Urgence de nuit", amount: 20, unit: "pourcentage" },
     { label: "Gestion complète", amount: 18, unit: "%" },
     { label: "Valeur inconnue", amount: 10, unit: "par prestation" },
   ];
@@ -175,10 +224,6 @@ test("concierge pricing resolver keeps general and ambiguous tariff references e
 
   const legacyBundle = resolved[0]?.catalog;
   assert.equal(legacyBundle?.kind, "ambiguous");
-  if (legacyBundle?.kind === "ambiguous") {
-    assert.equal(legacyBundle.candidates.length, 1);
-    assert.equal(legacyBundle.candidates[0]?.slug, "guest_checkin_checkout_legacy_bundle");
-  }
 
   const fullManagement = resolved[4]?.catalog;
   assert.equal(fullManagement?.kind, "mode");

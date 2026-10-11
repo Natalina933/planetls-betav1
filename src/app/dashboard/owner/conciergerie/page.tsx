@@ -16,7 +16,9 @@ import {
   XCircle,
 } from "lucide-react";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
-import { Button, ButtonLink, Checkbox, Input, Select, Textarea } from "@/components/ui";
+import { Button, ButtonLink, Checkbox, Input, PlanetLSServicePicker, Select, Textarea } from "@/components/ui";
+import { normalizePlanetLSSelection, resolvePlanetLSSelection } from "@/app/lib/planetlsServiceSelection";
+import { resolvePlanetLSRequestServices } from "@/app/lib/planetlsServiceSearchResolution";
 import styles from "./OwnerConciergeriesPage.module.scss";
 
 type SectionKey = "recherche" | "demandes" | "devis" | "partenaires";
@@ -203,14 +205,11 @@ function formatAmount(value: number | null | undefined, currency = "EUR") {
 }
 
 function normalizeServices(rawValue: string) {
-  return Array.from(
-    new Set(
-      rawValue
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean),
-    ),
-  );
+  return normalizePlanetLSSelection(String(rawValue ?? "").split(","));
+}
+
+function getPlanetLSServiceLabel(slug: string) {
+  return resolvePlanetLSSelection(slug)?.label ?? slug;
 }
 
 function getQuoteRequestId(quote: OwnerQuoteRow) {
@@ -444,12 +443,17 @@ export default function OwnerConciergeriesPage() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const services = normalizeServices(form.requestedServices);
+    const requestServiceResolution = resolvePlanetLSRequestServices(services);
     if (!form.title.trim()) {
       setError("Ajoutez un titre clair à votre demande.");
       return;
     }
-    if (services.length === 0) {
-      setError("Ajoutez au moins un service demandé.");
+    if (requestServiceResolution.services.length === 0) {
+      setError(
+        requestServiceResolution.unknownValues.length > 0
+          ? `Ces valeurs ne correspondent pas au catalogue PlanetLS : ${requestServiceResolution.unknownValues.join(", ")}. Sélectionnez une prestation précise.`
+          : "Sélectionnez au moins une prestation du catalogue.",
+      );
       return;
     }
 
@@ -465,7 +469,7 @@ export default function OwnerConciergeriesPage() {
           title: form.title.trim(),
           description: form.description.trim() || null,
           property_name: form.propertyName.trim() || null,
-          requested_services: services,
+          requested_services: requestServiceResolution.services,
           city: form.city.trim() || null,
           postal_code: form.postalCode.trim() || null,
           desired_date: form.desiredDate ? new Date(form.desiredDate).toISOString() : null,
@@ -595,15 +599,23 @@ export default function OwnerConciergeriesPage() {
                   Utiliser : {titleSuggestion}
                 </button>
               </label>
-              <label className={`${styles.field} ${styles.fullField}`}>
+              <div className={`${styles.field} ${styles.fullField}`}>
                 <span>Services demandés</span>
-                <Input value={form.requestedServices} onChange={(event) => setForm((current) => ({ ...current, requestedServices: event.target.value }))} placeholder="check-in, ménage, linge, maintenance..." />
+                <PlanetLSServicePicker
+                  selected={normalizedServices}
+                  onChange={(selected) => setForm((current) => ({ ...current, requestedServices: selected.join(", ") }))}
+                />
+                {normalizedServices.filter((slug) => !resolvePlanetLSSelection(slug)).length > 0 ? (
+                  <p className={`${styles.message} ${styles.messageError}`} role="alert">
+                    Ces valeurs ne correspondent pas au catalogue PlanetLS : {normalizedServices.filter((slug) => !resolvePlanetLSSelection(slug)).join(", ")}. Sélectionnez une prestation précise.
+                  </p>
+                ) : null}
                 {normalizedServices.length > 0 ? (
                   <div className={styles.chipRow}>
-                    {normalizedServices.map((service) => <span key={service} className={styles.serviceChip}>{service}</span>)}
+                    {normalizedServices.map((service) => <span key={service} className={styles.serviceChip}>{getPlanetLSServiceLabel(service)}</span>)}
                   </div>
                 ) : null}
-              </label>
+              </div>
               <label className={styles.field}>
                 <span>Ville</span>
                 <Input value={form.city} onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))} placeholder="Paris" />

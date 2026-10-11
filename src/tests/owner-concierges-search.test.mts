@@ -170,11 +170,14 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
   ];
 
   assert.deepEqual(
-    buildAvailableConciergeFilters(results, new Map([
-      ["menage", "Menage"],
-      ["check-in", "Accueil"],
-      ["maintenance", "Maintenance"],
-    ])),
+    buildAvailableConciergeFilters(
+      results,
+      new Map([
+        ["menage", "Menage"],
+        ["check-in", "Accueil"],
+        ["maintenance", "Maintenance"],
+      ]),
+    ),
     {
       categories: ["Accueil", "Maintenance", "Menage"],
       services: ["Check-in", "Maintenance", "Menage"],
@@ -207,7 +210,10 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
   assert.equal(params.get("radiusKm"), "30");
   assert.equal(params.get("proOnly"), "1");
 
-  assert.deepEqual(toggleOwnerConciergeService(["Menage"], "Check-in"), ["Menage", "Check-in"]);
+  assert.deepEqual(toggleOwnerConciergeService(["Menage"], "Check-in"), [
+    "Menage",
+    "Check-in",
+  ]);
   assert.deepEqual(toggleOwnerConciergeService(["Menage"], "Menage"), []);
 });
 
@@ -368,4 +374,66 @@ test("upsertOwnerConciergeSearchAlert updates an alert and deleteOwnerConciergeS
       });
     }
   }
+});
+
+test("service matching keeps distinct cleaning and check-in services", () => {
+  const baseProfile = {
+    display_name: "Concierge Test",
+    city: "Paris",
+    country: "France",
+    service_area: "Paris",
+    service_radius_km: 20,
+    hourly_rate: 30,
+    monthly_rate: 300,
+    experience_level: null,
+    years_experience: null,
+    is_pro: false,
+    is_available_now: true,
+    average_rating: null,
+    reviews_count: 0,
+  };
+
+  const profiles = [
+    {
+      ...baseProfile,
+      id: "checkin",
+      services: ["Check-in"],
+    },
+    {
+      ...baseProfile,
+      id: "checkout",
+      services: ["Check-out"],
+    },
+    {
+      ...baseProfile,
+      id: "turnover",
+      services: ["Ménage entre voyageurs"],
+    },
+    {
+      ...baseProfile,
+      id: "deep",
+      services: ["Grand ménage"],
+    },
+  ];
+
+  const search = (service: string) =>
+    applyConciergeSearchFilters(profiles, {
+      region: "",
+      city: "",
+      postalCode: "",
+      categories: [],
+      services: [service],
+      proOnly: false,
+      availableOnly: false,
+      propertyType: "",
+      budgetMax: null,
+      radiusKm: null,
+      limit: 20,
+    }).map((profile) => profile.id);
+
+  assert.deepEqual(search("guest_checkin"), ["checkin"]);
+  assert.deepEqual(search("guest_checkout"), ["checkout"]);
+  assert.deepEqual(search("cleaning_turnover"), ["turnover"]);
+  assert.deepEqual(search("cleaning_deep"), ["deep"]);
+  assert.deepEqual(search("Ménage"), []);
 });

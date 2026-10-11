@@ -18,42 +18,42 @@ test("provider category stays a profession and is not converted to a billable se
   assert.equal(electrician.verifiedQualification, false);
 });
 
-test("provider declared skills stay declared skills without verified qualification", () => {
-  const skill = resolveProviderCatalogValue("Plomberie", "skill");
+test("un artisan qui choisit Plomberie est identifié sans toutes les interventions", () => {
+  const plumbing = resolveProviderCatalogValue("plumbing_installation", "service_label");
 
-  assert.equal(skill.kind, "skill");
-  if (skill.kind === "skill") {
-    assert.equal(skill.value, "Plomberie");
-    assert.equal(skill.catalog?.slug, "maintenance_plumbing_minor");
-    assert.equal(skill.requiresQualification, true);
-    assert.equal(skill.verifiedQualification, false);
-  }
-});
-
-test("provider service labels resolve exact services and regulated metadata", () => {
-  const plumbing = resolveProviderCatalogValue("maintenance_plumbing_minor", "service_label");
-
-  assert.equal(plumbing.kind, "service");
-  if (plumbing.kind === "service") {
-    assert.equal(plumbing.slug, "maintenance_plumbing_minor");
-    assert.equal(plumbing.requiresQualification, true);
+  assert.equal(plumbing.kind, "group");
+  if (plumbing.kind === "group") {
+    assert.equal(plumbing.slug, "plumbing_installation");
     assert.equal(plumbing.verifiedQualification, false);
   }
 });
 
-test("provider service labels keep general families and ambiguous values explicit", () => {
+test("provider declared skills stay declared skills without verified qualification", () => {
+  const skill = resolveProviderCatalogValue("plumbing_repair", "skill");
+
+  assert.equal(skill.kind, "skill");
+  if (skill.kind === "skill") {
+    assert.equal(skill.value, "plumbing_repair");
+    assert.equal(skill.service?.slug, "plumbing_repair");
+    assert.equal(skill.verifiedQualification, false);
+  }
+});
+
+test("provider service labels resolve exact services", () => {
+  const plumbing = resolveProviderCatalogValue("plumbing_repair", "service_label");
+
+  assert.equal(plumbing.kind, "service");
+  if (plumbing.kind === "service") {
+    assert.equal(plumbing.slug, "plumbing_repair");
+    assert.equal(plumbing.verifiedQualification, false);
+  }
+});
+
+test("un métier artisan ne prouve aucune prestation précise", () => {
   const maintenance = resolveProviderCatalogValue("Maintenance", "service_label");
-  const intendance = resolveProviderCatalogValue("Intendance", "service_label");
 
-  assert.equal(maintenance.kind, "family");
-  if (maintenance.kind === "family") {
-    assert.equal(maintenance.family, "Maintenance légère");
-  }
-
-  assert.equal(intendance.kind, "ambiguous");
-  if (intendance.kind === "ambiguous") {
-    assert.equal(intendance.candidates[0]?.slug, "legacy_intendance");
-  }
+  assert.notEqual(maintenance.kind, "service");
+  assert.equal(maintenance.kind, "unknown");
 });
 
 test("provider unknown and empty values remain unknown", () => {
@@ -100,7 +100,7 @@ test("provider profile resolution preserves source values and skill order", () =
 test("provider intervention resolution preserves original intervention data", () => {
   const intervention = {
     id: "intervention-1",
-    service_label: "Test sécurité électrique",
+    service_label: "electrical_repair",
     budget_amount: 120,
     currency: "EUR",
     status: "pending",
@@ -113,8 +113,7 @@ test("provider intervention resolution preserves original intervention data", ()
   assert.deepEqual(intervention, before);
   assert.equal(resolution.catalogResolution.kind, "service");
   if (resolution.catalogResolution.kind === "service") {
-    assert.equal(resolution.catalogResolution.slug, "maintenance_electrical_safety_check");
-    assert.equal(resolution.catalogResolution.requiresQualification, true);
+    assert.equal(resolution.catalogResolution.slug, "electrical_repair");
     assert.equal(resolution.catalogResolution.verifiedQualification, false);
   }
   assert.equal(resolution.intervention.budget_amount, 120);
@@ -123,7 +122,7 @@ test("provider intervention resolution preserves original intervention data", ()
 
 test("provider intervention list resolution keeps count and order", () => {
   const interventions = [
-    { id: "1", service_label: "Maintenance", budget_amount: 10 },
+    { id: "1", service_label: "plumbing_installation", budget_amount: 10 },
     { id: "2", service_label: "Valeur inventée", budget_amount: 20 },
     { id: "3", service_label: null, budget_amount: null },
   ];
@@ -137,7 +136,7 @@ test("provider intervention list resolution keeps count and order", () => {
   );
   assert.deepEqual(
     resolutions.map((item) => item.catalogResolution.kind),
-    ["family", "unknown", "unknown"],
+    ["group", "unknown", "unknown"],
   );
   assert.deepEqual(
     resolutions.map((item) => item.intervention.budget_amount),

@@ -1,13 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { resolveRequestedServicesCatalog } from "@/app/api/_shared/requestedServicesCatalog";
+
+import { validatePlanetLSServiceRequest } from "@/app/lib/planetlsServiceRequestValidation";
+import { validatePlanetLSServiceRequestUpdate } from "@/app/lib/planetlsServiceRequestUpdateValidation";
 import { validateStayServiceRequestContext } from "@/app/api/_shared/stayServiceRequestContext";
 import type { NeedKey } from "@/app/api/_shared/stayNeeds";
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { deriveCommercialWorkflowStatus } from "@/app/lib/commercialWorkflow";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
-import { collectHousingReferenceIds, getHousingReferenceId, getListingLabel, matchesHousingReference } from "@/app/lib/listingReferences";
+import {
+  collectHousingReferenceIds,
+  getHousingReferenceId,
+  getListingLabel,
+  matchesHousingReference,
+} from "@/app/lib/listingReferences";
 import {
   buildServiceRequestBrief,
   readServiceRequestBriefMetadata,
@@ -73,19 +81,39 @@ interface CreateServiceRequestBody {
 }
 
 const OWNER_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
-const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro", "admin", "super_admin"]);
-const VALID_REQUEST_TYPES: ServiceRequestType[] = ["ponctuel", "renfort", "durable"];
+const CONCIERGE_ROLES = new Set([
+  "concierge",
+  "concierge_pro",
+  "admin",
+  "super_admin",
+]);
+const VALID_REQUEST_TYPES: ServiceRequestType[] = [
+  "ponctuel",
+  "renfort",
+  "durable",
+];
 
 const isUuidLike = (value: string): boolean =>
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value,
+  );
 
 const createServiceRequestSchema = z.object({
-  housing_id: z.union([z.string().trim().max(40), z.coerce.number().int().positive()]).optional().nullable(),
+  housing_id: z
+    .union([z.string().trim().max(40), z.coerce.number().int().positive()])
+    .optional()
+    .nullable(),
   property_id: z.string().uuid().optional().nullable(),
   property_name: z.string().trim().max(180).optional().nullable(),
   property_address: z.string().trim().max(240).optional().nullable(),
   property_type: z.string().trim().max(120).optional().nullable(),
-  sleeping_capacity: z.union([z.string().trim().max(40), z.coerce.number().nonnegative().max(100)]).optional().nullable(),
+  sleeping_capacity: z
+    .union([
+      z.string().trim().max(40),
+      z.coerce.number().nonnegative().max(100),
+    ])
+    .optional()
+    .nullable(),
   property_constraints: z.string().trim().max(2000).optional().nullable(),
   request_type: z.enum(["ponctuel", "renfort", "durable"]).optional(),
   owner_goal: z.string().trim().max(80).optional().nullable(),
@@ -97,14 +125,22 @@ const createServiceRequestSchema = z.object({
   request_summary: z.string().trim().max(1000).optional().nullable(),
   title: z.string().trim().min(1).max(180),
   description: z.string().trim().max(5000).optional().nullable(),
-  requested_services: z.array(z.string().trim().min(1).max(120)).max(50).optional(),
+  requested_services: z
+    .array(z.string().trim().min(1).max(120))
+    .max(50)
+    .optional(),
   region: z.string().trim().max(120).optional().nullable(),
   radius_km: z.coerce.number().positive().max(1000).optional().nullable(),
   city: z.string().trim().max(120).optional().nullable(),
   postal_code: z.string().trim().max(20).optional().nullable(),
   desired_date: z.string().trim().max(40).optional().nullable(),
   urgency: z.boolean().optional(),
-  budget_max: z.coerce.number().nonnegative().max(100000000).optional().nullable(),
+  budget_max: z.coerce
+    .number()
+    .nonnegative()
+    .max(100000000)
+    .optional()
+    .nullable(),
   currency: z.string().trim().length(3).optional().nullable(),
   recipient_ids: z.array(z.string().uuid()).max(100).optional(),
   // One-off stay-specific request: explicit stay context (never inferred
@@ -113,11 +149,9 @@ const createServiceRequestSchema = z.object({
   stay_need: z.string().trim().max(40).optional().nullable(),
 });
 
-const updateServiceRequestSchema = createServiceRequestSchema
-  .partial()
-  .extend({
-    id: z.string().uuid(),
-  });
+const updateServiceRequestSchema = createServiceRequestSchema.partial().extend({
+  id: z.string().uuid(),
+});
 
 type ServiceRequestRecipientRow = {
   id: string;
@@ -201,21 +235,48 @@ function normalizeStatus(value: unknown): string {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
 
-function readStringField(row: Record<string, unknown> | null | undefined, key: string) {
+function readStringField(
+  row: Record<string, unknown> | null | undefined,
+  key: string,
+) {
   const value = row?.[key];
   return typeof value === "string" ? value : null;
 }
 
-function pickPrimaryRecipientStatus(recipients: Array<{ status?: string | null }>) {
-  const statuses = recipients.map((recipient) => recipient.status).filter(Boolean);
-  const priority = ["selected", "quoted", "interested", "viewed", "sent", "declined", "not_selected"];
-  return priority.find((status) => statuses.includes(status)) ?? statuses[0] ?? null;
+function pickPrimaryRecipientStatus(
+  recipients: Array<{ status?: string | null }>,
+) {
+  const statuses = recipients
+    .map((recipient) => recipient.status)
+    .filter(Boolean);
+  const priority = [
+    "selected",
+    "quoted",
+    "interested",
+    "viewed",
+    "sent",
+    "declined",
+    "not_selected",
+  ];
+  return (
+    priority.find((status) => statuses.includes(status)) ?? statuses[0] ?? null
+  );
 }
 
 function pickPrimaryQuoteStatus(quotes: Array<{ status?: string | null }>) {
   const statuses = quotes.map((quote) => quote.status).filter(Boolean);
-  const priority = ["accepted", "sent", "not_selected", "rejected", "expired", "canceled", "draft"];
-  return priority.find((status) => statuses.includes(status)) ?? statuses[0] ?? null;
+  const priority = [
+    "accepted",
+    "sent",
+    "not_selected",
+    "rejected",
+    "expired",
+    "canceled",
+    "draft",
+  ];
+  return (
+    priority.find((status) => statuses.includes(status)) ?? statuses[0] ?? null
+  );
 }
 
 function readPropertyLabelFromMetadata(value: unknown): string | null {
@@ -228,11 +289,16 @@ function readPropertyLabelFromMetadata(value: unknown): string | null {
 
 function readStringFromMetadata(value: unknown, key: string): string | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const candidate = key in value ? (value as Record<string, unknown>)[key] : null;
-  return typeof candidate === "string" && candidate.trim() ? candidate.trim() : null;
+  const candidate =
+    key in value ? (value as Record<string, unknown>)[key] : null;
+  return typeof candidate === "string" && candidate.trim()
+    ? candidate.trim()
+    : null;
 }
 
-function buildBriefFromRequestRow(row: Record<string, unknown> | null | undefined): ServiceRequestBrief {
+function buildBriefFromRequestRow(
+  row: Record<string, unknown> | null | undefined,
+): ServiceRequestBrief {
   const metadata = readServiceRequestBriefMetadata(row?.metadata);
   const requestedServices = normalizeStringArray(row?.requested_services);
   const metadataString = (key: string) => {
@@ -250,8 +316,14 @@ function buildBriefFromRequestRow(row: Record<string, unknown> | null | undefine
     propertyName: readPropertyLabelFromMetadata(row?.metadata),
     propertyAddress: readStringFromMetadata(row?.metadata, "property_address"),
     propertyType: readStringFromMetadata(row?.metadata, "property_type"),
-    sleepingCapacity: readStringFromMetadata(row?.metadata, "sleeping_capacity"),
-    propertyConstraints: readStringFromMetadata(row?.metadata, "property_constraints"),
+    sleepingCapacity: readStringFromMetadata(
+      row?.metadata,
+      "sleeping_capacity",
+    ),
+    propertyConstraints: readStringFromMetadata(
+      row?.metadata,
+      "property_constraints",
+    ),
     requestedServices,
     desiredDate: readStringField(row, "desired_date"),
     urgency: row?.urgency === true,
@@ -287,7 +359,8 @@ function isMissingRelationError(error: unknown) {
   const maybeMessage = "message" in error ? error.message : null;
   return (
     typeof maybeMessage === "string" &&
-    (maybeMessage.includes("relation") || maybeMessage.includes("does not exist"))
+    (maybeMessage.includes("relation") ||
+      maybeMessage.includes("does not exist"))
   );
 }
 
@@ -302,13 +375,17 @@ function buildRequestPrefillMessage(
     `Objectif : ${requestBrief.owner_goal_label}`,
     `Collaboration : ${requestBrief.collaboration_type_label}`,
     `Frequence : ${requestBrief.frequency_label}`,
-    requestBrief.estimated_duration ? `Duree estimee : ${requestBrief.estimated_duration}` : null,
+    requestBrief.estimated_duration
+      ? `Duree estimee : ${requestBrief.estimated_duration}`
+      : null,
     `Responsabilite : ${requestBrief.responsibility_level_label}`,
     `Proposition attendue : ${requestBrief.pricing_expectation}`,
     requestBrief.missing_information.length > 0
       ? `Informations a preciser : ${requestBrief.missing_information.join(", ")}`
       : null,
-    typeof body.title === "string" && body.title.trim() ? `Titre : ${body.title.trim()}` : null,
+    typeof body.title === "string" && body.title.trim()
+      ? `Titre : ${body.title.trim()}`
+      : null,
     typeof body.property_name === "string" && body.property_name.trim()
       ? `Logement : ${body.property_name.trim()}`
       : null,
@@ -318,28 +395,41 @@ function buildRequestPrefillMessage(
     typeof body.property_type === "string" && body.property_type.trim()
       ? `Type de logement : ${body.property_type.trim()}`
       : null,
-    typeof body.sleeping_capacity === "number" || (typeof body.sleeping_capacity === "string" && body.sleeping_capacity.trim())
+    typeof body.sleeping_capacity === "number" ||
+    (typeof body.sleeping_capacity === "string" &&
+      body.sleeping_capacity.trim())
       ? `Couchages : ${String(body.sleeping_capacity).trim()}`
       : null,
-    typeof body.property_constraints === "string" && body.property_constraints.trim()
+    typeof body.property_constraints === "string" &&
+    body.property_constraints.trim()
       ? `Contraintes : ${body.property_constraints.trim()}`
       : null,
-    typeof body.region === "string" && body.region.trim() ? `Region : ${body.region.trim()}` : null,
-    typeof body.city === "string" && body.city.trim() ? `Ville : ${body.city.trim()}` : null,
+    typeof body.region === "string" && body.region.trim()
+      ? `Region : ${body.region.trim()}`
+      : null,
+    typeof body.city === "string" && body.city.trim()
+      ? `Ville : ${body.city.trim()}`
+      : null,
     typeof body.postal_code === "string" && body.postal_code.trim()
       ? `Code postal : ${body.postal_code.trim()}`
       : null,
     requestedServices.length > 0
       ? `Services recherches : ${requestedServices.join(", ")}`
       : null,
-    typeof body.budget_max === "number" ? `Budget max : ${body.budget_max} ${normalizeCurrency(body.currency)}` : null,
+    typeof body.budget_max === "number"
+      ? `Budget max : ${body.budget_max} ${normalizeCurrency(body.currency)}`
+      : null,
     body.urgency === true ? "Urgence : oui" : null,
     typeof body.description === "string" && body.description.trim()
       ? `Details : ${body.description.trim()}`
       : null,
   ];
 
-  return lines.filter((line): line is string => typeof line === "string" && line.length > 0).join("\n");
+  return lines
+    .filter(
+      (line): line is string => typeof line === "string" && line.length > 0,
+    )
+    .join("\n");
 }
 
 async function ensureContactConversations(params: {
@@ -368,7 +458,10 @@ async function ensureContactConversations(params: {
   const { data: existingRows, error: existingError } = await existingQuery;
 
   if (existingError) {
-    console.error("[service-requests] load contact conversations error:", existingError);
+    console.error(
+      "[service-requests] load contact conversations error:",
+      existingError,
+    );
     throw new Error("Impossible de preparer les conversations.");
   }
 
@@ -377,7 +470,9 @@ async function ensureContactConversations(params: {
     existingByConcierge.set(row.concierge_profile_id, row);
   });
 
-  const missingConciergeIds = conciergeIds.filter((id) => !existingByConcierge.has(id));
+  const missingConciergeIds = conciergeIds.filter(
+    (id) => !existingByConcierge.has(id),
+  );
   let createdRows: ContactConversationRow[] = [];
 
   if (missingConciergeIds.length > 0) {
@@ -399,14 +494,20 @@ async function ensureContactConversations(params: {
       .select("id, concierge_profile_id, owner_profile_id");
 
     if (insertError) {
-      console.error("[service-requests] create contact conversations error:", insertError);
+      console.error(
+        "[service-requests] create contact conversations error:",
+        insertError,
+      );
       throw new Error("Impossible de creer les conversations de suivi.");
     }
 
     createdRows = (insertedRows ?? []) as ContactConversationRow[];
   }
 
-  const allConversations = [...(existingRows ?? []), ...createdRows] as ContactConversationRow[];
+  const allConversations = [
+    ...(existingRows ?? []),
+    ...createdRows,
+  ] as ContactConversationRow[];
   if (allConversations.length === 0) return [];
 
   const { error: messagesError } = await dbAny.from("contact_messages").insert(
@@ -425,7 +526,10 @@ async function ensureContactConversations(params: {
   );
 
   if (messagesError) {
-    console.error("[service-requests] create contact messages error:", messagesError);
+    console.error(
+      "[service-requests] create contact messages error:",
+      messagesError,
+    );
     throw new Error("Impossible d'envoyer le message d'introduction.");
   }
 
@@ -447,21 +551,32 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
 
   const requestIds = (requests ?? []).map((row: { id: string }) => row.id);
   const selectedConciergeIds = (requests ?? [])
-    .map((row: { selected_concierge_profile_id?: string | null }) => row.selected_concierge_profile_id)
-    .filter((id: unknown): id is string => typeof id === "string" && id.length > 0);
+    .map(
+      (row: { selected_concierge_profile_id?: string | null }) =>
+        row.selected_concierge_profile_id,
+    )
+    .filter(
+      (id: unknown): id is string => typeof id === "string" && id.length > 0,
+    );
   const propertyIds = Array.from(
     new Set(
       (requests ?? [])
         .map((row: { property_id?: string | null }) => row.property_id)
-        .filter((id: unknown): id is string => typeof id === "string" && id.length > 0),
+        .filter(
+          (id: unknown): id is string =>
+            typeof id === "string" && id.length > 0,
+        ),
     ),
   );
   const housingIds = collectHousingReferenceIds(
     (requests ?? []).map((row: Record<string, unknown>) => ({
       propertyId: typeof row.property_id === "string" ? row.property_id : null,
-      metadata: typeof row.metadata === "object" && row.metadata !== null && !Array.isArray(row.metadata)
-        ? (row.metadata as Record<string, unknown>)
-        : null,
+      metadata:
+        typeof row.metadata === "object" &&
+        row.metadata !== null &&
+        !Array.isArray(row.metadata)
+          ? (row.metadata as Record<string, unknown>)
+          : null,
     })),
   );
   const numericHousingIds = housingIds
@@ -471,19 +586,33 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
   const { data: recipients, error: recipientsError } = await dbAny
     .from("service_request_recipients")
     .select("*")
-    .in("service_request_id", requestIds.length > 0 ? requestIds : ["00000000-0000-0000-0000-000000000000"]);
+    .in(
+      "service_request_id",
+      requestIds.length > 0
+        ? requestIds
+        : ["00000000-0000-0000-0000-000000000000"],
+    );
 
   if (recipientsError) {
-    console.error("[GET /api/service-requests] owner recipients error:", recipientsError);
+    console.error(
+      "[GET /api/service-requests] owner recipients error:",
+      recipientsError,
+    );
     throw new Error("Impossible de charger les destinataires.");
   }
 
   const conciergeIds = Array.from(
     new Set(
       (recipients ?? [])
-        .map((row: { concierge_profile_id?: string | null }) => row.concierge_profile_id)
+        .map(
+          (row: { concierge_profile_id?: string | null }) =>
+            row.concierge_profile_id,
+        )
         .concat(selectedConciergeIds)
-        .filter((id: unknown): id is string => typeof id === "string" && id.length > 0),
+        .filter(
+          (id: unknown): id is string =>
+            typeof id === "string" && id.length > 0,
+        ),
     ),
   );
 
@@ -494,12 +623,24 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
   ] = await Promise.all([
     dbAny
       .from("profiles")
-      .select("id, first_name, last_name, username, company_name, avatar_url, image")
-      .in("id", conciergeIds.length > 0 ? conciergeIds : ["00000000-0000-0000-0000-000000000000"]),
+      .select(
+        "id, first_name, last_name, username, company_name, avatar_url, image",
+      )
+      .in(
+        "id",
+        conciergeIds.length > 0
+          ? conciergeIds
+          : ["00000000-0000-0000-0000-000000000000"],
+      ),
     dbAny
       .from("properties")
       .select("id, name, city")
-      .in("id", propertyIds.length > 0 ? propertyIds : ["00000000-0000-0000-0000-000000000000"]),
+      .in(
+        "id",
+        propertyIds.length > 0
+          ? propertyIds
+          : ["00000000-0000-0000-0000-000000000000"],
+      ),
     dbAny
       .from("housing")
       .select("id, nom_logement, ville")
@@ -507,17 +648,26 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
   ]);
 
   if (conciergeProfilesError) {
-    console.error("[GET /api/service-requests] owner concierge profiles error:", conciergeProfilesError);
+    console.error(
+      "[GET /api/service-requests] owner concierge profiles error:",
+      conciergeProfilesError,
+    );
     throw new Error("Impossible de charger les profils concierges.");
   }
 
   if (propertiesError) {
-    console.error("[GET /api/service-requests] owner properties error:", propertiesError);
+    console.error(
+      "[GET /api/service-requests] owner properties error:",
+      propertiesError,
+    );
     throw new Error("Impossible de charger les logements lies.");
   }
 
   if (housingError) {
-    console.error("[GET /api/service-requests] owner housing error:", housingError);
+    console.error(
+      "[GET /api/service-requests] owner housing error:",
+      housingError,
+    );
     throw new Error("Impossible de charger les logements lies.");
   }
 
@@ -525,35 +675,50 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
   const conciergeAvatarById = new Map<string, string>();
   const propertyNameById = new Map<string, string>();
   const housingNameById = new Map<string, string>();
-  (conciergeProfiles ?? []).forEach(
-    (profile: ConciergeProfileRow) => {
-      const displayName =
-        `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() ||
-        profile.company_name ||
-        profile.username ||
-        "Concierge";
-      conciergeNameById.set(profile.id, displayName);
-      const avatarUrl = profile.avatar_url || profile.image;
-      if (avatarUrl) conciergeAvatarById.set(profile.id, avatarUrl);
+  (conciergeProfiles ?? []).forEach((profile: ConciergeProfileRow) => {
+    const displayName =
+      `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() ||
+      profile.company_name ||
+      profile.username ||
+      "Concierge";
+    conciergeNameById.set(profile.id, displayName);
+    const avatarUrl = profile.avatar_url || profile.image;
+    if (avatarUrl) conciergeAvatarById.set(profile.id, avatarUrl);
+  });
+  (properties ?? []).forEach(
+    (property: { id: string; name?: string | null; city?: string | null }) => {
+      const label =
+        property.name?.trim() ||
+        (property.city ? `Logement à ${property.city}` : "") ||
+        "Logement";
+      propertyNameById.set(property.id, label);
     },
   );
-  (properties ?? []).forEach((property: { id: string; name?: string | null; city?: string | null }) => {
-    const label = property.name?.trim() || (property.city ? `Logement à ${property.city}` : "") || "Logement";
-    propertyNameById.set(property.id, label);
-  });
-  (housingRows ?? []).forEach((housing: { id: number | string; nom_logement?: string | null; ville?: string | null }) => {
-    const label = housing.nom_logement?.trim() || (housing.ville ? `Logement à ${housing.ville}` : "") || "Logement";
-    housingNameById.set(String(housing.id), label);
-  });
+  (housingRows ?? []).forEach(
+    (housing: {
+      id: number | string;
+      nom_logement?: string | null;
+      ville?: string | null;
+    }) => {
+      const label =
+        housing.nom_logement?.trim() ||
+        (housing.ville ? `Logement à ${housing.ville}` : "") ||
+        "Logement";
+      housingNameById.set(String(housing.id), label);
+    },
+  );
 
   const recipientsByRequestId = new Map<string, ServiceRequestRecipientRow[]>();
   (recipients ?? []).forEach((recipient: ServiceRequestRecipientRow) => {
-    const current = recipientsByRequestId.get(recipient.service_request_id) ?? [];
-      current.push({
-        ...recipient,
-        concierge_name: conciergeNameById.get(recipient.concierge_profile_id) ?? "Concierge",
-        concierge_avatar_url: conciergeAvatarById.get(recipient.concierge_profile_id) ?? null,
-      });
+    const current =
+      recipientsByRequestId.get(recipient.service_request_id) ?? [];
+    current.push({
+      ...recipient,
+      concierge_name:
+        conciergeNameById.get(recipient.concierge_profile_id) ?? "Concierge",
+      concierge_avatar_url:
+        conciergeAvatarById.get(recipient.concierge_profile_id) ?? null,
+    });
     recipientsByRequestId.set(recipient.service_request_id, current);
   });
 
@@ -563,58 +728,92 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
   ] = await Promise.all([
     dbAny
       .from("contact_conversations")
-      .select("id, concierge_profile_id, owner_profile_id, source, source_reference, created_at")
+      .select(
+        "id, concierge_profile_id, owner_profile_id, source, source_reference, created_at",
+      )
       .eq("owner_profile_id", ownerId)
       .eq("source", "search")
       .in(
         "concierge_profile_id",
-        conciergeIds.length > 0 ? conciergeIds : ["00000000-0000-0000-0000-000000000000"],
+        conciergeIds.length > 0
+          ? conciergeIds
+          : ["00000000-0000-0000-0000-000000000000"],
       ),
     dbAny
       .from("quotes")
-      .select("id, quote_number, status, owner_profile_id, concierge_profile_id, service_request_id, service_request_recipient_id, created_at, metadata")
+      .select(
+        "id, quote_number, status, owner_profile_id, concierge_profile_id, service_request_id, service_request_recipient_id, created_at, metadata",
+      )
       .eq("owner_profile_id", ownerId)
       .neq("status", "draft")
       .in(
         "concierge_profile_id",
-        conciergeIds.length > 0 ? conciergeIds : ["00000000-0000-0000-0000-000000000000"],
+        conciergeIds.length > 0
+          ? conciergeIds
+          : ["00000000-0000-0000-0000-000000000000"],
       ),
   ]);
 
   if (conversationsError) {
-    console.error("[GET /api/service-requests] owner conversations error:", conversationsError);
+    console.error(
+      "[GET /api/service-requests] owner conversations error:",
+      conversationsError,
+    );
     throw new Error("Impossible de charger les conversations liees.");
   }
 
-  const conversationByRequestAndConcierge = new Map<string, ContactConversationRow>();
-  const fallbackConversationByConcierge = new Map<string, ContactConversationRow>();
+  const conversationByRequestAndConcierge = new Map<
+    string,
+    ContactConversationRow
+  >();
+  const fallbackConversationByConcierge = new Map<
+    string,
+    ContactConversationRow
+  >();
   (conversations ?? []).forEach((conversation: ContactConversationRow) => {
     const conciergeId = conversation.concierge_profile_id;
-    const requestId = typeof conversation.source_reference === "string" ? conversation.source_reference : "";
+    const requestId =
+      typeof conversation.source_reference === "string"
+        ? conversation.source_reference
+        : "";
 
     if (requestId) {
-      conversationByRequestAndConcierge.set(`${requestId}:${conciergeId}`, conversation);
+      conversationByRequestAndConcierge.set(
+        `${requestId}:${conciergeId}`,
+        conversation,
+      );
     }
 
     const previous = fallbackConversationByConcierge.get(conciergeId);
-    const previousTime = previous?.created_at ? new Date(previous.created_at).getTime() : 0;
-    const currentTime = conversation.created_at ? new Date(conversation.created_at).getTime() : 0;
+    const previousTime = previous?.created_at
+      ? new Date(previous.created_at).getTime()
+      : 0;
+    const currentTime = conversation.created_at
+      ? new Date(conversation.created_at).getTime()
+      : 0;
     if (!previous || currentTime >= previousTime) {
       fallbackConversationByConcierge.set(conciergeId, conversation);
     }
   });
 
   if (quotesError) {
-    console.error("[GET /api/service-requests] owner quotes error:", quotesError);
+    console.error(
+      "[GET /api/service-requests] owner quotes error:",
+      quotesError,
+    );
     throw new Error("Impossible de charger les devis lies.");
   }
 
   const quoteByRequestAndConcierge = new Map<string, QuoteLookupRow>();
   (quotes ?? []).forEach((quote: QuoteLookupRow) => {
     const conciergeId =
-      typeof quote.concierge_profile_id === "string" ? quote.concierge_profile_id : "";
+      typeof quote.concierge_profile_id === "string"
+        ? quote.concierge_profile_id
+        : "";
     const metadata =
-      quote.metadata && typeof quote.metadata === "object" && !Array.isArray(quote.metadata)
+      quote.metadata &&
+      typeof quote.metadata === "object" &&
+      !Array.isArray(quote.metadata)
         ? quote.metadata
         : null;
     const requestId =
@@ -627,20 +826,30 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
 
     const key = `${requestId}:${conciergeId}`;
     const previous = quoteByRequestAndConcierge.get(key);
-    const previousTime = previous?.created_at ? new Date(previous.created_at).getTime() : 0;
-    const currentTime = quote.created_at ? new Date(quote.created_at).getTime() : 0;
+    const previousTime = previous?.created_at
+      ? new Date(previous.created_at).getTime()
+      : 0;
+    const currentTime = quote.created_at
+      ? new Date(quote.created_at).getTime()
+      : 0;
     if (!previous || currentTime >= previousTime) {
       quoteByRequestAndConcierge.set(key, quote);
     }
   });
 
   return (requests ?? []).map((request: ServiceRequestRow) => {
-    const hydratedRecipients = (recipientsByRequestId.get(request.id) ?? []).map((recipient) => {
+    const hydratedRecipients = (
+      recipientsByRequestId.get(request.id) ?? []
+    ).map((recipient) => {
       const conversation =
-        conversationByRequestAndConcierge.get(`${request.id}:${recipient.concierge_profile_id}`) ??
+        conversationByRequestAndConcierge.get(
+          `${request.id}:${recipient.concierge_profile_id}`,
+        ) ??
         fallbackConversationByConcierge.get(recipient.concierge_profile_id);
       const quote =
-        quoteByRequestAndConcierge.get(`${request.id}:${recipient.concierge_profile_id}`) ?? null;
+        quoteByRequestAndConcierge.get(
+          `${request.id}:${recipient.concierge_profile_id}`,
+        ) ?? null;
       const workflow = deriveCommercialWorkflowStatus({
         serviceRequestStatus: readStringField(request, "status"),
         recipientStatus: recipient.status,
@@ -665,19 +874,24 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
       serviceRequestStatus: readStringField(request, "status"),
       recipientStatus: pickPrimaryRecipientStatus(hydratedRecipients),
       quoteStatus: pickPrimaryQuoteStatus(
-        hydratedRecipients.map((recipient) => ({ status: recipient.quote_status })),
+        hydratedRecipients.map((recipient) => ({
+          status: recipient.quote_status,
+        })),
       ),
       missionStatus: readStringField(request, "mission_status"),
       hasMission: Boolean(readStringField(request, "mission_id")),
     });
     const brief = buildBriefFromRequestRow(request);
     const requestMetadata: Record<string, unknown> | null =
-      typeof request.metadata === "object" && request.metadata !== null && !Array.isArray(request.metadata)
+      typeof request.metadata === "object" &&
+      request.metadata !== null &&
+      !Array.isArray(request.metadata)
         ? (request.metadata as Record<string, unknown>)
         : null;
     const metadata = readServiceRequestBriefMetadata(request.metadata);
     const housingId = getHousingReferenceId({
-      propertyId: typeof request.property_id === "string" ? request.property_id : null,
+      propertyId:
+        typeof request.property_id === "string" ? request.property_id : null,
       metadata: requestMetadata,
     });
 
@@ -685,27 +899,34 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
       ...request,
       brief,
       request_summary:
-        typeof metadata.request_summary === "string" && metadata.request_summary.trim()
+        typeof metadata.request_summary === "string" &&
+        metadata.request_summary.trim()
           ? metadata.request_summary
           : brief.summary,
       workflow_status: requestWorkflow.request_workflow_status,
       request_workflow_status: requestWorkflow.request_workflow_status,
       quote_workflow_status: requestWorkflow.quote_workflow_status,
       mission_workflow_status: requestWorkflow.mission_workflow_status,
-      property_name: getListingLabel(
-        {
-          propertyId: typeof request.property_id === "string" ? request.property_id : null,
-          propertyHousingId: housingId,
-          metadata: requestMetadata,
-        },
-        { propertyNameById, housingNameById },
-      ) ?? readPropertyLabelFromMetadata(request.metadata),
+      property_name:
+        getListingLabel(
+          {
+            propertyId:
+              typeof request.property_id === "string"
+                ? request.property_id
+                : null,
+            propertyHousingId: housingId,
+            metadata: requestMetadata,
+          },
+          { propertyNameById, housingNameById },
+        ) ?? readPropertyLabelFromMetadata(request.metadata),
       property_housing_id: housingId,
       selected_concierge_name: request.selected_concierge_profile_id
-        ? conciergeNameById.get(request.selected_concierge_profile_id) ?? "Concierge"
+        ? (conciergeNameById.get(request.selected_concierge_profile_id) ??
+          "Concierge")
         : null,
       selected_concierge_avatar_url: request.selected_concierge_profile_id
-        ? conciergeAvatarById.get(request.selected_concierge_profile_id) ?? null
+        ? (conciergeAvatarById.get(request.selected_concierge_profile_id) ??
+          null)
         : null,
       recipients: hydratedRecipients,
     };
@@ -721,53 +942,88 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
     .limit(limit);
 
   if (error) {
-    console.error("[GET /api/service-requests] concierge recipients error:", error);
+    console.error(
+      "[GET /api/service-requests] concierge recipients error:",
+      error,
+    );
     throw new Error("Impossible de charger les demandes recues.");
   }
 
-  const requestIds = (recipients ?? []).map((row: { service_request_id: string }) => row.service_request_id);
+  const requestIds = (recipients ?? []).map(
+    (row: { service_request_id: string }) => row.service_request_id,
+  );
   const { data: requests, error: requestsError } = await dbAny
     .from("service_requests")
     .select("*")
-    .in("id", requestIds.length > 0 ? requestIds : ["00000000-0000-0000-0000-000000000000"]);
+    .in(
+      "id",
+      requestIds.length > 0
+        ? requestIds
+        : ["00000000-0000-0000-0000-000000000000"],
+    );
 
   if (requestsError) {
-    console.error("[GET /api/service-requests] concierge requests error:", requestsError);
+    console.error(
+      "[GET /api/service-requests] concierge requests error:",
+      requestsError,
+    );
     throw new Error("Impossible de charger les details des demandes.");
   }
 
   const ownerIds = Array.from(
     new Set(
       (requests ?? [])
-        .map((row: { owner_profile_id?: string | null }) => row.owner_profile_id)
-        .filter((id: unknown): id is string => typeof id === "string" && id.length > 0),
+        .map(
+          (row: { owner_profile_id?: string | null }) => row.owner_profile_id,
+        )
+        .filter(
+          (id: unknown): id is string =>
+            typeof id === "string" && id.length > 0,
+        ),
     ),
   );
   const propertyIds = Array.from(
     new Set(
       (requests ?? [])
         .map((row: { property_id?: string | null }) => row.property_id)
-        .filter((id: unknown): id is string => typeof id === "string" && id.length > 0),
+        .filter(
+          (id: unknown): id is string =>
+            typeof id === "string" && id.length > 0,
+        ),
     ),
   );
 
   const { data: ownerProfiles, error: ownerProfilesError } = await dbAny
     .from("profiles")
     .select("id, first_name, last_name, username, company_name")
-    .in("id", ownerIds.length > 0 ? ownerIds : ["00000000-0000-0000-0000-000000000000"]);
+    .in(
+      "id",
+      ownerIds.length > 0 ? ownerIds : ["00000000-0000-0000-0000-000000000000"],
+    );
 
   if (ownerProfilesError) {
-    console.error("[GET /api/service-requests] concierge owner profiles error:", ownerProfilesError);
+    console.error(
+      "[GET /api/service-requests] concierge owner profiles error:",
+      ownerProfilesError,
+    );
     throw new Error("Impossible de charger les proprietaires.");
   }
 
   const { data: properties, error: propertiesError } = await dbAny
     .from("properties")
     .select("id, name, city")
-    .in("id", propertyIds.length > 0 ? propertyIds : ["00000000-0000-0000-0000-000000000000"]);
+    .in(
+      "id",
+      propertyIds.length > 0
+        ? propertyIds
+        : ["00000000-0000-0000-0000-000000000000"],
+    );
 
   if (propertiesError) {
-    console.error("[GET /api/service-requests] concierge properties error:", propertiesError);
+    console.error(
+      "[GET /api/service-requests] concierge properties error:",
+      propertiesError,
+    );
     throw new Error("Impossible de charger les logements lies.");
   }
 
@@ -789,10 +1045,15 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
       ownerNameById.set(profile.id, displayName);
     },
   );
-  (properties ?? []).forEach((property: { id: string; name?: string | null; city?: string | null }) => {
-    const label = property.name?.trim() || (property.city ? `Logement à ${property.city}` : "") || "Logement";
-    propertyNameById.set(property.id, label);
-  });
+  (properties ?? []).forEach(
+    (property: { id: string; name?: string | null; city?: string | null }) => {
+      const label =
+        property.name?.trim() ||
+        (property.city ? `Logement à ${property.city}` : "") ||
+        "Logement";
+      propertyNameById.set(property.id, label);
+    },
+  );
 
   const requestById = new Map<string, ServiceRequestRow>();
   (requests ?? []).forEach((request: ServiceRequestRow) => {
@@ -801,29 +1062,50 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
 
   const { data: conversations, error: conversationsError } = await dbAny
     .from("contact_conversations")
-    .select("id, concierge_profile_id, owner_profile_id, source, source_reference, created_at")
+    .select(
+      "id, concierge_profile_id, owner_profile_id, source, source_reference, created_at",
+    )
     .eq("concierge_profile_id", conciergeId)
     .eq("source", "search")
-    .in("owner_profile_id", ownerIds.length > 0 ? ownerIds : ["00000000-0000-0000-0000-000000000000"]);
+    .in(
+      "owner_profile_id",
+      ownerIds.length > 0 ? ownerIds : ["00000000-0000-0000-0000-000000000000"],
+    );
 
   if (conversationsError) {
-    console.error("[GET /api/service-requests] concierge conversations error:", conversationsError);
+    console.error(
+      "[GET /api/service-requests] concierge conversations error:",
+      conversationsError,
+    );
     throw new Error("Impossible de charger les conversations liees.");
   }
 
-  const conversationByRequestAndOwner = new Map<string, ContactConversationRow>();
+  const conversationByRequestAndOwner = new Map<
+    string,
+    ContactConversationRow
+  >();
   const fallbackConversationByOwner = new Map<string, ContactConversationRow>();
   (conversations ?? []).forEach((conversation: ContactConversationRow) => {
     const ownerId = conversation.owner_profile_id;
-    const requestId = typeof conversation.source_reference === "string" ? conversation.source_reference : "";
+    const requestId =
+      typeof conversation.source_reference === "string"
+        ? conversation.source_reference
+        : "";
 
     if (requestId) {
-      conversationByRequestAndOwner.set(`${requestId}:${ownerId}`, conversation);
+      conversationByRequestAndOwner.set(
+        `${requestId}:${ownerId}`,
+        conversation,
+      );
     }
 
     const previous = fallbackConversationByOwner.get(ownerId);
-    const previousTime = previous?.created_at ? new Date(previous.created_at).getTime() : 0;
-    const currentTime = conversation.created_at ? new Date(conversation.created_at).getTime() : 0;
+    const previousTime = previous?.created_at
+      ? new Date(previous.created_at).getTime()
+      : 0;
+    const currentTime = conversation.created_at
+      ? new Date(conversation.created_at).getTime()
+      : 0;
     if (!previous || currentTime >= previousTime) {
       fallbackConversationByOwner.set(ownerId, conversation);
     }
@@ -831,20 +1113,31 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
 
   const { data: quotes, error: quotesError } = await dbAny
     .from("quotes")
-    .select("id, quote_number, status, owner_profile_id, concierge_profile_id, service_request_id, service_request_recipient_id, created_at, metadata")
+    .select(
+      "id, quote_number, status, owner_profile_id, concierge_profile_id, service_request_id, service_request_recipient_id, created_at, metadata",
+    )
     .eq("concierge_profile_id", conciergeId)
-    .in("owner_profile_id", ownerIds.length > 0 ? ownerIds : ["00000000-0000-0000-0000-000000000000"]);
+    .in(
+      "owner_profile_id",
+      ownerIds.length > 0 ? ownerIds : ["00000000-0000-0000-0000-000000000000"],
+    );
 
   if (quotesError) {
-    console.error("[GET /api/service-requests] concierge quotes error:", quotesError);
+    console.error(
+      "[GET /api/service-requests] concierge quotes error:",
+      quotesError,
+    );
     throw new Error("Impossible de charger les devis lies.");
   }
 
   const quoteByRequestAndOwner = new Map<string, QuoteLookupRow>();
   (quotes ?? []).forEach((quote: QuoteLookupRow) => {
-    const ownerId = typeof quote.owner_profile_id === "string" ? quote.owner_profile_id : "";
+    const ownerId =
+      typeof quote.owner_profile_id === "string" ? quote.owner_profile_id : "";
     const metadata =
-      quote.metadata && typeof quote.metadata === "object" && !Array.isArray(quote.metadata)
+      quote.metadata &&
+      typeof quote.metadata === "object" &&
+      !Array.isArray(quote.metadata)
         ? quote.metadata
         : null;
     const requestId =
@@ -857,8 +1150,12 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
 
     const key = `${requestId}:${ownerId}`;
     const previous = quoteByRequestAndOwner.get(key);
-    const previousTime = previous?.created_at ? new Date(previous.created_at).getTime() : 0;
-    const currentTime = quote.created_at ? new Date(quote.created_at).getTime() : 0;
+    const previousTime = previous?.created_at
+      ? new Date(previous.created_at).getTime()
+      : 0;
+    const currentTime = quote.created_at
+      ? new Date(quote.created_at).getTime()
+      : 0;
     if (!previous || currentTime >= previousTime) {
       quoteByRequestAndOwner.set(key, quote);
     }
@@ -866,11 +1163,18 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
 
   return (recipients ?? []).map((recipient: ServiceRequestRecipientRow) => {
     const request = requestById.get(recipient.service_request_id);
-    const ownerId = typeof request?.owner_profile_id === "string" ? request.owner_profile_id : "";
+    const ownerId =
+      typeof request?.owner_profile_id === "string"
+        ? request.owner_profile_id
+        : "";
     const conversation =
-      conversationByRequestAndOwner.get(`${recipient.service_request_id}:${ownerId}`) ??
-      fallbackConversationByOwner.get(ownerId);
-    const quote = quoteByRequestAndOwner.get(`${recipient.service_request_id}:${ownerId}`) ?? null;
+      conversationByRequestAndOwner.get(
+        `${recipient.service_request_id}:${ownerId}`,
+      ) ?? fallbackConversationByOwner.get(ownerId);
+    const quote =
+      quoteByRequestAndOwner.get(
+        `${recipient.service_request_id}:${ownerId}`,
+      ) ?? null;
     const workflow = deriveCommercialWorkflowStatus({
       workflowStatus: readStringField(request, "workflow_status"),
       serviceRequestStatus: readStringField(request, "status"),
@@ -886,7 +1190,8 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
       ...request,
       brief,
       request_summary:
-        typeof metadata.request_summary === "string" && metadata.request_summary.trim()
+        typeof metadata.request_summary === "string" &&
+        metadata.request_summary.trim()
           ? metadata.request_summary
           : brief.summary,
       workflow_status: workflow.request_workflow_status,
@@ -896,9 +1201,14 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
       property_name:
         getListingLabel(
           {
-            propertyId: typeof request?.property_id === "string" ? request.property_id : null,
+            propertyId:
+              typeof request?.property_id === "string"
+                ? request.property_id
+                : null,
             metadata:
-              typeof request?.metadata === "object" && request.metadata !== null && !Array.isArray(request.metadata)
+              typeof request?.metadata === "object" &&
+              request.metadata !== null &&
+              !Array.isArray(request.metadata)
                 ? (request.metadata as Record<string, unknown>)
                 : null,
           },
@@ -914,7 +1224,7 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
       quote_number: quote?.quote_number ?? null,
       quote_status: quote?.status ?? null,
       owner_name: request?.owner_profile_id
-        ? ownerNameById.get(request.owner_profile_id) ?? "Proprietaire"
+        ? (ownerNameById.get(request.owner_profile_id) ?? "Proprietaire")
         : "Proprietaire",
     };
   });
@@ -939,20 +1249,68 @@ export async function POST(req: NextRequest) {
     const housingId = normalizeHousingId(body.housing_id);
     const title = typeof body.title === "string" ? body.title.trim() : "";
     if (!title) {
-      return NextResponse.json({ error: "Le titre est requis." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Le titre est requis." },
+        { status: 400 },
+      );
     }
 
     const recipientIds = normalizeRecipientIds(body.recipient_ids);
 
-    const requestType: ServiceRequestType = VALID_REQUEST_TYPES.includes(body.request_type as ServiceRequestType)
+    const requestType: ServiceRequestType = VALID_REQUEST_TYPES.includes(
+      body.request_type as ServiceRequestType,
+    )
       ? (body.request_type as ServiceRequestType)
       : "ponctuel";
 
     const requestedServices = normalizeStringArray(body.requested_services);
-    const requestedServiceCatalogResolutions = resolveRequestedServicesCatalog(requestedServices);
+
+    const requestedServiceCatalogResolutions =
+      resolveRequestedServicesCatalog(requestedServices);
     void requestedServiceCatalogResolutions;
+
+    const catalogValidation = validatePlanetLSServiceRequest(
+      requestedServices,
+      body.description,
+    );
+
+    if (!catalogValidation.valid || catalogValidation.code !== null) {
+      if (catalogValidation.code === "SERVICE_REQUIRED") {
+        return NextResponse.json(
+          {
+            error: "Sélectionnez au moins une prestation du catalogue.",
+            code: "SERVICE_REQUIRED",
+          },
+          { status: 400 },
+        );
+      }
+
+      if (catalogValidation.code === "UNKNOWN_SERVICE") {
+        return NextResponse.json(
+          {
+            error:
+              "Certaines prestations sélectionnées ne sont pas reconnues. Veuillez sélectionner à nouveau vos prestations.",
+            code: "UNKNOWN_SERVICE",
+            unknown_slugs: catalogValidation.unknownSlugs,
+          },
+          { status: 400 },
+        );
+      }
+
+      return NextResponse.json(
+        {
+          error:
+            "Veuillez décrire votre besoin pour les catégories de prestations sélectionnées.",
+          code: "SERVICE_GROUP_DESCRIPTION_REQUIRED",
+          group_slugs: catalogValidation.groupSlugs,
+        },
+        { status: 400 },
+      );
+    }
+
     const desiredDate =
-      typeof body.desired_date === "string" && body.desired_date.trim().length > 0
+      typeof body.desired_date === "string" &&
+      body.desired_date.trim().length > 0
         ? body.desired_date
         : null;
     const requestBrief = buildServiceRequestBrief({
@@ -987,46 +1345,66 @@ export async function POST(req: NextRequest) {
 
     // Explicit stay context: validated server-side (stay exists, owned by the
     // authenticated owner, property matches, stay_need in the canonical set).
-    let stayContext: { reservationId: string; stayNeed: NeedKey; propertyId: string | null } | null = null;
+    let stayContext: {
+      reservationId: string;
+      stayNeed: NeedKey;
+      propertyId: string | null;
+    } | null = null;
     if (typeof body.reservation_id === "string" && body.reservation_id.trim()) {
       const stayValidation = await validateStayServiceRequestContext(dbAny, {
         userId,
         reservationId: body.reservation_id.trim(),
         stayNeed: body.stay_need ?? null,
-        propertyId: typeof body.property_id === "string" ? body.property_id : null,
+        propertyId:
+          typeof body.property_id === "string" ? body.property_id : null,
       });
       if (!stayValidation.ok) {
-        return NextResponse.json({ error: stayValidation.error }, { status: stayValidation.status });
+        return NextResponse.json(
+          { error: stayValidation.error },
+          { status: stayValidation.status },
+        );
       }
       stayContext = stayValidation.context;
     }
 
     let validRecipientIds: string[] = [];
     if (recipientIds.length > 0) {
-      const { data: conciergeProfiles, error: conciergeProfilesError } = await dbAny
-        .from("profiles")
-        .select("id, role, category")
-        .in("id", recipientIds);
+      const { data: conciergeProfiles, error: conciergeProfilesError } =
+        await dbAny
+          .from("profiles")
+          .select("id, role, category")
+          .in("id", recipientIds);
 
       if (conciergeProfilesError) {
-        console.error("[POST /api/service-requests] concierge profiles error:", conciergeProfilesError);
-        return NextResponse.json({ error: "Impossible de verifier les concierges." }, { status: 500 });
+        console.error(
+          "[POST /api/service-requests] concierge profiles error:",
+          conciergeProfilesError,
+        );
+        return NextResponse.json(
+          { error: "Impossible de verifier les concierges." },
+          { status: 500 },
+        );
       }
 
       validRecipientIds = (conciergeProfiles ?? [])
-        .filter((profile: { role?: string | null; category?: string | null }) => {
-          const roleValue = (profile.role ?? "").toLowerCase();
-          const categoryValue = (profile.category ?? "").toLowerCase();
-          return (
-            roleValue === "concierge" ||
-            roleValue === "concierge_pro" ||
-            categoryValue.startsWith("concierge")
-          );
-        })
+        .filter(
+          (profile: { role?: string | null; category?: string | null }) => {
+            const roleValue = (profile.role ?? "").toLowerCase();
+            const categoryValue = (profile.category ?? "").toLowerCase();
+            return (
+              roleValue === "concierge" ||
+              roleValue === "concierge_pro" ||
+              categoryValue.startsWith("concierge")
+            );
+          },
+        )
         .map((profile: { id: string }) => profile.id);
 
       if (validRecipientIds.length === 0) {
-        return NextResponse.json({ error: "Aucun concierge valide selectionne." }, { status: 400 });
+        return NextResponse.json(
+          { error: "Aucun concierge valide selectionne." },
+          { status: 400 },
+        );
       }
     }
 
@@ -1034,13 +1412,22 @@ export async function POST(req: NextRequest) {
       owner_profile_id: userId,
       property_id: stayContext?.propertyId ?? body.property_id ?? null,
       request_type: requestType,
-      status: (validRecipientIds.length > 0 ? "sent" : "draft") as ServiceRequestStatus,
+      status: (validRecipientIds.length > 0
+        ? "sent"
+        : "draft") as ServiceRequestStatus,
       title,
-      description: typeof body.description === "string" ? body.description.trim() || null : null,
+      description:
+        typeof body.description === "string"
+          ? body.description.trim() || null
+          : null,
       requested_services: requestedServices,
-      region: typeof body.region === "string" ? body.region.trim() || null : null,
+      region:
+        typeof body.region === "string" ? body.region.trim() || null : null,
       city: typeof body.city === "string" ? body.city.trim() || null : null,
-      postal_code: typeof body.postal_code === "string" ? body.postal_code.trim() || null : null,
+      postal_code:
+        typeof body.postal_code === "string"
+          ? body.postal_code.trim() || null
+          : null,
       desired_date: desiredDate,
       radius_km: typeof body.radius_km === "number" ? body.radius_km : null,
       urgency: body.urgency === true,
@@ -1049,13 +1436,26 @@ export async function POST(req: NextRequest) {
       reservation_id: stayContext?.reservationId ?? null,
       stay_need: stayContext?.stayNeed ?? null,
       metadata: {
-        origin: validRecipientIds.length > 0 ? "owner_search_flow" : "owner_direct_request",
-        region: typeof body.region === "string" ? body.region.trim() || null : null,
+        origin:
+          validRecipientIds.length > 0
+            ? "owner_search_flow"
+            : "owner_direct_request",
+        region:
+          typeof body.region === "string" ? body.region.trim() || null : null,
         radius_km: typeof body.radius_km === "number" ? body.radius_km : null,
-        property_label: typeof body.property_name === "string" ? body.property_name.trim() || null : null,
+        property_label:
+          typeof body.property_name === "string"
+            ? body.property_name.trim() || null
+            : null,
         property_housing_id: housingId,
-        property_address: typeof body.property_address === "string" ? body.property_address.trim() || null : null,
-        property_type: typeof body.property_type === "string" ? body.property_type.trim() || null : null,
+        property_address:
+          typeof body.property_address === "string"
+            ? body.property_address.trim() || null
+            : null,
+        property_type:
+          typeof body.property_type === "string"
+            ? body.property_type.trim() || null
+            : null,
         sleeping_capacity:
           typeof body.sleeping_capacity === "number"
             ? String(body.sleeping_capacity)
@@ -1063,7 +1463,9 @@ export async function POST(req: NextRequest) {
               ? body.sleeping_capacity.trim() || null
               : null,
         property_constraints:
-          typeof body.property_constraints === "string" ? body.property_constraints.trim() || null : null,
+          typeof body.property_constraints === "string"
+            ? body.property_constraints.trim() || null
+            : null,
         ...briefMetadata,
       },
     };
@@ -1074,16 +1476,26 @@ export async function POST(req: NextRequest) {
 
     // A stay-specific request is always a new request: it must never be merged
     // into (or blocked by) the classic per-housing draft reuse.
-    const existingHousingRequest = !stayContext && housingId && requestType !== "renfort" ? await findOwnerRequestForHousing(userId, housingId) : null;
+    const existingHousingRequest =
+      !stayContext && housingId && requestType !== "renfort"
+        ? await findOwnerRequestForHousing(userId, housingId)
+        : null;
     if (existingHousingRequest) {
-      const { count: recipientCount, error: existingRecipientsError } = await dbAny
-        .from("service_request_recipients")
-        .select("id", { count: "exact", head: true })
-        .eq("service_request_id", existingHousingRequest.id);
+      const { count: recipientCount, error: existingRecipientsError } =
+        await dbAny
+          .from("service_request_recipients")
+          .select("id", { count: "exact", head: true })
+          .eq("service_request_id", existingHousingRequest.id);
 
       if (existingRecipientsError) {
-        console.error("[POST /api/service-requests] existing recipients error:", existingRecipientsError);
-        return NextResponse.json({ error: "Impossible de verifier la demande existante." }, { status: 500 });
+        console.error(
+          "[POST /api/service-requests] existing recipients error:",
+          existingRecipientsError,
+        );
+        return NextResponse.json(
+          { error: "Impossible de verifier la demande existante." },
+          { status: 500 },
+        );
       }
 
       const existingStatus = normalizeStatus(existingHousingRequest.status);
@@ -1095,7 +1507,8 @@ export async function POST(req: NextRequest) {
       if (!canReuseExistingDraft) {
         return NextResponse.json(
           {
-            error: "Une demande existe deja pour ce logement. Completez ou suivez la demande existante.",
+            error:
+              "Une demande existe deja pour ce logement. Completez ou suivez la demande existante.",
             request_id: existingHousingRequest.id,
             request_title: existingHousingRequest.title,
             status: existingHousingRequest.status,
@@ -1155,8 +1568,14 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      console.error("[POST /api/service-requests] create request error:", requestError);
-      return NextResponse.json({ error: "Impossible de creer la demande." }, { status: 500 });
+      console.error(
+        "[POST /api/service-requests] create request error:",
+        requestError,
+      );
+      return NextResponse.json(
+        { error: "Impossible de creer la demande." },
+        { status: 500 },
+      );
     }
 
     if (validRecipientIds.length === 0) {
@@ -1197,11 +1616,20 @@ export async function POST(req: NextRequest) {
       .select("*");
 
     if (recipientsError) {
-      console.error("[POST /api/service-requests] create recipients error:", recipientsError);
+      console.error(
+        "[POST /api/service-requests] create recipients error:",
+        recipientsError,
+      );
       if (!createdFromExistingDraft) {
-        await dbAny.from("service_requests").delete().eq("id", createdRequest.id);
+        await dbAny
+          .from("service_requests")
+          .delete()
+          .eq("id", createdRequest.id);
       }
-      return NextResponse.json({ error: "Impossible d'ajouter les destinataires." }, { status: 500 });
+      return NextResponse.json(
+        { error: "Impossible d'ajouter les destinataires." },
+        { status: 500 },
+      );
     }
 
     const conversations = await ensureContactConversations({
@@ -1249,12 +1677,16 @@ export async function POST(req: NextRequest) {
 }
 
 function normalizeHousingId(value: unknown) {
-  if (typeof value === "number" && Number.isFinite(value) && value > 0) return String(Math.round(value));
+  if (typeof value === "number" && Number.isFinite(value) && value > 0)
+    return String(Math.round(value));
   if (typeof value === "string" && value.trim()) return value.trim();
   return null;
 }
 
-async function findOwnerRequestForHousing(ownerProfileId: string, housingId: string) {
+async function findOwnerRequestForHousing(
+  ownerProfileId: string,
+  housingId: string,
+) {
   const { data: existingRequests, error } = await dbAny
     .from("service_requests")
     .select("id, title, status, metadata, created_at")
@@ -1263,14 +1695,18 @@ async function findOwnerRequestForHousing(ownerProfileId: string, housingId: str
     .limit(200);
 
   if (error) {
-    console.error("[service-requests] duplicate housing request lookup error:", error);
+    console.error(
+      "[service-requests] duplicate housing request lookup error:",
+      error,
+    );
     throw new Error("Impossible de verifier les demandes existantes.");
   }
 
   return (
     (existingRequests ?? []).find(
       (request: Record<string, unknown>) =>
-        matchesHousingReference(request, housingId) && request.request_type !== "renfort",
+        matchesHousingReference(request, housingId) &&
+        request.request_type !== "renfort",
     ) ?? null
   );
 }
@@ -1291,39 +1727,120 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Payload invalide." }, { status: 400 });
     }
 
-    const body = parsedBody.data as Partial<CreateServiceRequestBody> & { id: string };
+    const body = parsedBody.data as Partial<CreateServiceRequestBody> & {
+      id: string;
+    };
     const updatePayload: Record<string, unknown> = {};
     const { data: existingRequest, error: existingError } = await dbAny
       .from("service_requests")
-      .select("id, metadata")
+      .select("id, metadata, requested_services, description")
       .eq("id", body.id)
       .eq("owner_profile_id", userId)
       .single();
 
     if (existingError || !existingRequest) {
-      console.error("[PATCH /api/service-requests] existing request error:", existingError);
-      return NextResponse.json({ error: "Demande introuvable." }, { status: 404 });
+      console.error(
+        "[PATCH /api/service-requests] existing request error:",
+        existingError,
+      );
+      return NextResponse.json(
+        { error: "Demande introuvable." },
+        { status: 404 },
+      );
     }
 
     if (typeof body.title === "string") {
       const title = body.title.trim();
-      if (!title) return NextResponse.json({ error: "Le titre est requis." }, { status: 400 });
+      if (!title)
+        return NextResponse.json(
+          { error: "Le titre est requis." },
+          { status: 400 },
+        );
       updatePayload.title = title;
     }
     if (typeof body.description === "string" || body.description === null) {
-      updatePayload.description = typeof body.description === "string" ? body.description.trim() || null : null;
+      updatePayload.description =
+        typeof body.description === "string"
+          ? body.description.trim() || null
+          : null;
     }
-    if (typeof body.property_id === "string" || body.property_id === null) updatePayload.property_id = body.property_id ?? null;
-    if (typeof body.request_type === "string" && VALID_REQUEST_TYPES.includes(body.request_type)) updatePayload.request_type = body.request_type;
-    if (Array.isArray(body.requested_services)) updatePayload.requested_services = normalizeStringArray(body.requested_services);
-    if (typeof body.region === "string" || body.region === null) updatePayload.region = typeof body.region === "string" ? body.region.trim() || null : null;
-    if (typeof body.radius_km === "number" || body.radius_km === null) updatePayload.radius_km = body.radius_km ?? null;
-    if (typeof body.city === "string" || body.city === null) updatePayload.city = typeof body.city === "string" ? body.city.trim() || null : null;
-    if (typeof body.postal_code === "string" || body.postal_code === null) updatePayload.postal_code = typeof body.postal_code === "string" ? body.postal_code.trim() || null : null;
-    if (typeof body.desired_date === "string" || body.desired_date === null) updatePayload.desired_date = body.desired_date || null;
+    if (typeof body.property_id === "string" || body.property_id === null)
+      updatePayload.property_id = body.property_id ?? null;
+    if (
+      typeof body.request_type === "string" &&
+      VALID_REQUEST_TYPES.includes(body.request_type)
+    )
+      updatePayload.request_type = body.request_type;
+    if (Array.isArray(body.requested_services))
+      updatePayload.requested_services = normalizeStringArray(
+        body.requested_services,
+      );
+
+    const catalogValidation = validatePlanetLSServiceRequestUpdate(
+      {
+        requested_services: existingRequest.requested_services,
+        description: existingRequest.description,
+      },
+      {
+        requested_services: body.requested_services,
+        description: body.description,
+      },
+    );
+
+    if (!catalogValidation.valid || catalogValidation.code !== null) {
+      if (catalogValidation.code === "SERVICE_REQUIRED") {
+        return NextResponse.json(
+          {
+            error: "Sélectionnez au moins une prestation du catalogue.",
+            code: "SERVICE_REQUIRED",
+          },
+          { status: 400 },
+        );
+      }
+
+      if (catalogValidation.code === "UNKNOWN_SERVICE") {
+        return NextResponse.json(
+          {
+            error:
+              "Certaines prestations sélectionnées ne sont pas reconnues. Veuillez sélectionner à nouveau vos prestations.",
+            code: "UNKNOWN_SERVICE",
+            unknown_slugs: catalogValidation.unknownSlugs,
+          },
+          { status: 400 },
+        );
+      }
+
+      return NextResponse.json(
+        {
+          error:
+            "Veuillez décrire votre besoin pour les catégories de prestations sélectionnées.",
+          code: "SERVICE_GROUP_DESCRIPTION_REQUIRED",
+          group_slugs: catalogValidation.groupSlugs,
+        },
+        { status: 400 },
+      );
+    }
+
+    if (typeof body.region === "string" || body.region === null)
+      updatePayload.region =
+        typeof body.region === "string" ? body.region.trim() || null : null;
+    if (typeof body.radius_km === "number" || body.radius_km === null)
+      updatePayload.radius_km = body.radius_km ?? null;
+    if (typeof body.city === "string" || body.city === null)
+      updatePayload.city =
+        typeof body.city === "string" ? body.city.trim() || null : null;
+    if (typeof body.postal_code === "string" || body.postal_code === null)
+      updatePayload.postal_code =
+        typeof body.postal_code === "string"
+          ? body.postal_code.trim() || null
+          : null;
+    if (typeof body.desired_date === "string" || body.desired_date === null)
+      updatePayload.desired_date = body.desired_date || null;
     if (typeof body.urgency === "boolean") updatePayload.urgency = body.urgency;
-    if (typeof body.budget_max === "number" || body.budget_max === null) updatePayload.budget_max = body.budget_max ?? null;
-    if (typeof body.currency === "string" || body.currency === null) updatePayload.currency = normalizeCurrency(body.currency);
+    if (typeof body.budget_max === "number" || body.budget_max === null)
+      updatePayload.budget_max = body.budget_max ?? null;
+    if (typeof body.currency === "string" || body.currency === null)
+      updatePayload.currency = normalizeCurrency(body.currency);
 
     if (
       typeof body.property_name === "string" ||
@@ -1333,12 +1850,17 @@ export async function PATCH(req: NextRequest) {
       body.housing_id === null
     ) {
       const previousMetadata =
-        existingRequest.metadata && typeof existingRequest.metadata === "object" && !Array.isArray(existingRequest.metadata)
+        existingRequest.metadata &&
+        typeof existingRequest.metadata === "object" &&
+        !Array.isArray(existingRequest.metadata)
           ? existingRequest.metadata
           : {};
       updatePayload.metadata = {
         ...previousMetadata,
-        property_label: typeof body.property_name === "string" ? body.property_name.trim() || null : null,
+        property_label:
+          typeof body.property_name === "string"
+            ? body.property_name.trim() || null
+            : null,
         property_housing_id: normalizeHousingId(body.housing_id),
         updated_from: "owner_requests_page",
       } as Json;
@@ -1354,40 +1876,52 @@ export async function PATCH(req: NextRequest) {
       typeof body.property_constraints === "string"
     ) {
       const previousMetadata =
-        updatePayload.metadata && typeof updatePayload.metadata === "object" && !Array.isArray(updatePayload.metadata)
-          ? updatePayload.metadata as Record<string, unknown>
-          : existingRequest.metadata && typeof existingRequest.metadata === "object" && !Array.isArray(existingRequest.metadata)
+        updatePayload.metadata &&
+        typeof updatePayload.metadata === "object" &&
+        !Array.isArray(updatePayload.metadata)
+          ? (updatePayload.metadata as Record<string, unknown>)
+          : existingRequest.metadata &&
+              typeof existingRequest.metadata === "object" &&
+              !Array.isArray(existingRequest.metadata)
             ? existingRequest.metadata
             : {};
       updatePayload.metadata = {
         ...previousMetadata,
-        owner_goal: typeof body.owner_goal === "string" ? body.owner_goal : previousMetadata.owner_goal ?? null,
+        owner_goal:
+          typeof body.owner_goal === "string"
+            ? body.owner_goal
+            : (previousMetadata.owner_goal ?? null),
         collaboration_type:
-          typeof body.collaboration_type === "string" ? body.collaboration_type : previousMetadata.collaboration_type ?? null,
+          typeof body.collaboration_type === "string"
+            ? body.collaboration_type
+            : (previousMetadata.collaboration_type ?? null),
         collaboration_frequency:
           typeof body.collaboration_frequency === "string"
             ? body.collaboration_frequency
-            : previousMetadata.collaboration_frequency ?? null,
+            : (previousMetadata.collaboration_frequency ?? null),
         estimated_duration:
           typeof body.estimated_duration === "string"
             ? body.estimated_duration
             : typeof body.collaboration_duration === "string"
               ? body.collaboration_duration
-              : previousMetadata.estimated_duration ?? null,
+              : (previousMetadata.estimated_duration ?? null),
         responsibility_level:
           typeof body.responsibility_level === "string"
             ? body.responsibility_level
-            : previousMetadata.responsibility_level ?? null,
+            : (previousMetadata.responsibility_level ?? null),
         property_constraints:
           typeof body.property_constraints === "string"
             ? body.property_constraints
-            : previousMetadata.property_constraints ?? null,
+            : (previousMetadata.property_constraints ?? null),
         updated_from: "owner_requests_page",
       } as Json;
     }
 
     if (Object.keys(updatePayload).length === 0) {
-      return NextResponse.json({ error: "Aucune donnee a mettre a jour." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Aucune donnee a mettre a jour." },
+        { status: 400 },
+      );
     }
 
     const { data: updatedRequest, error: updateError } = await dbAny
@@ -1399,8 +1933,14 @@ export async function PATCH(req: NextRequest) {
       .single();
 
     if (updateError || !updatedRequest) {
-      console.error("[PATCH /api/service-requests] update request error:", updateError);
-      return NextResponse.json({ error: "Impossible de modifier la demande." }, { status: 500 });
+      console.error(
+        "[PATCH /api/service-requests] update request error:",
+        updateError,
+      );
+      return NextResponse.json(
+        { error: "Impossible de modifier la demande." },
+        { status: 500 },
+      );
     }
 
     return NextResponse.json({ request: updatedRequest });
@@ -1434,8 +1974,14 @@ export async function DELETE(req: NextRequest) {
       .single();
 
     if (requestError || !existingRequest) {
-      console.error("[DELETE /api/service-requests] request lookup error:", requestError);
-      return NextResponse.json({ error: "Demande introuvable." }, { status: 404 });
+      console.error(
+        "[DELETE /api/service-requests] request lookup error:",
+        requestError,
+      );
+      return NextResponse.json(
+        { error: "Demande introuvable." },
+        { status: 404 },
+      );
     }
 
     const { count: recipientCount, error: recipientsError } = await dbAny
@@ -1444,13 +1990,22 @@ export async function DELETE(req: NextRequest) {
       .eq("service_request_id", requestId);
 
     if (recipientsError) {
-      console.error("[DELETE /api/service-requests] recipients lookup error:", recipientsError);
-      return NextResponse.json({ error: "Impossible de verifier les conciergeries contactees." }, { status: 500 });
+      console.error(
+        "[DELETE /api/service-requests] recipients lookup error:",
+        recipientsError,
+      );
+      return NextResponse.json(
+        { error: "Impossible de verifier les conciergeries contactees." },
+        { status: 500 },
+      );
     }
 
     if ((recipientCount ?? 0) > 0) {
       return NextResponse.json(
-        { error: "Cette demande ne peut plus etre supprimee car une conciergerie a deja ete contactee." },
+        {
+          error:
+            "Cette demande ne peut plus etre supprimee car une conciergerie a deja ete contactee.",
+        },
         { status: 409 },
       );
     }
@@ -1462,8 +2017,14 @@ export async function DELETE(req: NextRequest) {
       .eq("owner_profile_id", userId);
 
     if (deleteError) {
-      console.error("[DELETE /api/service-requests] delete error:", deleteError);
-      return NextResponse.json({ error: "Impossible de supprimer la demande." }, { status: 500 });
+      console.error(
+        "[DELETE /api/service-requests] delete error:",
+        deleteError,
+      );
+      return NextResponse.json(
+        { error: "Impossible de supprimer la demande." },
+        { status: 500 },
+      );
     }
 
     return NextResponse.json({ deleted: true });

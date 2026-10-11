@@ -1,7 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { resolveCommonServiceById } from "../app/lib/commonServiceCatalog.ts";
 import {
   getStayNeedServiceSlug,
   normalizeStayNeed,
@@ -23,13 +22,13 @@ test("stay need catalog mapping keeps historical need keys and service codes", (
   });
 });
 
-test("stay needs map to explicit common service slugs", () => {
+test("stay needs map to explicit target service slugs", () => {
   assert.deepEqual(STAY_NEED_SERVICE_SLUGS, {
     checkin: "guest_checkin",
     checkout: "guest_checkout",
     cleaning: "cleaning_turnover",
     linen: "linen_change",
-    courses: "groceries_arrival",
+    courses: "shopping_supplies",
   });
 });
 
@@ -39,13 +38,14 @@ test("stay need catalog resolution preserves independent needs", () => {
     checkout: "guest_checkout",
     cleaning: "cleaning_turnover",
     linen: "linen_change",
-    courses: "groceries_arrival",
+    courses: "shopping_supplies",
   };
 
   for (const [need, slug] of Object.entries(expected) as Array<[NeedKey, string]>) {
     const resolved = resolveStayNeedCatalogService(need);
-    assert.equal(resolved.kind, "service");
-    if (resolved.kind === "service") {
+    // Aucun besoin reconnu ne doit rester inconnu.
+    assert.notEqual(resolved.kind, "unknown");
+    if (resolved.kind !== "unknown") {
       assert.equal(resolved.need, need);
       assert.equal(resolved.slug, slug);
       assert.equal(resolved.service.slug, slug);
@@ -54,20 +54,21 @@ test("stay need catalog resolution preserves independent needs", () => {
   }
 });
 
-test("check-in and check-out stay needs never split legacy id 16", () => {
-  const legacyBundle = resolveCommonServiceById(16);
+test("courses correspond to a group to qualify, not a precise service", () => {
+  const resolved = resolveStayNeedCatalogService("courses");
+  assert.equal(resolved.kind, "group");
+});
+
+test("check-in and check-out stay needs never collapse into a single bundle", () => {
   const checkin = resolveStayNeedCatalogService("checkin");
   const checkout = resolveStayNeedCatalogService("checkout");
 
-  assert.equal(legacyBundle?.slug, "guest_checkin_checkout_legacy_bundle");
-  assert.equal(legacyBundle?.status, "ambiguous");
   assert.equal(checkin.kind, "service");
   assert.equal(checkout.kind, "service");
   if (checkin.kind === "service" && checkout.kind === "service") {
-    assert.equal(checkin.service.id, null);
-    assert.equal(checkout.service.id, null);
-    assert.notEqual(checkin.service.slug, legacyBundle?.slug);
-    assert.notEqual(checkout.service.slug, legacyBundle?.slug);
+    assert.equal(checkin.slug, "guest_checkin");
+    assert.equal(checkout.slug, "guest_checkout");
+    assert.notEqual(checkin.service.slug, checkout.service.slug);
   }
 });
 
@@ -82,14 +83,7 @@ test("normalization behavior remains compatible with historical stay values", ()
 });
 
 test("unknown values are not silently converted to services", () => {
-  assert.deepEqual(resolveStayNeedCatalogService("guest_checkin_checkout_legacy_bundle"), {
-    kind: "unknown",
-    value: "guest_checkin_checkout_legacy_bundle",
-  });
-  assert.deepEqual(resolveStayNeedCatalogService("maintenance"), {
-    kind: "unknown",
-    value: "maintenance",
-  });
+  assert.equal(resolveStayNeedCatalogService("maintenance").kind, "unknown");
   assert.equal(normalizeStayNeed("maintenance"), null);
 });
 

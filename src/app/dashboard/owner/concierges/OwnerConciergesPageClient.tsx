@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+
 import { Button, ButtonLink } from "@/components/ui";
 import styles from "./OwnerConciergesPage.module.scss";
 import type { ServiceCatalogItem, SortMode, ViewMode } from "./conciergeSearchTypes";
@@ -40,6 +40,7 @@ import {
   getOwnerProfilePreferences,
 } from "@/features/owner-preferences/profilePreferences";
 import { focusFirstModalElement, trapFocusInModal } from "../modalAccessibility";
+import { resolvePlanetLSRequestServices } from "@/app/lib/planetlsServiceSearchResolution";
 
 const SearchMap = dynamic(() => import("@/app/components/MapWithList/MapWithList"), {
   ssr: false,
@@ -890,6 +891,22 @@ export default function OwnerConciergesPageClient() {
       return;
     }
 
+    // Les filtres servent à la recherche ; seules les prestations
+    // précises ou les groupes reconnus sont transmis à l'API.
+    // Une catégorie ne sélectionne jamais toute une famille.
+    const requestServiceResolution = resolvePlanetLSRequestServices(
+      filters.selectedServices,
+    );
+
+    if (requestServiceResolution.services.length === 0) {
+      setError(
+        requestServiceResolution.unknownValues.length > 0
+          ? `Ces filtres ne correspondent pas à une prestation du catalogue : ${requestServiceResolution.unknownValues.join(", ")}. Sélectionnez une prestation précise.`
+          : "Sélectionnez au moins une prestation précise avant d'envoyer une demande.",
+      );
+      return;
+    }
+
     try {
       setSubmittingRequest(true);
       setError(null);
@@ -917,8 +934,9 @@ export default function OwnerConciergesPageClient() {
               propertyType: requestForm.propertyType,
               sleepingCapacity: requestForm.sleepingCapacity,
               propertyConstraints: requestForm.propertyConstraints,
-              requestedServices:
-                filters.selectedServices.length > 0 ? filters.selectedServices : filters.selectedCategories,
+              requestedServices: requestServiceResolution.entries.map(
+                (entry) => entry.label,
+              ),
               desiredDate: requestForm.desiredDate,
               urgency: requestForm.urgency,
               description: requestForm.description,
@@ -931,8 +949,7 @@ export default function OwnerConciergesPageClient() {
             property_constraints: requestForm.propertyConstraints.trim() || null,
             title: requestForm.title.trim(),
             description: requestForm.description.trim(),
-            requested_services:
-              filters.selectedServices.length > 0 ? filters.selectedServices : filters.selectedCategories,
+            requested_services: requestServiceResolution.services,
             region: filters.region?.trim() || null,
             city: requestForm.city.trim(),
             postal_code: requestForm.postalCode.trim(),

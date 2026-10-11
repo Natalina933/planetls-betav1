@@ -5,13 +5,16 @@ import type {
   MissionPreferences,
   WeekDay,
 } from "@/app/components/missions/types";
-import type { PricingV2Config, SeasonalPricingConfig } from "@/app/components/tariffs/types";
+import type {
+  PricingV2Config,
+  SeasonalPricingConfig,
+} from "@/app/components/tariffs/types";
 import {
-  resolveCommonServiceById,
-  resolveCommonServiceValue,
-  type CollaborationModeSlug,
-  type CommonServiceReference,
-} from "../../../lib/commonServiceCatalog.ts";
+  PLANETLS_SERVICE_TARGET,
+  type PlanetLSServiceTargetEntry,
+} from "../../../lib/planetlsServiceCatalogTarget.ts";
+import { resolvePlanetLSSelection } from "../../../lib/planetlsServiceSelection.ts";
+import { normalizeCatalogText } from "../../../lib/serviceCatalog.ts";
 import type { ConciergeProfile as Profile } from "@/features/concierge-profile";
 
 export interface StrategySimState {
@@ -38,7 +41,14 @@ export type ConciergeMissionServiceResolution =
       kind: "service";
       value: string;
       slug: string;
-      service: CommonServiceReference;
+      service: PlanetLSServiceTargetEntry;
+    }
+  | {
+      kind: "group";
+      value: string;
+      slug: string;
+      service: PlanetLSServiceTargetEntry;
+      reason: string;
     }
   | {
       kind: "family";
@@ -49,7 +59,7 @@ export type ConciergeMissionServiceResolution =
   | {
       kind: "mode";
       value: string;
-      mode: CollaborationModeSlug;
+      mode: string;
       label: string;
     }
   | {
@@ -61,7 +71,7 @@ export type ConciergeMissionServiceResolution =
   | {
       kind: "ambiguous";
       value: string;
-      candidates: CommonServiceReference[];
+      candidates: PlanetLSServiceTargetEntry[];
       reason: string;
     }
   | {
@@ -81,7 +91,9 @@ export type ConciergePricingLineLike = {
   currency?: unknown;
 };
 
-export type ConciergePricingLineCatalogResolution<TLine extends ConciergePricingLineLike> = {
+export type ConciergePricingLineCatalogResolution<
+  TLine extends ConciergePricingLineLike,
+> = {
   pricing: TLine;
   identifier: {
     serviceId: number | null;
@@ -126,8 +138,14 @@ export const normalizeStrategySim = (value: unknown): StrategySimState => {
   return {
     segmentId: toSafeString(source.segmentId, DEFAULT_STRATEGY_SIM.segmentId),
     serviceId: toSafeString(source.serviceId, DEFAULT_STRATEGY_SIM.serviceId),
-    propertyType: toSafeString(source.propertyType, DEFAULT_STRATEGY_SIM.propertyType),
-    surfaceM2: toSafeNumericString(source.surfaceM2, DEFAULT_STRATEGY_SIM.surfaceM2),
+    propertyType: toSafeString(
+      source.propertyType,
+      DEFAULT_STRATEGY_SIM.propertyType,
+    ),
+    surfaceM2: toSafeNumericString(
+      source.surfaceM2,
+      DEFAULT_STRATEGY_SIM.surfaceM2,
+    ),
     revenueEstimate: toSafeNumericString(
       source.revenueEstimate,
       DEFAULT_STRATEGY_SIM.revenueEstimate,
@@ -163,7 +181,12 @@ export const DEFAULT_MISSION_CATALOG: MissionCatalogItem[] = [
     basePrice: null,
     customizable: false,
   },
-  { id: "intendance", label: "Intendance", basePrice: null, customizable: false },
+  {
+    id: "intendance",
+    label: "Intendance",
+    basePrice: null,
+    customizable: false,
+  },
   {
     id: "accueil-voyageurs",
     label: "Accueil voyageurs",
@@ -187,18 +210,22 @@ const toConciergeMissionServiceKey = (value: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-export function resolveConciergeMissionServiceValue(value: unknown): ConciergeMissionServiceResolution {
+export function resolveConciergeMissionServiceValue(
+  value: unknown,
+): ConciergeMissionServiceResolution {
   const rawValue = String(value ?? "").trim();
   if (!rawValue) return { kind: "unknown", value: rawValue };
   const missionId = toConciergeMissionServiceKey(rawValue);
 
+  // Check-in et check-out restent deux prestations distinctes :
+  // l'appellation groupée historique n'est jamais scindée automatiquement.
   if (missionId === "check-in-check-out") {
-    const legacyBundle = resolveCommonServiceValue("guest_checkin_checkout_legacy_bundle");
     return {
       kind: "ambiguous",
       value: rawValue,
-      candidates: legacyBundle.kind === "service" ? [legacyBundle.service] : [],
-      reason: "Appellation groupée historique : ne pas scinder automatiquement en check-in et check-out.",
+      candidates: [],
+      reason:
+        "Appellation groupée historique : sélectionnez check-in ou check-out séparément.",
     };
   }
 
@@ -207,7 +234,8 @@ export function resolveConciergeMissionServiceValue(value: unknown): ConciergeMi
       kind: "family",
       value: rawValue,
       family: "Ménage",
-      reason: "Famille générale : ne pas convertir automatiquement en ménage entre voyageurs.",
+      reason:
+        "Famille générale : sélectionnez une prestation de ménage précise.",
     };
   }
 
@@ -216,17 +244,18 @@ export function resolveConciergeMissionServiceValue(value: unknown): ConciergeMi
       kind: "family",
       value: rawValue,
       family: "Maintenance légère",
-      reason: "Famille générale : ne pas attribuer automatiquement une compétence réglementée.",
+      reason:
+        "Famille générale : sélectionnez une prestation de maintenance précise.",
     };
   }
 
   if (missionId === "intendance") {
-    const legacyIntendance = resolveCommonServiceValue("legacy_intendance");
     return {
       kind: "ambiguous",
       value: rawValue,
-      candidates: legacyIntendance.kind === "service" ? [legacyIntendance.service] : [],
-      reason: "Valeur transversale insuffisamment précise pour une prestation facturable.",
+      candidates: [],
+      reason:
+        "Valeur transversale insuffisamment précise pour une prestation facturable.",
     };
   }
 
@@ -235,7 +264,8 @@ export function resolveConciergeMissionServiceValue(value: unknown): ConciergeMi
       kind: "family",
       value: rawValue,
       family: "Accueil voyageurs",
-      reason: "Famille générale : ne pas assimiler automatiquement au check-in.",
+      reason:
+        "Famille générale : ne pas assimiler automatiquement au check-in.",
     };
   }
 
@@ -244,35 +274,86 @@ export function resolveConciergeMissionServiceValue(value: unknown): ConciergeMi
       kind: "context",
       value: rawValue,
       context: "night_emergency",
-      reason: "Modalité d'intervention : ne pas convertir en prestation technique spécialisée.",
+      reason:
+        "Modalité d'intervention : ne pas convertir en prestation technique spécialisée.",
     };
   }
 
-  const collaborationMode = resolveCommonServiceValue(rawValue);
-  if (collaborationMode.kind === "collaboration_mode") {
+  if (
+    missionId === "full-management" ||
+    missionId === "full-management-du-logement" ||
+    missionId === "gestion-complete" ||
+    missionId === "gestion-complete-du-logement"
+  ) {
     return {
       kind: "mode",
       value: rawValue,
-      mode: collaborationMode.mode,
-      label: collaborationMode.label,
+      mode: "full_management",
+      label: "Gestion complète",
     };
   }
 
-  if (collaborationMode.kind === "service") {
+  // PLANETLS_SERVICE_TARGET est la seule référence.
+  // Seule une prestation précise ou un groupe reconnu est enregistré ;
+  // un groupe reste à qualifier et ne sélectionne aucune sous-prestation.
+  const direct = resolvePlanetLSSelection(rawValue);
+  if (direct) {
+    if (direct.kind === "group") {
+      return {
+        kind: "group",
+        value: rawValue,
+        slug: direct.slug,
+        service: direct,
+        reason:
+          "Groupe à qualifier : sélectionnez les prestations réellement proposées.",
+      };
+    }
     return {
       kind: "service",
       value: rawValue,
-      slug: collaborationMode.service.slug,
-      service: collaborationMode.service,
+      slug: direct.slug,
+      service: direct,
     };
   }
 
-  if (collaborationMode.kind === "ambiguous") {
+  // Un libellé exact et unique peut être résolu vers son slug lorsque
+  // l'interface stocke un libellé saisi par le professionnel (ligne de tarif).
+  // Aucune approximation : un libellé absent du catalogue reste inconnu,
+  // et un libellé ambigu ne sélectionne aucune prestation.
+  const normalized = normalizeCatalogText(rawValue);
+  const labelMatches = normalized
+    ? PLANETLS_SERVICE_TARGET.filter(
+        (entry) => normalizeCatalogText(entry.label) === normalized,
+      )
+    : [];
+
+  if (labelMatches.length === 1) {
+    const matched = labelMatches[0];
+    if (matched.kind === "group") {
+      return {
+        kind: "group",
+        value: rawValue,
+        slug: matched.slug,
+        service: matched,
+        reason:
+          "Groupe à qualifier : sélectionnez les prestations réellement proposées.",
+      };
+    }
+    return {
+      kind: "service",
+      value: rawValue,
+      slug: matched.slug,
+      service: matched,
+    };
+  }
+
+  if (labelMatches.length > 1) {
     return {
       kind: "ambiguous",
       value: rawValue,
-      candidates: collaborationMode.candidates,
-      reason: collaborationMode.reason,
+      candidates: labelMatches,
+      reason:
+        "Libellé ambigu : sélectionnez la prestation précise du catalogue.",
     };
   }
 
@@ -282,96 +363,26 @@ export function resolveConciergeMissionServiceValue(value: unknown): ConciergeMi
 const resolveConciergePricingServiceId = (
   rawValue: number | string | null | undefined,
 ): number | null => {
-  if (rawValue === null || rawValue === undefined || rawValue === "") return null;
+  if (rawValue === null || rawValue === undefined || rawValue === "")
+    return null;
   const serviceId = Number(rawValue);
   return Number.isInteger(serviceId) ? serviceId : null;
 };
 
-const resolveConciergePricingServiceReference = (
-  service: CommonServiceReference,
-): ConciergeMissionServiceResolution => {
-  if (service.id === 16 || service.slug === "guest_checkin_checkout_legacy_bundle") {
-    return {
-      kind: "ambiguous",
-      value: String(service.id ?? service.slug),
-      candidates: [service],
-      reason: "Forfait historique groupé : ne pas scinder automatiquement en check-in et check-out.",
-    };
-  }
-
-  if (service.id === 72 || service.slug === "legacy_menage") {
-    return {
-      kind: "family",
-      value: String(service.id ?? service.slug),
-      family: "Ménage",
-      reason: "Famille générale : ne pas convertir automatiquement en ménage entre voyageurs.",
-    };
-  }
-
-  if (service.id === 73 || service.slug === "legacy_intendance") {
-    return {
-      kind: "ambiguous",
-      value: String(service.id ?? service.slug),
-      candidates: [service],
-      reason: "Valeur transversale insuffisamment précise pour une prestation facturable.",
-    };
-  }
-
-  if (service.id === 74 || service.slug === "legacy_maintenance") {
-    return {
-      kind: "family",
-      value: String(service.id ?? service.slug),
-      family: "Maintenance légère",
-      reason: "Famille générale : ne pas attribuer automatiquement une compétence réglementée.",
-    };
-  }
-
-  if (service.id === 75 || service.slug === "legacy_night_emergency") {
-    return {
-      kind: "context",
-      value: String(service.id ?? service.slug),
-      context: "night_emergency",
-      reason: "Modalité d'intervention : ne pas convertir en prestation technique spécialisée.",
-    };
-  }
-
-  if (service.id === 76 || service.slug === "legacy_guest_reception") {
-    return {
-      kind: "family",
-      value: String(service.id ?? service.slug),
-      family: "Accueil voyageurs",
-      reason: "Famille générale : ne pas assimiler automatiquement au check-in.",
-    };
-  }
-
-  if (service.status === "ambiguous") {
-    return {
-      kind: "ambiguous",
-      value: String(service.id ?? service.slug),
-      candidates: [service],
-      reason: "Référence historique ambiguë : ne pas convertir automatiquement en prestation facturable.",
-    };
-  }
-
-  return {
-    kind: "service",
-    value: String(service.id ?? service.slug),
-    slug: service.slug,
-    service,
-  };
-};
-
-export function resolveConciergePricingLineCatalog<TLine extends ConciergePricingLineLike>(
-  pricing: TLine,
-): ConciergePricingLineCatalogResolution<TLine> {
+export function resolveConciergePricingLineCatalog<
+  TLine extends ConciergePricingLineLike,
+>(pricing: TLine): ConciergePricingLineCatalogResolution<TLine> {
   const serviceIdSource =
-    pricing.service_id !== undefined ? "service_id" : pricing.serviceId !== undefined ? "serviceId" : null;
+    pricing.service_id !== undefined
+      ? "service_id"
+      : pricing.serviceId !== undefined
+        ? "serviceId"
+        : null;
   const serviceId = resolveConciergePricingServiceId(
     serviceIdSource === "service_id" ? pricing.service_id : pricing.serviceId,
   );
 
   if (serviceId !== null) {
-    const service = resolveCommonServiceById(serviceId);
     return {
       pricing,
       identifier: {
@@ -379,9 +390,9 @@ export function resolveConciergePricingLineCatalog<TLine extends ConciergePricin
         value: String(serviceId),
         source: serviceIdSource ?? "service_id",
       },
-      catalog: service
-        ? resolveConciergePricingServiceReference(service)
-        : { kind: "unknown", value: String(serviceId) },
+      // Les identifiants numériques historiques ne sont plus résolus
+      // vers le catalogue : seule une prestation cible peut être tarifée.
+      catalog: { kind: "unknown", value: String(serviceId) },
     };
   }
 
@@ -390,7 +401,9 @@ export function resolveConciergePricingLineCatalog<TLine extends ConciergePricin
     ["service", pricing.service],
     ["code", pricing.code],
   ] as const;
-  const fallback = fallbackEntries.find(([, value]) => typeof value === "string" && value.trim());
+  const fallback = fallbackEntries.find(
+    ([, value]) => typeof value === "string" && value.trim(),
+  );
   const source = fallback?.[0] ?? "none";
   const value = fallback?.[1]?.trim() ?? "";
 
@@ -405,7 +418,9 @@ export function resolveConciergePricingLineCatalog<TLine extends ConciergePricin
   };
 }
 
-export function resolveConciergePricingLinesCatalog<TLine extends ConciergePricingLineLike>(
+export function resolveConciergePricingLinesCatalog<
+  TLine extends ConciergePricingLineLike,
+>(
   pricingLines: readonly TLine[] | null | undefined,
 ): Array<ConciergePricingLineCatalogResolution<TLine>> {
   return Array.isArray(pricingLines)
@@ -462,19 +477,23 @@ export const buildLegacyFromMissionProfile = (missionProfile: {
   missions: ConciergeMissionProfile["missions"];
   positioning?: ConciergeMissionProfile["positioning"];
 }) => {
-  const missionCatalog: MissionCatalogItem[] = missionProfile.missions.map((mission) => ({
-    id: mission.id,
-    label: mission.label,
-    basePrice: null,
-    customizable: false,
-  }));
+  const missionCatalog: MissionCatalogItem[] = missionProfile.missions.map(
+    (mission) => ({
+      id: mission.id,
+      label: mission.label,
+      basePrice: null,
+      customizable: false,
+    }),
+  );
 
   const preferences: MissionPreferences = {
     acceptedMissionTypeIds: missionProfile.missions
       .filter((mission) => mission.isActive)
       .map((mission) => mission.id),
     priorityFlags: {
-      urgent: missionProfile.missions.some((mission) => mission.isActive && mission.allowUrgent),
+      urgent: missionProfile.missions.some(
+        (mission) => mission.isActive && mission.allowUrgent,
+      ),
       recurrent: false,
       premium: missionProfile.positioning === "premium",
     },
@@ -498,7 +517,15 @@ const defaultSeasonalPricing = (): SeasonalPricingConfig => ({
   minimumInvoice: 35,
 });
 
-const WEEK_DAY_ORDER: WeekDay[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+const WEEK_DAY_ORDER: WeekDay[] = [
+  "mon",
+  "tue",
+  "wed",
+  "thu",
+  "fri",
+  "sat",
+  "sun",
+];
 
 export const normalizeMissionSchedule = (
   schedule: MissionAvailability["schedule"],
@@ -513,22 +540,30 @@ export const normalizeMissionSchedule = (
 
     if (ranges.length === 0) return null;
     return { day, ranges };
-  }).filter((item): item is MissionAvailability["schedule"][number] => item !== null);
+  }).filter(
+    (item): item is MissionAvailability["schedule"][number] => item !== null,
+  );
 
-export const parseAvailabilityPayloadRaw = (value?: string | null): Record<string, unknown> => {
+export const parseAvailabilityPayloadRaw = (
+  value?: string | null,
+): Record<string, unknown> => {
   if (!value) return {};
   try {
     const parsed: unknown = JSON.parse(value);
     if (Array.isArray(parsed)) {
       return { schedule: parsed };
     }
-    return parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : {};
+    return parsed && typeof parsed === "object"
+      ? (parsed as Record<string, unknown>)
+      : {};
   } catch {
     return {};
   }
 };
 
-export const parseSeasonalPricing = (value?: string | null): SeasonalPricingConfig => {
+export const parseSeasonalPricing = (
+  value?: string | null,
+): SeasonalPricingConfig => {
   const defaults = defaultSeasonalPricing();
   const raw = parseAvailabilityPayloadRaw(value);
   const pricing =
@@ -543,14 +578,23 @@ export const parseSeasonalPricing = (value?: string | null): SeasonalPricingConf
   return {
     checkInFee: readNumber("checkInFee", defaults.checkInFee),
     checkOutFee: readNumber("checkOutFee", defaults.checkOutFee),
-    cleaningStudioFee: readNumber("cleaningStudioFee", defaults.cleaningStudioFee),
-    cleaningTwoRoomsFee: readNumber("cleaningTwoRoomsFee", defaults.cleaningTwoRoomsFee),
+    cleaningStudioFee: readNumber(
+      "cleaningStudioFee",
+      defaults.cleaningStudioFee,
+    ),
+    cleaningTwoRoomsFee: readNumber(
+      "cleaningTwoRoomsFee",
+      defaults.cleaningTwoRoomsFee,
+    ),
     linenKitFee: readNumber("linenKitFee", defaults.linenKitFee),
     welcomePackFee: readNumber("welcomePackFee", defaults.welcomePackFee),
     urgentPercent: readNumber("urgentPercent", defaults.urgentPercent),
     nightPercent: readNumber("nightPercent", defaults.nightPercent),
     weekendPercent: readNumber("weekendPercent", defaults.weekendPercent),
-    highSeasonPercent: readNumber("highSeasonPercent", defaults.highSeasonPercent),
+    highSeasonPercent: readNumber(
+      "highSeasonPercent",
+      defaults.highSeasonPercent,
+    ),
     extraKmFee: readNumber("extraKmFee", defaults.extraKmFee),
     minimumInvoice: readNumber("minimumInvoice", defaults.minimumInvoice),
   };
@@ -564,7 +608,8 @@ export const parsePricingMeta = (value?: string | null): PricingMetaConfig => {
       : {};
 
   const commissionRatePct =
-    typeof meta.commissionRatePct === "number" && Number.isFinite(meta.commissionRatePct)
+    typeof meta.commissionRatePct === "number" &&
+    Number.isFinite(meta.commissionRatePct)
       ? Math.max(0, Math.min(100, meta.commissionRatePct))
       : 20;
 
@@ -645,14 +690,21 @@ export const parseMissionPayload = (
         }
       : defaultRules;
 
-    const rawPriorityFlags = parsed?.preferences?.priorityFlags ?? parsed?.priorities;
+    const rawPriorityFlags =
+      parsed?.preferences?.priorityFlags ?? parsed?.priorities;
     const priorityFlags = {
       urgent:
-        typeof rawPriorityFlags?.urgent === "boolean" ? rawPriorityFlags.urgent : true,
+        typeof rawPriorityFlags?.urgent === "boolean"
+          ? rawPriorityFlags.urgent
+          : true,
       recurrent:
-        typeof rawPriorityFlags?.recurrent === "boolean" ? rawPriorityFlags.recurrent : false,
+        typeof rawPriorityFlags?.recurrent === "boolean"
+          ? rawPriorityFlags.recurrent
+          : false,
       premium:
-        typeof rawPriorityFlags?.premium === "boolean" ? rawPriorityFlags.premium : false,
+        typeof rawPriorityFlags?.premium === "boolean"
+          ? rawPriorityFlags.premium
+          : false,
     };
 
     const parsedCatalog = Array.isArray(parsed?.missionCatalog)
@@ -666,12 +718,16 @@ export const parseMissionPayload = (
             return {
               id,
               label,
-              basePrice: typeof obj.basePrice === "number" ? obj.basePrice : null,
+              basePrice:
+                typeof obj.basePrice === "number" ? obj.basePrice : null,
               customizable:
                 typeof obj.customizable === "boolean" ? obj.customizable : true,
             } as MissionCatalogItem;
           })
-          .filter((item: MissionCatalogItem | null): item is MissionCatalogItem => Boolean(item))
+          .filter(
+            (item: MissionCatalogItem | null): item is MissionCatalogItem =>
+              Boolean(item),
+          )
       : [];
 
     const legacyMissionTypeOptions = Array.isArray(parsed?.missionTypeOptions)
@@ -692,7 +748,9 @@ export const parseMissionPayload = (
             }))
           : DEFAULT_MISSION_CATALOG;
 
-    const acceptedFromPreferences = Array.isArray(parsed?.preferences?.acceptedMissionTypeIds)
+    const acceptedFromPreferences = Array.isArray(
+      parsed?.preferences?.acceptedMissionTypeIds,
+    )
       ? parsed.preferences.acceptedMissionTypeIds.filter(
           (item: unknown): item is string => typeof item === "string",
         )
@@ -702,7 +760,9 @@ export const parseMissionPayload = (
       ? parsed.missionTypes
           .filter((item: unknown): item is string => typeof item === "string")
           .map((label: string) => {
-            const byLabel = missionCatalog.find((item: MissionCatalogItem) => item.label === label);
+            const byLabel = missionCatalog.find(
+              (item: MissionCatalogItem) => item.label === label,
+            );
             return byLabel?.id ?? toMissionTypeId(label);
           })
       : [];
@@ -711,7 +771,9 @@ export const parseMissionPayload = (
       acceptedFromPreferences.length > 0
         ? acceptedFromPreferences
         : acceptedFromLegacyLabels
-    ).filter((id: string) => missionCatalog.some((item: MissionCatalogItem) => item.id === id));
+    ).filter((id: string) =>
+      missionCatalog.some((item: MissionCatalogItem) => item.id === id),
+    );
 
     const rawMissionProfile = parsed?.missionProfile;
     const missionProfileFromPayload =
@@ -721,7 +783,10 @@ export const parseMissionPayload = (
     const specialConditionsPayload =
       missionProfileFromPayload?.specialConditions &&
       typeof missionProfileFromPayload.specialConditions === "object"
-        ? (missionProfileFromPayload.specialConditions as Record<string, unknown>)
+        ? (missionProfileFromPayload.specialConditions as Record<
+            string,
+            unknown
+          >)
         : null;
 
     const missionProfile: ConciergeMissionProfile = missionProfileFromPayload
@@ -734,38 +799,51 @@ export const parseMissionPayload = (
               ? missionProfileFromPayload.positioning
               : "standard",
           missions: Array.isArray(missionProfileFromPayload.missions)
-            ? missionProfileFromPayload.missions
+            ? (missionProfileFromPayload.missions
                 .map((mission) => {
                   if (!mission || typeof mission !== "object") return null;
                   const item = mission as Record<string, unknown>;
                   const id = typeof item.id === "string" ? item.id : "";
-                  const label = typeof item.label === "string" ? item.label : "";
+                  const label =
+                    typeof item.label === "string" ? item.label : "";
                   if (!id || !label) return null;
                   return {
                     id,
                     label,
-                    isActive: typeof item.isActive === "boolean" ? item.isActive : false,
+                    isActive:
+                      typeof item.isActive === "boolean"
+                        ? item.isActive
+                        : false,
                     minNoticeHours:
-                      typeof item.minNoticeHours === "number" ? item.minNoticeHours : 24,
+                      typeof item.minNoticeHours === "number"
+                        ? item.minNoticeHours
+                        : 24,
                     allowUrgent:
-                      typeof item.allowUrgent === "boolean" ? item.allowUrgent : false,
+                      typeof item.allowUrgent === "boolean"
+                        ? item.allowUrgent
+                        : false,
                     urgentMultiplier:
-                      typeof item.urgentMultiplier === "number" ? item.urgentMultiplier : 1.3,
+                      typeof item.urgentMultiplier === "number"
+                        ? item.urgentMultiplier
+                        : 1.3,
                   };
                 })
-                .filter(Boolean) as ConciergeMissionProfile["missions"]
+                .filter(Boolean) as ConciergeMissionProfile["missions"])
             : buildDefaultMissionProfile(missionCatalog).missions,
           specialConditions: {
             acceptNightInterventions:
-              typeof specialConditionsPayload?.acceptNightInterventions === "boolean"
+              typeof specialConditionsPayload?.acceptNightInterventions ===
+              "boolean"
                 ? specialConditionsPayload.acceptNightInterventions
                 : false,
             acceptWeekendInterventions:
-              typeof specialConditionsPayload?.acceptWeekendInterventions === "boolean"
+              typeof specialConditionsPayload?.acceptWeekendInterventions ===
+              "boolean"
                 ? specialConditionsPayload.acceptWeekendInterventions
                 : false,
             acceptHighSeasonInterventions:
-              typeof specialConditionsPayload?.acceptHighSeasonInterventions === "boolean"
+              typeof specialConditionsPayload?.acceptHighSeasonInterventions ===
+              "boolean"
                 ? specialConditionsPayload.acceptHighSeasonInterventions
                 : false,
             highSeasonMultiplier:
@@ -821,7 +899,8 @@ export const parseMissionPayload = (
   }
 };
 
-const formatFrenchOrdinal = (value: number) => (value === 1 ? "1er" : `${value}e`);
+const formatFrenchOrdinal = (value: number) =>
+  value === 1 ? "1er" : `${value}e`;
 
 const deriveArrondissementLabel = (
   baseLocation: string | null | undefined,
@@ -865,13 +944,18 @@ export const buildMissionAvailabilityFromProfile = (
 ): MissionAvailability | null => {
   if (!profile) return null;
   const missionPayload = parseMissionPayload(profile.availability_hours);
-  const availabilityRaw = parseAvailabilityPayloadRaw(profile.availability_hours);
-  const persistedZones: MissionAvailability["zones"] = Array.isArray(availabilityRaw.zones)
+  const availabilityRaw = parseAvailabilityPayloadRaw(
+    profile.availability_hours,
+  );
+  const persistedZones: MissionAvailability["zones"] = Array.isArray(
+    availabilityRaw.zones,
+  )
     ? availabilityRaw.zones
         .map((zone, index): MissionAvailability["zones"][number] | null => {
           if (!zone || typeof zone !== "object") return null;
           const candidate = zone as Record<string, unknown>;
-          const label = typeof candidate.label === "string" ? candidate.label.trim() : "";
+          const label =
+            typeof candidate.label === "string" ? candidate.label.trim() : "";
           const lat =
             typeof candidate.lat === "number" && Number.isFinite(candidate.lat)
               ? candidate.lat
@@ -894,20 +978,29 @@ export const buildMissionAvailabilityFromProfile = (
             lat,
             lng,
             postcode:
-              typeof candidate.postcode === "string" && candidate.postcode.trim()
+              typeof candidate.postcode === "string" &&
+              candidate.postcode.trim()
                 ? candidate.postcode.trim()
                 : null,
           };
         })
-        .filter((zone): zone is MissionAvailability["zones"][number] => zone !== null)
+        .filter(
+          (zone): zone is MissionAvailability["zones"][number] => zone !== null,
+        )
     : [];
 
   if (persistedZones.length > 0) {
     return {
-      zones: persistedZones.slice(0, 1).map((zone): MissionAvailability["zones"][number] => ({
-        ...zone,
-        label: deriveArrondissementLabel(zone.label, profile.city, profile.postal_code),
-      })),
+      zones: persistedZones
+        .slice(0, 1)
+        .map((zone): MissionAvailability["zones"][number] => ({
+          ...zone,
+          label: deriveArrondissementLabel(
+            zone.label,
+            profile.city,
+            profile.postal_code,
+          ),
+        })),
       radiusKm: profile.service_radius_km ?? 30,
       schedule: missionPayload.schedule,
       emergency24h: Boolean(profile.emergency_service),

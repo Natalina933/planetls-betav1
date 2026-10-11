@@ -1,7 +1,7 @@
-import {
-  resolveCommonServiceValue,
-  type CommonServiceReference,
-} from "../../../lib/commonServiceCatalog.ts";
+import type {
+  PlanetLSServiceTargetEntry,
+} from "../../../lib/planetlsServiceCatalogTarget.ts";
+import { resolvePlanetLSSelection } from "../../../lib/planetlsServiceSelection.ts";
 
 type ProviderCatalogSource = "category" | "skill" | "service_label";
 
@@ -16,8 +16,15 @@ export type ProviderCatalogResolution =
       kind: "skill";
       source: ProviderCatalogSource;
       value: string;
-      catalog?: CommonServiceReference;
-      requiresQualification: boolean;
+      service?: PlanetLSServiceTargetEntry;
+      verifiedQualification: false;
+    }
+  | {
+      kind: "group";
+      source: ProviderCatalogSource;
+      value: string;
+      slug: string;
+      service: PlanetLSServiceTargetEntry;
       verifiedQualification: false;
     }
   | {
@@ -32,17 +39,15 @@ export type ProviderCatalogResolution =
       source: ProviderCatalogSource;
       value: string;
       slug: string;
-      service: CommonServiceReference;
-      requiresQualification: boolean;
+      service: PlanetLSServiceTargetEntry;
       verifiedQualification: false;
     }
   | {
       kind: "ambiguous";
       source: ProviderCatalogSource;
       value: string;
-      candidates: CommonServiceReference[];
+      candidates: PlanetLSServiceTargetEntry[];
       reason: string;
-      requiresQualification: boolean;
       verifiedQualification: false;
     }
   | {
@@ -57,12 +62,6 @@ export type ProviderProfileCatalogResolution = {
   skills: ProviderCatalogResolution[];
 };
 
-const GENERAL_FAMILY_BY_LEGACY_SLUG: Record<string, string> = {
-  legacy_menage: "Ménage",
-  legacy_maintenance: "Maintenance légère",
-  legacy_guest_reception: "Accueil voyageurs",
-};
-
 function normalizeInput(value: unknown) {
   return String(value ?? "").trim();
 }
@@ -74,27 +73,18 @@ function buildUnknown(source: ProviderCatalogSource, value: string): ProviderCat
 function serviceResolutionFromReference(
   source: ProviderCatalogSource,
   value: string,
-  service: CommonServiceReference,
+  service: PlanetLSServiceTargetEntry,
 ): ProviderCatalogResolution {
-  const family = GENERAL_FAMILY_BY_LEGACY_SLUG[service.slug];
-  if (family) {
+  // Un métier ou une famille ne prouve aucune prestation précise.
+  // Un groupe reconnu identifie le métier sans attribuer
+  // automatiquement toutes ses interventions.
+  if (service.kind === "group") {
     return {
-      kind: "family",
+      kind: "group",
       source,
       value,
-      family,
-      verifiedQualification: false,
-    };
-  }
-
-  if (service.status === "ambiguous") {
-    return {
-      kind: "ambiguous",
-      source,
-      value,
-      candidates: [service],
-      reason: "Référence historique ambiguë : ne pas convertir automatiquement.",
-      requiresQualification: Boolean(service.requiresQualification),
+      slug: service.slug,
+      service,
       verifiedQualification: false,
     };
   }
@@ -105,7 +95,6 @@ function serviceResolutionFromReference(
     value,
     slug: service.slug,
     service,
-    requiresQualification: Boolean(service.requiresQualification),
     verifiedQualification: false,
   };
 }
@@ -127,35 +116,19 @@ export function resolveProviderCatalogValue(
   }
 
   if (source === "skill") {
-    const catalog = resolveCommonServiceValue(rawValue);
+    const service = resolvePlanetLSSelection(rawValue);
     return {
       kind: "skill",
       source,
       value: rawValue,
-      catalog: catalog.kind === "service" ? catalog.service : undefined,
-      requiresQualification:
-        catalog.kind === "service" ? Boolean(catalog.service.requiresQualification) : false,
+      service: service ?? undefined,
       verifiedQualification: false,
     };
   }
 
-  const catalog = resolveCommonServiceValue(rawValue);
-  if (catalog.kind === "service") {
-    return serviceResolutionFromReference(source, rawValue, catalog.service);
-  }
-
-  if (catalog.kind === "ambiguous") {
-    return {
-      kind: "ambiguous",
-      source,
-      value: rawValue,
-      candidates: catalog.candidates,
-      reason: catalog.reason,
-      requiresQualification: catalog.candidates.some((candidate) =>
-        Boolean(candidate.requiresQualification),
-      ),
-      verifiedQualification: false,
-    };
+  const direct = resolvePlanetLSSelection(rawValue);
+  if (direct) {
+    return serviceResolutionFromReference(source, rawValue, direct);
   }
 
   return buildUnknown(source, rawValue);

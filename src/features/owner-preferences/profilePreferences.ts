@@ -7,11 +7,13 @@ import {
   type OwnerRequestGoal,
   type OwnerResponsibilityLevel,
 } from "../../app/lib/serviceRequestBrief.ts";
-import {
-  resolveCommonServiceValue,
-  type CollaborationModeSlug,
-  type CommonServiceReference,
-} from "../../app/lib/commonServiceCatalog.ts";
+import type { PlanetLSServiceTargetEntry } from "../../app/lib/planetlsServiceCatalogTarget.ts";
+import { resolvePlanetLSSelection } from "../../app/lib/planetlsServiceSelection.ts";
+
+// Mode de collaboration : concept métier du parcours propriétaire, jamais une
+// prestation du catalogue. Volontairement défini localement pour rester
+// indépendant de `PLANETLS_SERVICE_TARGET`, qui ne référence que les prestations.
+type CollaborationModeSlug = "a_la_carte" | "full_management" | "both";
 
 const OWNER_REQUEST_GOALS: OwnerRequestGoal[] = [
   "find_concierge",
@@ -112,7 +114,7 @@ export type OwnerOnboardingNeedResolution =
       kind: "service";
       need: OwnerOnboardingNeed;
       slug: string;
-      service: CommonServiceReference;
+      service: PlanetLSServiceTargetEntry;
     }
   | {
       kind: "family";
@@ -130,7 +132,7 @@ export type OwnerOnboardingNeedResolution =
       kind: "ambiguous";
       need: OwnerOnboardingNeed;
       value: string;
-      candidates: CommonServiceReference[];
+      candidates: PlanetLSServiceTargetEntry[];
       reason: string;
     }
   | {
@@ -241,26 +243,25 @@ export function resolveOwnerOnboardingNeedPreference(
   if (!need) return { kind: "unknown", need: value, value: need };
 
   if (need === "full_management") {
-    const resolved = resolveCommonServiceValue("full_management");
-    if (resolved.kind === "collaboration_mode") {
-      return {
-        kind: "mode",
-        need,
-        mode: resolved.mode,
-        label: resolved.label,
-      };
-    }
+    // Besoin métier de l'onboarding : un mode de collaboration, jamais une
+    // prestation du catalogue. Volontairement non résolu via le catalogue.
+    return {
+      kind: "mode",
+      need,
+      mode: "full_management",
+      label: "Gestion complète",
+    };
   }
 
   const serviceSlug = OWNER_ONBOARDING_SERVICE_SLUGS[need as OwnerOnboardingNeed];
   if (serviceSlug) {
-    const resolved = resolveCommonServiceValue(serviceSlug);
-    if (resolved.kind === "service") {
+    const resolved = resolvePlanetLSSelection(serviceSlug);
+    if (resolved) {
       return {
         kind: "service",
         need: need as OwnerOnboardingNeed,
-        slug: serviceSlug,
-        service: resolved.service,
+        slug: resolved.slug,
+        service: resolved,
       };
     }
     return { kind: "unknown", need, value: need };
@@ -277,12 +278,14 @@ export function resolveOwnerOnboardingNeedPreference(
   }
 
   if (need === "traveler_messages") {
-    const resolved = resolveCommonServiceValue("admin_guest_communication");
+    // `admin_guest_communication` n'existe pas dans le catalogue cible : c'est
+    // un besoin métier à confirmer, sans prestation candidate. On ne l'invente
+    // pas et on ne le convertit pas artificiellement.
     return {
       kind: "ambiguous",
       need,
       value: need,
-      candidates: resolved.kind === "service" ? [resolved.service] : [],
+      candidates: [],
       reason: "Communication voyageurs à confirmer avant conversion en prestation facturable.",
     };
   }
