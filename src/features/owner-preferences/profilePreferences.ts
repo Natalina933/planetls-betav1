@@ -7,6 +7,10 @@ import {
   type OwnerRequestGoal,
   type OwnerResponsibilityLevel,
 } from "../../app/lib/serviceRequestBrief.ts";
+import {
+  PLANETLS_SERVICE_FAMILIES,
+  type PlanetLSServiceFamily,
+} from "../../app/lib/planetlsServiceCatalogTarget.ts";
 import type { PlanetLSServiceTargetEntry } from "../../app/lib/planetlsServiceCatalogTarget.ts";
 import { resolvePlanetLSSelection } from "../../app/lib/planetlsServiceSelection.ts";
 
@@ -53,7 +57,7 @@ const OWNER_RESPONSIBILITY_LEVELS: OwnerResponsibilityLevel[] = [
 
 export type OwnerOnboardingManagementMode = "autonomous" | "supported" | "full_delegation";
 
-export type OwnerOnboardingNeed =
+type LegacyOwnerOnboardingNeed =
   | "check_in"
   | "check_out"
   | "cleaning"
@@ -62,6 +66,8 @@ export type OwnerOnboardingNeed =
   | "traveler_messages"
   | "full_management"
   | "other";
+
+export type OwnerOnboardingNeed = PlanetLSServiceFamily | LegacyOwnerOnboardingNeed;
 
 export type OwnerOnboardingSituation =
   | "first_rental"
@@ -119,7 +125,7 @@ export type OwnerOnboardingNeedResolution =
   | {
       kind: "family";
       need: OwnerOnboardingNeed;
-      family: string;
+      family: PlanetLSServiceFamily;
       reason: string;
     }
   | {
@@ -178,6 +184,7 @@ const OWNER_ONBOARDING_MANAGEMENT_MODES: readonly OwnerOnboardingManagementMode[
 ];
 
 const OWNER_ONBOARDING_NEEDS: readonly OwnerOnboardingNeed[] = [
+  ...PLANETLS_SERVICE_FAMILIES.map((family) => family.slug),
   "check_in",
   "check_out",
   "cleaning",
@@ -230,11 +237,35 @@ const OWNER_ONBOARDING_SERVICE_SLUGS: Partial<Record<OwnerOnboardingNeed, string
   check_out: "guest_checkout",
 };
 
-const OWNER_ONBOARDING_FAMILIES: Partial<Record<OwnerOnboardingNeed, string>> = {
-  cleaning: "Ménage",
-  linen: "Linge",
-  maintenance: "Maintenance légère",
+const OWNER_ONBOARDING_FAMILIES: Partial<
+  Record<LegacyOwnerOnboardingNeed, PlanetLSServiceFamily>
+> = {
+  cleaning: "cleaning_linen",
+  linen: "cleaning_linen",
+  maintenance: "maintenance_repair",
 };
+
+const LEGACY_OWNER_ONBOARDING_NEED_LABELS: Record<LegacyOwnerOnboardingNeed, string> = {
+  check_in: "Accueil / Check-in (ancien choix)",
+  check_out: "Départ / Check-out (ancien choix)",
+  cleaning: "Ménage (ancien choix)",
+  linen: "Gestion du linge (ancien choix)",
+  maintenance: "Maintenance / petites réparations (ancien choix)",
+  traveler_messages: "Gestion des messages voyageurs (ancien choix)",
+  full_management: "Gestion complète du logement (ancien choix)",
+  other: "Préférence personnalisée (ancien choix)",
+};
+
+function isLegacyOwnerOnboardingNeed(
+  need: OwnerOnboardingNeed,
+): need is LegacyOwnerOnboardingNeed {
+  return !PLANETLS_SERVICE_FAMILIES.some((family) => family.slug === need);
+}
+
+export function getOwnerOnboardingNeedLabel(need: OwnerOnboardingNeed): string {
+  const family = PLANETLS_SERVICE_FAMILIES.find((entry) => entry.slug === need);
+  return family?.label ?? LEGACY_OWNER_ONBOARDING_NEED_LABELS[need as LegacyOwnerOnboardingNeed];
+}
 
 export function resolveOwnerOnboardingNeedPreference(
   value: OwnerOnboardingNeed | string,
@@ -253,6 +284,16 @@ export function resolveOwnerOnboardingNeedPreference(
     };
   }
 
+  const canonicalFamily = PLANETLS_SERVICE_FAMILIES.find((family) => family.slug === need);
+  if (canonicalFamily) {
+    return {
+      kind: "family",
+      need: canonicalFamily.slug,
+      family: canonicalFamily.slug,
+      reason: "Préférence propriétaire générale : ne pas convertir automatiquement en prestation détaillée.",
+    };
+  }
+
   const serviceSlug = OWNER_ONBOARDING_SERVICE_SLUGS[need as OwnerOnboardingNeed];
   if (serviceSlug) {
     const resolved = resolvePlanetLSSelection(serviceSlug);
@@ -267,7 +308,7 @@ export function resolveOwnerOnboardingNeedPreference(
     return { kind: "unknown", need, value: need };
   }
 
-  const family = OWNER_ONBOARDING_FAMILIES[need as OwnerOnboardingNeed];
+  const family = OWNER_ONBOARDING_FAMILIES[need as LegacyOwnerOnboardingNeed];
   if (family) {
     return {
       kind: "family",
@@ -560,21 +601,19 @@ export function buildOwnerConciergeSearchDefaults(
   propertyType: string;
   selectedServices: string[];
 } {
-  const onboardingServices: Record<OwnerOnboardingNeed, string | null> = {
+  const onboardingServices: Partial<Record<LegacyOwnerOnboardingNeed, string>> = {
     check_in: "Check-in",
     check_out: "Check-out",
-    cleaning: "Ménage",
-    linen: "Linge",
-    maintenance: "Maintenance",
-    traveler_messages: "Gestion des messages voyageurs",
-    full_management: "Gestion complète du logement",
-    other: null,
+    cleaning: "Ménage du logement",
+    linen: "Changement de linge",
+    maintenance: "Petites réparations",
   };
 
   return {
     propertyType: preferences.propertyType || preferences.propertyTypes[0] || "",
     selectedServices:
       preferences.ownerOnboardingV1?.needs
+        .filter(isLegacyOwnerOnboardingNeed)
         .map((need) => onboardingServices[need])
         .filter((value): value is string => Boolean(value)) ?? [],
   };

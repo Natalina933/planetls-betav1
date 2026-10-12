@@ -82,19 +82,19 @@ export const OWNER_REQUEST_GOAL_OPTIONS: Array<Option<OwnerRequestGoal>> = [
     value: "find_concierge",
     label: "Trouver une conciergerie",
     helper: "Pour cadrer une prise en charge du logement.",
-    example: "Je cherche une equipe fiable pour gerer mon logement.",
+    example: "Je cherche une équipe fiable pour gérer mon logement.",
   },
   {
     value: "one_off_quote",
     label: "Obtenir un devis ponctuel",
-    helper: "Pour chiffrer une intervention precise.",
-    example: "J'ai besoin d'un menage apres depart voyageur.",
+    helper: "Pour chiffrer une intervention précise.",
+    example: "J'ai besoin d'un ménage après départ voyageur.",
   },
   {
     value: "compare_concierges",
     label: "Comparer plusieurs concierges",
     helper: "Pour recevoir plusieurs approches avant de choisir.",
-    example: "Je veux comparer les services et tarifs dans ma region.",
+    example: "Je veux comparer les services et tarifs dans ma région.",
   },
   {
     value: "replace_current",
@@ -104,21 +104,21 @@ export const OWNER_REQUEST_GOAL_OPTIONS: Array<Option<OwnerRequestGoal>> = [
   },
   {
     value: "delegate_tasks",
-    label: "Deleguer certaines taches",
+    label: "Déléguer certaines tâches",
     helper: "Pour confier seulement une partie de l'exploitation.",
-    example: "Je garde la relation voyageurs mais delegue menage et linge.",
+    example: "Je garde la relation voyageurs mais délègue ménage et linge.",
   },
   {
     value: "prepare_listing",
-    label: "Preparer une mise en location",
+    label: "Préparer une mise en location",
     helper: "Pour lancer un bien avant les premiers voyageurs.",
-    example: "Je veux preparer le logement avant publication.",
+    example: "Je veux préparer le logement avant publication.",
   },
   {
     value: "regular_support",
-    label: "Accompagnement regulier",
-    helper: "Pour une relation suivie avec rythme et responsabilites.",
-    example: "Je cherche un partenaire recurrent toute l'annee.",
+    label: "Accompagnement régulier",
+    helper: "Pour une relation suivie avec rythme et responsabilités.",
+    example: "Je cherche un partenaire récurrent toute l'année.",
   },
 ];
 
@@ -126,19 +126,19 @@ export const OWNER_COLLABORATION_TYPE_OPTIONS: Array<Option<OwnerCollaborationTy
   {
     value: "one_off",
     label: "Mission ponctuelle",
-    helper: "Engagement limite a une intervention.",
-    example: "Un menage, un check-in ou une visite de controle.",
+    helper: "Engagement limité à une intervention.",
+    example: "Un ménage, un check-in ou une visite de contrôle.",
   },
   {
     value: "regular",
-    label: "Collaboration reguliere",
-    helper: "Missions recurrentes avec rythme a definir.",
-    example: "Interventions chaque semaine ou a chaque reservation.",
+    label: "Collaboration régulière",
+    helper: "Missions récurrentes avec rythme à définir.",
+    example: "Interventions chaque semaine ou à chaque réservation.",
   },
   {
     value: "full_management",
-    label: "Gestion complete",
-    helper: "Responsabilite large sur le logement et les voyageurs.",
+    label: "Gestion complète",
+    helper: "Responsabilité large sur le logement et les voyageurs.",
     example: "Accueil, menage, linge, coordination et suivi.",
   },
   {
@@ -161,26 +161,26 @@ export const OWNER_COLLABORATION_TYPE_OPTIONS: Array<Option<OwnerCollaborationTy
   },
   {
     value: "onboarding",
-    label: "Accompagnement au demarrage",
-    helper: "Aide au lancement du bien ou du process.",
-    example: "Mettre en place les routines avant les premieres locations.",
+    label: "Accompagnement au démarrage",
+    helper: "Aide au lancement du bien ou du processus.",
+    example: "Mettre en place les routines avant les premières locations.",
   },
 ];
 
 export const OWNER_REQUEST_FREQUENCY_OPTIONS: Array<Option<OwnerRequestFrequency>> = [
-  { value: "once", label: "Une seule fois", helper: "Mission isolee.", example: "Cette intervention uniquement." },
-  { value: "weekly", label: "Chaque semaine", helper: "Rythme recurrent.", example: "Une ou plusieurs fois par semaine." },
-  { value: "monthly", label: "Chaque mois", helper: "Suivi regulier leger.", example: "Controle mensuel ou entretien." },
-  { value: "seasonal", label: "Selon la saison", helper: "Pic d'activite ponctuel.", example: "Vacances, ete, haute saison." },
-  { value: "year_round", label: "Toute l'annee", helper: "Collaboration continue.", example: "Gestion recurrente annuelle." },
-  { value: "unknown", label: "A definir", helper: "Le concierge peut proposer.", example: "Je ne connais pas encore le rythme." },
+  { value: "once", label: "Une seule fois", helper: "Mission isolée.", example: "Cette intervention uniquement." },
+  { value: "weekly", label: "Chaque semaine", helper: "Rythme récurrent.", example: "Une ou plusieurs fois par semaine." },
+  { value: "monthly", label: "Chaque mois", helper: "Suivi régulier léger.", example: "Contrôle mensuel ou entretien." },
+  { value: "seasonal", label: "Selon la saison", helper: "Pic d'activité ponctuel.", example: "Vacances, été, haute saison." },
+  { value: "year_round", label: "Toute l'année", helper: "Collaboration continue.", example: "Gestion récurrente annuelle." },
+  { value: "unknown", label: "À définir", helper: "Le concierge peut proposer.", example: "Je ne connais pas encore le rythme." },
 ];
 
 export const OWNER_RESPONSIBILITY_LEVEL_OPTIONS: Array<Option<OwnerResponsibilityLevel>> = [
-  { value: "low", label: "Execution simple", helper: "Le concierge realise des taches precises.", example: "Menage uniquement." },
-  { value: "shared", label: "Responsabilite partagee", helper: "Le proprietaire garde une partie du pilotage.", example: "Je gere les voyageurs, vous gerez le terrain." },
+  { value: "low", label: "Exécution simple", helper: "Le concierge réalise des tâches précises.", example: "Ménage uniquement." },
+  { value: "shared", label: "Responsabilité partagée", helper: "Le propriétaire garde une partie du pilotage.", example: "Je gère les voyageurs, vous gérez le terrain." },
   { value: "full", label: "Responsabilite forte", helper: "Le concierge pilote largement l'operationnel.", example: "Gestion complete du logement." },
-  { value: "unknown", label: "A cadrer ensemble", helper: "A clarifier dans la reponse.", example: "Je souhaite vos recommandations." },
+  { value: "unknown", label: "À cadrer ensemble", helper: "À clarifier dans la réponse.", example: "Je souhaite vos recommandations." },
 ];
 
 const GOAL_LABELS = new Map(OWNER_REQUEST_GOAL_OPTIONS.map((option) => [option.value, option.label]));
@@ -229,22 +229,22 @@ const GOAL_DEFAULTS: Record<OwnerRequestGoal, ServiceRequestBriefDefaults> = {
 const GOAL_GUIDANCE: Record<OwnerRequestGoal, ServiceRequestBriefFormGuidance> = {
   find_concierge: {
     titleLabel: "Besoin principal",
-    titlePlaceholder: "Ex : trouver une conciergerie pour gerer mon logement",
+    titlePlaceholder: "Ex : trouver une conciergerie pour gérer mon logement",
     detailsLabel: "Contexte de gestion",
     detailsPlaceholder:
-      "Precisez le logement, les services a reprendre, le volume attendu et ce que vous souhaitez garder ou deleguer.",
+      "Précisez le logement, les services à reprendre, le volume attendu et ce que vous souhaitez garder ou déléguer.",
     frequencyHelper: "Indiquez le rythme probable pour aider le concierge a dimensionner son offre.",
-    durationPlaceholder: "Ex : a cadrer ensemble, saison ete, toute l'annee",
-    responsibilityHelper: "Precise si vous gardez le pilotage ou si le concierge doit prendre plus de responsabilite.",
-    dateHelper: "Si vous ne connaissez pas la date, laissez vide: la mission restera a planifier.",
+    durationPlaceholder: "Ex : à cadrer ensemble, saison été, toute l'année",
+    responsibilityHelper: "Précisez si vous gardez le pilotage ou si le concierge doit prendre plus de responsabilités.",
+    dateHelper: "Si vous ne connaissez pas la date, laissez vide : la mission restera à planifier.",
     confirmationHint: "Le concierge doit comprendre le perimetre attendu avant de proposer une formule.",
   },
   one_off_quote: {
     titleLabel: "Mission ponctuelle",
-    titlePlaceholder: "Ex : menage apres depart voyageur",
-    detailsLabel: "Details de l'intervention",
+    titlePlaceholder: "Ex : ménage après départ voyageur",
+    detailsLabel: "Détails de l'intervention",
     detailsPlaceholder:
-      "Decrivez la mission, le logement, les contraintes d'acces, le delai et le resultat attendu.",
+      "Décrivez la mission, le logement, les contraintes d'accès, le délai et le résultat attendu.",
     frequencyHelper: "Une mission ponctuelle doit rester sur une frequence unique sauf besoin recurrent explicite.",
     durationPlaceholder: "Ex : 1 intervention, 2 heures, avant samedi",
     responsibilityHelper: "Le concierge execute une intervention precise avec un resultat clair.",
@@ -252,11 +252,11 @@ const GOAL_GUIDANCE: Record<OwnerRequestGoal, ServiceRequestBriefFormGuidance> =
     confirmationHint: "Le concierge doit pouvoir repondre avec un devis ponctuel.",
   },
   compare_concierges: {
-    titleLabel: "Comparaison souhaitee",
+    titleLabel: "Comparaison souhaitée",
     titlePlaceholder: "Ex : comparer plusieurs concierges pour Paris 15",
-    detailsLabel: "Criteres de comparaison",
+    detailsLabel: "Critères de comparaison",
     detailsPlaceholder:
-      "Indiquez ce que vous voulez comparer: services, forfait, disponibilite, experience, zone ou methode de travail.",
+      "Indiquez ce que vous voulez comparer : services, forfait, disponibilité, expérience, zone ou méthode de travail.",
     frequencyHelper: "Le rythme aide les concierges a proposer des offres comparables.",
     durationPlaceholder: "Ex : test initial, haute saison, engagement a definir",
     responsibilityHelper: "Laissez a cadrer si vous attendez surtout plusieurs propositions.",
@@ -276,9 +276,9 @@ const GOAL_GUIDANCE: Record<OwnerRequestGoal, ServiceRequestBriefFormGuidance> =
     confirmationHint: "Le concierge doit identifier les risques de transition et le niveau d'urgence.",
   },
   delegate_tasks: {
-    titleLabel: "Taches a deleguer",
-    titlePlaceholder: "Ex : deleguer menage et linge uniquement",
-    detailsLabel: "Perimetre delegue",
+    titleLabel: "Tâches à déléguer",
+    titlePlaceholder: "Ex : déléguer ménage et linge uniquement",
+    detailsLabel: "Périmètre délégué",
     detailsPlaceholder:
       "Listez les tâches que vous déléguez, celles que vous gardez et les priorités opérationnelles.",
     frequencyHelper: "La frequence distingue une aide ponctuelle d'une gestion partielle.",
@@ -288,9 +288,9 @@ const GOAL_GUIDANCE: Record<OwnerRequestGoal, ServiceRequestBriefFormGuidance> =
     confirmationHint: "Le concierge doit proposer une offre centree sur les services prioritaires.",
   },
   prepare_listing: {
-    titleLabel: "Preparation de mise en location",
-    titlePlaceholder: "Ex : preparer un appartement avant publication",
-    detailsLabel: "Travaux de demarrage",
+    titleLabel: "Préparation de mise en location",
+    titlePlaceholder: "Ex : préparer un appartement avant publication",
+    detailsLabel: "Travaux de démarrage",
     detailsPlaceholder:
       "Precisez l'etat du bien, les actions avant mise en ligne, les photos, equipements, linge et controles attendus.",
     frequencyHelper: "Le lancement peut etre ponctuel puis devenir recurrent.",
@@ -300,9 +300,9 @@ const GOAL_GUIDANCE: Record<OwnerRequestGoal, ServiceRequestBriefFormGuidance> =
     confirmationHint: "Le concierge doit savoir s'il chiffre un lancement, une gestion future ou les deux.",
   },
   regular_support: {
-    titleLabel: "Accompagnement regulier",
-    titlePlaceholder: "Ex : accompagnement regulier toute l'annee",
-    detailsLabel: "Organisation recurrente",
+    titleLabel: "Accompagnement régulier",
+    titlePlaceholder: "Ex : accompagnement régulier toute l'année",
+    detailsLabel: "Organisation récurrente",
     detailsPlaceholder:
       "Decrivez le rythme, les services prioritaires, le volume de reservations et le niveau de responsabilite attendu.",
     frequencyHelper: "Un rythme annuel, saisonnier ou hebdomadaire aide a proposer un forfait.",

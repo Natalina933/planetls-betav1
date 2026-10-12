@@ -14,6 +14,7 @@ type UseOwnerConciergeSearchResult = {
   items: ConciergeSearchRow[];
   loading: boolean;
   error: string | null;
+  warning: string | null;
   serverOptions: ServerOptions;
   search: (filters: OwnerConciergeSearchFilters) => Promise<ConciergeSearchRow[]>;
   clear: () => void;
@@ -26,6 +27,7 @@ export function useOwnerConciergeSearch(): UseOwnerConciergeSearchResult {
   const [items, setItems] = useState<ConciergeSearchRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
   const [serverOptions, setServerOptions] = useState<ServerOptions>(emptyServerOptions);
 
   async function search(filters: OwnerConciergeSearchFilters) {
@@ -38,6 +40,7 @@ export function useOwnerConciergeSearch(): UseOwnerConciergeSearchResult {
     try {
       setLoading(true);
       setError(null);
+      setWarning(null);
 
       const params = buildOwnerConciergeSearchParams(filters);
       const response = await fetch(`/api/profiles/concierges?${params.toString()}`, {
@@ -65,6 +68,7 @@ export function useOwnerConciergeSearch(): UseOwnerConciergeSearchResult {
           ? payload.available_filters.property_types
           : [],
       });
+      setWarning(typeof payload?.warning === "string" ? payload.warning : null);
       return nextItems;
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") {
@@ -93,6 +97,7 @@ export function useOwnerConciergeSearch(): UseOwnerConciergeSearchResult {
     searchAbortRef.current = null;
     setLoading(false);
     setError(null);
+    setWarning(null);
     setItems([]);
     setServerOptions(emptyServerOptions);
   }
@@ -107,6 +112,7 @@ export function useOwnerConciergeSearch(): UseOwnerConciergeSearchResult {
     items,
     loading,
     error,
+    warning,
     serverOptions,
     search,
     clear,

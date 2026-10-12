@@ -1,7 +1,20 @@
 import { geocodeLocation, isGeocodingServiceError } from "../../../../server/location/geocodeLocation.ts";
-import { distanceKm, readSearchZones, type SearchPoint } from "../../../../features/owner-concierges/lib/geography.ts";
+import {
+  distanceKm,
+  isSearchPoint,
+  readSearchZones,
+  type SearchPoint,
+} from "../../../../features/owner-concierges/lib/geography.ts";
 
-type LocatedProfile = { id: string; city: string | null; postal_code?: string | null; country: string | null; availability_hours: string | null };
+type LocatedProfile = {
+  id: string;
+  city: string | null;
+  postal_code?: string | null;
+  country: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  availability_hours: string | null;
+};
 
 export async function locateConcierges<T extends LocatedProfile>(profiles: T[], center: SearchPoint, radius: number,
   geocode: (query: string) => Promise<SearchPoint | null> = geocodeLocation) {
@@ -11,7 +24,18 @@ export async function locateConcierges<T extends LocatedProfile>(profiles: T[], 
   let geocodingDeferred = false;
   // Avoid concurrent geocoding calls and resolve each distinct city once per search.
   for (const profile of profiles) {
-    let points = readSearchZones(profile.availability_hours);
+    const profilePoint =
+      typeof profile.latitude === "number" &&
+      typeof profile.longitude === "number" &&
+      isSearchPoint({
+        latitude: profile.latitude,
+        longitude: profile.longitude,
+      })
+        ? { latitude: profile.latitude, longitude: profile.longitude }
+        : null;
+    let points = profilePoint
+      ? [profilePoint]
+      : readSearchZones(profile.availability_hours);
     if (!points.length && profile.city) {
       const query = [profile.city, profile.postal_code, profile.country || "France"].filter(Boolean).join(", ");
       if (!locations.has(query)) {

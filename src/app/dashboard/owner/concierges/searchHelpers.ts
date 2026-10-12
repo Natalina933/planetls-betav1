@@ -1,3 +1,5 @@
+import { normalizeConciergeCategories } from "../../../../features/owner-concierges/lib/searchNormalization.ts";
+
 export type OwnerConciergeSearchFilters = {
   region?: string;
   city: string;
@@ -19,8 +21,9 @@ export function buildOwnerConciergeSearchParams(filters: OwnerConciergeSearchFil
 
   if (filters.region?.trim()) params.set("region", filters.region.trim());
   if (filters.city.trim()) params.set("city", filters.city.trim());
-  if (filters.selectedCategories.length > 0) {
-    params.set("categories", filters.selectedCategories.join(","));
+  const normalizedCategories = normalizeConciergeCategories(filters.selectedCategories);
+  if (normalizedCategories.length > 0) {
+    params.set("categories", normalizedCategories.join(","));
   }
   if (filters.selectedServices.length > 0) {
     params.set("services", filters.selectedServices.join(","));
@@ -28,6 +31,7 @@ export function buildOwnerConciergeSearchParams(filters: OwnerConciergeSearchFil
   if (filters.propertyType.trim()) params.set("propertyType", filters.propertyType.trim());
   if (filters.budgetMax.trim()) params.set("budgetMax", filters.budgetMax.trim());
   if (filters.radiusKm.trim()) params.set("radiusKm", filters.radiusKm.trim());
+  if (filters.city.trim() && filters.radiusKm.trim()) params.set("geographic", "1");
   if (filters.proOnly) params.set("proOnly", "1");
 
   return params;

@@ -29,6 +29,7 @@ export type ConciergeSearchRow = {
 
 export type ConciergeSearchPayload = {
   items: ConciergeSearchRow[];
+  warning?: string | null;
   available_filters?: {
     categories?: string[];
     services?: string[];

@@ -346,7 +346,16 @@ export async function GET(req: NextRequest) {
       },
       total: results.length,
       ...(geographic ? { center, unlocated: located?.unlocated ?? 0 } : {}),
-      ...(located?.geocodingDeferred ? { warning: "Le service de localisation est temporairement limité. Certains profils n’ont pas pu être vérifiés ; les résultats peuvent être incomplets." } : {}),
+      ...(geographic && located && located.unlocated > 0
+        ? {
+            warning: `${located.unlocated} profil(s) n’ont pas de localisation vérifiable et ne sont pas inclus dans le rayon.`,
+          }
+        : located?.geocodingDeferred
+          ? {
+              warning:
+                "Le service de localisation est temporairement limité. Certains profils n’ont pas pu être vérifiés ; les résultats peuvent être incomplets.",
+            }
+          : {}),
       available_filters: availableFilters,
       items: results,
     });

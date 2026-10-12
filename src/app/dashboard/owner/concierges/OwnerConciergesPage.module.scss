@@ -895,8 +895,8 @@
   @extend %soft-panel;
   @extend %inner-stroke;
   display: grid;
-  gap: 1rem;
-  padding: 1.35rem;
+  gap: 0.85rem;
+  padding: clamp(1rem, 2vw, 1.45rem);
   overflow: hidden;
   width: 100%;
   max-width: 100%;
@@ -935,7 +935,7 @@
 .requestTitle {
   margin: 0.12rem 0 0;
   font-family: var(--font-primary), "Cormorant Garamond", serif;
-  font-size: 1.78rem;
+  font-size: clamp(1.7rem, 2.5vw, 2rem);
   font-weight: 600;
   color: var(--owner-ink);
 }
@@ -958,6 +958,69 @@
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+.requestBlockHint {
+  max-width: 52rem;
+  font-size: 0.84rem;
+}
+
+.requestPanel .field > span {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+}
+
+.requestPanel .field input,
+.requestPanel .field select,
+.requestPanel .requestTextarea {
+  min-height: 46px;
+}
+
+.requestPanel .requestTextarea {
+  min-height: 124px;
+}
+
+.requestServiceList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.requestServicePicker {
+  display: grid;
+  gap: 0.65rem;
+  max-height: 320px;
+  overflow: auto;
+  padding: 0.7rem;
+  border: 1px solid var(--owner-line-soft);
+  border-radius: var(--ui-card-radius);
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.requestServiceChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0.4rem 0.72rem;
+  border: 1px solid rgba(53, 81, 58, 0.2);
+  border-radius: 999px;
+  background: rgba(232, 243, 237, 0.94);
+  color: #2f5035;
+  font-size: 0.82rem;
+  font-weight: 750;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.requestServiceEmpty {
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+  border: 1px dashed rgba(113, 81, 52, 0.22);
+  border-radius: var(--ui-button-radius);
+  background: rgba(255, 252, 248, 0.72);
+  color: var(--owner-muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
 }
 
 .selectionSummary,
@@ -1389,7 +1452,7 @@
 .choiceCardActive {
   display: grid;
   gap: 0.28rem;
-  min-height: 112px;
+  min-height: 96px;
   padding: 0.8rem;
   border-radius: 8px;
   border: 1px solid var(--owner-line);
@@ -1430,6 +1493,15 @@
 .choiceCardActive span {
   font-size: 0.78rem;
   font-weight: 650;
+}
+
+.choiceCard span,
+.choiceCardActive span {
+  color: var(--owner-muted);
+}
+
+.choiceCardActive span {
+  color: #6a3428;
 }
 
 .choiceCard small,
@@ -1538,13 +1610,15 @@
 .requestModal {
   display: grid;
   gap: 1rem;
-  width: min(920px, 100%);
+  width: min(980px, 100%);
   max-height: min(88vh, 900px);
   overflow: auto;
   padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.58);
-  border-radius: 12px;
-  background: #fffdf9;
+  border: 1px solid rgba(113, 81, 52, 0.16);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.08), transparent 28%),
+    #fffdf9;
   box-shadow: 0 26px 68px rgba(42, 35, 28, 0.24);
 }
 

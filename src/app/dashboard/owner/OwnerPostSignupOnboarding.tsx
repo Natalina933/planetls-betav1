@@ -13,17 +13,29 @@ import {
   ChevronRight,
   Clock,
   Handshake,
+  Hammer,
   Home,
   Info,
   LayoutDashboard,
   ListChecks,
+  Megaphone,
+  Camera,
   Search,
+  Sparkles,
+  Trees,
   Users,
+  Wrench,
   X,
 } from "lucide-react";
 import { buildOwnerHousingCompletion } from "@/app/dashboard/shared/categoryCompletion";
 import {
+  PLANETLS_SERVICE_FAMILIES,
+  type PlanetLSServiceFamily,
+} from "@/app/lib/planetlsServiceCatalogTarget";
+import {
+  buildOwnerConciergeSearchDefaults,
   EMPTY_OWNER_ONBOARDING_V1,
+  getOwnerOnboardingNeedLabel,
   getOwnerProfilePreferences,
   type OwnerOnboardingHelpFrequency,
   type OwnerOnboardingManagementMode,
@@ -94,15 +106,35 @@ const MANAGEMENT_MODE_ICONS: Record<OwnerOnboardingManagementMode, typeof Home> 
   full_delegation: BriefcaseBusiness,
 };
 
-const NEED_OPTIONS: Array<Option<OwnerOnboardingNeed>> = [
-  { value: "check_in", label: "Accueil / Check-in" },
-  { value: "check_out", label: "Départ / Check-out" },
-  { value: "cleaning", label: "Ménage" },
-  { value: "linen", label: "Gestion du linge" },
-  { value: "maintenance", label: "Maintenance / petites réparations" },
-  { value: "traveler_messages", label: "Gestion des messages voyageurs" },
-  { value: "full_management", label: "Gestion complète du logement" },
-];
+const NEED_DESCRIPTIONS: Record<PlanetLSServiceFamily, string> = {
+  cleaning_linen: "Entretien du logement et gestion du linge.",
+  guest_concierge: "Accueil, accès et accompagnement des voyageurs.",
+  maintenance_repair: "Entretien courant et dépannages du logement.",
+  renovation_works: "Travaux d'aménagement et rénovation.",
+  outdoor_equipment: "Extérieurs, équipements et espaces de loisirs.",
+  photography_visual: "Photos et mise en valeur de votre logement.",
+  communication_marketing: "Visibilité et communication de votre annonce.",
+  management_complementary: "Gestion et services utiles à votre activité locative.",
+};
+
+const NEED_OPTIONS: Array<Option<PlanetLSServiceFamily>> = PLANETLS_SERVICE_FAMILIES.map(
+  (family) => ({
+    value: family.slug,
+    label: family.label,
+    description: NEED_DESCRIPTIONS[family.slug],
+  }),
+);
+
+const NEED_FAMILY_ICONS: Record<PlanetLSServiceFamily, typeof Home> = {
+  cleaning_linen: Sparkles,
+  guest_concierge: Users,
+  maintenance_repair: Wrench,
+  renovation_works: Hammer,
+  outdoor_equipment: Trees,
+  photography_visual: Camera,
+  communication_marketing: Megaphone,
+  management_complementary: BriefcaseBusiness,
+};
 
 const NEED_ICONS: Partial<Record<OwnerOnboardingNeed, string>> = {
   check_in: "/icons/planetls-check-in.svg",
@@ -113,6 +145,12 @@ const NEED_ICONS: Partial<Record<OwnerOnboardingNeed, string>> = {
   traveler_messages: "/icons/message-suggestions-svgrepo-com.svg",
   full_management: "/icons/account-management-svgrepo-com.svg",
 };
+
+function getNeedFamilyIcon(need: OwnerOnboardingNeed) {
+  return PLANETLS_SERVICE_FAMILIES.some((family) => family.slug === need)
+    ? NEED_FAMILY_ICONS[need as PlanetLSServiceFamily]
+    : null;
+}
 
 const HELP_FREQUENCY_OPTIONS: Array<Option<OwnerOnboardingHelpFrequency>> = [
   {
@@ -162,31 +200,10 @@ const SITUATION_ICONS: Record<OwnerOnboardingSituation, typeof Home> = {
   already_with_professional: Handshake,
 };
 
-const NEED_SUMMARY_LABELS: Record<OwnerOnboardingNeed, string> = {
-  check_in: "Accueil / Check-in",
-  check_out: "Départ / Check-out",
-  cleaning: "Ménage",
-  linen: "Gestion du linge",
-  maintenance: "Maintenance / petites réparations",
-  traveler_messages: "Gestion des messages voyageurs",
-  full_management: "Gestion complète du logement",
-  other: "Autre",
-};
-
 const HELP_FREQUENCY_ICONS: Record<OwnerOnboardingHelpFrequency, string> = {
   occasional: "/icons/planetls-calendar-occasional.svg",
   regular: "/icons/planetls-calendar-regular.svg",
   very_regular: "/icons/planetls-calendar-very-regular.svg",
-};
-
-const NEED_SEARCH_LABELS: Partial<Record<OwnerOnboardingNeed, string>> = {
-  check_in: "Check-in",
-  check_out: "Check-out",
-  cleaning: "Ménage",
-  linen: "Linge",
-  maintenance: "Maintenance",
-  traveler_messages: "Gestion des messages voyageurs",
-  full_management: "Gestion complète du logement",
 };
 
 function readHousingRows(payload: unknown): OwnerHousingRow[] {
@@ -428,15 +445,15 @@ export default function OwnerPostSignupOnboarding({
     if (signupCity.trim()) {
       params.set("city", signupCity.trim());
     }
-    const searchServices = needs
-      .map((need) => NEED_SEARCH_LABELS[need])
-      .filter((value): value is string => Boolean(value));
-    if (searchServices.length > 0) {
-      params.set("services", searchServices.join(","));
-    }
     params.set("radiusKm", DEFAULT_CONCIERGE_SEARCH_RADIUS_KM);
+    const searchDefaults = buildOwnerConciergeSearchDefaults(
+      preferences ?? getOwnerProfilePreferences(null),
+    );
+    if (searchDefaults.selectedServices.length > 0) {
+      params.set("services", searchDefaults.selectedServices.join(","));
+    }
     return params.toString();
-  }, [needs, signupCity]);
+  }, [preferences, signupCity]);
   const conciergeSearchHref = conciergeSearchParams
     ? `/dashboard/owner/concierges?${conciergeSearchParams}`
     : "/dashboard/owner/concierges";
@@ -447,8 +464,13 @@ export default function OwnerPostSignupOnboarding({
   const stepIndex = ONBOARDING_STEPS.indexOf(step === "complete" ? "housing" : step);
   const selectedNeedItems = needs.map((need) => ({
     value: need,
-    label: NEED_SUMMARY_LABELS[need],
+    label: getOwnerOnboardingNeedLabel(need),
+    familyIcon: getNeedFamilyIcon(need),
+    legacyIcon: NEED_ICONS[need],
   }));
+  const legacyNeeds = needs.filter(
+    (need) => !PLANETLS_SERVICE_FAMILIES.some((family) => family.slug === need),
+  );
 
   const renderProgress = () => (
     <div className={styles.progress} aria-label="Progression de l'onboarding propriétaire">
@@ -503,33 +525,56 @@ export default function OwnerPostSignupOnboarding({
       <section className={styles.formSection}>
         <div className={styles.sectionHeading}>
           <h3>De quoi avez-vous besoin ?</h3>
-          <p>Sélectionnez un ou plusieurs besoins. Plusieurs choix sont possibles.</p>
+          <p>
+            Sélectionnez les domaines pour lesquels vous recherchez un accompagnement. Vous pourrez préciser les
+            prestations plus tard.
+          </p>
         </div>
-        <div className={styles.serviceOptions}>
+        <div className={styles.needGrid}>
           {NEED_OPTIONS.map((option) => {
             const selected = needs.includes(option.value);
-            const iconSrc = NEED_ICONS[option.value] ?? "/icons/check-1-svgrepo-com.svg";
+            const Icon = NEED_FAMILY_ICONS[option.value];
             return (
               <button
                 key={option.value}
                 type="button"
-                className={`${styles.serviceOption} ${selected ? styles.serviceOptionSelected : ""}`}
+                className={`${styles.needCard} ${selected ? styles.needCardSelected : ""}`}
                 aria-pressed={selected}
                 onClick={() => toggleNeed(option.value)}
               >
-                <Image
-                  src={iconSrc}
-                  alt=""
-                  aria-hidden="true"
-                  width={18}
-                  height={18}
-                  className={styles.serviceOptionIcon}
-                />
-                {option.label}
+                <span className={styles.needIcon} aria-hidden="true">
+                  <Icon size={19} strokeWidth={2} />
+                </span>
+                <span className={styles.needContent}>
+                  <strong>{option.label}</strong>
+                  <span>{option.description}</span>
+                </span>
+                <span className={styles.needCheck} aria-hidden="true">
+                  {selected ? <Check size={15} strokeWidth={3} /> : null}
+                </span>
               </button>
             );
           })}
         </div>
+        {legacyNeeds.length > 0 ? (
+          <div className={styles.legacyNeeds} aria-label="Anciennes préférences conservées">
+            <p>Ces anciens choix restent enregistrés jusqu'à ce que vous les retiriez :</p>
+            <ul>
+              {legacyNeeds.map((need) => (
+                <li key={need}>
+                  <span>{getOwnerOnboardingNeedLabel(need)}</span>
+                  <button
+                    type="button"
+                    onClick={() => setNeeds((current) => current.filter((item) => item !== need))}
+                    aria-label={`Retirer ${getOwnerOnboardingNeedLabel(need)}`}
+                  >
+                    Retirer
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </section>
 
       <section className={styles.formSection}>
@@ -716,19 +761,26 @@ export default function OwnerPostSignupOnboarding({
         </div>
         {selectedNeedItems.length > 0 ? (
           <ul className={styles.needChips}>
-            {selectedNeedItems.map((option) => (
-              <li key={option.value} className={styles.needChip}>
-                <span className={styles.needChipIcon} aria-hidden="true">
-                  <Image
-                    src={NEED_ICONS[option.value] ?? "/icons/check-1-svgrepo-com.svg"}
-                    alt=""
-                    width={22}
-                    height={22}
-                  />
-                </span>
-                {option.label}
-              </li>
-            ))}
+            {selectedNeedItems.map((option) => {
+              const FamilyIcon = option.familyIcon;
+              return (
+                <li key={option.value} className={styles.needChip}>
+                  <span className={styles.needChipIcon} aria-hidden="true">
+                    {FamilyIcon ? (
+                      <FamilyIcon size={19} strokeWidth={2} />
+                    ) : (
+                      <Image
+                        src={option.legacyIcon ?? "/icons/check-1-svgrepo-com.svg"}
+                        alt=""
+                        width={22}
+                        height={22}
+                      />
+                    )}
+                  </span>
+                  {option.label}
+                </li>
+              );
+            })}
           </ul>
         ) : null}
       </section>

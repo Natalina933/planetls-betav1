@@ -14,7 +14,7 @@ import {
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const nodeRequire = createRequire(import.meta.url);
 
-test("requested service resolver classifies exact services, families, modes and contexts", () => {
+test("requested service resolver classifies exact services and keeps unknown values unknown", () => {
   const values = [
     "guest_checkin",
     "Ménage",
@@ -35,12 +35,12 @@ test("requested service resolver classifies exact services, families, modes and 
     resolutions.map((item) => ({ kind: item.kind, originalValue: item.originalValue, index: item.index })),
     [
       { kind: "service", originalValue: "guest_checkin", index: 0 },
-      { kind: "family", originalValue: "Ménage", index: 1 },
-      { kind: "mode", originalValue: "Gestion complète", index: 2 },
-      { kind: "context", originalValue: "Urgence de nuit", index: 3 },
-      { kind: "ambiguous", originalValue: "Intendance", index: 4 },
+      { kind: "unknown", originalValue: "Ménage", index: 1 },
+      { kind: "unknown", originalValue: "Gestion complète", index: 2 },
+      { kind: "unknown", originalValue: "Urgence de nuit", index: 3 },
+      { kind: "unknown", originalValue: "Intendance", index: 4 },
       { kind: "unknown", originalValue: "Valeur inventée", index: 5 },
-      { kind: "ambiguous", originalValue: "Check-in / Check-out", index: 6 },
+      { kind: "unknown", originalValue: "Check-in / Check-out", index: 6 },
       { kind: "service", originalValue: "guest_checkout", index: 7 },
     ],
   );
@@ -49,17 +49,9 @@ test("requested service resolver classifies exact services, families, modes and 
   assert.equal(checkin.kind, "service");
   if (checkin.kind === "service") assert.equal(checkin.slug, "guest_checkin");
 
-  const cleaning = resolutions[1];
-  assert.equal(cleaning.kind, "family");
-  if (cleaning.kind === "family") assert.equal(cleaning.family, "Ménage");
-
-  const fullManagement = resolutions[2];
-  assert.equal(fullManagement.kind, "mode");
-  if (fullManagement.kind === "mode") assert.equal(fullManagement.mode, "full_management");
-
-  const nightEmergency = resolutions[3];
-  assert.equal(nightEmergency.kind, "context");
-  if (nightEmergency.kind === "context") assert.equal(nightEmergency.context, "night_emergency");
+  const checkout = resolutions[7];
+  assert.equal(checkout.kind, "service");
+  if (checkout.kind === "service") assert.equal(checkout.slug, "guest_checkout");
 });
 
 test("requested service resolver handles empty inputs without inventing services", () => {
@@ -106,24 +98,38 @@ test("quote draft generation keeps existing lines and amounts while resolving in
   assert.equal(draft.currency, "EUR");
   assert.deepEqual(draft.requestedServices, ["Ménage"]);
   assert.deepEqual(draft.summary, {
-    matchedServiceCount: 2,
-    matchedPricingCount: 1,
-    matchedPackageName: "Pack ménage",
+    matchedServiceCount: 0,
+    matchedPricingCount: 0,
+    matchedPackageName: null,
   });
   assert.deepEqual(draft.items, [
     {
-      service_id: 2,
-      pricing_id: "pricing-2",
-      label: "Ménage entre voyageurs",
-      description: "Tarif par prestation",
+      service_id: null,
+      pricing_id: null,
+      label: "Ménage",
+      description: "Appartement deux pièces",
       quantity: 1,
-      unit_price: 90,
-      line_total: 90,
+      unit_price: 0,
+      line_total: 0,
       sort_order: 0,
       metadata: {
         source: "service_request",
         service_request_id: "request-1",
-        matched_from_request: true,
+        matched_from_request: false,
+        quote_service_budget_is_indicative: true,
+        quote_service_budget_max: 120,
+        quote_service_clarification_status: "needs_clarification",
+        quote_service_clarification_reason:
+          "Aucune correspondance fiable dans le référentiel commun.",
+        quote_service_original_values: ["Ménage"],
+        quote_service_resolution_diagnostics: [
+          {
+            original_value: "Ménage",
+            diagnostic: "unknown",
+            canonical_slug: null,
+            explicit_price_required: false,
+          },
+        ],
       },
     },
   ]);
@@ -140,11 +146,11 @@ test("quote draft generation keeps existing lines and amounts while resolving in
       historicalServiceIds: item.historicalServiceIds,
     })),
     [
-      { value: "guest_checkin", diagnostic: "exact", confidence: "certain", historicalServiceIds: [] },
-      { value: "Ménage", diagnostic: "family_only", confidence: "needs_validation", historicalServiceIds: [1, 2] },
-      { value: "Check-in / Check-out", diagnostic: "ambiguous", confidence: "needs_validation", historicalServiceIds: [16] },
-      { value: "Gestion complète", diagnostic: "mode_only", confidence: "needs_validation", historicalServiceIds: [] },
-      { value: "Urgence de nuit", diagnostic: "context_only", confidence: "needs_validation", historicalServiceIds: [] },
+      { value: "guest_checkin", diagnostic: "exact", confidence: "needs_validation", historicalServiceIds: [16] },
+      { value: "Ménage", diagnostic: "unknown", confidence: "none", historicalServiceIds: [1, 2] },
+      { value: "Check-in / Check-out", diagnostic: "unknown", confidence: "none", historicalServiceIds: [16] },
+      { value: "Gestion complète", diagnostic: "unknown", confidence: "none", historicalServiceIds: [] },
+      { value: "Urgence de nuit", diagnostic: "unknown", confidence: "none", historicalServiceIds: [] },
       { value: "Valeur inventée", diagnostic: "unknown", confidence: "none", historicalServiceIds: [] },
     ],
   );
@@ -180,17 +186,71 @@ test("quote draft diagnostics do not change fallback lines when no tariff is ava
       label: "Maintenance",
       description: "À qualifier",
       quantity: 1,
-      unit_price: 75,
-      line_total: 75,
+      unit_price: 0,
+      line_total: 0,
       sort_order: 0,
       metadata: {
         source: "service_request",
         service_request_id: "request-2",
         matched_from_request: false,
+        quote_service_budget_is_indicative: true,
+        quote_service_budget_max: 75,
+        quote_service_clarification_status: "needs_clarification",
+        quote_service_clarification_reason:
+          "Aucune correspondance fiable dans le référentiel commun.",
+        quote_service_original_values: ["Maintenance"],
+        quote_service_resolution_diagnostics: [
+          {
+            original_value: "Maintenance",
+            diagnostic: "unknown",
+            canonical_slug: null,
+            explicit_price_required: false,
+          },
+        ],
       },
     },
   ]);
 });
+
+test("quote draft never converts the owner budget into a price but keeps it as indicative metadata", async () => {
+  const db = createDb({ services_pricing: [] });
+  const load = createLoader(db);
+  const { prepareQuoteDraftFromRequest } = load(
+    "@/features/concierge-commercial/server/quoteDraftFromRequest",
+  ) as {
+    prepareQuoteDraftFromRequest: (
+      conciergeProfileId: string,
+      request: Record<string, unknown>,
+    ) => Promise<Record<string, unknown>>;
+  };
+
+  const draft = await prepareQuoteDraftFromRequest("concierge-1", {
+    id: "request-3",
+    title: "Prestation à chiffrer",
+    description: null,
+    budget_max: 480,
+    currency: "EUR",
+    desired_date: null,
+    requested_services: ["Intendance"],
+  });
+
+  const items = draft.items as Array<{
+    unit_price: number;
+    line_total: number;
+    metadata: Record<string, unknown>;
+  }>;
+
+  assert.equal(items.length, 1);
+  const [item] = items;
+  // Le budget propriétaire n'est jamais présenté comme un prix proposé.
+  assert.equal(item.unit_price, 0);
+  assert.equal(item.line_total, 0);
+  // Le budget reste disponible comme donnée indicative en métadonnée.
+  assert.equal(item.metadata.quote_service_budget_max, 480);
+  // Un devis sans tarif reste signalé comme nécessitant une clarification.
+  assert.equal(item.metadata.quote_service_clarification_status, "needs_clarification");
+});
+
 
 class Query {
   table: string;

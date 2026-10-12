@@ -17,6 +17,7 @@ import {
 import { useOwnerConciergeSearch } from "./useOwnerConciergeSearch";
 import {
   buildOwnerConciergeFilterOptions,
+  buildOwnerConciergeSearchParams,
   hasOwnerConciergeSearchCriteria,
   toggleOwnerConciergeValue,
   type OwnerConciergeSearchFilters,
@@ -41,6 +42,7 @@ import {
 } from "@/features/owner-preferences/profilePreferences";
 import { focusFirstModalElement, trapFocusInModal } from "../modalAccessibility";
 import { resolvePlanetLSRequestServices } from "@/app/lib/planetlsServiceSearchResolution";
+import { normalizeConciergeCategories } from "@/features/owner-concierges/lib/searchNormalization";
 
 const SearchMap = dynamic(() => import("@/app/components/MapWithList/MapWithList"), {
   ssr: false,
@@ -79,6 +81,19 @@ const initialRequestForm: RequestFormState = {
   currency: "EUR",
   urgency: false,
 };
+
+const SEARCH_URL_KEYS = [
+  "region",
+  "city",
+  "postalCode",
+  "categories",
+  "services",
+  "service",
+  "propertyType",
+  "budgetMax",
+  "radiusKm",
+  "proOnly",
+] as const;
 
 type OwnerServiceRequestRecipient = {
   id: string;
@@ -270,7 +285,7 @@ export default function OwnerConciergesPageClient() {
   const [stayContext, setStayContext] = useState<StaySearchContext | null>(null);
   const [stayContextLoading, setStayContextLoading] = useState(false);
   const [stayContextError, setStayContextError] = useState<string | null>(null);
-  const { items, loading, error, serverOptions, search, clear, setError } = useOwnerConciergeSearch();
+  const { items, loading, error, warning, serverOptions, search, clear, setError } = useOwnerConciergeSearch();
   const hydratedFromUrlRef = useRef(false);
   const hydratedStayContextRef = useRef<string | null>(null);
   const requestPanelRef = useRef<HTMLElement | null>(null);
@@ -445,6 +460,7 @@ export default function OwnerConciergesPageClient() {
           setProfileSearchDefaults({
             ...searchDefaults,
             city: profileCity,
+            radiusKm: profileCity ? "20" : "",
           });
         }
       } catch {
@@ -584,34 +600,48 @@ export default function OwnerConciergesPageClient() {
       ...initialFilters,
       ...profileSearchDefaults,
     };
-    const urlFilters: OwnerConciergeSearchFilters = {
-      region: searchParams.get("region") ?? "",
-      city: searchParams.get("city") ?? searchParams.get("postalCode") ?? "",
-      selectedCategories: (searchParams.get("categories") ?? "")
-        .split(",")
-        .map((value) => value.trim())
-        .filter(Boolean),
-      selectedServices: (searchParams.get("services") ?? "")
-        .split(",")
-        .map((value) => value.trim())
-        .filter(Boolean),
-      propertyType: searchParams.get("propertyType") ?? "",
-      budgetMax: searchParams.get("budgetMax") ?? "",
-      radiusKm: searchParams.get("radiusKm") ?? "",
-      proOnly: searchParams.get("proOnly") === "1",
-    };
-    if (isStaySearchMode && stayNeedParam && urlFilters.selectedServices.length === 0) {
-      urlFilters.selectedServices = [stayNeedLabels[stayNeedParam]];
+    const nextFilters: OwnerConciergeSearchFilters = { ...baseFilters };
+    if (searchParams.has("region")) {
+      nextFilters.region = searchParams.get("region")?.trim() ?? "";
     }
-    const hasUrlFilters = hasOwnerConciergeSearchCriteria(urlFilters);
-    const nextFilters: OwnerConciergeSearchFilters = hasUrlFilters
-      ? {
-          ...baseFilters,
-          ...urlFilters,
-          selectedCategories: urlFilters.selectedCategories,
-          selectedServices: urlFilters.selectedServices,
-        }
-      : baseFilters;
+    if (searchParams.has("city") || searchParams.has("postalCode")) {
+      nextFilters.city = searchParams.get("city") ?? searchParams.get("postalCode") ?? "";
+    }
+    if (searchParams.has("categories")) {
+      nextFilters.selectedCategories = normalizeConciergeCategories(
+        (searchParams.get("categories") ?? "")
+          .split(",")
+          .map((value) => value.trim())
+          .filter(Boolean),
+      );
+    }
+    if (searchParams.has("services") || searchParams.has("service")) {
+      nextFilters.selectedServices = (
+        searchParams.get("services") ??
+        searchParams.get("service") ??
+        ""
+      )
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean);
+    } else if (isStaySearchMode && stayNeedParam) {
+      nextFilters.selectedServices = [stayNeedLabels[stayNeedParam]];
+    }
+    if (searchParams.has("propertyType")) {
+      nextFilters.propertyType = searchParams.get("propertyType")?.trim() ?? "";
+    }
+    if (searchParams.has("budgetMax")) {
+      nextFilters.budgetMax = searchParams.get("budgetMax")?.trim() ?? "";
+    }
+    if (searchParams.has("radiusKm")) {
+      nextFilters.radiusKm = searchParams.get("radiusKm")?.trim() ?? "";
+    } else if (nextFilters.city.trim()) {
+      nextFilters.radiusKm = "20";
+    }
+    if (searchParams.has("proOnly")) {
+      nextFilters.proOnly = searchParams.get("proOnly") === "1";
+    }
+    const hasExplicitUrlFilters = SEARCH_URL_KEYS.some((key) => searchParams.has(key));
     const urlRequestType = searchParams.get("requestType");
     const nextRequestType: RequestFormState["requestType"] = isStaySearchMode
       ? "ponctuel"
@@ -658,7 +688,7 @@ export default function OwnerConciergesPageClient() {
         nextRequestForm.budgetMax,
     );
 
-    if (!hasUrlFilters) {
+    if (!hasExplicitUrlFilters && !hasOwnerConciergeSearchCriteria(nextFilters)) {
       hydratedFromUrlRef.current = true;
       setEditingAlertId(nextEditingAlertId);
       setFilters(nextFilters);
@@ -851,11 +881,21 @@ export default function OwnerConciergesPageClient() {
     }
   }
 
+  function replaceSearchUrl(nextFilters: OwnerConciergeSearchFilters) {
+    const params = new URLSearchParams(searchParams.toString());
+    SEARCH_URL_KEYS.forEach((key) => params.delete(key));
+    const nextSearchParams = buildOwnerConciergeSearchParams(nextFilters);
+    nextSearchParams.forEach((value, key) => params.set(key, value));
+    const query = params.toString();
+    router.replace(`/dashboard/owner/concierges${query ? `?${query}` : ""}`);
+  }
+
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFeedback(null);
     setHasSubmittedSearch(true);
     setMobileFiltersOpen(false);
+    replaceSearchUrl(filters);
     resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     void search(filters).then((nextItems) => {
       setSelectedConciergeIds((prev) => prev.filter((id) => nextItems.some((item) => item.id === id)));
@@ -1071,6 +1111,11 @@ export default function OwnerConciergesPageClient() {
               onSortModeChange={setSortMode}
               onViewModeChange={setViewMode}
             />
+            {warning ? (
+              <p className={styles.tagMuted} role="status">
+                {warning}
+              </p>
+            ) : null}
             <ResultsGrid
               styles={styles}
               loading={loading}
@@ -1265,6 +1310,8 @@ export default function OwnerConciergesPageClient() {
                 selectedConcierges={selectedConcierges}
                 selectedServices={filters.selectedServices}
                 selectedCategories={filters.selectedCategories}
+                visibleServicesByCategory={catalogServicesByCategory}
+                openServiceSections={openServiceSections}
                 activeSearchSummary={activeSearchSummary}
                 requestForm={requestForm}
                 submittingRequest={submittingRequest}
@@ -1284,6 +1331,8 @@ export default function OwnerConciergesPageClient() {
                 }
                 onSubmit={handleSendRequest}
                 onRequestFormChange={updateRequestForm}
+                onToggleService={toggleService}
+                onToggleServiceSection={toggleServiceSection}
                 getCitySuggestions={getOwnerCitySuggestions}
               />
             </section>
@@ -1346,5 +1395,3 @@ export default function OwnerConciergesPageClient() {
     </section>
   );
 }
-
-

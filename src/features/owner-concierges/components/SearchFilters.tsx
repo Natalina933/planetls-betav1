@@ -42,7 +42,14 @@ const VIEW_OPTIONS = [
   { value: "list", label: "Liste" },
 ] as const;
 
-const QUICK_SERVICE_LABELS = ["Ménage", "Check-in / Check-out", "Linge", "Maintenance légère", "Accueil voyageurs"];
+const QUICK_SERVICE_LABELS = [
+  "Ménage",
+  "Check-in",
+  "Check-out",
+  "Linge",
+  "Maintenance légère",
+  "Accueil voyageurs",
+];
 const RADIUS_OPTIONS = ["10", "20", "30", "50", "100"];
 
 function normalizeServiceLabel(value: string) {

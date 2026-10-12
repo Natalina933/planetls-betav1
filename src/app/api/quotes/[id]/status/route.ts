@@ -10,6 +10,10 @@ import { db } from "@/app/lib/dbServer";
 import { requireApiRole } from "@/server/auth/roleGuards";
 import { deriveServiceRequestStatus, type ServiceRequestRecipientStatus } from "@/server/service-requests/workflow";
 import { createHousingFromQuote, validateHousingFromQuote, QuoteHousingValidationError } from "@/app/api/profiles/housing/shared";
+import {
+  isUnresolvedQuoteItem,
+  computeItemsTotal,
+} from "@/features/concierge-commercial/server/quoteSendGuard";
 
 const untypedDb = asLooseSupabaseClient(db);
 
@@ -97,47 +101,10 @@ const OWNER_ALLOWED_STATUS = new Set<QuoteStatus>(["accepted", "rejected"]);
 const cleanReason = (value: unknown) =>
   typeof value === "string" ? value.trim().slice(0, 500) : "";
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
-function isUnresolvedQuoteItem(item: {
-  service_id?: number | null;
-  pricing_id?: string | null;
-  label?: string | null;
-  unit_price?: number | null;
-  metadata?: unknown;
-}) {
-  const metadata = isRecord(item.metadata) ? item.metadata : {};
-  const status =
-    typeof metadata.quote_service_clarification_status === "string"
-      ? metadata.quote_service_clarification_status
-      : null;
-
-  if (status !== "needs_clarification" && status !== "needs_explicit_price") {
-    return false;
-  }
-
-  if (item.service_id || item.pricing_id) return false;
-
-  const originalValues = Array.isArray(metadata.quote_service_original_values)
-    ? metadata.quote_service_original_values.filter((value): value is string => typeof value === "string")
-    : [];
-  const label = typeof item.label === "string" ? item.label.trim().toLowerCase() : "";
-  const stillUsesOriginalLabel = originalValues.some((value) => value.trim().toLowerCase() === label);
-  const hasExplicitPrice = Number.isFinite(Number(item.unit_price)) && Number(item.unit_price) > 0;
-  const manuallyResolved =
-    metadata.quote_service_clarification_status === "resolved_manual" &&
-    hasExplicitPrice &&
-    label.length > 0 &&
-    !stillUsesOriginalLabel;
-
-  return !manuallyResolved;
-}
-
 async function validateQuoteBeforeSending(quoteId: string) {
   const { data: items, error } = await untypedDb
     .from("quote_items")
-    .select("id, label, service_id, pricing_id, unit_price, metadata")
+    .select("id, label, service_id, pricing_id, unit_price, line_total, quantity, metadata")
     .eq("quote_id", quoteId);
 
   if (error) {
@@ -148,20 +115,50 @@ async function validateQuoteBeforeSending(quoteId: string) {
     };
   }
 
-  const unresolvedItems = (Array.isArray(items) ? items : []).filter(isUnresolvedQuoteItem);
-  if (unresolvedItems.length === 0) return { ok: true as const };
+  const itemList = Array.isArray(items) ? items : [];
+  const unresolvedItems = itemList.filter(isUnresolvedQuoteItem);
+  if (unresolvedItems.length > 0) {
+    return {
+      ok: false as const,
+      response: NextResponse.json(
+        {
+          error:
+            "Certaines prestations de ce devis doivent être précisées avant envoi. Choisissez une prestation claire et indiquez son tarif.",
+          clarification_required: true,
+        },
+        { status: 400 },
+      ),
+    };
+  }
 
-  return {
-    ok: false as const,
-    response: NextResponse.json(
-      {
-        error:
-          "Certaines prestations de ce devis doivent être précisées avant envoi. Choisissez une prestation claire et indiquez son tarif.",
-        clarification_required: true,
-      },
-      { status: 400 },
-    ),
-  };
+  // Cohérence du total : on lit le total persisté et on le compare à la somme
+  // des lignes. Un écart ne bloque pas (le total est recalculé de façon fiable
+  // avant envoi) mais est journalisé pour détecter toute incohérence.
+  const { data: quoteRow, error: quoteError } = await untypedDb
+    .from("quotes")
+    .select("total_amount, subtotal, discount_amount, tax_rate, tax_amount")
+    .eq("id", quoteId)
+    .maybeSingle();
+
+  if (quoteError) {
+    console.error("[PATCH /api/quotes/:id/status] quote total read error:", quoteError);
+    return {
+      ok: false as const,
+      response: NextResponse.json({ error: "Erreur validation total devis" }, { status: 500 }),
+    };
+  }
+
+  const computedItemsTotal = computeItemsTotal(itemList);
+  const persistedTotal = Number((quoteRow as { total_amount?: number | null } | null)?.total_amount);
+  if (Number.isFinite(persistedTotal) && Math.abs(persistedTotal - computedItemsTotal) > 0.01) {
+    // Incohérence détectée : on journalise, la valeur recalculée sera réinjectée
+    // à l'envoi (updatePayload) pour garantir un total fidèle aux lignes.
+    console.warn(
+      `[PATCH /api/quotes/:id/status] total incohérent: persisté=${persistedTotal} lignes=${computedItemsTotal} (devis ${quoteId})`,
+    );
+  }
+
+  return { ok: true as const, computedItemsTotal };
 }
 
 async function notifyQuoteStatusChange(context: QuoteNotificationContext) {
@@ -365,9 +362,16 @@ export async function PATCH(
       return NextResponse.json({ error: "Devis introuvable" }, { status: 404 });
     }
 
+    // Total recalculé depuis les lignes, injecté dans le payload à l'envoi.
+    let recalculatedTotalForSend: number | null = null;
+
     if (nextStatus === "sent") {
       const validation = await validateQuoteBeforeSending(id);
       if (!validation.ok) return validation.response;
+      // Garantit un total fidèle aux lignes avant envoi (Faille E) : on
+      // recalcule systématiquement plutôt que de faire confiance au total
+      // persisté, qui peut être incohérent après édition des lignes.
+      recalculatedTotalForSend = validation.computedItemsTotal;
     }
 
     // Explicit stay context ("demande ponctuelle de séjour"): loaded before
@@ -386,8 +390,14 @@ export async function PATCH(
       : null;
 
     const updatePayload: Record<string, unknown> = { status: nextStatus };
-    if (nextStatus === "sent" && !existing.sent_at) {
-      updatePayload.sent_at = new Date().toISOString();
+    if (nextStatus === "sent") {
+      if (typeof recalculatedTotalForSend === "number") {
+        // Recalcul fiable du total à partir des lignes avant envoi.
+        updatePayload.total_amount = recalculatedTotalForSend;
+      }
+      if (!existing.sent_at) {
+        updatePayload.sent_at = new Date().toISOString();
+      }
     }
     if (nextStatus === "accepted" && !existing.accepted_at) {
       updatePayload.accepted_at = new Date().toISOString();

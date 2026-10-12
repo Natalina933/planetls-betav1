@@ -1,4 +1,5 @@
 import test from "node:test";
+import { PLANETLS_SERVICE_FAMILIES } from "../app/lib/planetlsServiceCatalogTarget.ts";
 import assert from "node:assert/strict";
 import {
   buildOwnerConciergeSearchDefaults,
@@ -146,6 +147,45 @@ test("owner concierge search defaults reuse the saved property context", () => {
   );
 });
 
+test("canonical owner onboarding families persist unchanged and are not sent as precise services", () => {
+  const familySlugs = PLANETLS_SERVICE_FAMILIES.map((family) => family.slug);
+  assert.equal(familySlugs.length, 8);
+  const encoded = mergeOwnerPreferencesIntoAvailabilityHours(null, {
+    ownerOnboardingV1: {
+      needs: familySlugs,
+    },
+  });
+  const preferences = getOwnerProfilePreferences(encoded);
+
+  assert.deepEqual(preferences.ownerOnboardingV1?.needs, familySlugs);
+  assert.deepEqual(buildOwnerConciergeSearchDefaults(preferences).selectedServices, []);
+
+  const stored = JSON.parse(encoded) as {
+    preferences: { ownerOnboardingV1: { needs: string[] } };
+  };
+  assert.deepEqual(stored.preferences.ownerOnboardingV1.needs, familySlugs);
+});
+
+test("legacy precise onboarding needs map to canonical service labels for search", () => {
+  const preferences = getOwnerProfilePreferences(
+    JSON.stringify({
+      preferences: {
+        ownerOnboardingV1: {
+          needs: ["check_in", "check_out", "cleaning", "linen", "maintenance"],
+        },
+      },
+    }),
+  );
+
+  assert.deepEqual(buildOwnerConciergeSearchDefaults(preferences).selectedServices, [
+    "Check-in",
+    "Check-out",
+    "Ménage du logement",
+    "Changement de linge",
+    "Petites réparations",
+  ]);
+});
+
 test("owner onboarding v1 empty object stays stable", () => {
   assert.deepEqual(EMPTY_OWNER_ONBOARDING_V1, {
     managementMode: null,
@@ -259,11 +299,17 @@ test("owner onboarding need preferences resolve to common catalog concepts witho
   }
 
   assert.equal(cleaning.kind, "family");
-  if (cleaning.kind === "family") assert.equal(cleaning.family, "Ménage");
+  if (cleaning.kind === "family") assert.equal(cleaning.family, "cleaning_linen");
   assert.equal(linen.kind, "family");
-  if (linen.kind === "family") assert.equal(linen.family, "Linge");
+  if (linen.kind === "family") assert.equal(linen.family, "cleaning_linen");
   assert.equal(maintenance.kind, "family");
-  if (maintenance.kind === "family") assert.equal(maintenance.family, "Maintenance légère");
+  if (maintenance.kind === "family") assert.equal(maintenance.family, "maintenance_repair");
+
+  for (const family of PLANETLS_SERVICE_FAMILIES) {
+    const resolution = resolveOwnerOnboardingNeedPreference(family.slug);
+    assert.equal(resolution.kind, "family");
+    if (resolution.kind === "family") assert.equal(resolution.family, family.slug);
+  }
 
   assert.equal(messages.kind, "ambiguous");
   if (messages.kind === "ambiguous") {

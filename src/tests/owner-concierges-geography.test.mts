@@ -28,6 +28,23 @@ test("filtrage effectif : zone proche, ville géocodée, doublons et profils san
   assert.equal(result.unlocated, 1);
   assert.equal(calls.length, 1);
 });
+test("coordonnées de profil : évite un géocodage inutile", async () => {
+  const result = await locateConcierges([
+    {
+      id: "profile-coordinate",
+      city: "Paris",
+      country: "France",
+      latitude: vendome.latitude,
+      longitude: vendome.longitude,
+      availability_hours: null,
+    },
+  ], vendome, 20, async () => {
+    throw new Error("Le géocodage ne devrait pas être appelé.");
+  });
+
+  assert.deepEqual(result.results.map((item) => item.id), ["profile-coordinate"]);
+  assert.equal(result.unlocated, 0);
+});
 test("le rayon utilise une distance en km : proche inclus, Blois exclu à 20 km", () => {
   assert.equal(distanceKm(vendome, vendome), 0);
   assert.ok(distanceKm(vendome, { latitude: 47.84, longitude: 1.08 }) < 20);

@@ -41,6 +41,93 @@ const ALLOWED_BILLING_ROLES = new Set([
 
 const round2 = (value: number): number => Math.round(value * 100) / 100;
 
+// Clés de métadonnées de devis qui ne doivent JAMAIS être écrasées par un
+// client : elles portent les règles de sécurité d'envoi (clarification,
+// confirmation de tarif, budget indicatif). Seul le serveur les contrôle.
+const PROTECTED_QUOTE_METADATA_KEYS = new Set([
+  "quote_service_clarification_status",
+  "quote_service_clarification_reason",
+  "quote_service_clarification_status_source",
+  "quote_service_price_confirmed",
+  "quote_service_budget_is_indicative",
+  "quote_service_budget_max",
+  "quote_service_original_values",
+  "quote_service_resolution_diagnostics",
+]);
+
+// Clés de métadonnées de ligne protégées (jamais écrasées côté client).
+const PROTECTED_ITEM_METADATA_KEYS = new Set([
+  "quote_service_clarification_status",
+  "quote_service_clarification_reason",
+  "quote_service_price_confirmed",
+  "quote_service_budget_is_indicative",
+  "quote_service_budget_max",
+  "quote_service_original_values",
+  "quote_service_resolution_diagnostics",
+]);
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+// Conserve uniquement les clés NON protégées fouries par le client, puis
+// réapplique les valeurs serveur existantes (source de vérité : base).
+function mergeQuoteMetadata(
+  incoming: Record<string, unknown> | null | undefined,
+  existing: Record<string, unknown> | null | undefined,
+): Record<string, unknown> {
+  const safeIncoming: Record<string, unknown> = {};
+  if (isPlainObject(incoming)) {
+    for (const [key, value] of Object.entries(incoming)) {
+      if (!PROTECTED_QUOTE_METADATA_KEYS.has(key)) safeIncoming[key] = value;
+    }
+  }
+  const existingRecord = isPlainObject(existing) ? existing : {};
+  const protectedExisting: Record<string, unknown> = {};
+  for (const key of PROTECTED_QUOTE_METADATA_KEYS) {
+    if (key in existingRecord) protectedExisting[key] = existingRecord[key];
+  }
+  return { ...safeIncoming, ...protectedExisting };
+}
+
+// Préserve les clés de sécurité de la ligne existante lors d'une édition.
+function mergeItemMetadata(
+  incoming: unknown,
+  existing: unknown,
+): Record<string, unknown> {
+  const safeIncoming: Record<string, unknown> = {};
+  if (isPlainObject(incoming)) {
+    for (const [key, value] of Object.entries(incoming)) {
+      if (!PROTECTED_ITEM_METADATA_KEYS.has(key)) safeIncoming[key] = value;
+    }
+  }
+  const existingRecord = isPlainObject(existing) ? existing : {};
+  const protectedExisting: Record<string, unknown> = {};
+  for (const key of PROTECTED_ITEM_METADATA_KEYS) {
+    if (key in existingRecord) protectedExisting[key] = existingRecord[key];
+  }
+  return { ...safeIncoming, ...protectedExisting };
+}
+
+// Recalcule total à partir des lignes : source de vérité pour l'envoi.
+function computeQuoteTotalsFromItems(
+  items: QuoteItemInput[],
+  base: { discount?: number | null; taxRate?: number | null },
+): { subtotal: number; discount: number; taxRate: number; taxAmount: number; total: number } {
+  const subtotal = round2(
+    items.reduce((sum, item) => {
+      const quantity = Number(item.quantity) > 0 ? Number(item.quantity) : 1;
+      const unitPrice = Number.isFinite(Number(item.unit_price)) ? Number(item.unit_price) : 0;
+      return sum + quantity * unitPrice;
+    }, 0),
+  );
+  const discount = Math.max(0, round2(Number(base.discount ?? 0) || 0));
+  const taxRate = Math.min(100, Math.max(0, round2(Number(base.taxRate ?? 0) || 0)));
+  const afterDiscount = Math.max(0, subtotal - discount);
+  const taxAmount = round2(afterDiscount * (taxRate / 100));
+  const total = round2(afterDiscount + taxAmount);
+  return { subtotal, discount, taxRate, taxAmount, total };
+}
+
 const quoteSelect = `
   id,
   quote_number,
@@ -142,7 +229,7 @@ export async function PATCH(
 
     const { data: existing, error: existingError } = await db
       .from("quotes")
-      .select("id, status, concierge_profile_id, metadata")
+      .select("id, status, concierge_profile_id, metadata, discount_amount, tax_rate")
       .eq("id", id)
       .eq("concierge_profile_id", userId)
       .maybeSingle();
@@ -164,35 +251,49 @@ export async function PATCH(
       );
     }
 
+    const { data: existingItemRows, error: existingItemsError } = await db
+      .from("quote_items")
+      .select("id, metadata")
+      .eq("quote_id", id)
+      .order("sort_order", { ascending: true });
+
+    if (existingItemsError) {
+      console.error("[PATCH /api/quotes/:id] existing items read error:", existingItemsError);
+    }
+    const existingItems: { id?: string | null; metadata?: unknown }[] = Array.isArray(existingItemRows)
+      ? existingItemRows
+      : [];
+
     const sanitizedItems = Array.isArray(body.items)
       ? body.items
-          .map((item, index) => ({
-            id: item.id,
-            label: typeof item.label === "string" ? item.label.trim() : "",
-            description:
-              typeof item.description === "string"
-                ? item.description.trim()
-                : null,
-            quantity: Number(item.quantity ?? 1),
-            unit_price: Number(item.unit_price ?? 0),
-            service_id:
-              item.service_id === null || item.service_id === undefined
-                ? null
-                : Number(item.service_id),
-            pricing_id:
-              item.pricing_id === null || item.pricing_id === undefined
-                ? null
-                : String(item.pricing_id),
-            sort_order: Number.isFinite(Number(item.sort_order))
-              ? Number(item.sort_order)
-              : index,
-            metadata:
-              item.metadata &&
-              typeof item.metadata === "object" &&
-              !Array.isArray(item.metadata)
-                ? item.metadata
-                : {},
-          }))
+          .map((item, index) => {
+            const existingItem = (item.id
+              ? existingItems.find((row) => row.id === item.id)
+              : existingItems[index]) as { metadata?: unknown } | undefined;
+            return {
+              id: item.id,
+              label: typeof item.label === "string" ? item.label.trim() : "",
+              description:
+                typeof item.description === "string"
+                  ? item.description.trim()
+                  : null,
+              quantity: Number(item.quantity ?? 1),
+              unit_price: Number(item.unit_price ?? 0),
+              service_id:
+                item.service_id === null || item.service_id === undefined
+                  ? null
+                  : Number(item.service_id),
+              pricing_id:
+                item.pricing_id === null || item.pricing_id === undefined
+                  ? null
+                  : String(item.pricing_id),
+              sort_order: Number.isFinite(Number(item.sort_order))
+                ? Number(item.sort_order)
+                : index,
+              // Faille D : préserve les clés de sécurité de la ligne existante.
+              metadata: mergeItemMetadata(item.metadata, existingItem?.metadata) as Json,
+            };
+          })
           .filter(
             (item) =>
               item.label.length > 0 &&
@@ -213,10 +314,8 @@ export async function PATCH(
       body.metadata &&
       typeof body.metadata === "object" &&
       !Array.isArray(body.metadata)
-        ? {
-            ...existingMetadata,
-            ...body.metadata,
-          }
+        ? // Faille D : les clés de sécurité du devis ne peuvent pas être écrasées.
+          mergeQuoteMetadata(body.metadata, existingMetadata)
         : existingMetadata;
 
     const updatePayload: Record<string, unknown> = {
@@ -226,12 +325,24 @@ export async function PATCH(
           : null,
       valid_until: body.valid_until ?? null,
       notes: body.notes ?? null,
-      discount_amount: round2(Number(body.discount_amount ?? 0)),
-      tax_rate: round2(Number(body.tax_rate ?? 0)),
     };
     if (body.metadata !== undefined) {
       updatePayload.metadata = nextMetadata;
     }
+
+    // Faille E : recalcule systématiquement le total à partir des lignes
+    // sauvegardées (source de vérité), puis applique remise/taxe.
+    const effectiveDiscount = round2(Number(body.discount_amount ?? 0));
+    const effectiveTaxRate = round2(Number(body.tax_rate ?? 0));
+    const totals = computeQuoteTotalsFromItems(sanitizedItems, {
+      discount: effectiveDiscount,
+      taxRate: effectiveTaxRate,
+    });
+    updatePayload.discount_amount = totals.discount;
+    updatePayload.tax_rate = totals.taxRate;
+    updatePayload.subtotal = totals.subtotal;
+    updatePayload.tax_amount = totals.taxAmount;
+    updatePayload.total_amount = totals.total;
 
     const { error: updateError } = await db
       .from("quotes")

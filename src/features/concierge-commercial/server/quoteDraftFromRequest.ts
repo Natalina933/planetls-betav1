@@ -9,6 +9,7 @@ import {
   type PricingRow,
   type PackageRow,
 } from "./quoteDraftMatching";
+import { QUOTE_PRICE_CONFIRMED_KEY } from "./quoteSendGuard";
 
 // La logique pure de correspondance et de tarification vit dans
 // quoteDraftMatching.ts (sans dépendance base de données, testable en
@@ -69,8 +70,12 @@ export type PreparedQuoteDraft = {
 
 export type QuoteDraftClarificationStatus =
   | "resolved_catalog"
+  | "resolved_manual"
   | "needs_clarification"
   | "needs_explicit_price";
+
+// Source unique de la clé de confirmation de tarif (cf. quoteSendGuard.ts).
+export { QUOTE_PRICE_CONFIRMED_KEY };
 
 
 export async function prepareQuoteDraftFromRequest(
@@ -165,19 +170,19 @@ export async function prepareQuoteDraftFromRequest(
                 : request.title || "Prestation à chiffrer",
             description: request.description ?? null,
             quantity: 1,
-            unit_price:
-              Number.isFinite(Number(request.budget_max ?? 0)) && Number(request.budget_max ?? 0) > 0
-                ? round2(Number(request.budget_max ?? 0))
-                : 0,
-            line_total:
-              Number.isFinite(Number(request.budget_max ?? 0)) && Number(request.budget_max ?? 0) > 0
-                ? round2(Number(request.budget_max ?? 0))
-                : 0,
+            // LOT 6 : le budget du propriétaire n'est JAMAIS converti en prix.
+            // La ligne reste provisoire (0 € non confirmé) et ne peut pas être
+            // envoyée sans tarif explicite confirmé côté serveur.
+            unit_price: 0,
+            line_total: 0,
             sort_order: 0,
             metadata: {
               source: "service_request",
               service_request_id: request.id,
               matched_from_request: false,
+              // Marqueur non-prix : indique que budget_max est purement indicatif.
+              quote_service_budget_is_indicative: true,
+              quote_service_budget_max: request.budget_max ?? null,
               quote_service_clarification_status: serviceClarifications.some(
                 (clarification) => clarification.explicitPriceRequired,
               )

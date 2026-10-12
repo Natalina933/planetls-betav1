@@ -1,4 +1,13 @@
-import { Button, ButtonLink, Checkbox, Input, Loader, RequestStatusBadge, Select, Textarea } from "@/components/ui";
+import {
+  Button,
+  ButtonLink,
+  Checkbox,
+  Input,
+  Loader,
+  RequestStatusBadge,
+  Select,
+  Textarea,
+} from "@/components/ui";
 import type { RequestWorkflowStatus } from "@/app/lib/requestStatus";
 import {
   buildServiceRequestBrief,
@@ -22,7 +31,8 @@ const currencyOptions = [
 
 const fallbackOneOffIdeas = [
   "Accueil sur place",
-  "Check-in / check-out",
+  "Check-in",
+  "Check-out",
   "Ménage de transition",
   "Remise de clés",
   "Visite de contrôle",
@@ -34,6 +44,8 @@ type RequestPanelProps = {
   selectedConcierges: ConciergeSearchRow[];
   selectedServices: string[];
   selectedCategories: string[];
+  visibleServicesByCategory: Array<{ category: string; services: string[] }>;
+  openServiceSections: Record<string, boolean>;
   activeSearchSummary: string[];
   requestForm: RequestFormState;
   submittingRequest: boolean;
@@ -56,6 +68,8 @@ type RequestPanelProps = {
     key: Key,
     value: RequestFormState[Key],
   ) => void;
+  onToggleService: (value: string) => void;
+  onToggleServiceSection: (category: string) => void;
   getCitySuggestions: (query: string) => string[];
 };
 
@@ -87,12 +101,15 @@ const requestTypeCopy: Record<RequestType, RequestCopy> = {
     stepThreeLabel: "Message",
     stepThreeHint: "Ajoutez seulement le contexte utile.",
     titleLabel: "Type d'intervention",
-    titlePlaceholder: "Ex : accueil sur place, remise de clés, ménage de transition",
+    titlePlaceholder:
+      "Ex : accueil sur place, remise de clés, ménage de transition",
     detailsLabel: "Détails utiles",
     detailsPlaceholder:
       "Ex : volume de séjours, logement concerné, plateformes utilisées, attentes principales.",
-    detailsHint: "Gardez ici le contexte commercial : logement, volume attendu, plateformes et attentes principales.",
-    budgetHint: "Indicatif, pour aider les concierges à se positionner. Laissez vide si non défini.",
+    detailsHint:
+      "Gardez ici le contexte commercial : logement, volume attendu, plateformes et attentes principales.",
+    budgetHint:
+      "Indicatif, pour aider les concierges à se positionner. Laissez vide si non défini.",
   },
   renfort: {
     title: "Renfort ou remplacement",
@@ -104,7 +121,8 @@ const requestTypeCopy: Record<RequestType, RequestCopy> = {
     stepThreeLabel: "Message",
     stepThreeHint: "Donnez assez d'éléments pour une première réponse.",
     titleLabel: "Intitulé du renfort",
-    titlePlaceholder: "Ex : renfort check-in/check-out pendant les vacances scolaires",
+    titlePlaceholder:
+      "Ex : renfort Check-in et Check-out pendant les vacances scolaires",
     detailsLabel: "Description",
     detailsPlaceholder:
       "Expliquez le volume attendu, les services à reprendre et le niveau d'autonomie recherché.",
@@ -121,7 +139,8 @@ const requestTypeCopy: Record<RequestType, RequestCopy> = {
     stepThreeLabel: "Message",
     stepThreeHint: "Décrivez vos attentes sur la durée.",
     titleLabel: "Intitulé du besoin durable",
-    titlePlaceholder: "Ex : gestion récurrente des séjours courte durée sur Lyon 6e",
+    titlePlaceholder:
+      "Ex : gestion récurrente des séjours courte durée sur Lyon 6e",
     detailsLabel: "Description",
     detailsPlaceholder:
       "Expliquez le rythme, les services attendus, le type de biens et les objectifs de collaboration.",
@@ -138,15 +157,29 @@ function toDisplayText(value: string) {
     .replace(/^\p{L}/u, (match) => match.toUpperCase());
 }
 
-function buildOneOffIdeas(selectedServices: string[], selectedConcierges: ConciergeSearchRow[]) {
+function buildOneOffIdeas(
+  selectedServices: string[],
+  selectedConcierges: ConciergeSearchRow[],
+) {
   const serviceIdeas = selectedServices.map(toDisplayText);
-  const conciergeIdeas = selectedConcierges.flatMap((item) => item.services ?? []).map(toDisplayText);
-  const merged = Array.from(new Set([...serviceIdeas, ...conciergeIdeas].filter(Boolean)));
-  return (merged.length > 0 ? merged : Array.from(fallbackOneOffIdeas)).slice(0, 6);
+  const conciergeIdeas = selectedConcierges
+    .flatMap((item) => item.services ?? [])
+    .map(toDisplayText);
+  const merged = Array.from(
+    new Set([...serviceIdeas, ...conciergeIdeas].filter(Boolean)),
+  );
+  return (merged.length > 0 ? merged : Array.from(fallbackOneOffIdeas)).slice(
+    0,
+    6,
+  );
 }
 
 function formatMissingInfo(value: string) {
-  return toDisplayText(value.replace(/^logement concerne$/, "logement").replace(/^adresse ou repere$/, "adresse"));
+  return toDisplayText(
+    value
+      .replace(/^logement concerne$/, "logement")
+      .replace(/^adresse ou repere$/, "adresse"),
+  );
 }
 
 export function RequestPanel({
@@ -154,6 +187,8 @@ export function RequestPanel({
   selectedConcierges,
   selectedServices,
   selectedCategories,
+  visibleServicesByCategory,
+  openServiceSections,
   activeSearchSummary,
   requestForm,
   submittingRequest,
@@ -164,15 +199,21 @@ export function RequestPanel({
   stayContext = null,
   onSubmit,
   onRequestFormChange,
+  onToggleService,
+  onToggleServiceSection,
   getCitySuggestions,
 }: RequestPanelProps) {
   const copy = requestTypeCopy[requestForm.requestType];
   const guidance = getServiceRequestBriefFormGuidance(requestForm.ownerGoal);
   const oneOffIdeas = buildOneOffIdeas(selectedServices, selectedConcierges);
-  const requestedServices = selectedServices.length > 0 ? selectedServices : selectedCategories;
+  const requestedServices =
+    selectedServices.length > 0 ? selectedServices : selectedCategories;
   const uniqueSearchSummary = Array.from(new Set(activeSearchSummary));
   const selectedPreview = selectedConcierges.slice(0, 4);
-  const hiddenSelectedCount = Math.max(selectedConcierges.length - selectedPreview.length, 0);
+  const hiddenSelectedCount = Math.max(
+    selectedConcierges.length - selectedPreview.length,
+    0,
+  );
   const requestBrief = buildServiceRequestBrief({
     ownerGoal: requestForm.ownerGoal,
     collaborationType: requestForm.collaborationType,
@@ -192,13 +233,20 @@ export function RequestPanel({
   });
 
   return (
-    <form className={styles.requestPanel} onSubmit={onSubmit} id="owner-request-panel">
+    <form
+      className={styles.requestPanel}
+      onSubmit={onSubmit}
+      id="owner-request-panel"
+    >
       <div className={styles.requestHeader}>
         <div className={styles.requestHeaderCopy}>
           <p className={styles.eyebrow}>Demande</p>
           <h2 className={styles.requestTitle}>{copy.title}</h2>
+          <p className={styles.requestIntro}>{copy.intro}</p>
         </div>
-        <span className={styles.requestCount}>{selectedConcierges.length} concierge(s)</span>
+        <span className={styles.requestCount}>
+          {selectedConcierges.length} destinataire(s)
+        </span>
       </div>
 
       {stayContext ? (
@@ -206,8 +254,16 @@ export function RequestPanel({
           <span className={styles.requestSectionLabel}>Contexte séjour</span>
           <strong>{stayContext.stayNeedLabel}</strong>
           <div className={styles.summaryChips}>
-            {stayContext.propertyLabel ? <span className={styles.summaryChip}>{stayContext.propertyLabel}</span> : null}
-            {stayContext.periodLabel ? <span className={styles.summaryChip}>{stayContext.periodLabel}</span> : null}
+            {stayContext.propertyLabel ? (
+              <span className={styles.summaryChip}>
+                {stayContext.propertyLabel}
+              </span>
+            ) : null}
+            {stayContext.periodLabel ? (
+              <span className={styles.summaryChip}>
+                {stayContext.periodLabel}
+              </span>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -223,7 +279,9 @@ export function RequestPanel({
                 </span>
               ))
             ) : (
-              <span className={styles.tagMuted}>Aucun filtre actif pour le moment.</span>
+              <span className={styles.tagMuted}>
+                Aucun filtre actif pour le moment.
+              </span>
             )}
           </div>
         </div>
@@ -245,26 +303,33 @@ export function RequestPanel({
         <div className={styles.selectedList}>
           {selectedConcierges.length > 0 ? (
             <>
-            {selectedPreview.map((item) => (
-              <span key={item.id} className={styles.selectedChip}>
-                <span className={styles.selectedChipAvatar}>
-                  <ConciergeAvatar
-                    src={item.avatar_url}
-                    alt={item.display_name}
-                    className={styles.selectedChipAvatarImage}
-                    width={28}
-                    height={28}
-                  />
+              {selectedPreview.map((item) => (
+                <span key={item.id} className={styles.selectedChip}>
+                  <span className={styles.selectedChipAvatar}>
+                    <ConciergeAvatar
+                      src={item.avatar_url}
+                      alt={item.display_name}
+                      className={styles.selectedChipAvatarImage}
+                      width={28}
+                      height={28}
+                    />
+                  </span>
+                  <span className={styles.selectedChipLabel}>
+                    {item.display_name}
+                  </span>
                 </span>
-                <span className={styles.selectedChipLabel}>{item.display_name}</span>
-              </span>
-            ))}
-            {hiddenSelectedCount > 0 ? (
-              <span className={styles.selectedChip}>+{hiddenSelectedCount} autre{hiddenSelectedCount > 1 ? "s" : ""}</span>
-            ) : null}
+              ))}
+              {hiddenSelectedCount > 0 ? (
+                <span className={styles.selectedChip}>
+                  +{hiddenSelectedCount} autre
+                  {hiddenSelectedCount > 1 ? "s" : ""}
+                </span>
+              ) : null}
             </>
           ) : (
-            <span className={styles.tagMuted}>Sélectionnez un ou plusieurs concierges dans la liste.</span>
+            <span className={styles.tagMuted}>
+              Sélectionnez un ou plusieurs concierges dans la liste.
+            </span>
           )}
         </div>
       </div>
@@ -272,7 +337,10 @@ export function RequestPanel({
       <div className={styles.sidebarFields}>
         <div className={styles.requestBlock}>
           <div className={styles.requestBlockHeader}>
-            <span className={styles.requestSectionLabel}>Objectif principal</span>
+            <span className={styles.requestSectionLabel}>1. Votre projet</span>
+            <p className={styles.requestBlockHint}>
+              Quel résultat souhaitez-vous obtenir avec cette demande ?
+            </p>
           </div>
           <div className={styles.choiceGrid}>
             {OWNER_REQUEST_GOAL_OPTIONS.map((option) => {
@@ -281,12 +349,14 @@ export function RequestPanel({
                 <button
                   key={option.value}
                   type="button"
-                  className={isActive ? styles.choiceCardActive : styles.choiceCard}
+                  className={
+                    isActive ? styles.choiceCardActive : styles.choiceCard
+                  }
                   aria-pressed={isActive}
                   onClick={() => onRequestFormChange("ownerGoal", option.value)}
                 >
                   <strong>{option.label}</strong>
-                  {isActive ? <span>{option.helper}</span> : null}
+                  <span>{option.helper}</span>
                 </button>
               );
             })}
@@ -295,7 +365,12 @@ export function RequestPanel({
 
         <div className={styles.requestBlock}>
           <div className={styles.requestBlockHeader}>
-            <span className={styles.requestSectionLabel}>Collaboration recherchée</span>
+            <span className={styles.requestSectionLabel}>
+              2. Collaboration recherchée
+            </span>
+            <p className={styles.requestBlockHint}>
+              Précisez le niveau d’engagement attendu du professionnel.
+            </p>
           </div>
           <div className={styles.choiceGrid}>
             {OWNER_COLLABORATION_TYPE_OPTIONS.map((option) => {
@@ -304,12 +379,16 @@ export function RequestPanel({
                 <button
                   key={option.value}
                   type="button"
-                  className={isActive ? styles.choiceCardActive : styles.choiceCard}
+                  className={
+                    isActive ? styles.choiceCardActive : styles.choiceCard
+                  }
                   aria-pressed={isActive}
-                  onClick={() => onRequestFormChange("collaborationType", option.value)}
+                  onClick={() =>
+                    onRequestFormChange("collaborationType", option.value)
+                  }
                 >
                   <strong>{option.label}</strong>
-                  {isActive ? <span>{option.helper}</span> : null}
+                  <span>{option.helper}</span>
                 </button>
               );
             })}
@@ -318,18 +397,106 @@ export function RequestPanel({
 
         <div className={styles.requestBlock}>
           <div className={styles.requestBlockHeader}>
-            <span className={styles.requestSectionLabel}>{copy.stepTwoLabel}</span>
+            <span className={styles.requestSectionLabel}>
+              3. Prestations souhaitées
+            </span>
+            <p className={styles.requestBlockHint}>
+              Ces prestations proviennent de votre recherche et seront transmises aux destinataires.
+            </p>
+          </div>
+          {requestedServices.length > 0 ? (
+            <div className={styles.requestServiceList} aria-label="Prestations sélectionnées">
+              {requestedServices.map((service) => (
+                <button
+                  key={service}
+                  type="button"
+                  className={styles.requestServiceChip}
+                  aria-pressed="true"
+                  onClick={() => onToggleService(service)}
+                >
+                  {service}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.requestServiceEmpty}>
+              Aucune prestation précise n’est encore sélectionnée. Choisissez directement les prestations à transmettre ci-dessous.
+            </p>
+          )}
+          <div className={styles.requestServicePicker}>
+            {visibleServicesByCategory.map((group) => {
+              const selectedCount = group.services.filter((service) =>
+                selectedServices.includes(service),
+              ).length;
+              const isOpen = openServiceSections[group.category] ?? true;
+
+              return (
+                <div key={group.category} className={styles.serviceSection}>
+                  <button
+                    type="button"
+                    className={styles.serviceSectionHeader}
+                    aria-expanded={isOpen}
+                    onClick={() => onToggleServiceSection(group.category)}
+                  >
+                    <span className={styles.serviceSectionTitle}>
+                      {group.category}
+                    </span>
+                    <span className={styles.serviceSectionMeta}>
+                      {selectedCount > 0
+                        ? `${selectedCount} sélectionnée${selectedCount > 1 ? "s" : ""}`
+                        : `${group.services.length} prestations`}
+                    </span>
+                  </button>
+                  {isOpen ? (
+                    <div className={styles.serviceSectionBody}>
+                      {group.services.map((service) => {
+                        const isSelected = selectedServices.includes(service);
+                        return (
+                          <button
+                            key={service}
+                            type="button"
+                            className={
+                              isSelected
+                                ? styles.serviceChipActive
+                                : styles.serviceChip
+                            }
+                            aria-pressed={isSelected}
+                            onClick={() => onToggleService(service)}
+                          >
+                            {service}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className={styles.requestBlock}>
+          <div className={styles.requestBlockHeader}>
+            <span className={styles.requestSectionLabel}>
+              4. Informations pratiques
+            </span>
+            <p className={styles.requestBlockHint}>
+              Donnez les éléments nécessaires pour situer et dimensionner la demande.
+            </p>
           </div>
 
           {requestForm.requestType === "ponctuel" ? (
             <div className={styles.quickIdeas}>
               {oneOffIdeas.map((idea) => {
-                const isActive = requestForm.title.trim().toLowerCase() === idea.toLowerCase();
+                const isActive =
+                  requestForm.title.trim().toLowerCase() === idea.toLowerCase();
                 return (
                   <button
                     key={idea}
                     type="button"
-                    className={isActive ? styles.quickIdeaActive : styles.quickIdea}
+                    className={
+                      isActive ? styles.quickIdeaActive : styles.quickIdea
+                    }
                     onClick={() => onRequestFormChange("title", idea)}
                   >
                     {idea}
@@ -344,7 +511,9 @@ export function RequestPanel({
               <span>{guidance.titleLabel}</span>
               <Input
                 value={requestForm.title}
-                onChange={(event) => onRequestFormChange("title", event.target.value)}
+                onChange={(event) =>
+                  onRequestFormChange("title", event.target.value)
+                }
                 placeholder={guidance.titlePlaceholder}
               />
             </label>
@@ -361,20 +530,24 @@ export function RequestPanel({
             </label>
 
             <label className={styles.field}>
-              <span>Logement concerne</span>
+              <span>Logement concerné</span>
               <Input
                 value={requestForm.propertyName}
-                onChange={(event) => onRequestFormChange("propertyName", event.target.value)}
+                onChange={(event) =>
+                  onRequestFormChange("propertyName", event.target.value)
+                }
                 placeholder="Ex : Appartement Paris 15, Villa des Pins"
               />
             </label>
 
             <label className={styles.field}>
-              <span>Adresse ou repere</span>
+              <span>Adresse ou repère</span>
               <Input
                 value={requestForm.propertyAddress}
-                onChange={(event) => onRequestFormChange("propertyAddress", event.target.value)}
-                placeholder="Adresse, quartier ou acces utile"
+                onChange={(event) =>
+                  onRequestFormChange("propertyAddress", event.target.value)
+                }
+                placeholder="Adresse, quartier ou accès utile"
               />
             </label>
 
@@ -382,7 +555,9 @@ export function RequestPanel({
               <span>Type de logement</span>
               <Input
                 value={requestForm.propertyType}
-                onChange={(event) => onRequestFormChange("propertyType", event.target.value)}
+                onChange={(event) =>
+                  onRequestFormChange("propertyType", event.target.value)
+                }
                 placeholder="Appartement, maison, villa, studio..."
               />
             </label>
@@ -391,7 +566,9 @@ export function RequestPanel({
               <span>Couchages</span>
               <Input
                 value={requestForm.sleepingCapacity}
-                onChange={(event) => onRequestFormChange("sleepingCapacity", event.target.value)}
+                onChange={(event) =>
+                  onRequestFormChange("sleepingCapacity", event.target.value)
+                }
                 placeholder="Ex : 4"
                 inputMode="numeric"
               />
@@ -401,7 +578,9 @@ export function RequestPanel({
               <span>Code postal</span>
               <Input
                 value={requestForm.postalCode}
-                onChange={(event) => onRequestFormChange("postalCode", event.target.value)}
+                onChange={(event) =>
+                  onRequestFormChange("postalCode", event.target.value)
+                }
                 placeholder="75015"
                 inputMode="numeric"
               />
@@ -412,7 +591,9 @@ export function RequestPanel({
               <Input
                 type="date"
                 value={requestForm.desiredDate}
-                onChange={(event) => onRequestFormChange("desiredDate", event.target.value)}
+                onChange={(event) =>
+                  onRequestFormChange("desiredDate", event.target.value)
+                }
               />
             </label>
 
@@ -421,7 +602,10 @@ export function RequestPanel({
               <Select
                 value={requestForm.frequency}
                 onChange={(event) =>
-                  onRequestFormChange("frequency", event.target.value as RequestFormState["frequency"])
+                  onRequestFormChange(
+                    "frequency",
+                    event.target.value as RequestFormState["frequency"],
+                  )
                 }
               >
                 {OWNER_REQUEST_FREQUENCY_OPTIONS.map((option) => (
@@ -436,8 +620,10 @@ export function RequestPanel({
               <span>Durée estimée</span>
               <Input
                 value={requestForm.estimatedDuration}
-                onChange={(event) => onRequestFormChange("estimatedDuration", event.target.value)}
-                placeholder="Ex : 1 mission, 3 mois, toute l'annee"
+                onChange={(event) =>
+                  onRequestFormChange("estimatedDuration", event.target.value)
+                }
+                placeholder="Ex : 1 mission, 3 mois, toute l’année"
               />
             </label>
 
@@ -448,7 +634,8 @@ export function RequestPanel({
                 onChange={(event) =>
                   onRequestFormChange(
                     "responsibilityLevel",
-                    event.target.value as RequestFormState["responsibilityLevel"],
+                    event.target
+                      .value as RequestFormState["responsibilityLevel"],
                   )
                 }
               >
@@ -469,13 +656,17 @@ export function RequestPanel({
                   aria-label="Budget indicatif"
                   inputMode="numeric"
                   value={requestForm.budgetMax}
-                  onChange={(event) => onRequestFormChange("budgetMax", event.target.value)}
+                  onChange={(event) =>
+                    onRequestFormChange("budgetMax", event.target.value)
+                  }
                   placeholder=".."
                 />
                 <Select
                   className={styles.budgetCurrency}
                   value={requestForm.currency}
-                  onChange={(event) => onRequestFormChange("currency", event.target.value)}
+                  onChange={(event) =>
+                    onRequestFormChange("currency", event.target.value)
+                  }
                   aria-label="Devise du budget"
                 >
                   {currencyOptions.map((option) => (
@@ -491,7 +682,12 @@ export function RequestPanel({
 
         <div className={styles.requestBlock}>
           <div className={styles.requestBlockHeader}>
-            <span className={styles.requestSectionLabel}>{copy.stepThreeLabel}</span>
+            <span className={styles.requestSectionLabel}>
+              5. Message et contraintes
+            </span>
+            <p className={styles.requestBlockHint}>
+              Ajoutez le contexte utile sans répéter les informations déjà renseignées.
+            </p>
           </div>
 
           <label className={styles.field}>
@@ -499,7 +695,9 @@ export function RequestPanel({
             <Textarea
               className={styles.requestTextarea}
               value={requestForm.description}
-              onChange={(event) => onRequestFormChange("description", event.target.value)}
+              onChange={(event) =>
+                onRequestFormChange("description", event.target.value)
+              }
               placeholder={copy.detailsPlaceholder}
               rows={5}
             />
@@ -510,7 +708,9 @@ export function RequestPanel({
             <Textarea
               className={styles.requestTextarea}
               value={requestForm.propertyConstraints}
-              onChange={(event) => onRequestFormChange("propertyConstraints", event.target.value)}
+              onChange={(event) =>
+                onRequestFormChange("propertyConstraints", event.target.value)
+              }
               placeholder="Ex : accès autonome, linge à prévoir, escalier sans ascenseur, consignes voyageurs, horaires imposés."
               rows={4}
             />
@@ -519,27 +719,48 @@ export function RequestPanel({
 
         <div className={styles.requestBriefPreview}>
           <div className={styles.requestBlockHeader}>
-            <span className={styles.requestSectionLabel}>Synthèse avant envoi</span>
+            <span className={styles.requestSectionLabel}>
+              6. Synthèse avant envoi
+            </span>
+            <p className={styles.requestBlockHint}>
+              Vérifiez les éléments transmis avant d’envoyer votre demande.
+            </p>
           </div>
           <p>{requestBrief.summary}</p>
           <div className={styles.summaryChips}>
-            <span className={styles.summaryChip}>{requestBrief.owner_goal_label}</span>
-            <span className={styles.summaryChip}>{requestBrief.collaboration_type_label}</span>
-            <span className={styles.summaryChip}>{requestBrief.frequency_label}</span>
-            <span className={styles.summaryChip}>{requestBrief.responsibility_level_label}</span>
-            <span className={styles.summaryChip}>{requestBrief.pricing_expectation}</span>
+            <span className={styles.summaryChip}>
+              {requestBrief.owner_goal_label}
+            </span>
+            <span className={styles.summaryChip}>
+              {requestBrief.collaboration_type_label}
+            </span>
+            <span className={styles.summaryChip}>
+              {requestBrief.frequency_label}
+            </span>
+            <span className={styles.summaryChip}>
+              {requestBrief.responsibility_level_label}
+            </span>
+            <span className={styles.summaryChip}>
+              {requestBrief.pricing_expectation}
+            </span>
           </div>
           {requestBrief.missing_information.length > 0 ? (
             <div className={styles.missingInfoBox} role="status">
               <strong>À compléter</strong>
-              <span>{requestBrief.missing_information.map(formatMissingInfo).join(", ")}</span>
+              <span>
+                {requestBrief.missing_information
+                  .map(formatMissingInfo)
+                  .join(", ")}
+              </span>
             </div>
           ) : null}
         </div>
 
         <Checkbox
           checked={requestForm.urgency}
-          onChange={(event) => onRequestFormChange("urgency", event.target.checked)}
+          onChange={(event) =>
+            onRequestFormChange("urgency", event.target.checked)
+          }
           label="Cette demande est urgente"
           className={styles.checkboxInput}
           labelClassName={styles.checkboxLabel}
@@ -547,7 +768,11 @@ export function RequestPanel({
       </div>
 
       {submittingRequest ? (
-        <div className={styles.requestProgress} role="status" aria-live="polite">
+        <div
+          className={styles.requestProgress}
+          role="status"
+          aria-live="polite"
+        >
           <Loader size="sm" showText text="Envoi en cours..." />
           <p className={styles.requestProgressText}>
             Nous envoyons votre demande aux concierges sélectionnés.
@@ -574,7 +799,8 @@ export function RequestPanel({
                 <strong>Ville :</strong> {lastSentSummary.city || "À confirmer"}
               </span>
               <span>
-                <strong>Destinataires :</strong> {lastSentSummary.recipients.join(", ")}
+                <strong>Destinataires :</strong>{" "}
+                {lastSentSummary.recipients.join(", ")}
               </span>
             </div>
           ) : null}
@@ -590,7 +816,11 @@ export function RequestPanel({
         >
           {submittingRequest ? "Envoi en cours..." : "Envoyer ma demande"}
         </Button>
-        <ButtonLink href="/dashboard/owner/demandes" variant="secondary" className={styles.secondaryBtn}>
+        <ButtonLink
+          href="/dashboard/owner/demandes"
+          variant="secondary"
+          className={styles.secondaryBtn}
+        >
           Suivre mes demandes envoyées
         </ButtonLink>
       </div>

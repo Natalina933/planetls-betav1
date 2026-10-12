@@ -9,12 +9,22 @@ type ResolvedMatchValue =
   | { kind: "review" }
   | { kind: "unknown"; normalized: string };
 
+const LEGACY_SERVICE_ALIASES = new Map<string, string>([
+  ["menage", "cleaning_standard"],
+  ["menage entre voyageurs", "cleaning_turnover"],
+]);
+
 function resolveMatchValue(value: string): ResolvedMatchValue {
   const raw = String(value ?? "").trim();
   const normalized = normalizeCatalogText(raw);
 
   if (!normalized) {
     return { kind: "unknown", normalized };
+  }
+
+  const legacySlug = LEGACY_SERVICE_ALIASES.get(normalized);
+  if (legacySlug) {
+    return { kind: "service", slug: legacySlug };
   }
 
   // PLANETLS_SERVICE_TARGET est la seule référence.
@@ -75,4 +85,3 @@ export function matchPlanetLSService(
 
   return "no_match";
 }
-

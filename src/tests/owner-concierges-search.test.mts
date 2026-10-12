@@ -66,6 +66,14 @@ test("buildConciergeSearchFilters parses advanced owner filters", () => {
   assert.equal(filters.availableOnly, true);
 });
 
+test("buildConciergeSearchFilters normalizes legacy accueil category", () => {
+  const filters = buildConciergeSearchFilters(
+    new URLSearchParams("city=Paris&categories=Accueil"),
+  );
+
+  assert.deepEqual(filters.categories, ["Accueil voyageurs"]);
+});
+
 test("applyConciergeSearchFilters enforces service, property type and budget", () => {
   const result = applyConciergeSearchFilters(
     [
@@ -208,6 +216,7 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
   assert.equal(params.get("propertyType"), "Villa");
   assert.equal(params.get("budgetMax"), "120");
   assert.equal(params.get("radiusKm"), "30");
+  assert.equal(params.get("geographic"), "1");
   assert.equal(params.get("proOnly"), "1");
 
   assert.deepEqual(toggleOwnerConciergeService(["Menage"], "Check-in"), [

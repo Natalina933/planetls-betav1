@@ -1,5 +1,15 @@
 # Master Plan PlanetLS
 
+### Recherche concierge géographique, prestations et continuité d'inscription — 12 octobre 2026
+
+- Recherche propriétaire **🟡 En cours — P1 Prioritaire** : les catégories legacy sont normalisées à la lecture et dans les paramètres de recherche (`Accueil` devient `Accueil voyageurs`) afin qu'une valeur historique ne produise plus silencieusement zéro résultat. Le rayon sélectionné avec une ville active désormais le mode géographique (`geographic=1`) et applique une distance réelle.
+- Géolocalisation : `locateConcierges` réutilise d'abord les coordonnées persistées du profil, puis ses zones d'intervention, et ne géocode que les profils sans coordonnées exploitables. Les profils non localisés sont exclus du rayon avec un avertissement explicite ; aucune localisation fictive n'est inventée.
+- Demande propriétaire : `RequestPanel` réutilise les groupes du catalogue chargé par la recherche pour permettre l'ajout ou le retrait direct de prestations précises avant envoi. Les familles, catégories et modes de collaboration ne sont pas convertis en prestations facturables.
+- Continuité inscription → recherche : `OwnerConciergesPageClient.tsx` charge `availability_hours`, réutilise `ownerOnboardingV1`, préremplit la ville et un rayon de 20 km, lance automatiquement la recherche lorsqu'un critère profil existe et conserve la priorité champ par champ des paramètres URL. Une soumission manuelle réécrit les filtres dans l'URL sans modifier les préférences Supabase. Le contexte séjour conserve la priorité sur les besoins généraux quand aucun service n'est explicitement fourni dans l'URL.
+- Mapping : les anciennes réponses précises `check_in`, `check_out`, `cleaning`, `linen` et `maintenance` sont initialisées avec les libellés du catalogue (`Check-in`, `Check-out`, `Ménage du logement`, `Changement de linge`, `Petites réparations`). Les huit familles canoniques restent générales et ne sont pas transformées automatiquement en prestations précises ; elles nécessitent un affinage ultérieur.
+- Preuves locales : tests ciblés propriétaire/recherche/catalogue **32/32 réussis**, lint ciblé réussi, `npx tsc --noEmit --incremental false --pretty false` réussi, `git diff --check` réussi. Les alias historiques `Menage` et `Ménage entre voyageurs` sont résolus uniquement par le matching de recherche ; aucune donnée distante n'a été réécrite.
+- Limites et prochaine action : les familles canoniques générales ne filtrent pas encore la recherche par famille ; le sélecteur existant permet l'affinage par prestation précise. Aucun changement Supabase ou migration n'est prévu dans ce lot.
+
 ### Référentiel commun des prestations — 8 octobre 2026
 
 - Catalogue prestations **🟡 En cours — P1 Prioritaire** : ajout du module TypeScript central `src/app/lib/commonServiceCatalog.ts`, construit depuis les 76 entrées historiques `services_catalog` validées en Phase 0. Les IDs numériques 1 à 76 sont conservés, complétés par des slugs métier stables, des familles, rôles, statuts (`active`, `legacy_alias`, `ambiguous`, `regulated`) et alias historiques.
@@ -30,6 +40,19 @@
 - Protections Lot 3C-1 : le matching textuel historique, les lignes de devis, quantités, prix unitaires, totaux, devise et metadata restent strictement inchangés. Les cas risqués identifiés avant décision métier sont notamment : famille générale qui matche plusieurs prestations historiques, bundle `Check-in / Check-out` ambigu, mode de collaboration sans prestation, contexte d'urgence de nuit, et valeurs inconnues.
 - Preuves Lot 3C-1 : `node --experimental-strip-types --test src/tests/requested-services-catalog.test.mts` **PASS** le 8 octobre 2026, `node --experimental-strip-types --test src/tests/service-catalog.test.mts` **PASS**, `npx tsc --noEmit --incremental false --pretty false` **PASS**.
 - Prochaine action : Lot 3C-2 recommandé pour décider quoi faire des diagnostics `family_only`, `ambiguous`, `mode_only`, `context_only` et `unknown` avant génération de devis, sans conversion automatique des valeurs ambiguës.
+
+### Envoi de devis sécurisé LOT 6 / 6B — 10 octobre 2026
+
+- Séparation budget / tarif **🟡 En cours — P1 Prioritaire** : le `budget_max` de la demande propriétaire reste un **budget indicatif** et ne devient jamais un prix du professionnel. Les lignes de brouillon issues d'un budget portent désormais `quote_service_budget_is_indicative: true` en plus de `quote_service_budget_max`, avec `unit_price: 0`, pour rendre la distinction explicite et traçable côté serveur.
+- Brouillon provisoire à 0 € **✅ Terminé (backend) — P1 Prioritaire** : faute de tarif fiable au référentiel, `prepareQuoteDraftFromRequest` génère des lignes à `unit_price: 0` et `line_total: 0` avec le statut de clarification `needs_clarification` ou `needs_explicit_price`, et non un prix inventé. Le nouveau statut `resolved_manual` couvre un tarif fixé manuellement par le professionnel. Le statut parent `quote_service_clarification_status` du devis est désormais propagé à la génération du brouillon.
+- Contrôle serveur d'envoi ligne par ligne **✅ Terminé — P0 Critique** : le module pur `src/features/concierge-commercial/server/quoteSendGuard.ts` (nouveau) décide seul de l'envoi. La transition `draft → sent` de `PATCH /api/quotes/[id]/status` vérifie chaque ligne : un prix positif ou un `0 €` **explicitement confirmé** est requis ; une ligne sans tarif confirmé, un statut `needs_*` ouvert, ou l'absence de métadonnée bloquent l'envoi (défaut à la fermeture, pas d'ouverture implicite). Une ligne tarifée ne masque jamais une ligne non résolue du même devis. `unit_price > 0` n'est plus assimilé à une preuve de confirmation. Aucune autre route ne réalise `draft → sent`.
+- Confirmation explicite d'une prestation gratuite **🟠 Partiel — P1 Prioritaire** : seul le marqueur serveur `quote_service_price_confirmed: true` sur la ligne autorise l'envoi d'une prestation volontairement à `0 €` ; les `0,01 €` ou autres montants non confirmés ne suffisent pas. Le garde-fou est actif, mais le parcours d'interface permettant au professionnel de poser cette confirmation n'est pas encore branché : tant qu'il ne l'est pas, toute ligne `0 €` reste refusée à l'envoi (comportement sûr).
+- Protection des métadonnées de sécurité **✅ Terminé — P0 Critique** : `PATCH /api/quotes/[id]` ne peut plus écraser ni effacer les clés de sécurité posées par le serveur. Les métadonnées de devis et de lignes passent par des fusions filtrées qui réappliquent les valeurs serveur existantes (statut de clarification, marqueurs de confirmation et de budget) avant écriture, rendant l'effacement ou la falsification de ces clés par un client inopérant.
+- Recalcul des totaux **✅ Terminé — P1 Prioritaire** : `total_amount` et les sous-totaux sont recalculés depuis les lignes, source de vérité, à l'édition (`PATCH /api/quotes/[id]`) et à l'envoi (`PATCH /api/quotes/[id]/status`) : le total affiché est toujours cohérent avec les lignes et un total saisi ou résiduel ne peut plus être envoyé.
+- Preuves locales : `node --experimental-strip-types --test src/tests/quote-send-guard.test.mts` **10/10 PASS** ; moteur de devis `quote-draft-matching` **6/6**, `quote-draft-service-matching` **7/7**, `planetls-quote-draft-matching` **5/5**, `requested-services-catalog` **5/5** (2 assertions alignées sur le marqueur de budget indicatif), `commercial-workflow` **3/3**, `quote-housing-attachment` **54/54** ; workflow/API `workflow-transitions-integration` **1/1**, `reservations-api-contract` **9/9**, `request-status` **2/2** ; `npx tsc --noEmit` **PASS** ; ESLint sur les fichiers modifiés **PASS** ; `git diff --check` **PASS**.
+- Échec préexistant à traiter séparément : `stay-ponctuel-service-request` échoue à **5/7** (codes `201`/`403` attendus sur la route séjour) — comportement identique sur le `HEAD` propre avant ces modifications, hors périmètre LOT 6/6B.
+- Données et migrations : aucune écriture Supabase, aucune migration, aucun devis existant modifié. Contrôle RLS effectué par revue de code : les garde-fous sont posés dans les routes serveur (`quotes/[id]` et `quotes/[id]/status`) et testés par le module pur ; aucun test d'accès entre tenants sur base réelle n'est revendiqué ici.
+- Travaux restants consignés : (1) raccorder l'interface de confirmation des prestations gratuites, (2) tester le parcours complet propriétaire → professionnel → devis → envoi → réception, (3) examiner séparément les deux tests séjour ponctuel en échec. Enregistrés dans le registre structuré `PLS-DEV-032` et rappelés en section 5.
 
 ### Refonte UX/UI recherche de concierges propriétaire — 8 octobre 2026
 
@@ -3627,6 +3650,49 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "githubIssues": []
     },
     {
+      "id": "PLS-DEV-032",
+      "domain": "Workflow devis",
+      "title": "Finalisation de l'envoi de devis LOT 6 : confirmation gratuite, parcours E2E et tests séjour",
+      "summary": "Après le durcissement serveur de l'envoi de devis (LOT 6/6B), clore trois travaux restants : raccorder l'interface de confirmation des prestations gratuites, tester le parcours complet propriétaire -> professionnel -> devis -> envoi -> réception, et examiner séparément les deux tests séjour ponctuel en échec.",
+      "status": "IN_PROGRESS",
+      "priority": "P1",
+      "type": "improvement",
+      "persona": "Concierge, Owner",
+      "phase": "Workflow devis",
+      "addedAt": "2026-10-10",
+      "updatedAt": "2026-10-10",
+      "nextAction": "Raccorder le bouton de confirmation des tarifs gratuits (clé serveur `quote_service_price_confirmed` via `TariffBillingDesk`) dans le parcours de devis, puis exécuter le test bout en bout propriétaire -> professionnel -> devis -> envoi -> réception, enfin examiner séparément les deux tests `stay-ponctuel-service-request` en échec préexistant.",
+      "validationCriteria": [
+        "Le professionnel peut poser `quote_service_price_confirmed: true` depuis l'interface et la clé survit aux éditions de ligne",
+        "Une prestation volontairement gratuite est envoyable après confirmation, sans création d'une ligne facturée de 0,01 €",
+        "Le parcours propriétaire -> professionnel -> devis -> envoi -> réception est validé de bout en bout",
+        "Les deux échecs préexistants `stay-ponctuel-service-request` sont expliqués ou corrigés hors périmètre devis"
+      ],
+      "validatedCriteria": [],
+      "dependencies": [],
+      "blocker": null,
+      "routes": ["/dashboard/concierge/devis", "/api/quotes/[id]/status"],
+      "files": [
+        "src/features/concierge-commercial/server/quoteSendGuard.ts",
+        "src/app/api/quotes/[id]/status/route.ts",
+        "src/app/api/quotes/[id]/route.ts",
+        "src/tests/quote-send-guard.test.mts"
+      ],
+      "progressLabel": "Garde-fous serveur LOT 6/6B livrés et testés (10/10) ; interface de confirmation, E2E complet et diagnostics séjour restent à faire.",
+      "source": "Mission LOT 6B durcissement de l'envoi de devis, 10 octobre 2026",
+      "evidence": [
+        "src/tests/quote-send-guard.test.mts : 10/10 PASS le 10 octobre 2026",
+        "npx tsc --noEmit PASS et ESLint ciblé PASS le 10 octobre 2026",
+        "Deux échecs stay-ponctuel-service-request confirmés préexistants sur HEAD propre (git stash) le 10 octobre 2026"
+      ],
+      "missingWork": [
+        "Raccorder l'interface de confirmation des prestations gratuites à `quote_service_price_confirmed`",
+        "Tester le parcours complet propriétaire -> professionnel -> devis -> envoi -> réception",
+        "Examiner séparément les deux tests séjour ponctuel en échec"
+      ],
+      "githubIssues": []
+    },
+    {
       "id": "PLS-BILL-002",
       "domain": "PRO et abonnements",
       "title": "Essai Pro contextuel après activation initiale",
@@ -4715,7 +4781,7 @@ Ces éléments ne sont pas tous N4 ; "terminés" signifie ici qu'ils ne doivent 
 
 | Fonctionnalité                      | Manque principal                                                                                                                                                        | Sortie attendue                                                                                                                                 |
 | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Parcours E2E par rôle               | Aucun scénario automatisé complet                                                                                                                                       | Owner et concierge : inscription/connexion -> demande -> devis -> mission -> paiement ; provider : mission -> intervention -> preuve -> facture |
+| Parcours E2E par rôle               | Aucun scénario automatisé complet ; le garde-fou d'envoi de devis du LOT 6 est livré côté serveur mais son raccordement d'interface (confirmation d'une prestation gratuite) et son parcours bout en bout restent à prouver | Owner et concierge : inscription/connexion -> demande -> devis (y compris confirmation d'une prestation gratuite) -> envoi -> réception -> mission -> paiement ; provider : mission -> intervention -> preuve -> facture ; travaux restants suivis sous `PLS-DEV-032` |
 | Sécurité CSRF en environnement réel | La défense centrale existe côté proxy, mais la validation E2E multi-origines et le contrôle des exemptions signées restent à confirmer en conditions proches production | Vérifications navigateur/API sur mutations protégées, exemptions Stripe et appels serveur-à-serveur documentées et rejouées                     |
 | Offre PRO et monétisation réelle    | Le code produit ne prouve qu'un abonnement `concierge_pro_monthly`, alors que les rôles `owner_pro` et `provider_pro` sont déjà visibles dans l'UI et le pilotage       | Décision produit explicite, périmètre premium borné par rôle, gating serveur + client, règles RLS, Stripe, webhooks et E2E dédiés par offre     |
 | Persistance des modules récents     | `metadata` et local storage pour équipe, maintenance, mobile, réservations                                                                                              | Tables, RLS, Storage, types générés, migration et tests d'intégration                                                                           |

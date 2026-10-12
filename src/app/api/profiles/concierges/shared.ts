@@ -1,5 +1,9 @@
 import { normalizeAreaLabel } from "../../../lib/profileLocation.ts";
 import { matchPlanetLSService } from "../../../lib/planetlsServiceMatching.ts";
+import {
+  normalizeConciergeCategories,
+  normalizeSearchLabel,
+} from "../../../../features/owner-concierges/lib/searchNormalization.ts";
 type PricingPackageRow = {
   profile_id: string;
   property_type: string | null;
@@ -43,11 +47,7 @@ export type ConciergeSearchFilters = {
 };
 
 export const normalizeSearchValue = (value: string): string =>
-  value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
+  normalizeSearchLabel(value);
 
 const LEGACY_SERVICE_NOISE = new Set([
   "conciergerie complete menage",
@@ -202,10 +202,12 @@ export const isProfileAvailableNow = (input: {
 export function buildConciergeSearchFilters(
   searchParams: URLSearchParams,
 ): ConciergeSearchFilters {
-  const categories = (searchParams.get("categories") ?? "")
+  const categories = normalizeConciergeCategories(
+    (searchParams.get("categories") ?? "")
     .split(",")
     .map((item) => item.trim())
-    .filter(Boolean);
+    .filter(Boolean),
+  );
   const serviceFromList = (searchParams.get("services") ?? "")
     .split(",")
     .map((item) => item.trim())

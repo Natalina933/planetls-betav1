@@ -13,7 +13,8 @@ interface ServiceCheckboxGroupProps {
 const SERVICE_OPTIONS = [
   { id: "cleaning", label: "Ménage" },
   { id: "laundry", label: "Linge" },
-  { id: "checkin", label: "Check-in / Check-out" },
+  { id: "guest_checkin", label: "Check-in" },
+  { id: "guest_checkout", label: "Check-out" },
   { id: "maintenance", label: "Maintenance" },
   { id: "welcome", label: "Accueil voyageurs" },
   { id: "management", label: "Gestion complète" },

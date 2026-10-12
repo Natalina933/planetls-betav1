@@ -11,6 +11,7 @@ import {
 } from "@/app/lib/serviceRequestBrief";
 import { OWNER_PROPERTY_TYPES } from "@/features/shared/data/propertyTypes";
 import {
+  getOwnerOnboardingNeedLabel,
   getOwnerOnboardingProgress,
   getOwnerProfilePreferences,
   type OwnerOnboardingBillingPref,
@@ -58,17 +59,6 @@ const MANAGEMENT_MODE_OPTIONS: Array<LabelOption<OwnerOnboardingManagementMode>>
   { value: "full_delegation", label: "Gestion déléguée" },
 ];
 
-const NEED_OPTIONS: Array<LabelOption<OwnerOnboardingNeed>> = [
-  { value: "check_in", label: "Accueil / Check-in" },
-  { value: "check_out", label: "Départ / Check-out" },
-  { value: "cleaning", label: "Ménage" },
-  { value: "linen", label: "Gestion du linge" },
-  { value: "maintenance", label: "Maintenance / petites réparations" },
-  { value: "traveler_messages", label: "Gestion des messages voyageurs" },
-  { value: "full_management", label: "Gestion complète du logement" },
-  { value: "other", label: "Autre" },
-];
-
 const SITUATION_OPTIONS: Array<LabelOption<OwnerOnboardingSituation>> = [
   { value: "first_rental", label: "Je prépare ma première location" },
   { value: "already_renting", label: "Mon logement est déjà en location" },
@@ -110,7 +100,7 @@ function labelOf<Value extends string>(
 
 function summarizeNeeds(needs: OwnerOnboardingNeed[]) {
   if (needs.length === 0) return "Non renseigné";
-  return needs.map((need) => labelOf(NEED_OPTIONS, need)).join(", ");
+  return needs.map(getOwnerOnboardingNeedLabel).join(", ");
 }
 
 function FieldIcon({ src }: { src: string }) {
@@ -170,7 +160,7 @@ export default function OwnerObjectivesPageClient() {
   const isConfigured = onboardingProgress.isComplete;
   const neutral = "Non renseigné";
   const needsCountLabel =
-    onboarding?.needs.length ? `${onboarding.needs.length} service${onboarding.needs.length > 1 ? "s" : ""}` : neutral;
+    onboarding?.needs.length ? `${onboarding.needs.length} choix` : neutral;
 
   const kpis = useMemo(
     () => [
@@ -183,7 +173,7 @@ export default function OwnerObjectivesPageClient() {
       {
         label: "BESOINS HABITUELS",
         value: needsCountLabel,
-        description: onboarding?.needs.length ? summarizeNeeds(onboarding.needs) : "Aucun service sélectionné.",
+        description: onboarding?.needs.length ? summarizeNeeds(onboarding.needs) : "Aucun domaine sélectionné.",
         icon: ClipboardList,
       },
       {
@@ -207,6 +197,20 @@ export default function OwnerObjectivesPageClient() {
     window.requestAnimationFrame(() => {
       advancedRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
+  };
+
+  const closeOnboarding = async () => {
+    setOnboardingOpen(false);
+    try {
+      const response = await fetch("/api/profiles/current", { cache: "no-store" });
+      const payload = (await response.json()) as CurrentProfilePayload & { error?: string };
+      if (!response.ok) {
+        throw new Error(payload.error || "Impossible de recharger vos préférences.");
+      }
+      setPreferences(getOwnerProfilePreferences(payload.availability_hours));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de recharger vos préférences.");
+    }
   };
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -353,8 +357,8 @@ export default function OwnerObjectivesPageClient() {
             </div>
             {renderSummaryItem("Mode de gestion", labelOf(MANAGEMENT_MODE_OPTIONS, onboarding?.managementMode))}
             {renderSummaryItem("Situation actuelle", labelOf(SITUATION_OPTIONS, onboarding?.situation))}
-            {renderSummaryItem("Services recherchés", onboarding ? summarizeNeeds(onboarding.needs) : neutral)}
-            <button type="button" className={styles.editPreference} onClick={openAdvanced}>
+            {renderSummaryItem("Domaines recherchés", onboarding ? summarizeNeeds(onboarding.needs) : neutral)}
+            <button type="button" className={styles.editPreference} onClick={() => setOnboardingOpen(true)}>
               Modifier mon projet
             </button>
           </article>
@@ -657,9 +661,9 @@ export default function OwnerObjectivesPageClient() {
     </form>
     <OwnerPostSignupOnboarding
       open={onboardingOpen}
-      currentStep={onboardingProgress.nextStep}
-      onClose={() => setOnboardingOpen(false)}
-      onPostpone={() => setOnboardingOpen(false)}
+      currentStep="project"
+      onClose={closeOnboarding}
+      onPostpone={closeOnboarding}
     />
     </>
   );
