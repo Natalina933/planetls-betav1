@@ -111,7 +111,7 @@ export const parsePublicConciergeServices = (
   availabilityHours: string | null,
 ): string[] => {
   const activeMissionServices = readActiveMissionServices(availabilityHours);
-  if (activeMissionServices.length > 0) {
+  if (activeMissionServices.length > 0 || hasExplicitMissionCatalog(availabilityHours)) {
     return Array.from(new Set(activeMissionServices));
   }
 
@@ -196,4 +196,9 @@ export function buildPublicConciergeRecommendations(
       return b.reviews_count - a.reviews_count;
     })
     .slice(0, 3);
+}
+
+function hasExplicitMissionCatalog(raw: string | null): boolean {
+  try { return Array.isArray(JSON.parse(raw || "{}").missionProfile?.missions); }
+  catch { return false; }
 }

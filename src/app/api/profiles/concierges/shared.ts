@@ -1,9 +1,24 @@
 import { normalizeAreaLabel } from "../../../lib/profileLocation.ts";
-import { matchPlanetLSService } from "../../../lib/planetlsServiceMatching.ts";
+import {
+  matchPlanetLSService,
+  resolvePlanetLSServiceSlug,
+} from "../../../lib/planetlsServiceMatching.ts";
+import {
+  PLANETLS_SERVICE_FAMILIES,
+  PLANETLS_SERVICE_TARGET,
+} from "../../../lib/planetlsServiceCatalogTarget.ts";
 import {
   normalizeConciergeCategories,
   normalizeSearchLabel,
 } from "../../../../features/owner-concierges/lib/searchNormalization.ts";
+const serviceFamilyBySlug = new Map(
+  PLANETLS_SERVICE_TARGET.map((entry) => [entry.slug, entry.family]),
+);
+const serviceFamilyByLabel = new Map<string, string>();
+PLANETLS_SERVICE_FAMILIES.forEach((family) => {
+  serviceFamilyByLabel.set(normalizeSearchLabel(family.slug), family.slug);
+  serviceFamilyByLabel.set(normalizeSearchLabel(family.label), family.slug);
+});
 type PricingPackageRow = {
   profile_id: string;
   property_type: string | null;
@@ -37,6 +52,7 @@ export type ConciergeSearchFilters = {
   city: string;
   postalCode: string;
   categories: string[];
+  serviceFamilies: string[];
   services: string[];
   proOnly: boolean;
   availableOnly: boolean;
@@ -83,21 +99,6 @@ const cleanServiceLabel = (value: unknown): string | null => {
 
   return SERVICE_LABEL_FIXES.get(key) ?? cleaned;
 };
-
-const hasAnyScheduleRange = (
-  schedule:
-    | Array<{ day?: string; ranges?: Array<{ start?: string; end?: string }> }>
-    | undefined,
-): boolean =>
-  (schedule ?? []).some((day) =>
-    (day?.ranges ?? []).some(
-      (range) =>
-        typeof range?.start === "string" &&
-        range.start.trim() !== "" &&
-        typeof range?.end === "string" &&
-        range.end.trim() !== "",
-    ),
-  );
 
 export const splitServices = (value: string): string[] => {
   try {
@@ -147,7 +148,7 @@ export const parseProfileServices = (
   availabilityHours: string | null,
 ): string[] => {
   const activeMissionServices = readActiveMissionServices(availabilityHours);
-  if (activeMissionServices.length > 0) {
+  if (activeMissionServices.length > 0 || hasExplicitMissionCatalog(availabilityHours)) {
     return Array.from(new Set(activeMissionServices));
   }
 
@@ -167,35 +168,12 @@ export const isProfileAvailableNow = (input: {
 }): boolean => {
   if (input.isAvailableForUrgent === true || input.emergencyService === true)
     return true;
-  if (!input.availabilityHours) return true;
-
+  if (!input.availabilityHours) return false;
   try {
-    const parsed = JSON.parse(input.availabilityHours) as {
-      emergency24h?: boolean;
-      rules?: { autoAcceptEmergency?: boolean };
-      missionProfile?: { missions?: Array<{ isActive?: boolean }> };
-      schedule?: Array<{
-        day?: string;
-        ranges?: Array<{ start?: string; end?: string }>;
-      }>;
-    };
-
-    if (
-      parsed.emergency24h === true ||
-      parsed.rules?.autoAcceptEmergency === true
-    ) {
-      return true;
-    }
-
-    if (hasAnyScheduleRange(parsed.schedule)) {
-      return true;
-    }
-
-    return (parsed.missionProfile?.missions ?? []).some(
-      (mission) => mission?.isActive === true,
-    );
+    const parsed = JSON.parse(input.availabilityHours);
+    return parsed?.emergency24h === true;
   } catch {
-    return true;
+    return false;
   }
 };
 
@@ -207,6 +185,17 @@ export function buildConciergeSearchFilters(
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean),
+  );
+  const availableFamilies = new Set<string>(
+    PLANETLS_SERVICE_FAMILIES.map((family) => family.slug),
+  );
+  const serviceFamilies = Array.from(
+    new Set(
+      (searchParams.get("serviceFamilies") ?? "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter((item) => availableFamilies.has(item)),
+    ),
   );
   const serviceFromList = (searchParams.get("services") ?? "")
     .split(",")
@@ -226,6 +215,7 @@ export function buildConciergeSearchFilters(
     ).trim(),
     postalCode: (searchParams.get("postalCode") ?? "").trim(),
     categories,
+    serviceFamilies,
     services:
       serviceFromList.length > 0
         ? serviceFromList
@@ -341,6 +331,23 @@ export function applyConciergeSearchFilters<T extends SearchResultInput>(
         }
       }
 
+      if (filters.serviceFamilies.length > 0) {
+        const requestedFamilies = new Set(filters.serviceFamilies);
+        const offeredFamilies = new Set<string>(
+          profile.services.flatMap((service) => {
+            const slug = resolvePlanetLSServiceSlug(service);
+            const category = categoryByService.get(normalizeSearchValue(service));
+            const family =
+              (slug ? serviceFamilyBySlug.get(slug) : undefined) ??
+              (category ? serviceFamilyByLabel.get(normalizeSearchValue(category)) : undefined);
+            return family ? [family] : [];
+          }),
+        );
+        if (!Array.from(requestedFamilies).every((family) => offeredFamilies.has(family))) {
+          return false;
+        }
+      }
+
       if (filters.services.length > 0) {
         const hasAllRequestedServices = filters.services.every(
           (requestedService) =>
@@ -427,4 +434,9 @@ export function buildAvailableConciergeFilters(
       a.localeCompare(b),
     ),
   };
+}
+
+function hasExplicitMissionCatalog(raw: string | null): boolean {
+  try { return Array.isArray(JSON.parse(raw || "{}").missionProfile?.missions); }
+  catch { return false; }
 }

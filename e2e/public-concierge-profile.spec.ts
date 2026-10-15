@@ -27,7 +27,7 @@ test("fiche publique concierge : informations réelles, responsive, contexte et 
     }
     await route.fulfill({ json });
   });
-  const returnTo = "/home#concierges-recommandes";
+  const returnTo = "/map-list?filter=concierge";
   const url = "/concierges/local";
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(url);

@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { resolvePlanetLSRequestServices } from "../app/lib/planetlsServiceSearchResolution.ts";
+import {
+  resolvePlanetLSIndividualRequestServices,
+  resolvePlanetLSRequestServices,
+} from "../app/lib/planetlsServiceSearchResolution.ts";
 
 test("Un slug reconnu est transmis tel quel", () => {
   const result = resolvePlanetLSRequestServices(["cleaning_standard"]);
@@ -40,4 +43,14 @@ test("Une sélection vide reste vide", () => {
 
   assert.deepEqual(result.services, []);
   assert.deepEqual(result.unknownValues, []);
+});
+
+test("La demande ne transmet que les prestations individuelles explicitement sélectionnées", () => {
+  const result = resolvePlanetLSIndividualRequestServices([
+    "guest_checkin",
+    "maintenance_minor_repairs",
+  ]);
+
+  assert.deepEqual(result.services, ["guest_checkin"]);
+  assert.deepEqual(result.entries.map((entry) => entry.kind), ["service"]);
 });

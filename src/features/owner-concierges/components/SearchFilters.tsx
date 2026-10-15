@@ -1,23 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Check, ChevronDown, MapPin, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
 import FilterSliders from "@/app/components/ui/FilterSliders";
-import { Button, Checkbox, Select, ServiceCategoryIcon } from "@/components/ui";
-import { FilterChipGroup } from "@/features/shared/components/FilterChipGroup";
+import { Button, Checkbox, Select } from "@/components/ui";
 import { OptionToggleGroup } from "@/features/shared/components/OptionToggleGroup";
 import type { OwnerConciergeSearchFilters, ViewMode } from "@/features/owner-concierges/lib/search";
 import { OwnerLocationAutocomplete } from "@/features/owner-concierges/components/OwnerLocationAutocomplete";
+import {
+  PLANETLS_SERVICE_FAMILIES,
+  PLANETLS_SERVICE_TARGET,
+} from "@/app/lib/planetlsServiceCatalogTarget";
+import { getGuestCheckinCheckoutDisplaySelections } from "@/app/lib/guestCheckinCheckout";
+import { PlanetLSServicePicker } from "@/components/ui/PlanetLSServicePicker/PlanetLSServicePicker";
 
 type SearchFiltersProps = {
   styles: Record<string, string>;
   mode?: "full" | "compact";
   filters: OwnerConciergeSearchFilters;
   propertyTypeOptions: string[];
-  categoryOptions: string[];
-  serviceOptions: string[];
-  visibleServicesByCategory: Array<{ category: string; services: string[] }>;
-  openServiceSections: Record<string, boolean>;
   loading: boolean;
   viewMode: ViewMode;
   isStaySearchMode?: boolean;
@@ -30,9 +31,8 @@ type SearchFiltersProps = {
     key: Key,
     value: OwnerConciergeSearchFilters[Key],
   ) => void;
-  onToggleCategory: (value: string) => void;
   onToggleService: (value: string) => void;
-  onToggleServiceSection: (category: string) => void;
+  onToggleServiceFamily: (value: string) => void;
   getCitySuggestions: (query: string) => string[];
   parseSliderValue: (value: string) => number;
 };
@@ -42,43 +42,13 @@ const VIEW_OPTIONS = [
   { value: "list", label: "Liste" },
 ] as const;
 
-const QUICK_SERVICE_LABELS = [
-  "Ménage",
-  "Check-in",
-  "Check-out",
-  "Linge",
-  "Maintenance légère",
-  "Accueil voyageurs",
-];
 const RADIUS_OPTIONS = ["10", "20", "30", "50", "100"];
-
-function normalizeServiceLabel(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-}
-
-function findServiceOption(options: string[], label: string) {
-  const normalizedLabel = normalizeServiceLabel(label);
-  const normalizedParts = normalizedLabel.split("/").map((part) => part.trim()).filter(Boolean);
-
-  return options.find((option) => {
-    const normalizedOption = normalizeServiceLabel(option);
-    return normalizedOption === normalizedLabel || normalizedParts.some((part) => normalizedOption.includes(part));
-  });
-}
 
 export function SearchFilters({
   styles,
   mode = "full",
   filters,
   propertyTypeOptions,
-  categoryOptions: _categoryOptions,
-  serviceOptions,
-  visibleServicesByCategory,
-  openServiceSections,
   loading,
   viewMode,
   isStaySearchMode = false,
@@ -88,33 +58,16 @@ export function SearchFilters({
   onOpenMobileFilters,
   onViewModeChange,
   onFilterChange,
-  onToggleCategory: _onToggleCategory,
   onToggleService,
-  onToggleServiceSection,
+  onToggleServiceFamily,
   getCitySuggestions,
   parseSliderValue,
 }: SearchFiltersProps) {
-  const [serviceQuery, setServiceQuery] = useState("");
   const [allServicesOpen, setAllServicesOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
-  const quickServices = useMemo(
-    () =>
-      QUICK_SERVICE_LABELS.map((label) => ({
-        label,
-        value: findServiceOption(serviceOptions, label),
-      })).filter((item): item is { label: string; value: string } => Boolean(item.value)),
-    [serviceOptions],
-  );
-
-  const filteredServiceOptions = useMemo(() => {
-    const query = normalizeServiceLabel(serviceQuery);
-    return serviceOptions
-      .filter((service) => !query || normalizeServiceLabel(service).includes(query))
-      .slice(0, 80);
-  }, [serviceOptions, serviceQuery]);
-
   const selectedServices = filters.selectedServices;
+  const selectedFamilies = filters.selectedServiceFamilies ?? [];
 
   return (
     <div className={mode === "full" ? styles.hero : ""}>
@@ -194,41 +147,36 @@ export function SearchFilters({
               <span className={styles.blockLabel} id="service-picker-title">
                 De quel service avez-vous besoin ?
               </span>
-              <label className={`${styles.field} ${styles.serviceSearchField}`}>
-                <span>Rechercher une prestation</span>
-                <input
-                  type="search"
-                  value={serviceQuery}
-                  onChange={(event) => setServiceQuery(event.target.value)}
-                  placeholder="Rechercher une prestation..."
-                />
-              </label>
             </div>
 
-            <div className={styles.serviceChips} aria-label="Raccourcis prestations">
-              {quickServices.map((service) => {
-                const isActive = selectedServices.includes(service.value);
+            <div className={styles.serviceChips} aria-label="Familles de services">
+              {PLANETLS_SERVICE_FAMILIES.map((family) => {
+                const isActive = selectedFamilies.includes(family.slug);
                 return (
                   <Button
-                    key={`${service.label}-${service.value}`}
+                    key={family.slug}
                     type="button"
                     variant="ghost"
                     className={isActive ? styles.serviceChipActive : styles.serviceChip}
                     aria-pressed={isActive}
-                    onClick={() => onToggleService(service.value)}
+                    onClick={() => onToggleServiceFamily(family.slug)}
                   >
                     {isActive ? <Check size={14} className={styles.serviceChipIcon} aria-hidden="true" /> : null}
-                    {service.label}
+                    {family.label}
                   </Button>
                 );
               })}
             </div>
 
+            {selectedFamilies.length === 0 && selectedServices.length === 0 ? (
+              <p>Sélectionnez une famille ou une prestation précise pour indiquer vos besoins.</p>
+            ) : null}
+
             {selectedServices.length > 0 ? (
               <div className={styles.selectedServices} aria-label="Services sélectionnés">
-                <span className={styles.blockLabel}>Services sélectionnés</span>
+                <span className={styles.blockLabel}>Prestations sélectionnées</span>
                 <div className={styles.serviceChips}>
-                  {selectedServices.map((service) => (
+                  {getGuestCheckinCheckoutDisplaySelections(selectedServices).map((service) => (
                     <Button
                       key={service}
                       type="button"
@@ -236,7 +184,7 @@ export function SearchFilters({
                       className={styles.selectedServiceChip}
                       onClick={() => onToggleService(service)}
                     >
-                      {service} ×
+                      {PLANETLS_SERVICE_TARGET.find((entry) => entry.slug === service)?.label ?? service} ×
                     </Button>
                   ))}
                 </div>
@@ -250,65 +198,18 @@ export function SearchFilters({
               onClick={() => setAllServicesOpen((value) => !value)}
               aria-expanded={allServicesOpen}
             >
-              {allServicesOpen ? "Replier les prestations" : "+ Autres services"}
+              {allServicesOpen ? "Replier les prestations" : "+ Choisir des prestations précises"}
             </Button>
 
             {allServicesOpen ? (
               <div className={styles.allServicesPanel}>
-                {visibleServicesByCategory.length > 0 ? (
-                  <div className={styles.serviceSections}>
-                    {visibleServicesByCategory.map((group) => {
-                      const groupServices = group.services.filter((service) => {
-                        if (!serviceQuery.trim()) return true;
-                        return normalizeServiceLabel(service).includes(normalizeServiceLabel(serviceQuery));
-                      });
-                      if (groupServices.length === 0) return null;
-
-                      const isOpen = openServiceSections[group.category] ?? true;
-                      const selectedCount = groupServices.filter((service) => selectedServices.includes(service)).length;
-
-                      return (
-                        <section key={group.category} className={styles.serviceSection}>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className={styles.serviceSectionHeader}
-                            onClick={() => onToggleServiceSection(group.category)}
-                            aria-expanded={isOpen}
-                          >
-                            <span className={styles.serviceSectionTitle}>
-                              <ServiceCategoryIcon category={group.category} size={17} />
-                              {group.category}
-                            </span>
-                            <span className={styles.serviceSectionMeta}>
-                              {selectedCount}/{groupServices.length} {isOpen ? "-" : "+"}
-                            </span>
-                          </Button>
-
-                          {isOpen ? (
-                            <FilterChipGroup
-                              items={groupServices}
-                              selectedItems={selectedServices}
-                              onToggle={onToggleService}
-                              className={styles.serviceSectionBody}
-                              getClassName={(selected) => (selected ? styles.serviceChipActive : styles.serviceChip)}
-                            />
-                          ) : null}
-                        </section>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <FilterChipGroup
-                    items={filteredServiceOptions}
-                    selectedItems={selectedServices}
-                    onToggle={onToggleService}
-                    className={styles.serviceSectionBody}
-                    emptyLabel="Aucune prestation disponible."
-                    getClassName={(selected) => (selected ? styles.serviceChipActive : styles.serviceChip)}
-                  />
-                )}
+                <PlanetLSServicePicker
+                  selected={selectedServices}
+                  onChange={(services) => onFilterChange("selectedServices", services)}
+                  allowGroups={false}
+                  collapseGuestCheckinCheckout
+                  emptyMessage="Aucune prestation précise n’est disponible."
+                />
               </div>
             ) : null}
           </section>

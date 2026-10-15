@@ -57,7 +57,7 @@ test("recherche propriétaire : accents, carte/liste, filtres, retour privé et 
   await page.screenshot({ path: "test-results/owner-concierges-geography/tablet.png", fullPage: true });
   await page.getByRole("link", { name: "Voir le profil", exact: true }).first().click();
   await expect(page).toHaveURL(/dashboard\/owner\/concierges\/local/);
-  await page.getByRole("link", { name: "Retour aux résultats" }).click();
+  await page.getByRole("link", { name: "Retour aux profils" }).click();
   await expect(page).toHaveURL(/city=Vend%C3%B4me&radiusKm=20&services=M%C3%A9nage/);
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByText(/^2 résultats/)).toBeVisible();
@@ -88,4 +88,54 @@ test("recherche propriétaire : accents, carte/liste, filtres, retour privé et 
   await expect(page.getByText(/^2 résultats/)).toBeVisible();
   expect(queries.every((url) => url.searchParams.get("geographic") === "1" && url.searchParams.get("availableOnly") === "0")).toBe(true);
   expect(errors).toEqual([]);
+});
+
+
+test("fiabilite carte : consultation independante et profils superposes", async ({ page, context }) => {
+  const user = { id: "11111111-1111-4111-8111-111111111111", role: "owner", city: "Paris", onboarding_complete: true };
+  const token = await encode({ secret: "traveler-stays-fixture-secret", salt: "authjs.session-token", token: { ...user, sub: user.id }, maxAge: 3600 });
+  await context.addCookies([{ name: "authjs.session-token", value: token, domain: "127.0.0.1", path: "/", httpOnly: true }]);
+  const profiles = Array.from({ length: 33 }, (_, index) => ({ id: "pro-" + index, display_name: "Professionnel " + index, city: "Paris", latitude: 48.8589, longitude: 2.3200, services: ["cleaning_standard", "Linge"] }));
+  await context.route("**/api/**", async route => {
+    expect(route.request().method()).toBe("GET");
+    const path = new URL(route.request().url()).pathname;
+    const json = path === "/api/auth/session" ? { user, expires: "2099-01-01" }
+      : path === "/api/profiles/current" ? user
+      : path.startsWith("/api/profiles/public/") ? { profile:{ ...profiles[0], company_name:null, country:"France", role:"concierge" }, reviews:[],stats:{} }
+      : path === "/api/profiles/concierges" ? { center: {latitude:48.86,longitude:2.34}, items: profiles }
+      : { items: [] };
+    await route.fulfill({ json });
+  });
+  await page.goto("/dashboard/owner/concierges?city=Paris&radiusKm=20");
+  const cards = page.getByRole("article", { name: /^Profil professionnel/ });
+  await expect(cards).toHaveCount(33);
+  await page.getByRole("button", { name: "Sélectionner Professionnel 0", exact:true }).click();
+  await page.getByRole("button", { name: "Sélectionner Professionnel 1", exact:true }).click();
+  const markers = page.locator(".leaflet-marker-icon");
+  await expect(markers).toHaveCount(1);
+  await expect(markers).toHaveAttribute("title", "33 professionnels");
+  await markers.click();
+  const popup = page.locator(".leaflet-popup-content");
+  await expect(popup.getByRole("button", { name:/^Consulter Professionnel/ })).toHaveCount(33);
+  for (const index of [2, 32, 1]) {
+    await popup.getByRole("button", { name:"Consulter Professionnel " + index, exact:true }).click();
+    const href = await popup.getByRole("link", {name:"Voir le profil"}).getAttribute("href");
+    expect(new URL(href!, "http://127.0.0.1").pathname).toBe("/concierges/pro-" + index);
+    expect(new URL(new URL(href!, "http://127.0.0.1").searchParams.get("returnTo")!, "http://127.0.0.1").searchParams.get("selectedConciergeIds")).toBe("pro-0,pro-1");
+    await expect(page.getByRole("button", {name:"Retirer Professionnel 0",exact:true})).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", {name:"Retirer Professionnel 1",exact:true})).toHaveAttribute("aria-pressed", "true");
+  }
+  await popup.getByRole("link", {name:"Voir le profil"}).click();
+  await expect(page.getByRole("link", {name:"Retour aux profils",exact:true})).toBeVisible();
+  await page.getByRole("link", {name:"Retour aux profils",exact:true}).click();
+  for (const index of [0,1]) await expect(page.getByRole("button", {name:"Retirer Professionnel " + index,exact:true})).toHaveAttribute("aria-pressed","true");
+  const card = page.getByRole("article", {name:"Profil professionnel Professionnel 0",exact:true});
+  await card.getByRole("link", {name:"Voir le profil"}).click();
+  await page.getByRole("link", {name:"Retour aux profils",exact:true}).click();
+  await expect(page).toHaveURL(/city=Paris/);
+  for (const index of [0,1]) await expect(page.getByRole("button", {name:"Retirer Professionnel " + index,exact:true})).toHaveAttribute("aria-pressed","true");
+  await page.screenshot({path:"test-results/owner-concierges-geography/reliability-desktop.png",fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  await expect(markers).toHaveCount(1);
+  await page.screenshot({path:"test-results/owner-concierges-geography/reliability-mobile.png",fullPage:true});
 });

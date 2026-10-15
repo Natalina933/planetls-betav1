@@ -1,5 +1,7 @@
 "use client";
 
+import { useSession } from "next-auth/react";
+import { publicConciergeReturnPath } from "@/features/owner-concierges/lib/geography";
 import { useEffect, useState } from "react";
 import type { PublicProfileCtaKey } from "@/features/public-concierges/publicProfileCtas";
 import { OwnerConciergeProfileView } from "./OwnerConciergeProfileView";
@@ -68,10 +70,13 @@ async function trackPublicProfileCta(
 export default function PublicConciergeProfilePage({
   params,
   ownerReturnTo,
+  publicReturnTo,
 }: {
   params: Promise<{ id: string }>;
   ownerReturnTo?: string;
+  publicReturnTo?: string;
 }) {
+  const { data: session } = useSession();
   const [data, setData] = useState<PublicProfilePayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -120,7 +125,7 @@ export default function PublicConciergeProfilePage({
 
   const profile = data?.profile;
   const view = <OwnerConciergeProfileView data={data} loading={loading} error={error}
-    returnTo={ownerReturnTo || "/home#concierges-recommandes"} publicView={!ownerReturnTo}
+    returnTo={ownerReturnTo || publicConciergeReturnPath(publicReturnTo, session?.user?.role)} publicView={!ownerReturnTo}
     onRetry={() => setRetry((value) => value + 1)}
     onTrack={(key, href, source) => { if (profile) void trackPublicProfileCta(profile.id, key, href, source); }} />;
   return ownerReturnTo ? view : <main className={styles.publicPage}>{view}</main>;

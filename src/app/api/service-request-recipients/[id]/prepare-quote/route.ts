@@ -4,6 +4,7 @@ import { getApiAuthContext } from "@/server/auth/apiAuth";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { prepareQuoteDraftFromRequest } from "@/features/concierge-commercial/server/quoteDraftFromRequest";
+import { getGuestCheckinCheckoutModeFromMetadata } from "@/app/lib/guestCheckinCheckout";
 import {
   deriveServiceRequestStatus,
   type ServiceRequestRecipientStatus,
@@ -112,7 +113,7 @@ export async function POST(
 
     const { data: serviceRequest, error: serviceRequestError } = await dbAny
       .from("service_requests")
-      .select("id, owner_profile_id, title, description, budget_max, currency, desired_date, requested_services")
+      .select("id, owner_profile_id, title, description, budget_max, currency, desired_date, requested_services, metadata")
       .eq("id", recipient.service_request_id)
       .maybeSingle();
 
@@ -126,6 +127,12 @@ export async function POST(
     if (!serviceRequest.owner_profile_id) {
       return NextResponse.json({ error: "Proprietaire introuvable pour cette demande." }, { status: 400 });
     }
+    const checkinCheckoutMode = getGuestCheckinCheckoutModeFromMetadata(
+      serviceRequest.metadata,
+    );
+    const serviceModalities = checkinCheckoutMode
+      ? { guest_checkin_checkout: checkinCheckoutMode }
+      : null;
 
     const { data: existingQuotes, error: existingQuotesError } = await dbAny
       .from("quotes")
@@ -216,6 +223,9 @@ export async function POST(
             service_request_id: serviceRequest.id,
             service_request_recipient_id: recipient.id,
             requested_services: preparedDraft.requestedServices,
+            ...(serviceModalities
+              ? { service_modalities: serviceModalities }
+              : {}),
             auto_match_summary: preparedDraft.summary,
             branding_snapshot: conciergeBranding ?? null,
           },
@@ -336,6 +346,9 @@ export async function POST(
           service_request_id: serviceRequest.id,
           service_request_recipient_id: recipient.id,
           requested_services: preparedDraft.requestedServices,
+          ...(serviceModalities
+            ? { service_modalities: serviceModalities }
+            : {}),
           auto_match_summary: preparedDraft.summary,
           branding_snapshot: conciergeBranding ?? null,
         },

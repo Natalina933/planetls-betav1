@@ -1,6 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import "leaflet/dist/leaflet.css";
+import { conciergeProfileHref } from "@/features/owner-concierges/lib/searchNavigation";
+import { groupProfilesAtCoordinates, isSearchPoint, searchRadiusMeters } from "@/features/owner-concierges/lib/geography";
+import { ConciergeServices } from "@/features/owner-concierges/components/ConciergeServices";
+import React, { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { ToastContainer, toast } from "react-toastify";
 
@@ -43,14 +47,15 @@ export type SearchMapProps = {
   selectedId: string | null;
   onSelect: (id: string) => void;
   fitAllProfiles?: boolean;
+  profileReturnTo?: string;
   ariaLabel?: string;
 };
 
 function SearchMapViewport({ center, radiusKm, selectedId, profiles, fitAllProfiles }: SearchMapProps) {
   const map = useMap();
   useEffect(() => {
-    const bounds = L.latLng(center.latitude, center.longitude).toBounds(Math.max(radiusKm, 1) * 2000);
-    if (fitAllProfiles) profiles.forEach((profile) => bounds.extend(L.latLng(profile.latitude, profile.longitude).toBounds(Math.max(radiusKm, 1) * 2000)));
+    const bounds = L.latLng(center.latitude, center.longitude).toBounds(searchRadiusMeters(radiusKm) * 2);
+    if (fitAllProfiles) profiles.forEach((profile) => bounds.extend(L.latLng(profile.latitude, profile.longitude)));
     map.fitBounds(bounds, { animate: false });
     const observer = new ResizeObserver(() => map.invalidateSize());
     observer.observe(map.getContainer());
@@ -64,17 +69,35 @@ function SearchMapViewport({ center, radiusKm, selectedId, profiles, fitAllProfi
 }
 
 function ConciergeSearchMap(props: SearchMapProps) {
+  const profiles = useMemo(() => props.profiles.filter(isSearchPoint), [props.profiles]);
+  const groups = groupProfilesAtCoordinates(profiles);
+  if (!isSearchPoint(props.center)) return <p>Centre de recherche indisponible.</p>;
   return <MapContainer center={[props.center.latitude, props.center.longitude]} zoom={11}
-    style={{ height: "100%", width: "100%" }} aria-label={props.ariaLabel || "Carte des concierges à proximité"}>
+    style={{ height: "100%", width: "100%" }} aria-label={props.ariaLabel || "Carte des concierges"}>
     <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
-    <SearchMapViewport {...props} />
-    {(props.fitAllProfiles ? props.profiles : [props.center]).map((point, index) => <Circle key={index} center={[point.latitude, point.longitude]} radius={props.radiusKm * 1000}
-      pathOptions={{ color: "var(--ds-color-accent)", weight: 1, fillOpacity: 0.05 }} />)}
-    {props.profiles.map((profile, index) => <Marker key={profile.id} position={[profile.latitude, profile.longitude]}
-      icon={L.divIcon({ className: "", html: `<span style="display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--ds-color-${props.selectedId === profile.id ? "primary" : "accent"});color:var(--ds-color-text-inverse);border:2px solid var(--ds-color-surface)">${index + 1}</span>`, iconSize: [32, 32], iconAnchor: [16, 16] })}
-      zIndexOffset={props.selectedId === profile.id ? 1000 : 0} eventHandlers={{ click: () => props.onSelect(profile.id) }}>
-      <Popup><strong>{profile.name}</strong><p>{profile.city}</p><p>{profile.services?.join(" · ")}</p></Popup>
-    </Marker>)}
+    <SearchMapViewport {...props} profiles={profiles} />
+    <Circle center={[props.center.latitude, props.center.longitude]} radius={searchRadiusMeters(props.radiusKm)}
+      pathOptions={{ color: "var(--ds-color-accent)", weight: 1, fillOpacity: 0.05 }} />
+    {groups.map((group, index) => {
+      const consulted = group.profiles.some((profile) => profile.id === props.selectedId);
+      return <Marker key={group.key} position={[group.latitude, group.longitude]}
+        title={group.profiles.length > 1 ? group.profiles.length + " professionnels" : group.profiles[0].name}
+        icon={L.divIcon({ className: "", html: '<span style="display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--ds-color-primary);color:var(--ds-color-text-inverse);border:3px solid '+(consulted ? 'var(--ds-color-gold)' : 'var(--ds-color-surface)')+'">'+(group.profiles.length > 1 ? group.profiles.length : index + 1)+'</span>', iconSize: [36, 36], iconAnchor: [18, 18] })}
+        zIndexOffset={consulted ? 1000 : 0}
+        eventHandlers={{ click: () => { if (group.profiles.length === 1) props.onSelect(group.profiles[0].id); } }}>
+        <Popup maxHeight={300} minWidth={240}>
+          {group.profiles.length > 1 ? <strong>{group.profiles.length} professionnels à cet emplacement</strong> : null}
+          <ul>{group.profiles.map((profile) => <li key={profile.id}>
+            <button type="button" aria-pressed={props.selectedId === profile.id} onClick={() => props.onSelect(profile.id)}>Consulter {profile.name}</button>
+            {props.selectedId === profile.id || group.profiles.length === 1 ? <div>
+              <p>{profile.city}</p>
+              <ConciergeServices values={profile.services ?? []} />
+              <a href={conciergeProfileHref(profile.id, props.profileReturnTo)}>Voir le profil</a>
+            </div> : null}
+          </li>)}</ul>
+        </Popup>
+      </Marker>;
+    })}
   </MapContainer>;
 }
 

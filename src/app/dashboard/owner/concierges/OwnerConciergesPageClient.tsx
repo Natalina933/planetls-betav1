@@ -8,17 +8,21 @@ import { ToastContainer, toast } from "react-toastify";
 
 import { Button, ButtonLink } from "@/components/ui";
 import styles from "./OwnerConciergesPage.module.scss";
-import type { ServiceCatalogItem, SortMode, ViewMode } from "./conciergeSearchTypes";
+import type { SortMode, ViewMode } from "./conciergeSearchTypes";
 import {
   createConciergeComparator,
   getActiveSearchSummary,
-  mergeSortedOptions,
 } from "./conciergeSearchUtils";
+import { buildOwnerSearchReturnTo, restoreSelectedConcierges } from "@/features/owner-concierges/lib/searchNavigation";
+import { isSearchPoint, resolveSearchMapCenter } from "@/features/owner-concierges/lib/geography";
 import { useOwnerConciergeSearch } from "./useOwnerConciergeSearch";
 import {
-  buildOwnerConciergeFilterOptions,
   buildOwnerConciergeSearchParams,
+  getOwnerConciergeMapFeedback,
   hasOwnerConciergeSearchCriteria,
+  normalizeOwnerServiceSelections,
+  normalizeOwnerServiceFamilies,
+  preserveTouchedOwnerConciergeFilters,
   toggleOwnerConciergeValue,
   type OwnerConciergeSearchFilters,
 } from "./searchHelpers";
@@ -41,8 +45,20 @@ import {
   getOwnerProfilePreferences,
 } from "@/features/owner-preferences/profilePreferences";
 import { focusFirstModalElement, trapFocusInModal } from "../modalAccessibility";
-import { resolvePlanetLSRequestServices } from "@/app/lib/planetlsServiceSearchResolution";
+import { resolvePlanetLSIndividualRequestServices } from "@/app/lib/planetlsServiceSearchResolution";
+import { resolvePlanetLSServiceSlug } from "@/app/lib/planetlsServiceMatching";
 import { normalizeConciergeCategories } from "@/features/owner-concierges/lib/searchNormalization";
+import {
+  PLANETLS_SERVICE_FAMILIES,
+  PLANETLS_SERVICE_TARGET,
+} from "@/app/lib/planetlsServiceCatalogTarget";
+import {
+  GUEST_CHECKIN_CHECKOUT_BUNDLE,
+  getGuestCheckinCheckoutRequestMetadata,
+  isGuestCheckinCheckoutOperationalSlug,
+  replaceGuestCheckinCheckoutServices,
+  toggleGuestCheckinCheckoutSelection,
+} from "@/app/lib/guestCheckinCheckout";
 
 const SearchMap = dynamic(() => import("@/app/components/MapWithList/MapWithList"), {
   ssr: false,
@@ -52,6 +68,7 @@ const initialFilters: OwnerConciergeSearchFilters = {
   region: "",
   city: "",
   selectedCategories: [],
+  selectedServiceFamilies: [],
   selectedServices: [],
   propertyType: "",
   budgetMax: "",
@@ -87,6 +104,7 @@ const SEARCH_URL_KEYS = [
   "city",
   "postalCode",
   "categories",
+  "serviceFamilies",
   "services",
   "service",
   "propertyType",
@@ -258,17 +276,21 @@ export default function OwnerConciergesPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const resultsRef = useRef<HTMLDivElement | null>(null);
-  const [filters, setFilters] = useState<OwnerConciergeSearchFilters>(initialFilters);
+  const [filters, setFilters] = useState<OwnerConciergeSearchFilters>(() => ({
+    ...initialFilters,
+    city: searchParams.get("city") ?? searchParams.get("postalCode") ?? "",
+    radiusKm: searchParams.get("radiusKm") ?? "",
+  }));
   const [hasSubmittedSearch, setHasSubmittedSearch] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [submittingRequest, setSubmittingRequest] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("available");
+  const [consultedConciergeId, setConsultedConciergeId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("cards");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [requestComposerOpen, setRequestComposerOpen] = useState(false);
   const [selectedConciergeIds, setSelectedConciergeIds] = useState<string[]>([]);
   const [requestForm, setRequestForm] = useState<RequestFormState>(initialRequestForm);
-  const [serviceCatalog, setServiceCatalog] = useState<ServiceCatalogItem[]>([]);
   const [ownerRequests, setOwnerRequests] = useState<OwnerServiceRequestRow[]>([]);
   const [, setOwnerRequestsLoading] = useState(true);
   const [openServiceSections, setOpenServiceSections] = useState<Record<string, boolean>>({});
@@ -285,15 +307,16 @@ export default function OwnerConciergesPageClient() {
   const [stayContext, setStayContext] = useState<StaySearchContext | null>(null);
   const [stayContextLoading, setStayContextLoading] = useState(false);
   const [stayContextError, setStayContextError] = useState<string | null>(null);
-  const { items, loading, error, warning, serverOptions, search, clear, setError } = useOwnerConciergeSearch();
+  const { items, center: searchCenter, loading, error, warning, search, clear, setError } = useOwnerConciergeSearch();
   const hydratedFromUrlRef = useRef(false);
+  const touchedFilterKeysRef = useRef(new Set<keyof OwnerConciergeSearchFilters>());
   const hydratedStayContextRef = useRef<string | null>(null);
   const requestPanelRef = useRef<HTMLElement | null>(null);
   const requestReturnFocusRef = useRef<HTMLElement | null>(null);
   const lastToastMessageRef = useRef<string | null>(null);
 
+  const profileReturnTo = buildOwnerSearchReturnTo(filters, selectedConciergeIds, searchParams.toString());
   const selectedIdSet = useMemo(() => new Set(selectedConciergeIds), [selectedConciergeIds]);
-  const clientOptions = useMemo(() => buildOwnerConciergeFilterOptions(items), [items]);
 
   const selectedConcierges = useMemo(
     () => items.filter((item) => selectedIdSet.has(item.id)),
@@ -306,46 +329,18 @@ export default function OwnerConciergesPageClient() {
     return ranked;
   }, [items, sortMode]);
 
-  const serviceOptions = useMemo(
-    () => mergeSortedOptions(serverOptions.services, clientOptions.services),
-    [clientOptions.services, serverOptions.services],
+  const catalogServicesByCategory = useMemo(
+    () =>
+      PLANETLS_SERVICE_FAMILIES.map((family) => ({
+        category: family.label,
+        services: PLANETLS_SERVICE_TARGET.filter(
+          (entry) =>
+            entry.family === family.slug &&
+            !isGuestCheckinCheckoutOperationalSlug(entry.slug),
+        ).map((entry) => entry.slug),
+      })),
+    [],
   );
-  const catalogServicesByCategory = useMemo(() => {
-    const groups = new Map<string, Set<string>>();
-
-    serviceCatalog.forEach((item) => {
-      const category = item.category.trim();
-      const service = item.service.trim();
-
-      if (!category || !service) return;
-      if (!groups.has(category)) groups.set(category, new Set<string>());
-      groups.get(category)?.add(service);
-    });
-
-    return Array.from(groups.entries())
-      .map(([category, services]) => ({
-        category,
-        services: Array.from(services).sort((left, right) => left.localeCompare(right, "fr")),
-      }))
-      .sort((left, right) => left.category.localeCompare(right.category, "fr"));
-  }, [serviceCatalog]);
-  const categoriesByService = useMemo(() => {
-    const nextMap = new Map<string, string>();
-    serviceCatalog.forEach((item) => {
-      nextMap.set(item.service, item.category);
-    });
-    return nextMap;
-  }, [serviceCatalog]);
-  const categoryOptions = useMemo(() => {
-    if (catalogServicesByCategory.length > 0) {
-      return catalogServicesByCategory.map((group) => group.category);
-    }
-
-    const serviceDerived = serviceOptions
-      .map((service) => categoriesByService.get(service))
-      .filter((value): value is string => Boolean(value));
-    return mergeSortedOptions(serverOptions.categories, serviceDerived);
-  }, [catalogServicesByCategory, categoriesByService, serverOptions.categories, serviceOptions]);
   const propertyTypeOptions = useMemo(
     () => Array.from(CONCIERGE_PROPERTY_TYPES),
     [],
@@ -370,7 +365,7 @@ export default function OwnerConciergesPageClient() {
   const mapProfiles = useMemo(
     () =>
       sortedItems
-        .filter((item) => typeof item.latitude === "number" && typeof item.longitude === "number")
+        .filter(isSearchPoint)
         .map((item) => ({
           id: item.id,
           name: item.display_name,
@@ -382,14 +377,16 @@ export default function OwnerConciergesPageClient() {
         })),
     [sortedItems],
   );
-  const mapCenter = mapProfiles[0] ? { latitude: mapProfiles[0].latitude, longitude: mapProfiles[0].longitude } : null;
+  const mapCenter = resolveSearchMapCenter(searchCenter, mapProfiles);
   const appliedRadiusKm = parseSearchRadius(filters.radiusKm);
   const resultsSummary = formatResultsSummary(items.length, filters.city);
+  const mapFeedback = getOwnerConciergeMapFeedback(items.length, loading, error);
 
   function updateFilters<Key extends keyof OwnerConciergeSearchFilters>(
     key: Key,
     value: OwnerConciergeSearchFilters[Key],
   ) {
+    touchedFilterKeysRef.current.add(key);
     setFilters((prev) => ({ ...prev, [key]: value }));
   }
 
@@ -473,38 +470,6 @@ export default function OwnerConciergesPageClient() {
     }
 
     void loadProfileDefaults();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadServiceCatalog() {
-      try {
-        const response = await fetch("/api/services/services-catalog", { cache: "no-store" });
-        if (!response.ok) return;
-        const payload = (await response.json()) as ServiceCatalogItem[];
-        if (!cancelled) {
-          setServiceCatalog(Array.isArray(payload) ? payload : []);
-          if (Array.isArray(payload)) {
-            setOpenServiceSections(
-              payload.reduce<Record<string, boolean>>((acc, item) => {
-                acc[item.category] = true;
-                return acc;
-              }, {}),
-            );
-          }
-        }
-      } catch {
-        if (!cancelled) {
-          setServiceCatalog([]);
-        }
-      }
-    }
-
-    void loadServiceCatalog();
     return () => {
       cancelled = true;
     };
@@ -615,15 +580,23 @@ export default function OwnerConciergesPageClient() {
           .filter(Boolean),
       );
     }
+    if (searchParams.has("serviceFamilies")) {
+      nextFilters.selectedServiceFamilies = normalizeOwnerServiceFamilies(
+        (searchParams.get("serviceFamilies") ?? "")
+          .split(",")
+          .map((value) => value.trim())
+          .filter(Boolean),
+      );
+    }
     if (searchParams.has("services") || searchParams.has("service")) {
-      nextFilters.selectedServices = (
-        searchParams.get("services") ??
-        searchParams.get("service") ??
-        ""
-      )
-        .split(",")
-        .map((value) => value.trim())
-        .filter(Boolean);
+      const urlServices =
+        searchParams.get("services") ?? searchParams.get("service") ?? "";
+      nextFilters.selectedServices = normalizeOwnerServiceSelections(
+        urlServices
+          .split(",")
+          .map((value) => value.trim())
+          .filter(Boolean),
+      );
     } else if (isStaySearchMode && stayNeedParam) {
       nextFilters.selectedServices = [stayNeedLabels[stayNeedParam]];
     }
@@ -641,6 +614,11 @@ export default function OwnerConciergesPageClient() {
     if (searchParams.has("proOnly")) {
       nextFilters.proOnly = searchParams.get("proOnly") === "1";
     }
+    const hydratedFilters = preserveTouchedOwnerConciergeFilters(
+      nextFilters,
+      filters,
+      touchedFilterKeysRef.current,
+    );
     const hasExplicitUrlFilters = SEARCH_URL_KEYS.some((key) => searchParams.has(key));
     const urlRequestType = searchParams.get("requestType");
     const nextRequestType: RequestFormState["requestType"] = isStaySearchMode
@@ -669,7 +647,7 @@ export default function OwnerConciergesPageClient() {
       housingId: searchParams.get("housingId") ?? "",
       propertyName: searchParams.get("propertyName") ?? "",
       propertyAddress: searchParams.get("propertyAddress") ?? "",
-      propertyType: searchParams.get("propertyType") ?? baseRequestForm.propertyType,
+      propertyType: searchParams.get("propertyType") || baseRequestForm.propertyType,
       sleepingCapacity: searchParams.get("sleepingCapacity") ?? "",
       propertyConstraints: searchParams.get("propertyConstraints") ?? baseRequestForm.propertyConstraints,
       city: searchParams.get("city") ?? baseRequestForm.city,
@@ -688,10 +666,10 @@ export default function OwnerConciergesPageClient() {
         nextRequestForm.budgetMax,
     );
 
-    if (!hasExplicitUrlFilters && !hasOwnerConciergeSearchCriteria(nextFilters)) {
+    if (!hasExplicitUrlFilters && !hasOwnerConciergeSearchCriteria(hydratedFilters)) {
       hydratedFromUrlRef.current = true;
       setEditingAlertId(nextEditingAlertId);
-      setFilters(nextFilters);
+      setFilters(hydratedFilters);
       setRequestForm(hasRequestPrefill ? nextRequestForm : baseRequestForm);
       return;
     }
@@ -699,10 +677,14 @@ export default function OwnerConciergesPageClient() {
     hydratedFromUrlRef.current = true;
     setEditingAlertId(nextEditingAlertId);
     setRequestForm(nextRequestForm);
-    setFilters(nextFilters);
+    setFilters(hydratedFilters);
     setHasSubmittedSearch(true);
-    void search(nextFilters);
-  }, [isStaySearchMode, profileDefaultsReady, profileRequestDefaults, profileSearchDefaults, search, searchParams, stayNeedParam]);
+    void search(hydratedFilters).then((nextItems) => {
+      setSelectedConciergeIds((previous) => searchParams.has("selectedConciergeIds")
+        ? restoreSelectedConcierges(new URLSearchParams(searchParams.toString()), nextItems)
+        : previous.filter((id) => nextItems.some((item) => item.id === id)));
+    });
+  }, [filters, isStaySearchMode, profileDefaultsReady, profileRequestDefaults, profileSearchDefaults, search, searchParams, stayNeedParam]);
 
   useEffect(() => {
     if (!stayContext) return;
@@ -808,24 +790,32 @@ export default function OwnerConciergesPageClient() {
     setSelectedConciergeIds([]);
   }
 
-  function toggleCategory(categoryLabel: string) {
-    setFilters((prev) => {
-      const nextCategories = toggleOwnerConciergeValue(prev.selectedCategories, categoryLabel);
-      const nextServices = prev.selectedServices.filter((service) => {
-        const serviceCategory = categoriesByService.get(service);
-        return !serviceCategory || nextCategories.includes(serviceCategory);
-      });
-
-      return {
-        ...prev,
-        selectedCategories: nextCategories,
-        selectedServices: nextServices,
-      };
-    });
+  function toggleService(serviceLabel: string) {
+    const service = resolvePlanetLSServiceSlug(serviceLabel) ?? serviceLabel;
+    updateFilters(
+      "selectedServices",
+      service === GUEST_CHECKIN_CHECKOUT_BUNDLE
+        ? toggleGuestCheckinCheckoutSelection(filters.selectedServices)
+        : toggleOwnerConciergeValue(filters.selectedServices, service),
+    );
   }
 
-  function toggleService(serviceLabel: string) {
-    updateFilters("selectedServices", toggleOwnerConciergeValue(filters.selectedServices, serviceLabel));
+  function changeGuestCheckinCheckoutMode(
+    mode: "arrival_departure" | "arrival_only" | "departure_only",
+  ) {
+    updateFilters(
+      "selectedServices",
+      replaceGuestCheckinCheckoutServices(filters.selectedServices, mode),
+    );
+  }
+
+  function toggleServiceFamily(familySlug: string) {
+    updateFilters(
+      "selectedServiceFamilies",
+      normalizeOwnerServiceFamilies(
+        toggleOwnerConciergeValue(filters.selectedServiceFamilies ?? [], familySlug),
+      ),
+    );
   }
 
   function toggleServiceSection(category: string) {
@@ -844,6 +834,7 @@ export default function OwnerConciergesPageClient() {
       ...initialFilters,
       ...profileSearchDefaults,
     });
+    touchedFilterKeysRef.current.clear();
     setHasSubmittedSearch(false);
     setFeedback(null);
     setError(null);
@@ -895,6 +886,7 @@ export default function OwnerConciergesPageClient() {
     setFeedback(null);
     setHasSubmittedSearch(true);
     setMobileFiltersOpen(false);
+    setConsultedConciergeId(null);
     replaceSearchUrl(filters);
     resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     void search(filters).then((nextItems) => {
@@ -934,15 +926,14 @@ export default function OwnerConciergesPageClient() {
     // Les filtres servent à la recherche ; seules les prestations
     // précises ou les groupes reconnus sont transmis à l'API.
     // Une catégorie ne sélectionne jamais toute une famille.
-    const requestServiceResolution = resolvePlanetLSRequestServices(
+    const requestServiceResolution = resolvePlanetLSIndividualRequestServices(
       filters.selectedServices,
     );
-
     if (requestServiceResolution.services.length === 0) {
       setError(
         requestServiceResolution.unknownValues.length > 0
           ? `Ces filtres ne correspondent pas à une prestation du catalogue : ${requestServiceResolution.unknownValues.join(", ")}. Sélectionnez une prestation précise.`
-          : "Sélectionnez au moins une prestation précise avant d'envoyer une demande.",
+          : "Précisez au moins une prestation individuelle dans le catalogue avant de finaliser votre demande.",
       );
       return;
     }
@@ -974,9 +965,7 @@ export default function OwnerConciergesPageClient() {
               propertyType: requestForm.propertyType,
               sleepingCapacity: requestForm.sleepingCapacity,
               propertyConstraints: requestForm.propertyConstraints,
-              requestedServices: requestServiceResolution.entries.map(
-                (entry) => entry.label,
-              ),
+              requestedServices: requestServiceResolution.entries.map((entry) => entry.label),
               desiredDate: requestForm.desiredDate,
               urgency: requestForm.urgency,
               description: requestForm.description,
@@ -990,6 +979,16 @@ export default function OwnerConciergesPageClient() {
             title: requestForm.title.trim(),
             description: requestForm.description.trim(),
             requested_services: requestServiceResolution.services,
+            ...(getGuestCheckinCheckoutRequestMetadata(
+              requestServiceResolution.services,
+            )
+              ? {
+                  service_modalities:
+                    getGuestCheckinCheckoutRequestMetadata(
+                      requestServiceResolution.services,
+                    ),
+                }
+              : {}),
             region: filters.region?.trim() || null,
             city: requestForm.city.trim(),
             postal_code: requestForm.postalCode.trim(),
@@ -1047,10 +1046,6 @@ export default function OwnerConciergesPageClient() {
           styles={styles}
           filters={filters}
           propertyTypeOptions={propertyTypeOptions}
-          categoryOptions={categoryOptions}
-          serviceOptions={serviceOptions}
-          visibleServicesByCategory={catalogServicesByCategory}
-          openServiceSections={openServiceSections}
           loading={loading}
           viewMode={viewMode}
           isStaySearchMode={isStaySearchMode}
@@ -1060,9 +1055,8 @@ export default function OwnerConciergesPageClient() {
           onOpenMobileFilters={() => setMobileFiltersOpen(true)}
           onViewModeChange={setViewMode}
           onFilterChange={updateFilters}
-          onToggleCategory={toggleCategory}
           onToggleService={toggleService}
-          onToggleServiceSection={toggleServiceSection}
+          onToggleServiceFamily={toggleServiceFamily}
           getCitySuggestions={getOwnerCitySuggestions}
           parseSliderValue={parseSliderValue}
         />
@@ -1126,6 +1120,8 @@ export default function OwnerConciergesPageClient() {
               filters={filters}
               items={sortedItems}
               selectedIds={selectedIdSet}
+              consultedId={consultedConciergeId}
+              profileReturnTo={profileReturnTo}
               viewMode={viewMode}
               onToggleSelection={toggleConciergeSelection}
               onCreateAlert={handleCreateAlert}
@@ -1146,20 +1142,21 @@ export default function OwnerConciergesPageClient() {
                 </span>
               </div>
               <div className={styles.mapFrame}>
-                {mapCenter && mapProfiles.length > 0 ? (
+                {!loading && !error && mapCenter && mapProfiles.length > 0 ? (
                   <SearchMap
                     center={mapCenter}
                     radiusKm={appliedRadiusKm}
-                    selectedId={selectedConciergeIds[0] ?? null}
-                    onSelect={toggleConciergeSelection}
+                    selectedId={consultedConciergeId}
+                    onSelect={setConsultedConciergeId}
                     profiles={mapProfiles}
+                    profileReturnTo={profileReturnTo}
                     fitAllProfiles
                     ariaLabel="Carte des concierges trouvées"
                   />
                 ) : (
-                  <div className={styles.mapEmpty}>
-                    <strong>Carte indisponible pour ces résultats.</strong>
-                    <span>Les profils retournés ne contiennent pas encore de coordonnées exploitables.</span>
+                  <div className={styles.mapEmpty} role={error ? "alert" : "status"}>
+                    <strong>{mapFeedback.title}</strong>
+                    <span>{mapFeedback.description}</span>
                   </div>
                 )}
               </div>
@@ -1332,6 +1329,7 @@ export default function OwnerConciergesPageClient() {
                 onSubmit={handleSendRequest}
                 onRequestFormChange={updateRequestForm}
                 onToggleService={toggleService}
+                onCheckinCheckoutModeChange={changeGuestCheckinCheckoutMode}
                 onToggleServiceSection={toggleServiceSection}
                 getCitySuggestions={getOwnerCitySuggestions}
               />
@@ -1368,10 +1366,6 @@ export default function OwnerConciergesPageClient() {
                   mode="compact"
                   filters={filters}
                   propertyTypeOptions={propertyTypeOptions}
-                  categoryOptions={categoryOptions}
-                  serviceOptions={serviceOptions}
-                  visibleServicesByCategory={catalogServicesByCategory}
-                  openServiceSections={openServiceSections}
                   loading={loading}
                   viewMode={viewMode}
                   isStaySearchMode={isStaySearchMode}
@@ -1381,9 +1375,8 @@ export default function OwnerConciergesPageClient() {
                   onOpenMobileFilters={() => setMobileFiltersOpen(true)}
                   onViewModeChange={setViewMode}
                   onFilterChange={updateFilters}
-                  onToggleCategory={toggleCategory}
                   onToggleService={toggleService}
-                  onToggleServiceSection={toggleServiceSection}
+                  onToggleServiceFamily={toggleServiceFamily}
                   getCitySuggestions={getOwnerCitySuggestions}
                   parseSliderValue={parseSliderValue}
                 />

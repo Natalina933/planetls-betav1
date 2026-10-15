@@ -1,4 +1,5 @@
 "use client";
+import { ConciergeServices } from "@/features/owner-concierges/components/ConciergeServices";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -13,7 +14,6 @@ import {
 } from "lucide-react";
 import { Badge, Button, ButtonLink } from "@/components/ui";
 import { ConciergeAvatar } from "@/app/dashboard/owner/concierges/ConciergeAvatar";
-import { getServiceCategoryIconPath } from "@/app/lib/serviceCategoryIcon";
 import { getPublicProfileLinks } from "@/features/public-concierges/publicProfileLinks";
 import type { PublicProfileCtaKey } from "@/features/public-concierges/publicProfileCtas";
 import type { PublicProfilePayload } from "./PublicConciergeProfilePage";
@@ -67,7 +67,7 @@ export function OwnerConciergeProfileView({
       <div className={styles.topbar}>
         <Link href={returnTo} className={styles.back}>
           <ArrowLeft size={17} aria-hidden="true" />
-          {publicView ? "Retour aux profils" : "Retour aux résultats"}
+          Retour aux profils
         </Link>
         <span className={styles.eyebrow}>Le réseau PlanetLS</span>
       </div>
@@ -214,28 +214,7 @@ export function OwnerConciergeProfileView({
                   <h2 id="concierge-services">Les prestations proposées</h2>
                   <p>Découvrez les services renseignés par cette concierge.</p>
                 </div>
-                {services.length ? (
-                  <ul className={styles.services}>
-                    {services.map((service) => (
-                      <li key={service}>
-                        <span className={styles.serviceIcon}>
-                          <Image
-                            src={getServiceCategoryIconPath(service)}
-                            alt=""
-                            width={26}
-                            height={26}
-                          />
-                        </span>
-                        <span>{service}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className={styles.empty}>
-                    Cette concierge n’a pas encore renseigné ses
-                    prestations.{" "}
-                  </p>
-                )}
+                <ConciergeServices values={services} />
               </section>
 
               <section

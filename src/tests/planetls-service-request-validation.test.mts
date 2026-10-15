@@ -36,6 +36,22 @@ test("Un libellé historique est refusé avec UNKNOWN_SERVICE", () => {
   assert.deepEqual(result.unknownSlugs, ["Ménage du logement"]);
 });
 
+test("Le slug commercial groupé ne remplace jamais les slugs opérationnels de demande", () => {
+  const result = validatePlanetLSServiceRequest(
+    ["guest_checkin_checkout"],
+    null,
+  );
+
+  assert.equal(result.valid, false);
+  assert.equal(result.code, "UNKNOWN_SERVICE");
+  assert.deepEqual(result.unknownSlugs, ["guest_checkin_checkout"]);
+  assert.equal(
+    validatePlanetLSServiceRequest(["guest_checkin", "guest_checkout"], null)
+      .valid,
+    true,
+  );
+});
+
 test("Un groupe nécessite une description", () => {
   const result = validatePlanetLSServiceRequest(
     ["maintenance_minor_repairs"],
@@ -67,4 +83,3 @@ test("Une nouvelle prestation de réseaux sociaux est reconnue", () => {
   assert.equal(result.valid, true);
   assert.deepEqual(result.unknownSlugs, []);
 });
-

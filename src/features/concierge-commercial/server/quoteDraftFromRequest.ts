@@ -10,6 +10,10 @@ import {
   type PackageRow,
 } from "./quoteDraftMatching";
 import { QUOTE_PRICE_CONFIRMED_KEY } from "./quoteSendGuard";
+import {
+  getGuestCheckinCheckoutModeFromMetadata,
+  getGuestCheckinCheckoutModeLabel,
+} from "@/app/lib/guestCheckinCheckout";
 
 // La logique pure de correspondance et de tarification vit dans
 // quoteDraftMatching.ts (sans dépendance base de données, testable en
@@ -40,6 +44,7 @@ type ServiceRequestRow = {
   currency: string | null;
   desired_date: string | null;
   requested_services: string[] | null;
+  metadata?: Record<string, unknown> | null;
 };
 
 export type PreparedQuoteItem = {
@@ -112,6 +117,9 @@ export async function prepareQuoteDraftFromRequest(
     requestedServices,
     servicesCatalog,
     pricingRows,
+  );
+  const checkinCheckoutMode = getGuestCheckinCheckoutModeFromMetadata(
+    request.metadata,
   );
 
   const autoPricedServiceIds = new Set(
@@ -208,6 +216,9 @@ export async function prepareQuoteDraftFromRequest(
     `Devis brouillon créé depuis la demande ${request.id}`,
     matchedPackageName ? `Pack suggéré : ${matchedPackageName}` : null,
     matchedPricingRows.length > 0 ? `${matchedPricingRows.length} tarif(s) préchargés` : null,
+    checkinCheckoutMode
+      ? `Périmètre Check-in & Check-out : ${getGuestCheckinCheckoutModeLabel(checkinCheckoutMode)}`
+      : null,
   ].filter(Boolean);
 
   return {

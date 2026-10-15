@@ -21,6 +21,17 @@ import { ConciergeAvatar } from "@/features/owner-concierges/components/Concierg
 import { OwnerLocationAutocomplete } from "@/features/owner-concierges/components/OwnerLocationAutocomplete";
 import type { ConciergeSearchRow } from "@/features/owner-concierges/lib/search";
 import type { RequestFormState, RequestType } from "../types";
+import {
+  DEFAULT_GUEST_CHECKIN_CHECKOUT_MODE,
+  GUEST_CHECKIN_CHECKOUT_MODES,
+  getGuestCheckinCheckoutDisplaySelections,
+  getGuestCheckinCheckoutModeLabel,
+  hasGuestCheckinCheckoutSelection,
+  inferGuestCheckinCheckoutMode,
+  type GuestCheckinCheckoutMode,
+} from "@/app/lib/guestCheckinCheckout";
+import { PLANETLS_SERVICE_TARGET } from "@/app/lib/planetlsServiceCatalogTarget";
+import { resolvePlanetLSServiceSlug } from "@/app/lib/planetlsServiceMatching";
 
 const currencyOptions = [
   { value: "EUR", label: "\u20AC" },
@@ -31,8 +42,7 @@ const currencyOptions = [
 
 const fallbackOneOffIdeas = [
   "Accueil sur place",
-  "Check-in",
-  "Check-out",
+  "Check-in & Check-out",
   "Ménage de transition",
   "Remise de clés",
   "Visite de contrôle",
@@ -69,6 +79,7 @@ type RequestPanelProps = {
     value: RequestFormState[Key],
   ) => void;
   onToggleService: (value: string) => void;
+  onCheckinCheckoutModeChange: (mode: GuestCheckinCheckoutMode) => void;
   onToggleServiceSection: (category: string) => void;
   getCitySuggestions: (query: string) => string[];
 };
@@ -161,7 +172,8 @@ function buildOneOffIdeas(
   selectedServices: string[],
   selectedConcierges: ConciergeSearchRow[],
 ) {
-  const serviceIdeas = selectedServices.map(toDisplayText);
+  const serviceIdeas = getGuestCheckinCheckoutDisplaySelections(selectedServices)
+    .map((service) => getPlanetLSServiceLabel(service));
   const conciergeIdeas = selectedConcierges
     .flatMap((item) => item.services ?? [])
     .map(toDisplayText);
@@ -172,6 +184,19 @@ function buildOneOffIdeas(
     0,
     6,
   );
+}
+
+function getPlanetLSServiceLabel(value: string) {
+  const slug = resolvePlanetLSServiceSlug(value) ?? value;
+  return PLANETLS_SERVICE_TARGET.find((entry) => entry.slug === slug)?.label ?? value;
+}
+
+function isSelectedService(value: string, selectedServices: string[]) {
+  const slug = resolvePlanetLSServiceSlug(value) ?? value;
+  if (slug === "guest_checkin_checkout") {
+    return hasGuestCheckinCheckoutSelection(selectedServices);
+  }
+  return selectedServices.includes(slug);
 }
 
 function formatMissingInfo(value: string) {
@@ -200,14 +225,19 @@ export function RequestPanel({
   onSubmit,
   onRequestFormChange,
   onToggleService,
+  onCheckinCheckoutModeChange,
   onToggleServiceSection,
   getCitySuggestions,
 }: RequestPanelProps) {
   const copy = requestTypeCopy[requestForm.requestType];
   const guidance = getServiceRequestBriefFormGuidance(requestForm.ownerGoal);
   const oneOffIdeas = buildOneOffIdeas(selectedServices, selectedConcierges);
-  const requestedServices =
-    selectedServices.length > 0 ? selectedServices : selectedCategories;
+  const requestedServices = selectedServices.length > 0
+    ? getGuestCheckinCheckoutDisplaySelections(selectedServices)
+    : selectedCategories;
+  const checkinCheckoutMode =
+    inferGuestCheckinCheckoutMode(selectedServices) ??
+    DEFAULT_GUEST_CHECKIN_CHECKOUT_MODE;
   const uniqueSearchSummary = Array.from(new Set(activeSearchSummary));
   const selectedPreview = selectedConcierges.slice(0, 4);
   const hiddenSelectedCount = Math.max(
@@ -414,7 +444,7 @@ export function RequestPanel({
                   aria-pressed="true"
                   onClick={() => onToggleService(service)}
                 >
-                  {service}
+                  {getPlanetLSServiceLabel(service)}
                 </button>
               ))}
             </div>
@@ -423,10 +453,30 @@ export function RequestPanel({
               Aucune prestation précise n’est encore sélectionnée. Choisissez directement les prestations à transmettre ci-dessous.
             </p>
           )}
+          {hasGuestCheckinCheckoutSelection(selectedServices) ? (
+            <fieldset className={styles.requestModalityPicker}>
+              <legend>Modalité Check-in &amp; Check-out</legend>
+              {GUEST_CHECKIN_CHECKOUT_MODES.map((mode) => (
+                <label key={mode} className={styles.requestModalityChoice}>
+                  <input
+                    type="radio"
+                    name="request-checkin-checkout-mode"
+                    value={mode}
+                    checked={checkinCheckoutMode === mode}
+                    disabled={submittingRequest}
+                    onChange={() =>
+                      onCheckinCheckoutModeChange(mode)
+                    }
+                  />
+                  <span>{getGuestCheckinCheckoutModeLabel(mode)}</span>
+                </label>
+              ))}
+            </fieldset>
+          ) : null}
           <div className={styles.requestServicePicker}>
             {visibleServicesByCategory.map((group) => {
               const selectedCount = group.services.filter((service) =>
-                selectedServices.includes(service),
+                isSelectedService(service, selectedServices),
               ).length;
               const isOpen = openServiceSections[group.category] ?? true;
 
@@ -450,7 +500,7 @@ export function RequestPanel({
                   {isOpen ? (
                     <div className={styles.serviceSectionBody}>
                       {group.services.map((service) => {
-                        const isSelected = selectedServices.includes(service);
+                        const isSelected = isSelectedService(service, selectedServices);
                         return (
                           <button
                             key={service}
@@ -463,7 +513,7 @@ export function RequestPanel({
                             aria-pressed={isSelected}
                             onClick={() => onToggleService(service)}
                           >
-                            {service}
+                            {getPlanetLSServiceLabel(service)}
                           </button>
                         );
                       })}

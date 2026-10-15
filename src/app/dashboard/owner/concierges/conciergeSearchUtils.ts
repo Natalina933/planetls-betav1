@@ -1,5 +1,7 @@
 import type { OwnerConciergeSearchFilters } from "./searchHelpers";
 import type { ConciergeSearchRow, SortMode } from "./conciergeSearchTypes";
+import { PLANETLS_SERVICE_FAMILIES, PLANETLS_SERVICE_TARGET } from "@/app/lib/planetlsServiceCatalogTarget";
+import { getGuestCheckinCheckoutDisplaySelections } from "@/app/lib/guestCheckinCheckout";
 
 export const DEFAULT_CONCIERGE_AVATAR = "/icons/account-svgrepo-com.svg";
 
@@ -72,12 +74,21 @@ export function getActiveSearchSummary(filters: OwnerConciergeSearchFilters) {
           filters.selectedCategories.length > 2 ? "..." : ""
         }`
       : null,
+    (filters.selectedServiceFamilies?.length ?? 0) > 0
+        ? `Familles : ${filters.selectedServiceFamilies
+            ?.map((slug) => PLANETLS_SERVICE_FAMILIES.find((family) => family.slug === slug)?.label ?? slug)
+            .slice(0, 2)
+            .join(", ")}${(filters.selectedServiceFamilies?.length ?? 0) > 2 ? "..." : ""}`
+        : null,
     filters.propertyType.trim() ? `Bien : ${filters.propertyType.trim()}` : null,
     filters.budgetMax.trim() ? `Budget max : ${filters.budgetMax.trim()} EUR/h` : null,
     filters.radiusKm.trim() ? `Rayon : ${filters.radiusKm.trim()} km` : null,
     filters.selectedServices.length > 0
-      ? `Services : ${filters.selectedServices.slice(0, 3).join(", ")}${
-          filters.selectedServices.length > 3 ? "..." : ""
+      ? `Prestations : ${getGuestCheckinCheckoutDisplaySelections(filters.selectedServices)
+          .map((slug) => PLANETLS_SERVICE_TARGET.find((entry) => entry.slug === slug)?.label ?? slug)
+          .slice(0, 3)
+          .join(", ")}${
+          getGuestCheckinCheckoutDisplaySelections(filters.selectedServices).length > 3 ? "..." : ""
         }`
       : null,
   ].filter((value): value is string => Boolean(value));

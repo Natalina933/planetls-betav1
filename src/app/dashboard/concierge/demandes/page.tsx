@@ -26,6 +26,12 @@ import {
 
 import { deriveRequestWorkflowStatus } from "@/app/lib/requestStatus";
 import {
+  GUEST_CHECKIN_CHECKOUT_BUNDLE,
+  getGuestCheckinCheckoutDisplaySelections,
+  getGuestCheckinCheckoutSummaryLabel,
+} from "@/app/lib/guestCheckinCheckout";
+import { PLANETLS_SERVICE_TARGET } from "@/app/lib/planetlsServiceCatalogTarget";
+import {
   buildServiceRequestBrief,
   readServiceRequestBriefMetadata,
   type ServiceRequestBrief,
@@ -637,8 +643,7 @@ function getConciergeFacts(
     .filter(Boolean)
     .join(" ");
 
-  const services = item.requested_services
-    .filter(Boolean)
+  const services = getRequestServiceLabels(item)
     .slice(0, 3)
     .join(", ");
 
@@ -705,6 +710,19 @@ function getConciergeFacts(
   }
 
   return facts.slice(0, 4);
+}
+
+function getRequestServiceLabels(item: ConciergeRequestRow) {
+  return getGuestCheckinCheckoutDisplaySelections(item.requested_services)
+    .map((slug) =>
+      slug === GUEST_CHECKIN_CHECKOUT_BUNDLE
+        ? getGuestCheckinCheckoutSummaryLabel({
+            services: item.requested_services,
+            metadata: item.metadata,
+          }) ?? "Check-in & Check-out"
+        : PLANETLS_SERVICE_TARGET.find((entry) => entry.slug === slug)?.label ??
+          slug,
+    );
 }
 
 function getConciergeBriefFacts(
@@ -1569,9 +1587,7 @@ function ConciergeDemandesContent() {
                         ...(item.proposed_date ? [{ label: "Date proposée", value: formatDate(item.proposed_date), Icon: Clock }] : []),
                       ]}
                       compactDetails={[
-                        ...item.requested_services
-                          .filter(Boolean)
-                          .slice(0, 3),
+                        ...getRequestServiceLabels(item).slice(0, 3),
                         `Prochaine action : ${getNextStepLabel(item)}`,
                       ]}
                       key={item.recipient_id}

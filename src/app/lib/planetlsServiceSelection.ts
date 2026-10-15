@@ -1,4 +1,5 @@
 import { PLANETLS_SERVICE_TARGET } from "./planetlsServiceCatalogTarget.ts";
+import { normalizeCatalogText } from "./serviceCatalog.ts";
 
 const serviceBySlug = new Map(
   PLANETLS_SERVICE_TARGET.map((entry) => [entry.slug, entry]),
@@ -6,6 +7,19 @@ const serviceBySlug = new Map(
 
 export function resolvePlanetLSSelection(value: string) {
   return serviceBySlug.get(String(value ?? "").trim()) ?? null;
+}
+
+export function resolvePlanetLSHistoricalAlias(value: unknown) {
+  if (typeof value !== "string") return null;
+  const normalized = normalizeCatalogText(value);
+  if (!normalized) return null;
+  return (
+    PLANETLS_SERVICE_TARGET.find((entry) =>
+      entry.historicalAliases?.some(
+        (alias) => normalizeCatalogText(alias) === normalized,
+      ),
+    ) ?? null
+  );
 }
 
 export function normalizePlanetLSSelection(values: readonly string[]) {

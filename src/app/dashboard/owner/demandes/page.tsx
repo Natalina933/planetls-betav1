@@ -28,6 +28,7 @@ import { ownerApiError } from "../ownerFeedback";
 import { focusFirstModalElement, trapFocusInModal } from "../modalAccessibility";
 import styles from "./OwnerRequestsPage.module.scss";
 import { validatePlanetLSServiceRequest } from "@/app/lib/planetlsServiceRequestValidation";
+import { getGuestCheckinCheckoutDisplaySelections } from "@/app/lib/guestCheckinCheckout";
 
 type RequestKind = "ponctuel" | "renfort" | "durable";
 type RelationStatus = "draft" | "sent" | "viewed" | "discussion" | "accepted" | "declined" | "expired";
@@ -647,14 +648,16 @@ export default function OwnerRequestsPage() {
   const recognizedSelectedServices = normalizedServices.filter((slug) =>
     Boolean(resolvePlanetLSSelection(slug)),
   );
+  const displayedSelectedServices =
+    getGuestCheckinCheckoutDisplaySelections(recognizedSelectedServices);
   const titleSuggestion = getRequestTitleSuggestion({
     ...form,
-    requestedServices: recognizedSelectedServices
+    requestedServices: displayedSelectedServices
       .map((slug) => getPlanetLSServiceLabel(slug))
       .join(", "),
   });
-  const visibleSelectedServices = recognizedSelectedServices.slice(0, 8);
-  const hiddenSelectedServiceCount = Math.max(recognizedSelectedServices.length - visibleSelectedServices.length, 0);
+  const visibleSelectedServices = displayedSelectedServices.slice(0, 8);
+  const hiddenSelectedServiceCount = Math.max(displayedSelectedServices.length - visibleSelectedServices.length, 0);
   const existingRequestForSelectedHousing = useMemo(() => {
     if (editingRequestId || !form.propertyKey || form.requestType === "renfort") return null;
     return (
@@ -1168,6 +1171,7 @@ export default function OwnerRequestsPage() {
                 <PlanetLSServicePicker
                   selected={normalizedServices}
                   onChange={(selected) => setForm((current) => ({ ...current, requestedServices: selected.join(", ") }))}
+                  collapseGuestCheckinCheckout
                 />
                 {unknownSelectedServices.length > 0 ? (
                   <p className={`${styles.message} ${styles.messageError}`} role="alert">
@@ -1176,7 +1180,7 @@ export default function OwnerRequestsPage() {
                 ) : null}
                 {recognizedSelectedServices.length > 0 ? (
                   <div className={styles.selectedServicesSummary}>
-                    <span>{recognizedSelectedServices.length} service{recognizedSelectedServices.length > 1 ? "s" : ""} sélectionné{recognizedSelectedServices.length > 1 ? "s" : ""}</span>
+                    <span>{displayedSelectedServices.length} service{displayedSelectedServices.length > 1 ? "s" : ""} sélectionné{displayedSelectedServices.length > 1 ? "s" : ""}</span>
                     <div className={styles.chipRow}>
                       {visibleSelectedServices.map((service) => <span key={service} className={styles.serviceChip}>{getPlanetLSServiceLabel(service)}</span>)}
                       {hiddenSelectedServiceCount > 0 ? <span className={styles.serviceChip}>+{hiddenSelectedServiceCount}</span> : null}

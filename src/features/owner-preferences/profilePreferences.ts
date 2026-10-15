@@ -9,10 +9,15 @@ import {
 } from "../../app/lib/serviceRequestBrief.ts";
 import {
   PLANETLS_SERVICE_FAMILIES,
+  PLANETLS_SERVICE_TARGET,
   type PlanetLSServiceFamily,
 } from "../../app/lib/planetlsServiceCatalogTarget.ts";
 import type { PlanetLSServiceTargetEntry } from "../../app/lib/planetlsServiceCatalogTarget.ts";
 import { resolvePlanetLSSelection } from "../../app/lib/planetlsServiceSelection.ts";
+import {
+  getGuestCheckinCheckoutOperationalSlugs,
+  GUEST_CHECKIN_CHECKOUT_BUNDLE,
+} from "../../app/lib/guestCheckinCheckout.ts";
 
 // Mode de collaboration : concept métier du parcours propriétaire, jamais une
 // prestation du catalogue. Volontairement défini localement pour rester
@@ -86,6 +91,8 @@ export type OwnerOnboardingProOrg = "main_professional" | "multiple_professional
 export type OwnerOnboardingV1 = {
   managementMode: OwnerOnboardingManagementMode | null;
   needs: OwnerOnboardingNeed[];
+  serviceFamilies: PlanetLSServiceFamily[];
+  services: string[];
   situation: OwnerOnboardingSituation | null;
   helpFrequency: OwnerOnboardingHelpFrequency | null;
   requestOrg: OwnerOnboardingRequestOrg | null;
@@ -225,6 +232,8 @@ const OWNER_ONBOARDING_PRO_ORGS: readonly OwnerOnboardingProOrg[] = [
 export const EMPTY_OWNER_ONBOARDING_V1: OwnerOnboardingV1 = {
   managementMode: null,
   needs: [],
+  serviceFamilies: [],
+  services: [],
   situation: null,
   helpFrequency: null,
   requestOrg: null,
@@ -237,6 +246,14 @@ const OWNER_ONBOARDING_SERVICE_SLUGS: Partial<Record<OwnerOnboardingNeed, string
   check_out: "guest_checkout",
 };
 
+const OWNER_ONBOARDING_LEGACY_SEARCH_SERVICES: Partial<
+  Record<OwnerOnboardingNeed, string>
+> = {
+  ...OWNER_ONBOARDING_SERVICE_SLUGS,
+  cleaning: "cleaning_standard",
+  linen: "linen_change",
+};
+
 const OWNER_ONBOARDING_FAMILIES: Partial<
   Record<LegacyOwnerOnboardingNeed, PlanetLSServiceFamily>
 > = {
@@ -244,6 +261,55 @@ const OWNER_ONBOARDING_FAMILIES: Partial<
   linen: "cleaning_linen",
   maintenance: "maintenance_repair",
 };
+
+function normalizeOwnerServiceFamilies(values: readonly string[]) {
+  const allowed = new Set<string>(PLANETLS_SERVICE_FAMILIES.map((family) => family.slug));
+  return Array.from(
+    new Set(
+      values.filter((value): value is PlanetLSServiceFamily => allowed.has(value)),
+    ),
+  );
+}
+
+function normalizeOwnerServices(values: readonly string[]) {
+  const allowed = new Set(
+    PLANETLS_SERVICE_TARGET
+      .filter((entry) => entry.kind === "service")
+      .map((entry) => entry.slug),
+  );
+  return [
+    ...new Set(
+      values.flatMap((value) =>
+        value === GUEST_CHECKIN_CHECKOUT_BUNDLE
+          ? getGuestCheckinCheckoutOperationalSlugs()
+          : allowed.has(value)
+            ? [value]
+            : [],
+      ),
+    ),
+  ];
+}
+
+function getLegacyServiceFamilies(needs: readonly OwnerOnboardingNeed[]) {
+  return normalizeOwnerServiceFamilies(
+    needs.flatMap((need) => {
+      if (PLANETLS_SERVICE_FAMILIES.some((family) => family.slug === need)) {
+        return [need];
+      }
+      const family = OWNER_ONBOARDING_FAMILIES[need as LegacyOwnerOnboardingNeed];
+      return family ? [family] : [];
+    }),
+  );
+}
+
+function getLegacyServices(needs: readonly OwnerOnboardingNeed[]) {
+  return normalizeOwnerServices(
+    needs.flatMap((need) => {
+      const slug = OWNER_ONBOARDING_LEGACY_SEARCH_SERVICES[need];
+      return slug ? [slug] : [];
+    }),
+  );
+}
 
 const LEGACY_OWNER_ONBOARDING_NEED_LABELS: Record<LegacyOwnerOnboardingNeed, string> = {
   check_in: "Accueil / Check-in (ancien choix)",
@@ -255,12 +321,6 @@ const LEGACY_OWNER_ONBOARDING_NEED_LABELS: Record<LegacyOwnerOnboardingNeed, str
   full_management: "Gestion complète du logement (ancien choix)",
   other: "Préférence personnalisée (ancien choix)",
 };
-
-function isLegacyOwnerOnboardingNeed(
-  need: OwnerOnboardingNeed,
-): need is LegacyOwnerOnboardingNeed {
-  return !PLANETLS_SERVICE_FAMILIES.some((family) => family.slug === need);
-}
 
 export function getOwnerOnboardingNeedLabel(need: OwnerOnboardingNeed): string {
   const family = PLANETLS_SERVICE_FAMILIES.find((entry) => entry.slug === need);
@@ -364,12 +424,21 @@ export function parseOwnerOnboardingV1(value: unknown): OwnerOnboardingV1 | null
     "helpFrequency" in value ||
     "requestOrg" in value ||
     "billingPref" in value ||
-    "proOrg" in value;
+    "proOrg" in value ||
+    "serviceFamilies" in value ||
+    "services" in value;
   if (!hasAnyKey) return null;
 
+  const needs = readOnboardingNeedList(value.needs);
   return {
     managementMode: readNullableEnum(value.managementMode, OWNER_ONBOARDING_MANAGEMENT_MODES),
-    needs: readOnboardingNeedList(value.needs),
+    needs,
+    serviceFamilies: Array.isArray(value.serviceFamilies)
+      ? normalizeOwnerServiceFamilies(readStringArray(value.serviceFamilies))
+      : getLegacyServiceFamilies(needs),
+    services: Array.isArray(value.services)
+      ? normalizeOwnerServices(readStringArray(value.services))
+      : getLegacyServices(needs),
     situation: readNullableEnum(value.situation, OWNER_ONBOARDING_SITUATIONS),
     helpFrequency: readNullableEnum(value.helpFrequency, OWNER_ONBOARDING_HELP_FREQUENCIES),
     requestOrg: readNullableEnum(value.requestOrg, OWNER_ONBOARDING_REQUEST_ORGS),
@@ -405,13 +474,26 @@ function sanitizeOwnerOnboardingV1(
   if (value === null) return null;
   if (!isRecord(value)) return current;
   const fallback: OwnerOnboardingV1 = current ?? EMPTY_OWNER_ONBOARDING_V1;
+  const nextNeeds =
+    value.needs === undefined ? [...fallback.needs] : readOnboardingNeedList(value.needs);
   return {
     managementMode:
       value.managementMode === undefined
         ? fallback.managementMode
         : readNullableEnum(value.managementMode, OWNER_ONBOARDING_MANAGEMENT_MODES),
-    needs:
-      value.needs === undefined ? [...fallback.needs] : readOnboardingNeedList(value.needs),
+    needs: nextNeeds,
+    serviceFamilies:
+      value.serviceFamilies === undefined
+        ? value.needs === undefined
+          ? [...fallback.serviceFamilies]
+          : getLegacyServiceFamilies(nextNeeds)
+        : normalizeOwnerServiceFamilies(readStringArray(value.serviceFamilies)),
+    services:
+      value.services === undefined
+        ? value.needs === undefined
+          ? [...fallback.services]
+          : getLegacyServices(nextNeeds)
+        : normalizeOwnerServices(readStringArray(value.services)),
     situation:
       value.situation === undefined
         ? fallback.situation
@@ -599,22 +681,13 @@ export function buildOwnerConciergeSearchDefaults(
   preferences: OwnerProfilePreferences,
 ): {
   propertyType: string;
+  selectedServiceFamilies: PlanetLSServiceFamily[];
   selectedServices: string[];
 } {
-  const onboardingServices: Partial<Record<LegacyOwnerOnboardingNeed, string>> = {
-    check_in: "Check-in",
-    check_out: "Check-out",
-    cleaning: "Ménage du logement",
-    linen: "Changement de linge",
-    maintenance: "Petites réparations",
-  };
-
-  return {
-    propertyType: preferences.propertyType || preferences.propertyTypes[0] || "",
-    selectedServices:
-      preferences.ownerOnboardingV1?.needs
-        .filter(isLegacyOwnerOnboardingNeed)
-        .map((need) => onboardingServices[need])
-        .filter((value): value is string => Boolean(value)) ?? [],
-  };
+return {
+  // Le contexte du logement préremplit la demande, pas un critère d'éligibilité.
+  propertyType: "",
+  selectedServiceFamilies: preferences.ownerOnboardingV1?.serviceFamilies ?? [],
+  selectedServices: preferences.ownerOnboardingV1?.services ?? [],
+};
 }

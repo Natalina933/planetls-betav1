@@ -61,3 +61,16 @@ export function resolvePlanetLSRequestServices(
       .filter((entry): entry is PlanetLSServiceTargetEntry => entry !== null),
   };
 }
+
+export function resolvePlanetLSIndividualRequestServices(
+  values: readonly string[] | null | undefined,
+): PlanetLSRequestServiceResolution {
+  const resolved = resolvePlanetLSRequestServices(values);
+  const entries = resolved.entries.filter((entry) => entry.kind === "service");
+
+  return {
+    ...resolved,
+    services: entries.map((entry) => entry.slug),
+    entries,
+  };
+}

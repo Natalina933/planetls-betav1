@@ -9,9 +9,12 @@ import {
   parseProfileServices,
 } from "../app/api/profiles/concierges/shared.ts";
 import {
+  getOwnerConciergeMapFeedback,
   buildOwnerConciergeFilterOptions,
   hasOwnerConciergeSearchCriteria,
   buildOwnerConciergeSearchParams,
+  normalizeOwnerServiceSelections,
+  preserveTouchedOwnerConciergeFilters,
   toggleOwnerConciergeService,
 } from "../app/dashboard/owner/concierges/searchHelpers.ts";
 import {
@@ -49,7 +52,7 @@ test("mapPropertyTypesByProfile groups and deduplicates property types", () => {
 
 test("buildConciergeSearchFilters parses advanced owner filters", () => {
   const params = new URLSearchParams(
-    "region=Ile-de-France&city=75015&services=Menage,Check-in&propertyType=Villa&budgetMax=90&radiusKm=25&proOnly=1",
+    "region=Ile-de-France&city=75015&serviceFamilies=cleaning_linen,guest_concierge&services=Menage,Check-in&propertyType=Villa&budgetMax=90&radiusKm=25&proOnly=1",
   );
 
   const filters = buildConciergeSearchFilters(params);
@@ -58,6 +61,7 @@ test("buildConciergeSearchFilters parses advanced owner filters", () => {
   assert.equal(filters.city, "75015");
   assert.equal(filters.postalCode, "");
   assert.deepEqual(filters.categories, []);
+  assert.deepEqual(filters.serviceFamilies, ["cleaning_linen", "guest_concierge"]);
   assert.deepEqual(filters.services, ["Menage", "Check-in"]);
   assert.equal(filters.propertyType, "Villa");
   assert.equal(filters.budgetMax, 90);
@@ -121,6 +125,7 @@ test("applyConciergeSearchFilters enforces service, property type and budget", (
       city: "Paris",
       postalCode: "",
       categories: [],
+      serviceFamilies: [],
       services: ["Menage"],
       propertyType: "Appartement",
       budgetMax: 80,
@@ -133,6 +138,80 @@ test("applyConciergeSearchFilters enforces service, property type and budget", (
 
   assert.equal(result.length, 1);
   assert.equal(result[0]?.id, "1");
+});
+
+test("family filters match professionals' central-catalog services without selecting services", () => {
+  const profiles = [
+    {
+      id: "cleaner",
+      display_name: "Concierge ménage",
+      city: "Nice",
+      country: "France",
+      service_area: "Nice",
+      service_radius_km: 20,
+      hourly_rate: null,
+      monthly_rate: null,
+      experience_level: null,
+      years_experience: null,
+      services: ["Ménage du logement"],
+      is_pro: false,
+      average_rating: null,
+      reviews_count: 0,
+    },
+    {
+      id: "photographer",
+      display_name: "Photographe",
+      city: "Nice",
+      country: "France",
+      service_area: "Nice",
+      service_radius_km: 20,
+      hourly_rate: null,
+      monthly_rate: null,
+      experience_level: null,
+      years_experience: null,
+      services: ["Photographie immobilière"],
+      is_pro: false,
+      average_rating: null,
+      reviews_count: 0,
+    },
+    {
+      id: "catalog-family",
+      display_name: "Professionnel catégorisé",
+      city: "Nice",
+      country: "France",
+      service_area: "Nice",
+      service_radius_km: 20,
+      hourly_rate: null,
+      monthly_rate: null,
+      experience_level: null,
+      years_experience: null,
+      services: ["Prestation catalogue historique"],
+      is_pro: false,
+      average_rating: null,
+      reviews_count: 0,
+    },
+  ];
+
+  const result = applyConciergeSearchFilters(
+    profiles,
+    {
+      region: "",
+      city: "",
+      postalCode: "",
+      categories: [],
+      serviceFamilies: ["cleaning_linen"],
+      services: [],
+      proOnly: false,
+      availableOnly: false,
+      propertyType: "",
+      budgetMax: null,
+      radiusKm: null,
+      limit: 20,
+    },
+    new Map([["prestation catalogue historique", "Ménage et linge"]]),
+  );
+
+  assert.deepEqual(result.map((profile) => profile.id), ["cleaner", "catalog-family"]);
 });
 
 test("buildAvailableConciergeFilters and owner client helpers expose UI options", () => {
@@ -202,6 +281,7 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
     region: "Provence-Alpes-Cote d'Azur",
     city: "06000",
     selectedCategories: ["Menage"],
+    selectedServiceFamilies: ["cleaning_linen", "guest_concierge"],
     selectedServices: ["Menage", "Check-in"],
     propertyType: "Villa",
     budgetMax: "120",
@@ -212,6 +292,7 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
   assert.equal(params.get("region"), "Provence-Alpes-Cote d'Azur");
   assert.equal(params.get("city"), "06000");
   assert.equal(params.get("categories"), "Menage");
+  assert.equal(params.get("serviceFamilies"), "cleaning_linen,guest_concierge");
   assert.equal(params.get("services"), "Menage,Check-in");
   assert.equal(params.get("propertyType"), "Villa");
   assert.equal(params.get("budgetMax"), "120");
@@ -224,6 +305,43 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
     "Check-in",
   ]);
   assert.deepEqual(toggleOwnerConciergeService(["Menage"], "Menage"), []);
+  assert.deepEqual(toggleOwnerConciergeService(["cleaning_linen"], "cleaning_linen"), []);
+  assert.deepEqual(
+    normalizeOwnerServiceSelections(["Check-in", "Ménage entre voyageurs", "custom value"]),
+    ["guest_checkin", "cleaning_turnover", "custom value"],
+  );
+});
+
+test("profile hydration keeps user-edited filters while retaining URL city and radius defaults", () => {
+  const defaults = {
+    region: "",
+    city: "Nice",
+    selectedCategories: [],
+    selectedServiceFamilies: ["cleaning_linen" as const],
+    selectedServices: ["cleaning_standard"],
+    propertyType: "",
+    budgetMax: "",
+    radiusKm: "20",
+    proOnly: false,
+  };
+  const current = {
+    ...defaults,
+    selectedServiceFamilies: ["guest_concierge" as const],
+    selectedServices: ["guest_checkin"],
+  };
+
+  assert.deepEqual(
+    preserveTouchedOwnerConciergeFilters(
+      defaults,
+      current,
+      new Set(["selectedServiceFamilies", "selectedServices"]),
+    ),
+    {
+      ...defaults,
+      selectedServiceFamilies: ["guest_concierge"],
+      selectedServices: ["guest_checkin"],
+    },
+  );
 });
 
 test("hasOwnerConciergeSearchCriteria detects whether the owner started building a search", () => {
@@ -239,6 +357,21 @@ test("hasOwnerConciergeSearchCriteria detects whether the owner started building
       proOnly: false,
     }),
     false,
+  );
+
+  assert.equal(
+    hasOwnerConciergeSearchCriteria({
+      region: "",
+      city: "",
+      selectedCategories: [],
+      selectedServiceFamilies: ["cleaning_linen"],
+      selectedServices: [],
+      propertyType: "",
+      budgetMax: "",
+      radiusKm: "",
+      proOnly: false,
+    }),
+    true,
   );
 
   assert.equal(
@@ -431,6 +564,7 @@ test("service matching keeps distinct cleaning and check-in services", () => {
       city: "",
       postalCode: "",
       categories: [],
+      serviceFamilies: [],
       services: [service],
       proOnly: false,
       availableOnly: false,
@@ -445,4 +579,49 @@ test("service matching keeps distinct cleaning and check-in services", () => {
   assert.deepEqual(search("cleaning_turnover"), ["turnover"]);
   assert.deepEqual(search("cleaning_deep"), ["deep"]);
   assert.deepEqual(search("Ménage"), []);
+});
+
+
+test("map feedback distinguishes loading, API errors, empty results and missing coordinates", () => {
+  assert.match(getOwnerConciergeMapFeedback(0, false, null).title, /Aucun professionnel/);
+  assert.match(getOwnerConciergeMapFeedback(2, false, null).description, /coordonn/);
+  assert.deepEqual(getOwnerConciergeMapFeedback(2, false, "API 503"), {
+    title: "Impossible de charger la carte", description: "API 503",
+  });
+  assert.match(getOwnerConciergeMapFeedback(0, true, null).title, /cours/);
+});
+
+
+test("saved property context preserves requests while Paris and Nice discovery stays unfiltered", async () => {
+  const { buildOwnerConciergeSearchDefaults, buildOwnerRequestFormDefaults, getOwnerProfilePreferences } = await import("../features/owner-preferences/profilePreferences.ts");
+  const { locateConcierges } = await import("../app/api/profiles/concierges/geographicSearch.ts");
+  const propertyType = "Résidence secondaire";
+  const preferences = getOwnerProfilePreferences(JSON.stringify({ preferences: { propertyType, propertyTypes: [propertyType] } }));
+  const defaults = buildOwnerConciergeSearchDefaults(preferences);
+  assert.equal(defaults.propertyType, "");
+  assert.equal(preferences.propertyType, propertyType);
+  assert.equal(buildOwnerRequestFormDefaults(preferences).propertyType, propertyType);
+  for (const [city, latitude, longitude] of [["Paris", 48.8589, 2.3200], ["Nice", 43.7009, 7.2684]] as const) {
+    const search = { ...defaults, city, radiusKm: "20", selectedCategories: [], budgetMax: "", proOnly: false };
+    const params = buildOwnerConciergeSearchParams(search);
+    assert.equal(params.has("propertyType"), false);
+    assert.equal(params.has("services"), false);
+    assert.equal(params.has("serviceFamilies"), false);
+    const profile = { id: city, display_name: city, city, country: "France", service_area: city,
+      latitude, longitude, availability_hours: null, service_radius_km: 25,
+      hourly_rate: null, monthly_rate: null, experience_level: null, years_experience: null,
+      services: [], property_types: [], is_pro: false, average_rating: null, reviews_count: 0 };
+    const filters = { ...buildConciergeSearchFilters(params), city: "", radiusKm: null, availableOnly: false };
+    const candidates = applyConciergeSearchFilters([profile], filters);
+    const located = await locateConcierges(candidates, { latitude, longitude }, 20, async () => { throw new Error("Unexpected geocoding"); });
+    assert.equal(located.results.length, 1);
+    const manual = buildOwnerConciergeSearchParams({ ...search, propertyType: "Appartement" });
+    assert.equal(manual.get("propertyType"), "Appartement");
+    const explicitUrl = new URLSearchParams("city=" + city + "&radiusKm=20&propertyType=Appartement");
+    for (const explicit of [manual, explicitUrl]) {
+      const active = { ...buildConciergeSearchFilters(explicit), city: "", radiusKm: null, availableOnly: false };
+      assert.equal(applyConciergeSearchFilters([profile], active).length, 0);
+      assert.equal(applyConciergeSearchFilters([{ ...profile, property_types: ["Appartement"] }], active).length, 1);
+    }
+  }
 });

@@ -32,6 +32,8 @@ import {
   PLANETLS_SERVICE_FAMILIES,
   type PlanetLSServiceFamily,
 } from "@/app/lib/planetlsServiceCatalogTarget";
+import { resolvePlanetLSSelection } from "@/app/lib/planetlsServiceSelection";
+import { PlanetLSServicePicker } from "@/components/ui/PlanetLSServicePicker/PlanetLSServicePicker";
 import {
   buildOwnerConciergeSearchDefaults,
   EMPTY_OWNER_ONBOARDING_V1,
@@ -112,7 +114,7 @@ const NEED_DESCRIPTIONS: Record<PlanetLSServiceFamily, string> = {
   maintenance_repair: "Entretien courant et dépannages du logement.",
   renovation_works: "Travaux d'aménagement et rénovation.",
   outdoor_equipment: "Extérieurs, équipements et espaces de loisirs.",
-  photography_visual: "Photos et mise en valeur de votre logement.",
+  photography_visual: "Photographie, décoration et mise en valeur de votre logement.",
   communication_marketing: "Visibilité et communication de votre annonce.",
   management_complementary: "Gestion et services utiles à votre activité locative.",
 };
@@ -124,6 +126,13 @@ const NEED_OPTIONS: Array<Option<PlanetLSServiceFamily>> = PLANETLS_SERVICE_FAMI
     description: NEED_DESCRIPTIONS[family.slug],
   }),
 );
+const MIGRATED_NEED_VALUES = new Set<OwnerOnboardingNeed>([
+  "check_in",
+  "check_out",
+  "cleaning",
+  "linen",
+  "maintenance",
+]);
 
 const NEED_FAMILY_ICONS: Record<PlanetLSServiceFamily, typeof Home> = {
   cleaning_linen: Sparkles,
@@ -244,6 +253,8 @@ export default function OwnerPostSignupOnboarding({
   );
   const [managementMode, setManagementMode] = useState<OwnerOnboardingManagementMode | "">("");
   const [needs, setNeeds] = useState<OwnerOnboardingNeed[]>([]);
+  const [selectedServiceFamilies, setSelectedServiceFamilies] = useState<PlanetLSServiceFamily[]>([]);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [situation, setSituation] = useState<OwnerOnboardingSituation | "">("");
   const [helpFrequency, setHelpFrequency] = useState<OwnerOnboardingHelpFrequency | "">("");
   const [preferences, setPreferences] = useState<OwnerProfilePreferences | null>(null);
@@ -285,7 +296,15 @@ export default function OwnerPostSignupOnboarding({
 
         setPreferences(nextPreferences);
         setManagementMode(onboarding.managementMode ?? "");
-        setNeeds(onboarding.needs);
+        setNeeds(
+          onboarding.needs.filter(
+            (need) =>
+              !PLANETLS_SERVICE_FAMILIES.some((family) => family.slug === need) &&
+              !MIGRATED_NEED_VALUES.has(need),
+          ),
+        );
+        setSelectedServiceFamilies(onboarding.serviceFamilies);
+        setSelectedServices(onboarding.services);
         setSituation(onboarding.situation ?? "");
         setHelpFrequency(onboarding.helpFrequency ?? "");
         setSignupCity(
@@ -371,7 +390,13 @@ export default function OwnerPostSignupOnboarding({
       if (!situation) {
         throw new Error("Précisez où vous en êtes aujourd'hui pour continuer.");
       }
-      await persistOwnerOnboarding({ managementMode, needs, situation });
+      await persistOwnerOnboarding({
+        managementMode,
+        needs,
+        serviceFamilies: selectedServiceFamilies,
+        services: selectedServices,
+        situation,
+      });
       setStep("housing");
       setMessage("Votre projet est enregistré. Parlons maintenant de vos logements.");
     } catch (error) {
@@ -433,10 +458,15 @@ export default function OwnerPostSignupOnboarding({
     }
   };
 
-  const toggleNeed = (need: OwnerOnboardingNeed) => {
-    setNeeds((current) =>
-      current.includes(need) ? current.filter((item) => item !== need) : [...current, need],
-    );
+  const toggleServiceFamily = (family: PlanetLSServiceFamily) => {
+    if (selectedServiceFamilies.includes(family)) {
+      setSelectedServiceFamilies((current) => current.filter((item) => item !== family));
+      setSelectedServices((services) =>
+        services.filter((slug) => resolvePlanetLSSelection(slug)?.family !== family),
+      );
+      return;
+    }
+    setSelectedServiceFamilies((current) => [...current, family]);
   };
 
   const housingCompletion = buildOwnerHousingCompletion(housings);
@@ -452,6 +482,9 @@ export default function OwnerPostSignupOnboarding({
     if (searchDefaults.selectedServices.length > 0) {
       params.set("services", searchDefaults.selectedServices.join(","));
     }
+    if (searchDefaults.selectedServiceFamilies.length > 0) {
+      params.set("serviceFamilies", searchDefaults.selectedServiceFamilies.join(","));
+    }
     return params.toString();
   }, [preferences, signupCity]);
   const conciergeSearchHref = conciergeSearchParams
@@ -462,14 +495,24 @@ export default function OwnerPostSignupOnboarding({
     router.push(conciergeSearchHref);
   };
   const stepIndex = ONBOARDING_STEPS.indexOf(step === "complete" ? "housing" : step);
-  const selectedNeedItems = needs.map((need) => ({
-    value: need,
-    label: getOwnerOnboardingNeedLabel(need),
-    familyIcon: getNeedFamilyIcon(need),
-    legacyIcon: NEED_ICONS[need],
-  }));
+  const selectedNeedItems = [
+    ...selectedServiceFamilies.map((need) => ({
+      value: need,
+      label: getOwnerOnboardingNeedLabel(need),
+      familyIcon: getNeedFamilyIcon(need),
+      legacyIcon: undefined,
+    })),
+    ...needs.map((need) => ({
+      value: need,
+      label: getOwnerOnboardingNeedLabel(need),
+      familyIcon: getNeedFamilyIcon(need),
+      legacyIcon: NEED_ICONS[need],
+    })),
+  ];
   const legacyNeeds = needs.filter(
-    (need) => !PLANETLS_SERVICE_FAMILIES.some((family) => family.slug === need),
+    (need) =>
+      !PLANETLS_SERVICE_FAMILIES.some((family) => family.slug === need) &&
+      !MIGRATED_NEED_VALUES.has(need),
   );
 
   const renderProgress = () => (
@@ -532,7 +575,7 @@ export default function OwnerPostSignupOnboarding({
         </div>
         <div className={styles.needGrid}>
           {NEED_OPTIONS.map((option) => {
-            const selected = needs.includes(option.value);
+            const selected = selectedServiceFamilies.includes(option.value);
             const Icon = NEED_FAMILY_ICONS[option.value];
             return (
               <button
@@ -540,7 +583,7 @@ export default function OwnerPostSignupOnboarding({
                 type="button"
                 className={`${styles.needCard} ${selected ? styles.needCardSelected : ""}`}
                 aria-pressed={selected}
-                onClick={() => toggleNeed(option.value)}
+                onClick={() => toggleServiceFamily(option.value)}
               >
                 <span className={styles.needIcon} aria-hidden="true">
                   <Icon size={19} strokeWidth={2} />
@@ -556,6 +599,21 @@ export default function OwnerPostSignupOnboarding({
             );
           })}
         </div>
+        <div className={styles.sectionHeading}>
+          <p>Vous pouvez préciser les prestations maintenant ou les choisir plus tard dans la recherche.</p>
+        </div>
+        {selectedServiceFamilies.length > 0 ? (
+          <PlanetLSServicePicker
+            selected={selectedServices}
+            onChange={setSelectedServices}
+            availableFamilies={selectedServiceFamilies}
+            allowGroups={false}
+            collapseGuestCheckinCheckout
+            emptyMessage="Aucune prestation précise n’est disponible pour ces familles."
+          />
+        ) : (
+          <p>Sélectionnez une famille pour afficher ses prestations précises (facultatif).</p>
+        )}
         {legacyNeeds.length > 0 ? (
           <div className={styles.legacyNeeds} aria-label="Anciennes préférences conservées">
             <p>Ces anciens choix restent enregistrés jusqu'à ce que vous les retiriez :</p>
@@ -780,6 +838,14 @@ export default function OwnerPostSignupOnboarding({
                   {option.label}
                 </li>
               );
+            })}
+          </ul>
+        ) : null}
+        {selectedServices.length > 0 ? (
+          <ul className={styles.needChips} aria-label="Prestations précises sélectionnées">
+            {selectedServices.map((slug) => {
+              const service = resolvePlanetLSSelection(slug);
+              return service ? <li key={slug} className={styles.needChip}>{service.label}</li> : null;
             })}
           </ul>
         ) : null}

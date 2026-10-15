@@ -1,5 +1,6 @@
 "use client";
 
+import { isSearchPoint, type SearchPoint } from "@/features/owner-concierges/lib/geography";
 import { useEffect, useRef, useState } from "react";
 import type { ConciergeSearchPayload, ConciergeSearchRow, ServerOptions } from "./conciergeSearchTypes";
 import { buildOwnerConciergeSearchParams, type OwnerConciergeSearchFilters } from "./searchHelpers";
@@ -12,6 +13,7 @@ const emptyServerOptions: ServerOptions = {
 
 type UseOwnerConciergeSearchResult = {
   items: ConciergeSearchRow[];
+  center: SearchPoint | null;
   loading: boolean;
   error: string | null;
   warning: string | null;
@@ -24,6 +26,7 @@ type UseOwnerConciergeSearchResult = {
 export function useOwnerConciergeSearch(): UseOwnerConciergeSearchResult {
   const latestRequestRef = useRef(0);
   const searchAbortRef = useRef<AbortController | null>(null);
+  const [center, setCenter] = useState<SearchPoint | null>(null);
   const [items, setItems] = useState<ConciergeSearchRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,6 +62,7 @@ export function useOwnerConciergeSearch(): UseOwnerConciergeSearchResult {
 
       const nextItems = Array.isArray(payload?.items) ? payload.items : [];
       setItems(nextItems);
+      setCenter(isSearchPoint(payload.center) ? payload.center : null);
       setServerOptions({
         categories: Array.isArray(payload?.available_filters?.categories)
           ? payload.available_filters.categories
@@ -99,6 +103,7 @@ export function useOwnerConciergeSearch(): UseOwnerConciergeSearchResult {
     setError(null);
     setWarning(null);
     setItems([]);
+    setCenter(null);
     setServerOptions(emptyServerOptions);
   }
 
@@ -110,6 +115,7 @@ export function useOwnerConciergeSearch(): UseOwnerConciergeSearchResult {
 
   return {
     items,
+    center,
     loading,
     error,
     warning,

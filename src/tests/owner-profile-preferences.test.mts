@@ -119,7 +119,7 @@ test("owner request form defaults reuse saved profile preferences", () => {
   });
 });
 
-test("owner concierge search defaults reuse the saved property context", () => {
+test("owner concierge search does not activate the saved property context as a filter", () => {
   const preferences = getOwnerProfilePreferences(
     JSON.stringify({
       preferences: {
@@ -130,7 +130,8 @@ test("owner concierge search defaults reuse the saved property context", () => {
   );
 
   assert.deepEqual(buildOwnerConciergeSearchDefaults(preferences), {
-    propertyType: "Villa haut de gamme",
+    propertyType: "",
+    selectedServiceFamilies: [],
     selectedServices: [],
   });
 
@@ -141,7 +142,8 @@ test("owner concierge search defaults reuse the saved property context", () => {
       propertyTypes: ["Maison"],
     }),
     {
-      propertyType: "Maison",
+      propertyType: "",
+      selectedServiceFamilies: [],
       selectedServices: [],
     },
   );
@@ -158,12 +160,50 @@ test("canonical owner onboarding families persist unchanged and are not sent as 
   const preferences = getOwnerProfilePreferences(encoded);
 
   assert.deepEqual(preferences.ownerOnboardingV1?.needs, familySlugs);
-  assert.deepEqual(buildOwnerConciergeSearchDefaults(preferences).selectedServices, []);
+  assert.deepEqual(buildOwnerConciergeSearchDefaults(preferences), {
+    propertyType: "",
+    selectedServiceFamilies: familySlugs,
+    selectedServices: [],
+  });
 
   const stored = JSON.parse(encoded) as {
     preferences: { ownerOnboardingV1: { needs: string[] } };
   };
   assert.deepEqual(stored.preferences.ownerOnboardingV1.needs, familySlugs);
+});
+
+test("canonical owner onboarding stores selected families and individual services separately", () => {
+  const encoded = mergeOwnerPreferencesIntoAvailabilityHours(null, {
+    ownerOnboardingV1: {
+      serviceFamilies: ["guest_concierge", "cleaning_linen"],
+      services: ["guest_checkin", "linen_change", "maintenance_minor_repairs"],
+    },
+  });
+  const preferences = getOwnerProfilePreferences(encoded);
+  const defaults = buildOwnerConciergeSearchDefaults(preferences);
+
+  assert.deepEqual(defaults.selectedServiceFamilies, ["guest_concierge", "cleaning_linen"]);
+  assert.deepEqual(defaults.selectedServices, ["guest_checkin", "linen_change"]);
+  assert.deepEqual(buildOwnerConciergeSearchDefaults(getOwnerProfilePreferences(encoded)), defaults);
+
+  const stored = JSON.parse(encoded) as {
+    preferences: {
+      ownerOnboardingV1: {
+        needs: string[];
+        serviceFamilies: string[];
+        services: string[];
+      };
+    };
+  };
+  assert.deepEqual(stored.preferences.ownerOnboardingV1.needs, []);
+  assert.deepEqual(stored.preferences.ownerOnboardingV1.serviceFamilies, [
+    "guest_concierge",
+    "cleaning_linen",
+  ]);
+  assert.deepEqual(stored.preferences.ownerOnboardingV1.services, [
+    "guest_checkin",
+    "linen_change",
+  ]);
 });
 
 test("legacy precise onboarding needs map to canonical service labels for search", () => {
@@ -177,19 +217,19 @@ test("legacy precise onboarding needs map to canonical service labels for search
     }),
   );
 
-  assert.deepEqual(buildOwnerConciergeSearchDefaults(preferences).selectedServices, [
-    "Check-in",
-    "Check-out",
-    "Ménage du logement",
-    "Changement de linge",
-    "Petites réparations",
-  ]);
+  assert.deepEqual(buildOwnerConciergeSearchDefaults(preferences), {
+    propertyType: "",
+    selectedServiceFamilies: ["cleaning_linen", "maintenance_repair"],
+    selectedServices: ["guest_checkin", "guest_checkout", "cleaning_standard", "linen_change"],
+  });
 });
 
 test("owner onboarding v1 empty object stays stable", () => {
   assert.deepEqual(EMPTY_OWNER_ONBOARDING_V1, {
     managementMode: null,
     needs: [],
+    serviceFamilies: [],
+    services: [],
     situation: null,
     helpFrequency: null,
     requestOrg: null,
@@ -208,6 +248,8 @@ test("owner onboarding v1 is read and merged without touching legacy preferences
       ownerOnboardingV1: {
         managementMode: "supported",
         needs: ["cleaning", "linen"],
+        serviceFamilies: ["cleaning_linen"],
+        services: ["cleaning_standard", "linen_change"],
         situation: "already_renting",
         helpFrequency: "regular",
         requestOrg: "bookings",
@@ -221,6 +263,8 @@ test("owner onboarding v1 is read and merged without touching legacy preferences
   assert.deepEqual(parsed.ownerOnboardingV1, {
     managementMode: "supported",
     needs: ["cleaning", "linen"],
+    serviceFamilies: ["cleaning_linen"],
+    services: ["cleaning_standard", "linen_change"],
     situation: "already_renting",
     helpFrequency: "regular",
     requestOrg: "bookings",
@@ -244,6 +288,8 @@ test("owner onboarding v1 is read and merged without touching legacy preferences
   assert.deepEqual(nextPreferences.ownerOnboardingV1, {
     managementMode: "full_delegation",
     needs: ["check_in", "full_management"],
+    serviceFamilies: [],
+    services: ["guest_checkin"],
     situation: "already_renting",
     helpFrequency: "regular",
     requestOrg: "bookings",

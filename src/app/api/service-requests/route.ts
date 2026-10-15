@@ -3,6 +3,10 @@ import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { resolveRequestedServicesCatalog } from "@/app/api/_shared/requestedServicesCatalog";
 
 import { validatePlanetLSServiceRequest } from "@/app/lib/planetlsServiceRequestValidation";
+import {
+  getGuestCheckinCheckoutRequestMetadata,
+  normalizeGuestCheckinCheckoutMode,
+} from "@/app/lib/guestCheckinCheckout";
 import { validatePlanetLSServiceRequestUpdate } from "@/app/lib/planetlsServiceRequestUpdateValidation";
 import { validateStayServiceRequestContext } from "@/app/api/_shared/stayServiceRequestContext";
 import type { NeedKey } from "@/app/api/_shared/stayNeeds";
@@ -78,6 +82,9 @@ interface CreateServiceRequestBody {
   recipient_ids?: string[];
   reservation_id?: string | null;
   stay_need?: string | null;
+  service_modalities?: {
+    guest_checkin_checkout?: string;
+  };
 }
 
 const OWNER_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
@@ -97,6 +104,9 @@ const isUuidLike = (value: string): boolean =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     value,
   );
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const createServiceRequestSchema = z.object({
   housing_id: z
@@ -147,6 +157,13 @@ const createServiceRequestSchema = z.object({
   // from request_type). Requires reservation_id + stay_need validated server-side.
   reservation_id: z.string().uuid().optional().nullable(),
   stay_need: z.string().trim().max(40).optional().nullable(),
+  service_modalities: z
+    .object({
+      guest_checkin_checkout: z
+        .enum(["arrival_departure", "arrival_only", "departure_only"])
+        .optional(),
+    })
+    .optional(),
 });
 
 const updateServiceRequestSchema = createServiceRequestSchema.partial().extend({
@@ -1264,6 +1281,25 @@ export async function POST(req: NextRequest) {
       : "ponctuel";
 
     const requestedServices = normalizeStringArray(body.requested_services);
+    const inferredServiceModalities =
+      getGuestCheckinCheckoutRequestMetadata(requestedServices);
+    const declaredCheckinCheckoutMode = normalizeGuestCheckinCheckoutMode(
+      body.service_modalities?.guest_checkin_checkout,
+    );
+    if (
+      declaredCheckinCheckoutMode &&
+      inferredServiceModalities?.guest_checkin_checkout !==
+        declaredCheckinCheckoutMode
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "La modalité d’arrivée et de départ ne correspond pas aux prestations sélectionnées.",
+          code: "SERVICE_MODALITY_MISMATCH",
+        },
+        { status: 400 },
+      );
+    }
 
     const requestedServiceCatalogResolutions =
       resolveRequestedServicesCatalog(requestedServices);
@@ -1467,6 +1503,9 @@ export async function POST(req: NextRequest) {
             ? body.property_constraints.trim() || null
             : null,
         ...briefMetadata,
+        ...(inferredServiceModalities
+          ? { service_modalities: inferredServiceModalities }
+          : {}),
       },
     };
 
@@ -1796,6 +1835,22 @@ export async function PATCH(req: NextRequest) {
           },
           { status: 400 },
         );
+      }
+
+      if (Array.isArray(body.requested_services)) {
+        const existingMetadata = isRecord(existingRequest.metadata)
+          ? existingRequest.metadata
+          : {};
+        const serviceModalities = getGuestCheckinCheckoutRequestMetadata(
+          body.requested_services,
+        );
+        const nextMetadata = { ...existingMetadata };
+        if (serviceModalities) {
+          nextMetadata.service_modalities = serviceModalities;
+        } else {
+          delete nextMetadata.service_modalities;
+        }
+        updatePayload.metadata = nextMetadata;
       }
 
       if (catalogValidation.code === "UNKNOWN_SERVICE") {

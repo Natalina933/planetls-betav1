@@ -986,6 +986,36 @@
   gap: 0.5rem;
 }
 
+.requestModalityPicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 0;
+  padding: 0.7rem;
+  border: 1px solid var(--owner-line-soft);
+  border-radius: var(--ui-card-radius);
+}
+
+.requestModalityPicker legend {
+  padding: 0 0.3rem;
+  color: var(--owner-ink);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.requestModalityChoice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--owner-ink);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.requestModalityChoice input {
+  accent-color: var(--owner-available-text);
+}
+
 .requestServicePicker {
   display: grid;
   gap: 0.65rem;

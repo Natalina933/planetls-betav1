@@ -19,6 +19,7 @@ import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 import { Button, ButtonLink, Checkbox, Input, PlanetLSServicePicker, Select, Textarea } from "@/components/ui";
 import { normalizePlanetLSSelection, resolvePlanetLSSelection } from "@/app/lib/planetlsServiceSelection";
 import { resolvePlanetLSRequestServices } from "@/app/lib/planetlsServiceSearchResolution";
+import { getGuestCheckinCheckoutDisplaySelections } from "@/app/lib/guestCheckinCheckout";
 import styles from "./OwnerConciergeriesPage.module.scss";
 
 type SectionKey = "recherche" | "demandes" | "devis" | "partenaires";
@@ -604,6 +605,7 @@ export default function OwnerConciergeriesPage() {
                 <PlanetLSServicePicker
                   selected={normalizedServices}
                   onChange={(selected) => setForm((current) => ({ ...current, requestedServices: selected.join(", ") }))}
+                  collapseGuestCheckinCheckout
                 />
                 {normalizedServices.filter((slug) => !resolvePlanetLSSelection(slug)).length > 0 ? (
                   <p className={`${styles.message} ${styles.messageError}`} role="alert">
@@ -612,7 +614,7 @@ export default function OwnerConciergeriesPage() {
                 ) : null}
                 {normalizedServices.length > 0 ? (
                   <div className={styles.chipRow}>
-                    {normalizedServices.map((service) => <span key={service} className={styles.serviceChip}>{getPlanetLSServiceLabel(service)}</span>)}
+                    {getGuestCheckinCheckoutDisplaySelections(normalizedServices).map((service) => <span key={service} className={styles.serviceChip}>{getPlanetLSServiceLabel(service)}</span>)}
                   </div>
                 ) : null}
               </div>

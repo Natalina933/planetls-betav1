@@ -6,6 +6,17 @@ test("reconnaît un slug et son libellé", () => {
   assert.equal(matchPlanetLSService("guest_checkin", "Check-in"), "match");
 });
 
+test("un professionnel proposant le bundle correspond aux opérations conservées", () => {
+  assert.equal(
+    matchPlanetLSService("guest_checkin", "guest_checkin_checkout"),
+    "match",
+  );
+  assert.equal(
+    matchPlanetLSService("guest_checkout", "guest_checkin_checkout"),
+    "match",
+  );
+});
+
 test("deux slugs identiques correspondent à la même prestation", () => {
   assert.equal(
     matchPlanetLSService("cleaning_standard", "cleaning_standard"),
@@ -24,6 +35,27 @@ test("un libellé exact est résolu vers son slug", () => {
   assert.equal(
     matchPlanetLSService("Ménage du logement", "cleaning_standard"),
     "match",
+  );
+});
+
+test("un alias historique ne confirme pas la compétence d'un professionnel", () => {
+  assert.equal(
+    matchPlanetLSService(
+      "Décoration intérieure",
+      "interior_decoration_consulting",
+    ),
+    "match",
+  );
+  assert.equal(
+    matchPlanetLSService(
+      "interior_decoration_consulting",
+      "Décoration intérieure",
+    ),
+    "no_match",
+  );
+  assert.equal(
+    matchPlanetLSService("29", "interior_decoration_consulting"),
+    "no_match",
   );
 });
 
@@ -85,4 +117,3 @@ test("photographie et réseaux sociaux ne correspondent pas", () => {
     "no_match",
   );
 });
-

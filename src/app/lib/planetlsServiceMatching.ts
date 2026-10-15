@@ -1,6 +1,13 @@
 import { PLANETLS_SERVICE_TARGET } from "./planetlsServiceCatalogTarget.ts";
 import { normalizeCatalogText } from "./serviceCatalog.ts";
-import { resolvePlanetLSSelection } from "./planetlsServiceSelection.ts";
+import {
+  resolvePlanetLSHistoricalAlias,
+  resolvePlanetLSSelection,
+} from "./planetlsServiceSelection.ts";
+import {
+  GUEST_CHECKIN_CHECKOUT_BUNDLE,
+  getGuestCheckinCheckoutOperationalSlugs,
+} from "./guestCheckinCheckout.ts";
 
 export type PlanetLSServiceMatchResult = "match" | "review" | "no_match";
 
@@ -14,7 +21,10 @@ const LEGACY_SERVICE_ALIASES = new Map<string, string>([
   ["menage entre voyageurs", "cleaning_turnover"],
 ]);
 
-function resolveMatchValue(value: string): ResolvedMatchValue {
+function resolveMatchValue(
+  value: string,
+  allowHistoricalAliases = false,
+): ResolvedMatchValue {
   const raw = String(value ?? "").trim();
   const normalized = normalizeCatalogText(raw);
 
@@ -36,6 +46,13 @@ function resolveMatchValue(value: string): ResolvedMatchValue {
     return { kind: "service", slug: direct.slug };
   }
 
+  if (allowHistoricalAliases) {
+    const historicalAlias = resolvePlanetLSHistoricalAlias(raw);
+    if (historicalAlias) {
+      return { kind: "service", slug: historicalAlias.slug };
+    }
+  }
+
   const targetMatches = PLANETLS_SERVICE_TARGET.filter(
     (entry) => normalizeCatalogText(entry.label) === normalized,
   );
@@ -54,11 +71,16 @@ function resolveMatchValue(value: string): ResolvedMatchValue {
   return { kind: "unknown", normalized };
 }
 
+export function resolvePlanetLSServiceSlug(value: string): string | null {
+  const resolved = resolveMatchValue(value);
+  return resolved.kind === "service" ? resolved.slug : null;
+}
+
 export function matchPlanetLSService(
   requestedService: string,
   offeredService: string,
 ): PlanetLSServiceMatchResult {
-  const requested = resolveMatchValue(requestedService);
+  const requested = resolveMatchValue(requestedService, true);
   const offered = resolveMatchValue(offeredService);
 
   if (requested.kind === "review" || offered.kind === "review") {
@@ -70,14 +92,27 @@ export function matchPlanetLSService(
     const entry = PLANETLS_SERVICE_TARGET.find(
       (item) => item.slug === requested.slug,
     );
+    const offeredEntry = PLANETLS_SERVICE_TARGET.find(
+      (item) => item.slug === offered.slug,
+    );
 
     if (
       !entry ||
       entry.kind === "group" ||
-      PLANETLS_SERVICE_TARGET.find((item) => item.slug === offered.slug)
-        ?.kind === "group"
+      offeredEntry?.kind === "group"
     ) {
       return "review";
+    }
+
+    if (requested.slug === GUEST_CHECKIN_CHECKOUT_BUNDLE) {
+      return offered.slug === GUEST_CHECKIN_CHECKOUT_BUNDLE
+        ? "match"
+        : "review";
+    }
+    if (offered.slug === GUEST_CHECKIN_CHECKOUT_BUNDLE) {
+      return getGuestCheckinCheckoutOperationalSlugs().includes(requested.slug)
+        ? "match"
+        : "no_match";
     }
 
     return requested.slug === offered.slug ? "match" : "no_match";

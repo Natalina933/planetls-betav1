@@ -35,7 +35,7 @@ test("fiche privée concierge : informations réelles, responsive, contexte et �
   await expect(page.getByRole("heading", { name: "Les prestations proposées" })).toBeVisible();
   await expect(page.getByText("Concierge PRO", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Contacter", exact: true })).toHaveAttribute("href", "/login");
-  await expect(page.getByRole("link", { name: "Retour aux résultats" })).toHaveAttribute("href", returnTo);
+  await expect(page.getByRole("link", { name: "Retour aux profils" })).toHaveAttribute("href", returnTo);
   await expect(page.getByRole("link", { name: "Site web" })).toHaveAttribute("href", "https://example.test");
   await page.screenshot({ path: "test-results/owner-concierge-profile/desktop.png", fullPage: true });
   for (const width of [1024, 390]) {

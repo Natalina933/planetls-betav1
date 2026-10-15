@@ -4,7 +4,7 @@ export const PLANETLS_SERVICE_FAMILIES = [
   { slug: "maintenance_repair", label: "Maintenance et dépannage" },
   { slug: "renovation_works", label: "Travaux et rénovation" },
   { slug: "outdoor_equipment", label: "Extérieurs et équipements" },
-  { slug: "photography_visual", label: "Photographie et valorisation" },
+  { slug: "photography_visual", label: "Photographie et décoration" },
   { slug: "communication_marketing", label: "Communication et marketing" },
   {
     slug: "management_complementary",
@@ -23,6 +23,7 @@ export type PlanetLSServiceTargetEntry = {
   family: PlanetLSServiceFamily;
   kind: PlanetLSServiceEntryKind;
   legacyId?: number;
+  historicalAliases?: readonly string[];
 };
 
 export const PLANETLS_SERVICE_TARGET: PlanetLSServiceTargetEntry[] = [
@@ -71,6 +72,12 @@ export const PLANETLS_SERVICE_TARGET: PlanetLSServiceTargetEntry[] = [
   },
 
   // 2. Conciergerie et voyageurs
+  {
+    slug: "guest_checkin_checkout",
+    label: "Check-in & Check-out",
+    family: "guest_concierge",
+    kind: "service",
+  },
   {
     slug: "guest_checkin",
     label: "Check-in",
@@ -265,7 +272,7 @@ export const PLANETLS_SERVICE_TARGET: PlanetLSServiceTargetEntry[] = [
     kind: "service",
   },
 
-  // 6. Photographie et valorisation
+  // 6. Photographie et décoration
   {
     slug: "real_estate_photography",
     label: "Photographie immobilière",
@@ -300,6 +307,31 @@ export const PLANETLS_SERVICE_TARGET: PlanetLSServiceTargetEntry[] = [
   {
     slug: "visual_enhancement",
     label: "Retouche et valorisation visuelle",
+    family: "photography_visual",
+    kind: "service",
+  },
+  {
+    slug: "interior_decoration_consulting",
+    label: "Conseil en décoration intérieure",
+    family: "photography_visual",
+    kind: "service",
+    historicalAliases: ["Décoration intérieure"],
+  },
+  {
+    slug: "home_staging",
+    label: "Home staging",
+    family: "photography_visual",
+    kind: "service",
+  },
+  {
+    slug: "space_planning_decoration",
+    label: "Aménagement et décoration",
+    family: "photography_visual",
+    kind: "service",
+  },
+  {
+    slug: "seasonal_decoration",
+    label: "Décoration saisonnière",
     family: "photography_visual",
     kind: "service",
   },

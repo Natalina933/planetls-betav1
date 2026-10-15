@@ -2,6 +2,7 @@ import {
   normalizePlanetLSSelection,
   resolvePlanetLSSelection,
 } from "./planetlsServiceSelection.ts";
+import { GUEST_CHECKIN_CHECKOUT_BUNDLE } from "./guestCheckinCheckout.ts";
 
 export type PlanetLSRequestValidationCode =
   | "SERVICE_REQUIRED"
@@ -28,7 +29,9 @@ export function validatePlanetLSServiceRequest(
 ): PlanetLSRequestValidation {
   const services = normalizePlanetLSSelection(requestedServices);
   const unknownSlugs = services.filter(
-    (slug) => !resolvePlanetLSSelection(slug),
+    (slug) =>
+      slug === GUEST_CHECKIN_CHECKOUT_BUNDLE ||
+      !resolvePlanetLSSelection(slug),
   );
   const recognizedSlugs = services.filter((slug) =>
     Boolean(resolvePlanetLSSelection(slug)),
@@ -86,4 +89,3 @@ export function validatePlanetLSServiceRequest(
     reviewSlugs: [],
   };
 }
-

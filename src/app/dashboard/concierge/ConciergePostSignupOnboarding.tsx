@@ -11,6 +11,9 @@ import {
 } from "./profile/profileMissionPricing";
 import { formatExperienceLabel } from "./profile/profilePageConstants";
 import type { ConciergeServiceMode } from "@/types/conciergeServiceMode";
+import { PlanetLSServicePicker } from "@/components/ui/PlanetLSServicePicker/PlanetLSServicePicker";
+import { PLANETLS_SERVICE_TARGET } from "@/app/lib/planetlsServiceCatalogTarget";
+import { resolvePlanetLSServiceSlug } from "@/app/lib/planetlsServiceMatching";
 import styles from "./ConciergePostSignupOnboarding.module.scss";
 
 export type ConciergeOnboardingStep = "welcome" | "activity" | "services" | "organization" | "complete";
@@ -93,33 +96,6 @@ const SERVICE_MODE_OPTIONS: Array<{ value: ConciergeServiceMode; label: string; 
   },
 ];
 
-const SERVICE_FAMILIES = [
-  {
-    title: "Accueil et départ",
-    services: ["Check-in / accueil voyageurs", "Check-out / contrôle de sortie"],
-  },
-  {
-    title: "Ménage",
-    services: ["Ménage entre deux séjours", "Ménage ponctuel", "Grand ménage / remise en état", "Contrôle du ménage"],
-  },
-  {
-    title: "Linge",
-    services: ["Linge et blanchisserie", "Préparation des lits"],
-  },
-  {
-    title: "Intendance",
-    services: ["Intendance / contrôle du logement", "Réassort / petites courses"],
-  },
-  {
-    title: "Maintenance",
-    services: [
-      "Maintenance légère",
-      "Gestion / signalement des incidents",
-      "Réception / coordination d'un artisan",
-    ],
-  },
-];
-
 const FULL_MANAGEMENT_GROUPS = [
   {
     title: "Gestion",
@@ -136,8 +112,6 @@ const FULL_MANAGEMENT_GROUPS = [
     services: ["Check-in", "Check-out", "Ménage", "Linge", "Intendance", "Maintenance"],
   },
 ];
-
-const A_LA_CARTE_SERVICE_LABELS = new Set(SERVICE_FAMILIES.flatMap((family) => family.services));
 
 const ORGANIZATION_CONDITIONS: Array<{ value: OrganizationCondition; label: string }> = [
   { value: "weekend", label: "Week-end" },
@@ -262,8 +236,18 @@ export default function ConciergePostSignupOnboarding({
           highSeason: missionPayload.missionProfile.specialConditions.acceptHighSeasonInterventions,
         });
         setSelectedServices(
-          missionPayload.missionProfile.missions.filter((mission) => mission.isActive && A_LA_CARTE_SERVICE_LABELS.has(mission.label))
-            .map((mission) => mission.label),
+          Array.from(
+            new Set(
+              missionPayload.missionProfile.missions
+                .filter((mission) => mission.isActive)
+                .map(
+                  (mission) =>
+                    resolvePlanetLSServiceSlug(mission.id) ??
+                    resolvePlanetLSServiceSlug(mission.label),
+                )
+                .filter((slug): slug is string => slug !== null),
+            ),
+          ),
         );
         const profileServiceMode = parseServiceMode(profile.service_mode);
         setServiceMode(profileServiceMode);
@@ -325,12 +309,6 @@ export default function ConciergePostSignupOnboarding({
     }
   };
 
-  const toggleService = (label: string) => {
-    setSelectedServices((current) =>
-      current.includes(label) ? current.filter((item) => item !== label) : [...current, label],
-    );
-  };
-
   const toggleOrganizationCondition = (condition: OrganizationCondition) => {
     setOrganizationConditions((current) => ({
       ...current,
@@ -351,7 +329,45 @@ export default function ConciergePostSignupOnboarding({
       let nextAvailabilityHours = availabilityHours;
       if (serviceMode === "a_la_carte" || serviceMode === "both") {
         const parsed = parseMissionPayload(availabilityHours);
-        const missionProfile = buildMissionProfileFromSelection(parsed, selectedServices, toMissionTypeId);
+        const selectedServiceLabels = selectedServices
+          .map((slug) =>
+            PLANETLS_SERVICE_TARGET.find((service) => service.slug === slug),
+          )
+          .flatMap((service) =>
+            service?.kind === "service" ? [service.label] : [],
+          );
+        const selectedServiceSlugs = new Set(selectedServices);
+        const existingMissionsById = new Map(
+          parsed.missionProfile.missions.map((mission) => [mission.id, mission]),
+        );
+        const builtMissionProfile = buildMissionProfileFromSelection(
+          parsed,
+          selectedServiceLabels,
+          toMissionTypeId,
+        );
+        const missionProfile = {
+          ...builtMissionProfile,
+          missions: builtMissionProfile.missions.map((mission) => {
+            const serviceSlug =
+              resolvePlanetLSServiceSlug(mission.id) ??
+              resolvePlanetLSServiceSlug(mission.label);
+            if (!serviceSlug) {
+              const existingMission = existingMissionsById.get(mission.id);
+              return existingMission
+                ? { ...mission, isActive: existingMission.isActive }
+                : mission;
+            }
+            const service = PLANETLS_SERVICE_TARGET.find(
+              (entry) => entry.slug === serviceSlug,
+            );
+            return {
+              ...mission,
+              id: serviceSlug,
+              label: service?.label ?? mission.label,
+              isActive: selectedServiceSlugs.has(serviceSlug),
+            };
+          }),
+        };
         const legacy = buildLegacyFromMissionProfile(missionProfile);
         nextAvailabilityHours = JSON.stringify({
           ...parseAvailabilityPayloadRaw(availabilityHours),
@@ -626,29 +642,12 @@ export default function ConciergePostSignupOnboarding({
         <h3>Quels services proposez-vous ?</h3>
         <p>Sélectionnez librement les prestations que vous souhaitez réaliser.</p>
       </div>
-      <div className={styles.serviceFamilies}>
-        {SERVICE_FAMILIES.map((family) => (
-          <div key={family.title} className={styles.serviceFamily}>
-            <h4>{family.title}</h4>
-            <div className={styles.serviceOptions}>
-              {family.services.map((service) => {
-                const selected = selectedServices.includes(service);
-                return (
-                  <button
-                    key={service}
-                    type="button"
-                    className={`${styles.serviceOption} ${selected ? styles.serviceOptionSelected : ""}`}
-                    aria-pressed={selected}
-                    onClick={() => toggleService(service)}
-                  >
-                    {service}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
+      <PlanetLSServicePicker
+        selected={selectedServices}
+        onChange={setSelectedServices}
+        allowGroups={false}
+        collapseGuestCheckinCheckout
+      />
     </section>
   );
 
@@ -813,7 +812,19 @@ export default function ConciergePostSignupOnboarding({
           <h3>Services</h3>
           <ul>
             {serviceModeLabel ? <li>{serviceModeLabel}</li> : null}
-            {selectedServices.length > 0 ? <li>{selectedServices.slice(0, 3).join(" · ")}</li> : null}
+            {selectedServices.length > 0 ? (
+              <li>
+                {selectedServices
+                  .slice(0, 3)
+                  .map(
+                    (slug) =>
+                      PLANETLS_SERVICE_TARGET.find(
+                        (service) => service.slug === slug,
+                      )?.label ?? slug,
+                  )
+                  .join(" · ")}
+              </li>
+            ) : null}
             {selectedServices.length > 3 ? <li>+{selectedServices.length - 3} autre(s) prestation(s)</li> : null}
             {!serviceModeLabel && selectedServices.length === 0 ? <li>Non renseigné</li> : null}
           </ul>

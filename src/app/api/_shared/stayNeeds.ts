@@ -58,6 +58,13 @@ export function getStayNeedServiceSlug(need: NeedKey) {
   return STAY_NEED_SERVICE_SLUGS[need];
 }
 
+export function getStayNeedForServiceSlug(value: string): NeedKey | null {
+  const match = Object.entries(STAY_NEED_SERVICE_SLUGS).find(
+    ([, slug]) => slug === value,
+  );
+  return match ? (match[0] as NeedKey) : null;
+}
+
 export function resolveStayNeedCatalogService(value: unknown): StayNeedCatalogResolution {
   const need = normalizeStayNeed(value);
   if (!need) return { kind: "unknown", value };

@@ -35,3 +35,30 @@ export function ownerSearchReturnPath(value: string | null | undefined) {
     return `${fallback}${url.search}`;
   } catch { return fallback; }
 }
+
+
+export function groupProfilesAtCoordinates<T extends SearchPoint & { id: string }>(profiles: readonly T[]) {
+  const groups = new Map<string, { key: string; latitude: number; longitude: number; profiles: T[] }>();
+  for (const profile of profiles) {
+    if (!isSearchPoint(profile)) continue;
+    const key = profile.latitude + "," + profile.longitude;
+    const group = groups.get(key) ?? { key, latitude: profile.latitude, longitude: profile.longitude, profiles: [] };
+    group.profiles.push(profile);
+    groups.set(key, group);
+  }
+  return [...groups.values()];
+}
+
+export function resolveSearchMapCenter(apiCenter: unknown, profiles: readonly SearchPoint[]): SearchPoint | null {
+  if (isSearchPoint(apiCenter)) return apiCenter;
+  return profiles.find(isSearchPoint) ?? null;
+}
+
+export function searchRadiusMeters(radiusKm: number): number {
+  return Number.isFinite(radiusKm) && radiusKm > 0 ? radiusKm * 1000 : 20000;
+}
+
+export function publicConciergeReturnPath(value?: string | null, role?: string | null) {
+  if (value) return ownerSearchReturnPath(value);
+  return role === "owner" || role === "owner_pro" ? ownerSearchReturnPath(null) : "/map-list?filter=concierge";
+}

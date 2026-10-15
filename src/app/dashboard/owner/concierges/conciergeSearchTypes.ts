@@ -28,6 +28,7 @@ export type ConciergeSearchRow = {
 };
 
 export type ConciergeSearchPayload = {
+  center?: { latitude: number; longitude: number };
   items: ConciergeSearchRow[];
   warning?: string | null;
   available_filters?: {

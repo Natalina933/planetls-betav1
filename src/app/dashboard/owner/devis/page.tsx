@@ -20,6 +20,12 @@ import { TableFilters } from "@/components/ui/TableFilters";
 import { Alert } from "@/components/ui/Alert";
 import { AsyncState } from "@/components/ui/AsyncState";
 import styles from "./OwnerQuotesPage.module.scss";
+import {
+  GUEST_CHECKIN_CHECKOUT_BUNDLE,
+  getGuestCheckinCheckoutDisplaySelections,
+  getGuestCheckinCheckoutSummaryLabel,
+} from "@/app/lib/guestCheckinCheckout";
+import { PLANETLS_SERVICE_TARGET } from "@/app/lib/planetlsServiceCatalogTarget";
 
 type QuotePerson = {
   id: string;
@@ -80,6 +86,7 @@ type OwnerServiceRequestRow = {
   budget_max?: number | null;
   currency?: string | null;
   requested_services?: string[] | null;
+  metadata?: Record<string, unknown> | null;
   status?: string | null;
   workflow_status?: string | null;
   mission_id?: string | null;
@@ -139,6 +146,19 @@ function formatDateTime(value: string | null | undefined) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
+}
+
+function getRequestServiceLabels(request: OwnerServiceRequestRow) {
+  const services = request.requested_services ?? [];
+  return getGuestCheckinCheckoutDisplaySelections(services).map((slug) =>
+    slug === GUEST_CHECKIN_CHECKOUT_BUNDLE
+      ? getGuestCheckinCheckoutSummaryLabel({
+          services,
+          metadata: request.metadata,
+        }) ?? "Check-in & Check-out"
+      : PLANETLS_SERVICE_TARGET.find((entry) => entry.slug === slug)?.label ??
+        slug,
+  );
 }
 
 function formatAmount(value: number | null | undefined, currency = "EUR") {
@@ -758,7 +778,7 @@ function OwnerQuotesContent() {
                           value: group.request.property_name || "Logement à préciser",
                         },
                       ]}
-                      services={group.request.requested_services ?? []}
+                      services={getRequestServiceLabels(group.request)}
                       emptyServicesLabel="Services à préciser"
                       description={group.request.description}
                     />

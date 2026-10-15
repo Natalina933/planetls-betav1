@@ -47,6 +47,14 @@ class MockQuery {
     return this;
   }
 
+  contains(column: string, value: Record<string, unknown>) {
+    this.filters[column] = {
+      ...(this.filters[column] as Record<string, unknown> | undefined),
+      ...value,
+    };
+    return this;
+  }
+
   limit(_count: number) {
     return this;
   }
@@ -61,7 +69,7 @@ class MockQuery {
 
   async single(): Promise<DbResult<unknown>> {
     if (this.operation === "insert" && this.table === "missions") {
-      return { data: this.db.mission, error: null };
+      return { data: this.db.insertMission(this.payload), error: null };
     }
     if (this.operation === "insert" && this.table === "invoices") {
       return { data: this.db.invoice, error: null };
@@ -88,7 +96,22 @@ class MockQuery {
   private resolveSingle() {
     if (this.table === "quotes") return this.db.quote;
     if (this.table === "service_requests") return this.db.serviceRequest;
-    if (this.table === "missions") return null;
+    if (this.table === "reservations") return this.db.reservation;
+    if (this.table === "missions") {
+      const metadataFilter = this.filters.metadata as
+        | Record<string, unknown>
+        | undefined;
+      if (!metadataFilter) return null;
+      return (
+        this.db.missions.find((mission) =>
+          Object.entries(metadataFilter).every(
+            ([key, value]) =>
+              (mission.metadata as Record<string, unknown> | undefined)?.[key] ===
+              value,
+          ),
+        ) ?? null
+      );
+    }
     return null;
   }
 }
@@ -121,7 +144,9 @@ class MockSupabase {
     currency: "EUR",
     urgency: false,
     owner_profile_id: "owner-1",
-    metadata: { selected_quote_id: "quote-1" },
+    requested_services: [] as string[],
+    reservation_id: null as string | null,
+    metadata: { selected_quote_id: "quote-1" } as Record<string, unknown>,
   };
 
   readonly mission = {
@@ -130,6 +155,7 @@ class MockSupabase {
     status: "to_schedule",
     scheduled_start: null,
   };
+  reservation: Record<string, unknown> | null = null;
 
   readonly invoice = { id: "invoice-1" };
   readonly quoteItems = [
@@ -148,13 +174,30 @@ class MockSupabase {
 
   readonly inserts: Array<{ table: string; payload: unknown }> = [];
   readonly updates: Array<{ table: string; payload: Record<string, unknown> }> = [];
+  readonly missions: Array<Record<string, unknown>> = [];
+
+  insertMission(payload: unknown) {
+    const input = payload as Record<string, unknown>;
+    const mission = {
+      id: `mission-${this.missions.length + 1}`,
+      title: input.title,
+      status: input.status,
+      scheduled_start: input.scheduled_start,
+      scheduled_end: input.scheduled_end,
+      reservation_id: input.reservation_id ?? null,
+      concierge_profile_id: input.concierge_profile_id,
+      metadata: input.metadata ?? null,
+    };
+    this.missions.push(mission);
+    return mission;
+  }
 
   from(table: string) {
     return new MockQuery(table, this);
   }
 }
 
-test("quote workflow covers draft, sent, accepted mission, draft invoice and typed events", async () => {
+test("quote workflow covers draft, sent, accepted mission, draft invoice and typed events", async (t) => {
   const db = new MockSupabase();
 
   const draftEvent = await recordWorkflowEvent(db as any, {
@@ -169,6 +212,123 @@ test("quote workflow covers draft, sent, accepted mission, draft invoice and typ
     serviceRequestStatus: "in_review",
     recipientStatus: "interested",
     quoteStatus: "draft",
+  });
+
+  await t.test("accepted grouped quote creates only the interventions selected by modality without duplicates", async () => {
+    const cases = [
+      {
+        mode: "arrival_departure",
+        services: ["guest_checkin", "guest_checkout"],
+        expectedNeeds: ["checkin", "checkout"],
+      },
+      {
+        mode: "arrival_only",
+        services: ["guest_checkin"],
+        expectedNeeds: ["checkin"],
+      },
+      {
+        mode: "departure_only",
+        services: ["guest_checkout"],
+        expectedNeeds: ["checkout"],
+      },
+    ] as const;
+
+    for (const scenario of cases) {
+      const db = new MockSupabase();
+      db.serviceRequest.requested_services = [...scenario.services];
+      db.serviceRequest.metadata = {
+        selected_quote_id: "quote-1",
+        service_modalities: {
+          guest_checkin_checkout: scenario.mode,
+        },
+      };
+
+      const first = await finalizeAcceptedQuoteWorkflow({
+        db: db as any,
+        quoteId: "quote-1",
+        actorProfileId: "owner-1",
+      });
+      const firstMissionCount = db.inserts.filter(
+        (entry) => entry.table === "missions",
+      ).length;
+      const second = await finalizeAcceptedQuoteWorkflow({
+        db: db as any,
+        quoteId: "quote-1",
+        actorProfileId: "owner-1",
+      });
+      const missionRows = db.inserts
+        .filter((entry) => entry.table === "missions")
+        .map((entry) => entry.payload as Record<string, unknown>);
+
+      assert.deepEqual(
+        missionRows.map((row) =>
+          (row.metadata as Record<string, unknown>).stay_need,
+        ),
+        scenario.expectedNeeds,
+      );
+      assert.equal(first.missions.length, scenario.expectedNeeds.length);
+      assert.equal(second.missions.length, scenario.expectedNeeds.length);
+      assert.equal(
+        db.inserts.filter((entry) => entry.table === "missions").length,
+        firstMissionCount,
+      );
+      assert.ok(
+        missionRows.every(
+          (row) => row.concierge_profile_id === "concierge-1",
+        ),
+      );
+      assert.equal(
+        new Set(
+          missionRows.map(
+            (row) =>
+              (row.metadata as Record<string, unknown>)
+                .guest_checkin_checkout_operation_key,
+          ),
+        ).size,
+        missionRows.length,
+      );
+    }
+  });
+
+  await t.test("grouped arrival and departure missions keep independent reservation schedules", async () => {
+    const db = new MockSupabase();
+    db.serviceRequest.requested_services = ["guest_checkin", "guest_checkout"];
+    db.serviceRequest.reservation_id = "reservation-1";
+    db.serviceRequest.metadata = {
+      selected_quote_id: "quote-1",
+      service_modalities: {
+        guest_checkin_checkout: "arrival_departure",
+      },
+    };
+    db.reservation = {
+      check_in_at: "2026-11-01T15:00:00.000Z",
+      check_out_at: "2026-11-07T10:00:00.000Z",
+    };
+
+    const result = await finalizeAcceptedQuoteWorkflow({
+      db: db as any,
+      quoteId: "quote-1",
+      actorProfileId: "owner-1",
+    });
+    const missions = db.inserts
+      .filter((entry) => entry.table === "missions")
+      .map((entry) => entry.payload as Record<string, unknown>);
+
+    assert.equal(result.missions.length, 2);
+    assert.deepEqual(
+      missions.map((mission) => mission.scheduled_start),
+      ["2026-11-01T15:00:00.000Z", "2026-11-07T10:00:00.000Z"],
+    );
+    assert.deepEqual(
+      missions.map((mission) => mission.scheduled_end),
+      ["2026-11-01T15:45:00.000Z", "2026-11-07T10:45:00.000Z"],
+    );
+    assert.notEqual(
+      (missions[0].metadata as Record<string, unknown>)
+        .guest_checkin_checkout_operation_key,
+      (missions[1].metadata as Record<string, unknown>)
+        .guest_checkin_checkout_operation_key,
+    );
   });
 
   const sentEvent = await recordWorkflowEvent(db as any, {

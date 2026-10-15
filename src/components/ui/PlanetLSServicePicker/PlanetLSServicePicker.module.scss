@@ -10,6 +10,36 @@
     linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 243, 238, 0.78));
 }
 
+.modalityPicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 1rem;
+  margin: 0;
+  padding: 0.7rem;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  border-radius: 8px;
+}
+
+.modalityPicker legend {
+  padding: 0 0.25rem;
+  color: #3b3126;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.modalityChoice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #3b3126;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.modalityChoice input {
+  accent-color: #1f7a45;
+}
+
 .familyRail {
   display: flex;
   flex-wrap: wrap;

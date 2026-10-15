@@ -1,6 +1,13 @@
 import { insertMissionWithOptionalMetadata } from "./missionInsert.ts";
 import { readStayContext } from "./stayServiceRequestContext.ts";
 import type { LooseSupabaseClient } from "./untypedSupabase.ts";
+import { getStayNeedForServiceSlug } from "./stayNeeds.ts";
+import {
+  getGuestCheckinCheckoutModeFromMetadata,
+  getGuestCheckinCheckoutModeLabel,
+  getGuestCheckinCheckoutOperationalSlugs,
+  GUEST_CHECKIN_CHECKOUT_BUNDLE,
+} from "../../lib/guestCheckinCheckout.ts";
 
 type DbClient = LooseSupabaseClient;
 
@@ -63,6 +70,7 @@ type ServiceRequestWorkflowRow = {
   mission_id?: string | null;
   reservation_id?: string | null;
   stay_need?: string | null;
+  requested_services?: string[] | null;
   metadata?: Record<string, unknown> | null;
 };
 
@@ -73,6 +81,15 @@ type MissionWorkflowRow = {
   scheduled_start?: string | null;
   reservation_id?: string | null;
   metadata?: unknown;
+};
+
+type MissionSet = {
+  mission: MissionWorkflowRow | null;
+  missions: MissionWorkflowRow[];
+};
+type ReservationOperationSchedule = {
+  check_in_at?: string | null;
+  check_out_at?: string | null;
 };
 
 const round2 = (value: number): number => Math.round(value * 100) / 100;
@@ -98,16 +115,19 @@ async function findOrCreateMission(input: {
   request: ServiceRequestWorkflowRow | null;
   serviceRequestId: string | null;
   serviceRequestRecipientId: string | null;
-}) {
+}): Promise<MissionSet | null> {
   const { db, quote, request, serviceRequestId, serviceRequestRecipientId } = input;
   const quoteMetadata = isRecord(quote.metadata) ? quote.metadata : {};
+  const checkinCheckoutMode = getGuestCheckinCheckoutModeFromMetadata(
+    request?.metadata,
+  );
   const metadataMissionId = getMetadataString(quoteMetadata, "mission_id");
   const selectedMissionId = request?.metadata && isRecord(request.metadata)
     ? getMetadataString(request.metadata, "selected_mission_id")
     : null;
   const existingMissionId = quote.mission_id || metadataMissionId || selectedMissionId;
 
-  if (existingMissionId) {
+  if (existingMissionId && !checkinCheckoutMode) {
     const { data: existingMission } = await db
       .from("missions")
       .select("id, title, status, scheduled_start")
@@ -115,7 +135,123 @@ async function findOrCreateMission(input: {
       .maybeSingle();
 
     const missionRow = existingMission as MissionWorkflowRow | null;
-    if (missionRow?.id) return missionRow;
+    if (missionRow?.id) return { mission: missionRow, missions: [missionRow] };
+  }
+
+  if (checkinCheckoutMode) {
+    if (!quote.concierge_profile_id) return null;
+    const groupKey = `${serviceRequestId ?? quote.id}:${quote.id}:guest_checkin_checkout`;
+    const reservationId = request?.reservation_id ?? null;
+    let reservationSchedule: ReservationOperationSchedule | null = null;
+
+    if (reservationId) {
+      const { data, error } = await db
+        .from("reservations")
+        .select("check_in_at, check_out_at")
+        .eq("id", reservationId)
+        .maybeSingle();
+      if (error) {
+        console.error("[acceptedQuoteWorkflow] reservation schedule lookup error:", error);
+        return null;
+      }
+      reservationSchedule = data as ReservationOperationSchedule | null;
+    }
+
+    const operations = getGuestCheckinCheckoutOperationalSlugs(
+      checkinCheckoutMode,
+    )
+      .map((slug) => ({ slug, need: getStayNeedForServiceSlug(slug) }))
+      .filter(
+        (operation): operation is { slug: string; need: "checkin" | "checkout" } =>
+          operation.need === "checkin" || operation.need === "checkout",
+      );
+    const missions: MissionWorkflowRow[] = [];
+    for (const operation of operations) {
+      const operationKey = `${groupKey}:${operation.need}`;
+      const { data: existing } = await db
+        .from("missions")
+        .select("id, title, status, scheduled_start, reservation_id, metadata")
+        .contains("metadata", {
+          guest_checkin_checkout_operation_key: operationKey,
+        })
+        .maybeSingle();
+      if (existing) {
+        missions.push(existing as MissionWorkflowRow);
+        continue;
+      }
+
+      const reservationStart =
+        operation.need === "checkin"
+          ? reservationSchedule?.check_in_at
+          : reservationSchedule?.check_out_at;
+      const scheduledStart = reservationStart ?? request?.desired_date ?? null;
+      const scheduledEnd = reservationStart
+        ? new Date(
+            new Date(reservationStart).getTime() + 45 * 60 * 1000,
+          ).toISOString()
+        : null;
+      const operationLabel =
+        operation.need === "checkin" ? "Arrivée" : "Départ";
+      const { data, error } =
+        await insertMissionWithOptionalMetadata<MissionWorkflowRow>(
+          db as Parameters<
+            typeof insertMissionWithOptionalMetadata<MissionWorkflowRow>
+          >[0],
+          {
+            concierge_profile_id: quote.concierge_profile_id,
+            owner_profile_id: quote.owner_profile_id ?? request?.owner_profile_id ?? null,
+            property_id: request?.property_id ?? null,
+            title: `${buildMissionTitle(request, quote)} — ${operation.need === "checkin" ? "Check-in" : "Check-out"}`,
+            description: request?.description ?? quote.notes ?? null,
+            status: reservationStart
+              ? "scheduled"
+              : request?.desired_date
+                ? "date_requested"
+                : "to_schedule",
+            priority: request?.urgency ? "urgent" : "normal",
+            amount: null,
+            currency: quote.currency ?? request?.currency ?? "EUR",
+            scheduled_start: scheduledStart,
+            scheduled_end: scheduledEnd,
+            metadata: {
+              source: "quote_acceptance",
+              quote_id: quote.id,
+              quote_number: quote.quote_number ?? null,
+              service_request_id: serviceRequestId,
+              service_request_recipient_id: serviceRequestRecipientId,
+              commercial_service: GUEST_CHECKIN_CHECKOUT_BUNDLE,
+              service_modalities: {
+                guest_checkin_checkout: checkinCheckoutMode,
+              },
+              service_modality_label:
+                getGuestCheckinCheckoutModeLabel(checkinCheckoutMode),
+              stay_need: operation.need,
+              contract_service_code:
+                operation.need === "checkin" ? "CHECK_IN" : "CHECK_OUT",
+              operational_service_slug: operation.slug,
+              guest_checkin_checkout_group_key: groupKey,
+              guest_checkin_checkout_operation_key: operationKey,
+              intervention_label: operationLabel,
+              assigned_profile_id: quote.concierge_profile_id,
+              planning_origin: reservationStart
+                ? "reservation_operation_date"
+                : request?.desired_date
+                  ? "service_request_desired_date"
+                  : "to_schedule",
+              ...(reservationId ? { reservation_id: reservationId } : {}),
+            },
+            ...(reservationId ? { reservation_id: reservationId } : {}),
+          },
+          "id, title, status, scheduled_start, reservation_id, metadata",
+          "id, title, status, scheduled_start, metadata",
+        );
+      if (error || !data) {
+        console.error("[acceptedQuoteWorkflow] operation mission create error:", error);
+        return null;
+      }
+      missions.push(data);
+    }
+    return { mission: missions[0] ?? null, missions };
   }
 
   // Explicit stay context ("demande ponctuelle de séjour"): reuse any mission
@@ -136,7 +272,9 @@ async function findOrCreateMission(input: {
         getMetadataString(missionMetadata, "quote_id") === quote.id
       );
     }) as MissionWorkflowRow | undefined;
-    if (existingStayMission?.id) return existingStayMission;
+    if (existingStayMission?.id) {
+      return { mission: existingStayMission, missions: [existingStayMission] };
+    }
   }
 
   if (!quote.concierge_profile_id) return null;
@@ -198,7 +336,7 @@ async function findOrCreateMission(input: {
     return null;
   }
 
-  return data;
+  return { mission: data, missions: [data] };
 }
 
 async function ensureDraftInvoice(input: {
@@ -302,7 +440,7 @@ export async function finalizeAcceptedQuoteWorkflow(input: QuoteWorkflowInput) {
 
   if (quoteError || !quote) {
     console.error("[acceptedQuoteWorkflow] quote lookup error:", quoteError);
-    return { mission: null, invoice: null };
+    return { mission: null, missions: [], invoice: null };
   }
 
   const quoteRow = quote as QuoteWorkflowQuote;
@@ -330,13 +468,15 @@ export async function finalizeAcceptedQuoteWorkflow(input: QuoteWorkflowInput) {
     throw new QuoteAwardError("Seul le devis retenu peut produire les effets de l’acceptation.");
   }
 
-  const mission = await findOrCreateMission({
+  const missionSet = await findOrCreateMission({
     db,
     quote: quoteRow,
     request,
     serviceRequestId,
     serviceRequestRecipientId,
   });
+  const mission = missionSet?.mission ?? null;
+  const missions = missionSet?.missions ?? (mission ? [mission] : []);
   const missionId = mission?.id ?? quoteRow.mission_id ?? null;
   const invoice = await ensureDraftInvoice({ db, quote: quoteRow, missionId });
 
@@ -355,6 +495,9 @@ export async function finalizeAcceptedQuoteWorkflow(input: QuoteWorkflowInput) {
             ...requestMetadata,
             selected_quote_id: quoteId,
             selected_mission_id: missionId,
+            ...(missions.length > 1
+              ? { selected_mission_ids: missions.map((item) => item.id) }
+              : {}),
             accepted_invoice_id: invoice?.id ?? requestMetadata.accepted_invoice_id ?? null,
             selected_at: getMetadataString(requestMetadata, "selected_at") ?? new Date().toISOString(),
           },
@@ -362,17 +505,28 @@ export async function finalizeAcceptedQuoteWorkflow(input: QuoteWorkflowInput) {
         .eq("id", serviceRequestId);
     }
 
-    await db.from("mission_events").insert({
-      mission_id: missionId,
-      actor_profile_id: actorProfileId,
-      event_type: "quote_accepted",
-      payload: {
-        quote_id: quoteId,
-        service_request_id: serviceRequestId,
-        invoice_id: invoice?.id ?? null,
-      },
-    });
+    for (const operationMission of missions) {
+      await db.from("mission_events").insert({
+        mission_id: operationMission.id,
+        actor_profile_id: actorProfileId,
+        event_type: "quote_accepted",
+        payload: {
+          quote_id: quoteId,
+          service_request_id: serviceRequestId,
+          invoice_id: invoice?.id ?? null,
+          intervention_group_key: getMetadataString(
+            isRecord(operationMission.metadata) ? operationMission.metadata : null,
+            "guest_checkin_checkout_group_key",
+          ),
+        },
+      });
+    }
   }
 
-  return { mission, invoice, stayScoped: Boolean(readStayContext(request)) };
+  return {
+    mission,
+    missions,
+    invoice,
+    stayScoped: Boolean(readStayContext(request)),
+  };
 }
