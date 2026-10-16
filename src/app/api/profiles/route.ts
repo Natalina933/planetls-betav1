@@ -48,6 +48,11 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Payload invalide" }, { status: 400 });
     }
 
+    // Match the dedicated admin route: an admin cannot promote themselves.
+    if (body.role === "super_admin" && role !== "super_admin") {
+      return NextResponse.json({ error: "Seul un super admin peut attribuer ce rôle." }, { status: 403 });
+    }
+
     const policy = getProfilePatchPolicy(role, isAdmin);
     const {
       ignoredFields,

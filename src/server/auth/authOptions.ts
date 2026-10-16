@@ -317,8 +317,8 @@ const providers: NextAuthConfig["providers"] = [
           return null;
         }
 
-        const role: UserRole =
-          resolveUserRole(profile.role, profile.category) ?? "owner";
+        const role = resolveUserRole(profile.role, profile.category);
+        if (!role) return null;
         const fullName =
           profile.first_name && profile.last_name
             ? `${profile.first_name} ${profile.last_name}`

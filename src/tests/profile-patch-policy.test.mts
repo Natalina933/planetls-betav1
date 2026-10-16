@@ -66,7 +66,7 @@ test("service_mode is blocked for roles without concierge service mode policy", 
 test("provider patch policy allows professional, compliance and operational fields", () => {
   const policy = getProfilePatchPolicy("artisan", false);
 
-  assert.equal(policy.stringFields.has("category"), true);
+  assert.equal(policy.stringFields.has("category"), false);
   assert.equal(policy.stringFields.has("service_area"), true);
   assert.equal(policy.stringFields.has("availability_hours"), true);
   assert.equal(policy.stringFields.has("insurance_number"), true);
@@ -89,6 +89,16 @@ test("admin patch policy keeps broad compatibility including role mutation", () 
   assert.equal(policy.allowRoleMutation, true);
   assert.equal(policy.allowOwnerPreferencesObject, false);
 });
+
+for (const role of ["owner", "owner_pro", "concierge", "concierge_pro", "provider", "provider_pro", "artisan", "artisan_pro"]) {
+  test(`${role}: mixed ordinary patch cannot change authorization attributes`, () => {
+    const policy = getProfilePatchPolicy(role, false);
+    const result = sanitizeProfilePatchBody({ first_name: "Élodie", role: "admin", status: "active", category: "admin" }, policy);
+    assert.equal(policy.allowRoleMutation, false);
+    assert.deepEqual(result.updateData, { first_name: "Élodie" });
+    assert.deepEqual([...result.ignoredFields].sort(), ["category", "role", "status"]);
+  });
+}
 
 test("profile patch numeric validator rejects negative business values but keeps avatar transforms", () => {
   assert.equal(isProfilePatchNumberValueAllowed("hourly_rate", -1), false);

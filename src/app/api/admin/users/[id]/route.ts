@@ -517,15 +517,16 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     }
 
     if (body.role !== undefined) {
-      if (typeof body.role !== "string" || !isUserRole(body.role)) {
+      const requestedRole = typeof body.role === "string" ? body.role.trim().toLowerCase() : null;
+      if (!isUserRole(requestedRole)) {
         return NextResponse.json({ error: "Rôle administrateur invalide." }, { status: 400 });
       }
 
-      if (body.role === "super_admin" && requesterRole !== "super_admin") {
+      if (requestedRole === "super_admin" && requesterRole !== "super_admin") {
         return NextResponse.json({ error: "Seul un super admin peut attribuer ce rôle." }, { status: 403 });
       }
 
-      updates.role = body.role;
+      updates.role = requestedRole;
     }
 
     if (body.onboardingComplete !== undefined) {

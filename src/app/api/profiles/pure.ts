@@ -89,7 +89,6 @@ const PROVIDER_STRING_FIELDS = [
   "siren",
   "vat_number",
   "location",
-  "category",
   "skills",
   "insurance_number",
   "insurance_company",
