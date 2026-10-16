@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { PLANETLS_SERVICE_TARGET } from "../app/lib/planetlsServiceCatalogTarget.ts";
+import { resolveConciergePricingLineCatalog } from "../app/dashboard/concierge/profile/profileMissionPricing.ts";
 import {
   buildCreatePricingModalState,
   buildMissionProgressSteps,
@@ -363,11 +365,14 @@ test("progress helpers compute mission and tariff readiness consistently", () =>
 });
 
 test("pricing catalog helpers build, filter and group rows consistently", () => {
+  const checkIn = PLANETLS_SERVICE_TARGET.find(entry => entry.slug === "guest_checkin");
+  const turnover = PLANETLS_SERVICE_TARGET.find(entry => entry.slug === "cleaning_turnover");
+  assert.ok(checkIn && turnover);
   const services = [
-    { id: 1, category: "Accueil", service: "Check-in" },
-    { id: 2, category: "Ménage", service: "Ménage" },
+    { id: 1, category: checkIn.family, service: checkIn.slug },
+    { id: 2, category: turnover.family, service: turnover.slug },
   ];
-  const prices = [{ id: "p1", service_id: 2, amount: 45 }];
+  const prices = [{ id: "p1", service_id: 2, label: turnover.slug, amount: 45 }];
 
   const priceMap = buildServicePriceMap(prices);
   assert.equal(priceMap.get(2)?.amount, 45);
@@ -375,10 +380,13 @@ test("pricing catalog helpers build, filter and group rows consistently", () => 
   const rows = buildPricingCatalogRows(services, priceMap, new Set([2]));
   assert.equal(rows[0]?.service.id, 2);
   assert.equal(rows[0]?.catalogResolution.pricing, rows[0]?.pricing);
-  assert.equal(rows[0]?.catalogResolution.catalog.kind, "service");
-  if (rows[0]?.catalogResolution.catalog.kind === "service") {
-    assert.equal(rows[0].catalogResolution.catalog.slug, "cleaning_turnover");
-  }
+  // A numeric association must not silently become a canonical service,
+  // even when its label happens to contain a current slug.
+  assert.equal(rows[0]?.catalogResolution.catalog.kind, "unknown");
+  assert.equal(rows[0]?.catalogResolution.identifier.source, "service_id");
+  const canonical = resolveConciergePricingLineCatalog({ service_id: null, label: turnover.slug, amount: 45 });
+  assert.equal(canonical.catalog.kind, "service");
+  if (canonical.catalog.kind === "service") assert.equal(canonical.catalog.slug, turnover.slug);
   assert.equal(countConfiguredPricingRows(rows), 1);
 
   const filtered = filterPricingCatalogRows(rows, false);
