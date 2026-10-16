@@ -12,6 +12,7 @@ import {
   FiTool,
 } from "react-icons/fi";
 import { useSession } from "next-auth/react";
+import { providerSkillsFormValue } from "@/app/lib/providerSkills";
 import conciergeStyles from "@/app/dashboard/concierge/profile/ConciergeProfilePage.module.scss";
 import {
   EditableProfileField,
@@ -100,7 +101,7 @@ const SECTION_FIELDS: Record<string, Array<keyof UnifiedProfileForm>> = {
   [SECTION_IDS.SOCIALS]: ["website", "linkedin", "facebook", "instagram"],
   [SECTION_IDS.PRESENTATION]: ["additional_info"],
   [SECTION_IDS.PROFESSIONAL]: [
-    "category", "skills", "service_area", "service_radius_km", "availability_hours",
+    "skills", "service_area", "service_radius_km", "availability_hours",
     "hourly_rate", "travel_fee", "years_experience", "experience_level",
     "legal_form", "siret", "insurance_company", "insurance_number",
     "certifications", "emergency_service",
@@ -226,7 +227,7 @@ export default function EditableUnifiedProfilePage({
           instagram: toFormValue(profile.instagram),
           additional_info: toFormValue(profile.additional_info),
           category: toFormValue(profile.category),
-          skills: toFormValue(profile.skills),
+          skills: providerSkillsFormValue(profile.option),
           service_area: toFormValue(profile.service_area),
           service_radius_km: profile.service_radius_km?.toString() ?? "",
           availability_hours: toFormValue(profile.availability_hours),
@@ -337,11 +338,13 @@ export default function EditableUnifiedProfilePage({
         ]);
         for (const field of SECTION_FIELDS[sectionId] ?? []) {
           const value = form[field];
+          // Keep historical declarations untouched when saving another field.
+          if (field === "skills" && value === initialForm.skills) continue;
           if (numericFields.has(field)) {
             const normalized = typeof value === "string" ? value.trim() : value;
             payload[field] = normalized === "" ? null : Number(normalized);
           } else {
-            payload[field] = typeof value === "string" ? value.trim() : value;
+            payload[field === "skills" ? "option" : field] = typeof value === "string" ? value.trim() : value;
           }
         }
       }
@@ -390,7 +393,7 @@ export default function EditableUnifiedProfilePage({
         instagram: toFormValue(result.instagram),
         additional_info: toFormValue(result.additional_info),
         category: toFormValue(result.category),
-        skills: toFormValue(result.skills),
+        skills: providerSkillsFormValue(result.option),
         service_area: toFormValue(result.service_area),
         service_radius_km: result.service_radius_km?.toString() ?? "",
         availability_hours: toFormValue(result.availability_hours),
@@ -524,7 +527,7 @@ export default function EditableUnifiedProfilePage({
   const profileCompletion = showProfessionalDetails
     ? buildCompletionState([
         { label: "Identité et coordonnées", complete: basicProfileCompletion.percentage === 100 },
-        { label: "Métier principal", complete: Boolean(form.category.trim()) },
+        { label: "Catégorie de compte", complete: Boolean(form.category.trim()) },
         { label: "Compétences/métiers", complete: Boolean(form.skills.trim()) },
         { label: "Zone d'intervention", complete: Boolean(form.service_area.trim()) },
         { label: "Rayon d'intervention", complete: Boolean(form.service_radius_km.trim()) },
@@ -641,8 +644,8 @@ export default function EditableUnifiedProfilePage({
         Décrivez précisément votre métier, votre capacité d'intervention et les preuves qui rassurent vos clients.
       </p>
       <div className={conciergeStyles.fieldsGrid}>
-        <EditableProfileField styles={conciergeStyles} label="Métier principal" name="category" value={form.category} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
-        <EditableProfileField styles={conciergeStyles} label="Compétences/métiers" name="skills" value={form.skills} isTextarea placeholder="Ex: Plomberie, Électricité, Menuiserie" isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Catégorie de compte" name="category" value={form.category} isEditing={false} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Prestations et compétences déclarées" name="skills" value={form.skills} isTextarea placeholder="Libellés ou slugs du référentiel actuel, séparés par des points-virgules" isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Zone couverte" name="service_area" value={form.service_area} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Rayon (km)" name="service_radius_km" value={form.service_radius_km} type="number" inputProps={{ min: 0 }} isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Disponibilités" name="availability_hours" value={form.availability_hours} isTextarea isEditing={editingSection === SECTION_IDS.PROFESSIONAL} onChange={handleChange} />
@@ -730,7 +733,7 @@ export default function EditableUnifiedProfilePage({
               {isOwnerProfile ? <p className={conciergeStyles.ownerSummaryLabel}>En bref</p> : null}
               <div className={conciergeStyles.publicProfileStats}>
                 {!isOwnerProfile ? <div>
-                  <span>{showProfessionalDetails ? "Métier" : "Statut"}</span>
+                  <span>{showProfessionalDetails ? "Catégorie de compte" : "Statut"}</span>
                   <strong>{showProfessionalDetails ? form.category || "Non renseigné" : roleLabel}</strong>
                 </div> : null}
                 <div>

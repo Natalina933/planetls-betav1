@@ -221,6 +221,42 @@ try {
       assert.equal(denied.status, 403);
     });
   }
+  await check("provider declarations persist in option, category stays protected, workspace reloads skills", async () => {
+    const person = people.find(person => person.role === "provider");
+    const cookie = await login(person);
+    const patch = body => http("/api/profiles", { method: "PATCH", headers: { cookie, Origin: app, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const response = await patch({ option: "plumbing_installation; plumbing_repair", category: "admin", skills: "nonexistent-column", hourly_rate: 65 });
+    assert.equal(response.status, 200);
+    const data = await response.json();
+    assert.equal(data.option, '["plumbing_installation","plumbing_repair"]');
+    assert.equal(data.category, "artisan"); assert.equal(data.hourly_rate, 65);
+    const workspace = await http("/api/provider/workspace", { headers: { cookie } });
+    assert.equal(workspace.status, 200);
+    assert.deepEqual((await workspace.json()).profile.skills, ["plumbing_installation", "plumbing_repair"]);
+    assert.equal((await patch({ option: "invented_service", hourly_rate: 999 })).status, 400);
+    const unchanged = await person.client.from("profiles").select("option,hourly_rate").eq("id", person.id).single();
+    assert.equal(unchanged.data.hourly_rate, 65);
+    assert.equal(unchanged.data.option, data.option);
+    assert.equal((await patch({ option: "" })).status, 200);
+    await login(person);
+  });
+  await check("dedicated provider profile route cannot change authorization and maps virtual skills", async () => {
+    const person = people.find(person => person.role === "provider");
+    const cookie = await login(person);
+    const patch = body => http("/api/provider/profile", { method: "PATCH", headers: { cookie, Origin: app, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const response = await patch({ skills: ["plumbing_repair"], category: "admin", role: "admin", status: "suspended" });
+    assert.equal(response.status, 200);
+    const { profile } = await response.json();
+    assert.equal(profile.category, "artisan"); assert.equal(profile.role, "provider"); assert.equal(profile.status, "active");
+    assert.deepEqual(profile.skills, ["plumbing_repair"]);
+    assert.equal(profile.option, '["plumbing_repair"]');
+    assert.equal((await patch({ category: "admin", role: "admin", status: "suspended" })).status, 400);
+    assert.equal((await patch({ skills: ["unknown"], hourly_rate: 999 })).status, 400);
+    assert.equal((await patch({ skills: [], option: "[]" })).status, 400);
+    const ownerCookie = await login(people.find(person => person.role === "owner"));
+    assert.equal((await http("/api/provider/profile", { method: "PATCH", headers: { cookie: ownerCookie, Origin: app, "Content-Type": "application/json" }, body: JSON.stringify({ skills: [] }) })).status, 403);
+    await login(person);
+  });
   for (const [category, role] of [["proprietaire", "owner"], ["concierge", "concierge"], ["artisan", "provider"]]) {
     await check(`${role}: HTTP registration + Auth.js login`, async () => {
       const person = { email: `${run}-signup-${role}@example.test`, password: `Local!${randomUUID()}`, role };
@@ -252,6 +288,11 @@ try {
     assert.equal((await patchAdmin(managers[0], people[1].id, { role: " SUPER_ADMIN " })).status, 403);
     const res = await http("/api/profiles", { method: "PATCH", headers: { cookie: managers[0].cookie, Origin: app, "Content-Type": "application/json" }, body: JSON.stringify({ role: "super_admin" }) });
     assert.equal(res.status, 403);
+    const padded = await http("/api/profiles", { method: "PATCH", headers: { cookie: managers[0].cookie, Origin: app, "Content-Type": "application/json" }, body: JSON.stringify({ role: " SUPER_ADMIN " }) });
+    assert.equal(padded.status, 403);
+    const invalid = await http("/api/profiles", { method: "PATCH", headers: { cookie: managers[0].cookie, Origin: app, "Content-Type": "application/json" }, body: JSON.stringify({ role: "unknown" }) });
+    assert.equal(invalid.status, 400);
+    await login(managers[0]);
   });
   await check("super admin operation preserved", async () => {
     assert.equal((await patchAdmin(managers[1], people[0].id, { role: "admin" })).status, 200);

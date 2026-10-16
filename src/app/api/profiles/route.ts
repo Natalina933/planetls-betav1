@@ -8,6 +8,7 @@ import {
 import { normalizeProfileLocationFields } from "../../lib/profileLocation.ts";
 import { fetchCurrentProfile } from "@/server/profiles/currentProfile";
 import { mergeOwnerPreferencesIntoAvailabilityHours } from "@/features/owner-preferences/profilePreferences";
+import { isProviderProfileRole, normalizeProviderSkills } from "../../lib/providerSkills.ts";
 
 const VALID_PROFILE_ROLES = new Set([
   "owner",
@@ -48,8 +49,9 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Payload invalide" }, { status: 400 });
     }
 
-    // Match the dedicated admin route: an admin cannot promote themselves.
-    if (body.role === "super_admin" && role !== "super_admin") {
+    // Normalize before authorization, just as in the dedicated admin route.
+    const requestedRole = typeof body.role === "string" ? body.role.trim().toLowerCase() : null;
+    if (requestedRole === "super_admin" && role !== "super_admin") {
       return NextResponse.json({ error: "Seul un super admin peut attribuer ce rôle." }, { status: 403 });
     }
 
@@ -61,6 +63,13 @@ export async function PATCH(req: NextRequest) {
       ownerPreferencesInput,
       updateData,
     } = sanitizeProfilePatchBody(body, policy);
+    if (isProviderProfileRole(role) && "option" in updateData) {
+      const selection = normalizeProviderSkills(updateData.option);
+      if (selection.invalid) {
+        return NextResponse.json({ error: "Choisissez des prestations ou groupes du référentiel actuel." }, { status: 400 });
+      }
+      updateData.option = JSON.stringify(selection.services);
+    }
     let onboardingWasComplete = false;
     let currentProfileForMerge:
       | {
@@ -85,12 +94,11 @@ export async function PATCH(req: NextRequest) {
       Object.assign(updateData, normalizeProfileLocationFields(updateData));
     }
 
-    if (
-      typeof body.role === "string" &&
-      policy.allowRoleMutation &&
-      VALID_PROFILE_ROLES.has(body.role)
-    ) {
-      updateData.role = body.role;
+    if (policy.allowRoleMutation && "role" in body) {
+      if (!requestedRole || !VALID_PROFILE_ROLES.has(requestedRole)) {
+        return NextResponse.json({ error: "Rôle invalide." }, { status: 400 });
+      }
+      updateData.role = requestedRole;
     }
 
     if (policy.allowExperienceLevel && body.experience_level !== undefined) {

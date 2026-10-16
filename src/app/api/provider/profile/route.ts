@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { PROVIDER_ROLES } from "@/app/api/provider/shared";
+import { normalizeProviderSkills, readProviderSkills } from "@/app/lib/providerSkills";
 
 // Liste des champs éditables pour un profil artisan/provider
 const PROFILE_EDITABLE_FIELDS = [
@@ -18,8 +19,7 @@ const PROFILE_EDITABLE_FIELDS = [
   "service_area",
   "service_radius_km",
   "availability_hours",
-  "category",
-  "skills",
+  "option",
   "experience_level",
   "years_experience",
   "hourly_rate",
@@ -46,7 +46,7 @@ const PROFILE_EDITABLE_FIELDS = [
   "additional_info",
 ] as const;
 
-type ProfileEditableField = typeof PROFILE_EDITABLE_FIELDS[number];
+type ProfileEditableField = typeof PROFILE_EDITABLE_FIELDS[number] | "category";
 
 // Champs requis pour le calcul de complétude
 const COMPLETENESS_REQUIRED_FIELDS: ProfileEditableField[] = [
@@ -56,7 +56,7 @@ const COMPLETENESS_REQUIRED_FIELDS: ProfileEditableField[] = [
   "city",
   "service_area",
   "category",
-  "skills",
+  "option",
   "experience_level",
 ];
 
@@ -85,7 +85,7 @@ function calculateProfileCompleteness(profile: Record<string, unknown>): {
   percentage: number;
 } {
   const requiredFilled = COMPLETENESS_REQUIRED_FIELDS.filter(
-    (field) => profile[field] !== null && profile[field] !== undefined && profile[field] !== ""
+    (field) => field === "option" ? readProviderSkills(profile.option).length > 0 : profile[field] !== null && profile[field] !== undefined && profile[field] !== ""
   ).length;
 
   const optionalFilled = COMPLETENESS_OPTIONAL_FIELDS.filter(
@@ -134,7 +134,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json(
     {
-      profile,
+      profile: { ...profile, skills: readProviderSkills(profile.option) },
       completeness,
       summary: {
         display_name:
@@ -166,7 +166,22 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json({ error: "Payload invalide" }, { status: 400 });
+    }
     const updates: Record<string, unknown> = {};
+
+    // Compatibility input only: never send a nonexistent skills column to SQL.
+    if ("skills" in body && "option" in body) {
+      return NextResponse.json({ error: "Fournissez une seule sélection de compétences." }, { status: 400 });
+    }
+    if ("skills" in body || "option" in body) {
+      const selection = normalizeProviderSkills("skills" in body ? body.skills : body.option);
+      if (selection.invalid) {
+        return NextResponse.json({ error: "Choisissez des prestations ou groupes du référentiel actuel." }, { status: 400 });
+      }
+      body.option = JSON.stringify(selection.services);
+    }
 
     // Filtrer uniquement les champs autorisés
     for (const field of PROFILE_EDITABLE_FIELDS) {
@@ -212,7 +227,7 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json(
       {
-        profile: updatedProfile,
+        profile: { ...updatedProfile, skills: readProviderSkills(updatedProfile.option) },
         completeness,
         message: "Profil mis à jour avec succès",
       },

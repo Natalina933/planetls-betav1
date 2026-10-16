@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { readProviderSkills } from "@/app/lib/providerSkills";
 
 const PROVIDER_ROLES = new Set(["provider", "provider_pro", "artisan", "artisan_pro"]);
 
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
 
   const { data: profile, error } = await db
     .from("profiles")
-    .select("id, first_name, last_name, username, email, phone, city, postal_code, company_name, website, availability_hours, service_area, service_radius_km, role, category")
+    .select("id, first_name, last_name, username, email, phone, city, postal_code, company_name, website, availability_hours, service_area, service_radius_km, role, category, option")
     .eq("id", userId)
     .maybeSingle();
 
@@ -32,7 +33,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json(
     {
-      profile,
+      profile: { ...profile, skills: readProviderSkills(profile.option) },
       summary: {
         display_name:
           `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() ||
