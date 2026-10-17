@@ -52,3 +52,6 @@ next-env.d.ts
 /debug.log
 /.kombai/
 /*.heapsnapshot
+
+# Supabase CLI local state
+/supabase/.temp/
