@@ -27,6 +27,8 @@ export type PlanetLSServicePickerProps = {
   availableFamilies?: readonly string[];
   allowGroups?: boolean;
   collapseGuestCheckinCheckout?: boolean;
+  compact?: boolean;
+  preferredFamily?: string;
   disabled?: boolean;
   emptyMessage?: string;
 };
@@ -72,6 +74,8 @@ export function PlanetLSServicePicker({
   availableFamilies,
   allowGroups = true,
   collapseGuestCheckinCheckout = false,
+  compact = false,
+  preferredFamily,
   disabled = false,
   emptyMessage = "Catalogue des prestations indisponible. Veuillez réessayer plus tard.",
 }: PlanetLSServicePickerProps) {
@@ -120,23 +124,20 @@ export function PlanetLSServicePicker({
   function changeCheckinCheckoutMode(mode: GuestCheckinCheckoutMode) {
     onChange(replaceGuestCheckinCheckoutServices(selected, mode));
   }
-  const [activeFamily, setActiveFamily] = useState<string | null>(
-    groups[0]?.slug ?? null,
-  );
+  const [activeFamily, setActiveFamily] = useState<string | null>(null);
 
   const activeGroup = useMemo<PlanetLSFamilyGroup | null>(
     () =>
-      groups.find((group) => group.slug === activeFamily) ?? groups[0] ?? null,
-    [activeFamily, groups],
+      groups.find((group) => group.slug === activeFamily) ??
+      groups.find((group) => group.slug === preferredFamily) ?? groups[0] ?? null,
+    [activeFamily, groups, preferredFamily],
   );
 
   if (groups.length === 0) {
     return <div className={styles.emptyState}>{emptyMessage}</div>;
   }
 
-  return (
-    <div className={styles.catalogArea}>
-      {collapseGuestCheckinCheckout &&
+  const modalityPicker = collapseGuestCheckinCheckout &&
       hasGuestCheckinCheckoutSelection(selected) ? (
         <fieldset className={styles.modalityPicker}>
           <legend>Modalité d’intervention</legend>
@@ -160,8 +161,12 @@ export function PlanetLSServicePicker({
             </label>
           ))}
         </fieldset>
-      ) : null}
-      <div className={styles.familyRail} role="tablist" aria-label="Familles de prestations">
+      ) : null;
+
+  return (
+    <div className={`${styles.catalogArea} ${compact ? styles.compact : ""}`}>
+      {!compact ? modalityPicker : null}
+      <div className={styles.familyRail} role={compact ? "group" : "tablist"} aria-label="Familles de prestations">
         {groups.map((group) => {
           const isActive = activeGroup?.slug === group.slug;
           const selectedCount = group.services.filter((service) =>
@@ -172,8 +177,10 @@ export function PlanetLSServicePicker({
             <button
               key={group.slug}
               type="button"
-              role="tab"
-              aria-selected={isActive}
+              role={compact ? undefined : "tab"}
+              aria-selected={compact ? undefined : isActive}
+              aria-pressed={compact ? isActive : undefined}
+              aria-controls={compact ? `${pickerId}-services` : undefined}
               className={`${styles.familyButton} ${isActive ? styles.familyButtonActive : ""}`}
               disabled={disabled}
               onClick={() => setActiveFamily(group.slug)}
@@ -190,14 +197,15 @@ export function PlanetLSServicePicker({
       {activeGroup ? (
         <section
           className={styles.detailsPanel}
+          id={`${pickerId}-services`}
           aria-label={`Prestations ${activeGroup.label}`}
         >
-          <div className={styles.detailsHeader}>
+          {!compact ? <div className={styles.detailsHeader}>
             <div>
               <strong>{activeGroup.label}</strong>
               <small>Sélectionnez uniquement les prestations souhaitées.</small>
             </div>
-          </div>
+          </div> : null}
           <div className={styles.serviceGrid}>
             {activeGroup.services.map((service) => {
               const isSelected = selectedSet.has(service.slug);
@@ -218,7 +226,7 @@ export function PlanetLSServicePicker({
                   </span>
                   <span>
                     <strong>{service.label}</strong>
-                    <small>{activeGroup.label}</small>
+                    {!compact ? <small>{activeGroup.label}</small> : null}
                     {service.kind === "group" ? (
                       <small className={styles.groupHint}>
                         Groupe à préciser dans la description
@@ -231,6 +239,7 @@ export function PlanetLSServicePicker({
           </div>
         </section>
       ) : null}
+      {compact ? modalityPicker : null}
     </div>
   );
 }

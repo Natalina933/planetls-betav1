@@ -10,9 +10,9 @@ export function buildOwnerSearchReturnTo(filters: OwnerConciergeSearchFilters, s
   const active = buildOwnerConciergeSearchParams(filters);
   params.delete("postalCode");
   params.delete("service");
-  for (const key of ["region", "city", "categories", "serviceFamilies", "services", "propertyType", "budgetMax", "radiusKm", "proOnly"]) {
+  for (const key of ["type", "region", "city", "categories", "serviceFamilies", "services", "propertyType", "budgetMax", "radiusKm", "proOnly"]) {
     // Explicit empty values prevent profile preferences from reactivating cleared filters.
-    params.set(key, active.get(key) ?? (key === "proOnly" ? "0" : ""));
+    params.set(key, active.get(key) ?? (key === "proOnly" ? "0" : key === "type" ? "all" : ""));
   }
   if (active.has("geographic")) params.set("geographic", active.get("geographic")!);
   else params.delete("geographic");
@@ -25,7 +25,7 @@ export function conciergeProfileHref(id: string, returnTo?: string) {
   return returnTo ? path + "?" + new URLSearchParams({ returnTo: ownerSearchReturnPath(returnTo) }).toString() : path;
 }
 
-export function restoreSelectedConcierges(params: URLSearchParams, results: readonly { id: string }[]) {
-  const available = new Set(results.map((profile) => profile.id));
+export function restoreSelectedConcierges(params: URLSearchParams, results: readonly { id: string; professional_type?: string }[]) {
+  const available = new Set(results.filter((profile) => profile.professional_type !== "provider").map((profile) => profile.id));
   return readSelectedConcierges(params).filter((id) => available.has(id));
 }

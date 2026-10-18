@@ -19,6 +19,7 @@ import { useOwnerConciergeSearch } from "./useOwnerConciergeSearch";
 import {
   buildOwnerConciergeSearchParams,
   getOwnerConciergeMapFeedback,
+  getOwnerSearchWarningMessage,
   hasOwnerConciergeSearchCriteria,
   normalizeOwnerServiceSelections,
   normalizeOwnerServiceFamilies,
@@ -65,6 +66,7 @@ const SearchMap = dynamic(() => import("@/app/components/MapWithList/MapWithList
 });
 
 const initialFilters: OwnerConciergeSearchFilters = {
+  professionalType: "all",
   region: "",
   city: "",
   selectedCategories: [],
@@ -72,7 +74,7 @@ const initialFilters: OwnerConciergeSearchFilters = {
   selectedServices: [],
   propertyType: "",
   budgetMax: "",
-  radiusKm: "",
+  radiusKm: "20",
   proOnly: false,
 };
 
@@ -100,6 +102,8 @@ const initialRequestForm: RequestFormState = {
 };
 
 const SEARCH_URL_KEYS = [
+  "type",
+  "geographic",
   "region",
   "city",
   "postalCode",
@@ -208,10 +212,10 @@ function parseSearchRadius(value: string) {
 
 function formatResultsSummary(count: number, city: string) {
   if (count === 0) {
-    return city.trim() ? `Aucune concierge trouvée autour de ${city.trim()}` : "Aucune concierge trouvée";
+    return city.trim() ? `Aucun professionnel trouvé autour de ${city.trim()}` : "Aucun professionnel trouvé";
   }
 
-  const professionLabel = count > 1 ? "concierges trouvées" : "concierge trouvée";
+  const professionLabel = count > 1 ? "professionnels trouvés" : "professionnel trouvé";
   const cityLabel = city.trim() ? ` autour de ${city.trim()}` : "";
   return `${count} ${professionLabel}${cityLabel}`;
 }
@@ -279,7 +283,7 @@ export default function OwnerConciergesPageClient() {
   const [filters, setFilters] = useState<OwnerConciergeSearchFilters>(() => ({
     ...initialFilters,
     city: searchParams.get("city") ?? searchParams.get("postalCode") ?? "",
-    radiusKm: searchParams.get("radiusKm") ?? "",
+    radiusKm: searchParams.get("radiusKm") ?? "20",
   }));
   const [hasSubmittedSearch, setHasSubmittedSearch] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -287,7 +291,6 @@ export default function OwnerConciergesPageClient() {
   const [sortMode, setSortMode] = useState<SortMode>("available");
   const [consultedConciergeId, setConsultedConciergeId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("cards");
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [requestComposerOpen, setRequestComposerOpen] = useState(false);
   const [selectedConciergeIds, setSelectedConciergeIds] = useState<string[]>([]);
   const [requestForm, setRequestForm] = useState<RequestFormState>(initialRequestForm);
@@ -369,7 +372,7 @@ export default function OwnerConciergesPageClient() {
         .map((item) => ({
           id: item.id,
           name: item.display_name,
-          type: "concierge" as const,
+          type: item.professional_type ?? "concierge",
           city: item.city || item.service_area || item.location || "",
           latitude: item.latitude as number,
           longitude: item.longitude as number,
@@ -457,7 +460,7 @@ export default function OwnerConciergesPageClient() {
           setProfileSearchDefaults({
             ...searchDefaults,
             city: profileCity,
-            radiusKm: profileCity ? "20" : "",
+            radiusKm: "20",
           });
         }
       } catch {
@@ -566,6 +569,9 @@ export default function OwnerConciergesPageClient() {
       ...profileSearchDefaults,
     };
     const nextFilters: OwnerConciergeSearchFilters = { ...baseFilters };
+    const requestedType = searchParams.get("type");
+    nextFilters.professionalType = isStaySearchMode ? "concierge"
+      : requestedType === "concierge" || requestedType === "provider" ? requestedType : "all";
     if (searchParams.has("region")) {
       nextFilters.region = searchParams.get("region")?.trim() ?? "";
     }
@@ -809,15 +815,6 @@ export default function OwnerConciergesPageClient() {
     );
   }
 
-  function toggleServiceFamily(familySlug: string) {
-    updateFilters(
-      "selectedServiceFamilies",
-      normalizeOwnerServiceFamilies(
-        toggleOwnerConciergeValue(filters.selectedServiceFamilies ?? [], familySlug),
-      ),
-    );
-  }
-
   function toggleServiceSection(category: string) {
     setOpenServiceSections((prev) => ({
       ...prev,
@@ -838,7 +835,6 @@ export default function OwnerConciergesPageClient() {
     setHasSubmittedSearch(false);
     setFeedback(null);
     setError(null);
-    setMobileFiltersOpen(false);
     setRequestForm(baseRequestForm);
     setEditingAlertId(null);
     setLastSubmittedStatus(null);
@@ -875,7 +871,12 @@ export default function OwnerConciergesPageClient() {
   function replaceSearchUrl(nextFilters: OwnerConciergeSearchFilters) {
     const params = new URLSearchParams(searchParams.toString());
     SEARCH_URL_KEYS.forEach((key) => params.delete(key));
-    const nextSearchParams = buildOwnerConciergeSearchParams(nextFilters);
+    const nextSearchParams = buildOwnerConciergeSearchParams(nextFilters, {
+      preserveEmptyServiceFamilies: touchedFilterKeysRef.current.has("selectedServiceFamilies") || searchParams.has("serviceFamilies"),
+      preserveEmptyServices: touchedFilterKeysRef.current.has("selectedServices") || searchParams.has("services") || searchParams.has("service"),
+      preserveEmptyCity: touchedFilterKeysRef.current.has("city") || searchParams.has("city") || searchParams.has("postalCode"),
+      preserveEmptyRadius: touchedFilterKeysRef.current.has("radiusKm") || searchParams.has("radiusKm"),
+    });
     nextSearchParams.forEach((value, key) => params.set(key, value));
     const query = params.toString();
     router.replace(`/dashboard/owner/concierges${query ? `?${query}` : ""}`);
@@ -885,7 +886,6 @@ export default function OwnerConciergesPageClient() {
     event.preventDefault();
     setFeedback(null);
     setHasSubmittedSearch(true);
-    setMobileFiltersOpen(false);
     setConsultedConciergeId(null);
     replaceSearchUrl(filters);
     resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -895,6 +895,7 @@ export default function OwnerConciergesPageClient() {
   }
 
   function toggleConciergeSelection(itemId: string) {
+    if (items.find((item) => item.id === itemId)?.professional_type === "provider") return;
     setSelectedConciergeIds((prev) =>
       prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId],
     );
@@ -1019,7 +1020,6 @@ export default function OwnerConciergesPageClient() {
         recipients: recipientNames,
       });
       setSelectedConciergeIds([]);
-      setMobileFiltersOpen(false);
       setRequestForm({
         ...initialRequestForm,
         ...profileRequestDefaults,
@@ -1037,6 +1037,7 @@ export default function OwnerConciergesPageClient() {
   }
 
   const filtersLabel = [filters.city.trim()].filter(Boolean).join(" · ");
+  const warningMessage = warning ? getOwnerSearchWarningMessage(warning) : null;
 
   return (
     <section className="dashboard-grid">
@@ -1052,17 +1053,35 @@ export default function OwnerConciergesPageClient() {
           stayNeedLabel={stayContext?.stayNeedLabel ?? (stayNeedParam ? stayNeedLabels[stayNeedParam] : null)}
           onSubmit={handleSubmit}
           onReset={resetFilters}
-          onOpenMobileFilters={() => setMobileFiltersOpen(true)}
           onViewModeChange={setViewMode}
           onFilterChange={updateFilters}
           onToggleService={toggleService}
-          onToggleServiceFamily={toggleServiceFamily}
           getCitySuggestions={getOwnerCitySuggestions}
           parseSliderValue={parseSliderValue}
         />
 
+        <nav className={styles.workspaceNavigation} aria-label="Accès aux résultats de recherche">
+          <a href="#professional-results">Résultats · {items.length}</a>
+          <a href="#professional-map">Voir la carte</a>
+          <a href="#professional-selection">Ma sélection · {selectedConciergeIds.length}</a>
+        </nav>
+        <div className={styles.mobileSelectionBar} data-empty={selectedConciergeIds.length === 0}>
+          <div className={styles.mobileSelectionCopy}>
+            <a href="#professional-selection">Ma sélection · {selectedConciergeIds.length}</a>
+          </div>
+          <Button
+            type="button"
+            variant="primary"
+            className={styles.primaryBtn}
+            disabled={selectedConciergeIds.length === 0 || existingHousingRequestIsBlocking}
+            onClick={openRequestComposer}
+          >
+            {isStaySearchMode ? "Demander cette prestation" : "Préparer ma demande"}
+          </Button>
+        </div>
+
         <div className={styles.contentLayout}>
-          <div className={styles.resultsColumn} ref={resultsRef}>
+          <div className={styles.resultsColumn} ref={resultsRef} id="professional-results" tabIndex={-1}>
             {isStaySearchMode ? (
               <section className={styles.staySearchContext} aria-label="Contexte de recherche lié au séjour">
                 <div>
@@ -1106,9 +1125,10 @@ export default function OwnerConciergesPageClient() {
               onViewModeChange={setViewMode}
             />
             {warning ? (
-              <p className={styles.tagMuted} role="status">
-                {warning}
-              </p>
+              <div className={styles.searchNotice} role="status">
+                <p>{warningMessage}</p>
+                {warningMessage !== warning ? <details><summary>Détails de localisation</summary><p>{warning}</p></details> : null}
+              </div>
             ) : null}
             <ResultsGrid
               styles={styles}
@@ -1131,7 +1151,7 @@ export default function OwnerConciergesPageClient() {
           </div>
 
           <aside className={styles.sidebar}>
-            <section className={styles.mapPanel} aria-label="Carte des concierges">
+            <section className={styles.mapPanel} id="professional-map" tabIndex={-1} aria-label="Carte des professionnels">
               <div className={styles.mapPanelHeader}>
                 <div>
                   <p className={styles.eyebrow}>Carte</p>
@@ -1151,7 +1171,7 @@ export default function OwnerConciergesPageClient() {
                     profiles={mapProfiles}
                     profileReturnTo={profileReturnTo}
                     fitAllProfiles
-                    ariaLabel="Carte des concierges trouvées"
+                    ariaLabel="Carte des professionnels trouvés"
                   />
                 ) : (
                   <div className={styles.mapEmpty} role={error ? "alert" : "status"}>
@@ -1161,7 +1181,7 @@ export default function OwnerConciergesPageClient() {
                 )}
               </div>
             </section>
-            <div className={styles.requestDock}>
+            <div className={styles.requestDock} id="professional-selection" tabIndex={-1} data-empty={selectedConciergeIds.length === 0}>
               <div className={styles.requestHeader}>
                 <div>
                   <p className={styles.eyebrow}>Ma sélection</p>
@@ -1169,11 +1189,11 @@ export default function OwnerConciergesPageClient() {
                 </div>
                 <span className={styles.selectionCount}>{selectedConciergeIds.length}</span>
               </div>
-              <p className={styles.requestIntro}>
+              {selectedConcierges.length > 0 ? <p className={styles.requestIntro}>
                 {isStaySearchMode
                   ? "Sélectionnez la concierge à qui demander cette prestation."
                   : "Sélectionnez les concierges que vous souhaitez contacter."}
-              </p>
+              </p> : null}
               {existingHousingRequestIsBlocking && existingHousingRequest ? (
                 <div className={styles.existingRequestNotice} role="status">
                   <div>
@@ -1189,7 +1209,7 @@ export default function OwnerConciergesPageClient() {
                   </ButtonLink>
                 </div>
               ) : null}
-              <div className={styles.selectionSummary}>
+              <div className={styles.selectionPreview}>
                 {selectedConcierges.length > 0 ? (
                   <div className={styles.selectionRows}>
                     {selectedConcierges.map((item) => (
@@ -1219,45 +1239,25 @@ export default function OwnerConciergesPageClient() {
                     ))}
                   </div>
                 ) : (
-                  <span className={styles.tagMuted}>
-                    Aucune concierge sélectionnée. Sélectionnez un profil dans les résultats pour préparer votre demande.
-                  </span>
+                  <p className={styles.selectionEmpty}>Sélectionnez une concierge dans les résultats pour préparer votre demande.</p>
                 )}
               </div>
-              <Button
-                type="button"
-                variant="primary"
-                className={styles.primaryBtn}
-                disabled={selectedConciergeIds.length === 0 || existingHousingRequestIsBlocking}
-                onClick={openRequestComposer}
-              >
-                {isStaySearchMode ? "Demander cette prestation" : "Préparer ma demande"}
-              </Button>
-              <ButtonLink href="/dashboard/owner/demandes" variant="secondary" className={styles.secondaryBtn}>
-                Voir mes demandes
-              </ButtonLink>
+              <div className={styles.selectionActions}>
+                <Button
+                  type="button"
+                  variant="primary"
+                  className={styles.primaryBtn}
+                  disabled={selectedConciergeIds.length === 0 || existingHousingRequestIsBlocking}
+                  onClick={openRequestComposer}
+                >
+                  {isStaySearchMode ? "Demander cette prestation" : "Préparer ma demande"}
+                </Button>
+                <ButtonLink href="/dashboard/owner/demandes" variant="secondary" className={styles.secondaryBtn}>
+                  Mes demandes
+                </ButtonLink>
+              </div>
             </div>
           </aside>
-        </div>
-
-        <div className={styles.mobileSelectionBar}>
-          <div className={styles.mobileSelectionCopy}>
-            <strong>{selectedConciergeIds.length} concierge(s) sélectionnée(s)</strong>
-            <span>
-              {selectedConciergeIds.length > 0
-                ? "Préparez votre demande ou ajustez votre sélection."
-                : "Ajoutez des profils pour envoyer une demande."}
-            </span>
-          </div>
-          <Button
-            type="button"
-            variant="primary"
-            className={styles.primaryBtn}
-            disabled={selectedConciergeIds.length === 0 || existingHousingRequestIsBlocking}
-            onClick={openRequestComposer}
-          >
-            {isStaySearchMode ? "Demander cette prestation" : "Préparer ma demande"}
-          </Button>
         </div>
 
         {requestComposerOpen ? (
@@ -1337,53 +1337,6 @@ export default function OwnerConciergesPageClient() {
           </div>
         ) : null}
 
-        {mobileFiltersOpen ? (
-          <div className={styles.mobileDrawerBackdrop} onClick={() => setMobileFiltersOpen(false)}>
-            <div
-              className={styles.mobileDrawer}
-              onClick={(event) => event.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Filtres de recherche"
-            >
-              <div className={styles.mobileDrawerHeader}>
-                <div>
-                  <p className={styles.eyebrow}>Filtres</p>
-                  <h2 className={styles.requestTitle}>Affinez votre recherche</h2>
-                </div>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className={styles.secondaryBtn}
-                  onClick={() => setMobileFiltersOpen(false)}
-                >
-                  Fermer
-                </Button>
-              </div>
-              <div className={styles.mobileDrawerBody}>
-                <SearchFilters
-                  styles={styles}
-                  mode="compact"
-                  filters={filters}
-                  propertyTypeOptions={propertyTypeOptions}
-                  loading={loading}
-                  viewMode={viewMode}
-                  isStaySearchMode={isStaySearchMode}
-                  stayNeedLabel={stayContext?.stayNeedLabel ?? (stayNeedParam ? stayNeedLabels[stayNeedParam] : null)}
-                  onSubmit={handleSubmit}
-                  onReset={resetFilters}
-                  onOpenMobileFilters={() => setMobileFiltersOpen(true)}
-                  onViewModeChange={setViewMode}
-                  onFilterChange={updateFilters}
-                  onToggleService={toggleService}
-                  onToggleServiceFamily={toggleServiceFamily}
-                  getCitySuggestions={getOwnerCitySuggestions}
-                  parseSliderValue={parseSliderValue}
-                />
-              </div>
-            </div>
-          </div>
-        ) : null}
       </div>
     </section>
   );

@@ -2,6 +2,7 @@
 
 export type ConciergeSearchRow = {
   id: string;
+  professional_type?: "concierge" | "provider";
   avatar_url?: string | null;
   image?: string | null;
   display_name: string;

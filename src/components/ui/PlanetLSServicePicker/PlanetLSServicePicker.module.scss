@@ -226,6 +226,79 @@
   font-size: 0.86rem;
 }
 
+.catalogArea.compact {
+  min-width: 0;
+  gap: 0.65rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.compact .familyRail { gap: 0.25rem 0.35rem; }
+
+.compact .familyButton {
+  max-width: 100%;
+  min-height: 44px;
+  padding: 0.4rem 0.6rem;
+  border-color: var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-control);
+  background: var(--ds-color-surface-soft);
+  color: var(--ds-color-text-secondary);
+  box-shadow: none;
+  line-height: 1.4;
+}
+
+.compact .familyButtonActive {
+  border-color: var(--ds-color-accent);
+  background: var(--ds-color-accent-soft);
+  color: var(--ds-color-accent-hover);
+}
+
+.compact .familyName { white-space: normal; overflow-wrap: anywhere; }
+.compact .familyCount { background: var(--ds-color-action-primary); color: var(--ds-color-on-action); }
+
+.compact .detailsPanel {
+  min-width: 0;
+  padding: 0.65rem;
+  border: 0;
+  border-left: 2px solid var(--ds-color-accent);
+  border-radius: 0 var(--ds-radius-control) var(--ds-radius-control) 0;
+  background: var(--ds-color-surface-soft);
+  box-shadow: none;
+}
+
+.compact .serviceGrid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: 0.4rem;
+}
+
+.compact .serviceChoice {
+  min-width: 0;
+  min-height: 44px;
+  align-items: center;
+  border-color: var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-control);
+  background: var(--ds-color-surface-premium);
+  color: var(--ds-color-text-primary);
+  overflow-wrap: anywhere;
+  box-shadow: none;
+}
+
+.compact .serviceChoiceSelected {
+  border-color: var(--ds-color-accent);
+  background: var(--ds-color-accent-soft);
+  color: var(--ds-color-accent-hover);
+}
+
+.compact .serviceChoice strong { font-weight: 600; line-height: 1.4; }
+.compact .modalityPicker { border-color: var(--ds-color-border-soft); }
+.compact .modalityChoice { min-height: 44px; }
+.compact :is(button, input):focus-visible { outline: 2px solid var(--ds-color-accent); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .compact :is(button, span) { transition: none; transform: none; }
+}
+
 @media (max-width: 680px) {
   .serviceGrid {
     grid-template-columns: 1fr;

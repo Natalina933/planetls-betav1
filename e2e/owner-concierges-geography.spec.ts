@@ -1,6 +1,103 @@
 import { test, expect } from "@playwright/test";
 import { encode } from "next-auth/jwt";
 
+test("recherche commune : types, URL, cartes artisans et états sur desktop/mobile", async ({ page, context }) => {
+  const user = { id: "11111111-1111-4111-8111-111111111111", role: "owner", city: "Vendôme", onboarding_complete: true };
+  const token = await encode({ secret: "traveler-stays-fixture-secret", salt: "authjs.session-token", token: { ...user, sub: user.id }, maxAge: 3600 });
+  await context.addCookies([{ name: "authjs.session-token", value: token, domain: "127.0.0.1", path: "/", httpOnly: true }]);
+  let mode: "results" | "empty" | "error" = "results";
+  const locationDiagnostic = "46 profil(s) sans localisation vérifiable ont été exclus du rayon.";
+  const queries: URL[] = [];
+  const profiles = [
+    { id: "concierge", professional_type: "concierge", display_name: "Conciergerie du Loir — accompagnement des propriétaires et accueil des voyageurs" },
+    { id: "artisan", professional_type: "provider", display_name: "Artisan du Loir" },
+  ].map(item => ({ ...item, city: "Vendôme", latitude: 47.792, longitude: 1.065, services: ["cleaning_standard"], average_rating: null, reviews_count: 0 }));
+  await context.route("**/api/**", async route => {
+    const url = new URL(route.request().url());
+    if (url.pathname === "/api/search/professionals") {
+      queries.push(url);
+      if (mode === "error") return route.fulfill({ status: 503, json: { error: "Localisation indisponible" } });
+      const type = url.searchParams.get("type");
+      return route.fulfill({ json: { warning: locationDiagnostic, center: { latitude: 47.792, longitude: 1.065 }, items: mode === "empty" ? [] : profiles.filter(item => type === "all" || item.professional_type === type) } });
+    }
+    const json = url.pathname === "/api/auth/session" ? { user, expires: "2099-01-01" }
+      : url.pathname === "/api/profiles/current" ? user : { items: [] };
+    await route.fulfill({ json });
+  });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/dashboard/owner/concierges");
+  const cards = page.getByRole("article", { name: /^Profil professionnel/ });
+  await expect(cards).toHaveCount(2);
+  await expect(page.getByLabel("Critères actifs")).toHaveCount(0);
+  await expect(page.getByText(/^Certains professionnels ne peuvent pas être affichés dans ce rayon/)).toBeVisible();
+  await page.getByText("Détails de localisation", { exact: true }).click();
+  await expect(page.getByText(locationDiagnostic, { exact: true })).toBeVisible();
+  await page.getByText("Détails de localisation", { exact: true }).click();
+  await expect(page.getByRole("button", { name: "Tous", exact: true })).toHaveAttribute("aria-pressed", "true");
+  const artisan = page.getByRole("article", { name: "Profil professionnel Artisan du Loir", exact: true });
+  await expect(artisan.getByText("Artisan ou prestataire", { exact: true })).toBeVisible();
+  await expect(artisan.getByRole("link")).toHaveCount(0);
+  await expect(artisan.getByRole("button", { name: /Sélectionner/ })).toHaveCount(0);
+  await expect(page.locator(".leaflet-container")).toBeVisible();
+  for (const [name, width, height] of [["desktop", 1440, 1000], ["tablet", 1024, 900], ["mobile", 390, 844]] as const) {
+    await page.setViewportSize({ width, height });
+    await expect(page.getByRole("textbox", { name: "Ville ou code postal", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Rechercher", exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    for (const card of await cards.all()) {
+      expect(await card.evaluate(element => {
+        const cardBounds = element.getBoundingClientRect();
+        return Array.from(element.querySelectorAll("button, a")).every(action => {
+          const bounds = action.getBoundingClientRect();
+          return bounds.left >= cardBounds.left && bounds.right <= cardBounds.right + 1 && bounds.bottom <= cardBounds.bottom && action.scrollWidth <= action.clientWidth + 1;
+        });
+      })).toBe(true);
+    }
+    await page.screenshot({ path: `test-results/professional-search/${name}.png`, fullPage: true });
+  }
+  await page.getByRole("link", { name: "Voir la carte", exact: true }).click();
+  await expect(page.locator("#professional-map")).toBeInViewport();
+  await page.getByRole("link", { name: "Ma sélection · 0", exact: true }).click();
+  await expect(page.locator("#professional-selection")).toBeInViewport();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.getByRole("button", { name: "Ménage du logement", exact: true }).click();
+  await page.getByRole("button", { name: "Conciergerie et voyageurs", exact: true }).click();
+  await page.getByRole("button", { name: "Check-in & Check-out", exact: true }).click();
+  await expect(page.getByLabel("Prestations choisies").getByRole("button")).toHaveCount(2);
+  await page.getByRole("button", { name: "Rechercher", exact: true }).click();
+  await expect(page).toHaveURL(/services=cleaning_standard%2Cguest_checkin%2Cguest_checkout/);
+  expect(new URL(page.url()).searchParams.has("serviceFamilies")).toBe(false);
+  await page.getByRole("button", { name: /^Ménage et linge/ }).click();
+  await expect(page.getByRole("button", { name: "Ménage du logement", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Retirer Ménage du logement", exact: true }).click();
+  await expect(page.getByLabel("Prestations choisies").getByRole("button")).toHaveCount(1);
+  await page.getByRole("button", { name: "Retirer Check-in & Check-out", exact: true }).click();
+  await expect(page.getByLabel("Prestations choisies")).toHaveCount(0);
+  await page.getByRole("button", { name: "Rechercher", exact: true }).click();
+  for (const [label, type] of [["Concierges", "concierge"], ["Artisans et prestataires", "provider"]]) {
+    await page.getByRole("button", { name: label, exact: true }).click();
+    await page.getByRole("button", { name: "Rechercher", exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`type=${type}`));
+    await expect(cards).toHaveCount(1);
+  }
+  mode = "empty";
+  await page.getByRole("button", { name: "Rechercher", exact: true }).click();
+  await expect(page.getByText(/Aucun professionnel trouvé/).first()).toBeVisible();
+  mode = "error";
+  await page.getByRole("button", { name: "Rechercher", exact: true }).click();
+  await expect(cards).toHaveCount(0);
+  await expect(page.getByText("Localisation indisponible").first()).toBeVisible();
+  expect(queries.every(url => url.searchParams.get("radiusKm") === "20" && url.searchParams.get("geographic") === "1")).toBe(true);
+  mode = "results";
+  await page.getByRole("textbox", { name: "Ville ou code postal", exact: true }).fill("");
+  await page.getByLabel("Rayon de recherche", { exact: true }).selectOption("");
+  await page.getByRole("button", { name: "Rechercher", exact: true }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("radiusKm")).toBe("");
+  await page.reload();
+  await expect(page.getByRole("textbox", { name: "Ville ou code postal", exact: true })).toHaveValue("");
+  await expect(page.getByLabel("Rayon de recherche", { exact: true })).toHaveValue("");
+});
+
 test("API géographique : refus anonyme et cross-rôle, passage propriétaire", async ({ request }) => {
   const endpoint = "/api/profiles/concierges?geographic=1";
   expect((await request.get(endpoint)).status()).toBe(401);
@@ -25,7 +122,7 @@ test("recherche propriétaire : accents, carte/liste, filtres, retour privé et 
     let json: unknown = { items: [] };
     if (url.pathname === "/api/auth/session") json = { user, expires: "2099-01-01" };
     if (url.pathname === "/api/profiles/current") json = user;
-    if (url.pathname === "/api/profiles/concierges") {
+    if (url.pathname === "/api/search/professionals") {
       queries.push(url);
       if (mode === "error") return route.fulfill({ status: 503, json: { error: "Localisation indisponible" } });
       json = { warning: mode === "partial" ? "Certains profils n’ont pas pu être vérifiés ; les résultats peuvent être incomplets." : undefined,
@@ -38,13 +135,12 @@ test("recherche propriétaire : accents, carte/liste, filtres, retour privé et 
     await route.fulfill({ json });
   });
   await page.goto("/dashboard/owner/concierges");
-  await expect(page.getByRole("heading", { name: "Trouver une concierge", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Trouver un professionnel", exact: true })).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Ville ou code postal", exact: true })).toHaveValue("Vendôme");
   const cards = page.getByRole("article", { name: /^Profil professionnel/ });
   await expect(cards).toHaveCount(2);
   await expect(page.locator(".leaflet-container")).toBeVisible();
-  await page.getByRole("button", { name: "+ Choisir des prestations précises", exact: true }).click();
-  await page.getByRole("button", { name: /^Ménage du logement Ménage et linge$/ }).click();
+  await page.getByRole("button", { name: "Ménage du logement", exact: true }).click();
   await page.getByRole("button", { name: "Rechercher", exact: true }).click();
   await expect(page).toHaveURL(/services=cleaning_standard/);
   await expect(cards).toHaveCount(2);
@@ -74,7 +170,7 @@ test("recherche propriétaire : accents, carte/liste, filtres, retour privé et 
   await expect(cards).toHaveCount(2);
   mode = "empty";
   await page.getByRole("button", { name: "Rechercher", exact: true }).click();
-  await expect(page.getByRole("heading", { name: /^Aucune concierge trouvée pour/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^Aucun professionnel trouvé pour/ })).toBeVisible();
   await expect(cards).toHaveCount(0);
   mode = "error";
   await page.getByRole("button", { name: "Rechercher", exact: true }).click();
@@ -103,7 +199,7 @@ test("fiabilite carte : consultation independante et profils superposes", async 
     const json = path === "/api/auth/session" ? { user, expires: "2099-01-01" }
       : path === "/api/profiles/current" ? user
       : path.startsWith("/api/profiles/public/") ? { profile:{ ...profiles.find(profile => profile.id === path.split("/").pop()), company_name:null, country:"France", role:"concierge" }, reviews:[],stats:{} }
-      : path === "/api/profiles/concierges" ? { center: {latitude:48.86,longitude:2.34}, items: profiles }
+      : path === "/api/search/professionals" ? { center: {latitude:48.86,longitude:2.34}, items: profiles }
       : { items: [] };
     await route.fulfill({ json });
   });

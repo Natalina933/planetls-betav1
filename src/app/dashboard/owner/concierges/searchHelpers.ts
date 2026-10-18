@@ -10,6 +10,7 @@ import {
 } from "../../../lib/guestCheckinCheckout.ts";
 
 export type OwnerConciergeSearchFilters = {
+  professionalType?: "all" | "concierge" | "provider";
   region?: string;
   city: string;
   selectedCategories: string[];
@@ -26,24 +27,30 @@ export type ConciergeSearchResult = {
   property_types?: string[];
 };
 
-export function buildOwnerConciergeSearchParams(filters: OwnerConciergeSearchFilters) {
+export function buildOwnerConciergeSearchParams(filters: OwnerConciergeSearchFilters, options: {
+  preserveEmptyServiceFamilies?: boolean;
+  preserveEmptyServices?: boolean;
+  preserveEmptyCity?: boolean;
+  preserveEmptyRadius?: boolean;
+} = {}) {
   const params = new URLSearchParams();
+  if (filters.professionalType) params.set("type", filters.professionalType);
 
   if (filters.region?.trim()) params.set("region", filters.region.trim());
-  if (filters.city.trim()) params.set("city", filters.city.trim());
+  if (filters.city.trim() || options.preserveEmptyCity) params.set("city", filters.city.trim());
   const normalizedCategories = normalizeConciergeCategories(filters.selectedCategories);
   if (normalizedCategories.length > 0) {
     params.set("categories", normalizedCategories.join(","));
   }
-  if (filters.selectedServiceFamilies && filters.selectedServiceFamilies.length > 0) {
+  if (filters.selectedServiceFamilies && (filters.selectedServiceFamilies.length > 0 || options.preserveEmptyServiceFamilies)) {
     params.set("serviceFamilies", filters.selectedServiceFamilies.join(","));
   }
-  if (filters.selectedServices.length > 0) {
+  if (filters.selectedServices.length > 0 || options.preserveEmptyServices) {
     params.set("services", filters.selectedServices.join(","));
   }
   if (filters.propertyType.trim()) params.set("propertyType", filters.propertyType.trim());
   if (filters.budgetMax.trim()) params.set("budgetMax", filters.budgetMax.trim());
-  if (filters.radiusKm.trim()) params.set("radiusKm", filters.radiusKm.trim());
+  if (filters.radiusKm.trim() || options.preserveEmptyRadius) params.set("radiusKm", filters.radiusKm.trim());
   if (filters.city.trim() && filters.radiusKm.trim()) params.set("geographic", "1");
   if (filters.proOnly) params.set("proOnly", "1");
 
@@ -125,4 +132,9 @@ export function getOwnerConciergeMapFeedback(resultCount: number, loading: boole
     title: "Carte indisponible pour ces résultats.",
     description: "Les profils retournés ne contiennent pas encore de coordonnées exploitables.",
   };
+}
+
+export function getOwnerSearchWarningMessage(warning: string) {
+  return warning.replace(/\d+ profil\(s\) sans localisation vérifiable ont été exclus du rayon\./,
+    "Certains professionnels ne peuvent pas être affichés dans ce rayon, car leur localisation n’est pas suffisamment précise.");
 }

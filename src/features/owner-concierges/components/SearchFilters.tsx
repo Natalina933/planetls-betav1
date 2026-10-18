@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Check, ChevronDown, MapPin, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
+import { useId, useState } from "react";
+import { ChevronDown, MapPin, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
 import FilterSliders from "@/app/components/ui/FilterSliders";
 import { Button, Checkbox, Select } from "@/components/ui";
 import { OptionToggleGroup } from "@/features/shared/components/OptionToggleGroup";
@@ -16,7 +16,6 @@ import { PlanetLSServicePicker } from "@/components/ui/PlanetLSServicePicker/Pla
 
 type SearchFiltersProps = {
   styles: Record<string, string>;
-  mode?: "full" | "compact";
   filters: OwnerConciergeSearchFilters;
   propertyTypeOptions: string[];
   loading: boolean;
@@ -25,14 +24,12 @@ type SearchFiltersProps = {
   stayNeedLabel?: string | null;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   onReset: () => void;
-  onOpenMobileFilters: () => void;
   onViewModeChange: (value: ViewMode) => void;
   onFilterChange: <Key extends keyof OwnerConciergeSearchFilters>(
     key: Key,
     value: OwnerConciergeSearchFilters[Key],
   ) => void;
   onToggleService: (value: string) => void;
-  onToggleServiceFamily: (value: string) => void;
   getCitySuggestions: (query: string) => string[];
   parseSliderValue: (value: string) => number;
 };
@@ -46,7 +43,6 @@ const RADIUS_OPTIONS = ["10", "20", "30", "50", "100"];
 
 export function SearchFilters({
   styles,
-  mode = "full",
   filters,
   propertyTypeOptions,
   loading,
@@ -55,36 +51,29 @@ export function SearchFilters({
   stayNeedLabel = null,
   onSubmit,
   onReset,
-  onOpenMobileFilters,
   onViewModeChange,
   onFilterChange,
   onToggleService,
-  onToggleServiceFamily,
   getCitySuggestions,
   parseSliderValue,
 }: SearchFiltersProps) {
-  const [allServicesOpen, setAllServicesOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const panelId = useId();
 
   const selectedServices = filters.selectedServices;
   const selectedFamilies = filters.selectedServiceFamilies ?? [];
 
   return (
-    <div className={mode === "full" ? styles.hero : ""}>
-      {mode === "full" ? (
-        <>
+    <div className={styles.hero}>
           <div className={styles.heroCopy}>
-            <span className={styles.eyebrow}>Concierges</span>
-            <h1 className={styles.title}>Trouver une concierge</h1>
+            <span className={styles.eyebrow}>Professionnels</span>
+            <h1 className={styles.title}>Trouver un professionnel</h1>
             <p className={styles.heroSubtitle}>
-              Des professionnelles de confiance près de chez vous pour prendre soin de votre logement.
+              Des professionnels près de chez vous pour prendre soin de votre logement.
             </p>
           </div>
 
           <div className={styles.mobileHeroActions}>
-            <Button type="button" variant="secondary" className={styles.secondaryBtn} onClick={onOpenMobileFilters}>
-              Filtres
-            </Button>
             <OptionToggleGroup
               ariaLabel="Mode d'affichage"
               options={VIEW_OPTIONS}
@@ -94,10 +83,24 @@ export function SearchFilters({
               getClassName={(selected) => (selected ? styles.viewToggleActive : styles.viewToggleBtn)}
             />
           </div>
-        </>
-      ) : null}
 
-      <form className={mode === "full" ? styles.searchShell : styles.compactSearchShell} onSubmit={onSubmit}>
+      {!isStaySearchMode ? (
+        <div role="group" aria-label="Type de professionnel" className={styles.professionalTypes}>
+          {[
+            { value: "all", label: "Tous" },
+            { value: "concierge", label: "Concierges" },
+            { value: "provider", label: "Artisans et prestataires" },
+          ].map((option) => {
+            const selected = (filters.professionalType ?? "all") === option.value;
+            return <Button key={option.value} type="button" variant="ghost" aria-pressed={selected}
+              className={selected ? styles.serviceChipActive : styles.serviceChip}
+              onClick={() => onFilterChange("professionalType", option.value as "all" | "concierge" | "provider")}>
+              {option.label}
+            </Button>;
+          })}
+        </div>
+      ) : null}
+      <form className={styles.searchShell} onSubmit={onSubmit}>
         <div className={styles.searchBar}>
           <div className={`${styles.field} ${styles.searchField}`}>
             <span id="search-city-label">Ville ou code postal</span>
@@ -129,87 +132,43 @@ export function SearchFilters({
             </Select>
           </label>
 
-          <div className={styles.searchActions}>
-            <Button type="submit" variant="primary" className={styles.primaryBtn} disabled={loading}>
-              <Search size={17} aria-hidden="true" />
-              {loading ? "Recherche..." : "Rechercher"}
-            </Button>
-            <Button type="button" variant="secondary" className={styles.secondaryBtn} onClick={onReset} disabled={loading}>
-              <RotateCcw size={17} aria-hidden="true" />
-              Réinitialiser
-            </Button>
-          </div>
+
         </div>
 
         {!isStaySearchMode ? (
           <section className={styles.servicePicker} aria-labelledby="service-picker-title">
-            <div className={styles.servicePickerHeader}>
-              <span className={styles.blockLabel} id="service-picker-title">
-                De quel service avez-vous besoin ?
-              </span>
-            </div>
-
-            <div className={styles.serviceChips} aria-label="Familles de services">
-              {PLANETLS_SERVICE_FAMILIES.map((family) => {
-                const isActive = selectedFamilies.includes(family.slug);
-                return (
-                  <Button
-                    key={family.slug}
-                    type="button"
-                    variant="ghost"
-                    className={isActive ? styles.serviceChipActive : styles.serviceChip}
-                    aria-pressed={isActive}
-                    onClick={() => onToggleServiceFamily(family.slug)}
-                  >
-                    {isActive ? <Check size={14} className={styles.serviceChipIcon} aria-hidden="true" /> : null}
-                    {family.label}
-                  </Button>
-                );
-              })}
-            </div>
-
-            {selectedFamilies.length === 0 && selectedServices.length === 0 ? (
-              <p>Sélectionnez une famille ou une prestation précise pour indiquer vos besoins.</p>
-            ) : null}
-
+            <h2 className={styles.prestationsTitle} id="service-picker-title">Prestations</h2>
+            <PlanetLSServicePicker
+              selected={selectedServices}
+              onChange={(services) => onFilterChange("selectedServices", services)}
+              preferredFamily={selectedFamilies[0] ?? PLANETLS_SERVICE_TARGET.find(entry => selectedServices.includes(entry.slug))?.family}
+              allowGroups={false}
+              collapseGuestCheckinCheckout
+              compact
+              emptyMessage="Aucune prestation disponible."
+            />
             {selectedServices.length > 0 ? (
-              <div className={styles.selectedServices} aria-label="Services sélectionnés">
-                <span className={styles.blockLabel}>Prestations sélectionnées</span>
-                <div className={styles.serviceChips}>
-                  {getGuestCheckinCheckoutDisplaySelections(selectedServices).map((service) => (
-                    <Button
-                      key={service}
-                      type="button"
-                      variant="ghost"
-                      className={styles.selectedServiceChip}
-                      onClick={() => onToggleService(service)}
-                    >
-                      {PLANETLS_SERVICE_TARGET.find((entry) => entry.slug === service)?.label ?? service} ×
-                    </Button>
-                  ))}
-                </div>
+              <div className={styles.serviceChips} aria-label="Prestations choisies">
+                {getGuestCheckinCheckoutDisplaySelections(selectedServices).map(service => {
+                  const label = PLANETLS_SERVICE_TARGET.find(entry => entry.slug === service)?.label ?? service;
+                  return <Button key={service} type="button" variant="ghost" className={styles.selectedServiceChip}
+                    aria-label={`Retirer ${label}`} onClick={() => onToggleService(service)}>{label} ×</Button>;
+                })}
               </div>
             ) : null}
-
-            <Button
-              type="button"
-              variant="ghost"
-              className={styles.allServicesToggle}
-              onClick={() => setAllServicesOpen((value) => !value)}
-              aria-expanded={allServicesOpen}
-            >
-              {allServicesOpen ? "Replier les prestations" : "+ Choisir des prestations précises"}
-            </Button>
-
-            {allServicesOpen ? (
-              <div className={styles.allServicesPanel}>
-                <PlanetLSServicePicker
-                  selected={selectedServices}
-                  onChange={(services) => onFilterChange("selectedServices", services)}
-                  allowGroups={false}
-                  collapseGuestCheckinCheckout
-                  emptyMessage="Aucune prestation précise n’est disponible."
-                />
+            {selectedFamilies.length > 0 ? (
+              <div className={styles.legacyFamilyCriteria} aria-label="Filtres de famille conservés">
+                <p>Filtres de famille conservés depuis votre inscription ou le lien. Retirez-les pour filtrer uniquement par prestations choisies.</p>
+                <div className={styles.serviceChips}>
+                  {selectedFamilies.map(family => {
+                    const label = PLANETLS_SERVICE_FAMILIES.find(entry => entry.slug === family)?.label ?? family;
+                    return <Button key={family} type="button" variant="ghost" className={styles.selectedServiceChip}
+                      aria-label={`Retirer le filtre de famille ${label}`}
+                      onClick={() => onFilterChange("selectedServiceFamilies", selectedFamilies.filter(value => value !== family))}>
+                      {label} ×
+                    </Button>;
+                  })}
+                </div>
               </div>
             ) : null}
           </section>
@@ -227,6 +186,7 @@ export function SearchFilters({
             className={`${styles.allServicesToggle} ${styles.advancedToggle}`}
             onClick={() => setAdvancedOpen((value) => !value)}
             aria-expanded={advancedOpen}
+            aria-controls={`${panelId}-advanced`}
           >
             <SlidersHorizontal size={17} aria-hidden="true" />
             <span>{advancedOpen ? "Replier les filtres avancés" : "Filtres avancés"}</span>
@@ -238,7 +198,7 @@ export function SearchFilters({
           </Button>
 
           {advancedOpen ? (
-            <div className={styles.advancedFilters}>
+            <div className={styles.advancedFilters} id={`${panelId}-advanced`}>
               <label className={styles.field}>
                 <span>Type de bien</span>
                 <Select
@@ -282,6 +242,28 @@ export function SearchFilters({
             </div>
           ) : null}
         </section>
+        {(filters.region || filters.propertyType || filters.budgetMax || filters.proOnly || filters.selectedCategories.length > 0) ? (
+          <div className={styles.activeCriteria} aria-label="Critères actifs">
+            <span className={styles.blockLabel}>Critères actifs</span>
+            <div className={styles.serviceChips}>
+              {filters.region ? <Button variant="ghost" className={styles.selectedServiceChip} onClick={() => onFilterChange("region", "")} aria-label="Retirer la région">{filters.region} ×</Button> : null}
+              {filters.propertyType ? <Button variant="ghost" className={styles.selectedServiceChip} onClick={() => onFilterChange("propertyType", "")} aria-label="Retirer le type de bien">{filters.propertyType} ×</Button> : null}
+              {filters.budgetMax ? <Button variant="ghost" className={styles.selectedServiceChip} onClick={() => onFilterChange("budgetMax", "")} aria-label="Retirer le budget">Budget : {filters.budgetMax} €/h ×</Button> : null}
+              {filters.proOnly ? <Button variant="ghost" className={styles.selectedServiceChip} onClick={() => onFilterChange("proOnly", false)} aria-label="Retirer le filtre PRO">PRO ×</Button> : null}
+              {filters.selectedCategories.map(category => <Button key={category} variant="ghost" className={styles.selectedServiceChip} onClick={() => onFilterChange("selectedCategories", filters.selectedCategories.filter(value => value !== category))} aria-label={`Retirer la catégorie ${category}`}>{category} ×</Button>)}
+            </div>
+          </div>
+        ) : null}
+          <div className={styles.searchActions}>
+            <Button type="submit" variant="primary" className={styles.primaryBtn} disabled={loading}>
+              <Search size={17} aria-hidden="true" />
+              {loading ? "Recherche..." : "Rechercher"}
+            </Button>
+            <Button type="button" variant="secondary" className={styles.secondaryBtn} onClick={onReset} disabled={loading}>
+              <RotateCcw size={17} aria-hidden="true" />
+              Réinitialiser
+            </Button>
+          </div>
       </form>
     </div>
   );

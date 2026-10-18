@@ -28,8 +28,8 @@ export function ResultsHeader({
     <div className={styles.resultsHeader}>
       <div>
         <p className={styles.eyebrow}>Résultats</p>
-        <h2 className={styles.sectionTitle}>
-          {loading ? "Recherche en cours..." : hasSubmittedSearch ? summary : "Aucune concierge affichée pour le moment"}
+        <h2 className={styles.sectionTitle} aria-live="polite">
+          {loading ? "Recherche en cours..." : hasSubmittedSearch ? summary : "Aucun professionnel affiché pour le moment"}
         </h2>
       </div>
       <div className={styles.resultsTools}>
@@ -37,16 +37,17 @@ export function ResultsHeader({
         <label className={styles.sortControl}>
           <span>Trier par</span>
           <Select
-            aria-label="Trier les concierges"
+            aria-label="Trier les professionnels"
             value={sortMode}
             onChange={(event) => onSortModeChange(event.target.value as SortMode)}
           >
-            <option value="available">Disponibilité</option>
+            <option value="available">Urgences déclarées</option>
             <option value="rating">Avis</option>
             <option value="pro">PRO</option>
           </Select>
         </label>
       </div>
+      {sortMode === "available" ? <p className={styles.sortHint}>Priorité aux urgences déclarées. Disponibilité à confirmer auprès du professionnel.</p> : null}
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { conciergeProfileHref } from "@/features/owner-concierges/lib/searchNavi
 import { memo } from "react";
 import { ConciergeServices } from "@/features/owner-concierges/components/ConciergeServices";
 import { presentConciergeServices, countConciergeServiceMatches } from "@/features/owner-concierges/lib/servicePresentation";
-import { Check, MapPin } from "lucide-react";
+import { Check, MapPin, Star } from "lucide-react";
 import { Button, ButtonLink } from "@/components/ui";
 import { ConciergeAvatar } from "@/features/owner-concierges/components/ConciergeAvatar";
 import type { ConciergeSearchRow } from "../conciergeSearchTypes";
@@ -61,7 +61,7 @@ function getLocation(item: ConciergeSearchRow) {
 }
 
 function getProfessionalType(item: ConciergeSearchRow) {
-  return item.experience_level || "Professionnel de la conciergerie";
+  return item.professional_type === "provider" ? "Artisan ou prestataire" : "Concierge";
 }
 
 function ConciergeCardComponent({
@@ -96,10 +96,10 @@ function ConciergeCardComponent({
     >
       {isConsulted ? <p role="status">Profil consulté sur la carte</p> : null}
       <div className={styles.stayCardHead}>
-        <ConciergeAvatar src={item.avatar_url} alt={item.display_name} width={112} height={112} className={styles.stayAvatar} />
+        <ConciergeAvatar src={item.avatar_url} alt={item.display_name} width={64} height={64} className={styles.stayAvatar} />
         <div className={styles.stayIdentity}>
           <h3>{item.display_name}</h3>
-          <p>{getProfessionalType(item)}</p>
+          <span className={styles.typeBadge}>{getProfessionalType(item)}</span>
           <div className={styles.stayMeta}>
             {location ? (
               <span>
@@ -113,8 +113,19 @@ function ConciergeCardComponent({
       </div>
 
       <div className={styles.stayBody}>
-        <ConciergeServices values={item.services} />
-        <p>{item.is_available_now === true ? "Urgences acceptées selon les informations déclarées" : "Disponibilité à confirmer"}</p>
+        <ConciergeServices values={item.services} compact />
+        {item.is_available_now === true ? <p className={styles.availability}>Urgences acceptées selon les informations déclarées</p> : null}
+
+        {(typeof item.hourly_rate === "number" || typeof item.monthly_rate === "number" ||
+          (typeof item.average_rating === "number" && item.reviews_count > 0)) ? (
+          <div className={styles.professionalFacts} aria-label="Tarifs et avis renseignés">
+            {typeof item.hourly_rate === "number" ? <span>{item.hourly_rate.toLocaleString("fr-FR")} € / h</span> : null}
+            {typeof item.monthly_rate === "number" ? <span>{item.monthly_rate.toLocaleString("fr-FR")} € / mois</span> : null}
+            {typeof item.average_rating === "number" && item.reviews_count > 0 ? (
+              <span><Star size={14} aria-hidden="true" />{item.average_rating.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} / 5 · {item.reviews_count} avis</span>
+            ) : null}
+          </div>
+        ) : null}
 
         {highlights.length > 0 ? (
           <div className={styles.matchHighlights} aria-label="Correspondances avec la recherche">
@@ -132,10 +143,10 @@ function ConciergeCardComponent({
       </div>
 
       <div className={styles.stayActions}>
-        <ButtonLink href={conciergeProfileHref(item.id, profileReturnTo)} variant="secondary" size="sm">
+        {item.professional_type !== "provider" ? <ButtonLink href={conciergeProfileHref(item.id, profileReturnTo)} variant="secondary" size="sm">
           Voir le profil
-        </ButtonLink>
-        <Button
+        </ButtonLink> : <span>Fiche publique à venir</span>}
+        {item.professional_type !== "provider" ? <Button
           aria-pressed={isSelected}
           aria-label={`${isSelected ? "Retirer" : "Sélectionner"} ${item.display_name}`}
           onClick={() => onToggle(item.id)}
@@ -149,7 +160,7 @@ function ConciergeCardComponent({
           ) : (
             primaryLabel
           )}
-        </Button>
+        </Button> : null}
       </div>
     </article>
   );

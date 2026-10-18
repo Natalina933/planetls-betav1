@@ -10,6 +10,7 @@ import {
 } from "../app/api/profiles/concierges/shared.ts";
 import {
   getOwnerConciergeMapFeedback,
+  getOwnerSearchWarningMessage,
   buildOwnerConciergeFilterOptions,
   hasOwnerConciergeSearchCriteria,
   buildOwnerConciergeSearchParams,
@@ -17,6 +18,7 @@ import {
   preserveTouchedOwnerConciergeFilters,
   toggleOwnerConciergeService,
 } from "../app/dashboard/owner/concierges/searchHelpers.ts";
+
 import {
   createOwnerConciergeSearchAlert,
   deleteOwnerConciergeSearchAlert,
@@ -624,4 +626,24 @@ test("saved property context preserves requests while Paris and Nice discovery s
       assert.equal(applyConciergeSearchFilters([{ ...profile, property_types: ["Appartement"] }], active).length, 1);
     }
   }
+});
+
+test("localisation : message naturel sans perdre le diagnostic ni les autres avertissements", () => {
+  const diagnostic = "46 profil(s) sans localisation vérifiable ont été exclus du rayon.";
+  const limited = " Le service de localisation est temporairement limité.";
+  const message = getOwnerSearchWarningMessage(diagnostic + limited);
+  assert.match(message, /^Certains professionnels ne peuvent pas être affichés dans ce rayon/);
+  assert.ok(message.endsWith(limited));
+  assert.equal(getOwnerSearchWarningMessage(limited), limited);
+});
+
+test("ville vidée et rayon libre restent explicites dans l'URL, sans activer le filtre géographique", () => {
+  const filters = { city: "", radiusKm: "", selectedCategories: [], selectedServices: [], propertyType: "", budgetMax: "", proOnly: false };
+  const params = buildOwnerConciergeSearchParams(filters, { preserveEmptyCity: true, preserveEmptyRadius: true });
+  assert.equal(params.get("city"), "");
+  assert.equal(params.get("radiusKm"), "");
+  assert.equal(params.has("geographic"), false);
+  const restored = new URLSearchParams(params.toString());
+  assert.equal(restored.get("city") ?? "Ville de l'inscription", "");
+  assert.equal(restored.get("radiusKm") ?? "20", "");
 });

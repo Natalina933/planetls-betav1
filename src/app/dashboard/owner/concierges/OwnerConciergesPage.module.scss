@@ -1,28 +1,28 @@
 @use "@/app/styles/abstracts/variables" as var;
 
 .page {
-  --ui-color-bg: #f4f6f8;
-  --ui-color-surface: #ffffff;
-  --ui-color-surface-soft: #ebeff2;
-  --ui-color-border: #d5dbdf;
-  --ui-color-text: #2c3e50;
-  --ui-color-text-muted: #5d6d7e;
-  --ui-color-primary: #d4af37;
-  --ui-color-primary-strong: #b5a642;
-  --ui-color-accent: #1a2530;
-  --ui-button-radius: 4px;
-  --ui-input-radius: 4px;
-  --ui-card-radius: 4px;
+  --ui-color-bg: var(--ds-color-background);
+  --ui-color-surface: var(--ds-color-surface-premium);
+  --ui-color-surface-soft: var(--ds-color-surface-soft);
+  --ui-color-border: var(--ds-color-border);
+  --ui-color-text: var(--ds-color-text-primary);
+  --ui-color-text-muted: var(--ds-color-text-secondary);
+  --ui-color-primary: var(--ds-color-primary);
+  --ui-color-primary-strong: var(--ds-color-primary-hover);
+  --ui-color-accent: var(--ds-color-accent-hover);
+  --ui-button-radius: var(--ds-radius-button);
+  --ui-input-radius: var(--ds-radius-control);
+  --ui-card-radius: var(--ds-radius-card);
   --ui-shadow-sm: 0 4px 12px rgba(44, 62, 80, 0.05);
   --ui-shadow-md: 0 12px 24px rgba(44, 62, 80, 0.09);
   --owner-bg: var(--ui-color-bg);
   --owner-surface: var(--ui-color-surface);
-  --owner-surface-soft: #f7f9fb;
+  --owner-surface-soft: var(--ds-color-surface-soft);
   --owner-surface-deep: var(--ui-color-surface-soft);
   --owner-ink: var(--ui-color-text);
   --owner-muted: var(--ui-color-text-muted);
-  --owner-line: rgba(213, 219, 223, 0.9);
-  --owner-line-soft: rgba(213, 219, 223, 0.62);
+  --owner-line: var(--ds-color-border);
+  --owner-line-soft: var(--ds-color-border-soft);
   --owner-gold: var(--ui-color-primary);
   --owner-gold-deep: var(--ui-color-primary-strong);
   --owner-burgundy: var(--ui-color-accent);
@@ -35,9 +35,7 @@
   display: grid;
   gap: 1.25rem;
   padding: 0 clamp(0.75rem, 2vw, 1.5rem) 1.5rem;
-  background:
-    radial-gradient(circle at top right, rgba(212, 175, 55, 0.08), transparent 34%),
-    linear-gradient(180deg, #fbf6ed 0%, #f3eadf 100%);
+  background: var(--ds-color-background);
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -152,26 +150,16 @@
   @extend %soft-panel;
   display: grid;
   gap: 1rem;
-  padding: clamp(1rem, 2vw, 1.35rem);
-  overflow: hidden;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  border-color: rgba(73, 94, 73, 0.14);
-  border-radius: 22px;
-  background:
-    linear-gradient(90deg, rgba(255, 253, 247, 0.96) 0%, rgba(255, 253, 247, 0.84) 48%, rgba(255, 253, 247, 0.5) 100%),
-    url("/images/Terrasse%20m%C3%A9diterran%C3%A9enne%20surplombant%20la%20mer.png") center / cover;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  min-width: 0;
+  border-radius: var(--ds-radius-panel);
+  border-top: 2px solid var(--ds-color-primary-soft);
+  background: var(--ds-color-surface-premium);
+  box-shadow: var(--ds-shadow-sm);
 }
 
 .hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.78), transparent 34%),
-    radial-gradient(circle at bottom right, rgba(183, 147, 85, 0.13), transparent 28%);
-  pointer-events: none;
+  content: none;
 }
 
 .heroCopy {
@@ -195,22 +183,20 @@
 
 .title {
   margin: 0;
-  font-family: var(--font-primary), "Cormorant Garamond", "Times New Roman", serif;
-  font-size: clamp(2.2rem, 3.6vw, 3.4rem);
+  font-family: var(--ds-font-heading);
+  font-size: clamp(1.8rem, 2.5vw, 2.4rem);
   font-weight: 600;
-  line-height: 0.95;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--owner-ink);
-  overflow-wrap: break-word;
+  line-height: 1.12;
+  color: var(--ds-color-accent-hover);
+  overflow-wrap: anywhere;
 }
 
 .heroSubtitle {
   margin: 0;
-  max-width: 34rem;
-  color: var(--owner-muted);
-  font-size: 1rem;
-  line-height: 1.45;
+  max-width: 48rem;
+  color: var(--ds-color-text-secondary);
+  font-size: 0.94rem;
+  line-height: 1.5;
 }
 
 .mobileHeroActions {
@@ -218,24 +204,19 @@
 }
 
 .searchShell {
-  position: relative;
-  z-index: 1;
   display: grid;
-  gap: 0.82rem;
-  padding: clamp(0.85rem, 1.4vw, 1.15rem);
-  border-radius: 20px;
-  border: 1px solid rgba(73, 94, 73, 0.13);
-  background: #fffdf8;
-  box-shadow: 0 18px 38px rgba(47, 38, 27, 0.07);
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
+  gap: 0.85rem;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .searchBar {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) minmax(150px, 0.35fr) auto;
-  gap: 0.85rem;
+  grid-template-columns: minmax(0, 1fr) minmax(90px, 0.23fr);
+  gap: 0.75rem;
   align-items: end;
 }
 
@@ -257,9 +238,13 @@
 }
 
 .searchActions {
-  display: grid;
-  grid-template-columns: minmax(130px, 1fr) minmax(130px, 1fr);
-  gap: 0.65rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--ds-color-border-soft);
 }
 
 .viewToggle,
@@ -317,10 +302,9 @@
 
 .field span,
 .blockLabel {
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   color: var(--owner-burgundy-deep);
 }
 
@@ -329,6 +313,9 @@
 .requestTextarea {
   width: 100%;
   min-height: 49px;
+  min-width: 0;
+  box-sizing: border-box;
+  font-size: 1rem;
   border-radius: var(--ui-input-radius);
   border: 1px solid rgba(113, 81, 52, 0.16);
   padding: 0.86rem 0.95rem;
@@ -456,34 +443,33 @@
   border-top: 1px solid var(--owner-line-soft);
 }
 
-.servicePickerHeader {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(190px, 280px);
-  align-items: end;
-  gap: 0.85rem;
-}
 
 .serviceSearchField {
   gap: 0.28rem;
 }
 
-.selectedServices {
-  display: grid;
-  gap: 0.45rem;
-}
 
 .selectedServiceChip {
-  border: 1px solid rgba(53, 81, 58, 0.2);
-  background: rgba(232, 243, 237, 0.94);
-  color: #2f5035;
+  min-height: 44px;
+  padding: 0.45rem 0.65rem;
+  white-space: normal;
+  line-height: 1.4;
+  font-size: 0.82rem;
+  border: 1px solid var(--ds-color-border-soft);
+  background: var(--ds-color-accent-soft);
+  color: var(--ds-color-accent-hover);
 }
 
 .allServicesToggle {
   justify-self: start;
-  min-height: 36px;
-  padding-inline: 0.15rem;
-  color: var(--owner-burgundy-deep);
-  font-weight: 800;
+  min-height: 44px;
+  padding: 0.5rem 0;
+  color: var(--ds-color-accent-hover);
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: normal;
+  text-align: left;
+  line-height: 1.4;
 }
 
 .advancedToggle {
@@ -501,25 +487,17 @@
   transform: rotate(180deg);
 }
 
-.allServicesPanel {
-  display: grid;
-  gap: 0.75rem;
-  max-height: 320px;
-  overflow: auto;
-  padding: 0.7rem;
-  border: 1px solid var(--owner-line-soft);
-  border-radius: var(--ui-card-radius);
-  background: rgba(255, 255, 255, 0.62);
-}
 
 .advancedFilters {
-  grid-template-columns: minmax(180px, 0.82fr) minmax(260px, 1fr) minmax(150px, auto);
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr) auto;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  border: 1px solid var(--owner-line-soft);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.62);
+  gap: 1rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-control);
+  background: var(--ds-color-surface-soft);
 }
 
 .advancedShell {
@@ -574,39 +552,30 @@
 }
 
 .serviceChip {
-  border: 1px solid var(--owner-line);
-  background: rgba(255, 252, 248, 0.95);
-  color: var(--owner-burgundy-deep);
+  border: 1px solid var(--ds-color-border);
+  background: var(--ds-color-surface-premium);
+  color: var(--ds-color-text-secondary);
 }
 
 .serviceChipActive {
-  border: 1px solid rgba(212, 175, 55, 0.58);
-  background: rgba(212, 175, 55, 0.14);
-  color: var(--owner-ink);
-  box-shadow: 0 8px 16px rgba(111, 53, 40, 0.07);
+  border: 1px solid var(--ds-color-accent);
+  background: var(--ds-color-accent-soft);
+  color: var(--ds-color-accent-hover);
+  box-shadow: none;
 }
 
 .serviceChip,
 .serviceChipActive {
-  gap: 0.45rem;
-  padding-inline: 0.68rem;
-
-  img {
-    flex: 0 0 auto;
-    opacity: 0.92;
-  }
-
-  span {
-    line-height: 1.15;
-  }
+  min-height: 44px;
+  gap: 0.4rem;
+  padding: 0.55rem 0.75rem;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 0.82rem;
+  line-height: 1.35;
 }
 
-.serviceChipIcon {
-  color: #fff;
-  background: #0f684f;
-  border-radius: 999px;
-  padding: 1px;
-}
 
 .tagMuted {
   background: rgba(58, 44, 34, 0.08);
@@ -688,8 +657,8 @@
 
 .contentLayout {
   display: grid;
-  grid-template-columns: minmax(0, 1.85fr) minmax(330px, 0.95fr);
-  gap: clamp(1rem, 2vw, 1.35rem);
+  grid-template-columns: minmax(0, 1.65fr) minmax(290px, 1fr);
+  gap: 1.1rem;
   align-items: start;
   width: 100%;
   max-width: 100%;
@@ -765,25 +734,22 @@
 }
 
 .resultsHeader {
-  @extend %soft-panel;
   display: flex;
   flex-wrap: wrap;
-  align-items: end;
+  align-items: center;
   justify-content: space-between;
-  gap: 0.85rem;
-  padding: 1rem 1.1rem;
-  border-color: rgba(73, 94, 73, 0.12);
-  border-radius: 18px;
-  background: rgba(255, 252, 246, 0.78);
-  box-shadow: none;
+  gap: 0.75rem;
+  padding: 0.25rem 0 0.8rem;
+  border-bottom: 1px solid var(--ds-color-border-soft);
+  min-width: 0;
 }
 
 .resultsTools {
-  display: grid;
-  grid-auto-flow: column;
-  gap: 0.7rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
   align-items: center;
-  justify-items: end;
+  min-width: 0;
 }
 
 .sortControl {
@@ -807,40 +773,32 @@
 
 .sectionTitle {
   margin: 0.2rem 0 0;
-  padding-bottom: 0.6rem;
-  position: relative;
-  font-family: var(--font-primary), "Cormorant Garamond", serif;
-  font-size: clamp(1.55rem, 2.1vw, 2.05rem);
+  font-family: var(--ds-font-heading);
+  font-size: clamp(1.35rem, 2vw, 1.7rem);
+  line-height: 1.2;
   font-weight: 600;
-  color: var(--owner-ink);
+  color: var(--ds-color-accent-hover);
+  overflow-wrap: anywhere;
 }
 
 .sectionTitle::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 72px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--owner-gold), transparent);
+  content: none;
 }
 
 .sidebar {
-  position: sticky;
-  top: 1.25rem;
   display: grid;
-  gap: 1rem;
+  gap: 0.85rem;
   min-width: 0;
+  align-self: start;
 }
 
 .mapPanel {
   @extend %soft-panel;
   display: grid;
-  gap: 0.8rem;
-  padding: 1rem;
-  border-color: rgba(73, 94, 73, 0.14);
-  border-radius: 20px;
-  background: #fffdf8;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border-radius: var(--ds-radius-panel);
+  background: var(--ds-color-surface-premium);
 }
 
 .mapPanelHeader {
@@ -852,12 +810,13 @@
 
 .mapFrame {
   position: relative;
-  min-height: 340px;
-  height: clamp(340px, 34vh, 430px);
+  isolation: isolate;
+  min-height: 320px;
+  height: clamp(320px, 42vh, 480px);
   overflow: hidden;
-  border: 1px solid rgba(53, 81, 58, 0.16);
-  border-radius: 18px;
-  background: #eef3ef;
+  border: 1px solid var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-control);
+  background: var(--ds-color-accent-soft);
 }
 
 .mapFrame :global(.leaflet-container) {
@@ -881,14 +840,11 @@
 .requestDock {
   @extend %soft-panel;
   display: grid;
-  gap: 1rem;
+  gap: 0.75rem;
   padding: 1rem;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  border-color: rgba(73, 94, 73, 0.14);
-  border-radius: 20px;
-  background: #fffdf8;
+  min-width: 0;
+  border-radius: var(--ds-radius-panel);
+  background: var(--ds-color-surface-premium);
 }
 
 .requestPanel {
@@ -1074,8 +1030,8 @@
   min-height: 2rem;
   padding: 0.25rem 0.65rem;
   border-radius: 999px;
-  background: linear-gradient(180deg, #d7a842, #b98518);
-  color: #fff;
+  background: var(--ds-color-accent-soft);
+  color: var(--ds-color-accent-hover);
   font-weight: 900;
 }
 
@@ -1678,7 +1634,12 @@
 
 .primaryBtn,
 .secondaryBtn {
-  min-width: 160px;
+  min-width: 0;
+  min-height: 44px;
+  height: auto;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
 }
 
 .errorBox,
@@ -1875,26 +1836,6 @@
   gap: 0.18rem;
 }
 
-.mobileDrawerBackdrop {
-  display: none;
-}
-
-.mobileDrawer {
-  display: grid;
-  gap: 1rem;
-}
-
-.mobileDrawerHeader {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.mobileDrawerBody {
-  display: grid;
-  gap: 1rem;
-}
 
 .primaryBtn:focus-visible,
 .secondaryBtn:focus-visible,
@@ -1948,195 +1889,176 @@
   }
 }
 
+
+/* Search presentation only; request workflow styles remain shared above. */
+.professionalTypes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.3rem;
+  border: 1px solid var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-control);
+  background: var(--ds-color-surface-soft);
+}
+
+.activeCriteria { display: grid; gap: 0.5rem; }
+
+.prestationsTitle {
+  margin: 0;
+  font-family: var(--ds-font-heading);
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--ds-color-accent-hover);
+}
+
+.legacyFamilyCriteria {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.65rem;
+  border: 1px solid var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-control);
+  background: var(--ds-color-surface-soft);
+}
+
+.legacyFamilyCriteria p {
+  margin: 0;
+  color: var(--ds-color-text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.sortHint {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--ds-color-text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.searchNotice {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--ds-color-border-soft);
+  border-left: 3px solid var(--ds-color-primary);
+  border-radius: var(--ds-radius-control);
+  background: var(--ds-color-surface-soft);
+  color: var(--ds-color-text-secondary);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.searchNotice p { margin: 0; }
+.searchNotice details { margin-top: 0.4rem; }
+.searchNotice summary { min-height: 44px; align-content: center; cursor: pointer; }
+
+.selectionPreview { min-width: 0; }
+.selectionActions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.selectionActions > :is(a, button) { flex: 1 1 7rem; }
+.selectionEmpty { margin: 0; color: var(--ds-color-text-secondary); font-size: 0.88rem; line-height: 1.5; }
+.requestDock .requestTitle { font-size: 1.3rem; line-height: 1.2; }
+.requestDock .requestIntro { margin: 0; }
+.requestDock .selectionRows { max-height: 15rem; overflow: auto; padding: 0.25rem; }
+.requestDock .selectionInfo :is(strong, span) { white-space: normal; overflow-wrap: anywhere; }
+.selectionRemove { min-width: 44px; min-height: 44px; }
+
+.workspaceNavigation { display: none; }
+
+.resultsColumn,
+.mapPanel,
+.requestDock { scroll-margin-top: 6rem; }
+
+.mapFrame :global(.leaflet-control-zoom a) {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  color: var(--ds-color-accent-hover);
+  background: var(--ds-color-surface-premium);
+}
+
+.page :is(button, a, summary):focus-visible {
+  outline: 2px solid var(--ds-color-accent);
+  outline-offset: 3px;
+}
+
 @media (max-width: 1120px) {
-  .cockpitStrip {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .cockpitStrip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .advancedFilters { grid-template-columns: 1fr; }
+  .sliderFilters { grid-column: 1 / -1; }
+  .contentLayout { grid-template-columns: 1fr; }
+  .viewToggleDesktop { display: none; }
+  .searchBar { grid-template-columns: minmax(0, 1fr) 7rem; }
+  .workspaceNavigation {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    border-bottom: 1px solid var(--ds-color-border-soft);
+    padding-bottom: 0.75rem;
   }
-
-  .searchBar {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .advancedFilters,
-  .servicePickerHeader {
-    grid-template-columns: 1fr;
-  }
-
-  .sliderFilters {
-    grid-column: 1 / -1;
-  }
-
-  .contentLayout {
-    grid-template-columns: 1fr;
-  }
-
-  .sidebar {
-    position: static;
-  }
-
-  .mapPanel {
-    order: -1;
-  }
-
-  .resultsTools {
-    justify-items: start;
-  }
-
-  .viewToggleDesktop {
-    display: none;
+  .workspaceNavigation a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.45rem 0.7rem;
+    border: 1px solid var(--ds-color-border-soft);
+    border-radius: var(--ds-radius-control);
+    color: var(--ds-color-accent-hover);
+    background: var(--ds-color-surface-premium);
+    font-size: 0.85rem;
+    text-decoration: none;
   }
 }
 
 @media (max-width: 720px) {
-  .mobileHeroActions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.65rem;
+  .mobileHeroActions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; }
+  .cockpitCard, .requestPanel, .followUpPanel, .card { padding: 1rem; }
+  .hero, .cockpitStrip, .contentLayout, .resultsColumn, .sidebar, .requestDock, .followUpPanel, .requestPanel, .card {
+    width: 100%; max-width: 100%; box-sizing: border-box;
   }
-
-  .hero,
-  .cockpitCard,
-  .searchShell,
-  .requestPanel,
-  .followUpPanel,
-  .card {
-    padding: 1rem;
-  }
-
-  .hero,
-  .cockpitStrip,
-  .contentLayout,
-  .resultsColumn,
-  .sidebar,
-  .requestDock,
-  .followUpPanel,
-  .requestPanel,
-  .card,
-  .mobileDrawer {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-  }
-
-  .searchShell {
-    display: none;
-  }
-
-  .title {
-    max-width: none;
-    font-size: 2.15rem;
-  }
-
-  .searchBar,
-  .advancedFilters,
-  .servicePickerHeader,
-  .cockpitStrip,
-  .followUpMetrics,
-  .kpiRow,
-  .pricing,
-  .budgetRow,
-  .fieldGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .sliderFilters {
-    grid-column: auto;
-  }
-
-  .resultsHeader,
-  .searchMeta,
-  .cardHead,
-  .requestHeader {
-    grid-auto-flow: row;
-  }
-
-  .resultsHeader {
-    padding: 0.95rem;
-  }
-
-  .cardIdentityWrap {
-    align-items: start;
-  }
-
-  .avatarBadge {
-    width: 72px;
-    height: 72px;
-    flex-basis: 72px;
-  }
-
-  .actions,
-  .searchActions {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
-  .mapFrame {
-    min-height: 280px;
-    height: 320px;
-  }
-
-  .stayCriteriaLine {
-    justify-content: flex-start;
-  }
-
-  .badgesCol,
-  .resultsTools {
-    justify-items: start;
-  }
-
-  .resultsTools {
-    grid-auto-flow: row;
-    grid-template-columns: 1fr;
-    width: 100%;
-  }
-
-  .sortControl {
-    justify-content: space-between;
-    width: 100%;
-  }
-
-  .sortControl select {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .selectionSummary,
-  .requestBlock {
-    padding: 0.9rem;
-  }
-
+  .title { max-width: none; font-size: 1.85rem; }
+  .advancedFilters, .cockpitStrip, .followUpMetrics, .kpiRow, .pricing, .budgetRow, .fieldGrid { grid-template-columns: 1fr; }
+  .sliderFilters { grid-column: auto; }
+  .cardIdentityWrap { align-items: start; }
+  .avatarBadge { width: 72px; height: 72px; flex-basis: 72px; }
+  .actions { display: grid; grid-template-columns: 1fr; }
+  .mapFrame { min-height: 280px; height: 320px; }
+  .stayCriteriaLine { justify-content: flex-start; }
+  .sortControl { justify-content: space-between; width: 100%; }
+  .sortControl select { flex: 1; min-width: 0; }
+  .selectionSummary, .requestBlock { padding: 0.9rem; }
   .mobileSelectionBar {
-    position: sticky;
-    bottom: 0.75rem;
-    z-index: 8;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.8rem;
-    padding: 0.9rem 1rem;
-    border-radius: 22px;
-    background: rgba(39, 29, 24, 0.94);
-    color: #fff9f4;
-    box-shadow: 0 18px 30px rgba(36, 18, 13, 0.24);
+    position: sticky; top: calc(var(--ds-layout-header-height) + 0.5rem); z-index: 8; display: flex; align-items: center; justify-content: space-between;
+    color: var(--ds-color-text-inverse); box-shadow: var(--ds-shadow-md);
   }
+  .page { gap: 1rem; padding-inline: 0.5rem; }
+  .hero { padding: 1rem; gap: 0.85rem; }
+  .mobileHeroActions { justify-content: flex-end; }
+  .professionalTypes { width: 100%; box-sizing: border-box; }
+  .professionalTypes button { flex: 1 1 auto; font-size: 0.82rem; }
+  .searchBar { grid-template-columns: minmax(0, 1fr) 5.75rem; gap: 0.6rem; }
+  .searchActions { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+  .searchActions button { font-size: 0.82rem; padding-inline: 0.65rem; }
+  .serviceChips { gap: 0.4rem; }
+  .servicePicker { gap: 0.65rem; }
+  .servicePicker > p { margin: 0; font-size: 0.85rem; color: var(--ds-color-text-secondary); line-height: 1.5; }
+  .serviceChip, .serviceChipActive { text-align: left; }
+  .resultsHeader { padding: 0 0 0.75rem; }
+  .resultsTools { display: flex; flex-direction: row; }
+  .sortControl { flex-wrap: wrap; }
+  .mobileSelectionBar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.65rem 0.8rem;
+    border-radius: var(--ds-radius-panel);
+    background: var(--ds-color-accent-hover);
+  }
+  .mobileSelectionBar[data-empty="true"] { display: none; }
+  .mobileSelectionBar a { color: var(--ds-color-text-inverse); min-height: 44px; display: inline-flex; align-items: center; }
+  .mobileSelectionBar button { flex: 1 1 10rem; }
+}
 
-  .mobileDrawerBackdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 20;
-    display: grid;
-    align-items: end;
-    background: rgba(28, 20, 16, 0.34);
-    backdrop-filter: blur(6px);
-  }
-
-  .mobileDrawer {
-    border-radius: 24px 24px 0 0;
-    padding: 1rem;
-    background: linear-gradient(180deg, #fffdfa, #f5ede2);
-    max-height: 88vh;
-    overflow: auto;
-  }
+@media (max-width: 360px) {
+  .searchActions { grid-template-columns: 1fr; }
 }

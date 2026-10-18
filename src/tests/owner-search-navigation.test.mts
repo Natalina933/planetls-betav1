@@ -45,3 +45,13 @@ test("recipients restore only after authorized results load and disappeared prof
   assert.deepEqual(restoreSelectedConcierges(params, []), []);
   assert.deepEqual(restoreSelectedConcierges(params, [{id:"pro-2"},{id:"pro-1"}]), ["pro-1","pro-2"]);
 });
+
+test("professional type survives return navigation and artisans cannot become request recipients", () => {
+  const path = buildOwnerSearchReturnTo({ ...filters, professionalType: "provider" }, []);
+  assert.equal(new URL(path, "http://localhost").searchParams.get("type"), "provider");
+  const params = new URLSearchParams({ selectedConciergeIds: "concierge,artisan" });
+  assert.deepEqual(restoreSelectedConcierges(params, [
+    { id: "concierge", professional_type: "concierge" },
+    { id: "artisan", professional_type: "provider" },
+  ]), ["concierge"]);
+});

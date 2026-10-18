@@ -46,14 +46,15 @@ export function useOwnerConciergeSearch(): UseOwnerConciergeSearchResult {
       setWarning(null);
 
       const params = buildOwnerConciergeSearchParams(filters);
-      const response = await fetch(`/api/profiles/concierges?${params.toString()}`, {
+      const endpoint = "/api/search/professionals";
+      const response = await fetch(`${endpoint}?${params.toString()}`, {
         cache: "no-store",
         signal: controller.signal,
       });
       const payload = (await response.json()) as ConciergeSearchPayload & { error?: string };
 
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de charger les concierges.");
+        throw new Error(payload?.error || "Impossible de charger les professionnels.");
       }
 
       if (latestRequestRef.current !== requestId) {
@@ -83,7 +84,9 @@ export function useOwnerConciergeSearch(): UseOwnerConciergeSearchResult {
         return [];
       }
 
-      setError(err instanceof Error ? err.message : "Impossible de charger les concierges.");
+      setItems([]);
+      setCenter(null);
+      setError(err instanceof Error ? err.message : "Impossible de charger les professionnels.");
       return [];
     } finally {
       if (searchAbortRef.current === controller) {

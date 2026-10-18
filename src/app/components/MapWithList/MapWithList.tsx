@@ -33,7 +33,7 @@ L.Icon.Default.mergeOptions({
 export interface Profile {
   id: string;
   name: string;
-  type: "concierge";
+  type: "concierge" | "provider";
   city: string;
   latitude: number;
   longitude: number;
@@ -92,7 +92,8 @@ function ConciergeSearchMap(props: SearchMapProps) {
             {props.selectedId === profile.id || group.profiles.length === 1 ? <div>
               <p>{profile.city}</p>
               <ConciergeServices values={profile.services ?? []} />
-              <a href={conciergeProfileHref(profile.id, props.profileReturnTo)}>Voir le profil</a>
+              <p>{profile.type === "provider" ? "Artisan ou prestataire" : "Concierge"}</p>
+              {profile.type !== "provider" ? <a href={conciergeProfileHref(profile.id, props.profileReturnTo)}>Voir le profil</a> : null}
             </div> : null}
           </li>)}</ul>
         </Popup>

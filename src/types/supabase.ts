@@ -143,6 +143,7 @@ export type Database = {
           password: string | null;
           phone: string | null;
           role: string | null;
+          status: string | null;
           search_target: string | null;
           updated_at: string | null;
           username: string;
@@ -196,6 +197,7 @@ export type Database = {
           password?: string | null;
           phone?: string | null;
           role?: string | null;
+          status?: string | null;
           search_target?: string | null;
           updated_at?: string | null;
           username: string;
@@ -249,6 +251,7 @@ export type Database = {
           password?: string | null;
           phone?: string | null;
           role?: string | null;
+          status?: string | null;
           search_target?: string | null;
           updated_at?: string | null;
           username?: string | null;
