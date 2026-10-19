@@ -142,17 +142,12 @@ export function PromptLibraryCenter({ payload, loading }: PromptLibraryCenterPro
     });
   }, [category, difficulty, favorites, prompts, risk, search, showFavoritesOnly, status]);
 
-  useEffect(() => {
-    if (!filteredPrompts.length) {
-      setSelectedPromptId(null);
-      return;
-    }
-    if (!selectedPromptId || !filteredPrompts.some((prompt) => prompt.metadata.id === selectedPromptId)) {
-      setSelectedPromptId(filteredPrompts[0].metadata.id);
-    }
-  }, [filteredPrompts, selectedPromptId]);
-
   const selectedPrompt = filteredPrompts.find((prompt) => prompt.metadata.id === selectedPromptId) ?? filteredPrompts[0] ?? null;
+  const resolvedSelectedPromptId = selectedPrompt?.metadata.id ?? null;
+  // Discard an invalid selection before committing, including when filters empty the list.
+  if (selectedPromptId !== resolvedSelectedPromptId) {
+    setSelectedPromptId(resolvedSelectedPromptId);
+  }
   const selectedValues = selectedPrompt ? preparations[selectedPrompt.metadata.id] ?? {} : {};
   const preview = selectedPrompt ? buildPromptPreview(selectedPrompt, selectedValues) : null;
 
