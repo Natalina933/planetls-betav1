@@ -258,36 +258,6 @@ const PricingGridManager = ({
   ];
 
   /* -------------------------------------------------------------------------- */
-  /*                                  EFFECTS                                   */
-  /* -------------------------------------------------------------------------- */
-
-  useEffect(() => {
-    Promise.all([fetchPricings(), fetchServicesCatalog()]);
-  }, []);
-
-  useEffect(() => {
-    const fetchLinkedPackPricings = async () => {
-      try {
-        const url = linkedPackageId
-          ? `/api/services/pricing-packages?packageId=${encodeURIComponent(linkedPackageId)}`
-          : "/api/services/pricing-packages";
-        const res = await fetch(url);
-        if (!res.ok) return;
-        const data: LinkedPricingPackage[] = await res.json();
-        setLinkedPricingPackages(Array.isArray(data) ? data : []);
-      } catch {
-        // silent fail: this feature is optional
-      }
-    };
-
-    if (!linkedPackageId) {
-      setSelectedPricingIdsForPack([]);
-    }
-
-    fetchLinkedPackPricings();
-  }, [linkedPackageId]);
-
-  /* -------------------------------------------------------------------------- */
   /*                                   FETCH                                    */
   /* -------------------------------------------------------------------------- */
 
@@ -322,6 +292,224 @@ const PricingGridManager = ({
       console.error("[Pricing] fetchServicesCatalog", err);
     }
   };
+
+  /* -------------------------------------------------------------------------- */
+  /*                                  EFFECTS                                   */
+  /* -------------------------------------------------------------------------- */
+
+  useEffect(() => {
+    Promise.all([fetchPricings(), fetchServicesCatalog()]);
+  }, []);
+
+  useEffect(() => {
+    const fetchLinkedPackPricings = async () => {
+      try {
+        const url = linkedPackageId
+          ? `/api/services/pricing-packages?packageId=${encodeURIComponent(linkedPackageId)}`
+          : "/api/services/pricing-packages";
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const data: LinkedPricingPackage[] = await res.json();
+        setLinkedPricingPackages(Array.isArray(data) ? data : []);
+      } catch {
+        // silent fail: this feature is optional
+      }
+    };
+
+    if (!linkedPackageId) {
+      setSelectedPricingIdsForPack([]);
+    }
+
+    fetchLinkedPackPricings();
+  }, [linkedPackageId]);
+
+  const buildPricingSignature = useCallback(
+    ({
+      label,
+      type,
+      amount,
+      propertyType,
+      includePropertyType = true,
+    }: {
+      label: string;
+      type: PricingType;
+      amount: number;
+      propertyType?: string | null;
+      includePropertyType?: boolean;
+    }) => {
+      return [
+        normalizeServiceText(label),
+        type,
+        Number(amount).toFixed(2),
+        includePropertyType ? propertyType ?? "" : "",
+      ].join("__");
+    },
+    []
+  );
+
+  const getPricingSignature = useCallback(
+    (pricing: Pricing) =>
+      buildPricingSignature({
+        label: pricing.label,
+        type: pricing.type,
+        amount: pricing.amount,
+        propertyType: pricing.property_type ?? null,
+      }),
+    [buildPricingSignature]
+  );
+
+  const getLoosePricingSignature = useCallback(
+    (pricing: Pricing) =>
+      buildPricingSignature({
+        label: pricing.label,
+        type: pricing.type,
+        amount: pricing.amount,
+        propertyType: pricing.property_type ?? null,
+        includePropertyType: false,
+      }),
+    [buildPricingSignature]
+  );
+
+  const linkedPricingMap = useMemo(() => {
+    return linkedPricingPackages.reduce<Record<string, LinkedPricingPackage[]>>(
+      (acc, item) => {
+        const signature = buildPricingSignature({
+          label: item.label,
+          type: item.type,
+          amount: item.amount,
+          propertyType: item.property_type ?? null,
+        });
+        if (!acc[signature]) acc[signature] = [];
+        acc[signature].push(item);
+        return acc;
+      },
+      {}
+    );
+  }, [buildPricingSignature, linkedPricingPackages]);
+
+  const linkedPricingLooseMap = useMemo(() => {
+    return linkedPricingPackages.reduce<Record<string, LinkedPricingPackage[]>>(
+      (acc, item) => {
+        const signature = buildPricingSignature({
+          label: item.label,
+          type: item.type,
+          amount: item.amount,
+          propertyType: item.property_type ?? null,
+          includePropertyType: false,
+        });
+        if (!acc[signature]) acc[signature] = [];
+        acc[signature].push(item);
+        return acc;
+      },
+      {}
+    );
+  }, [buildPricingSignature, linkedPricingPackages]);
+
+  const linkedPricingSignatures = useMemo(
+    () => new Set(Object.keys(linkedPricingMap)),
+    [linkedPricingMap]
+  );
+
+  const allPricingPackageMap = useMemo(() => {
+    return linkedPricingPackages.reduce<Record<string, LinkedPricingPackage[]>>(
+      (acc, item) => {
+        const exactSignature = buildPricingSignature({
+          label: item.label,
+          type: item.type,
+          amount: item.amount,
+          propertyType: item.property_type ?? null,
+        });
+        const looseSignature = buildPricingSignature({
+          label: item.label,
+          type: item.type,
+          amount: item.amount,
+          propertyType: item.property_type ?? null,
+          includePropertyType: false,
+        });
+
+        if (!acc[exactSignature]) acc[exactSignature] = [];
+        acc[exactSignature].push(item);
+
+        if (!acc[looseSignature]) acc[looseSignature] = [];
+        acc[looseSignature].push(item);
+
+        return acc;
+      },
+      {}
+    );
+  }, [buildPricingSignature, linkedPricingPackages]);
+
+  const dedupeLinkedPricingRows = useCallback(
+    (rows: LinkedPricingPackage[]) => {
+      const seen = new Set<string>();
+      return rows.filter((row) => {
+        if (seen.has(row.id)) return false;
+        seen.add(row.id);
+        return true;
+      });
+    },
+    []
+  );
+
+  const editingPricing = useMemo(
+    () => pricings.find((pricing) => pricing.id === editingId) ?? null,
+    [editingId, pricings]
+  );
+
+  const editingPricingLinkedRows = useMemo(() => {
+    if (!editingPricing) return [];
+    return dedupeLinkedPricingRows(
+      allPricingPackageMap[getPricingSignature(editingPricing)] ??
+        allPricingPackageMap[getLoosePricingSignature(editingPricing)] ??
+        []
+    );
+  }, [
+    allPricingPackageMap,
+    dedupeLinkedPricingRows,
+    editingPricing,
+    getLoosePricingSignature,
+    getPricingSignature,
+  ]);
+
+  const getPricingLinkedPackages = useCallback(
+    (pricing: Pricing) => {
+      const rows = dedupeLinkedPricingRows(
+        allPricingPackageMap[getPricingSignature(pricing)] ??
+          allPricingPackageMap[getLoosePricingSignature(pricing)] ??
+          []
+      );
+
+      return rows.reduce<Array<{ id: string; name: string }>>((acc, row) => {
+        const packageId = row.package?.id ?? row.package_id;
+        const packageName = row.package?.name?.trim();
+        if (!packageId || !packageName) return acc;
+        if (acc.some((item) => item.id === packageId)) return acc;
+        acc.push({ id: packageId, name: packageName });
+        return acc;
+      }, []);
+    },
+    [
+      allPricingPackageMap,
+      dedupeLinkedPricingRows,
+      getLoosePricingSignature,
+      getPricingSignature,
+    ]
+  );
+
+  const getPricingLinkedRows = useCallback(
+    (pricing: Pricing) =>
+      dedupeLinkedPricingRows(
+        allPricingPackageMap[getPricingSignature(pricing)] ??
+          allPricingPackageMap[getLoosePricingSignature(pricing)] ??
+          []
+      ),
+    [
+      allPricingPackageMap,
+      dedupeLinkedPricingRows,
+      getLoosePricingSignature,
+      getPricingSignature,
+    ]
+  );
 
   /* -------------------------------------------------------------------------- */
   /*                                   FORM                                     */
@@ -534,194 +722,6 @@ const PricingGridManager = ({
     setShowAddForm(false);
     setLinkToPackage(Boolean(linkedPackageId));
   };
-
-  const buildPricingSignature = useCallback(
-    ({
-      label,
-      type,
-      amount,
-      propertyType,
-      includePropertyType = true,
-    }: {
-      label: string;
-      type: PricingType;
-      amount: number;
-      propertyType?: string | null;
-      includePropertyType?: boolean;
-    }) => {
-      return [
-        normalizeServiceText(label),
-        type,
-        Number(amount).toFixed(2),
-        includePropertyType ? propertyType ?? "" : "",
-      ].join("__");
-    },
-    []
-  );
-
-  const getPricingSignature = useCallback(
-    (pricing: Pricing) =>
-      buildPricingSignature({
-        label: pricing.label,
-        type: pricing.type,
-        amount: pricing.amount,
-        propertyType: pricing.property_type ?? null,
-      }),
-    [buildPricingSignature]
-  );
-
-  const getLoosePricingSignature = useCallback(
-    (pricing: Pricing) =>
-      buildPricingSignature({
-        label: pricing.label,
-        type: pricing.type,
-        amount: pricing.amount,
-        propertyType: pricing.property_type ?? null,
-        includePropertyType: false,
-      }),
-    [buildPricingSignature]
-  );
-
-  const linkedPricingMap = useMemo(() => {
-    return linkedPricingPackages.reduce<Record<string, LinkedPricingPackage[]>>(
-      (acc, item) => {
-        const signature = buildPricingSignature({
-          label: item.label,
-          type: item.type,
-          amount: item.amount,
-          propertyType: item.property_type ?? null,
-        });
-        if (!acc[signature]) acc[signature] = [];
-        acc[signature].push(item);
-        return acc;
-      },
-      {}
-    );
-  }, [buildPricingSignature, linkedPricingPackages]);
-
-  const linkedPricingLooseMap = useMemo(() => {
-    return linkedPricingPackages.reduce<Record<string, LinkedPricingPackage[]>>(
-      (acc, item) => {
-        const signature = buildPricingSignature({
-          label: item.label,
-          type: item.type,
-          amount: item.amount,
-          propertyType: item.property_type ?? null,
-          includePropertyType: false,
-        });
-        if (!acc[signature]) acc[signature] = [];
-        acc[signature].push(item);
-        return acc;
-      },
-      {}
-    );
-  }, [buildPricingSignature, linkedPricingPackages]);
-
-  const linkedPricingSignatures = useMemo(
-    () => new Set(Object.keys(linkedPricingMap)),
-    [linkedPricingMap]
-  );
-
-  const allPricingPackageMap = useMemo(() => {
-    return linkedPricingPackages.reduce<Record<string, LinkedPricingPackage[]>>(
-      (acc, item) => {
-        const exactSignature = buildPricingSignature({
-          label: item.label,
-          type: item.type,
-          amount: item.amount,
-          propertyType: item.property_type ?? null,
-        });
-        const looseSignature = buildPricingSignature({
-          label: item.label,
-          type: item.type,
-          amount: item.amount,
-          propertyType: item.property_type ?? null,
-          includePropertyType: false,
-        });
-
-        if (!acc[exactSignature]) acc[exactSignature] = [];
-        acc[exactSignature].push(item);
-
-        if (!acc[looseSignature]) acc[looseSignature] = [];
-        acc[looseSignature].push(item);
-
-        return acc;
-      },
-      {}
-    );
-  }, [buildPricingSignature, linkedPricingPackages]);
-
-  const dedupeLinkedPricingRows = useCallback(
-    (rows: LinkedPricingPackage[]) => {
-      const seen = new Set<string>();
-      return rows.filter((row) => {
-        if (seen.has(row.id)) return false;
-        seen.add(row.id);
-        return true;
-      });
-    },
-    []
-  );
-
-  const editingPricing = useMemo(
-    () => pricings.find((pricing) => pricing.id === editingId) ?? null,
-    [editingId, pricings]
-  );
-
-  const editingPricingLinkedRows = useMemo(() => {
-    if (!editingPricing) return [];
-    return dedupeLinkedPricingRows(
-      allPricingPackageMap[getPricingSignature(editingPricing)] ??
-        allPricingPackageMap[getLoosePricingSignature(editingPricing)] ??
-        []
-    );
-  }, [
-    allPricingPackageMap,
-    dedupeLinkedPricingRows,
-    editingPricing,
-    getLoosePricingSignature,
-    getPricingSignature,
-  ]);
-
-  const getPricingLinkedPackages = useCallback(
-    (pricing: Pricing) => {
-      const rows = dedupeLinkedPricingRows(
-        allPricingPackageMap[getPricingSignature(pricing)] ??
-          allPricingPackageMap[getLoosePricingSignature(pricing)] ??
-          []
-      );
-
-      return rows.reduce<Array<{ id: string; name: string }>>((acc, row) => {
-        const packageId = row.package?.id ?? row.package_id;
-        const packageName = row.package?.name?.trim();
-        if (!packageId || !packageName) return acc;
-        if (acc.some((item) => item.id === packageId)) return acc;
-        acc.push({ id: packageId, name: packageName });
-        return acc;
-      }, []);
-    },
-    [
-      allPricingPackageMap,
-      dedupeLinkedPricingRows,
-      getLoosePricingSignature,
-      getPricingSignature,
-    ]
-  );
-
-  const getPricingLinkedRows = useCallback(
-    (pricing: Pricing) =>
-      dedupeLinkedPricingRows(
-        allPricingPackageMap[getPricingSignature(pricing)] ??
-          allPricingPackageMap[getLoosePricingSignature(pricing)] ??
-          []
-      ),
-    [
-      allPricingPackageMap,
-      dedupeLinkedPricingRows,
-      getLoosePricingSignature,
-      getPricingSignature,
-    ]
-  );
 
   const togglePricingSelectionForPack = (pricingId: string) => {
     setSelectedPricingIdsForPack((prev) =>
