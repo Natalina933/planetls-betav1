@@ -72,6 +72,8 @@
   /* Surface atténuée (beige très clair) */
   --ds-color-surface-premium: #fffdf8;
   /* Surface premium */
+  --ds-color-overlay: rgba(0, 0, 0, 0.5);
+  /* Voile commun aux thèmes : conserve le repli historique de la navigation. */
 
   /* Couleurs de texte */
   --ds-color-text-primary: #292823;

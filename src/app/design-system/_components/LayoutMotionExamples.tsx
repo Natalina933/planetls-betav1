@@ -8,13 +8,13 @@ import { useParallax, useReveal, useStaggeredReveal } from "@/components/ui/moti
 import styles from "../atelier.module.scss";
 
 function MotionSample() {
-  const reveal = useReveal({ animation: "reveal-down" });
-  const stagger = useStaggeredReveal(2, 150);
-  const parallax = useParallax(0.15);
+  const { ref: revealRef, className: revealClassName } = useReveal({ animation: "reveal-down" });
+  const { ref: staggerRef, className: staggerClassName } = useStaggeredReveal(2, 150);
+  const { ref: parallaxRef, style: parallaxStyle } = useParallax(0.15);
   return <div className={styles.grid}>
-    <div ref={reveal.ref} className={`${styles.card} ${reveal.className}`} data-motion="reveal"><strong>Apparition douce</strong><p>Une animation unique à l’entrée dans la zone visible.</p></div>
-    <div ref={stagger.ref} className={`${styles.card} ${stagger.className}`} data-motion="stagger"><strong>Entrée décalée</strong><p>Un délai court pour accompagner une séquence.</p></div>
-    <div className={styles.card} data-motion="parallax"><strong>Décor en mouvement</strong><div ref={parallax.ref} style={parallax.style} aria-hidden="true"><span className={styles.swatch} style={{ background: "var(--ds-color-accent-soft)" }} /></div><p>Le décor seul se déplace, de 48 px au maximum.</p></div>
+    <div ref={revealRef} className={`${styles.card} ${revealClassName}`} data-motion="reveal"><strong>Apparition douce</strong><p>Une animation unique à l’entrée dans la zone visible.</p></div>
+    <div ref={staggerRef} className={`${styles.card} ${staggerClassName}`} data-motion="stagger"><strong>Entrée décalée</strong><p>Un délai court pour accompagner une séquence.</p></div>
+    <div className={styles.card} data-motion="parallax"><strong>Décor en mouvement</strong><div ref={parallaxRef} style={parallaxStyle} aria-hidden="true"><span className={styles.swatch} style={{ background: "var(--ds-color-accent-soft)" }} /></div><p>Le décor seul se déplace, de 48 px au maximum.</p></div>
   </div>;
 }
 

@@ -12,8 +12,6 @@ import {
   FiRepeat,
   FiSun,
   FiUser,
-  FiMenu,
-  FiX,
   FiHome,
   FiBriefcase,
   FiTool,

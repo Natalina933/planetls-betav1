@@ -63,7 +63,7 @@ export default function HomePage() {
           <em>{copy.howItWorks.subtitle}</em>
         </h2>
         <div className={styles.steps}>
-          {copy.howItWorks.steps.map((step, index) => (
+          {copy.howItWorks.steps.map((step) => (
             <article key={step.title}>
               <span className={styles.number}>{step.number}</span>
               <h3>{step.title}</h3>

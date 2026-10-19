@@ -236,7 +236,19 @@ test("le registre reel conserve des IDs uniques et un prochain numero exploitabl
   assert.equal(new Set(githubIssues).size, githubIssues.length);
   assert.deepEqual(githubIssues.sort((left, right) => left - right), [10, 11, 12, 13, 14, 15, 16, 17]);
   assert.equal(plan.registryItems.find((item) => item.id === "PLS-SEC-005")?.trackingId, "P0-008");
-  assert.equal(plan.diagnostics.nextSuggestedId, "P0-009 · P1-022 · P2-015 · P3-009 · P4-006");
+  const trackingIds = plan.registryItems.map((item) => item.trackingId);
+  assert.equal(new Set(trackingIds).size, trackingIds.length);
+  const expectedNextIds = ["P0", "P1", "P2", "P3", "P4"].map((priority) => {
+    const entries = plan.registryItems.filter((item) => item.priority === priority);
+    assert.deepEqual(
+      entries.map((item) => item.trackingId),
+      entries.map((_, index) => `${priority}-${String(index + 1).padStart(3, "0")}`),
+    );
+    const nextId = `${priority}-${String(entries.length + 1).padStart(3, "0")}`;
+    assert.equal(trackingIds.includes(nextId), false);
+    return nextId;
+  });
+  assert.equal(plan.diagnostics.nextSuggestedId, expectedNextIds.join(" · "));
 });
 
 test("le suivi par priorite reste unique et continu avec plusieurs prefixes de registre", () => {

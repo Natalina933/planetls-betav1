@@ -9,7 +9,6 @@ import {
   FiFileText,
   FiImage,
   FiMessageSquare,
-  FiPackage,
   FiSearch,
   FiSettings,
   FiTool,

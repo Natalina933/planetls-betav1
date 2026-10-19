@@ -24,6 +24,7 @@ const asRow = (v: unknown) => v as Row;
 class MemoryDb {
   tables: Record<string, Row[]> = {};
   writes: Array<{ table: string; operation: string }> = [];
+  reads: string[] = [];
 
   constructor(stayScoped: boolean) {
     this.tables = {
@@ -119,6 +120,7 @@ class Query {
     this.operation = "upsert"; this.payload = payload; this.ignoreDuplicates = options?.ignoreDuplicates ?? false; return this;
   }
   async result(single = false) {
+    if (this.operation === "select") this.db.reads.push(this.table);
     const rows = this.db.tables[this.table] ??= [];
     let selected = rows.filter((row) => this.filters.every((filter) => filter(row))).slice(0, this.count);
     if (this.operation !== "select") {
@@ -310,15 +312,17 @@ test("create: stay context is validated, persisted and explicit on the request",
     reservation_id: RES,
     stay_need: "Linge",
     property_id: PROPERTY,
-    requested_services: ["Linge"],
+    requested_services: ["linen_change"],
     recipient_ids: [CONCIERGE],
   });
   assert.equal(response.status, 201);
+  assert.ok(db.reads.includes("reservations"), "the canonical service must reach stay validation");
   const created = asRow(db.tables.service_requests.find((row) => row.id !== R) ?? null);
   assert.equal(created.reservation_id, RES);
   assert.equal(created.stay_need, "linen");
   assert.equal(created.property_id, PROPERTY);
   assert.equal(created.owner_profile_id, OWNER);
+  assert.deepEqual(created.requested_services, ["linen_change"]);
 });
 
 test("create: a reservation owned by another profile is refused before any write", async () => {
@@ -329,9 +333,12 @@ test("create: a reservation owned by another profile is refused before any write
     title: "Linge pour le séjour",
     reservation_id: RES,
     stay_need: "linen",
+    requested_services: ["linen_change"],
     recipient_ids: [CONCIERGE],
   });
   assert.equal(response.status, 403);
+  assert.ok(db.reads.includes("reservations"));
+  assert.deepEqual(await response.json(), { error: "Ce séjour n'appartient pas à votre compte." });
   assert.equal(db.writes.length, 0);
   assert.deepEqual(db.tables, before);
 });
@@ -343,15 +350,19 @@ test("create: an unknown or missing stay need is refused before any write", asyn
     title: "Linge pour le séjour",
     reservation_id: RES,
     stay_need: "valet",
+    requested_services: ["linen_change"],
     recipient_ids: [CONCIERGE],
   });
   assert.equal(invalid.status, 400);
+  assert.match(String((await invalid.json() as Row).error), /Le besoin de séjour est requis/);
   const missing = await call({
     title: "Linge pour le séjour",
     reservation_id: RES,
+    requested_services: ["linen_change"],
     recipient_ids: [CONCIERGE],
   });
   assert.equal(missing.status, 400);
+  assert.match(String((await missing.json() as Row).error), /Le besoin de séjour est requis/);
   assert.equal(db.writes.length, 0);
   assert.deepEqual(db.tables, before);
 });

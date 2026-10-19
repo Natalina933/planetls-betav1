@@ -71,7 +71,6 @@ function ProfessionalAvatar({ src }: { src?: string | null }) {
 export function PlanetLSNetworkCard({
   content,
   professional,
-  indicators = [],
   loading = false,
   error,
   emptyMessage,

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
@@ -258,23 +258,25 @@ export default function LogementPage() {
       }),
     [pricingPackages, serviceCatalogById, servicePackages],
   );
+  const draftQuoteId = draft?.contractInfo.quoteId;
+  const draftOwnerProfileId = draft?.owner.profileId;
   const relatedQuotes = useMemo(
     () =>
       quotes.filter(
         (quote) =>
-          quote.id === draft?.contractInfo.quoteId ||
-          (!!draft?.owner.profileId && quote.owner_profile_id === draft.owner.profileId),
+          quote.id === draftQuoteId ||
+          (!!draftOwnerProfileId && quote.owner_profile_id === draftOwnerProfileId),
       ),
-    [draft?.contractInfo.quoteId, draft?.owner.profileId, quotes],
+    [draftQuoteId, draftOwnerProfileId, quotes],
   );
   const relatedInvoices = useMemo(
     () =>
       invoices.filter(
         (invoice) =>
-          invoice.quote_id === draft?.contractInfo.quoteId ||
-          (!!draft?.owner.profileId && invoice.owner_profile_id === draft.owner.profileId),
+          invoice.quote_id === draftQuoteId ||
+          (!!draftOwnerProfileId && invoice.owner_profile_id === draftOwnerProfileId),
       ),
-    [draft?.contractInfo.quoteId, draft?.owner.profileId, invoices],
+    [draftQuoteId, draftOwnerProfileId, invoices],
   );
 
   function applySavedOwner(nextRow: HousingRow) {

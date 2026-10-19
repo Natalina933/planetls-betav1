@@ -64,11 +64,12 @@ function getPersonaLabel(persona: DashboardPersona) {
   return "Admin";
 }
 
-function getPersonaIcon(persona: DashboardPersona) {
-  if (persona === "owner") return Home;
-  if (persona === "artisan") return Wrench;
-  return BriefcaseBusiness;
-}
+const PERSONA_ICONS = {
+  owner: Home,
+  artisan: Wrench,
+  conciergerie: BriefcaseBusiness,
+  admin: BriefcaseBusiness,
+};
 
 function formatCount(count: number) {
   if (count > 99) return "99+";
@@ -98,7 +99,7 @@ export function DashboardLayout({
   showBottomNav = true,
   children,
 }: DashboardLayoutProps) {
-  const PersonaIcon = getPersonaIcon(persona);
+  const PersonaIcon = PERSONA_ICONS[persona] ?? BriefcaseBusiness;
   const shouldShowBottomNav = showBottomNav && persona !== "admin";
   const shouldShowAdminRail = persona !== "admin";
 

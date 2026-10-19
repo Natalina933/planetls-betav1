@@ -14,7 +14,6 @@ import {
   TriangleAlert,
   UserRound,
   Wrench,
-  type LucideIcon,
 } from "lucide-react";
 import { DashboardLoadingScreen } from "@/components/dashboard";
 import { formatCurrencyAmount, formatDateValue } from "@/app/utils/formatters";
@@ -151,13 +150,21 @@ function getClientName(
   return client?.client_name || client?.company_name || "Client a preciser";
 }
 
-function getPriorityIcon(intervention: ProviderInterventionItem | null): LucideIcon {
-  if (!intervention) return CircleAlert;
+const PRIORITY_ICONS = {
+  none: CircleAlert,
+  security: ShieldAlert,
+  cleaning: Sparkles,
+  maintenance: Wrench,
+  other: TriangleAlert,
+};
+
+function getPriorityIconKey(intervention: ProviderInterventionItem | null): keyof typeof PRIORITY_ICONS {
+  if (!intervention) return "none";
   const text = `${intervention.title ?? ""} ${intervention.service_label ?? ""}`.toLowerCase();
-  if (text.includes("serrure") || text.includes("depannage")) return ShieldAlert;
-  if (text.includes("menage")) return Sparkles;
-  if (text.includes("reparation") || text.includes("maintenance")) return Wrench;
-  return TriangleAlert;
+  if (text.includes("serrure") || text.includes("depannage")) return "security";
+  if (text.includes("menage")) return "cleaning";
+  if (text.includes("reparation") || text.includes("maintenance")) return "maintenance";
+  return "other";
 }
 
 function getQuoteClientLabel(quote: ProviderQuoteItem) {
@@ -449,7 +456,7 @@ export default function ProviderDashboardPage() {
     return <DashboardLoadingScreen label="Chargement de votre cockpit provider..." />;
   }
 
-  const PriorityIcon = getPriorityIcon(priorityIntervention);
+  const PriorityIcon = PRIORITY_ICONS[getPriorityIconKey(priorityIntervention)];
 
   return (
     <div className="theme-artisan">

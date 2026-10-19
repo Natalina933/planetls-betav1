@@ -1786,8 +1786,11 @@ export default function ConciergeProfilePage() {
     setErrors((prevErrors) => updateProfileFieldErrorsSafe(prevErrors, name, value));
   }, [editProfile]);
 
+  const knownMissionZones = missionAvailability?.zones;
+  const knownZoneProfileLocation = editProfile?.location;
+  const knownZoneProfilePostalCode = editProfile?.postal_code;
   const resolveKnownMissionZone = useCallback(async (): Promise<ResolvedMissionZone> => {
-    const currentZone = missionAvailability?.zones?.[0];
+    const currentZone = knownMissionZones?.[0];
     if (
       currentZone &&
       typeof currentZone.label === "string" &&
@@ -1814,7 +1817,7 @@ export default function ConciergeProfilePage() {
         latitude: currentZone.lat,
         longitude: currentZone.lng,
         city: enrichPayload.city ?? currentZone.label.trim(),
-        postcode: currentZone.postcode ?? enrichPayload.postcode ?? editProfile?.postal_code ?? null,
+        postcode: currentZone.postcode ?? enrichPayload.postcode ?? knownZoneProfilePostalCode ?? null,
       };
       } catch {
         return {
@@ -1823,12 +1826,12 @@ export default function ConciergeProfilePage() {
           latitude: currentZone.lat,
           longitude: currentZone.lng,
           city: currentZone.label.trim(),
-          postcode: currentZone.postcode ?? editProfile?.postal_code ?? null,
+          postcode: currentZone.postcode ?? knownZoneProfilePostalCode ?? null,
         };
       }
     }
 
-    const query = currentZone?.label?.trim() || editProfile?.location?.trim() || "";
+    const query = currentZone?.label?.trim() || knownZoneProfileLocation?.trim() || "";
 
     if (!query) {
       throw new Error("Sélectionnez une ville reconnue avant d'enregistrer votre zone.");
@@ -1866,7 +1869,7 @@ export default function ConciergeProfilePage() {
       city: payload.city ?? payload.label,
       postcode: payload.postcode ?? null,
     };
-  }, [editProfile?.location, editProfile?.postal_code, missionAvailability?.zones]);
+  }, [knownZoneProfileLocation, knownZoneProfilePostalCode, knownMissionZones]);
 
   const handleSaveSection = useCallback(async (sectionTitle: string) => {
     if (!editProfile) return;

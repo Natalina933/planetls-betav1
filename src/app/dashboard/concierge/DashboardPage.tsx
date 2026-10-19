@@ -246,13 +246,21 @@ function getRequestActionLabel(request: ConciergeDashboardRequest) {
   return "Répondre";
 }
 
-function getPriorityIcon(request: ConciergeDashboardRequest | null): LucideIcon {
-  if (!request) return CircleAlert;
+const PRIORITY_ICONS = {
+  none: CircleAlert,
+  arrival: DoorOpen,
+  cleaning: Sparkles,
+  maintenance: Wrench,
+  other: TriangleAlert,
+};
+
+function getPriorityIconKey(request: ConciergeDashboardRequest | null): keyof typeof PRIORITY_ICONS {
+  if (!request) return "none";
   const text = request.title.toLowerCase();
-  if (text.includes("check-in") || text.includes("arrivee")) return DoorOpen;
-  if (text.includes("menage")) return Sparkles;
-  if (text.includes("maintenance") || text.includes("depannage") || text.includes("reparation")) return Wrench;
-  return TriangleAlert;
+  if (text.includes("check-in") || text.includes("arrivee")) return "arrival";
+  if (text.includes("menage")) return "cleaning";
+  if (text.includes("maintenance") || text.includes("depannage") || text.includes("reparation")) return "maintenance";
+  return "other";
 }
 
 function getHousingStatusLabel(status: string) {
@@ -814,10 +822,11 @@ export default function DashboardPage() {
     }, 0);
   }, [quotes, requests]);
 
+  const completedMissionCount = kpis?.completed;
   const monthCompletedRevenue = useMemo(() => {
-    const completedMissions = typeof kpis?.completed === "number" ? kpis.completed : 0;
+    const completedMissions = typeof completedMissionCount === "number" ? completedMissionCount : 0;
     return completedMissions;
-  }, [kpis?.completed]);
+  }, [completedMissionCount]);
 
   const activityItems = useMemo<UnifiedSpotlightItem[]>(() => {
     const messageItems = conversations
@@ -868,7 +877,7 @@ export default function DashboardPage() {
         meta: priorityRequest.desired_date ? `À ${formatTime(priorityRequest.desired_date)}` : "Horaire à confirmer",
         href: getRequestHref(priorityRequest),
         icon: (() => {
-          const PriorityIcon = getPriorityIcon(priorityRequest);
+          const PriorityIcon = PRIORITY_ICONS[getPriorityIconKey(priorityRequest)];
           return <PriorityIcon size={16} />;
         })(),
         tone: priorityRequest.urgency ? "warning" : "accent",
@@ -1270,7 +1279,7 @@ export default function DashboardPage() {
     return <DashboardLoadingScreen label="Chargement de votre cockpit conciergerie..." />;
   }
 
-  const PriorityIcon = getPriorityIcon(priorityRequest);
+  const PriorityIcon = PRIORITY_ICONS[getPriorityIconKey(priorityRequest)];
   const resumeConciergeOnboarding = () => {
     if (!user?.id) return;
     try {
