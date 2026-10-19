@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTemporalClock } from "@/app/hooks/useTemporalClock";
+import { temporalSchedule } from "@/app/lib/temporalClock";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -387,14 +389,21 @@ export default function AdminBusinessPage() {
     [requests],
   );
 
+  const timeSchedule = useMemo(
+    () => temporalSchedule(missions
+      .filter((mission) => !mission.invoice_id && mission.scheduled_start)
+      .map((mission) => new Date(mission.scheduled_start as string).getTime() + 1)),
+    [missions],
+  );
+  const now = useTemporalClock(timeSchedule);
   const lateUnbilledMissions = useMemo(
     () =>
       missions.filter((mission) => {
         if (mission.invoice_id || !mission.scheduled_start) return false;
         const scheduled = new Date(mission.scheduled_start).getTime();
-        return Number.isFinite(scheduled) && scheduled < Date.now();
+        return now !== 0 && Number.isFinite(scheduled) && scheduled < now;
       }).length,
-    [missions],
+    [missions, now],
   );
 
   const sourceWarnings = Array.from(
@@ -408,6 +417,7 @@ export default function AdminBusinessPage() {
   const criticalHypothesesCount = prioritizedHypotheses.filter((item) => item.priority === "critique").length;
   const criticalRisksCount = businessRisks.filter((item) => item.priority === "critique").length;
 
+  const conciergeActivationJ7 = kpis?.concierge.activation_j7;
   const attentionItems = useMemo(() => {
     const items = [
       {
@@ -432,16 +442,16 @@ export default function AdminBusinessPage() {
       },
     ];
 
-    if (typeof kpis?.concierge.activation_j7 === "number") {
+    if (typeof conciergeActivationJ7 === "number") {
       items.unshift({
         title: "Activation J+7 conciergeries",
-        detail: `Activation observée : ${formatPercent(kpis.concierge.activation_j7)}.`,
+        detail: `Activation observée : ${formatPercent(conciergeActivationJ7)}.`,
         action: "Vérifier si la promesse de valeur immédiate est assez claire dès les premiers jours.",
       });
     }
 
     return items.slice(0, 3);
-  }, [acceptedWithoutMission, criticalHypothesesCount, criticalRisksCount, kpis?.concierge.activation_j7, lateUnbilledMissions]);
+  }, [acceptedWithoutMission, criticalHypothesesCount, criticalRisksCount, conciergeActivationJ7, lateUnbilledMissions]);
 
   const upcomingDecisions = useMemo(
     () =>

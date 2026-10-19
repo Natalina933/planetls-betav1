@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
+import { useTemporalClock } from "@/app/hooks/useTemporalClock";
+import { localDayStart, localDayEnd, planningTemporalSchedule, ROLLING_48_HOURS } from "@/app/lib/temporalClock";
 import {
   CalendarClock,
   Clock3,
@@ -34,18 +36,6 @@ type MissionRow = {
   scheduled_end?: string | null;
   metadata?: Json | null;
 };
-
-function getStartOfToday() {
-  const date = new Date();
-  date.setHours(0, 0, 0, 0);
-  return date.getTime();
-}
-
-function getEndOfToday() {
-  const date = new Date();
-  date.setHours(23, 59, 59, 999);
-  return date.getTime();
-}
 
 function getShortTime(value: string | null) {
   if (!value) return "--:--";
@@ -80,8 +70,8 @@ function formatPlanningSummary(missions: MissionRow[]) {
   return `${firstLabel} → ${lastLabel}`;
 }
 
-function buildWeekBuckets(missions: MissionRow[]) {
-  const now = new Date();
+function buildWeekBuckets(missions: MissionRow[], timestamp: number) {
+  const now = new Date(timestamp);
   const monday = new Date(now);
   const day = (now.getDay() + 6) % 7;
   monday.setDate(now.getDate() - day);
@@ -171,11 +161,6 @@ export default function ConciergePlanningPage() {
     void loadPlanning();
   }, []);
 
-  const now = Date.now();
-  const todayStart = getStartOfToday();
-  const todayEnd = getEndOfToday();
-  const next48h = now + 48 * 60 * 60 * 1000;
-
   const plannedActiveMissions = useMemo(
     () =>
       missions
@@ -183,6 +168,15 @@ export default function ConciergePlanningPage() {
         .sort((a, b) => toTimestamp(a.scheduled_start) - toTimestamp(b.scheduled_start)),
     [missions],
   );
+
+  const timeSchedule = useMemo(
+    () => planningTemporalSchedule(plannedActiveMissions.map((mission) => toTimestamp(mission.scheduled_start))),
+    [plannedActiveMissions],
+  );
+  const now = useTemporalClock(timeSchedule);
+  const todayStart = localDayStart(now);
+  const todayEnd = localDayEnd(now);
+  const next48h = now + ROLLING_48_HOURS;
 
   const todayMissions = useMemo(
     () =>
@@ -254,7 +248,10 @@ export default function ConciergePlanningPage() {
     [plannedActiveMissions],
   );
 
-  const weekBuckets = useMemo(() => buildWeekBuckets(plannedActiveMissions), [plannedActiveMissions]);
+  const weekBuckets = useMemo(
+    () => now === 0 ? [] : buildWeekBuckets(plannedActiveMissions, now),
+    [plannedActiveMissions, now],
+  );
   const planningSummary = useMemo(() => formatPlanningSummary(plannedActiveMissions), [plannedActiveMissions]);
   const mainPriority = planningWorkflowMissions[0] || overdueMissions[0] || todayMissions[0] || nextMissions[0] || unscheduledMissions[0] || null;
 

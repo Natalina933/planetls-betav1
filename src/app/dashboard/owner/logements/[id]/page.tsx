@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState, type ComponentType } from "react";
+import { useTemporalClock } from "@/app/hooks/useTemporalClock";
+import { temporalSchedule } from "@/app/lib/temporalClock";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import {
@@ -152,16 +154,27 @@ function StairsIcon({ size = 16, className }: { size?: number; className?: strin
   );
 }
 
-function getPropertyTypeIcon(propertyType: string) {
+const PROPERTY_TYPE_ICONS = {
+  appartement: LampFloor,
+  studio: Sofa,
+  loft: Warehouse,
+  chalet: TreePine,
+  villa: HousePlus,
+  residence: Hotel,
+  maison: House,
+  other: DoorOpen,
+};
+
+function getPropertyTypeIconKey(propertyType: string): keyof typeof PROPERTY_TYPE_ICONS {
   const normalized = normalizeText(propertyType);
-  if (normalized.includes("appartement")) return LampFloor;
-  if (normalized.includes("studio")) return Sofa;
-  if (normalized.includes("loft")) return Warehouse;
-  if (normalized.includes("chalet")) return TreePine;
-  if (normalized.includes("villa")) return HousePlus;
-  if (normalized.includes("residence")) return Hotel;
-  if (normalized.includes("maison")) return House;
-  return DoorOpen;
+  if (normalized.includes("appartement")) return "appartement";
+  if (normalized.includes("studio")) return "studio";
+  if (normalized.includes("loft")) return "loft";
+  if (normalized.includes("chalet")) return "chalet";
+  if (normalized.includes("villa")) return "villa";
+  if (normalized.includes("residence")) return "residence";
+  if (normalized.includes("maison")) return "maison";
+  return "other";
 }
 
 function isBedroomStockRow(room: string) {
@@ -694,6 +707,11 @@ export default function OwnerHousingDetailPage() {
       ),
     [id, missions],
   );
+  const timeSchedule = useMemo(
+    () => temporalSchedule(relatedMissions.map((mission) => getMissionTime(mission.scheduled_start) + 1)),
+    [relatedMissions],
+  );
+  const now = useTemporalClock(timeSchedule);
   const relatedServiceRequests = useMemo(() => {
     const housingName = normalizeText(draft?.nom_logement ?? "");
     return serviceRequests.filter((request) => {
@@ -1331,7 +1349,7 @@ export default function OwnerHousingDetailPage() {
     : draft.plateforme
       ? [draft.plateforme]
       : [];
-  const PropertyTypeIcon = getPropertyTypeIcon(draft.characteristics.propertyType);
+  const PropertyTypeIcon = PROPERTY_TYPE_ICONS[getPropertyTypeIconKey(draft.characteristics.propertyType)];
   const customHousekeepingTasks = getCustomChecklistTasks(draft.services.checklist);
   const housekeepingTasks = [...HOUSEKEEPING_CHECKLIST_ITEMS, ...customHousekeepingTasks];
   const housekeepingCheckedCount = housekeepingTasks.filter((task) =>
@@ -1340,7 +1358,7 @@ export default function OwnerHousingDetailPage() {
   const missionWithConcierge = relatedMissions.find((mission) => mission.concierge_profile_id);
   const upcomingMission =
     [...relatedMissions]
-      .filter((mission) => getMissionTime(mission.scheduled_start) >= Date.now())
+      .filter((mission) => getMissionTime(mission.scheduled_start) >= now)
       .sort((first, second) => getMissionTime(first.scheduled_start) - getMissionTime(second.scheduled_start))[0] ??
     null;
   const conciergeDisplay = {
@@ -1911,7 +1929,7 @@ export default function OwnerHousingDetailPage() {
                       </span>
                       <div>
                         {HOUSING_PROPERTY_TYPE_OPTIONS.map((option) => {
-                          const Icon = getPropertyTypeIcon(option);
+                          const Icon = PROPERTY_TYPE_ICONS[getPropertyTypeIconKey(option)];
                           const active = draft.characteristics.propertyType === option;
                           return (
                             <button

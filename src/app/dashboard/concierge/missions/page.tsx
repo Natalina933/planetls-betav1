@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTemporalClock } from "@/app/hooks/useTemporalClock";
+import { missionDaySchedule } from "@/app/lib/temporalClock";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 import { getMissionPriorityLabel, getMissionStatusLabel, normalizeMissionStatus } from "@/app/lib/missionStatus";
 import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
@@ -88,7 +90,13 @@ export default function ConciergeMissionsListPage() {
     void loadMissions();
   }, [loadMissions]);
 
-  const now = Date.now();
+  const timeSchedule = useMemo(
+    () => missionDaySchedule(missions
+      .filter((mission) => !["to_plan", "done"].includes(getConciergeMissionView(mission, 0)))
+      .map((mission) => toMissionTimestamp(mission.scheduled_start))),
+    [missions],
+  );
+  const now = useTemporalClock(timeSchedule);
   const housingNameById = useMemo(
     () =>
       new Map(

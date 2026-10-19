@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useTemporalClock } from "@/app/hooks/useTemporalClock";
+import { temporalSchedule } from "@/app/lib/temporalClock";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -83,7 +85,17 @@ export default function OwnerHousingOverview(props: Props) {
     return () => controller.abort();
   }, [stayRefresh]);
 
-  const upcoming = useMemo(() => getUpcomingHousingStays(stays, Date.now()), [stays]);
+  const timeSchedule = useMemo(
+    () => temporalSchedule(stays
+      .filter((stay) => getUpcomingHousingStays([stay], -Infinity).size > 0)
+      .map((stay) => Date.parse(stay.check_in_at ?? "") + 1)),
+    [stays],
+  );
+  const now = useTemporalClock(timeSchedule);
+  const upcoming = useMemo(
+    () => now === 0 ? new Map<string, HousingStay>() : getUpcomingHousingStays(stays, now),
+    [stays, now],
+  );
   const normalized = search.trim().toLocaleLowerCase("fr");
   const items = useMemo(
     () =>
