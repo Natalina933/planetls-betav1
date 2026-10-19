@@ -25,7 +25,7 @@ const child = spawn(npx, ["next", "dev", ...nextArgs], {
     NEXTAUTH_URL: `http://127.0.0.1:${port}`,
     WORKSPACE_QUICK_LOGIN_ENABLED: "true",
     ...(localE2E ? { LOCAL_E2E_MODE: "true" } : {}),
-    ...(isolated ? { NEXT_DIST_DIR: ".next-local-isolated" } : {}),
+    ...(isolated ? { NEXT_DIST_DIR: process.env.NEXT_DIST_DIR || ".next-local-isolated" } : {}),
   },
 });
 
