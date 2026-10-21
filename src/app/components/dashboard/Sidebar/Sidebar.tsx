@@ -3,7 +3,11 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
-import { FiX } from "react-icons/fi";
+import { FiX, FiChevronRight } from "react-icons/fi";
+import { useTheme } from "@/app/providers/ThemeProvider";
+import { getConciergeActiveLabel } from "./conciergeNavigation";
+import { ConciergeSidebarLink } from "./ConciergeSidebarLink";
+import { ConciergeOrnament, ConciergeMuchaIllustration } from "./ConciergeOrnaments";
 import { getOwnerActivePath } from "./ownerNavigation";
 import { useUserType } from "@/app/context/UserTypeContext";
 import {
@@ -40,6 +44,7 @@ const roleThemeClasses: Record<string, string> = {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = "", mobileBreakpoint = 900, conciergeBranding = false }) => {
   const { userType } = useUserType();
+  const { theme } = useTheme();
   const pathname = usePathname();
   const query = useSearchParams().toString();
   const navigationKey = `${pathname}?${query}`;
@@ -48,11 +53,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [notificationCounts, setNotificationCounts] = useState<Record<string, number>>({});
   const [refreshTick, setRefreshTick] = useState(0);
+  const isNocturneConcierge = isConciergeWorkspace && theme === "mucha-dark";
+  const compact = isNocturneConcierge && !isMobileViewport && !isOpen;
 
   const menuItems =
     userType && sidebarConfig[userType as keyof typeof sidebarConfig]
       ? sidebarConfig[userType as keyof typeof sidebarConfig]
       : [];
+  const conciergeActiveLabel = getConciergeActiveLabel(menuItems, pathname, query);
   const ownerActivePath = userType === "owner" ? getOwnerActivePath(menuItems, pathname, query) : undefined;
   const activeGroup = menuItems.find(item => item.children && (item.path === ownerActivePath || item.children.some(child => child.path === ownerActivePath)))?.label;
   const openOwnerGroup = ownerGroup?.key === navigationKey ? ownerGroup.label : activeGroup;
@@ -134,14 +142,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
   }, [isOpen, toggleSidebar]);
 
   useEffect(() => {
-    void loadNotificationCounts();
+    // Décaler la synchronisation initiale hors du corps de l'effet.
+    const initialLoad = window.setTimeout(() => { void loadNotificationCounts(); }, 0);
 
-    if (userType !== "concierge" && userType !== "owner") return;
+    if (userType !== "concierge" && userType !== "owner") return () => window.clearTimeout(initialLoad);
     const interval = window.setInterval(() => {
       void loadNotificationCounts();
     }, 30000);
 
-    return () => window.clearInterval(interval);
+    return () => { window.clearTimeout(initialLoad); window.clearInterval(interval); };
   }, [loadNotificationCounts, refreshTick, userType]);
 
   useEffect(() => {
@@ -172,10 +181,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
         className={`${styles.sidebar} ${className} ${isOpen ? styles.open : styles.closed} ${userType === "owner" && isMobileViewport ? styles.ownerDrawer : ""} ${userType ? roleThemeClasses[userType] || "" : ""
           }`}
         aria-label="Sidebar"
+        data-compact={compact ? "" : undefined}
+        inert={isMobileViewport && !isOpen ? true : undefined}
       >
+        {isNocturneConcierge && <ConciergeOrnament kind="frieze" className={styles.conciergeFrieze} />}
         <div className={styles.header}>
           {userType === "owner" || isConciergeWorkspace ? (
-            <div className={styles.ownerBrand} aria-label="PlanetLS - Espace propriétaire">
+            <div className={styles.ownerBrand} aria-label={isConciergeWorkspace ? "PlanetLS - Espace concierge" : "PlanetLS - Espace propriétaire"}>
               <Image
                 src="/logo/Logo%20PlanetLS%20_%20globe%20dor%C3%A9%20et%20%C3%A9l%C3%A9gance%20verte.png"
                 alt="PlanetLS"
@@ -194,9 +206,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
             type="button"
             onClick={toggleSidebar}
             className={styles.closeBtn}
-            aria-label="Fermer la sidebar"
+            aria-label={compact ? "Déployer la sidebar" : "Fermer la sidebar"}
+            aria-expanded={isOpen}
           >
-            <FiX className={styles.closeIcon} aria-hidden="true" />
+            {compact ? <FiChevronRight className={styles.closeIcon} aria-hidden="true" /> : <FiX className={styles.closeIcon} aria-hidden="true" />}
           </button>
         </div>
 
@@ -212,8 +225,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
                   key={item.label}
                   className={isOwnerBottomItem ? styles.ownerBottomGroup : undefined}
                 >
-                  {(userType === "owner" || userType === "concierge") && item.section && !isOwnerBottomItem ? <p className={styles.sectionLabel}>{item.section}</p> : null}
-                  <SidebarItem
+                  {(userType === "owner" || userType === "concierge") && item.section && !isOwnerBottomItem ? <p className={styles.sectionLabel}>{item.section}{isNocturneConcierge && <ConciergeOrnament kind="separator" className={styles.conciergeSeparator} />}</p> : null}
+                  {isNocturneConcierge ? <ConciergeSidebarLink
+                    item={item} active={item.label === conciergeActiveLabel} compact={compact}
+                    count={item.notificationKey ? notificationCounts[item.notificationKey] ?? 0 : 0}
+                    onNavigate={() => { if (isMobileViewport) toggleSidebar(); }}
+                  /> : <SidebarItem
                     item={item}
                     toggleSidebar={userType === "owner" ? () => { if (isMobileViewport) toggleSidebar(); } : toggleSidebar}
                     notificationCounts={notificationCounts}
@@ -222,7 +239,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
                       open: openOwnerGroup === item.label,
                       onToggle: () => setOwnerGroup({ key: navigationKey, label: openOwnerGroup === item.label ? null : item.label }),
                     } : undefined}
-                  />
+                  />}
                 </div>
               );
             })
@@ -231,9 +248,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
 
         {isConciergeWorkspace ? (
           <div className={styles.conciergeSidebarBottom}>
-            <div className={styles.conciergeDecoration} aria-hidden="true">
-              <span>⌂</span>
-            </div>
+            {isNocturneConcierge ? <>
+              <ConciergeOrnament kind="moon" className={styles.conciergeMoon} />
+              <ConciergeMuchaIllustration className={styles.conciergeIllustration} />
+              <ConciergeOrnament kind="foot" className={styles.conciergeFoot} />
+              <ConciergeOrnament kind="corner" className={styles.conciergeCorner} />
+            </> : <div className={styles.conciergeOrnament} aria-hidden="true">
+              <Image
+                src="/ornements/Ornement%20botanique%20dor%C3%A9%20sur%20fond%20indigo.png"
+                alt=""
+                width={941}
+                height={1672}
+                sizes="140px"
+              />
+            </div>}
             <p>Des séjours<br />sereins,<br />des logements<br />préservés</p>
           </div>
         ) : null}

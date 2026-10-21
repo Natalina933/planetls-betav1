@@ -90,10 +90,13 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
   ],
 
   concierge: [
-    { label: "Tableau de bord", path: "/dashboard/concierge", icon: DashboardGaugeIcon },
-    { label: "Calendrier", path: "/dashboard/concierge/planning", icon: FiCalendar },
+    { section: "Tableau de bord", label: "Tableau de bord", path: "/dashboard/concierge", icon: DashboardGaugeIcon },
+    { section: "Mon activité", label: "Calendrier", path: "/dashboard/concierge/planning", icon: FiCalendar },
+    { label: "Logements", path: "/dashboard/concierge/logements", icon: DashboardHousesIcon },
+    { label: "Séjours", path: "/dashboard/concierge/sejours", icon: FiUsers },
+    { label: "Interventions", path: "/dashboard/concierge/maintenance", icon: FiTool },
 
-    { section: "MON RÉSEAU", label: "Rechercher un propriétaire", path: "/dashboard/concierge/recherche", icon: FiSearch },
+    { section: "Mon réseau", label: "Rechercher un propriétaire", path: "/dashboard/concierge/recherche", icon: FiSearch },
     {
       label: "Mes demandes",
       path: "/dashboard/concierge/demandes",
@@ -102,16 +105,13 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
     },
     { label: "Mes partenaires", path: "/dashboard/concierge/contacts", icon: FiUsers },
 
-    { section: "MON ACTIVITÉ", label: "Logements", path: "/dashboard/concierge/logements", icon: DashboardHousesIcon },
-    { label: "Séjours", path: "/dashboard/concierge/sejours", icon: FiUsers },
-    { label: "Interventions", path: "/dashboard/concierge/maintenance", icon: FiTool },
     { label: "Messages", path: "/dashboard/concierge/messages", icon: FiMessageSquare },
 
-    { section: "MON SUIVI", label: "Devis", path: "/dashboard/concierge/billing", icon: FiFileText },
+    { section: "Ma gestion", label: "Devis", path: "/dashboard/concierge/billing", icon: FiFileText },
     { label: "Factures", path: "/dashboard/concierge/billing", icon: FiCreditCard },
     { label: "Documents", path: "/dashboard/concierge/profile?tab=documents", icon: FiFileText },
 
-    { section: "En bas", label: "Paramètres", path: "/dashboard/concierge/settings", icon: FiSettings },
+    { section: "Mon compte", label: "Paramètres", path: "/dashboard/concierge/settings", icon: FiSettings },
   ],
 
   provider: [

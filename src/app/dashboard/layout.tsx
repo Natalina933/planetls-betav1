@@ -378,6 +378,7 @@ export default function DashboardLayout({
   return (
     <div
       className="dashboard-root"
+      data-concierge-dashboard={isConciergePage ? "" : undefined}
       data-dashboard-hero={showHeaderBandeau ? "" : undefined}
       data-concierge-home={isConciergeHome ? "" : undefined}
       data-owner-dashboard={isOwnerPage ? "" : undefined}

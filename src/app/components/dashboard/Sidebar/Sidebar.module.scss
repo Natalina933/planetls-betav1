@@ -1,4 +1,5 @@
 @use "sass:color";
+@use "sass:map";
 @use "../../../styles/abstracts/variables" as *;
 
 $owner-accent: #276a58;
@@ -854,11 +855,12 @@ $admin-accent-soft: #e3e8f2;
 
 .conciergeSidebarBottom {
     display: grid;
-    justify-items: center;
+    grid-template-columns: 64px minmax(0, 1fr);
+    align-items: center;
     gap: var(--ds-space-3);
     margin-top: auto;
     padding: var(--ds-space-5) var(--ds-space-2) var(--ds-space-2);
-    text-align: center;
+    text-align: left;
 }
 
 .conciergeDecoration {
@@ -886,6 +888,18 @@ $admin-accent-soft: #e3e8f2;
     margin: 0;
     color: #66523a;
     font: 1.05rem / 1.2 var(--ds-font-heading);
+}
+
+.conciergeOrnament {
+    width: 64px;
+    max-width: 100%;
+    pointer-events: none;
+
+    img {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
 }
 
 :global(.dashboard-root) .ownerTheme {
@@ -935,4 +949,207 @@ $admin-accent-soft: #e3e8f2;
 :global([data-theme="mucha-dark"]) .ownerTheme .link.active,
 :global([data-theme="mucha-dark"]) .ownerTheme .sublink.active {
     background: rgba(212, 175, 55, 0.14);
+}
+
+/* Commandes et états de la sidebar concierge nocturne. */
+:global([data-theme="mucha-dark"] [data-concierge-dashboard]) .conciergeTheme {
+    background: var(--concierge-nav-fill);
+    color: var(--concierge-nav-text);
+    border-right-color: var(--concierge-nav-border);
+
+    .header {
+        background: var(--concierge-nav-bg);
+        border-bottom-color: var(--concierge-nav-border);
+    }
+
+    .link, .sublink {
+        color: var(--concierge-nav-text);
+
+        &:hover, &:focus-visible, &.active {
+            background: var(--concierge-nav-hover);
+            color: var(--concierge-nav-gold);
+        }
+
+        &.active {
+            box-shadow: inset 3px 0 var(--concierge-nav-gold);
+        }
+    }
+
+    .sectionLabel, .conciergeSidebarBottom p {
+        color: var(--concierge-nav-muted);
+    }
+
+    .closeBtn {
+        color: var(--concierge-nav-gold);
+        opacity: 1;
+        border: 1px solid var(--concierge-nav-border);
+        border-radius: var(--ds-radius-control);
+
+        &:hover, &:focus-visible { background: var(--concierge-nav-hover); }
+    }
+
+    .link:focus-visible, .sublink:focus-visible, .closeBtn:focus-visible {
+        outline: 2px solid var(--concierge-nav-gold);
+        outline-offset: -2px;
+    }
+
+    .ownerBrandLogo {
+        background: #fcf9f3;
+        border-radius: var(--ds-radius-control);
+        filter: none;
+    }
+}
+
+/* Modèle concierge : décor botanique et navigation ivoire/or, sans niche. */
+:global([data-theme="mucha-dark"] [data-concierge-dashboard]) .conciergeTheme {
+    background-image:
+        url("/ornements/Ornement%20botanique%20dor%C3%A9%20sur%20fond%20indigo.png"),
+        var(--concierge-nav-fill);
+    background-position: left bottom, left top;
+    background-size: 100% auto, 100% 100%;
+    background-repeat: no-repeat;
+    border-right-color: var(--concierge-nav-gold);
+
+    .header { background: transparent; }
+
+    .sectionLabel {
+        color: var(--concierge-nav-gold);
+        font-family: var(--ds-font-heading);
+        letter-spacing: .16em;
+        border-top: 1px solid var(--concierge-nav-border);
+        padding-top: var(--ds-space-4);
+    }
+
+    .link .icon, .sublink .icon, .groupToggle {
+        color: var(--concierge-nav-gold);
+    }
+
+    .conciergeSidebarBottom {
+        display: block;
+        padding: var(--ds-space-6) var(--ds-space-4);
+        text-align: center;
+    }
+
+    .conciergeOrnament { display: none; }
+
+    .conciergeSidebarBottom p {
+        color: var(--concierge-nav-text);
+        font-size: 1.15rem;
+        line-height: 1.4;
+        width: fit-content;
+        margin-inline: auto;
+        padding: var(--ds-space-3);
+        background: var(--concierge-nav-bg);
+        border-bottom: 1px solid var(--concierge-nav-gold);
+    }
+}
+
+/* Mucha : les ornements restent hors des surfaces interactives. */
+:global([data-theme="mucha-dark"] [data-concierge-dashboard]) .conciergeTheme {
+    --concierge-nav-bg: #101d34;
+    --concierge-nav-bg-end: #18263f;
+    --concierge-nav-gold: #c49a56;
+    --concierge-nav-text: #f3e7d0;
+    --concierge-nav-border: color-mix(in srgb, var(--concierge-nav-gold) 55%, transparent);
+    --concierge-nav-hover: color-mix(in srgb, var(--concierge-nav-gold) 14%, transparent);
+    --concierge-nav-fill: linear-gradient(180deg, var(--concierge-nav-bg), var(--concierge-nav-bg-end));
+    width: 252px;
+    height: 100dvh;
+    background: var(--concierge-nav-fill);
+    overflow: hidden;
+    z-index: 5000;
+    .header { flex: 0 0 auto; min-height: 94px; padding: var(--ds-space-3); padding-left: 28px; }
+    .closeBtn { width: 44px; height: 44px; }
+    .closeIcon { color: var(--concierge-nav-gold); stroke: var(--concierge-nav-gold); }
+    .nav {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 0 var(--ds-space-3) var(--ds-space-3) 28px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--concierge-nav-gold) var(--concierge-nav-bg);
+        scrollbar-gutter: stable;
+        overscroll-behavior: contain;
+        gap: var(--ds-space-1);
+    }
+    .sectionLabel {
+        margin: var(--ds-space-3) var(--ds-space-1) var(--ds-space-2);
+        padding-top: var(--ds-space-2);
+        border: 0;
+        font-size: .75rem;
+        line-height: 1.5;
+    }
+    .link {
+        position: relative;
+        min-height: 44px;
+        padding: var(--ds-space-2);
+        gap: var(--ds-space-2);
+        font-size: .875rem;
+        background: transparent;
+        transition: background-color 200ms var(--ds-ease-premium), color 200ms var(--ds-ease-premium);
+        &:hover, &:focus-visible {
+            background: var(--concierge-nav-hover);
+            transform: none;
+        }
+        &.active {
+            background: color-mix(in srgb, var(--concierge-nav-bg-end) 90%, var(--concierge-nav-text));
+            box-shadow: inset 3px 0 var(--concierge-nav-gold);
+            color: var(--concierge-nav-text);
+        }
+    }
+    .icon { width: 20px; height: 20px; flex: 0 0 20px; margin: 0; }
+    .conciergeSidebarBottom {
+        position: relative;
+        flex: 0 0 auto;
+        padding: var(--ds-space-2) var(--ds-space-4) var(--ds-space-2) 28px;
+        border-top: 1px solid var(--concierge-nav-border);
+    }
+    .conciergeSidebarBottom p {
+        font-size: .95rem;
+        line-height: 1.3;
+        background: transparent;
+        border: 0;
+        padding: var(--ds-space-1);
+    }
+    @media (min-width: (map.get($breakpoints, dashboard-nav) + 1px)) {
+        &.closed {
+            width: 72px;
+            transform: none;
+            .header { padding: var(--ds-space-2); flex-direction: column; gap: 0; }
+            .conciergeFrieze { display: none; }
+            .ownerBrand { min-height: 32px; flex: none; width: 48px; }
+            .ownerBrandLogo { width: 48px; }
+            .nav { padding-inline: 8px; scrollbar-gutter: auto; }
+            .sectionLabel { font-size: 0; height: 8px; margin: 8px 4px; padding: 0; }
+            .conciergeSeparator { display: none; }
+            .link { width: 44px; justify-content: center; padding: 8px; }
+            .conciergeLinkLabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+            .itemBadge { position: absolute; top: 0; right: 0; min-width: 17px; height: 17px; font-size: .6rem; }
+            .conciergeSidebarBottom { display: none; }
+        }
+    }
+    @media (max-height: 720px) { .conciergeSidebarBottom { display: none; } }
+    @media (prefers-reduced-motion: reduce) {
+        &, .link, .closeBtn { transition: none; }
+    }
+}
+.conciergeSeparator { display: block; width: 100%; height: 24px; margin-top: 4px; color: var(--concierge-nav-gold); }
+.conciergeFrieze { position: absolute; inset: 0 auto 0 1px; width: 22px; height: 100%; color: var(--concierge-nav-gold); opacity: .85; }
+.conciergeCorner { position: absolute; right: 2px; bottom: 2px; width: 28px; height: 28px; opacity: .65; }
+:global([data-theme="mucha-dark"] [data-concierge-dashboard]) .overlay { z-index: 4999; }
+.conciergeMoon { display: block; width: 24px; height: 24px; margin: 0 auto; color: var(--concierge-nav-gold); }
+.conciergeFoot { display: block; width: 100%; height: 24px; color: var(--concierge-nav-gold); }
+.conciergeIllustration img { display: block; width: 100%; height: auto; max-height: 180px; object-fit: contain; }
+.conciergeTooltip {
+    position: fixed;
+    z-index: 10000;
+    transform: translateY(-50%);
+    max-width: min(280px, calc(100vw - 90px));
+    padding: .5rem .75rem;
+    border: 1px solid #c49a56;
+    border-radius: var(--ds-radius-control);
+    background: #18263f;
+    color: #f3e7d0;
+    font: 500 .875rem/1.4 var(--ds-font-ui);
+    pointer-events: none;
 }

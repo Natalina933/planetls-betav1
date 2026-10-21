@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
+import { getConciergeActiveLabel } from "../app/components/dashboard/Sidebar/conciergeNavigation.ts";
 
 const sidebarSource = readFileSync(
   new URL("../app/components/dashboard/Sidebar/sidebarconfig.tsx", import.meta.url),
@@ -14,7 +15,7 @@ const config = sidebarSource.split("  concierge: [")[1].split("  provider: [")[0
 const paths = [...config.matchAll(/path: "([^"]+)"/g)].map((match) => match[1]);
 
 test("concierge sidebar exposes the validated sections and labels", () => {
-  for (const section of ["MON RÉSEAU", "MON ACTIVITÉ", "MON SUIVI", "En bas"]) {
+  for (const section of ["Tableau de bord", "Mon activité", "Mon réseau", "Ma gestion", "Mon compte"]) {
     assert.match(config, new RegExp(`section: "${section}"`));
   }
 
@@ -43,12 +44,12 @@ test("concierge sidebar keeps the expected route order", () => {
   const expected = [
     "/dashboard/concierge",
     "/dashboard/concierge/planning",
-    "/dashboard/concierge/recherche",
-    "/dashboard/concierge/demandes",
-    "/dashboard/concierge/contacts",
     "/dashboard/concierge/logements",
     "/dashboard/concierge/sejours",
     "/dashboard/concierge/maintenance",
+    "/dashboard/concierge/recherche",
+    "/dashboard/concierge/demandes",
+    "/dashboard/concierge/contacts",
     "/dashboard/concierge/messages",
     "/dashboard/concierge/billing",
     "/dashboard/concierge/billing",
@@ -57,4 +58,17 @@ test("concierge sidebar keeps the expected route order", () => {
   ];
 
   assert.deepEqual(paths, expected);
+});
+
+const entries = [...config.matchAll(/label: "([^"]+)",[\s\S]*?path: "([^"]+)"/g)]
+  .map(match => ({ label: match[1], path: match[2] }));
+
+test("one active concierge link, including billing aliases and nested routes", () => {
+  assert.equal(entries.length, 13);
+  assert.equal(getConciergeActiveLabel(entries, "/dashboard/concierge", ""), "Tableau de bord");
+  assert.equal(getConciergeActiveLabel(entries, "/dashboard/concierge/billing", "quote=123"), "Devis");
+  assert.equal(getConciergeActiveLabel(entries, "/dashboard/concierge/logements/123", ""), "Logements");
+  assert.equal(getConciergeActiveLabel(entries, "/dashboard/concierge/profile", "tab=documents&extra=1"), "Documents");
+  assert.equal(getConciergeActiveLabel(entries, "/dashboard/concierge/profile", "tab=overview"), undefined);
+  assert.equal(getConciergeActiveLabel(entries, "/dashboard/concierge/planning-other", ""), undefined);
 });

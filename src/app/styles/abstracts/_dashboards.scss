@@ -952,6 +952,18 @@ body.dark {
   gap: var(--ds-space-2);
 }
 
+/* Socle de la sidebar concierge nocturne : palette et géométrie. */
+[data-theme="mucha-dark"] .dashboard-root[data-concierge-dashboard] {
+  --ds-layout-sidebar: 252px;
+  @media (min-width: (map.get(var.$breakpoints, dashboard-nav) + 1px)) {
+    .dashboard-main.no-sidebar { margin-left: 72px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dashboard-main { transition: none; }
+  }
+  --concierge-nav-muted: #d3c9bc;
+}
+
 /* Habillage partagé des espaces, issu de l’accueil concierge : bandeau et commandes superposées. */
 .dashboard-root[data-dashboard-hero] {
   background: var(--ds-color-background);
@@ -1689,5 +1701,17 @@ body.dark {
     .headerOverlay {
       background: color-mix(in srgb, var(--ds-color-background) 88%, transparent);
     }
+  }
+}
+
+/* La colonne du layout continue sous la sidebar fixe sur les pages longues. */
+@media (min-width: (map.get(var.$breakpoints, dashboard-nav) + 1px)) {
+  [data-theme="mucha-dark"] .dashboard-root[data-concierge-dashboard] {
+    --concierge-sidebar-column: 252px;
+    background: linear-gradient(90deg,
+      #18263f 0 var(--concierge-sidebar-column),
+      var(--concierge-page, var(--ds-color-background)) var(--concierge-sidebar-column) 100%);
+
+    &:has(> .dashboard-main.no-sidebar) { --concierge-sidebar-column: 72px; }
   }
 }
