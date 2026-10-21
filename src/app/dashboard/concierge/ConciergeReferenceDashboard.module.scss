@@ -1001,3 +1001,50 @@
 .referenceDashboard {
     padding-inline: 0;
 }
+
+/* DESIGN-02 / 1B : surfaces patin?es, sans modification de composition. */
+:global([data-theme="mucha-dark"] [data-concierge-home]) .referenceDashboard {
+    --theme-text: var(--concierge-ink);
+    --theme-text-soft: var(--concierge-ink-soft);
+    --theme-accent: var(--concierge-ink);
+    --theme-accent-strong: var(--concierge-ink);
+    --theme-border: var(--concierge-border);
+    color: var(--concierge-ink);
+
+    .metric, .card, .centerColumn > section {
+        background: var(--concierge-panel);
+        border-color: var(--concierge-border);
+    }
+
+    .metricLink, .secondaryButton, .quickGrid a:hover {
+        background: var(--concierge-panel-raised);
+        border-color: var(--concierge-gold-ink);
+    }
+
+    .metricSplit > span, .metricSupport, .nextImage {
+        background: var(--concierge-panel-soft);
+    }
+
+    .tableWrap th { background: var(--concierge-panel-soft); }
+    .optimization { background: var(--concierge-panel-raised); }
+    .alert, .priorityBar, .alertButton {
+        background: var(--concierge-alert);
+        border-color: var(--concierge-border);
+    }
+
+    .primaryButton { background: var(--concierge-ink); color: var(--concierge-ivory); }
+    .secondaryButton { color: var(--concierge-ink); }
+    .metricProgress i { background: var(--ds-color-success); }
+}
+
+/* Badges des cartes : cartouche fin inspiré de Prochaine mission. */
+:global([data-theme="mucha-dark"] [data-concierge-home]) .referenceDashboard .statusBadge {
+    min-height: 24px;
+    padding: .22rem .65rem;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+    background: var(--concierge-panel-raised);
+    box-shadow: inset 0 0 0 2px var(--concierge-panel);
+    font-size: .68rem;
+    letter-spacing: .04em;
+}

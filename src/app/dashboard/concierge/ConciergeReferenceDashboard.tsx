@@ -189,7 +189,7 @@ export default function ConciergeReferenceDashboard({
                     <article className={`${styles.card} ${styles.nextMission}`}>
                         <header className={styles.cardHeader}>
                             <div><span className={styles.eyebrow}>À faire maintenant</span><h2>Prochaine mission</h2></div>
-                            <Badge variant={nextEvent?.type === "reminder" ? "warning" : "info"}>{nextEvent ? "En route" : "À planifier"}</Badge>
+                            <Badge className={styles.statusBadge} variant={nextEvent?.type === "reminder" ? "warning" : "info"}>{nextEvent ? "En route" : "À planifier"}</Badge>
                         </header>
                         {nextEvent ? (
                             <div className={styles.nextContent}>
@@ -226,7 +226,7 @@ export default function ConciergeReferenceDashboard({
                                         <small>{eventLabel(event)}</small>
                                         <strong>{String(event.title || "Mission sans titre")}</strong>
                                     </span>
-                                    <Badge variant={event.type === "reminder" ? "warning" : index === 0 ? "info" : "neutral"}>
+                                    <Badge className={styles.statusBadge} variant={event.type === "reminder" ? "warning" : index === 0 ? "info" : "neutral"}>
                                         {event.type === "reminder" ? "Urgente" : index === 0 ? "En route" : "À venir"}
                                     </Badge>
                                 </li>
@@ -244,7 +244,7 @@ export default function ConciergeReferenceDashboard({
                     <ConciergeRoutePreview events={events} compact />
                     <article className={`${styles.card} ${styles.tableCard}`}>
                         <header className={styles.cardHeader}><div><span className={styles.eyebrow}>Vue condensée</span><h2>Mes missions du jour</h2></div><Link href="/dashboard/concierge/missions" className={styles.cardLink}>Voir toutes les missions <ArrowRight size={14} /></Link></header>
-                        <div className={styles.tableWrap}><table><thead><tr><th>Heure</th><th>Logement</th><th>Type</th><th>Statut</th></tr></thead><tbody>{visibleEvents.map((event, index) => <tr key={`table-${event.bookingId ?? event.title}-${index}`}><td>{formatTime(event.start)}</td><td>{String(event.title || "Mission sans titre")}</td><td>{eventLabel(event)}</td><td><Badge variant={event.type === "reminder" ? "warning" : index === 0 ? "info" : "neutral"}>{index === 0 ? "En route" : event.type === "reminder" ? "Urgente" : "À venir"}</Badge></td></tr>)}</tbody></table></div>
+                        <div className={styles.tableWrap}><table><thead><tr><th>Heure</th><th>Logement</th><th>Type</th><th>Statut</th></tr></thead><tbody>{visibleEvents.map((event, index) => <tr key={`table-${event.bookingId ?? event.title}-${index}`}><td>{formatTime(event.start)}</td><td>{String(event.title || "Mission sans titre")}</td><td>{eventLabel(event)}</td><td><Badge className={styles.statusBadge} variant={event.type === "reminder" ? "warning" : index === 0 ? "info" : "neutral"}>{index === 0 ? "En route" : event.type === "reminder" ? "Urgente" : "À venir"}</Badge></td></tr>)}</tbody></table></div>
                     </article>
                 </div>
 

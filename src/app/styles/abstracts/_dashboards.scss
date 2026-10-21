@@ -1711,6 +1711,66 @@ body.dark {
   }
 }
 
+/* DESIGN-02 / 1B : palette de contenu r?serv?e ? l'accueil concierge nocturne. */
+[data-theme="mucha-dark"] .dashboard-root[data-concierge-home] {
+  --concierge-page: #b3a592;
+  --concierge-panel: #ddd3c4;
+  --concierge-panel-soft: #c9bcaa;
+  --concierge-panel-raised: #e6ddcf;
+  --concierge-ink: #19243c;
+  --concierge-ink-soft: #363833;
+  --concierge-border: #938370;
+  --concierge-gold-ink: #59421a;
+  --concierge-ivory: #f0e7d9;
+  --concierge-alert: #dfc5b4;
+  background: var(--concierge-page);
+
+  .dashboard-content {
+    background: var(--concierge-page);
+    --ds-color-background: var(--concierge-page);
+    --ds-color-background-soft: var(--concierge-panel-soft);
+    --ds-color-surface: var(--concierge-panel);
+    --ds-color-surface-soft: var(--concierge-panel-soft);
+    --ds-color-border: var(--concierge-border);
+    --ds-color-border-soft: var(--concierge-border);
+    --ds-color-text-primary: var(--concierge-ink);
+    --ds-color-text-secondary: var(--concierge-ink-soft);
+    --ds-color-text-muted: var(--concierge-ink-soft);
+    --ds-color-text-inverse: var(--concierge-ivory);
+    --ds-color-primary: var(--concierge-ink);
+    --ds-color-primary-hover: var(--concierge-ink);
+    --ds-color-primary-soft: var(--concierge-panel-soft);
+    --ds-color-accent: var(--concierge-ink);
+    --ds-color-accent-hover: var(--concierge-ink);
+    --ds-color-accent-soft: var(--concierge-panel-soft);
+    --ds-color-gold: var(--concierge-gold-ink);
+    --ds-color-gold-strong: var(--concierge-gold-ink);
+    --ds-color-error: #882b24;
+    --ds-color-success: #185743;
+  }
+
+  .headerOverlay {
+    background: linear-gradient(90deg,
+      color-mix(in srgb, var(--concierge-panel) 96%, transparent),
+      color-mix(in srgb, var(--concierge-panel-soft) 86%, transparent) 60%,
+      color-mix(in srgb, var(--concierge-panel-soft) 65%, transparent));
+  }
+
+  .headerCopy h1 { color: var(--concierge-ink); text-shadow: none; }
+  .headerCopy p { color: var(--concierge-ink-soft); }
+  .conciergeWeather {
+    background: var(--concierge-panel);
+    border-color: var(--concierge-border);
+    box-shadow: var(--ds-shadow-sm);
+  }
+  .conciergeWeatherDate, .conciergeWeatherExample, .conciergeWeatherDetails {
+    color: var(--concierge-ink-soft);
+  }
+  .conciergeWeather b, .conciergeWeather b svg, .conciergeWeatherToggle {
+    color: var(--concierge-gold-ink);
+  }
+}
+
 /* La colonne du layout continue sous la sidebar fixe sur les pages longues. */
 @media (min-width: (map.get(var.$breakpoints, dashboard-nav) + 1px)) {
   [data-theme="mucha-dark"] .dashboard-root[data-concierge-dashboard] {
