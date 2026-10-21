@@ -886,7 +886,7 @@ $admin-accent-soft: #e3e8f2;
 
 .conciergeSidebarBottom p {
     margin: 0;
-    color: #66523a;
+    color: var(--ds-color-text-secondary, #66523a);
     font: 1.05rem / 1.2 var(--ds-font-heading);
 }
 
@@ -909,14 +909,86 @@ $admin-accent-soft: #e3e8f2;
     box-shadow: none;
 }
 
-:global(.dashboard-root) .ownerTheme .header,
-:global(.dashboard-root) .conciergeTheme .header {
+:global(.dashboard-root) .ownerTheme .header {
     align-items: center;
     padding: 0.75rem 0.7rem 0.75rem 0.85rem;
     gap: 0.45rem;
     background: rgba(248, 243, 233, 0.95);
     border-bottom-color: color-mix(in srgb, var(--ds-color-border) 72%, transparent);
     overflow: visible;
+}
+
+:global(.dashboard-root) .conciergeTheme .header {
+    align-items: center;
+    padding: 0.75rem 0.7rem 0.75rem 0.85rem;
+    gap: 0.45rem;
+    background: var(--ds-color-background-soft);
+    border-bottom-color: var(--ds-color-border);
+    overflow: visible;
+}
+
+:global([data-theme="light"] .dashboard-root) .conciergeTheme {
+    background:
+        radial-gradient(circle at top left, color-mix(in srgb, var(--ds-color-gold) 16%, transparent), transparent 34%),
+        linear-gradient(180deg, var(--ds-color-surface) 0%, var(--ds-color-surface-soft) 100%);
+    border-right-color: color-mix(in srgb, var(--ds-color-gold) 45%, var(--ds-color-border));
+}
+
+:global([data-theme="light"] .dashboard-root) .conciergeTheme .header {
+    background:
+        radial-gradient(circle at top right, color-mix(in srgb, var(--ds-color-gold) 12%, transparent), transparent 42%),
+        var(--ds-color-background-soft);
+    border-bottom-color: var(--ds-color-border);
+}
+
+:global([data-theme="sepia"] .dashboard-root) .conciergeTheme {
+    background:
+        radial-gradient(circle at top left, rgba(201, 168, 118, 0.18), transparent 36%),
+        linear-gradient(180deg, #f5ede3 0%, #ede5db 100%);
+    border-right-color: #d4c4b0;
+    box-shadow: 8px 0 28px rgba(91, 70, 54, 0.14);
+    color: #5b4636;
+}
+
+:global([data-theme="sepia"] .dashboard-root) .conciergeTheme .header {
+    background: #ede5db;
+    border-bottom-color: #d4c4b0;
+}
+
+:global([data-theme="sepia"] .dashboard-root) .conciergeTheme .link,
+:global([data-theme="sepia"] .dashboard-root) .conciergeTheme .sublink {
+    color: #6b5544;
+}
+
+:global([data-theme="sepia"] .dashboard-root) .conciergeTheme .link:hover,
+:global([data-theme="sepia"] .dashboard-root) .conciergeTheme .sublink:hover,
+:global([data-theme="sepia"] .dashboard-root) .conciergeTheme .link:focus-visible,
+:global([data-theme="sepia"] .dashboard-root) .conciergeTheme .sublink:focus-visible {
+    background: rgba(201, 168, 118, 0.18);
+    color: #2f241b;
+}
+
+:global([data-theme="sepia"] .dashboard-root) .conciergeTheme .link.active,
+:global([data-theme="sepia"] .dashboard-root) .conciergeTheme .sublink.active {
+    background: linear-gradient(135deg, #c9a876, #a68a5a);
+    color: #2f241b;
+}
+
+:global([data-theme="art-deco"] .dashboard-root) .conciergeTheme {
+    background:
+        radial-gradient(circle at top left, rgba(212, 175, 55, 0.14), transparent 34%),
+        linear-gradient(180deg, #f4f6f8 0%, #eef1f4 100%);
+    border-right-color: #d4af37;
+    color: #2c3e50;
+}
+
+:global([data-theme="art-deco"] .dashboard-root) .conciergeTheme .header {
+    background: #eef1f4;
+    border-bottom-color: rgba(26, 37, 48, 0.18);
+}
+
+:global([data-theme="mucha-dark"] .dashboard-root) .conciergeTheme {
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.4);
 }
 
 :global(.dashboard-root) .ownerTheme .title {
