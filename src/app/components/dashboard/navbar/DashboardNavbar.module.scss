@@ -1077,3 +1077,57 @@
     color: #ffd5d0;
   }
 }
+
+/* DESIGN-02 : habillage local des commandes concierge en Mucha Nocturne. */
+:global([data-theme="mucha-dark"] [data-concierge-dashboard]) .dashNavbar {
+  color: var(--concierge-nav-text);
+  background: var(--concierge-nav-fill);
+  border-color: var(--concierge-nav-border);
+
+  .pageTitle { color: var(--concierge-nav-text); }
+
+  .menuButton, .themeTrigger, .iconButton, .userProfile {
+    background: var(--concierge-nav-bg);
+    color: var(--concierge-nav-gold);
+    border: 1px solid var(--concierge-nav-border);
+    border-radius: var(--ds-radius-control);
+    transition: background-color var(--ds-motion-fast) var(--ds-ease-premium),
+      border-color var(--ds-motion-fast) var(--ds-ease-premium);
+
+    &:hover, &[aria-expanded="true"] {
+      background: var(--concierge-nav-hover);
+      border-color: var(--concierge-nav-gold);
+      transform: none;
+    }
+  }
+
+  button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--concierge-nav-gold);
+    outline-offset: 3px;
+  }
+
+  .avatarPlaceholder { color: var(--concierge-nav-gold); }
+  .userRole { background: var(--concierge-nav-hover); }
+
+  /* Variables consommées par les commandes de lisibilité existantes. */
+  --dash-bg-panel: var(--concierge-nav-bg);
+  --dash-border: var(--concierge-nav-border);
+  --dash-text-muted: var(--concierge-nav-muted);
+  --dash-text: var(--concierge-nav-text);
+  --dash-accent: var(--concierge-nav-gold);
+  --dash-accent-strong: var(--concierge-nav-gold);
+
+  .notificationsPanelClose, .notificationFilterButton {
+    background: var(--concierge-nav-bg);
+    color: var(--concierge-nav-text);
+    border-color: var(--concierge-nav-border);
+
+    &:hover { background: var(--concierge-nav-hover); }
+  }
+
+  .notificationFilterButtonActive, .notificationKind {
+    background: var(--concierge-nav-hover);
+    color: var(--concierge-nav-gold);
+    border-color: var(--concierge-nav-border);
+  }
+}

@@ -961,6 +961,13 @@ body.dark {
   @media (prefers-reduced-motion: reduce) {
     .dashboard-main { transition: none; }
   }
+  --concierge-nav-bg: #16213e;
+  --concierge-nav-bg-end: #1a1a2e;
+  --concierge-nav-text: #f4ece3;
+  --concierge-nav-gold: #f5d76e;
+  --concierge-nav-border: rgb(245 215 110 / 38%);
+  --concierge-nav-hover: rgb(245 215 110 / 14%);
+  --concierge-nav-fill: linear-gradient(180deg, var(--concierge-nav-bg), var(--concierge-nav-bg-end));
   --concierge-nav-muted: #d3c9bc;
 }
 
@@ -981,10 +988,10 @@ body.dark {
     position: absolute;
     top: 0;
     left: 0;
-    background: rgb(255 253 248 / 76%);
+    background: var(--concierge-nav-fill, rgb(255 253 248 / 76%));
     backdrop-filter: blur(12px);
     box-shadow: none;
-    border-bottom: 1px solid #ffffff70;
+    border-bottom: 1px solid var(--concierge-nav-border, #ffffff70);
   }
 
   .headerBandeau {
