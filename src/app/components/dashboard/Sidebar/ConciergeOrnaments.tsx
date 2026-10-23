@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { MoonStar } from "lucide-react";
 
-type OrnamentKind = "frieze" | "separator" | "corner" | "foot" | "moon";
+type OrnamentKind = "frieze" | "separator" | "corner" | "foot" | "moon" | "botanical";
 const resources = {
   corner: "/ornements/mucha-corner-bottom-right.svg",
 };
@@ -16,6 +16,32 @@ export function ConciergeOrnament({ kind, className }: { kind: OrnamentKind; cla
       <path d="M13 177C24 169 23 153 17 155 12 157 16 163 20 161 M11 333C0 326 1 311 6 313 11 315 8 320 4 318 M15 501C24 513 23 528 18 525 13 522 16 517 20 519 M11 672C0 660 0 646 6 648 11 650 8 655 4 653" />
       <path d="m18 91 2 4 2-4-2-4Z m-8 172 2 4 2-4-2-4Z m6 201 2 4 2-4-2-4Z m-8 183 2 4 2-4-2-4Z" fill="currentColor" stroke="none" />
       <circle cx="17" cy="193" r="2" /><circle cx="8" cy="451" r="2" /><circle cx="17" cy="628" r="2" />
+      <g strokeWidth=".65" opacity=".8">
+        <path d="M4 46 13 72M5 53 10 56M8 63 13 62M21 119 12 148M19 129 14 130M4 209 13 235M6 217 12 220M22 288 12 320M19 301 13 303M5 385 12 413M7 394 12 397M20 479 15 507M18 490 13 494M4 572 13 601M6 582 12 585M21 672 10 702M17 684 11 687M4 749 10 771" />
+        <path d="M7 90C1 97 2 110 8 110S14 101 9 100M16 350C23 357 23 370 17 370S11 361 16 360M7 534C0 542 2 554 8 553S13 544 8 543M16 727C23 735 22 747 16 746S11 738 16 737" />
+      </g>
+      {[112, 270, 466, 645].map(y => (
+        <g key={y} transform={`translate(12 ${y})`} strokeWidth=".75">
+          <path d="M0 0C-7-2-6-8-2-6L0-3C2-9 7-7 5-3L2 0C9 2 6 7 2 5L0 2C-3 8-8 5-5 2Z" fill="currentColor" fillOpacity=".16" />
+          <circle r="1.4" fill="currentColor" />
+        </g>
+      ))}
+      <path d="M6 207Q1 198 6 195Q12 198 6 207ZM18 568Q12 559 18 556Q23 559 18 568Z" fill="currentColor" fillOpacity=".3" strokeWidth=".7" />
+    </svg>
+  );
+  if (kind === "botanical") return (
+    <svg className={className} aria-hidden="true" focusable="false" viewBox="0 0 220 300" fill="none" stroke="currentColor" strokeWidth=".9" strokeLinecap="round" style={{ pointerEvents: "none" }}>
+      <g opacity=".75">
+        <path d="M6 298C26 281 4 269 16 248S30 225 18 214M6 288C23 292 31 280 25 275S15 279 20 282M14 262C2 262 2 249 8 246M214 298C193 281 216 269 204 248S190 225 202 214M214 288C197 292 189 280 195 275S205 279 200 282M206 262C218 262 218 249 212 246" />
+        <path d="M14 276C2 275 0 266 3 261 12 265 16 270 14 276ZM17 248C12 236 15 228 21 226 24 237 23 243 17 248ZM206 276C218 275 220 266 217 261 208 265 204 270 206 276ZM203 248C208 236 205 228 199 226 196 237 197 243 203 248Z" fill="currentColor" fillOpacity=".18" />
+        {[18, 202].map(x => (
+          <g key={x} transform={`translate(${x} 286)`}>
+            <path d="M0-2C-9-10-12-2-5 1C-12 7-4 12 0 5C4 12 12 7 5 1C12-2 9-10 0-2Z" fill="currentColor" fillOpacity=".2" />
+            <circle cy="2" r="1.8" fill="currentColor" />
+          </g>
+        ))}
+      </g>
+      <path d="m202 35 1.5 4.5 4.5 1.5-4.5 1.5-1.5 4.5-1.5-4.5-4.5-1.5 4.5-1.5ZM16 144l1 3 3 1-3 1-1 3-1-3-3-1 3-1ZM192 196l1 3 3 1-3 1-1 3-1-3-3-1 3-1Z" fill="currentColor" fillOpacity=".5" stroke="none" />
     </svg>
   );
   if (kind === "separator" || kind === "foot") return (
@@ -32,10 +58,10 @@ export function ConciergeOrnament({ kind, className }: { kind: OrnamentKind; cla
   );
 }
 
-/** Fournir un PNG/WebP transparent local validé, sans texte, avant activation. */
+/** Illustration décorative complète ; proportions du PNG lunaire fourni. */
 export function ConciergeMuchaIllustration({ src, className }: { src?: string; className?: string }) {
   if (!src) return null;
   return <div className={className} aria-hidden="true" style={{ pointerEvents: "none" }}>
-    <Image src={src} alt="" width={220} height={260} sizes="220px" />
+    <Image src={src} alt="" width={1086} height={1448} sizes="196px" />
   </div>;
 }

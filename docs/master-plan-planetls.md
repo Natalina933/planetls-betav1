@@ -1,5 +1,13 @@
 # Master Plan PlanetLS
 
+### Muse lunaire de la sidebar concierge — 21 octobre 2026
+
+- `PLS-DS-001` reste **🟡 En cours — P1 Prioritaire**. Ressource choisie par l'utilisateur : `public/ornements/Élégie lunaire Art Nouveau.png`, PNG transparent de 1 086 × 1 448 px, conservé intact. Aucune autre image générée ou substituée ; l'attente de ressource décrite le 20 octobre est levée. La validation artistique du rendu intégré reste à recueillir.
+- DESIGN-04B : `ConciergeMuchaIllustration` conserve exclusivement le PNG fourni, intact, avec une largeur cible de 196 px et une hauteur proportionnelle d'environ 261 px ; la silhouette majoritairement opaque occupe environ 140 px de large en raison des marges transparentes. Visage naturellement orienté vers le contenu, image entière, `alt=""` et conteneur décoratif `aria-hidden`. Frise de 22 px enrichie de nervures, fleurs, boutons et volutes ; composition botanique inférieure vectorielle légère avec trois étoiles, sans nouveau PNG ni réutilisation du faux SVG matriciel comme base vectorielle. Le croissant indépendant est retiré ; le texte décoratif et son séparateur restent supprimés.
+- Responsive : sidebar nocturne ouverte 252 px, rail 72 px avec pied masqué ; liens puis illustration partagent désormais la zone défilante sous le logo fixe. Les anciens masquages à 720/780 px de hauteur sont retirés : la Muse reste accessible par défilement sur les fenêtres basses. Tiroir mobile à 900 px conservé. Les 13 liens, cinq regroupements, destinations, états actifs, notifications et permissions restent inchangés ; les trois autres thèmes n'affichent pas la Muse.
+- Vérifications sur copie locale isolée : TypeScript application et Playwright, ESLint ciblé, compilation des SCSS sidebar/layout et 7 tests de navigation concierge/propriétaire réussis. Scénario navigateur avec API simulées réussi : chargement et proportions de l'image, absence de chevauchement avec la navigation, accès à Paramètres par défilement, rail, infobulle/Échap, mobile/voile/verrouillage, hauteurs 760 et 550 px et retour aux trois autres thèmes. Captures desktop, compact, mobile et faible hauteur réellement produites et inspectées dans `test-results/muse-20261021/isolated/test-results/concierge-sidebar/`.
+- Décision et prochaine action : conserver exclusivement le PNG fourni ; demander le retour utilisateur sur son échelle et sa composition dans la sidebar avant toute validation artistique définitive. Le registre `PLS-DS-001` est actualisé pour cette prochaine étape ; les limites de recette des autres rôles et de convergence globale restent ouvertes. Aucun commit, push, déploiement, accès réel ou changement Supabase ; aucune migration ou règle RLS concernée.
+
 ### Sidebar concierge Mucha Nocturne — 20 octobre 2026
 
 - `PLS-DS-001` reste **🟡 En cours — P1 Prioritaire**. Refonte locale de la sidebar concierge : 252 px ouverte, rail de 72 px sur desktop au-delà du breakpoint existant de 900 px ; tiroir mobile conservé. Aucun commit ni déploiement dans ce lot.
@@ -3341,8 +3349,8 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "type": "improvement",
       "persona": "Tous",
       "phase": "Cohérence de l'expérience",
-      "updatedAt": "2026-09-15",
-      "nextAction": "Migrer Factures Propriétaire avec les mêmes sections, filtres, tableaux et états, en conservant ses contrats métier. Traiter séparément le repli excessif de la navigation Dashboard à 1024 px avant de déclarer sa recette historique entièrement réussie.",
+      "updatedAt": "2026-10-21",
+      "nextAction": "Recueillir le retour utilisateur sur l'échelle et la composition de la Muse lunaire dans la sidebar concierge avant validation artistique définitive ; poursuivre la recette des autres rôles et le suivi des limites de convergence UI déjà documentées, dont la navigation à 1024 px.",
       "validationCriteria": [
         "Les tokens visuels canoniques sont documentés et réutilisables",
         "Les composants partagés possèdent une convention d'usage claire",

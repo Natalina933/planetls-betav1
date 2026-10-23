@@ -213,6 +213,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
           </button>
         </div>
 
+        <div className={styles.sidebarBody}>
         <nav className={styles.nav}>
           {menuItems.length === 0 ? (
             <p>Aucun menu disponible</p>
@@ -249,10 +250,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
         {isConciergeWorkspace ? (
           <div className={styles.conciergeSidebarBottom}>
             {isNocturneConcierge ? <>
-              <ConciergeOrnament kind="moon" className={styles.conciergeMoon} />
-              <ConciergeMuchaIllustration className={styles.conciergeIllustration} />
-              <ConciergeOrnament kind="foot" className={styles.conciergeFoot} />
-              <ConciergeOrnament kind="corner" className={styles.conciergeCorner} />
+              <ConciergeMuchaIllustration
+                src="/ornements/%C3%89l%C3%A9gie%20lunaire%20Art%20Nouveau.png"
+                className={styles.conciergeIllustration}
+              />
+              <ConciergeOrnament kind="botanical" className={styles.conciergeBotanical} />
             </> : <div className={styles.conciergeOrnament} aria-hidden="true">
               <Image
                 src="/ornements/Ornement%20botanique%20dor%C3%A9%20sur%20fond%20indigo.png"
@@ -262,9 +264,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
                 sizes="140px"
               />
             </div>}
-            <p>Des séjours<br />sereins,<br />des logements<br />préservés</p>
           </div>
         ) : null}
+        </div>
 
       </aside>
     </>
