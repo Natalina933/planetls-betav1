@@ -1,7 +1,2 @@
-import { defineConfig } from "@playwright/test";
-import base from "./playwright.config";
-
-export default defineConfig({
-  ...base,
-  testMatch: ["critical-workspaces.spec.ts", "registration-owner.spec.ts"],
-});
+// Phase 1: fixtures only. Registration and workspace provisioning are excluded.
+export { default } from "./e2e/owner-concierges-geography.config";

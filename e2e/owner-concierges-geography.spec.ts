@@ -1,7 +1,7 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./helpers/isolated-search";
 import { encode } from "next-auth/jwt";
 
-test("recherche commune : types, URL, cartes artisans et états sur desktop/mobile", async ({ page, context }) => {
+test("recherche commune : types, URL, cartes artisans et états sur desktop/mobile", async ({ page, context }, testInfo) => {
   const user = { id: "11111111-1111-4111-8111-111111111111", role: "owner", city: "Vendôme", onboarding_complete: true };
   const token = await encode({ secret: "traveler-stays-fixture-secret", salt: "authjs.session-token", token: { ...user, sub: user.id }, maxAge: 3600 });
   await context.addCookies([{ name: "authjs.session-token", value: token, domain: "127.0.0.1", path: "/", httpOnly: true }]);
@@ -53,7 +53,7 @@ test("recherche commune : types, URL, cartes artisans et états sur desktop/mobi
         });
       })).toBe(true);
     }
-    await page.screenshot({ path: `test-results/professional-search/${name}.png`, fullPage: true });
+    await page.screenshot({ path: testInfo.outputPath(`${name}.png`), fullPage: true });
   }
   await page.getByRole("link", { name: "Voir la carte", exact: true }).click();
   await expect(page.locator("#professional-map")).toBeInViewport();
@@ -108,7 +108,7 @@ test("API géographique : refus anonyme et cross-rôle, passage propriétaire", 
   }
 });
 
-test("recherche propriétaire : accents, carte/liste, filtres, retour privé et responsive", async ({ page, context }) => {
+test("recherche propriétaire : accents, carte/liste, filtres, retour privé et responsive", async ({ page, context }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   const user = { id: "11111111-1111-4111-8111-111111111111", role: "owner", firstName: "Camille", city: "Vendôme", onboarding_complete: true };
   const token = await encode({ secret: "traveler-stays-fixture-secret", salt: "authjs.session-token", token: { ...user, sub: user.id }, maxAge: 3600 });
@@ -144,11 +144,11 @@ test("recherche propriétaire : accents, carte/liste, filtres, retour privé et 
   await page.getByRole("button", { name: "Rechercher", exact: true }).click();
   await expect(page).toHaveURL(/services=cleaning_standard/);
   await expect(cards).toHaveCount(2);
-  await page.screenshot({ path: "test-results/owner-concierges-geography/desktop.png", fullPage: true });
+  await page.screenshot({ path: testInfo.outputPath("desktop.png"), fullPage: true });
   await page.setViewportSize({ width: 1024, height: 900 });
   await expect(page.locator(".leaflet-container")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await page.screenshot({ path: "test-results/owner-concierges-geography/tablet.png", fullPage: true });
+  await page.screenshot({ path: testInfo.outputPath("tablet.png"), fullPage: true });
   await page.getByRole("link", { name: "Voir le profil", exact: true }).first().click();
   await expect(page).toHaveURL(/\/concierges\/local\?/);
   await page.getByRole("link", { name: "Retour aux profils" }).click();
@@ -157,7 +157,7 @@ test("recherche propriétaire : accents, carte/liste, filtres, retour privé et 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(cards).toHaveCount(2);
   await expect(page.locator(".leaflet-container")).toBeVisible();
-  await page.screenshot({ path: "test-results/owner-concierges-geography/mobile.png", fullPage: true });
+  await page.screenshot({ path: testInfo.outputPath("mobile.png"), fullPage: true });
   await page.locator(".leaflet-container").evaluate((map) => map.scrollIntoView({ block: "center" }));
   await page.locator(".leaflet-control-zoom-in").click();
   await page.locator(".leaflet-control-zoom-in").click();
@@ -184,7 +184,7 @@ test("recherche propriétaire : accents, carte/liste, filtres, retour privé et 
 });
 
 
-test("fiabilite carte : consultation independante et profils superposes", async ({ page, context }) => {
+test("fiabilite carte : consultation independante et profils superposes", async ({ page, context }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
@@ -242,7 +242,7 @@ test("fiabilite carte : consultation independante et profils superposes", async 
   await expect(page.getByRole("checkbox", { name: "Afficher uniquement les professionnels PRO" })).toBeChecked();
   await expect(page.getByRole("slider", { name: "Budget max", exact: true })).toHaveValue("90");
   for (const index of [0,1]) await expect(page.getByRole("button", {name:"Retirer Professionnel " + index,exact:true})).toHaveAttribute("aria-pressed","true");
-  await page.screenshot({path:"test-results/owner-concierges-geography/reliability-desktop.png",fullPage:true});
+  await page.screenshot({path:testInfo.outputPath("reliability-desktop.png"),fullPage:true});
   const verifyComposer = async () => {
     await page.getByRole("button", { name: "Préparer ma demande", exact: true }).filter({ visible: true }).first().click();
     const dialog = page.getByRole("dialog", { name: "Préparer ma demande", exact: true });
@@ -258,13 +258,13 @@ test("fiabilite carte : consultation independante et profils superposes", async 
     await expect(services.getByRole("button")).toHaveCount(2);
     await expect(services).toContainText("Ménage du logement");
     await expect(services).toContainText("Changement de linge");
-    await page.screenshot({ path: `test-results/owner-concierges-geography/composer-${page.viewportSize()!.width}.png` });
+    await page.screenshot({ path: testInfo.outputPath(`composer-${page.viewportSize()!.width}.png`) });
     await dialog.getByRole("button", { name: "Fermer", exact: true }).click();
   };
   await verifyComposer();
   await page.setViewportSize({width:390,height:844});
   await expect(markers).toHaveCount(1);
-  await page.screenshot({path:"test-results/owner-concierges-geography/reliability-mobile.png",fullPage:true});
+  await page.screenshot({path:testInfo.outputPath("reliability-mobile.png"),fullPage:true});
   await verifyComposer();
   expect(errors).toEqual([]);
 });
