@@ -22,7 +22,7 @@ const credentialKey = /(?:SECRET|TOKEN|PASSWORD|API_KEY|SERVICE_ROLE_KEY|ANON_KE
 // export or generator invalidates the exclusion instead of silently losing a resource.
 const fixtureConsumers = {
   "package.json": "f5f90260cf60bdf4b79bb47991a256652e145db9203ad867f35c8aa8fe902046",
-  "scripts/run-isolated-search-e2e.mjs": "1af70a822df9f57ff52560e521d36aca46965c2d2d62c995562a6be689311ce0",
+  "scripts/run-isolated-search-e2e.mjs": "90b35896d5666428853a040aebf338d7bd0a3c3e6616e3e431d4f1a96f3fcda5",
   "scripts/run-readonly-e2e-server.mjs": "37db19e1388db04ae9297afc3ebb6bf29ce4b8581c6cef35f74fc04d3c05f707",
   "scripts/readonly-e2e-env.mjs": "274e941a5ef1c718ce01ed3653c8f002f5e564aa72e2f13f6e01869062ff734c",
   "e2e/owner-concierges-geography.config.ts": "acb0694d9ccca051fd7c8f9819336652cbc487325e1aa9a3064bd82edac95584",

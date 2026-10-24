@@ -17,7 +17,7 @@ const run = prepareIsolatedSearchRun(sourceRoot);
 console.log(`Recette isolée : ${run.id}`);
 const child = spawn(process.execPath, [path.join(run.projectRoot, "node_modules/@playwright/test/cli.js"),
   "test", "--config=e2e/owner-concierges-geography.config.ts",
-  ...(args.includes("--minimal") ? ["--grep=^recherche commune"] : ["--grep-invert=^API géographique"]),
+  ...(args.includes("--minimal") ? ["owner-concierges-geography.spec.ts", "--grep=recherche commune :"] : ["--grep-invert=^API géographique"]),
   ...(args.includes("--headed") ? ["--headed"] : []),
 ], { cwd: run.projectRoot, env: { ...env, NODE_OPTIONS: "", PLS_READONLY_E2E: "",
   TEMP: path.join(run.runRoot, "tmp"), TMP: path.join(run.runRoot, "tmp"), TMPDIR: path.join(run.runRoot, "tmp"),
