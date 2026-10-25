@@ -954,7 +954,7 @@ body.dark {
 
 /* Socle de la sidebar concierge nocturne : palette et géométrie. */
 [data-theme="mucha-dark"] .dashboard-root[data-concierge-dashboard] {
-  --ds-layout-sidebar: 252px;
+  --ds-layout-sidebar: 260px;
   @media (min-width: (map.get(var.$breakpoints, dashboard-nav) + 1px)) {
     .dashboard-main.no-sidebar { margin-left: 72px; }
   }
@@ -1713,16 +1713,16 @@ body.dark {
 
 /* DESIGN-02 / 1B : palette de contenu r?serv?e ? l'accueil concierge nocturne. */
 [data-theme="mucha-dark"] .dashboard-root[data-concierge-home] {
-  --concierge-page: #b3a592;
-  --concierge-panel: #ddd3c4;
-  --concierge-panel-soft: #c9bcaa;
-  --concierge-panel-raised: #e6ddcf;
-  --concierge-ink: #19243c;
-  --concierge-ink-soft: #363833;
-  --concierge-border: #938370;
-  --concierge-gold-ink: #59421a;
-  --concierge-ivory: #f0e7d9;
-  --concierge-alert: #dfc5b4;
+  --concierge-page: #0c211d;
+  --concierge-panel: #102e26;
+  --concierge-panel-soft: #1b3b31;
+  --concierge-panel-raised: #214438;
+  --concierge-ink: #f5ebdd;
+  --concierge-ink-soft: #b8d3bf;
+  --concierge-border: #a38b59;
+  --concierge-gold-ink: #d6b46f;
+  --concierge-ivory: #10271f;
+  --concierge-alert: #402322;
   background: var(--concierge-page);
 
   .dashboard-content {
@@ -1745,8 +1745,11 @@ body.dark {
     --ds-color-accent-soft: var(--concierge-panel-soft);
     --ds-color-gold: var(--concierge-gold-ink);
     --ds-color-gold-strong: var(--concierge-gold-ink);
-    --ds-color-error: #882b24;
-    --ds-color-success: #185743;
+    --ds-color-error: #ffb4a3;
+    --ds-color-danger: #ffb4a3;
+    --ds-color-warning-hover: #d6b46f;
+    --ds-color-text-soft: var(--concierge-ink-soft);
+    --ds-color-success: #96d5ad;
   }
 
   .headerOverlay {
@@ -1774,7 +1777,7 @@ body.dark {
 /* La colonne du layout continue sous la sidebar fixe sur les pages longues. */
 @media (min-width: (map.get(var.$breakpoints, dashboard-nav) + 1px)) {
   [data-theme="mucha-dark"] .dashboard-root[data-concierge-dashboard] {
-    --concierge-sidebar-column: 252px;
+    --concierge-sidebar-column: var(--ds-layout-sidebar);
     background: linear-gradient(90deg,
       #18263f 0 var(--concierge-sidebar-column),
       var(--concierge-page, var(--ds-color-background)) var(--concierge-sidebar-column) 100%);

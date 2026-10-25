@@ -1127,7 +1127,7 @@ $admin-accent-soft: #e3e8f2;
     --concierge-nav-border: color-mix(in srgb, var(--concierge-nav-gold) 55%, transparent);
     --concierge-nav-hover: color-mix(in srgb, var(--concierge-nav-gold) 14%, transparent);
     --concierge-nav-fill: linear-gradient(180deg, var(--concierge-nav-bg), var(--concierge-nav-bg-end));
-    width: 252px;
+    width: var(--ds-layout-sidebar, 260px);
     height: 100dvh;
     background: var(--concierge-nav-fill);
     overflow: hidden;
@@ -1182,10 +1182,15 @@ $admin-accent-soft: #e3e8f2;
         position: relative;
         flex: 0 0 auto;
         margin-top: auto;
-        padding: var(--ds-space-2) var(--ds-space-4) var(--ds-space-2) 28px;
+        // Réserver les 24 px de la frise ; le contenu visible commence ensuite à ~10 px.
+        padding: var(--ds-space-2) var(--ds-space-4) 10px 24px;
         border-top: 1px solid var(--concierge-nav-border);
         color: var(--concierge-nav-gold);
-        .conciergeIllustration { width: min(196px, 100%); }
+        .conciergeIllustration {
+            width: min(196px, 100%);
+            // PNG : 157 px transparents à gauche sur 1086 px, soit ~28,3 px à 196 px.
+            margin-inline: -18px 0;
+        }
         .conciergeBotanical {
             position: absolute;
             inset: auto 8px 0 24px;
@@ -1217,6 +1222,9 @@ $admin-accent-soft: #e3e8f2;
             .itemBadge { position: absolute; top: 0; right: 0; min-width: 17px; height: 17px; font-size: .6rem; }
             .conciergeSidebarBottom { display: none; }
         }
+    }
+    @media (max-width: map.get($breakpoints, dashboard-nav)) {
+        width: min(270px, calc(100vw - 44px));
     }
     @media (prefers-reduced-motion: reduce) {
         &, .link, .closeBtn { transition: none; }

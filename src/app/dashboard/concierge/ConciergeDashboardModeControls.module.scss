@@ -118,3 +118,23 @@
     justify-content: stretch;
   }
 }
+
+/* DESIGN-06 : commandes concierge, sans effet sur les autres espaces. */
+:global([data-theme="mucha-dark"] [data-concierge-home]) .controls {
+  :is(.button, .activeButton, .operatingButton, .activeOperatingButton, .smallButton, .smallActive) {
+    background: var(--concierge-panel);
+    border: 1px solid var(--concierge-border);
+    color: var(--concierge-ink);
+    strong { color: var(--concierge-gold-ink); }
+    span { color: var(--concierge-ink-soft); }
+    &:focus-visible { outline: 2px solid var(--concierge-gold-ink); outline-offset: 3px; }
+    &:hover:not(:disabled) { border-color: var(--concierge-gold-ink); }
+    &:disabled { opacity: .5; cursor: not-allowed; }
+  }
+  :is(.activeButton, .activeOperatingButton, .smallActive) {
+    background: var(--concierge-panel-raised);
+    border-color: var(--concierge-gold-ink);
+    box-shadow: inset 0 0 0 1px var(--concierge-gold-ink);
+  }
+  .accessibilityGroup > div { background: var(--concierge-panel-soft); border-color: var(--concierge-border); }
+}

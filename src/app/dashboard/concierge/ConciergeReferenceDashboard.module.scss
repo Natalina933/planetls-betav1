@@ -1048,3 +1048,87 @@
     font-size: .68rem;
     letter-spacing: .04em;
 }
+
+/* DESIGN-06 : habillage nocturne limité à l'accueil concierge. */
+:global([data-theme="mucha-dark"] [data-concierge-home]) .referenceDashboard {
+    min-width: 0;
+    background-image: linear-gradient(#0c211dfc, #0c211df7), url("/textures/mucha-background-pattern.png");
+    background-size: auto, 560px;
+    border-radius: var(--ds-radius-card);
+    gap: var(--ds-space-4);
+
+    .metric, .card, .centerColumn > section {
+        border-radius: 14px 14px 10px 10px;
+        box-shadow: inset 0 1px 0 #dfc58a14, 0 8px 24px #00000024;
+    }
+    .cardHeader {
+        border-bottom-color: var(--concierge-border);
+        background: linear-gradient(100deg, #dfc58a0d, transparent);
+        border-radius: 14px 14px 0 0;
+    }
+    .cardHeader h2, .optimization h2 { color: var(--concierge-gold-ink); }
+    .eyebrow { color: var(--concierge-gold-ink); }
+    .primaryButton {
+        background: linear-gradient(135deg, #e1c78d, #c4a465);
+        color: #10271f;
+        border-color: var(--concierge-gold-ink);
+    }
+    .secondaryButton, .metricLink { color: var(--concierge-ink); }
+    :is(a, button):focus-visible {
+        outline: 2px solid var(--concierge-gold-ink);
+        outline-offset: 3px;
+    }
+    :is(a, button):not(:disabled):hover { border-color: var(--concierge-gold-ink); }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .tableWrap { max-width: 100%; overflow-x: auto; }
+    .quickGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .quickGrid a { overflow-wrap: anywhere; }
+    @media (max-width: 768px) {
+        .mainGrid { grid-template-columns: minmax(0, 1fr); }
+        .cardHeader { flex-wrap: wrap; padding-block: var(--ds-space-2); }
+        .priorityBar { grid-template-columns: minmax(0, 1fr); }
+    }
+}
+
+/* DESIGN-06C : contrastes explicites et surfaces opaques de l'accueil. */
+:global([data-theme="mucha-dark"] [data-concierge-home]) .referenceDashboard {
+    --ds-color-primary: var(--concierge-ink);
+    --ds-color-primary-hover: var(--concierge-ink);
+    --ds-color-text-primary: var(--concierge-ink);
+    --ds-color-text-secondary: var(--concierge-ink-soft);
+    --ds-color-text-muted: var(--concierge-ink-soft);
+    --ds-color-gold: var(--concierge-gold-ink);
+    --ds-color-gold-strong: var(--concierge-gold-ink);
+    --ds-color-error: #ffb4a3;
+    --theme-texture-paper-opacity: 0;
+    --theme-texture-ornament-opacity: 0;
+
+    .metric, .card, .centerColumn > section {
+        background: var(--concierge-panel);
+        color: var(--concierge-ink);
+        border-color: var(--concierge-border);
+    }
+    .metric { gap: var(--ds-space-3); }
+    .metric strong, .metric[data-tone="success"] strong { color: var(--concierge-ink); }
+    .metric span, .metric small { color: var(--concierge-ink-soft); }
+    .metric .metricIcon, .metric[data-tone="success"] .metricIcon { color: var(--concierge-gold-ink); }
+    .metricIconWrap { background: var(--concierge-panel-soft); }
+    .metricProgress > span { background: var(--concierge-border); }
+    .statusBadge { color: var(--concierge-gold-ink); border-color: currentColor; }
+    .nextMission { align-self: start; }
+    .empty { margin: 0; padding: var(--ds-space-4); color: var(--concierge-ink-soft); line-height: 1.5; }
+    .alert, .priorityBar, .alertButton {
+        background: var(--concierge-alert);
+        border-color: #d78e80;
+    }
+    .alert h2, .alert strong, .alertButton, .priorityBar span, .priorityBar a { color: #ffb4a3; }
+    .alert p, .priorityBar p { color: var(--concierge-ink); }
+    .cardLink, .metricLink, .quickGrid a { color: var(--concierge-gold-ink); }
+    .quickGrid a { background: var(--concierge-panel); border-color: var(--concierge-border); }
+    :is(.cardLink, .message, .priorityBar a) { text-decoration: underline; text-underline-offset: 3px; }
+    :is(.metricLink, .secondaryButton, .quickGrid a):hover { background: var(--concierge-panel-raised); }
+    :is(a, button):active { outline: 1px solid currentColor; outline-offset: 2px; }
+    .cardHeader > div { min-width: 0; }
+    .cardHeader h2 { overflow-wrap: anywhere; }
+    .actionRow { flex-wrap: wrap; }
+}
