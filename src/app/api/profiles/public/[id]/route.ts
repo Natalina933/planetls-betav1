@@ -3,8 +3,10 @@ import { db } from "@/app/lib/dbServer";
 import { normalizeProfileLocationFields } from "../../../../lib/profileLocation.ts";
 import { parsePublicConciergeServices } from "../../public-concierges/shared";
 import { readSearchZones } from "@/features/owner-concierges/lib/geography";
+import { conciergePublication } from "../../../../lib/conciergePublication";
 
 type PublicProfileRow = {
+  status: string | null;
   id: string;
   first_name: string | null;
   last_name: string | null;
@@ -39,7 +41,7 @@ export async function GET(
     const { data: profile, error: profileError } = await db
       .from("profiles")
       .select(
-        "id, first_name, last_name, username, avatar_url, image, company_name, city, country, service_area, service_radius_km, experience_level, years_experience, hourly_rate, monthly_rate, option, availability_hours, role, website, linkedin, instagram, facebook",
+        "id, status, first_name, last_name, username, avatar_url, image, company_name, city, country, service_area, service_radius_km, experience_level, years_experience, hourly_rate, monthly_rate, option, availability_hours, role, website, linkedin, instagram, facebook",
       )
       .eq("id", id)
       .maybeSingle<PublicProfileRow>();
@@ -52,7 +54,7 @@ export async function GET(
       return NextResponse.json({ error: "Profil introuvable." }, { status: 404 });
     }
 
-    if (profile.role !== "concierge" && profile.role !== "concierge_pro") {
+    if (!conciergePublication(profile).eligible) {
       return NextResponse.json({ error: "Profil non disponible publiquement." }, { status: 404 });
     }
 

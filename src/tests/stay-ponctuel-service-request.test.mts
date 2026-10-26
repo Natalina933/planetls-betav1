@@ -25,6 +25,7 @@ class MemoryDb {
   tables: Record<string, Row[]> = {};
   writes: Array<{ table: string; operation: string }> = [];
   reads: string[] = [];
+  geocodeCalls: string[] = [];
 
   constructor(stayScoped: boolean) {
     this.tables = {
@@ -155,6 +156,13 @@ class Query {
 function modules(db: MemoryDb) {
   const cache = new Map<string, { exports: Row }>();
   const load = (name: string, parent = path.join(root, "src")): Row => {
+    if (name.endsWith("geocodeLocation")) return {
+      geocodeLocation: async (query: string) => {
+        db.geocodeCalls.push(query);
+        return query.includes("Lointaine") ? { latitude: 45, longitude: 3 } : { latitude: 0, longitude: 0 };
+      },
+      isGeocodingServiceError: () => false,
+    };
     if (name === "next/server") return { NextResponse: { json: (body: unknown, init?: ResponseInit) => Response.json(body, init) } };
     if (["@/app/lib/dbServer", "@/server/db/dbServer"].includes(name)) return { db };
     if (name === "@/server/auth/roleGuards") return {
@@ -236,6 +244,37 @@ function assertNoHousingEffects(db: MemoryDb) {
   }]);
 }
 
+test("continu : les deux routes d’acceptation activent sans mission, sans facture et sans doublon", async () => {
+  for (const kind of ["accept", "select"] as const) {
+    const { db, call } = setup(kind, { stayScoped: false });
+    const housingBefore = structuredClone(db.tables.housing);
+    Object.assign(db.tables.service_requests[0], { requested_services: ["linen_change"], desired_date: null,
+      metadata: { property_housing_id: "42", continuous_collaboration: true, collaboration_type: "regular" } });
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const response = await call();
+      assert.equal(response.status, 200, JSON.stringify(await response.clone().json()));
+      const payload = await response.json() as Row;
+      assert.equal(asRow(payload.accepted_workflow).collaboration_status, "active");
+      assert.equal(asRow(payload.accepted_workflow).mission_id, null);
+      assert.equal(asRow(payload.accepted_workflow).invoice_id, null);
+    }
+    assert.equal(db.tables.housing_collaborations.length, 1);
+    assert.equal(db.tables.missions.length, 0); assert.equal(db.tables.invoices.length, 0);
+    assert.deepEqual(db.tables.housing, housingBefore);
+    assert.deepEqual(asRow(db.tables.housing_collaborations[0].scope).requested_services, ["linen_change"]);
+  }
+});
+
+test("continu sans logement rattaché : refus avant attribution et sans signature inventée", async () => {
+  for (const kind of ["accept", "select"] as const) {
+    const { db, call } = setup(kind, { stayScoped: false });
+    db.tables.service_requests[0].metadata = { continuous_collaboration: true };
+    assert.equal((await call()).status, 409);
+    assert.equal(db.writes.length, 0);
+    assert.equal(db.tables.quotes[0].status, "sent");
+  }
+});
+
 test("accept: stay request creates one mission linked to the reservation, without housing effects", async () => {
   const { db, call } = setup("accept");
   const response = await call();
@@ -307,6 +346,8 @@ test("classic request keeps the housing attachment and collaboration behavior", 
 
 test("create: stay context is validated, persisted and explicit on the request", async () => {
   const { db, call } = setup("create");
+  Object.assign(db.tables.profiles[1], eligibleConcierge());
+  db.tables.properties[0].city = "Ville isolée";
   const response = await call({
     title: "Linge pour le séjour",
     reservation_id: RES,
@@ -323,6 +364,107 @@ test("create: stay context is validated, persisted and explicit on the request",
   assert.equal(created.property_id, PROPERTY);
   assert.equal(created.owner_profile_id, OWNER);
   assert.deepEqual(created.requested_services, ["linen_change"]);
+});
+
+function eligibleConcierge() {
+  return { role: "concierge", status: "active", company_name: "Entreprise isolée",
+    option: "linen_change,cleaning_standard", service_radius_km: 30,
+    availability_hours: JSON.stringify({ radiusDeclaration: "explicit",
+      zones: [{ placeId: "nominatim:fixture", label: "Zone isolée", lat: 0, lng: 0 }] }) };
+}
+
+test("create : collaboration continue sans dates et sans gestion complète implicite", async () => {
+  const { db, call } = setup("create");
+  Object.assign(db.tables.profiles[1], eligibleConcierge());
+  const response = await call({ title: "Services au fil des besoins", city: "Ville isolée",
+    continuous_collaboration: true, requested_services: ["cleaning_standard", "linen_change"], recipient_ids: [CONCIERGE] });
+  assert.equal(response.status, 201);
+  const request = db.tables.service_requests.find(row => row.id !== R)!;
+  assert.equal(request.desired_date, null); assert.equal(request.request_type, "durable");
+  assert.equal(asRow(request.metadata).continuous_collaboration, true);
+  assert.equal(asRow(request.metadata).collaboration_type, "regular");
+  assert.equal(asRow(request.metadata).estimated_duration, null);
+  assert.deepEqual(request.requested_services, ["cleaning_standard", "linen_change"]);
+});
+
+test("périmètre attribué : modification de la demande et requalification continue refusées", async () => {
+  const { db } = setup("create");
+  asRow(db.tables.service_requests[0].metadata).selected_quote_id = Q;
+  const route = modules(db)("@/app/api/service-requests/route");
+  const response = await (route.PATCH as Handler)({ json: async () => ({ id: R, continuous_collaboration: true,
+    requested_services: ["cleaning_standard"] }) });
+  assert.equal(response.status, 409);
+  assert.equal(db.writes.length, 0);
+});
+
+test("create: envoi direct hors zone refusé avant toute écriture", async () => {
+  const { db, call } = setup("create");
+  Object.assign(db.tables.profiles[1], eligibleConcierge(), { availability_hours: JSON.stringify({
+    zones: [{ placeId: "nominatim:far", label: "Zone distante", lat: 45, lng: 3 }], radiusDeclaration: "explicit",
+  }) });
+  const response = await call({ title: "Demande isolée", city: "Ville isolée", radius_km: 1000,
+    requested_services: ["cleaning_standard"], recipient_ids: [CONCIERGE] });
+  assert.equal(response.status, 422);
+  const body = await response.json();
+  assert.equal(body.recipients[0].code, "CONCIERGE_OUTSIDE_ZONE");
+  assert.equal(db.writes.length, 0);
+});
+
+test("create: sélection multiple et multi-prestations conservées", async () => {
+  const { db, call } = setup("create");
+  Object.assign(db.tables.profiles[1], eligibleConcierge());
+  db.tables.profiles.push({ id: OTHER, ...eligibleConcierge() });
+  const services = ["cleaning_standard", "linen_change", "guest_checkin", "guest_checkout"];
+  const response = await call({ title: "Demande isolée", city: "Ville isolée",
+    requested_services: services, recipient_ids: [CONCIERGE, OTHER] });
+  assert.equal(response.status, 201);
+  const created = db.tables.service_requests.find((row) => row.id !== R)!;
+  assert.deepEqual(created.requested_services, services);
+  assert.equal(db.tables.service_request_recipients.filter(row => row.service_request_id === created.id).length, 2);
+});
+
+test("create: un destinataire invalide refuse toute la sélection, sans effet partiel", async () => {
+  const { db, call } = setup("create");
+  Object.assign(db.tables.profiles[1], eligibleConcierge());
+  db.tables.profiles.push({ id: OTHER, ...eligibleConcierge(), status: "suspended" });
+  const response = await call({ title: "Demande isolée", city: "Ville isolée",
+    requested_services: ["cleaning_standard"], recipient_ids: [CONCIERGE, OTHER] });
+  assert.equal(response.status, 422);
+  assert.equal(db.writes.length, 0);
+});
+
+test("create: logement tiers refusé même avec une adresse éligible fournie", async () => {
+  const { db, call } = setup("create");
+  Object.assign(db.tables.profiles[1], eligibleConcierge());
+  db.tables.housing[0].proprietaire = { owner_profile_id: OTHER };
+  const response = await call({ title: "Demande isolée", housing_id: "42", city: "Ville isolée",
+    requested_services: ["cleaning_standard"], recipient_ids: [CONCIERGE] });
+  assert.equal(response.status, 403);
+  assert.equal(db.writes.length, 0);
+});
+
+test("create: lieu du séjour prioritaire même sans property_id dans le corps", async () => {
+  const { db, call } = setup("create");
+  Object.assign(db.tables.profiles[1], eligibleConcierge());
+  db.tables.reservations[0].property_id = PROPERTY;
+  db.tables.properties[0].city = "Ville Lointaine";
+  const response = await call({ title: "Demande isolée", reservation_id: RES, stay_need: "linen",
+    city: "Ville proche", property_address: "Adresse proche", radius_km: 1000,
+    requested_services: ["linen_change"], recipient_ids: [CONCIERGE] });
+  assert.equal(response.status, 422);
+  assert.deepEqual(db.geocodeCalls, ["Ville Lointaine"]);
+  assert.equal(db.writes.length, 0);
+});
+
+test("create: propriété tierce refusée avant le géocodage et les écritures", async () => {
+  const { db, call } = setup("create");
+  Object.assign(db.tables.profiles[1], eligibleConcierge());
+  db.tables.properties[0].owner_id = OTHER;
+  const response = await call({ title: "Demande isolée", property_id: PROPERTY, city: "Ville proche",
+    requested_services: ["linen_change"], recipient_ids: [CONCIERGE] });
+  assert.equal(response.status, 403);
+  assert.deepEqual(db.geocodeCalls, []);
+  assert.equal(db.writes.length, 0);
 });
 
 test("create: a reservation owned by another profile is refused before any write", async () => {

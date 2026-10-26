@@ -77,7 +77,7 @@ export default function MissionZoneAvailability({
 
   const updateRadius = (radiusKm: number) => {
     if (!isEditing) return;
-    onChange({ ...normalizedState, radiusKm });
+    onChange({ ...normalizedState, radiusKm, radiusExplicit: true });
   };
 
   const removeZone = () => {

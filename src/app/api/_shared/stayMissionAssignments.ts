@@ -2,8 +2,12 @@ import { insertMissionWithOptionalMetadata } from "@/app/api/_shared/missionInse
 import { cleanString, isRecord, type ReservationRow } from "@/app/api/_shared/reservations";
 import { normalizeStayNeed, SERVICE_CODES, type NeedKey } from "@/app/api/_shared/stayNeeds";
 import type { LooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
-import { db } from "@/app/lib/dbServer";
 import { getHousingReferenceId } from "@/app/lib/listingReferences";
+import { commercialObjectId } from "@/features/concierge-commercial/server/requestCommercialGuard";
+import { agreedServiceSlugs, isContinuousCollaboration } from "./continuousCollaboration.ts";
+import { STAY_NEED_SERVICE_SLUGS } from "./stayNeeds.ts";
+import { stayOperationTiming } from "./stayOperationTiming.ts";
+import { collaborationLifecycle } from "./collaborationLifecycle.ts";
 
 // Canonical vocabulary lives in stayNeeds.ts (shared with stay service requests).
 export { normalizeStayNeed };
@@ -14,6 +18,10 @@ type CollaborationRow = {
   owner_profile_id: string;
   concierge_profile_id: string;
   status: string;
+  scope?: Record<string, unknown> | null;
+  ends_on?: string | null;
+  quote_id?: string | null;
+  service_request_id?: string | null;
 };
 type ContractRow = { id: string; collaboration_id: string };
 type ContractVersionRow = {
@@ -80,23 +88,8 @@ function serviceIsAllowed(state: string | null, need: NeedKey, explicitNeeds: Se
   return false;
 }
 
-function addMinutes(value: string, minutes: number) {
-  return new Date(new Date(value).getTime() + minutes * 60 * 1000).toISOString();
-}
-
 function missionTiming(reservation: ReservationRow, need: NeedKey) {
-  switch (need) {
-    case "checkin":
-      return { start: reservation.check_in_at, end: addMinutes(reservation.check_in_at, 45) };
-    case "checkout":
-      return { start: reservation.check_out_at, end: addMinutes(reservation.check_out_at, 45) };
-    case "cleaning":
-      return { start: addMinutes(reservation.check_out_at, 60), end: addMinutes(reservation.check_out_at, 180) };
-    case "linen":
-      return { start: addMinutes(reservation.check_out_at, 90), end: addMinutes(reservation.check_out_at, 150) };
-    case "courses":
-      return { start: addMinutes(reservation.check_in_at, -180), end: reservation.check_in_at };
-  }
+  return stayOperationTiming(reservation, need)!;
 }
 
 function missionTitle(need: NeedKey) {
@@ -128,7 +121,7 @@ export async function createOrReuseStayMissions(input: {
   const uniqueCollaborationIds = Array.from(new Set(resolvedAssignments.map((item) => item.collaborationId)));
   const { data: collaborationData, error: collaborationError } = await input.db
     .from("housing_collaborations")
-    .select("id,housing_id,owner_profile_id,concierge_profile_id,status")
+    .select("id,housing_id,owner_profile_id,concierge_profile_id,status,scope,ends_on,quote_id,service_request_id")
     .in("id", uniqueCollaborationIds);
 
   if (collaborationError) return { ok: false, error: "Impossible de vérifier les collaborations.", status: 500 };
@@ -138,7 +131,7 @@ export async function createOrReuseStayMissions(input: {
     const collaboration = collaborations.get(assignment.collaborationId);
     return (
       !collaboration ||
-      collaboration.status !== "active" ||
+      (collaboration.status !== "active" || !collaborationLifecycle(collaboration).canCreateInterventions) ||
       collaboration.owner_profile_id !== input.reservation.owner_profile_id ||
       collaboration.concierge_profile_id !== input.reservation.concierge_profile_id ||
       String(collaboration.housing_id) !== housingId
@@ -179,24 +172,53 @@ export async function createOrReuseStayMissions(input: {
 
   const explicitNeeds = explicitNeedsFromReservation(input.reservation);
   const createdOrReused: StayMissionAssignmentRow[] = [];
+  const states = new Map<string, string>();
 
   for (const assignment of resolvedAssignments) {
     const collaboration = collaborations.get(assignment.collaborationId)!;
     const contract = contracts.get(collaboration.id);
     const version = contract ? versionByContract.get(contract.id) ?? null : null;
-    const serviceState = getServiceState(version, assignment.need);
+    let serviceState = getServiceState(version, assignment.need);
+    if (!contract && collaboration.scope?.continuous_collaboration === true) {
+      const quoteResult = await input.db.from("quotes").select("id,status,owner_profile_id,concierge_profile_id,service_request_id")
+        .eq("id", collaboration.quote_id).maybeSingle();
+      const requestResult = await input.db.from("service_requests").select("id,owner_profile_id,requested_services,metadata")
+        .eq("id", collaboration.service_request_id).maybeSingle();
+      const quote = quoteResult.data;
+      const request = requestResult.data;
+      if (quoteResult.error || requestResult.error) return { ok: false, error: "Accord commercial indisponible.", status: 500 };
+      if (quote?.status === "accepted" && quote.owner_profile_id === collaboration.owner_profile_id
+        && quote.concierge_profile_id === collaboration.concierge_profile_id
+        && quote.service_request_id === request?.id && request?.owner_profile_id === collaboration.owner_profile_id
+        && request?.metadata?.selected_quote_id === quote.id && isContinuousCollaboration(request)
+        && agreedServiceSlugs(request).includes(STAY_NEED_SERVICE_SLUGS[assignment.need])
+        && Array.isArray(collaboration.scope.operational_service_slugs)
+        && collaboration.scope.operational_service_slugs.includes(STAY_NEED_SERVICE_SLUGS[assignment.need])) {
+        // Scope alone never grants automatic interventions or signs a contract.
+        serviceState = "SUR_DEMANDE";
+      }
+    }
 
     if (!serviceIsAllowed(serviceState, assignment.need, explicitNeeds)) {
       return { ok: false, error: `Service ${assignment.need} non autorisé par cette collaboration.`, status: 400 };
     }
+    states.set(`${collaboration.id}:${assignment.need}`, serviceState!);
+  }
 
+  for (const assignment of resolvedAssignments) {
+    const collaboration = collaborations.get(assignment.collaborationId)!;
+    const serviceState = states.get(`${collaboration.id}:${assignment.need}`)!;
+    if (!collaborationLifecycle(collaboration).canCreateInterventions) {
+      return { ok: false, error: "La résiliation de la collaboration a pris effet.", status: 409 };
+    }
     const idempotencyKey = `${input.reservation.id}:${assignment.need}:${collaboration.id}`;
-    const { data: existing } = await input.db
+    const { data: existing, error: existingError } = await input.db
       .from("missions")
       .select("id,reservation_id,title,status,scheduled_start,scheduled_end,metadata")
       .eq("reservation_id", input.reservation.id)
       .contains("metadata", { stay_assignment_key: idempotencyKey })
       .maybeSingle();
+    if (existingError) return { ok: false, error: "Vérification des interventions impossible.", status: 500 };
 
     if (existing) {
       createdOrReused.push(existing as StayMissionAssignmentRow);
@@ -206,8 +228,9 @@ export async function createOrReuseStayMissions(input: {
     const timing = missionTiming(input.reservation, assignment.need);
     const title = `${missionTitle(assignment.need)} - séjour`;
     const { data, error } = await insertMissionWithOptionalMetadata<StayMissionAssignmentRow>(
-      db,
+      input.db,
       {
+        id: commercialObjectId(`stay-intervention:${idempotencyKey}`),
         reservation_id: input.reservation.id,
         concierge_profile_id: collaboration.concierge_profile_id,
         owner_profile_id: input.reservation.owner_profile_id,
@@ -232,8 +255,14 @@ export async function createOrReuseStayMissions(input: {
       },
       "id,reservation_id,title,status,scheduled_start,scheduled_end,metadata",
       "id,title,status,scheduled_start,scheduled_end,metadata",
+      ["metadata", "reservation_id"],
     );
 
+    if (error?.code === "23505") {
+      const retry = await input.db.from("missions").select("id,reservation_id,title,status,scheduled_start,scheduled_end,metadata")
+        .eq("id", commercialObjectId(`stay-intervention:${idempotencyKey}`)).single();
+      if (!retry.error && retry.data) { createdOrReused.push(retry.data as StayMissionAssignmentRow); continue; }
+    }
     if (error || !data) {
       console.error("[stayMissionAssignments] mission insert error:", error);
       return { ok: false, error: "Création de mission impossible.", status: 500 };

@@ -14,6 +14,7 @@ import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
 import { collectHousingReferenceIds, getHousingReferenceId, getListingLabel } from "@/app/lib/listingReferences";
 import { requireApiRole } from "@/server/auth/roleGuards";
+import { collaborationLifecycle } from "@/app/api/_shared/collaborationLifecycle";
 
 const dbAny = asLooseSupabaseClient(db);
 
@@ -161,7 +162,7 @@ export async function POST(req: NextRequest) {
 
     const { data: collaboration, error: collaborationError } = await dbAny
       .from("housing_collaborations")
-      .select("id,housing_id,owner_profile_id,concierge_profile_id,status")
+      .select("id,housing_id,owner_profile_id,concierge_profile_id,status,scope,ends_on")
       .eq("id", collaborationId)
       .maybeSingle();
 
@@ -174,7 +175,7 @@ export async function POST(req: NextRequest) {
       !collaboration ||
       collaboration.owner_profile_id !== userId ||
       String(collaboration.housing_id) !== requestedHousingId ||
-      collaboration.status !== "active" ||
+      !collaborationLifecycle(collaboration).canCreateInterventions ||
       collaboration.concierge_profile_id !== conciergeProfileId
     ) {
       return NextResponse.json(

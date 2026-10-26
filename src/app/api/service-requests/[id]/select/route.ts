@@ -5,8 +5,10 @@ import { readStayContext } from "@/app/api/_shared/stayServiceRequestContext";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { createHousingFromQuote, validateHousingFromQuote, QuoteHousingValidationError } from "@/app/api/profiles/housing/shared";
 import { upsertAcceptedHousingCollaboration } from "@/app/api/_shared/housingCollaboration";
+import { isContinuousCollaboration } from "@/app/api/_shared/continuousCollaboration";
 import { db } from "@/server/db/dbServer";
 import { requireApiRole } from "@/server/auth/roleGuards";
+import { loadOpenRequestForQuote, RequestCommercialError } from "@/features/concierge-commercial/server/requestCommercialGuard";
 
 interface SelectRequestBody {
   recipient_id?: string;
@@ -31,6 +33,7 @@ export async function POST(
   req: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
+  let awardedQuoteId: string | null = null;
   try {
     const guard = await requireApiRole(req, OWNER_ROLES);
     if (!guard.ok) return guard.response;
@@ -123,6 +126,10 @@ export async function POST(
     if (!selectedQuote) {
       throw new QuoteHousingValidationError("Aucun devis correspondant à cette demande et à cette concierge ne peut être sélectionné.");
     }
+    if (requestRow.metadata?.selected_quote_id !== selectedQuote.id) {
+      await loadOpenRequestForQuote(dbAny, { ...selectedQuote, owner_profile_id: requestRow.owner_profile_id,
+        concierge_profile_id: selectedRecipient.concierge_profile_id });
+    }
     // Explicit stay context ("demande ponctuelle de séjour"): acceptance must
     // create the stay mission only, without housing validation, housing row or
     // collaboration (the main concierge on reservations stays unchanged).
@@ -137,7 +144,11 @@ export async function POST(
           expectedRecipientId: recipientId,
         });
 
+    if (isContinuousCollaboration(requestRow) && !housingValidation?.housingId) {
+      throw new QuoteHousingValidationError("Rattachez un logement existant vous appartenant avant d’activer la collaboration continue.");
+    }
     await awardAcceptedQuote(db, selectedQuote.id, userId);
+    awardedQuoteId = selectedQuote.id;
 
     let acceptedWorkflow: Awaited<ReturnType<typeof finalizeAcceptedQuoteWorkflow>> | null = null;
     let autoHousing: { housingId: number; created: boolean; linkedExisting?: boolean } | null = null;
@@ -149,12 +160,17 @@ export async function POST(
         serviceRequestId: requestRow.id,
         serviceRequestRecipientId: selectedRecipient.id,
       });
+      if (!acceptedWorkflow?.continuous && (!acceptedWorkflow?.mission?.id || !acceptedWorkflow?.invoice?.id)) {
+        throw new Error("Les effets opérationnels existants de l'attribution sont incomplets.");
+      }
 
       const housingId = housingValidation?.housingId ?? null;
 
       if (!stayContext) {
         try {
-          autoHousing = await createHousingFromQuote(
+          autoHousing = acceptedWorkflow?.continuous && housingId
+            ? { housingId, created: false, linkedExisting: true }
+            : await createHousingFromQuote(
             selectedQuote.id,
             selectedRecipient.concierge_profile_id,
             housingId,
@@ -171,12 +187,14 @@ export async function POST(
             });
           } catch (collaborationError) {
             console.error("[service-requests/select] collaboration record error:", collaborationError);
+            throw collaborationError;
           }
         } catch (housingError) {
           if (housingError instanceof QuoteHousingValidationError) throw housingError;
           console.error("[service-requests/select] housing collaboration link error:", housingError);
           return NextResponse.json(
-            { error: "La conciergerie est sélectionnée, mais le logement n'a pas pu être rattaché." },
+            { error: "La conciergerie est sélectionnée, mais le logement n'a pas pu être rattaché.",
+              code: "POST_AWARD_WORKFLOW_PENDING", selection_persisted: true, quote_id: selectedQuote.id },
             { status: 500 },
           );
         }
@@ -203,6 +221,8 @@ export async function POST(
         request: updatedRequest,
         selected_recipient_id: selectedRecipient.id,
         accepted_workflow: {
+          kind: acceptedWorkflow?.continuous ? "continuous" : "one_off",
+          mission_ids: acceptedWorkflow?.missions?.map(mission => mission.id) ?? [],
           mission_id: acceptedWorkflow?.mission?.id ?? selectedQuote?.mission_id ?? null,
           invoice_id: acceptedWorkflow?.invoice?.id ?? null,
           collaboration_id: collaborationNextAction?.collaborationId ?? null,
@@ -223,6 +243,12 @@ export async function POST(
       { status: 200 },
     );
   } catch (error) {
+    if (awardedQuoteId) return NextResponse.json({
+      error: "Le devis est attribué, mais les opérations suivant l'attribution restent incomplètes.",
+      code: "POST_AWARD_WORKFLOW_PENDING", selection_persisted: true, quote_id: awardedQuoteId,
+      recovery: "Conserver ce devis gagnant ; vérifier les effets partiels dans CONCIERGE-03B avant reprise.",
+    }, { status: 500 });
+    if (error instanceof RequestCommercialError) return NextResponse.json({ error: error.message }, { status: error.status });
     if (error instanceof QuoteAwardError) return NextResponse.json({ error: error.message }, { status: error.status });
     if (error instanceof QuoteHousingValidationError) return NextResponse.json({ error: error.message }, { status: error.status });
     console.error("[service-requests/select] ERROR:", error);

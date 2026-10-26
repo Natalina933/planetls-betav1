@@ -1,4 +1,5 @@
 import type { LooseSupabaseClient } from "./untypedSupabase";
+import { collaborationLifecycle } from "./collaborationLifecycle.ts";
 
 export type CollaborationNextActionKind =
   | "finalize_contract"
@@ -22,6 +23,8 @@ export type CollaborationNextAction = {
 };
 
 export type CollaborationRow = {
+  scope?: unknown;
+  ends_on?: string | null;
   id: string;
   status: string | null;
   service_request_id: string | null;
@@ -63,7 +66,7 @@ export async function getCollaborationNextAction(input: {
   };
   const { data: collaboration, error } = await input.db
     .from("housing_collaborations")
-    .select("id,status,service_request_id,quote_id")
+    .select("id,status,service_request_id,quote_id,scope,ends_on")
     .eq("quote_id", input.quoteId)
     .maybeSingle();
 
@@ -109,8 +112,15 @@ export async function getCollaborationNextAction(input: {
     signatureState = null;
   }
 
-  const status = typeof row.status === "string" ? row.status : null;
+  const lifecycle = collaborationLifecycle(row);
+  const status = lifecycle.invalid ? null : typeof lifecycle.status === "string" ? lifecycle.status : null;
   const requestParam = input.serviceRequestId ? `&request=${encodeURIComponent(input.serviceRequestId)}` : "";
+
+  if (status === "ended" || status === "cancelled" || status === "paused") {
+    return { kind: "unavailable", collaborationId: row.id, collaborationStatus: status, signatureState,
+      nextAction: "Cette collaboration n’est plus active. Son historique reste consultable.",
+      nextHref: null, visibleIn: ["partenaires", "historique"] };
+  }
 
   if (status === "active") {
     return {

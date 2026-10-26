@@ -7,6 +7,7 @@ import * as pagination from "../app/lib/professionalSearchPagination.ts";
 import * as shared from "../app/api/profiles/concierges/shared.ts";
 import * as coverage from "../app/api/search/professionals/coverage.ts";
 import * as geography from "../features/owner-concierges/lib/geography.ts";
+import * as publication from "../app/lib/conciergePublication.ts";
 import { GeocodingServiceError, isGeocodingServiceError } from "../server/location/geocodeLocation.ts";
 
 // Exécute la vraie route avec uniquement ses transports remplacés ; aucun client DB réel.
@@ -16,7 +17,7 @@ const center = { latitude: 47.792, longitude: 1.065 };
 const zone = (point = center) => ({ placeId: "nominatim:123", label: "Zone fictive", lat: point.latitude, lng: point.longitude });
 const zones = (...values: unknown[]) => JSON.stringify({ zones: values });
 const profile = (id: string, role = "provider", extra = {}) => ({
-  id, role, status: "active", first_name: id, city: "Vendôme", country: "France",
+  id, role, status: "active", first_name: id, last_name: "Fixture", city: "Vendôme", country: "France",
   latitude: center.latitude, longitude: center.longitude,
   option: JSON.stringify(["cleaning_standard", "guest_checkin_checkout"]),
   service_radius_km: 10, availability_hours: zones(zone()), hourly_rate: null, monthly_rate: null, ...extra,
@@ -50,6 +51,7 @@ function harness(options: {
     "@/app/lib/apiAuth": { getApiAuthContext: async () => ({ userId: options.anonymous ? undefined : "owner-a", role: options.role ?? "owner" }) },
     "@/server/location/geocodeLocation": { geocodeLocation: geocode, isGeocodingServiceError },
     "./coverage": coverage,
+    "../../../lib/conciergePublication": publication,
     "@/features/owner-concierges/lib/geography": geography,
     "@/app/api/profiles/concierges/shared": shared,
     "@/app/lib/professionalSearchMatching": matching,
@@ -73,6 +75,24 @@ test("API : anonyme 401, rôles interdits 403, propriétaire et admin autorisés
     assert.equal(denied.calls.length, 0);
   }
   for (const role of ["owner", "owner_pro", "admin", "super_admin"]) assert.equal((await harness({ role }).get()).status, 200);
+});
+
+test("API : publication concierge appliquée aussi en recherche libre, sans exigence de tarif", async () => {
+  const availability_hours = JSON.stringify({ radiusDeclaration: "explicit", zones: [zone()] });
+  const profiles = [
+    profile("complete", "concierge", { service_radius_km: 30, availability_hours }),
+    profile("no-service", "concierge", { option: "" }),
+    profile("no-zone", "concierge", { availability_hours: null }),
+    profile("ambiguous", "concierge", { service_radius_km: 30 }),
+    profile("suspended", "concierge", { status: "suspended" }),
+  ];
+  for (const query of ["", "geographic=1&city=Vendome"]) {
+    const response = await harness({ profiles }).get(query);
+    const payload = await response.json();
+    assert.equal(response.status, 200);
+    assert.deepEqual(payload.items.map((item: { id: string }) => item.id), ["complete"]);
+    assert.equal(payload.items[0].hourly_rate, null);
+  }
 });
 
 test("API : Tous, Concierges et Artisans excluent les profils suspendus et supprimés", async () => {
@@ -178,7 +198,8 @@ test("API : tangence des couvertures, rayon absent et rayon implicite séparés"
     profile("invalid", "provider", { availability_hours: zones(zone({ latitude: 91, longitude: 0 })) }),
   ] }).get("geographic=1&city=fictive")).json();
   assert.deepEqual(payload.items.map((item: { id: string }) => item.id), ["tangent"]);
-  assert.match(payload.warning, /couverture de 4 professionnel/);
+  // The incomplete concierge is unpublished, rather than a geographic candidate.
+  assert.match(payload.warning, /couverture de 3 professionnel/);
 });
 
 test("API : résultats sans marqueur, coordonnées originales et zones répétées sans doublons", async () => {

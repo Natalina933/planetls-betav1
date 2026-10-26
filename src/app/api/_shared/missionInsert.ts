@@ -63,6 +63,7 @@ export async function insertMissionWithOptionalMetadata<T>(
   payload: Record<string, unknown>,
   selectColumns: string,
   fallbackSelectColumns = selectColumns,
+  requiredColumns: readonly string[] = [],
 ) {
   let nextPayload = { ...payload };
   const removedColumns = new Set<string>();
@@ -79,7 +80,7 @@ export async function insertMissionWithOptionalMetadata<T>(
       .single();
 
     const missingColumn = getMissingMissionColumn(result.error);
-    if (!result.error || !missingColumn || !(missingColumn in nextPayload)) {
+    if (!result.error || !missingColumn || !(missingColumn in nextPayload) || requiredColumns.includes(missingColumn)) {
       return {
         ...result,
         metadataStored: !result.error && "metadata" in nextPayload,

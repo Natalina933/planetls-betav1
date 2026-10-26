@@ -14,7 +14,7 @@ test("E2E : neutralise les variables héritées et celles chargées par Next, sa
     "DIRECT_URL", "POSTGRES_URL", "GOOGLE_CLIENT_SECRET", "GITHUB_CLIENT_ID", "STRIPE_SECRET_KEY",
     "NODE_OPTIONS", "HTTPS_PROXY", "CUSTOM_SERVICE_TOKEN",
   ].map(key => [key, "hostile-value"]));
-  const env = buildReadonlyE2EEnv({ ...inherited, PATH: "system-path" }, ["FILE_ONLY_TOKEN", "GOOGLE_CLIENT_ID"]);
+  const env = buildReadonlyE2EEnv({ ...inherited, NODE_ENV: "test", PATH: "system-path" }, ["FILE_ONLY_TOKEN", "GOOGLE_CLIENT_ID"]);
   assertReadonlyE2EEnv(env);
   assert.equal(env.PATH, "system-path");
   assert.equal(env.FILE_ONLY_TOKEN, "");
@@ -27,8 +27,8 @@ test("E2E : neutralise les variables héritées et celles chargées par Next, sa
 });
 
 test("E2E : refuse URL externe, clé remplacée, connexion SQL et secret non neutralisé", () => {
-  assert.throws(() => buildReadonlyE2EEnv({ E2E_BASE_URL: "https://example.invalid" }, []), /interdite/);
-  const env = buildReadonlyE2EEnv({}, []);
+  assert.throws(() => buildReadonlyE2EEnv({ NODE_ENV: "test", E2E_BASE_URL: "https://example.invalid" }, []), /interdite/);
+  const env = buildReadonlyE2EEnv({ NODE_ENV: "test" }, []);
   for (const [key, value] of [["SUPABASE_URL", "https://example.invalid"], ["SUPABASE_SERVICE_ROLE_KEY", "other"], ["DATABASE_URL", "postgres://example.invalid"], ["CUSTOM_TOKEN", "other"]]) {
     assert.throws(() => assertReadonlyE2EEnv({ ...env, [key]: value }), /Isolation|neutralisée/);
   }

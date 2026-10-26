@@ -1,8 +1,10 @@
 import type { LooseSupabaseClient } from "./untypedSupabase";
+import { agreedServiceSlugs, isContinuousCollaboration } from "./continuousCollaboration.ts";
 
 type CollaborationRequest = {
   id?: string | null;
   desired_date?: string | null;
+  requested_services?: string[] | null;
   metadata?: Record<string, unknown> | null;
 };
 
@@ -24,6 +26,7 @@ export async function upsertAcceptedHousingCollaboration(input: {
   if (!input.ownerProfileId || !input.conciergeProfileId) return null;
 
   const metadata = asRecord(input.request?.metadata);
+  const continuous = isContinuousCollaboration(input.request);
   const collaborationType = asOption(
     metadata.collaboration_type,
     ["one_off", "regular", "full_management", "partial_management", "temporary_replacement", "trial", "onboarding"],
@@ -42,16 +45,23 @@ export async function upsertAcceptedHousingCollaboration(input: {
         service_request_id: input.request?.id ?? null,
         quote_id: input.quoteId,
         mission_id: input.missionId ?? null,
-        status: "pending_handover",
-        collaboration_type: collaborationType,
+        status: continuous ? "active" : "pending_handover",
+        collaboration_type: continuous && collaborationType === "one_off" ? "regular" : collaborationType,
         frequency,
         responsibility_level: responsibilityLevel,
-        starts_on: input.request?.desired_date ? input.request.desired_date.slice(0, 10) : null,
+        starts_on: continuous ? null : input.request?.desired_date ? input.request.desired_date.slice(0, 10) : null,
+        ...(continuous ? { ends_on: null } : {}),
         handover_status: "pending",
         scope: {
           estimated_duration: typeof metadata.estimated_duration === "string" ? metadata.estimated_duration : null,
           property_constraints: typeof metadata.property_constraints === "string" ? metadata.property_constraints : null,
-          requested_services: Array.isArray(metadata.requested_services) ? metadata.requested_services : [],
+          requested_services: input.request?.requested_services ?? (Array.isArray(metadata.requested_services) ? metadata.requested_services : []),
+          ...(continuous ? {
+            continuous_collaboration: true,
+            duration_kind: "indefinite",
+            operational_service_slugs: agreedServiceSlugs(input.request!),
+            activation_basis: "accepted_quote",
+          } : {}),
         },
       },
       // PostgreSQL ON CONFLICT DO NOTHING: an acceptance retry must never
@@ -62,9 +72,11 @@ export async function upsertAcceptedHousingCollaboration(input: {
   if (error) throw error;
   const { data, error: readError } = await input.db
     .from("housing_collaborations")
-    .select("id, status, handover_status")
+    .select("id,status,handover_status,housing_id,owner_profile_id,concierge_profile_id")
     .eq("quote_id", input.quoteId)
     .single();
   if (readError) throw readError;
+  if (!data || data.housing_id !== input.housingId || data.owner_profile_id !== input.ownerProfileId
+    || data.concierge_profile_id !== input.conciergeProfileId) throw new Error("Collaboration attribuée incohérente.");
   return data;
 }

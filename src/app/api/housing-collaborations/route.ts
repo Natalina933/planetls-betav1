@@ -3,13 +3,15 @@ import { db } from "@/app/lib/dbServer";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { requireApiRole } from "@/server/auth/roleGuards";
 import type { PendingHousingCollaboration } from "@/features/housing-collaborations/types";
+import { collaborationLifecycle } from "@/app/api/_shared/collaborationLifecycle";
 
 export const dynamic = "force-dynamic";
 const roles = new Set(["owner", "owner_pro", "concierge", "concierge_pro"]);
 const headers = { "Cache-Control": "private, no-store" };
 type Row = {
+  scope?: unknown; ends_on?: string | null;
   id: string; housing_id: number; owner_profile_id: string; concierge_profile_id: string;
-  quote_id: string | null; service_request_id: string | null; mission_id: string | null; status: "pending_handover" | "active";
+  quote_id: string | null; service_request_id: string | null; mission_id: string | null; status: PendingHousingCollaboration["status"];
 };
 type Person = { id: string; first_name: string | null; last_name: string | null; company_name: string | null };
 type Housing = { id: number; nom_logement: string | null; proprietaire: Record<string, unknown> | null };
@@ -26,16 +28,25 @@ export async function GET(req: NextRequest) {
     const { userId, role } = guard.auth;
     const client = asLooseSupabaseClient(db);
     const url = new URL(req.url);
-    const requestedStatus = url.searchParams.get("status") === "active" ? "active" : "pending_handover";
+    const statusParam = url.searchParams.get("status");
+    const requestedStatus = statusParam && ["active", "scheduled", "paused", "ended", "cancelled"].includes(statusParam)
+      ? statusParam : "pending_handover";
     // The service-role client bypasses RLS: scope MUST come from authenticated identity.
     // Client-supplied participant IDs are deliberately ignored. No admin bypass.
-    const { data, error } = await client.from("housing_collaborations")
-      .select("id,housing_id,owner_profile_id,concierge_profile_id,quote_id,service_request_id,mission_id,status")
-      .eq(role === "owner" || role === "owner_pro" ? "owner_profile_id" : "concierge_profile_id", userId)
-      .eq("status", requestedStatus)
-      .order("created_at", { ascending: false });
+    let query = client.from("housing_collaborations")
+      .select("id,housing_id,owner_profile_id,concierge_profile_id,quote_id,service_request_id,mission_id,status,scope,ends_on")
+      .eq(role === "owner" || role === "owner_pro" ? "owner_profile_id" : "concierge_profile_id", userId);
+    query = requestedStatus === "ended" ? query.in("status", ["ended", "active", "paused", "scheduled"])
+      : query.eq("status", requestedStatus);
+    const { data, error } = await query.order("created_at", { ascending: false });
     if (error) throw error;
-    const rows = (data ?? []) as Row[];
+    const rawRows = (data ?? []) as Row[];
+    const now = new Date();
+    if (rawRows.some(row => collaborationLifecycle(row, now).invalid)) {
+      return NextResponse.json({ error: "Les dates d’une résiliation sont incohérentes. Vérification nécessaire." }, { status: 409, headers });
+    }
+    const rows = rawRows.map(row => ({ ...row, status: collaborationLifecycle(row, now).status as Row["status"] }))
+      .filter(row => row.status === requestedStatus);
     if (!rows.length) return NextResponse.json({ items: [] }, { headers });
     const ids = (values: (string | number | null)[]) => [...new Set(values.filter((v) => v !== null))];
     const results = await Promise.all([
@@ -81,6 +92,7 @@ export async function GET(req: NextRequest) {
         request: request ? { id: request.id, title: request.title } : null,
         contractId: contracts.get(row.id)?.id ?? null,
         missionId: row.mission_id,
+        termination: collaborationLifecycle(row, now).termination,
       });
     }
     return NextResponse.json({ items }, { headers });

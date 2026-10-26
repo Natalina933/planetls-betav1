@@ -14,7 +14,19 @@
 // Clé serveur marquant qu'une prestation à 0 € a été explicitement confirmée
 // par le professionnel. Distincte de unit_price > 0 : seule cette clé permet
 // l'envoi d'une ligne gratuite. Écrite côté serveur uniquement.
+import { PLANETLS_SERVICE_TARGET } from "../../../app/lib/planetlsServiceCatalogTarget.ts";
+import { getGuestCheckinCheckoutModeFromMetadata, getGuestCheckinCheckoutOperationalSlugs } from "../../../app/lib/guestCheckinCheckout.ts";
+
 export const QUOTE_PRICE_CONFIRMED_KEY = "quote_service_price_confirmed";
+
+/** A priced edit resolves a known service; client metadata alone cannot resolve it. */
+export function confirmQuoteItemPrice(input: { label?: string; unit_price?: unknown }, metadata: Record<string, unknown>) {
+  const known = PLANETLS_SERVICE_TARGET.some((entry) => entry.slug === metadata.requested_service_slug || entry.label === input.label);
+  if (known && typeof input.unit_price === "number" && Number.isFinite(input.unit_price) && input.unit_price > 0) {
+    return { ...metadata, quote_service_clarification_status: "resolved_manual", quote_service_clarification_reason: null };
+  }
+  return metadata;
+}
 
 const UNRESOLVED_STATUSES = new Set(["needs_clarification", "needs_explicit_price"]);
 
@@ -82,8 +94,7 @@ export type QuoteSendItemWithTotals = QuoteSendItem & {
   line_total?: number | null;
 };
 
-// Somme des lignes, source de vérité du total. Privilégie line_total s'il est
-// présent, sinon quantity * unit_price.
+// Quantité × prix reste la source de vérité, même si line_total est incohérent.
 export function computeItemsTotal(items: readonly QuoteSendItemWithTotals[] | null | undefined): number {
   const list = Array.isArray(items) ? items : [];
   const total = list.reduce<number>((sum, raw) => {
@@ -91,11 +102,28 @@ export function computeItemsTotal(items: readonly QuoteSendItemWithTotals[] | nu
     const quantity =
       Number.isFinite(Number(item.quantity)) && Number(item.quantity) > 0 ? Number(item.quantity) : 1;
     const unitPrice = Number(item.unit_price);
-    const lineTotal = Number(item.line_total);
-    const effective = Number.isFinite(lineTotal)
-      ? lineTotal
-      : quantity * (Number.isFinite(unitPrice) ? unitPrice : 0);
+    const effective = quantity * (Number.isFinite(unitPrice) ? unitPrice : 0);
     return sum + (Number.isFinite(effective) ? effective : 0);
   }, 0);
   return Math.round(total * 100) / 100;
+}
+
+export function computeQuoteTotals(items: readonly QuoteSendItemWithTotals[], discount = 0, taxRate = 0) {
+  const round = (value: number) => Math.round(value * 100) / 100;
+  const subtotal = computeItemsTotal(items);
+  const safeDiscount = Math.max(0, round(Number(discount) || 0));
+  const safeTaxRate = Math.min(100, Math.max(0, round(Number(taxRate) || 0)));
+  const base = Math.max(0, subtotal - safeDiscount);
+  const taxAmount = round(base * safeTaxRate / 100);
+  return { subtotal, discount: safeDiscount, taxRate: safeTaxRate, taxAmount, total: round(base + taxAmount) };
+}
+
+export function quoteCoversRequestedServices(items: readonly QuoteSendItem[], requested: readonly string[], metadata?: Record<string, unknown> | null) {
+  const mode = getGuestCheckinCheckoutModeFromMetadata(metadata);
+  const expected = requested.flatMap((slug) => slug === "guest_checkin_checkout" && mode
+    ? getGuestCheckinCheckoutOperationalSlugs(mode) : [slug]);
+  return expected.every((slug) => items.some((item) => {
+    const saved = isRecord(item.metadata) ? item.metadata : {};
+    return saved.requested_service_slug === slug || PLANETLS_SERVICE_TARGET.some((entry) => entry.slug === slug && entry.label === item.label);
+  }));
 }

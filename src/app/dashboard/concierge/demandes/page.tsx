@@ -1152,7 +1152,9 @@ function ConciergeDemandesContent() {
   }, [markRequestsAsViewed]);
 
   useEffect(() => {
-    void loadRequests();
+    let cancelled = false;
+    queueMicrotask(() => { if (!cancelled) void loadRequests(); });
+    return () => { cancelled = true; };
   }, [loadRequests]);
 
   const metricCounts = useMemo(
@@ -1549,7 +1551,7 @@ function ConciergeDemandesContent() {
           </div>
         ) : null}
 
-        {!loading && !error ? (
+        {!loading && (!error || items.length > 0) ? (
           <section className={styles.results}>
             <div className={styles.resultsHeader}>
               <div>

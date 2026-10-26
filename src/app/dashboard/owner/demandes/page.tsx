@@ -51,6 +51,7 @@ type OwnerServiceRequestRecipient = {
 };
 
 type OwnerServiceRequestRow = {
+  metadata?: Record<string, unknown> | null;
   id: string;
   title: string;
   description?: string | null;
@@ -121,6 +122,7 @@ type RequestsPayload = {
 
 
 type RequestFormState = {
+  continuous: boolean;
   propertyKey: string;
   propertyName: string;
   requestType: RequestKind;
@@ -142,6 +144,7 @@ type RequestFormState = {
 };
 
 const initialForm: RequestFormState = {
+  continuous: false,
   propertyKey: "",
   propertyName: "",
   requestType: "ponctuel",
@@ -744,6 +747,7 @@ export default function OwnerRequestsPage() {
     setEditingRequestId(request.id);
     setForm({
       propertyKey: request.property_housing_id ? String(request.property_housing_id) : "",
+      continuous: request.metadata?.continuous_collaboration === true,
       propertyName: request.property_name ?? "",
       requestType: request.request_type,
       ...getCollaborationDefaults(request.request_type),
@@ -853,16 +857,17 @@ export default function OwnerRequestsPage() {
         body: JSON.stringify({
           id: editingRequestId,
           housing_id: form.propertyKey || null,
-          request_type: form.requestType,
+          request_type: form.continuous ? "durable" : form.requestType,
           owner_goal:
-            form.requestType === "durable"
+            form.continuous || form.requestType === "durable"
               ? "regular_support"
               : form.requestType === "renfort"
                 ? "replace_current"
                 : "one_off_quote",
-          collaboration_type: form.collaborationType,
+          collaboration_type: form.continuous && form.collaborationType === "one_off" ? "regular" : form.collaborationType,
+          continuous_collaboration: form.continuous,
           collaboration_frequency: form.collaborationFrequency,
-          estimated_duration: form.estimatedDuration.trim() || null,
+          estimated_duration: form.continuous ? null : form.estimatedDuration.trim() || null,
           responsibility_level: form.responsibilityLevel,
           desired_date: form.desiredDate || null,
           property_constraints: form.propertyConstraints.trim() || null,
@@ -1129,7 +1134,15 @@ export default function OwnerRequestsPage() {
               </label>
               <label className={styles.field}>
                 <span>Durée ou période estimée</span>
-                <Input value={form.estimatedDuration} onChange={(event) => setForm((current) => ({ ...current, estimatedDuration: event.target.value }))} placeholder="Ex : saison été, 6 mois, toute l'année" />
+                <Input disabled={form.continuous} value={form.continuous ? "Durée indéterminée" : form.estimatedDuration} onChange={(event) => setForm((current) => ({ ...current, estimatedDuration: event.target.value }))} placeholder="Ex : saison été, 6 mois, toute l'année" />
+              </label>
+              <label className={styles.field}>
+                <span>Organisation des interventions</span>
+                <Select value={form.continuous ? "continuous" : "existing"} onChange={(event) => setForm((current) => ({ ...current, continuous: event.target.value === "continuous" }))}>
+                  <option value="existing">Besoin ponctuel ou contrat à définir</option>
+                  <option value="continuous">Collaboration continue à durée indéterminée</option>
+                </Select>
+                {form.continuous ? <span>Dates facultatives. Les prestations choisies seront organisées au fil des besoins.</span> : null}
               </label>
               <label className={styles.field}>
                 <span>Budget indicatif</span>

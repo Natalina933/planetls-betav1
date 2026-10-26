@@ -3,6 +3,7 @@ import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { awardAcceptedQuote, QuoteAwardError, finalizeAcceptedQuoteWorkflow } from "@/app/api/_shared/acceptedQuoteWorkflow";
 import { getCollaborationNextAction } from "@/app/api/_shared/collaborationNextAction";
 import { upsertAcceptedHousingCollaboration } from "@/app/api/_shared/housingCollaboration";
+import { isContinuousCollaboration } from "@/app/api/_shared/continuousCollaboration";
 import { loadStayServiceRequestContext } from "@/app/api/_shared/stayServiceRequestContext";
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { deriveQuoteWorkflowStatus } from "@/app/lib/commercialWorkflow";
@@ -13,7 +14,10 @@ import { createHousingFromQuote, validateHousingFromQuote, QuoteHousingValidatio
 import {
   isUnresolvedQuoteItem,
   computeItemsTotal,
+  computeQuoteTotals,
+  quoteCoversRequestedServices,
 } from "@/features/concierge-commercial/server/quoteSendGuard";
+import { loadOpenRequestForQuote, OPEN_REQUEST_STATUSES, RequestCommercialError } from "@/features/concierge-commercial/server/requestCommercialGuard";
 
 const untypedDb = asLooseSupabaseClient(db);
 
@@ -101,7 +105,7 @@ const OWNER_ALLOWED_STATUS = new Set<QuoteStatus>(["accepted", "rejected"]);
 const cleanReason = (value: unknown) =>
   typeof value === "string" ? value.trim().slice(0, 500) : "";
 
-async function validateQuoteBeforeSending(quoteId: string) {
+async function validateQuoteBeforeSending(quoteId: string, request?: { requested_services?: string[]; metadata?: Record<string, unknown> | null } | null) {
   const { data: items, error } = await untypedDb
     .from("quote_items")
     .select("id, label, service_id, pricing_id, unit_price, line_total, quantity, metadata")
@@ -116,7 +120,13 @@ async function validateQuoteBeforeSending(quoteId: string) {
   }
 
   const itemList = Array.isArray(items) ? items : [];
+  if (!itemList.length) return { ok: false as const,
+    response: NextResponse.json({ error: "Un devis doit contenir au moins une prestation." }, { status: 400 }) };
   const unresolvedItems = itemList.filter(isUnresolvedQuoteItem);
+  if (request && !quoteCoversRequestedServices(itemList, request.requested_services ?? [], request.metadata)) return {
+    ok: false as const, response: NextResponse.json({ error: "Toutes les prestations demandées doivent figurer dans le devis.",
+      code: "MISSING_REQUESTED_SERVICES" }, { status: 400 }),
+  };
   if (unresolvedItems.length > 0) {
     return {
       ok: false as const,
@@ -149,16 +159,17 @@ async function validateQuoteBeforeSending(quoteId: string) {
   }
 
   const computedItemsTotal = computeItemsTotal(itemList);
+  const totals = computeQuoteTotals(itemList, quoteRow?.discount_amount ?? 0, quoteRow?.tax_rate ?? 0);
   const persistedTotal = Number((quoteRow as { total_amount?: number | null } | null)?.total_amount);
-  if (Number.isFinite(persistedTotal) && Math.abs(persistedTotal - computedItemsTotal) > 0.01) {
+  if (Number.isFinite(persistedTotal) && Math.abs(persistedTotal - totals.total) > 0.01) {
     // Incohérence détectée : on journalise, la valeur recalculée sera réinjectée
     // à l'envoi (updatePayload) pour garantir un total fidèle aux lignes.
     console.warn(
-      `[PATCH /api/quotes/:id/status] total incohérent: persisté=${persistedTotal} lignes=${computedItemsTotal} (devis ${quoteId})`,
+      `[PATCH /api/quotes/:id/status] total incohérent: persisté=${persistedTotal} recalculé=${totals.total} (devis ${quoteId})`,
     );
   }
 
-  return { ok: true as const, computedItemsTotal };
+  return { ok: true as const, computedItemsTotal, totals };
 }
 
 async function notifyQuoteStatusChange(context: QuoteNotificationContext) {
@@ -247,9 +258,10 @@ async function syncServiceRequestFromQuoteStatus(input: {
 }) {
   if (!input.serviceRequestId) return null;
 
-  const { data: awardedRequest } = await untypedDb.from("service_requests")
+  const { data: awardedRequest, error: awardedError } = await untypedDb.from("service_requests")
     .select("metadata").eq("id", input.serviceRequestId).maybeSingle();
   if (awardedRequest?.metadata?.selected_quote_id) return "quote_accepted";
+  if (awardedError) throw new RequestCommercialError("Impossible de synchroniser la demande.", 500);
 
   if (input.serviceRequestRecipientId) {
     const recipientStatus =
@@ -260,20 +272,23 @@ async function syncServiceRequestFromQuoteStatus(input: {
           : null;
 
     if (recipientStatus) {
-      await untypedDb
+      const { error } = await untypedDb
         .from("service_request_recipients")
         .update({
           status: recipientStatus,
           responded_at: new Date().toISOString(),
         })
-        .eq("id", input.serviceRequestRecipientId);
+        .eq("id", input.serviceRequestRecipientId)
+        .in("status", ["sent", "viewed", "interested", "information_requested", "date_proposed", "quoted"]);
+      if (error) throw new RequestCommercialError("Impossible de synchroniser l'invitation.", 500);
     }
   }
 
-  const { data: relatedRecipients } = await untypedDb
+  const { data: relatedRecipients, error: relatedError } = await untypedDb
     .from("service_request_recipients")
     .select("status")
     .eq("service_request_id", input.serviceRequestId);
+  if (relatedError) throw new RequestCommercialError("Impossible de synchroniser les réponses.", 500);
 
   let nextRequestStatus = deriveServiceRequestStatus(
     Array.isArray(relatedRecipients)
@@ -285,21 +300,20 @@ async function syncServiceRequestFromQuoteStatus(input: {
   );
 
   if (input.quoteStatus === "accepted") nextRequestStatus = "quote_accepted";
-  if (input.quoteStatus === "rejected" || input.quoteStatus === "canceled") nextRequestStatus = "quote_refused";
-  if (input.quoteStatus === "expired") nextRequestStatus = "expired";
 
-  const { data: requestRow } = await untypedDb
+  const { data: requestRow, error: requestReadError } = await untypedDb
     .from("service_requests")
     .select("metadata")
     .eq("id", input.serviceRequestId)
     .maybeSingle();
+  if (requestReadError) throw new RequestCommercialError("Impossible de lire le suivi de la demande.", 500);
 
   const requestMetadata =
     requestRow?.metadata && typeof requestRow.metadata === "object" && !Array.isArray(requestRow.metadata)
       ? requestRow.metadata
       : {};
 
-  await untypedDb
+  const { error: syncError } = await untypedDb
     .from("service_requests")
     .update({
       status: nextRequestStatus,
@@ -310,7 +324,8 @@ async function syncServiceRequestFromQuoteStatus(input: {
         last_quote_status_at: new Date().toISOString(),
       },
     })
-    .eq("id", input.serviceRequestId);
+    .eq("id", input.serviceRequestId).is("selected_concierge_profile_id", null).in("status", OPEN_REQUEST_STATUSES);
+  if (syncError) throw new RequestCommercialError("Le suivi de la demande reste à resynchroniser.", 500);
 
   return nextRequestStatus;
 }
@@ -319,6 +334,8 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  let awardedQuoteId: string | null = null;
+  let savedQuoteId: string | null = null;
   try {
     const guard = await requireApiRole(req, ALLOWED_BILLING_ROLES);
     if (!guard.ok) return guard.response;
@@ -361,17 +378,37 @@ export async function PATCH(
     if (!existing) {
       return NextResponse.json({ error: "Devis introuvable" }, { status: 404 });
     }
+    if (SERVICE_BILLING_ROLES.has(role) && ["accepted", "rejected"].includes(nextStatus)) {
+      return NextResponse.json({ error: "Seul le propriétaire peut accepter ou refuser son devis." }, { status: 403 });
+    }
+    const commercial = nextStatus !== "accepted" ? await loadOpenRequestForQuote(untypedDb, existing, existing.status === nextStatus) : null;
+    if (nextStatus === "accepted" && !["sent", "accepted"].includes(existing.status)) {
+      return NextResponse.json({ error: "Seul un devis envoyé peut être accepté." }, { status: 409 });
+    }
+    if (nextStatus === "accepted" && existing.status !== "accepted") await loadOpenRequestForQuote(untypedDb, existing);
+    if (nextStatus === "draft" && existing.status !== "draft") return NextResponse.json({ error: "Un devis envoyé ne peut pas redevenir brouillon." }, { status: 409 });
+    if (nextStatus !== "accepted" && existing.status === nextStatus) {
+      savedQuoteId = id;
+      await syncServiceRequestFromQuoteStatus({ serviceRequestId: commercial?.request.id ?? null,
+        serviceRequestRecipientId: commercial?.recipient.id ?? null, quoteId: id, quoteStatus: nextStatus });
+      return NextResponse.json({ ...existing, reused: true });
+    }
+    if (nextStatus !== "accepted" && ["accepted", "rejected", "expired", "canceled", "not_selected"].includes(existing.status)) {
+      return NextResponse.json({ error: "Ce devis est clôturé." }, { status: 409 });
+    }
 
     // Total recalculé depuis les lignes, injecté dans le payload à l'envoi.
     let recalculatedTotalForSend: number | null = null;
+    let recalculatedTotals: ReturnType<typeof computeQuoteTotals> | null = null;
 
     if (nextStatus === "sent") {
-      const validation = await validateQuoteBeforeSending(id);
+      const validation = await validateQuoteBeforeSending(id, commercial?.request);
       if (!validation.ok) return validation.response;
       // Garantit un total fidèle aux lignes avant envoi (Faille E) : on
       // recalcule systématiquement plutôt que de faire confiance au total
       // persisté, qui peut être incohérent après édition des lignes.
       recalculatedTotalForSend = validation.computedItemsTotal;
+      recalculatedTotals = validation.totals;
     }
 
     // Explicit stay context ("demande ponctuelle de séjour"): loaded before
@@ -389,11 +426,16 @@ export async function PATCH(
         })
       : null;
 
+    if (isContinuousCollaboration(housingValidation?.request as ServiceRequestRow | null) && !housingValidation?.housingId) {
+      throw new QuoteHousingValidationError("Rattachez un logement existant vous appartenant avant d’activer la collaboration continue.");
+    }
     const updatePayload: Record<string, unknown> = { status: nextStatus };
     if (nextStatus === "sent") {
       if (typeof recalculatedTotalForSend === "number") {
         // Recalcul fiable du total à partir des lignes avant envoi.
-        updatePayload.total_amount = recalculatedTotalForSend;
+        updatePayload.subtotal = recalculatedTotals!.subtotal;
+        updatePayload.tax_amount = recalculatedTotals!.taxAmount;
+        updatePayload.total_amount = recalculatedTotals!.total;
       }
       if (!existing.sent_at) {
         updatePayload.sent_at = new Date().toISOString();
@@ -409,7 +451,6 @@ export async function PATCH(
       updatePayload.canceled_at = new Date().toISOString();
     }
 
-    const actorIsOwner = OWNER_BILLING_ROLES.has(role);
     const linkedHousingId = housingValidation?.housingId ?? null;
     let acceptedServiceRequest: ServiceRequestRow | null = null;
 
@@ -419,33 +460,7 @@ export async function PATCH(
     }
     if (nextStatus === "accepted") {
       acceptedServiceRequest = await awardAcceptedQuote(db, id, userId);
-    }
-
-    if (nextStatus === "rejected") {
-      const metadata =
-        existing.metadata && typeof existing.metadata === "object" && !Array.isArray(existing.metadata)
-          ? existing.metadata
-          : {};
-      const serviceRequestRecipientId =
-        typeof existing.service_request_recipient_id === "string"
-          ? existing.service_request_recipient_id
-          : typeof metadata.service_request_recipient_id === "string"
-            ? metadata.service_request_recipient_id
-            : null;
-
-      if (actorIsOwner && serviceRequestRecipientId) {
-        const { error: recipientUpdateError } = await untypedDb
-          .from("service_request_recipients")
-          .update({
-            status: "declined",
-            responded_at: new Date().toISOString(),
-          })
-          .eq("id", serviceRequestRecipientId);
-
-        if (recipientUpdateError) {
-          console.error("[PATCH /api/quotes/:id/status] recipient decline error:", recipientUpdateError);
-        }
-      }
+      if (acceptedServiceRequest) awardedQuoteId = id;
     }
 
     const metadata =
@@ -464,12 +479,7 @@ export async function PATCH(
         : typeof metadata.service_request_recipient_id === "string"
           ? metadata.service_request_recipient_id
           : null;
-    const syncedRequestStatus = acceptedServiceRequest ? "quote_accepted" : await syncServiceRequestFromQuoteStatus({
-      serviceRequestId,
-      serviceRequestRecipientId,
-      quoteId: id,
-      quoteStatus: nextStatus,
-    });
+    let syncedRequestStatus: string | null = acceptedServiceRequest ? "quote_accepted" : null;
 
     let updateQuery = untypedDb
       .from("quotes")
@@ -478,6 +488,7 @@ export async function PATCH(
       .select(
         "id, quote_number, status, owner_profile_id, concierge_profile_id, mission_id, service_request_id, service_request_recipient_id, package_id, currency, subtotal, discount_amount, tax_rate, tax_amount, total_amount, valid_until, sent_at, accepted_at, rejected_at, canceled_at, created_at, updated_at",
       );
+    if (nextStatus !== "accepted") updateQuery = updateQuery.eq("status", existing.status);
 
     if (OWNER_BILLING_ROLES.has(role)) {
       updateQuery = updateQuery.eq("owner_profile_id", userId);
@@ -485,12 +496,17 @@ export async function PATCH(
       updateQuery = updateQuery.eq("concierge_profile_id", userId);
     }
 
-    const { data: updated, error: updateError } = await updateQuery.single();
+    const { data: updated, error: updateError } = await updateQuery.maybeSingle();
+    if (!updateError && !updated) return NextResponse.json({ error: "Le devis a changé pendant cette opération." }, { status: 409 });
 
     if (updateError || !updated) {
       console.error("[PATCH /api/quotes/:id/status] update error:", updateError);
       return NextResponse.json({ error: "Erreur mise a jour statut devis" }, { status: 500 });
     }
+    savedQuoteId = id;
+    if (!acceptedServiceRequest) syncedRequestStatus = await syncServiceRequestFromQuoteStatus({
+      serviceRequestId, serviceRequestRecipientId, quoteId: id, quoteStatus: nextStatus,
+    });
 
     const eventType =
       nextStatus === "sent" ||
@@ -500,7 +516,7 @@ export async function PATCH(
         ? nextStatus
         : "status_changed";
 
-    const { error: eventError } = await db.from("quote_events").insert({
+    const { error: eventError } = acceptedServiceRequest ? { error: null } : await db.from("quote_events").insert({
       quote_id: id,
       actor_profile_id: userId,
       event_type: eventType,
@@ -524,12 +540,17 @@ export async function PATCH(
         serviceRequestId,
         serviceRequestRecipientId,
       });
+      if (!workflowResult?.continuous && (!workflowResult?.mission?.id || !workflowResult?.invoice?.id)) {
+        throw new Error("Les effets opérationnels existants de l'attribution sont incomplets.");
+      }
 
       // Stay-scoped acceptance: mission + invoice only, no housing row and no
       // collaboration (the main concierge on reservations stays unchanged).
       if (!stayContext) {
         try {
-          autoHousingResult = await createHousingFromQuote(id, existing.concierge_profile_id, linkedHousingId);
+          autoHousingResult = workflowResult?.continuous && linkedHousingId
+            ? { housingId: linkedHousingId, created: false }
+            : await createHousingFromQuote(id, existing.concierge_profile_id, linkedHousingId);
           await upsertAcceptedHousingCollaboration({
             db: untypedDb,
             housingId: autoHousingResult.housingId,
@@ -542,11 +563,12 @@ export async function PATCH(
         } catch (autoHousingError) {
           if (autoHousingError instanceof QuoteHousingValidationError) throw autoHousingError;
           console.error("[PATCH /api/quotes/:id/status] auto housing error:", autoHousingError);
+          throw autoHousingError;
         }
       }
     }
 
-    if (nextStatus === "accepted" || nextStatus === "rejected") {
+    if ((nextStatus === "accepted" || nextStatus === "rejected") && existing.status !== nextStatus) {
       await notifyQuoteStatusChange({
         quoteId: id,
         quoteNumber: updated.quote_number,
@@ -558,7 +580,9 @@ export async function PATCH(
       });
     }
 
-    const workflowEvent = await recordWorkflowEvent(untypedDb, {
+    const workflowEvent = existing.status === nextStatus ? { workflow: {
+      request_workflow_status: syncedRequestStatus, mission_workflow_status: workflowResult?.mission?.status ?? null,
+    } } : await recordWorkflowEvent(untypedDb, {
       actorProfileId: userId,
       ownerProfileId: existing.owner_profile_id,
       conciergeProfileId: existing.concierge_profile_id,
@@ -604,6 +628,8 @@ export async function PATCH(
       request_workflow_status: workflowEvent.workflow.request_workflow_status,
       mission_workflow_status: workflowEvent.workflow.mission_workflow_status,
       accepted_workflow: {
+        kind: workflowResult?.continuous ? "continuous" : "one_off",
+        mission_ids: workflowResult?.missions?.map(mission => mission.id) ?? [],
         mission_id: workflowResult?.mission?.id ?? updated.mission_id ?? null,
         invoice_id: workflowResult?.invoice?.id ?? null,
         collaboration_id: collaborationNextAction?.collaborationId ?? null,
@@ -637,6 +663,16 @@ export async function PATCH(
       auto_housing: autoHousingResult,
     });
   } catch (err) {
+    if (awardedQuoteId) return NextResponse.json({
+      error: "Le devis est attribué, mais les opérations suivant l'attribution restent incomplètes.",
+      code: "POST_AWARD_WORKFLOW_PENDING", selection_persisted: true, quote_id: awardedQuoteId,
+      recovery: "Conserver le gagnant et vérifier les effets partiels dans CONCIERGE-03B avant reprise.",
+    }, { status: 500 });
+    if (savedQuoteId) return NextResponse.json({ error: "Le statut du devis est enregistré, mais son suivi commercial reste à synchroniser.",
+      code: "QUOTE_STATUS_SYNC_PENDING", quote_status_persisted: true, quote_id: savedQuoteId,
+      recovery: "Répétez la même transition pour reprendre la synchronisation sans créer un autre devis.",
+    }, { status: 500 });
+    if (err instanceof RequestCommercialError) return NextResponse.json({ error: err.message }, { status: err.status });
     if (err instanceof QuoteAwardError) return NextResponse.json({ error: err.message }, { status: err.status });
     if (err instanceof QuoteHousingValidationError) return NextResponse.json({ error: err.message }, { status: err.status });
     console.error("[PATCH /api/quotes/:id/status] ERROR:", err);

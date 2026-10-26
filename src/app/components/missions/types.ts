@@ -82,6 +82,7 @@ export interface MissionRules {
 export interface MissionAvailability {
   zones: MissionZone[];
   radiusKm: number;
+  radiusExplicit?: boolean;
   schedule: MissionDaySchedule[];
   emergency24h: boolean;
   rules: MissionRules;

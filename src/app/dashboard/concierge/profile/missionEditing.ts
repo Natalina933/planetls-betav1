@@ -31,6 +31,7 @@ interface MissionZoneChangeLike {
     postcode?: string | null;
   }>;
   radiusKm: number;
+  radiusExplicit?: boolean;
   rules: unknown;
 }
 
@@ -141,6 +142,8 @@ export function buildProfileZoneUpdate(
     availability_hours: JSON.stringify({
       ...parseAvailabilityPayloadRaw(previousProfile.availability_hours),
       zones: normalizedZones,
+      zoneDeclaration: "root_explicit",
+      ...(data.radiusExplicit === true ? { radiusDeclaration: "explicit" } : {}),
       rules: data.rules,
     }),
   };

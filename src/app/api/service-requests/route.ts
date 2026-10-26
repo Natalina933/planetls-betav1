@@ -27,6 +27,9 @@ import {
 } from "@/app/lib/serviceRequestBrief";
 import type { Json } from "@/types/supabase";
 import { z } from "zod";
+import { conciergeRequestEligibility, type ConciergePublicationProfile } from "../../lib/conciergePublication";
+import { geocodeLocation, isGeocodingServiceError } from "../../../server/location/geocodeLocation";
+import { requestInterventionLocation } from "../_shared/requestInterventionLocation";
 
 type ServiceRequestType = "ponctuel" | "renfort" | "durable";
 type ServiceRequestStatus =
@@ -63,6 +66,7 @@ interface CreateServiceRequestBody {
   request_type?: ServiceRequestType;
   owner_goal?: string | null;
   collaboration_type?: string | null;
+  continuous_collaboration?: boolean;
   collaboration_frequency?: string | null;
   collaboration_duration?: string | null;
   estimated_duration?: string | null;
@@ -128,6 +132,7 @@ const createServiceRequestSchema = z.object({
   request_type: z.enum(["ponctuel", "renfort", "durable"]).optional(),
   owner_goal: z.string().trim().max(80).optional().nullable(),
   collaboration_type: z.string().trim().max(80).optional().nullable(),
+  continuous_collaboration: z.boolean().optional(),
   collaboration_frequency: z.string().trim().max(80).optional().nullable(),
   collaboration_duration: z.string().trim().max(180).optional().nullable(),
   estimated_duration: z.string().trim().max(180).optional().nullable(),
@@ -1234,6 +1239,7 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
       recipient_id: recipient.id,
       recipient_status: recipient.status,
       response_message: recipient.response_message,
+      proposed_date: recipient.proposed_date ?? null,
       viewed_at: recipient.viewed_at,
       responded_at: recipient.responded_at,
       conversation_id: conversation?.id ?? null,
@@ -1274,7 +1280,7 @@ export async function POST(req: NextRequest) {
 
     const recipientIds = normalizeRecipientIds(body.recipient_ids);
 
-    const requestType: ServiceRequestType = VALID_REQUEST_TYPES.includes(
+    const requestType: ServiceRequestType = body.continuous_collaboration === true ? "durable" : VALID_REQUEST_TYPES.includes(
       body.request_type as ServiceRequestType,
     )
       ? (body.request_type as ServiceRequestType)
@@ -1344,14 +1350,51 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Explicit stay context must be validated before resolving the intervention place.
+    let stayContext: {
+      reservationId: string;
+      stayNeed: NeedKey;
+      propertyId: string | null;
+    } | null = null;
+    if (typeof body.reservation_id === "string" && body.reservation_id.trim()) {
+      if (body.continuous_collaboration === true) {
+        return NextResponse.json({ error: "Une collaboration continue se définit sur le logement, sans séjour ponctuel." }, { status: 400 });
+      }
+      const stayValidation = await validateStayServiceRequestContext(dbAny, {
+        userId,
+        reservationId: body.reservation_id.trim(),
+        stayNeed: body.stay_need ?? null,
+        propertyId: typeof body.property_id === "string" ? body.property_id : null,
+      });
+      if (!stayValidation.ok) {
+        return NextResponse.json({ error: stayValidation.error }, { status: stayValidation.status });
+      }
+      stayContext = stayValidation.context;
+    }
+
     const desiredDate =
       typeof body.desired_date === "string" &&
       body.desired_date.trim().length > 0
         ? body.desired_date
         : null;
+    // Resolve referenced properties before building the brief and conversations as well.
+    let interventionLocation: string | null = null;
+    if (recipientIds.length) {
+      const target = await requestInterventionLocation(dbAny, userId, {
+        housingId, propertyId: stayContext?.propertyId ?? body.property_id, city: body.city,
+        address: body.property_address, postalCode: body.postal_code,
+      });
+      if (!target.ok) return NextResponse.json({ error: target.error }, { status: target.status });
+      interventionLocation = target.location;
+      if (housingId || stayContext?.propertyId || body.property_id) {
+        body.city = target.city;
+        body.property_address = target.address;
+        body.postal_code = null;
+      }
+    }
     const requestBrief = buildServiceRequestBrief({
       ownerGoal: body.owner_goal,
-      collaborationType: body.collaboration_type,
+      collaborationType: body.continuous_collaboration && (!body.collaboration_type || body.collaboration_type === "one_off") ? "regular" : body.collaboration_type,
       frequency: body.collaboration_frequency,
       estimatedDuration: body.estimated_duration ?? body.collaboration_duration,
       responsibilityLevel: body.responsibility_level,
@@ -1368,10 +1411,12 @@ export async function POST(req: NextRequest) {
     });
     const briefMetadata = {
       ...getBriefMetadata(requestBrief),
+      continuous_collaboration: body.continuous_collaboration === true,
+      ...(body.continuous_collaboration ? { estimated_duration: null } : {}),
       request_summary:
         typeof body.request_summary === "string" && body.request_summary.trim()
           ? body.request_summary.trim()
-          : requestBrief.summary,
+          : `${body.continuous_collaboration ? "Collaboration continue à durée indéterminée. " : ""}${requestBrief.summary}`,
     };
     const requestSubject = title;
     const prefillMessage = buildRequestPrefillMessage(body, requestedServices, {
@@ -1379,36 +1424,12 @@ export async function POST(req: NextRequest) {
       summary: briefMetadata.request_summary,
     });
 
-    // Explicit stay context: validated server-side (stay exists, owned by the
-    // authenticated owner, property matches, stay_need in the canonical set).
-    let stayContext: {
-      reservationId: string;
-      stayNeed: NeedKey;
-      propertyId: string | null;
-    } | null = null;
-    if (typeof body.reservation_id === "string" && body.reservation_id.trim()) {
-      const stayValidation = await validateStayServiceRequestContext(dbAny, {
-        userId,
-        reservationId: body.reservation_id.trim(),
-        stayNeed: body.stay_need ?? null,
-        propertyId:
-          typeof body.property_id === "string" ? body.property_id : null,
-      });
-      if (!stayValidation.ok) {
-        return NextResponse.json(
-          { error: stayValidation.error },
-          { status: stayValidation.status },
-        );
-      }
-      stayContext = stayValidation.context;
-    }
-
     let validRecipientIds: string[] = [];
     if (recipientIds.length > 0) {
       const { data: conciergeProfiles, error: conciergeProfilesError } =
         await dbAny
           .from("profiles")
-          .select("id, role, category")
+          .select("id, role, status, first_name, last_name, company_name, option, availability_hours, service_radius_km")
           .in("id", recipientIds);
 
       if (conciergeProfilesError) {
@@ -1422,26 +1443,28 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      validRecipientIds = (conciergeProfiles ?? [])
-        .filter(
-          (profile: { role?: string | null; category?: string | null }) => {
-            const roleValue = (profile.role ?? "").toLowerCase();
-            const categoryValue = (profile.category ?? "").toLowerCase();
-            return (
-              roleValue === "concierge" ||
-              roleValue === "concierge_pro" ||
-              categoryValue.startsWith("concierge")
-            );
-          },
-        )
-        .map((profile: { id: string }) => profile.id);
-
-      if (validRecipientIds.length === 0) {
+      // A request concerns the intervention location, never the owner's search radius.
+      // Fail the entire selection before any write, rather than silently dropping recipients.
+      const location = interventionLocation;
+      const point = location ? await geocodeLocation(location) : null;
+      if (!point) {
         return NextResponse.json(
-          { error: "Aucun concierge valide selectionne." },
-          { status: 400 },
+          { error: "Le lieu d’intervention doit être renseigné et reconnu.", code: "INTERVENTION_LOCATION_REQUIRED" },
+          { status: 422 },
         );
       }
+      const profiles = (conciergeProfiles ?? []) as Array<ConciergePublicationProfile & { id: string }>;
+      const rejected = recipientIds.flatMap((id) => {
+        const profile = profiles.find((candidate) => candidate.id === id);
+        const eligibility = profile ? conciergeRequestEligibility(profile, { center: point, radiusKm: 0 })
+          : { eligible: false, code: "CONCIERGE_NOT_PUBLISHED" };
+        return eligibility.eligible ? [] : [{ id, code: eligibility.code }];
+      });
+      if (rejected.length) return NextResponse.json({
+        error: "Certains concierges ne sont pas éligibles pour ce lieu d’intervention.",
+        code: "INELIGIBLE_RECIPIENTS", recipients: rejected,
+      }, { status: 422 });
+      validRecipientIds = recipientIds;
     }
 
     const insertPayload = {
@@ -1711,6 +1734,10 @@ export async function POST(req: NextRequest) {
     );
   } catch (err) {
     console.error("[POST /api/service-requests] ERROR:", err);
+    if (isGeocodingServiceError(err)) return NextResponse.json({
+      error: "La vérification du lieu est temporairement indisponible. Réessayez ultérieurement.",
+      code: "LOCATION_SERVICE_UNAVAILABLE",
+    }, { status: 503 });
     return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });
   }
 }
@@ -1786,6 +1813,11 @@ export async function PATCH(req: NextRequest) {
         { error: "Demande introuvable." },
         { status: 404 },
       );
+    }
+
+    if (isRecord(existingRequest.metadata) && existingRequest.metadata.selected_quote_id) {
+      return NextResponse.json({ error: "Le périmètre d’une demande attribuée ne peut plus être modifié.",
+        code: "REQUEST_ALREADY_AWARDED" }, { status: 409 });
     }
 
     if (typeof body.title === "string") {
@@ -1923,6 +1955,7 @@ export async function PATCH(req: NextRequest) {
 
     if (
       typeof body.owner_goal === "string" ||
+      typeof body.continuous_collaboration === "boolean" ||
       typeof body.collaboration_type === "string" ||
       typeof body.collaboration_frequency === "string" ||
       typeof body.estimated_duration === "string" ||
@@ -1946,6 +1979,7 @@ export async function PATCH(req: NextRequest) {
           typeof body.owner_goal === "string"
             ? body.owner_goal
             : (previousMetadata.owner_goal ?? null),
+        continuous_collaboration: body.continuous_collaboration ?? previousMetadata.continuous_collaboration ?? false,
         collaboration_type:
           typeof body.collaboration_type === "string"
             ? body.collaboration_type

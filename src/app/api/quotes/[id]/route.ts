@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import type { Json } from "@/types/supabase.generated";
+import { loadOpenRequestForQuote, RequestCommercialError } from "@/features/concierge-commercial/server/requestCommercialGuard";
+import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
+import { confirmQuoteItemPrice } from "@/features/concierge-commercial/server/quoteSendGuard";
 type QuoteStatus =
   | "draft"
   | "sent"
@@ -45,6 +48,7 @@ const round2 = (value: number): number => Math.round(value * 100) / 100;
 // client : elles portent les règles de sécurité d'envoi (clarification,
 // confirmation de tarif, budget indicatif). Seul le serveur les contrôle.
 const PROTECTED_QUOTE_METADATA_KEYS = new Set([
+  "service_request_id", "service_request_recipient_id", "requested_services", "service_modalities", "draft_preparation_pending",
   "quote_service_clarification_status",
   "quote_service_clarification_reason",
   "quote_service_clarification_status_source",
@@ -57,6 +61,7 @@ const PROTECTED_QUOTE_METADATA_KEYS = new Set([
 
 // Clés de métadonnées de ligne protégées (jamais écrasées côté client).
 const PROTECTED_ITEM_METADATA_KEYS = new Set([
+  "requested_service_slug", "service_request_id", "service_request_recipient_id", "desired_date",
   "quote_service_clarification_status",
   "quote_service_clarification_reason",
   "quote_service_price_confirmed",
@@ -86,7 +91,7 @@ function mergeQuoteMetadata(
   for (const key of PROTECTED_QUOTE_METADATA_KEYS) {
     if (key in existingRecord) protectedExisting[key] = existingRecord[key];
   }
-  return { ...safeIncoming, ...protectedExisting };
+  return { ...existingRecord, ...safeIncoming, ...protectedExisting };
 }
 
 // Préserve les clés de sécurité de la ligne existante lors d'une édition.
@@ -105,7 +110,7 @@ function mergeItemMetadata(
   for (const key of PROTECTED_ITEM_METADATA_KEYS) {
     if (key in existingRecord) protectedExisting[key] = existingRecord[key];
   }
-  return { ...safeIncoming, ...protectedExisting };
+  return { ...existingRecord, ...safeIncoming, ...protectedExisting };
 }
 
 // Recalcule total à partir des lignes : source de vérité pour l'envoi.
@@ -227,9 +232,9 @@ export async function PATCH(
     const { id } = await params;
     const body = (await req.json()) as UpdateQuoteBody;
 
-    const { data: existing, error: existingError } = await db
+    const { data: existing, error: existingError } = await asLooseSupabaseClient(db)
       .from("quotes")
-      .select("id, status, concierge_profile_id, metadata, discount_amount, tax_rate")
+      .select("*")
       .eq("id", id)
       .eq("concierge_profile_id", userId)
       .maybeSingle();
@@ -244,6 +249,7 @@ export async function PATCH(
     if (!existing) {
       return NextResponse.json({ error: "Devis introuvable" }, { status: 404 });
     }
+    await loadOpenRequestForQuote(asLooseSupabaseClient(db), existing);
     if (!["draft", "canceled"].includes(String(existing.status ?? ""))) {
       return NextResponse.json(
         { error: "Seuls les devis brouillons peuvent être modifiés." },
@@ -253,14 +259,15 @@ export async function PATCH(
 
     const { data: existingItemRows, error: existingItemsError } = await db
       .from("quote_items")
-      .select("id, metadata")
+      .select("id, label, description, quantity, unit_price, line_total, service_id, pricing_id, sort_order, metadata")
       .eq("quote_id", id)
       .order("sort_order", { ascending: true });
 
     if (existingItemsError) {
       console.error("[PATCH /api/quotes/:id] existing items read error:", existingItemsError);
+      return NextResponse.json({ error: "Impossible de conserver les lignes existantes." }, { status: 500 });
     }
-    const existingItems: { id?: string | null; metadata?: unknown }[] = Array.isArray(existingItemRows)
+    const existingItems = Array.isArray(existingItemRows)
       ? existingItemRows
       : [];
 
@@ -291,7 +298,7 @@ export async function PATCH(
                 ? Number(item.sort_order)
                 : index,
               // Faille D : préserve les clés de sécurité de la ligne existante.
-              metadata: mergeItemMetadata(item.metadata, existingItem?.metadata) as Json,
+              metadata: confirmQuoteItemPrice({ label: item.label, unit_price: Number(item.unit_price) }, mergeItemMetadata(item.metadata, existingItem?.metadata)) as Json,
             };
           })
           .filter(
@@ -302,7 +309,7 @@ export async function PATCH(
               Number.isFinite(item.unit_price) &&
               item.unit_price >= 0,
           )
-      : [];
+      : existingItems;
 
     const existingMetadata =
       existing.metadata &&
@@ -319,12 +326,12 @@ export async function PATCH(
         : existingMetadata;
 
     const updatePayload: Record<string, unknown> = {
-      package_id:
+      ...(body.package_id !== undefined ? { package_id:
         typeof body.package_id === "string" && body.package_id.trim()
           ? body.package_id
-          : null,
-      valid_until: body.valid_until ?? null,
-      notes: body.notes ?? null,
+          : null } : {}),
+      ...(body.valid_until !== undefined ? { valid_until: body.valid_until } : {}),
+      ...(body.notes !== undefined ? { notes: body.notes } : {}),
     };
     if (body.metadata !== undefined) {
       updatePayload.metadata = nextMetadata;
@@ -332,8 +339,8 @@ export async function PATCH(
 
     // Faille E : recalcule systématiquement le total à partir des lignes
     // sauvegardées (source de vérité), puis applique remise/taxe.
-    const effectiveDiscount = round2(Number(body.discount_amount ?? 0));
-    const effectiveTaxRate = round2(Number(body.tax_rate ?? 0));
+    const effectiveDiscount = round2(Number(body.discount_amount ?? existing.discount_amount ?? 0));
+    const effectiveTaxRate = round2(Number(body.tax_rate ?? existing.tax_rate ?? 0));
     const totals = computeQuoteTotalsFromItems(sanitizedItems, {
       discount: effectiveDiscount,
       taxRate: effectiveTaxRate,
@@ -344,11 +351,12 @@ export async function PATCH(
     updatePayload.tax_amount = totals.taxAmount;
     updatePayload.total_amount = totals.total;
 
-    const { error: updateError } = await db
+    const { data: savedQuote, error: updateError } = await db
       .from("quotes")
       .update(updatePayload)
       .eq("id", id)
-      .eq("concierge_profile_id", userId);
+      .eq("concierge_profile_id", userId).eq("status", existing.status).select("id").maybeSingle();
+    if (!updateError && !savedQuote) return NextResponse.json({ error: "Le devis a changé pendant la modification." }, { status: 409 });
 
     if (updateError) {
       console.error("[PATCH /api/quotes/:id] update error:", updateError);
@@ -359,6 +367,21 @@ export async function PATCH(
     }
 
     if (Array.isArray(body.items)) {
+      // Best-effort compensation of the existing REST replacement, without claiming a transaction.
+      const restore = async () => {
+        const deleted = await db.from("quote_items").delete().eq("quote_id", id);
+        if (deleted.error) return false;
+        if (existingItems.length) {
+          const restored = await db.from("quote_items").insert(existingItems.map(item => ({ ...item, quote_id: id })));
+          if (restored.error) return false;
+        }
+        const restoredHeader = await asLooseSupabaseClient(db).from("quotes").update({
+          package_id: existing.package_id, valid_until: existing.valid_until, notes: existing.notes, metadata: existing.metadata,
+          subtotal: existing.subtotal, discount_amount: existing.discount_amount, tax_rate: existing.tax_rate,
+          tax_amount: existing.tax_amount, total_amount: existing.total_amount,
+        }).eq("id", id).eq("status", existing.status);
+        return !restoredHeader.error;
+      };
       const { error: deleteItemsError } = await db
         .from("quote_items")
         .delete()
@@ -368,8 +391,9 @@ export async function PATCH(
           "[PATCH /api/quotes/:id] delete items error:",
           deleteItemsError,
         );
+        const restored = await restore();
         return NextResponse.json(
-          { error: "Erreur mise à jour lignes devis" },
+          { error: "Erreur mise à jour des lignes du devis.", restored, code: restored ? "QUOTE_EDIT_RESTORED" : "QUOTE_EDIT_RESTORE_FAILED" },
           { status: 500 },
         );
       }
@@ -395,8 +419,9 @@ export async function PATCH(
             "[PATCH /api/quotes/:id] insert items error:",
             insertItemsError,
           );
+          const restored = await restore();
           return NextResponse.json(
-            { error: "Erreur sauvegarde lignes devis" },
+            { error: "Erreur sauvegarde des lignes du devis.", restored, code: restored ? "QUOTE_EDIT_RESTORED" : "QUOTE_EDIT_RESTORE_FAILED" },
             { status: 500 },
           );
         }
@@ -433,6 +458,7 @@ export async function PATCH(
 
     return NextResponse.json(hydrated);
   } catch (err) {
+    if (err instanceof RequestCommercialError) return NextResponse.json({ error: err.message }, { status: err.status });
     console.error("[PATCH /api/quotes/:id] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }

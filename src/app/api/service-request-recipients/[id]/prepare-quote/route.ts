@@ -5,6 +5,7 @@ import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { prepareQuoteDraftFromRequest } from "@/features/concierge-commercial/server/quoteDraftFromRequest";
 import { getGuestCheckinCheckoutModeFromMetadata } from "@/app/lib/guestCheckinCheckout";
+import { assertRequestOpen, OPEN_REQUEST_STATUSES, requestQuoteDraftId, RequestCommercialError } from "@/features/concierge-commercial/server/requestCommercialGuard";
 import {
   deriveServiceRequestStatus,
   type ServiceRequestRecipientStatus,
@@ -40,18 +41,21 @@ async function syncRequestAfterQuoteDraft(input: {
 }) {
   const recipientStatus = input.quoteStatus === "sent" ? "quoted" : "interested";
 
-  await input.dbAny
+  const { error: recipientError } = await input.dbAny
     .from("service_request_recipients")
     .update({
       status: recipientStatus,
       responded_at: new Date().toISOString(),
     })
-    .eq("id", input.recipientId);
+    .eq("id", input.recipientId)
+    .in("status", ["sent", "viewed", "interested", "information_requested", "date_proposed", "quoted"]);
+  if (recipientError) throw new RequestCommercialError("Le devis est enregistré mais l'invitation doit être resynchronisée.", 500);
 
-  const { data: relatedRecipients } = await input.dbAny
+  const { data: relatedRecipients, error: relatedError } = await input.dbAny
     .from("service_request_recipients")
     .select("status")
     .eq("service_request_id", input.serviceRequestId);
+  if (relatedError) throw new RequestCommercialError("Impossible de synchroniser la demande après préparation du devis.", 500);
 
   const nextRequestStatus = deriveServiceRequestStatus(
     Array.isArray(relatedRecipients)
@@ -62,7 +66,9 @@ async function syncRequestAfterQuoteDraft(input: {
     null,
   );
 
-  await input.dbAny.from("service_requests").update({ status: nextRequestStatus }).eq("id", input.serviceRequestId);
+  const { error } = await input.dbAny.from("service_requests").update({ status: nextRequestStatus })
+    .eq("id", input.serviceRequestId).is("selected_concierge_profile_id", null).in("status", OPEN_REQUEST_STATUSES);
+  if (error) throw new RequestCommercialError("Le devis est enregistré, mais la demande doit être resynchronisée.", 500);
 
   return nextRequestStatus;
 }
@@ -113,7 +119,7 @@ export async function POST(
 
     const { data: serviceRequest, error: serviceRequestError } = await dbAny
       .from("service_requests")
-      .select("id, owner_profile_id, title, description, budget_max, currency, desired_date, requested_services, metadata")
+      .select("id, status, selected_concierge_profile_id, owner_profile_id, title, description, budget_max, currency, desired_date, requested_services, metadata")
       .eq("id", recipient.service_request_id)
       .maybeSingle();
 
@@ -124,6 +130,7 @@ export async function POST(
     if (!serviceRequest) {
       return NextResponse.json({ error: "Demande introuvable." }, { status: 404 });
     }
+    assertRequestOpen(serviceRequest, recipient);
     if (!serviceRequest.owner_profile_id) {
       return NextResponse.json({ error: "Proprietaire introuvable pour cette demande." }, { status: 400 });
     }
@@ -177,7 +184,11 @@ export async function POST(
 
     const preparedDraft = await prepareQuoteDraftFromRequest(userId, serviceRequest);
 
-    if (matchedQuote && !forceRefresh) {
+    if (matchedQuote?.metadata?.draft_preparation_pending && !(forceRefresh && matchedQuote.status === "draft")) {
+      return NextResponse.json({ error: "La préparation de ce devis est incomplète. Réessayez après vérification des lignes.",
+        code: "QUOTE_PREPARATION_PENDING", quote_id: matchedQuote.id }, { status: 409 });
+    }
+    if (matchedQuote && (!forceRefresh || matchedQuote.status !== "draft")) {
       const nextRequestStatus = await syncRequestAfterQuoteDraft({
         dbAny,
         recipientId: recipient.id,
@@ -219,6 +230,8 @@ export async function POST(
           valid_until: preparedDraft.validUntil,
           notes: preparedDraft.notes,
           metadata: {
+            ...matchedQuote.metadata,
+            draft_preparation_pending: true,
             source: "service_request",
             service_request_id: serviceRequest.id,
             service_request_recipient_id: recipient.id,
@@ -266,6 +279,15 @@ export async function POST(
         console.error("[prepare-quote] refreshed items error:", refreshedItemsError);
         return NextResponse.json({ error: "Impossible de reconstruire les lignes du devis." }, { status: 500 });
       }
+      const { error: readyError } = await dbAny.from("quotes").update({ metadata: {
+        ...matchedQuote.metadata, source: "service_request", service_request_id: serviceRequest.id,
+        service_request_recipient_id: recipient.id, requested_services: preparedDraft.requestedServices,
+        ...(serviceModalities ? { service_modalities: serviceModalities } : {}),
+        auto_match_summary: preparedDraft.summary, branding_snapshot: conciergeBranding ?? null,
+        draft_preparation_pending: false,
+      } }).eq("id", matchedQuote.id).eq("status", "draft");
+      if (readyError) return NextResponse.json({ error: "Les lignes sont enregistrées mais la préparation reste incomplète.",
+        code: "QUOTE_PREPARATION_PENDING", quote_id: matchedQuote.id }, { status: 500 });
 
       await db.from("quote_events").insert({
         quote_id: matchedQuote.id,
@@ -329,6 +351,7 @@ export async function POST(
     const { data: createdQuote, error: quoteError } = await db
       .from("quotes")
       .insert({
+        id: requestQuoteDraftId(recipient.id),
         concierge_profile_id: userId,
         owner_profile_id: serviceRequest.owner_profile_id,
         mission_id: null,
@@ -342,6 +365,7 @@ export async function POST(
         valid_until: preparedDraft.validUntil,
         notes: preparedDraft.notes,
         metadata: {
+          draft_preparation_pending: true,
           source: "service_request",
           service_request_id: serviceRequest.id,
           service_request_recipient_id: recipient.id,
@@ -357,6 +381,9 @@ export async function POST(
       .single();
 
     if (quoteError || !createdQuote) {
+      if (quoteError?.code === "23505") return NextResponse.json({
+        error: "Un devis existe déjà pour cette invitation. Rechargez la demande pour le reprendre.", code: "QUOTE_ALREADY_EXISTS",
+      }, { status: 409 });
       console.error("[prepare-quote] create quote error:", quoteError);
       if (MISSING_TABLE_CODES.has(quoteError?.code ?? "")) {
         return NextResponse.json(
@@ -394,6 +421,15 @@ export async function POST(
       await db.from("quotes").delete().eq("id", createdQuote.id);
       return NextResponse.json({ error: "Impossible de creer la ligne de devis." }, { status: 500 });
     }
+    const { error: readyError } = await dbAny.from("quotes").update({ metadata: {
+      source: "service_request", service_request_id: serviceRequest.id,
+      service_request_recipient_id: recipient.id, requested_services: preparedDraft.requestedServices,
+      ...(serviceModalities ? { service_modalities: serviceModalities } : {}),
+      auto_match_summary: preparedDraft.summary, branding_snapshot: conciergeBranding ?? null,
+      draft_preparation_pending: false,
+    } }).eq("id", createdQuote.id).eq("status", "draft");
+    if (readyError) return NextResponse.json({ error: "Les lignes sont enregistrées mais la préparation reste à confirmer.",
+      code: "QUOTE_PREPARATION_PENDING", quote_id: createdQuote.id }, { status: 500 });
 
     const { error: eventError } = await db.from("quote_events").insert({
       quote_id: createdQuote.id,
@@ -452,6 +488,7 @@ export async function POST(
       { status: 201 },
     );
   } catch (error) {
+    if (error instanceof RequestCommercialError) return NextResponse.json({ error: error.message }, { status: error.status });
     console.error("[prepare-quote] ERROR:", error);
     return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });
   }

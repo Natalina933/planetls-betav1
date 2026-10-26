@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import * as lifecycle from "../app/api/_shared/collaborationLifecycle.ts";
 import ts from "typescript";
 import React from "react";
 import * as jsxRuntime from "react/jsx-runtime";
@@ -51,6 +52,7 @@ function fixture(role = "owner", userId: string | null = "owner") {
     if (id === "next/server") return { NextResponse: { json: Response.json } };
     if (id === "@/app/lib/dbServer") return { db };
     if (id === "@/app/api/_shared/untypedSupabase") return { asLooseSupabaseClient: (value: unknown) => value };
+    if (id === "@/app/api/_shared/collaborationLifecycle") return lifecycle;
     if (id === "./apiAuth") return { getApiAuthContext: async () => ({ userId, role }) };
     if (id === "@/server/auth/roleGuards") return execute(source("server/auth/roleGuards.ts"), load);
     throw new Error(`Unexpected module ${id}`);
@@ -81,6 +83,17 @@ for (const [role, id] of [["owner", "owner"], ["owner_pro", "owner"], ["concierg
     assert.equal(JSON.stringify(items).includes("proprietaire"), false);
   });
 }
+
+test("historique : collaboration terminée consultable uniquement par ses participants", async () => {
+  const participant = fixture();
+  participant.tables.housing_collaborations[0].status = "ended";
+  const response = await participant.get("?status=ended");
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).items[0].status, "ended");
+  const outsider = fixture("owner", "other");
+  outsider.tables.housing_collaborations[0].status = "ended";
+  assert.deepEqual((await (await outsider.get("?status=ended")).json()).items, []);
+});
 for (const role of ["owner", "concierge"]) {
   test(`${role}: third party gets no data, even with forged participant parameters`, async () => {
     const f = fixture(role, "third-party");

@@ -62,6 +62,7 @@ test("buildProfileZoneUpdate syncs location, service area and rules", () => {
   assert.deepEqual(JSON.parse(nextProfile.availability_hours), {
     rules: { refuseOutOfZone: true },
     zones: [],
+    zoneDeclaration: "root_explicit",
   });
 });
 

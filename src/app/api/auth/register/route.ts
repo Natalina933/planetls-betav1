@@ -92,6 +92,7 @@ const buildAvailabilityPayload = (data: {
   firstRequestTemplate?: string | null;
   location?: string | null;
   serviceRadiusKm?: string | null;
+  resolvedZone?: { placeId: string; label: string; lat: number; lng: number } | null;
 }) => {
   const radiusKm = mapRadiusToInt(data.serviceRadiusKm);
 
@@ -126,7 +127,10 @@ const buildAvailabilityPayload = (data: {
       startingPriceRange: data.startingPriceRange ?? null,
       firstRequestTemplate: data.firstRequestTemplate ?? null,
     },
-    zones: data.location
+    ...(radiusKm !== null ? { radiusDeclaration: "explicit" } : {}),
+    zones: data.resolvedZone
+      ? [data.resolvedZone]
+      : data.location
       ? [
           {
             label: data.location,
@@ -145,7 +149,7 @@ const resolveKnownLocation = async (location: string | null) => {
     process.env.NODE_ENV !== "production" &&
     location.trim().toLowerCase() === "paris"
   ) {
-    return "Paris";
+    return { city: "Paris", zone: null };
   }
 
   const url = new URL("https://nominatim.openstreetmap.org/search");
@@ -170,6 +174,9 @@ const resolveKnownLocation = async (location: string | null) => {
     address?: Record<string, string | undefined>;
     display_name?: string;
     name?: string;
+    place_id?: number;
+    lat?: string;
+    lon?: string;
   }>;
   const first = payload[0];
 
@@ -187,7 +194,13 @@ const resolveKnownLocation = async (location: string | null) => {
     first.display_name?.split(",")[0]?.trim() ||
     null;
 
-  return city?.trim() || null;
+  if (!city?.trim()) return null;
+  const lat = Number(first.lat);
+  const lng = Number(first.lon);
+  const zone = first.lat != null && first.lon != null && first.place_id != null &&
+    Number.isFinite(lat) && Math.abs(lat) <= 90 && Number.isFinite(lng) && Math.abs(lng) <= 180
+    ? { placeId: `nominatim:${first.place_id}`, label: city.trim(), lat, lng } : null;
+  return { city: city.trim(), zone };
 };
 
 const registerSchema = z.object({
@@ -293,7 +306,8 @@ export async function POST(req: NextRequest) {
       tradeBody: data.tradeBody,
       startingPriceRange: data.startingPriceRange,
       firstRequestTemplate: data.firstRequestTemplate,
-      location: resolvedLocation ?? data.location,
+      location: resolvedLocation?.city ?? data.location,
+      resolvedZone: isConcierge ? resolvedLocation?.zone : null,
       serviceRadiusKm: data.serviceRadiusKm,
     });
 
@@ -335,11 +349,11 @@ export async function POST(req: NextRequest) {
         role: role,
         search_target: data.search_target,
         option: data.option,
-        location: resolvedLocation ?? data.location,
+        location: resolvedLocation?.city ?? data.location,
         additional_info: data.additionalInfo,
         company_name: isConcierge ? data.companyName : data.tradeBody ?? data.companyName ?? null,
         legal_form: isConcierge ? data.legalForm : null,
-        service_area: resolvedLocation ?? data.location,
+        service_area: resolvedLocation?.city ?? data.location,
         service_radius_km: serviceRadiusKm,
         availability_hours: availabilityHours,
         website: data.businessLink,

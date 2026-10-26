@@ -207,7 +207,7 @@ test("dry-run : aucun appel d’écriture, comptages exacts et sortie sans conte
     assert.ok(json.includes('"path":"bad.js"'));
     for (const forbidden of ["DO_NOT_DISCLOSE_THIS_VALUE", "BEGIN PRIVATE KEY", "manifest", source]) assert.equal(json.includes(forbidden), false);
     // Exercise the production entry point too, under the same write traps.
-    assert.equal(preflightIsolatedSearch(source, {}).errors, 0);
+    assert.equal(preflightIsolatedSearch(source, { NODE_ENV: "test" }).errors, 0);
     assert.equal(writes, 0);
     assert.deepEqual(readdirSync(source).sort(), before);
   } finally { mock.restoreAll(); syncBuiltinESMExports(); }
@@ -267,7 +267,7 @@ test("dry-run intégré : mêmes secrets connus et aucune allocation d’exécut
   mkdirSync(path.join(source, "src/app"), { recursive: true });
   writeFileSync(path.join(source, "src/app/page.tsx"), "fictional-known-value");
   const before = readdirSync(source);
-  const report = preflightIsolatedSearch(source, { API_KEY: "fictional-known-value" });
+  const report = preflightIsolatedSearch(source, { NODE_ENV: "test", API_KEY: "fictional-known-value" });
   assert.equal(report.status, "BLOCKED");
   assert.equal(report.issues[0].category, "secret_connu");
   assert.deepEqual(readdirSync(source), before);

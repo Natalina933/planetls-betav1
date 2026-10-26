@@ -467,18 +467,26 @@ async function notifyMissionParticipants(mission: MissionRow, actorProfileId: st
 }
 
 async function assertMissionCanBePlanned(mission: MissionRow) {
-  const [{ data: invoiceRows }, { data: quoteRows }] = await Promise.all([
+  const metadata = toRecord(mission.metadata);
+  const quoteId = metadata.source === "quote_acceptance" && typeof metadata.quote_id === "string" ? metadata.quote_id : null;
+  const [invoiceResult, quoteResult] = await Promise.all([
     dbAny
       .from("invoices")
       .select("id, status, total_amount, paid_amount, balance_amount, metadata")
-      .eq("mission_id", mission.id)
+      .eq(quoteId ? "quote_id" : "mission_id", quoteId ?? mission.id)
+      .eq("owner_profile_id", mission.owner_profile_id)
+      .eq("concierge_profile_id", mission.concierge_profile_id)
       .neq("status", "canceled"),
     dbAny
       .from("quotes")
       .select("metadata")
-      .eq("mission_id", mission.id)
+      .eq(quoteId ? "id" : "mission_id", quoteId ?? mission.id)
+      .eq("owner_profile_id", mission.owner_profile_id)
+      .eq("concierge_profile_id", mission.concierge_profile_id)
       .limit(1),
   ]);
+  if (invoiceResult.error || quoteResult.error) throw new Error("Contrôle du paiement indisponible.");
+  const invoiceRows = invoiceResult.data, quoteRows = quoteResult.data;
 
   const guard = canPlanMissionWithPayment({
     invoices: ((invoiceRows ?? []) as Array<Record<string, unknown>>).map((invoice) => ({

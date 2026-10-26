@@ -9,6 +9,7 @@ import {
 } from "@/server/location/geocodeLocation";
 
 import { evaluateProfessionalCoverage } from "./coverage";
+import { conciergePublication, isConciergeRole } from "../../../lib/conciergePublication";
 import { isSearchPoint } from "@/features/owner-concierges/lib/geography";
 import { applyConciergeSearchFilters, buildConciergeSearchFilters, buildAvailableConciergeFilters, mapPropertyTypesByProfile, parseProfileServices, isProfileAvailableNow } from "@/app/api/profiles/concierges/shared";
 
@@ -256,6 +257,7 @@ export async function GET(req: NextRequest) {
     // Préfiltrer les profils éligibles, sans géocoder leur adresse en couverture.
     const eligibleProfiles = allProfiles.filter((profile) =>
       professionalIsSearchable(profile.status) &&
+      (!isConciergeRole(profile.role) || conciergePublication(profile).eligible) &&
       (!filters.proOnly || profile.role?.endsWith("_pro")) &&
       professionalMatchesServices(getProfessionalServices(profile.role, profile.option,
         parseProfileServices(profile.option, profile.availability_hours)), requestedServices));

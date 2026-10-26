@@ -1,4 +1,5 @@
 import { getHousingReferenceId } from "../../lib/listingReferences.ts";
+import { collaborationLifecycle } from "./collaborationLifecycle.ts";
 
 import type { LooseSupabaseClient } from "./untypedSupabase";
 
@@ -30,6 +31,8 @@ type AuthorizationResult =
     };
 
 type CollaborationRow = {
+  scope?: unknown;
+  ends_on?: string | null;
   id: string;
   housing_id: number;
   owner_profile_id: string;
@@ -82,7 +85,7 @@ async function loadActiveHousingCollaboration(input: {
 }) {
   let query = input.db
     .from("housing_collaborations")
-    .select("id,housing_id,owner_profile_id,concierge_profile_id,status")
+    .select("id,housing_id,owner_profile_id,concierge_profile_id,status,scope,ends_on")
     .eq("housing_id", Number(input.housingId))
     .eq("concierge_profile_id", input.conciergeProfileId)
     .eq("status", "active");
@@ -92,7 +95,7 @@ async function loadActiveHousingCollaboration(input: {
   }
 
   const { data, error } = await query.maybeSingle<CollaborationRow>();
-  return { collaboration: data, error };
+  return { collaboration: data && collaborationLifecycle(data).canCreateInterventions ? data : null, error };
 }
 
 async function hasOwnerConciergeRelation(input: {
@@ -196,6 +199,16 @@ async function resolvePropertyAuthorization(input: {
 }
 
 export async function authorizeMissionCreation(input: MissionCreationAuthorizationInput): Promise<AuthorizationResult> {
+  const collaborationId = typeof input.metadata?.collaboration_id === "string" ? input.metadata.collaboration_id : null;
+  if (collaborationId) {
+    const result = await input.db.from("housing_collaborations").select("id,status,scope,ends_on,owner_profile_id,concierge_profile_id")
+      .eq("id", collaborationId).maybeSingle<CollaborationRow>();
+    if (result.error) return deny(500, "Impossible de vérifier la collaboration.");
+    const row = result.data;
+    if (!row || !collaborationLifecycle(row).canCreateInterventions || row.concierge_profile_id !== input.conciergeProfileId
+      || (input.ownerProfileId && row.owner_profile_id !== input.ownerProfileId)
+      || (input.actorRole === "owner" && row.owner_profile_id !== input.actorProfileId)) return forbidden();
+  }
   const ownerProfileId = cleanId(input.ownerProfileId);
   const propertyId = cleanId(input.propertyId);
   const reservationId = cleanId(input.reservationId);
@@ -223,6 +236,15 @@ export async function authorizeMissionCreation(input: MissionCreationAuthorizati
     .maybeSingle<ReservationRow>();
   if (error) return deny(500, "Impossible de vÃ©rifier la rÃ©servation.");
   if (!reservation) return forbidden();
+  const stayCollaborationId = metadataRecord(reservation.metadata)?.collaboration_id;
+  if (typeof stayCollaborationId === "string") {
+    const linked = await input.db.from("housing_collaborations").select("id,status,scope,ends_on,owner_profile_id,concierge_profile_id")
+      .eq("id", stayCollaborationId).maybeSingle<CollaborationRow>();
+    if (linked.error) return deny(500, "Impossible de vérifier la collaboration du séjour.");
+    if (!linked.data || !collaborationLifecycle(linked.data).canCreateInterventions
+      || linked.data.owner_profile_id !== reservation.owner_profile_id
+      || linked.data.concierge_profile_id !== reservation.concierge_profile_id) return forbidden();
+  }
   if (reservation.concierge_profile_id !== input.conciergeProfileId) return forbidden();
   if (input.actorRole === "owner" && reservation.owner_profile_id !== input.actorProfileId) return forbidden();
 

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { geocodeLocation, isGeocodingServiceError } from "@/server/location/geocodeLocation";
-import { locateConcierges } from "./geographicSearch";
+import { evaluateProfessionalCoverage } from "../../search/professionals/coverage";
+import { conciergePublication } from "../../../lib/conciergePublication";
 import { normalizeProfileLocationFields } from "../../../lib/profileLocation.ts";
 import {
   applyConciergeSearchFilters,
@@ -19,6 +20,7 @@ const isSchemaDriftError = (code: string | undefined): boolean =>
   code === "42P01" || code === "42703";
 
 type ConciergeProfileRow = {
+  status?: string | null;
   id: string;
   avatar_url: string | null;
   image: string | null;
@@ -74,7 +76,7 @@ async function loadConciergeProfiles(
   let profileQuery = db
     .from("profiles")
     .select(
-      "id, avatar_url, image, first_name, last_name, username, company_name, city, postal_code, country, service_area, location, latitude, longitude, geocoded_at, service_radius_km, hourly_rate, monthly_rate, experience_level, years_experience, option, availability_hours, emergency_service, role, created_at",
+      "id, status, avatar_url, image, first_name, last_name, username, company_name, city, postal_code, country, service_area, location, latitude, longitude, geocoded_at, service_radius_km, hourly_rate, monthly_rate, experience_level, years_experience, option, availability_hours, emergency_service, role, created_at",
     )
     .in("role", targetRoles);
   if (recentFirst) profileQuery = profileQuery.order("created_at", { ascending: false });
@@ -268,6 +270,7 @@ export async function GET(req: NextRequest) {
     const propertyTypesByProfile = mapPropertyTypesByProfile(pricingPackages);
 
     const enrichedResults = conciergeRows
+      .filter((profile) => conciergePublication(profile).eligible)
       .map((profile) => {
         const normalizedProfile = normalizeProfileLocationFields({
           city: profile.city,
@@ -325,9 +328,13 @@ export async function GET(req: NextRequest) {
     const candidates = applyConciergeSearchFilters(enrichedResults, geographic ? {
       ...filters, city: "", radiusKm: null, availableOnly: false, limit: Number.MAX_SAFE_INTEGER,
     } : filters, categoryByService);
-    const located = geographic && center ? await locateConcierges(candidates.map((item) => ({
-      ...item, availability_hours: item.availability_hours ?? null,
-    })), center, filters.radiusKm ?? 20) : null;
+    const located = geographic && center ? {
+      results: candidates.filter((item) => evaluateProfessionalCoverage(item, {
+        center, radiusKm: filters.radiusKm ?? 20,
+      }).state === "covered"),
+      unlocated: 0,
+      geocodingDeferred: false,
+    } : null;
     const results = located ? located.results.map(({ availability_hours: _privateSchedule, ...item }) => item) : candidates;
     const availableFilters = buildAvailableConciergeFilters(enrichedResults, categoryByService);
 

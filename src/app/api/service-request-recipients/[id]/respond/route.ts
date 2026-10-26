@@ -3,6 +3,7 @@ import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { assertRequestOpen, OPEN_REQUEST_STATUSES, RequestCommercialError, commercialObjectId } from "@/features/concierge-commercial/server/requestCommercialGuard";
 import {
   deriveServiceRequestStatus,
   type ServiceRequestRecipientStatus,
@@ -34,6 +35,15 @@ const VALID_STATUSES: RecipientStatus[] = [
 // Legacy Supabase typing is incomplete on these tables in this project.
 const dbAny = asLooseSupabaseClient(db);
 
+async function syncResponseState(requestId: string) {
+  const { data, error } = await dbAny.from("service_request_recipients").select("status").eq("service_request_id", requestId);
+  if (error) throw new Error("Synchronisation indisponible");
+  const status = deriveServiceRequestStatus((data ?? []).map((row: { status: ServiceRequestRecipientStatus }) => row.status), null);
+  const { error: updateError } = await dbAny.from("service_requests").update({ status }).eq("id", requestId)
+    .is("selected_concierge_profile_id", null).in("status", OPEN_REQUEST_STATUSES);
+  if (updateError) throw new Error("Synchronisation indisponible");
+}
+
 async function notifyOwnerAboutResponse(input: {
   ownerProfileId?: string | null;
   conciergeProfileId: string;
@@ -42,6 +52,7 @@ async function notifyOwnerAboutResponse(input: {
   actorProfileId: string;
   status: RecipientStatus;
   message?: string | null;
+  responseKey: string;
 }) {
   if (!input.ownerProfileId) return null;
 
@@ -65,14 +76,15 @@ async function notifyOwnerAboutResponse(input: {
         ? "Une conciergerie a décliné votre demande. Elle sort de votre comparaison active."
         : "Votre demande a été consultée.");
 
-  const { data: existingConversation } = await dbAny
+  const { data: existingConversation, error: readError } = await dbAny
     .from("contact_conversations")
     .select("id")
     .eq("owner_profile_id", input.ownerProfileId)
     .eq("concierge_profile_id", input.conciergeProfileId)
-    .eq("source", "service_request")
+    .in("source", ["service_request", "search"])
     .eq("source_reference", input.serviceRequestId)
     .limit(1);
+  if (readError) throw new Error("Impossible de vérifier la conversation.");
 
   let conversationId = existingConversation?.[0]?.id ?? null;
   if (!conversationId) {
@@ -95,14 +107,15 @@ async function notifyOwnerAboutResponse(input: {
 
     if (conversationError) {
       console.error("[respond] conversation create error:", conversationError);
-      return null;
+      throw new Error("Impossible de créer la conversation.");
     }
     conversationId = createdConversation?.id ?? null;
   }
 
   if (!conversationId || input.status === "viewed") return conversationId;
 
-  await dbAny.from("contact_messages").insert({
+  const { error: messageError } = await dbAny.from("contact_messages").insert({
+    id: commercialObjectId(`response/${input.responseKey}`),
     conversation_id: conversationId,
     sender_profile_id: input.actorProfileId,
     message_type: "text",
@@ -114,6 +127,7 @@ async function notifyOwnerAboutResponse(input: {
       system_context: "service_request_response",
     },
   });
+  if (messageError && messageError.code !== "23505") throw new Error("Impossible d'enregistrer le message de réponse.");
 
   return conversationId;
 }
@@ -160,8 +174,37 @@ export async function POST(
     if (!recipient) {
       return NextResponse.json({ error: "Demande destinataire introuvable." }, { status: 404 });
     }
+    const { data: parent, error: parentError } = await dbAny.from("service_requests").select("*")
+      .eq("id", recipient.service_request_id).maybeSingle();
+    if (parentError) return NextResponse.json({ error: "Impossible de vérifier la demande." }, { status: 500 });
+    if (!parent) return NextResponse.json({ error: "Demande introuvable." }, { status: 404 });
+    // A terminal decline can only be replayed; it can never reopen the invitation.
+    const message = typeof body.response_message === "string" ? body.response_message.trim() || null : null;
+    const date = typeof body.proposed_date === "string" ? body.proposed_date.trim() || null : null;
+    const sameResponse = recipient.status === nextStatus &&
+      (recipient.response_message ?? null) === message && (recipient.proposed_date ?? null) === (nextStatus === "date_proposed" ? date : null);
+    if (!(sameResponse && nextStatus === "declined")) assertRequestOpen(parent, recipient);
+    if (sameResponse || (nextStatus === "viewed" && recipient.status !== "sent")) {
+      try {
+        await syncResponseState(recipient.service_request_id);
+        await notifyOwnerAboutResponse({ ownerProfileId: parent.owner_profile_id, conciergeProfileId: userId,
+          serviceRequestId: recipient.service_request_id, recipientId: recipient.id, actorProfileId: userId,
+          status: nextStatus, message, responseKey: `${recipient.id}/${recipient.responded_at ?? recipient.viewed_at ?? "viewed"}` });
+      } catch {
+        return NextResponse.json({ recipient, reused: true, delivery_pending: true,
+          error: "La réponse est conservée mais sa transmission reste à reprendre." }, { status: 202 });
+      }
+      return NextResponse.json({ recipient, reused: true });
+    }
+    if (nextStatus === "quoted") return NextResponse.json({ error: "Envoyez un devis pour déclarer une proposition chiffrée." }, { status: 400 });
+    if (recipient.status === "quoted") return NextResponse.json({ error: "Un devis est déjà envoyé. Utilisez le parcours du devis pour le modifier ou le retirer." }, { status: 409 });
+    if (nextStatus === "date_proposed" && (!date || !Number.isFinite(Date.parse(date)))) {
+      return NextResponse.json({ error: "Indiquez une date valide." }, { status: 400 });
+    }
+    if (nextStatus === "information_requested" && !message) return NextResponse.json({ error: "Précisez les informations demandées." }, { status: 400 });
 
-    const nowIso = new Date().toISOString();
+    const previousTime = Date.parse(recipient.responded_at ?? "");
+    const nowIso = new Date(Math.max(Date.now(), Number.isFinite(previousTime) ? previousTime + 1 : 0)).toISOString();
     const updatePayload: Record<string, unknown> = {
       status: nextStatus,
       response_message:
@@ -172,19 +215,26 @@ export async function POST(
           : null,
       responded_at: nextStatus !== "viewed" ? nowIso : recipient.responded_at,
       viewed_at: nextStatus === "viewed" || recipient.viewed_at ? recipient.viewed_at ?? nowIso : null,
+      metadata: { ...(recipient.metadata ?? {}), response_history: [
+        ...(Array.isArray(recipient.metadata?.response_history) ? recipient.metadata.response_history : []),
+        { status: nextStatus, response_message: message, proposed_date: nextStatus === "date_proposed" ? date : null, at: nowIso },
+      ] },
     };
 
     if (nextStatus === "viewed" && !recipient.viewed_at) {
       updatePayload.viewed_at = nowIso;
     }
 
-    const { data: updatedRecipient, error: updateError } = await dbAny
+    let recipientUpdate = dbAny
       .from("service_request_recipients")
       .update(updatePayload)
       .eq("id", id)
-      .select("*")
-      .single();
+      .eq("concierge_profile_id", userId)
+      .eq("status", recipient.status);
+    recipientUpdate = recipient.responded_at ? recipientUpdate.eq("responded_at", recipient.responded_at) : recipientUpdate.is("responded_at", null);
+    const { data: updatedRecipient, error: updateError } = await recipientUpdate.select("*").maybeSingle();
 
+    if (!updateError && !updatedRecipient) return NextResponse.json({ error: "L'invitation a changé. Rechargez la demande." }, { status: 409 });
     if (updateError || !updatedRecipient) {
       console.error("[POST /api/service-request-recipients/[id]/respond] update error:", updateError);
       return NextResponse.json({ error: "Impossible de mettre a jour la reponse." }, { status: 500 });
@@ -200,6 +250,8 @@ export async function POST(
         "[POST /api/service-request-recipients/[id]/respond] related recipients error:",
         relatedRecipientsError,
       );
+      return NextResponse.json({ recipient: updatedRecipient, synchronization_pending: true,
+        error: "La réponse est enregistrée mais la demande doit être resynchronisée. Répétez la même réponse." }, { status: 202 });
     } else {
       const { data: requestRow, error: requestRowError } = await dbAny
         .from("service_requests")
@@ -212,6 +264,8 @@ export async function POST(
           "[POST /api/service-request-recipients/[id]/respond] request read error:",
           requestRowError,
         );
+        return NextResponse.json({ recipient: updatedRecipient, synchronization_pending: true,
+          error: "La réponse est enregistrée mais son suivi reste incomplet. Répétez la même réponse." }, { status: 202 });
       } else if (requestRow) {
         const requestStatus = deriveServiceRequestStatus(
           Array.isArray(relatedRecipients)
@@ -227,16 +281,20 @@ export async function POST(
         const { error: requestUpdateError } = await dbAny
           .from("service_requests")
           .update({ status: requestStatus })
-          .eq("id", updatedRecipient.service_request_id);
+          .eq("id", updatedRecipient.service_request_id)
+          .is("selected_concierge_profile_id", null)
+          .in("status", OPEN_REQUEST_STATUSES);
 
         if (requestUpdateError) {
           console.error(
             "[POST /api/service-request-recipients/[id]/respond] request update error:",
             requestUpdateError,
           );
+          return NextResponse.json({ recipient: updatedRecipient, synchronization_pending: true,
+            error: "La réponse est enregistrée mais la demande doit être resynchronisée. Répétez la même réponse." }, { status: 202 });
         }
 
-        await notifyOwnerAboutResponse({
+        try { await notifyOwnerAboutResponse({
           ownerProfileId: requestRow.owner_profile_id,
           conciergeProfileId: userId,
           serviceRequestId: updatedRecipient.service_request_id,
@@ -244,7 +302,11 @@ export async function POST(
           actorProfileId: userId,
           status: nextStatus,
           message: updatePayload.response_message as string | null,
-        });
+          responseKey: `${updatedRecipient.id}/${updatedRecipient.responded_at ?? updatedRecipient.viewed_at}`,
+        }); } catch {
+          return NextResponse.json({ recipient: updatedRecipient, delivery_pending: true,
+            error: "La réponse est enregistrée mais son message reste à transmettre. Répétez la même réponse pour reprendre." }, { status: 202 });
+        }
 
         await recordWorkflowEvent(dbAny, {
           actorProfileId: userId,
@@ -287,6 +349,7 @@ export async function POST(
       },
     });
   } catch (err) {
+    if (err instanceof RequestCommercialError) return NextResponse.json({ error: err.message }, { status: err.status });
     console.error("[POST /api/service-request-recipients/[id]/respond] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });
   }

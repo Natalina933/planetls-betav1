@@ -5,6 +5,7 @@ import { deriveQuoteWorkflowStatus } from "@/app/lib/commercialWorkflow";
 import type { Json } from "@/types/supabase";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { z } from "zod";
+import { computeQuoteTotals } from "@/features/concierge-commercial/server/quoteSendGuard";
 
 type QuoteStatus =
   | "draft"
@@ -152,7 +153,8 @@ const parseQuoteItems = (rawItems: QuoteItemInput[] | undefined): QuoteItemInput
       sort_order: Number.isFinite(Number(item.sort_order))
         ? Number(item.sort_order)
         : index,
-      metadata: item.metadata ?? {},
+      metadata: Object.fromEntries(Object.entries(item.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata)
+        ? item.metadata : {}).filter(([key]) => !key.startsWith("quote_service_") && key !== "requested_service_slug")),
     });
   });
 
@@ -309,6 +311,7 @@ export async function POST(req: NextRequest) {
     if (!ALLOWED_BILLING_ROLES.has(role)) {
       return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
+    if (OWNER_BILLING_ROLES.has(role)) return NextResponse.json({ error: "Un propriétaire ne peut pas émettre un devis de concierge." }, { status: 403 });
 
     const rawBody: unknown = await req.json();
     const parsedBody = createQuoteBodySchema.safeParse(rawBody);
@@ -321,6 +324,9 @@ export async function POST(req: NextRequest) {
     const status: QuoteStatus = VALID_QUOTE_STATUS.includes(body.status as QuoteStatus)
       ? (body.status as QuoteStatus)
       : "draft";
+    if (["concierge", "concierge_pro"].includes(role) && status !== "draft") return NextResponse.json({
+      error: "Créez un brouillon puis utilisez l'action d'envoi du devis.",
+    }, { status: 400 });
 
     const discountAmount = Number(body.discount_amount ?? 0);
     const taxRate = Number(body.tax_rate ?? 0);
@@ -351,6 +357,11 @@ export async function POST(req: NextRequest) {
       typeof safeMetadata.service_request_recipient_id === "string" && isUuidLike(safeMetadata.service_request_recipient_id)
         ? safeMetadata.service_request_recipient_id
         : null;
+    if (body.service_request_id || body.service_request_recipient_id || metadataServiceRequestId || metadataRecipientId) {
+      return NextResponse.json({ error: "Préparez le devis depuis l'invitation reçue pour conserver ses prestations et ses autorisations.",
+        code: "USE_RECIPIENT_QUOTE_PREPARATION" }, { status: 409 });
+    }
+    const totals = computeQuoteTotals(items, discountAmount, taxRate);
 
     const { data: createdQuote, error: quoteError } = await dbAny
       .from("quotes")
@@ -362,6 +373,7 @@ export async function POST(req: NextRequest) {
         service_request_recipient_id: body.service_request_recipient_id ?? metadataRecipientId,
         package_id: body.package_id ?? null,
         status,
+        subtotal: totals.subtotal, tax_amount: totals.taxAmount, total_amount: totals.total,
         currency: sanitizeCurrency(body.currency),
         discount_amount: round2(discountAmount),
         tax_rate: round2(taxRate),

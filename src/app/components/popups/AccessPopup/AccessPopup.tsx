@@ -168,7 +168,7 @@ export default function AccessPopup({
     additionalInfo: initialData?.additionalInfo ?? "",
     companyName: initialData?.companyName ?? "",
     legalForm: initialData?.legalForm ?? "",
-    serviceRadiusKm: initialData?.serviceRadiusKm ?? "30",
+    serviceRadiusKm: initialData?.serviceRadiusKm ?? (profileKey === "concierge" ? "" : "30"),
     availability: initialData?.availability ?? "",
     missionPreference: initialData?.missionPreference ?? "",
     signupMode: initialData?.signupMode ?? defaultSignupMode,
@@ -211,7 +211,7 @@ export default function AccessPopup({
       additionalInfo: initialData.additionalInfo ?? "",
       companyName: initialData.companyName ?? "",
       legalForm: initialData.legalForm ?? "",
-      serviceRadiusKm: initialData.serviceRadiusKm ?? "30",
+      serviceRadiusKm: initialData.serviceRadiusKm ?? (profileKey === "concierge" ? "" : "30"),
       availability: initialData.availability ?? "",
       missionPreference: initialData.missionPreference ?? "",
       signupMode: initialData.signupMode ?? defaultSignupMode,
@@ -226,7 +226,7 @@ export default function AccessPopup({
       startingPriceRange: initialData.startingPriceRange ?? "",
       firstRequestTemplate: initialData.firstRequestTemplate ?? "",
     });
-  }, [defaultSignupMode, initialData]);
+  }, [defaultSignupMode, initialData, profileKey]);
 
   useEffect(() => {
     if (!isConciergeExpress) {
@@ -416,6 +416,7 @@ export default function AccessPopup({
                       <small>Autour de {recap.location || "votre ville"} pour recevoir des missions réalistes.</small>
                     </span>
                     <select name="serviceRadiusKm" value={form.serviceRadiusKm} onChange={handleSelectChange}>
+                      <option value="">Choisir un rayon</option>
                       <option value="10">10 km maximum</option>
                       <option value="20">20 km maximum</option>
                       <option value="30">30 km maximum</option>
@@ -619,6 +620,7 @@ export default function AccessPopup({
                   <small>Autour de {recap.location || "votre ville"} pour recevoir des missions réalistes.</small>
                 </span>
                 <select name="serviceRadiusKm" value={form.serviceRadiusKm} onChange={handleSelectChange}>
+                  <option value="">Choisir un rayon</option>
                   <option value="10">10 km maximum</option>
                   <option value="20">20 km maximum</option>
                   <option value="30">30 km maximum</option>

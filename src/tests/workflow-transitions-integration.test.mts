@@ -30,6 +30,10 @@ class MockQuery {
     return this;
   }
 
+  upsert(payload: unknown, _options?: Record<string, unknown>) {
+    return this.insert(payload);
+  }
+
   update(payload: Record<string, unknown>) {
     this.operation = "update";
     this.payload = payload;
@@ -89,6 +93,11 @@ class MockQuery {
       return { data: null, error: null };
     }
     if (this.table === "invoices") return { data: [], error: null };
+    if (this.table === "missions") return { data: this.db.missions.filter(row => {
+      return Object.entries(this.filters).every(([key, value]) => key === "metadata"
+        ? Object.entries(value as Record<string, unknown>).every(([k, v]) => (row.metadata as Record<string, unknown>)?.[k] === v)
+        : row[key] === value);
+    }), error: null };
     if (this.table === "quote_items") return { data: this.db.quoteItems, error: null };
     return { data: [], error: null };
   }
@@ -186,6 +195,7 @@ class MockSupabase {
       scheduled_end: input.scheduled_end,
       reservation_id: input.reservation_id ?? null,
       concierge_profile_id: input.concierge_profile_id,
+      owner_profile_id: input.owner_profile_id,
       metadata: input.metadata ?? null,
     };
     this.missions.push(mission);

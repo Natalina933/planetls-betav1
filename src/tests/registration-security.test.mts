@@ -13,7 +13,7 @@ const compiledRoute = ts.transpileModule(
   { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } },
 ).outputText;
 
-function loadRoute(profileFailure = false) {
+function loadRoute(profileFailure = false, geocodingFixture = false) {
   const calls = { clients: 0, network: 0, auth: [] as Record<string, unknown>[], profiles: [] as Record<string, unknown>[], deleted: [] as string[] };
   const client = {
     auth: { admin: {
@@ -46,7 +46,13 @@ function loadRoute(profileFailure = false) {
     process: { env: { NODE_ENV: "production" } },
     console: { error: () => {} },
     URL,
-    fetch: async () => { calls.network++; throw new Error("Network forbidden in registration tests"); },
+    fetch: async () => {
+      calls.network++;
+      if (geocodingFixture) return { ok: true, json: async () => [{
+        place_id: 123, lat: "0", lon: "0", address: { city: "Ville isolée" },
+      }] };
+      throw new Error("Network forbidden in registration tests");
+    },
   });
   assert.ok(exports.POST);
   return { post: exports.POST, calls };
@@ -120,4 +126,19 @@ test("profile persistence failure still compensates the newly created Auth accou
   const { post, calls } = loadRoute(true);
   assert.equal((await post(request(validBody))).status, 500);
   assert.deepEqual(calls.deleted, ["fixture-user"]);
+});
+
+test("inscription concierge : zone résolue, catalogue et rayon choisi persistés sans défaut implicite", async () => {
+  for (const radius of [undefined, "30", "20"]) {
+    const { post, calls } = loadRoute(false, true);
+    const response = await post(request({ ...validBody, category: "concierge", location: "Ville isolée",
+      option: "cleaning_standard,linen_change", serviceRadiusKm: radius }));
+    assert.equal(response.status, 201);
+    const saved = calls.profiles[0];
+    const availability = JSON.parse(String(saved.availability_hours));
+    assert.deepEqual(availability.zones[0], { placeId: "nominatim:123", label: "Ville isolée", lat: 0, lng: 0 });
+    assert.equal(availability.radiusDeclaration, radius ? "explicit" : undefined);
+    assert.equal(saved.service_radius_km, radius ? Number(radius) : null);
+    assert.equal(saved.option, "cleaning_standard,linen_change");
+  }
 });

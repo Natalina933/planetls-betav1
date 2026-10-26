@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { buildPublicConciergeRecommendations } from "./shared";
+import { conciergePublication } from "../../../lib/conciergePublication";
 
 const isSchemaDriftError = (code: string | undefined): boolean =>
   code === "42P01" || code === "42703";
@@ -22,12 +23,14 @@ export async function GET() {
     const { data: profiles, error: profilesError } = await db
       .from("profiles")
       .select(
-        "id, avatar_url, image, first_name, last_name, username, company_name, city, service_area, hourly_rate, monthly_rate, option, availability_hours, role, years_experience",
+        "id, status, service_radius_km, avatar_url, image, first_name, last_name, username, company_name, city, service_area, hourly_rate, monthly_rate, option, availability_hours, role, years_experience",
       )
       .in("role", ["concierge", "concierge_pro"])
       .limit(18);
 
     let conciergeRows = ((profiles ?? []) as unknown) as Array<{
+      status?: string | null;
+      service_radius_km?: number | null;
       id: string;
       avatar_url: string | null;
       image: string | null;
@@ -86,6 +89,7 @@ export async function GET() {
     } else if (profilesError) {
       return NextResponse.json({ error: "Erreur lecture concierges." }, { status: 500 });
     }
+    conciergeRows = conciergeRows.filter((profile) => conciergePublication(profile).eligible);
     const profileIds = conciergeRows.map((profile) => profile.id);
 
     const { data: reviews, error: reviewsError } = await db

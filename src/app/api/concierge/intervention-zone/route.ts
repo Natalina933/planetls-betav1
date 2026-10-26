@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import type { LooseSupabaseQuery } from "@/app/api/_shared/untypedSupabase";
+import { geocodeLocation, isGeocodingServiceError } from "@/server/location/geocodeLocation";
 
 type InterventionZoneRow = {
   service_area: string | null;
@@ -10,6 +11,7 @@ type InterventionZoneRow = {
   city: string | null;
   postal_code: string | null;
   intervention_zone_locked: boolean | null;
+  availability_hours: string | null;
 };
 
 const profilesDb = db as unknown as {
@@ -80,10 +82,30 @@ export async function PATCH(req: NextRequest) {
     }
 
     const { serviceArea, serviceRadiusKm, locked } = parsed.data;
+    const { data: previous, error: readError } = await profilesDb.from("profiles")
+      .select("service_area, availability_hours").eq("id", auth.userId).single();
+    if (readError || !previous) return NextResponse.json({ error: "Impossible de lire la zone actuelle." }, { status: 500 });
+    let availability: Record<string, unknown>;
+    try {
+      const raw: unknown = JSON.parse(previous.availability_hours || "{}");
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("Invalid payload");
+      availability = raw as Record<string, unknown>;
+    } catch {
+      return NextResponse.json({ error: "Les préférences existantes ne peuvent pas être conservées." }, { status: 409 });
+    }
+    if (serviceArea !== undefined) {
+      const point = serviceArea ? await geocodeLocation(serviceArea) : null;
+      if (serviceArea && !point) return NextResponse.json({ error: "Zone d’intervention introuvable." }, { status: 422 });
+      availability.zones = point ? [{ label: serviceArea, lat: point.latitude, lng: point.longitude,
+        placeId: `nominatim:resolved:${point.latitude}:${point.longitude}` }] : [];
+      availability.zoneDeclaration = "root_explicit";
+    }
+    if (serviceRadiusKm !== undefined) availability.radiusDeclaration = serviceRadiusKm === null ? null : "explicit";
     const updatePayload = {
       intervention_zone_locked: locked,
       ...(serviceArea !== undefined ? { service_area: serviceArea } : {}),
       ...(serviceRadiusKm !== undefined ? { service_radius_km: serviceRadiusKm } : {}),
+      availability_hours: JSON.stringify(availability),
       updated_at: new Date().toISOString(),
     };
 
@@ -111,6 +133,7 @@ export async function PATCH(req: NextRequest) {
     });
   } catch (error) {
     console.error("[PATCH /api/concierge/intervention-zone] ERROR:", error);
+    if (isGeocodingServiceError(error)) return NextResponse.json({ error: "Localisation temporairement indisponible." }, { status: 503 });
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }

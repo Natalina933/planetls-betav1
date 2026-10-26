@@ -49,7 +49,7 @@ export function qualifyProfessionalCoverage(profile: CoverageProfile): Qualified
   const nested = record(record(payload.missionProfile)?.availability);
   // No verified writer associates the nested source with the profile's common radius.
   // Its presence also makes precedence over root declarations ambiguous, including [].
-  if (nested && "zones" in nested) {
+  if (nested && "zones" in nested && payload.zoneDeclaration !== "root_explicit") {
     unresolved("unqualified_nested_source");
     return finish();
   }
@@ -74,7 +74,9 @@ export function qualifyProfessionalCoverage(profile: CoverageProfile): Qualified
       unresolved("invalid_radius"); continue;
     }
     // The persisted schema cannot distinguish an explicit 30 from the form's default 30.
-    if (radiusKm === 30) { unresolved("ambiguous_default_radius"); continue; }
+    if (radiusKm === 30 && payload.radiusDeclaration !== "explicit") {
+      unresolved("ambiguous_default_radius"); continue;
+    }
     zones.push({ center, radiusKm });
   }
   return finish();

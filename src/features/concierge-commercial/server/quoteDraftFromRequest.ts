@@ -1,7 +1,6 @@
+import { buildRequestQuoteItems } from "./quoteDraftItems.ts";
 import { db } from "@/server/db/dbServer";
 import {
-  round2,
-  getDefaultQuantity,
   findMatchedServiceIds,
   getBestMatchingPackage,
   clarifyQuoteDraftRequestedServices,
@@ -103,6 +102,9 @@ export async function prepareQuoteDraftFromRequest(
       .select("id, name, description, category, services_package_items(service_id)")
       .eq("profile_id", conciergeProfileId),
   ]);
+  if (servicesCatalogResult.error || pricingResult.error || packagesResult.error) {
+    throw new Error("Impossible de charger les prestations et tarifs du devis.");
+  }
 
   const servicesCatalog = Array.isArray(servicesCatalogResult.data)
     ? (servicesCatalogResult.data as ServiceCatalogRow[])
@@ -136,80 +138,7 @@ export async function prepareQuoteDraftFromRequest(
   );
   const bestPackageMatch = getBestMatchingPackage(matchedServiceIds, packages);
 
-  const items =
-    matchedPricingRows.length > 0
-      ? matchedPricingRows.map((pricing, index) => {
-          const quantity = getDefaultQuantity(pricing);
-          const unitPrice = round2(Number(pricing.amount ?? 0));
-          return {
-            service_id: pricing.service_id ?? null,
-            pricing_id: pricing.id ?? null,
-            label: pricing.label?.trim() || request.title || "Prestation a chiffrer",
-            description:
-              pricing.unit && pricing.unit.trim().length > 0
-                ? `Tarif ${pricing.unit}`
-                : request.description ?? null,
-            quantity,
-            unit_price: unitPrice,
-            line_total: round2(quantity * unitPrice),
-            sort_order: index,
-            metadata: {
-              source: "service_request",
-              service_request_id: request.id,
-              matched_from_request: true,
-              quote_service_clarification_status: "resolved_catalog",
-              quote_service_clarification_reason: null,
-            },
-          };
-        })
-      : [
-          {
-            service_id:
-              serviceClarifications.find(
-                (clarification) =>
-                  clarification.isPrecise &&
-                  clarification.historicalServiceIds.length === 1 &&
-                  !clarification.explicitPriceRequired,
-              )?.historicalServiceIds[0] ?? null,
-            pricing_id: null,
-            label:
-              requestedServices.length > 0
-                ? requestedServices.slice(0, 3).join(", ")
-                : request.title || "Prestation à chiffrer",
-            description: request.description ?? null,
-            quantity: 1,
-            // LOT 6 : le budget du propriétaire n'est JAMAIS converti en prix.
-            // La ligne reste provisoire (0 € non confirmé) et ne peut pas être
-            // envoyée sans tarif explicite confirmé côté serveur.
-            unit_price: 0,
-            line_total: 0,
-            sort_order: 0,
-            metadata: {
-              source: "service_request",
-              service_request_id: request.id,
-              matched_from_request: false,
-              // Marqueur non-prix : indique que budget_max est purement indicatif.
-              quote_service_budget_is_indicative: true,
-              quote_service_budget_max: request.budget_max ?? null,
-              quote_service_clarification_status: serviceClarifications.some(
-                (clarification) => clarification.explicitPriceRequired,
-              )
-                ? "needs_explicit_price"
-                : "needs_clarification",
-              quote_service_clarification_reason:
-                serviceClarifications.find((clarification) => clarification.needsClarification)
-                  ?.clarificationReason ??
-                "Aucune prestation tarifée certaine n'a pu être déterminée automatiquement.",
-              quote_service_original_values: requestedServices,
-              quote_service_resolution_diagnostics: serviceClarifications.map((clarification) => ({
-                original_value: clarification.originalValue,
-                diagnostic: clarification.diagnostic,
-                canonical_slug: clarification.canonicalSlug,
-                explicit_price_required: clarification.explicitPriceRequired,
-              })),
-            },
-          },
-        ];
+  const items = buildRequestQuoteItems(request, servicesCatalog, pricingRows);
 
   const matchedPackageName = bestPackageMatch?.pkg.name ?? null;
   const noteParts = [
