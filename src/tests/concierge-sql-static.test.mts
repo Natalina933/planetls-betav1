@@ -119,6 +119,62 @@ test("status widening targets exactly demonstrated columns without resetting dat
   assert.doesNotMatch(executable, /DROP DEFAULT|SET DEFAULT|DROP NOT NULL|SET NOT NULL|\bUPDATE\b|\bDELETE\b|\bTRUNCATE\b/i);
 });
 
+test("conditional widening validates dependencies and temporarily replaces only known triggers", () => {
+  const widening = migration.slice(migration.indexOf("IF actual_typmod <> -1"), migration.indexOf("ELSIF actual_type <>"));
+  assert.match(widening, /d\.refobjid = relation_id AND d\.refobjsubid = status_number/);
+  assert.match(widening, /Unexpected status dependency/);
+  assert.match(widening, /Unexpected table configuration/);
+  assert.match(widening, /Unexpected trigger dependency/);
+  assert.match(widening, /Unexpected trigger configuration/);
+  for (const property of ["tgrelid", "tgname", "tgfoid", "tgtype", "tgisinternal", "tgparentid",
+    "tgconstraint", "tgconstrrelid", "tgconstrindid", "tgdeferrable", "tginitdeferred", "tgqual",
+    "tgnargs", "tgargs", "tgoldtable", "tgnewtable", "tgenabled", "tgattr"]) {
+    assert.ok(widening.includes(`saved_trigger.${property}`), `Validate ${property}`);
+  }
+  assert.match(widening, /ARRAY\['status', 'selected_concierge_profile_id', 'mission_id'\]/);
+  assert.match(widening, /WHEN 'missions' THEN ARRAY\['status'\]/);
+  assert.match(widening, /ELSE ARRAY\[\]::text\[\]/);
+  assert.deepEqual([...migration.matchAll(/THEN '(trg_sync_[^']+)'/g)].map(match => match[1]),
+    ["trg_sync_service_request_workflow_status", "trg_sync_mission_workflow_status"]);
+  assert.ok(widening.indexOf("Unexpected trigger configuration") < widening.indexOf("CREATE OR REPLACE TRIGGER"));
+  assert.ok(widening.indexOf("Unexpected status dependency") < widening.indexOf("CREATE OR REPLACE TRIGGER"));
+  assert.match(widening, /IF blocker IS NOT NULL THEN/g);
+});
+
+test("trigger restoration preserves identity, definition, activation and ancillary properties", () => {
+  assert.match(migration, /saved_trigger pg_catalog\.pg_trigger%ROWTYPE/);
+  assert.match(migration, /saved_definition := pg_get_triggerdef\(blocker, false\)/);
+  assert.match(migration, /saved_definition NOT LIKE 'CREATE TRIGGER %'/);
+  assert.match(migration, /EXECUTE 'CREATE OR REPLACE TRIGGER ' \|\| substr\(saved_definition, length\('CREATE TRIGGER '\) \+ 1\)/);
+  assert.match(migration, /WHEN 'O' THEN 'ENABLE' WHEN 'D' THEN 'DISABLE'/);
+  assert.match(migration, /WHEN 'R' THEN 'ENABLE REPLICA' WHEN 'A' THEN 'ENABLE ALWAYS'/);
+  assert.match(migration, /restored_state IS DISTINCT FROM to_jsonb\(saved_trigger\)/);
+  assert.match(migration, /pg_get_triggerdef\(blocker, false\) IS DISTINCT FROM saved_definition/);
+  for (const property of ["comment", "labels", "dependencies"]) {
+    assert.match(migration, new RegExp(`restored_${property} IS DISTINCT FROM saved_${property}`));
+  }
+  assert.match(migration, /RAISE EXCEPTION 'Trigger restoration mismatch/);
+  assert.ok(migration.indexOf("Trigger restoration mismatch") < migration.indexOf("COMMIT;"));
+  assert.ok(migration.indexOf("ALTER COLUMN status TYPE") < migration.indexOf("EXECUTE 'CREATE OR REPLACE TRIGGER '"));
+});
+
+test("repair remains bounded transactional DDL without data or business function changes", () => {
+  const executable = migration.replace(/--[^\n]*/g, "");
+  assert.match(executable, /BEGIN;\s*SET LOCAL lock_timeout = '3s';/);
+  assert.match(executable, /LOCK TABLE public\.mission_events, public\.missions,\s*public\.service_request_recipients, public\.service_requests\s*IN ACCESS EXCLUSIVE MODE;/);
+  assert.ok(executable.indexOf("LOCK TABLE") < executable.indexOf("ALTER TABLE"));
+  assert.equal((executable.match(/^COMMIT;/gm) ?? []).length, 1);
+  assert.doesNotMatch(executable, /\bCASCADE\b|DROP TRIGGER|(?:CREATE|ALTER|DROP)\s+(?:OR REPLACE\s+)?FUNCTION|EXCEPTION\s+WHEN/i);
+  // Remove only the exact INSERT-only DDL literal, never arbitrary SQL strings.
+  const withoutTriggerDDL = executable.replace(
+    /'CREATE OR REPLACE TRIGGER %I BEFORE INSERT ON public\.%I '\s*'FOR EACH ROW EXECUTE FUNCTION public\.%I\(\)'/g, "''");
+  assert.notEqual(withoutTriggerDDL, executable, "The bounded temporary DDL must be present");
+  assert.doesNotMatch(withoutTriggerDDL, /\b(?:INSERT|UPDATE|DELETE|TRUNCATE|MERGE|COPY)\b/i);
+  assert.doesNotMatch(executable, /ALTER TABLE public\.(?:service_requests|service_request_recipients|missions)\s+(?:DROP|ADD) CONSTRAINT/i);
+  assert.match(executable, /actual_typmod <> -1 AND actual_typmod - 4 < target.required_length/);
+  assert.match(executable, /Unexpected status type/);
+});
+
 test("RLS proposal removes direct request-to-recipient policy edge with a bounded helper", () => {
   const sql = proposal("concierge-04a-request-rls");
   const policy = sql.slice(sql.indexOf("CREATE POLICY"), sql.indexOf("COMMIT;"));
