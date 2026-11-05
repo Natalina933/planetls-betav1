@@ -68,6 +68,18 @@
   line-height: 1.55;
 }
 
+.requestTitle {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--partners-border-soft);
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--partners-ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
 .heroActions,
 .chipRow,
 .cardFooter {
@@ -141,6 +153,40 @@
   border: 1px solid rgba(142, 47, 47, 0.16);
   background: #f8e7e4;
   color: #8e2f2f;
+}
+
+/* Panneau d'information pour les collaborations en attente */
+.infoPanel {
+  border: 1px solid rgba(39, 106, 88, 0.2);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(39, 106, 88, 0.08), rgba(212, 175, 55, 0.06));
+  padding: 0.9rem 1.1rem;
+}
+
+.infoContent {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  color: var(--partners-ink);
+}
+
+.infoContent strong {
+  display: block;
+  color: var(--partners-accent-strong);
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.infoContent p {
+  margin: 0;
+  color: var(--partners-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.infoContent p strong {
+  color: var(--partners-accent-strong);
+  font-weight: 850;
 }
 
 .statsGrid {
@@ -329,6 +375,49 @@
 .trustBadge {
   background: #edf5ef;
   color: #285540;
+}
+
+// Badges de statut pour les collaborations
+.statusActive {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid rgba(21, 87, 36, 0.2);
+}
+
+.statusPending {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid rgba(133, 100, 4, 0.2);
+}
+
+.statusScheduled {
+  background: #e2e3ff;
+  color: #383d82;
+  border: 1px solid rgba(56, 61, 130, 0.2);
+}
+
+.statusPaused {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid rgba(133, 100, 4, 0.2);
+}
+
+.statusEnded {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid rgba(114, 28, 36, 0.2);
+}
+
+.statusCancelled {
+  background: #d6d6d6;
+  color: #383838;
+  border: 1px solid rgba(56, 56, 56, 0.2);
+}
+
+.statusUnknown {
+  background: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid rgba(108, 117, 125, 0.2);
 }
 
 .factGrid {

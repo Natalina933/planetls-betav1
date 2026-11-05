@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type React from "react";
+import type { ChangeEvent, ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
@@ -13,85 +13,81 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
+  XCircle,
 } from "lucide-react";
 import { ButtonLink, Input, Select } from "@/components/ui";
 import styles from "./OwnerAcceptedPartnersPage.module.scss";
+import type { PendingHousingCollaboration } from "@/features/housing-collaborations/types";
 
-type OwnerQuoteRow = {
+/**
+ * Type pour les collaborations avec des informations enrichies pour l'affichage
+ */
+type HousingCollaborationDisplay = {
   id: string;
-  quote_number?: string | null;
-  status: string | null;
-  concierge_profile_id?: string | null;
-  service_request_id?: string | null;
-  service_request_recipient_id?: string | null;
-  currency?: string | null;
-  total_amount?: number | null;
-  valid_until?: string | null;
-  accepted_at?: string | null;
-  created_at?: string | null;
-  notes?: string | null;
-  metadata?: Record<string, unknown> | null;
-  concierge?: {
-    first_name?: string | null;
-    last_name?: string | null;
-    company_name?: string | null;
-  } | null;
-  package?: {
-    name?: string | null;
-    description?: string | null;
-    category?: string | null;
-  } | null;
-  quote_items?: Array<{
-    id: string;
-    label: string | null;
-    description?: string | null;
-    quantity?: number | null;
-    unit_price?: number | null;
-    line_total?: number | null;
-  }> | null;
+  status: PendingHousingCollaboration["status"];
+  owner: { id: string; name: string };
+  concierge: { id: string; name: string };
+  housing: { id: number; name: string };
+  quote: { id: string; number: string | null };
+  request: { id: string; title: string } | null;
+  contractId?: string | null;
+  missionId: string | null;
+  termination?: Record<string, unknown> | null;
 };
 
-type OwnerServiceRequestRow = {
-  id: string;
-  title: string;
-  property_name?: string | null;
-  city?: string | null;
-  requested_services?: string[] | null;
-};
-
-type RequestsPayload = {
-  items?: OwnerServiceRequestRow[];
+/**
+ * Type pour la réponse de l'API housing-collaborations
+ */
+type HousingCollaborationsPayload = {
+  items?: HousingCollaborationDisplay[];
   error?: string;
 };
 
-type SortMode = "recent" | "amount_desc" | "amount_asc" | "validity";
+/**
+ * Type pour les informations supplémentaires des devis (montant, date d'acceptation, etc.)
+ */
+type QuoteDetails = {
+  id: string;
+  total_amount?: number | null;
+  currency?: string | null;
+  accepted_at?: string | null;
+  valid_until?: string | null;
+  quote_number?: string | null;
+  package?: { name?: string | null } | null;
+  notes?: string | null;
+};
 
+/**
+ * Type pour les services associés à une demande
+ */
+type RequestServices = {
+  id: string;
+  requested_services?: string[] | null;
+};
+
+/**
+ * Type pour les options de tri
+ */
+type SortMode = "recent" | "name_asc" | "name_desc" | "housing";
+
+/**
+ * Normalise le statut pour comparaison
+ */
 function normalizeStatus(value: unknown) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
 
-function getMetadataString(metadata: Record<string, unknown> | null | undefined, key: string) {
-  const value = metadata?.[key];
-  return typeof value === "string" ? value : "";
-}
-
-function getQuoteRequestId(quote: OwnerQuoteRow) {
-  return quote.service_request_id || getMetadataString(quote.metadata, "service_request_id") || null;
-}
-
-function getConciergeName(quote: OwnerQuoteRow) {
-  return (
-    quote.concierge?.company_name ||
-    [quote.concierge?.first_name, quote.concierge?.last_name].filter(Boolean).join(" ").trim() ||
-    "Conciergerie"
-  );
-}
-
+/**
+ * Extrait les initiales d'un nom
+ */
 function getInitials(value: string) {
   const words = value.split(/\s+/).filter(Boolean);
   return words.slice(0, 2).map((word) => word[0]?.toUpperCase()).join("") || "C";
 }
 
+/**
+ * Formate un montant en euros
+ */
 function formatAmount(value: number | null | undefined, currency = "EUR") {
   if (typeof value !== "number" || !Number.isFinite(value)) return "Sur devis";
   return new Intl.NumberFormat("fr-FR", {
@@ -101,6 +97,9 @@ function formatAmount(value: number | null | undefined, currency = "EUR") {
   }).format(value);
 }
 
+/**
+ * Formate une date en français
+ */
 function formatDate(value: string | null | undefined) {
   if (!value) return "À confirmer";
   const date = new Date(value);
@@ -112,55 +111,227 @@ function formatDate(value: string | null | undefined) {
   }).format(date);
 }
 
-function getRequestForQuote(quote: OwnerQuoteRow, requests: OwnerServiceRequestRow[]) {
-  const requestId = getQuoteRequestId(quote);
-  return requestId ? requests.find((request) => request.id === requestId) : undefined;
+/**
+ * Formate une date avec heure en français
+ */
+function formatDateTime(value: string | null | undefined) {
+  if (!value) return "À confirmer";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Date invalide";
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }
 
-function getPropertyLabel(quote: OwnerQuoteRow, request?: OwnerServiceRequestRow) {
-  return (
-    request?.property_name ||
-    request?.city ||
-    getMetadataString(quote.metadata, "property_name") ||
-    getMetadataString(quote.metadata, "city") ||
-    "Logement à préciser"
-  );
+/**
+ * Retourne le label du statut de collaboration
+ */
+function getCollaborationStatusLabel(status: PendingHousingCollaboration["status"] | string) {
+  switch (status) {
+    case "active":
+      return "Active";
+    case "pending_handover":
+      return "En attente";
+    case "scheduled":
+      return "Planifiée";
+    case "paused":
+      return "En pause";
+    case "ended":
+      return "Terminée";
+    case "cancelled":
+      return "Annulée";
+    default:
+      return "Inconnue";
+  }
 }
 
-function getServices(quote: OwnerQuoteRow, request?: OwnerServiceRequestRow) {
-  const requestServices = request?.requested_services ?? [];
-  if (requestServices.length > 0) return requestServices;
-  return (quote.quote_items ?? []).map((item) => item.label?.trim()).filter((item): item is string => Boolean(item));
+/**
+ * Retourne la classe CSS pour le badge de statut
+ */
+function getStatusBadgeClass(status: PendingHousingCollaboration["status"] | string) {
+  switch (status) {
+    case "active":
+      return styles.statusActive;
+    case "pending_handover":
+      return styles.statusPending;
+    case "scheduled":
+      return styles.statusScheduled;
+    case "paused":
+      return styles.statusPaused;
+    case "ended":
+      return styles.statusEnded;
+    case "cancelled":
+      return styles.statusCancelled;
+    default:
+      return styles.statusUnknown;
+  }
 }
 
+/**
+ * Retourne la date de fin de collaboration si disponible
+ */
+function getCollaborationEndDate(collaboration: HousingCollaborationDisplay) {
+  const termination = collaboration.termination;
+  if (termination && typeof termination === "object" && termination !== null) {
+    const endsOn = termination as Record<string, unknown>;
+    if (typeof endsOn.ends_on === "string") {
+      return endsOn.ends_on;
+    }
+    if (typeof endsOn.effective_date === "string") {
+      return endsOn.effective_date;
+    }
+  }
+  return null;
+}
+
+/**
+ * Composant principal de la page des partenaires
+ */
 export default function OwnerAcceptedPartnersPage() {
-  const [quotes, setQuotes] = useState<OwnerQuoteRow[]>([]);
-  const [requests, setRequests] = useState<OwnerServiceRequestRow[]>([]);
+  const [collaborations, setCollaborations] = useState<HousingCollaborationDisplay[]>([]);
+  const [quoteDetails, setQuoteDetails] = useState<Map<string, QuoteDetails>>(new Map());
+  const [requestServices, setRequestServices] = useState<Map<string, string[]>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [collaborationFilter, setCollaborationFilter] = useState<PendingHousingCollaboration["status"] | "all">("all");
   const [propertyFilter, setPropertyFilter] = useState("all");
   const [sortMode, setSortMode] = useState<SortMode>("recent");
 
+  /**
+   * Charge les données : collaborations, détails des devis et services des demandes
+   */
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const [quotesResponse, requestsResponse] = await Promise.all([
+
+      // Charger les collaborations pour tous les statuts pertinents
+      const [
+        pendingHandoverResponse,
+        activeResponse,
+        scheduledResponse,
+        pausedResponse,
+        endedResponse,
+        cancelledResponse,
+        quotesResponse,
+        requestsResponse,
+      ] = await Promise.all([
+        fetch("/api/housing-collaborations?status=pending_handover", { cache: "no-store" }),
+        fetch("/api/housing-collaborations?status=active", { cache: "no-store" }),
+        fetch("/api/housing-collaborations?status=scheduled", { cache: "no-store" }),
+        fetch("/api/housing-collaborations?status=paused", { cache: "no-store" }),
+        fetch("/api/housing-collaborations?status=ended", { cache: "no-store" }),
+        fetch("/api/housing-collaborations?status=cancelled", { cache: "no-store" }),
         fetch("/api/quotes?limit=100", { cache: "no-store" }),
         fetch("/api/service-requests?limit=100", { cache: "no-store" }),
       ]);
 
+      const pendingHandoverPayload = (await pendingHandoverResponse.json()) as HousingCollaborationsPayload;
+      const activePayload = (await activeResponse.json()) as HousingCollaborationsPayload;
+      const scheduledPayload = (await scheduledResponse.json()) as HousingCollaborationsPayload;
+      const pausedPayload = (await pausedResponse.json()) as HousingCollaborationsPayload;
+      const endedPayload = (await endedResponse.json()) as HousingCollaborationsPayload;
+      const cancelledPayload = (await cancelledResponse.json()) as HousingCollaborationsPayload;
       const quotesPayload = await quotesResponse.json();
-      const requestsPayload = (await requestsResponse.json()) as RequestsPayload;
+      const requestsPayload = await requestsResponse.json();
 
-      if (!quotesResponse.ok) throw new Error(quotesPayload?.error || "Impossible de charger les devis.");
-      if (!requestsResponse.ok) throw new Error(requestsPayload?.error || "Impossible de charger les demandes liées.");
+      // Vérifier les réponses critiques - les collaborations
+      if (!pendingHandoverResponse.ok) {
+        throw new Error(pendingHandoverPayload?.error || "Impossible de charger les collaborations en attente.");
+      }
+      if (!activeResponse.ok) {
+        throw new Error(activePayload?.error || "Impossible de charger les collaborations actives.");
+      }
+      if (!scheduledResponse.ok) {
+        throw new Error(scheduledPayload?.error || "Impossible de charger les collaborations planifiées.");
+      }
+      if (!pausedResponse.ok) {
+        throw new Error(pausedPayload?.error || "Impossible de charger les collaborations en pause.");
+      }
+      if (!endedResponse.ok) {
+        throw new Error(endedPayload?.error || "Impossible de charger les collaborations terminées.");
+      }
+      if (!cancelledResponse.ok) {
+        // Ne pas bloquer : les collaborations annulées sont optionnelles
+        console.warn("[OwnerAcceptedPartnersPage] Erreur chargement collaborations annulées:", cancelledPayload?.error);
+      }
+      if (!quotesResponse.ok) {
+        throw new Error(quotesPayload?.error || "Impossible de charger les devis.");
+      }
+      if (!requestsResponse.ok) {
+        const error = requestsPayload?.error || "Impossible de charger les demandes.";
+        // Ne pas bloquer si les demandes ne sont pas disponibles
+        console.warn("[OwnerAcceptedPartnersPage] Erreur chargement demandes:", error);
+      }
 
-      setQuotes(Array.isArray(quotesPayload) ? quotesPayload : []);
-      setRequests(Array.isArray(requestsPayload.items) ? requestsPayload.items : []);
+      // Combiner toutes les collaborations sans doublons (basé sur l'ID unique)
+      const allCollaborationsMap = new Map<string, HousingCollaborationDisplay>();
+      const payloads = [
+        pendingHandoverPayload,
+        activePayload,
+        scheduledPayload,
+        pausedPayload,
+        endedPayload,
+        cancelledPayload,
+      ];
+      
+      for (const payload of payloads) {
+        if (Array.isArray(payload.items)) {
+          for (const collab of payload.items) {
+            // Conserver la première occurrence pour éviter les doublons
+            if (!allCollaborationsMap.has(collab.id)) {
+              allCollaborationsMap.set(collab.id, collab);
+            }
+          }
+        }
+      }
+
+      const allCollaborations: HousingCollaborationDisplay[] = Array.from(allCollaborationsMap.values());
+
+      setCollaborations(allCollaborations);
+
+      // Extraire les détails des devis pour les collaborations
+      const quoteIds = allCollaborations.map(c => c.quote.id).filter(id => id);
+      const quotesArray = Array.isArray(quotesPayload) ? quotesPayload : [];
+      const quoteDetailsMap = new Map<string, QuoteDetails>();
+      
+      for (const quote of quotesArray) {
+        if (quote && quote.id && quoteIds.includes(quote.id)) {
+          quoteDetailsMap.set(quote.id, {
+            id: quote.id,
+            total_amount: quote.total_amount,
+            currency: quote.currency,
+            accepted_at: quote.accepted_at,
+            valid_until: quote.valid_until,
+            quote_number: quote.quote_number,
+            package: quote.package,
+            notes: quote.notes,
+          });
+        }
+      }
+      setQuoteDetails(quoteDetailsMap);
+
+      // Extraire les services des demandes pour les collaborations
+      const requestIds = allCollaborations
+        .map(c => c.request?.id)
+        .filter((id): id is string => Boolean(id));
+      const requestsArray = Array.isArray(requestsPayload.items) ? requestsPayload.items : [];
+      const requestServicesMap = new Map<string, string[]>();
+      
+      for (const request of requestsArray) {
+        if (request && request.id && requestIds.includes(request.id)) {
+          requestServicesMap.set(request.id, request.requested_services ?? []);
+        }
+      }
+      setRequestServices(requestServicesMap);
+
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de charger les partenaires acceptés.");
+      setError(err instanceof Error ? err.message : "Impossible de charger les partenaires.");
     } finally {
       setLoading(false);
     }
@@ -170,191 +341,364 @@ export default function OwnerAcceptedPartnersPage() {
     void loadData();
   }, [loadData]);
 
-  const acceptedQuotes = useMemo(
-    () => quotes.filter((quote) => normalizeStatus(quote.status) === "accepted"),
-    [quotes],
-  );
-
-  const rows = useMemo(
-    () =>
-      acceptedQuotes.map((quote) => {
-        const request = getRequestForQuote(quote, requests);
-        return {
-          quote,
-          request,
-          conciergeName: getConciergeName(quote),
-          propertyLabel: getPropertyLabel(quote, request),
-          services: getServices(quote, request),
-        };
-      }),
-    [acceptedQuotes, requests],
-  );
-
-  const propertyOptions = useMemo(
-    () => Array.from(new Set(rows.map((row) => row.propertyLabel).filter(Boolean))).sort((left, right) => left.localeCompare(right, "fr")),
-    [rows],
-  );
-
-  const filteredRows = useMemo(() => {
+  /**
+   * Filtre les collaborations selon les critères sélectionnés
+   */
+  const filteredCollaborations = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
-    const next = rows.filter((row) => {
-      if (propertyFilter !== "all" && row.propertyLabel !== propertyFilter) return false;
-      if (!normalizedSearch) return true;
-      const haystack = [
-        row.conciergeName,
-        row.propertyLabel,
-        row.quote.quote_number,
-        row.quote.package?.name,
-        row.quote.notes,
-        ...row.services,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(normalizedSearch);
-    });
+    
+    let result = collaborations;
 
-    return [...next].sort((left, right) => {
-      if (sortMode === "amount_desc") return (right.quote.total_amount ?? 0) - (left.quote.total_amount ?? 0);
-      if (sortMode === "amount_asc") return (left.quote.total_amount ?? 0) - (right.quote.total_amount ?? 0);
-      if (sortMode === "validity") {
-        return new Date(left.quote.valid_until ?? 0).getTime() - new Date(right.quote.valid_until ?? 0).getTime();
+    // Filtre par statut de collaboration
+    if (collaborationFilter !== "all") {
+      result = result.filter(c => c.status === collaborationFilter);
+    }
+
+    // Filtre par logement
+    if (propertyFilter !== "all") {
+      result = result.filter(c => c.housing.name === propertyFilter);
+    }
+
+    // Filtre par recherche
+    if (normalizedSearch) {
+      result = result.filter(c => {
+        const haystack = [
+          c.concierge.name,
+          c.housing.name,
+          c.quote.number,
+          c.request?.title,
+          ...(requestServices.get(c.request?.id ?? "") ?? []),
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(normalizedSearch);
+      });
+    }
+
+    // Tri
+    return [...result].sort((left, right) => {
+      if (sortMode === "name_asc") {
+        return left.concierge.name.localeCompare(right.concierge.name, "fr");
       }
-      return new Date(right.quote.accepted_at ?? right.quote.created_at ?? 0).getTime() - new Date(left.quote.accepted_at ?? left.quote.created_at ?? 0).getTime();
+      if (sortMode === "name_desc") {
+        return right.concierge.name.localeCompare(left.concierge.name, "fr");
+      }
+      if (sortMode === "housing") {
+        return left.housing.name.localeCompare(right.housing.name, "fr");
+      }
+      // Tri par défaut : les actives en premier, puis par date de création (plus récentes d'abord)
+      // Comme on n'a pas la date de création, on utilise l'ordre du tableau
+      return 0;
     });
-  }, [propertyFilter, rows, searchTerm, sortMode]);
+  }, [collaborations, collaborationFilter, propertyFilter, requestServices, searchTerm, sortMode]);
 
-  const totalAcceptedAmount = acceptedQuotes.reduce((sum, quote) => sum + (quote.total_amount ?? 0), 0);
-  const conciergeCount = new Set(acceptedQuotes.map((quote) => quote.concierge_profile_id || getConciergeName(quote))).size;
-  const acceptedPropertiesCount = new Set(rows.map((row) => row.propertyLabel)).size;
-  const nextValidUntil = acceptedQuotes
-    .map((quote) => quote.valid_until)
-    .filter((value): value is string => Boolean(value))
-    .sort((left, right) => new Date(left).getTime() - new Date(right).getTime())[0];
+  /**
+   * Calcule les statistiques pour l'affichage
+   */
+  const stats = useMemo(() => {
+    const activeCount = collaborations.filter(c => c.status === "active").length;
+    const endedCount = collaborations.filter(c => c.status === "ended").length;
+    const scheduledCount = collaborations.filter(c => c.status === "scheduled").length;
+    const pausedCount = collaborations.filter(c => c.status === "paused").length;
+    const pendingCount = collaborations.filter(c => c.status === "pending_handover").length;
+    const cancelledCount = collaborations.filter(c => c.status === "cancelled").length;
+    
+    const totalAmount = Array.from(quoteDetails.values()).reduce(
+      (sum, quote) => sum + (quote.total_amount ?? 0),
+      0
+    );
+    
+    const conciergeNames = new Set(collaborations.map(c => c.concierge.name));
+    const housingNames = new Set(collaborations.map(c => c.housing.name));
+    
+    // Prochaine date de fin parmi les collaborations actives avec date de fin
+    const endDates = collaborations
+      .filter(c => c.status === "active")
+      .map(c => getCollaborationEndDate(c))
+      .filter((date): date is string => Boolean(date))
+      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    
+    return {
+      total: collaborations.length,
+      activeCount,
+      endedCount,
+      scheduledCount,
+      pausedCount,
+      pendingCount,
+      cancelledCount,
+      totalAmount,
+      conciergeCount: conciergeNames.size,
+      housingCount: housingNames.size,
+      nextEndDate: endDates[0] ?? null,
+    };
+  }, [collaborations, quoteDetails]);
+
+  /**
+   * Options de filtre par logement
+   */
+  const propertyOptions = useMemo(() => {
+    return Array.from(
+      new Set(collaborations.map(c => c.housing.name).filter(Boolean))
+    ).sort((a, b) => a.localeCompare(b, "fr"));
+  }, [collaborations]);
+
+  /**
+   * Options de filtre par statut
+   */
+  const collaborationStatusOptions: Array<{
+    value: PendingHousingCollaboration["status"] | "all";
+    label: string;
+  }> = [
+    { value: "all", label: "Tous les statuts" },
+    { value: "active", label: "Actives" },
+    { value: "pending_handover", label: "En attente" },
+    { value: "scheduled", label: "Planifiées" },
+    { value: "paused", label: "En pause" },
+    { value: "ended", label: "Terminées" },
+    { value: "cancelled", label: "Annulées" },
+  ];
+
+  /**
+   * Options de tri
+   */
+  const sortOptions: Array<{ value: SortMode; label: string }> = [
+    { value: "recent", label: "Ajout récent" },
+    { value: "name_asc", label: "Nom A-Z" },
+    { value: "name_desc", label: "Nom Z-A" },
+    { value: "housing", label: "Par logement" },
+  ];
 
   return (
     <div className={styles.page}>
       <header className={styles.hero}>
         <div className={styles.heroContent}>
-          <p className={styles.eyebrow}>Partenaires acceptés</p>
-          <h1>Devis acceptés</h1>
+          <p className={styles.eyebrow}>Partenaires conciergeries</p>
+          <h1>Mes collaborations</h1>
           <p>
-            Retrouvez uniquement les conciergeries dont le devis a été accepté, avec les informations utiles pour piloter
-            la collaboration sans mélanger les demandes encore en cours.
+            Retrouvez toutes vos conciergeries partenaires avec qui vous avez une collaboration
+            active ou terminée. Les informations de devis, logement et statut sont affichées
+            pour faciliter le pilotage.
           </p>
           <div className={styles.heroActions}>
-            <ButtonLink href="/dashboard/owner/devis" variant="secondary">
-              <FileText size={16} aria-hidden="true" /> Voir tous les devis
+            <ButtonLink href="/dashboard/owner/concierges" variant="primary">
+              <Search size={16} aria-hidden="true" /> Trouver une conciergerie
             </ButtonLink>
             <ButtonLink href="/dashboard/owner/demandes" variant="secondary">
-              <ArrowRight size={16} aria-hidden="true" /> Demandes
+              <FileText size={16} aria-hidden="true" /> Voir les demandes
             </ButtonLink>
           </div>
         </div>
         <div className={styles.heroSnapshot}>
-          <span><Handshake size={16} /> Collaborations validées</span>
-          <strong>{loading ? "..." : acceptedQuotes.length}</strong>
-          <p>devis acceptés</p>
+          <span><Handshake size={16} /> Collaborations</span>
+          <strong>{loading ? "..." : stats.total}</strong>
+          <p>
+            {loading ? "..." : `${stats.activeCount} active${stats.activeCount !== 1 ? "s" : ""}, ${stats.endedCount} terminée${stats.endedCount !== 1 ? "s" : ""}`}
+          </p>
           <div className={styles.heroProgress}>
-            <span style={{ width: `${Math.min(100, Math.max(14, acceptedQuotes.length * 24))}%` }} />
+            <span style={{ width: `${Math.min(100, Math.max(14, stats.total * 12))}%` }} />
           </div>
         </div>
       </header>
 
       {error ? <p className={`${styles.message} ${styles.messageError}`}>{error}</p> : null}
+      
+      {/* Message d'information pour les collaborations en attente de finalisation */}
+      {!loading && !error && stats.pendingCount > 0 ? (
+        <section className={styles.infoPanel} aria-label="Collaborations en attente de finalisation">
+          <div className={styles.infoContent}>
+            <ShieldCheck size={18} aria-hidden="true" />
+            <div>
+              <strong>Action requise</strong>
+              <p>
+                Vous avez <strong>{stats.pendingCount} collaboration(s)</strong> en attente de finalisation du contrat.
+                <ButtonLink href="/dashboard/owner/devis#collaborations-en-attente" variant="secondary" size="compact">
+                  Finaliser maintenant
+                </ButtonLink>
+              </p>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
-      <section className={styles.statsGrid} aria-label="Indicateurs partenaires acceptés">
-        <StatCard icon={<CheckCircle2 size={18} />} label="Devis acceptés" value={loading ? "..." : String(acceptedQuotes.length)} />
-        <StatCard icon={<Handshake size={18} />} label="Conciergeries" value={loading ? "..." : String(conciergeCount)} />
-        <StatCard icon={<Home size={18} />} label="Logements concernés" value={loading ? "..." : String(acceptedPropertiesCount)} />
-        <StatCard icon={<Sparkles size={18} />} label="Montant validé" value={loading ? "..." : formatAmount(totalAcceptedAmount)} />
-        <StatCard icon={<CalendarClock size={18} />} label="Prochaine validité" value={loading ? "..." : formatDate(nextValidUntil)} />
+      <section className={styles.statsGrid} aria-label="Indicateurs collaborations">
+        <StatCard icon={<CheckCircle2 size={18} />} label="Collaborations actives" value={loading ? "..." : String(stats.activeCount)} />
+        <StatCard icon={<Handshake size={18} />} label="Conciergeries" value={loading ? "..." : String(stats.conciergeCount)} />
+        <StatCard icon={<Home size={18} />} label="Logements couverts" value={loading ? "..." : String(stats.housingCount)} />
+        <StatCard icon={<Sparkles size={18} />} label="Montant total" value={loading ? "..." : formatAmount(stats.totalAmount)} />
+        <StatCard icon={<CalendarClock size={18} />} label="Prochaine fin" value={loading ? "..." : (stats.nextEndDate ? formatDate(stats.nextEndDate) : "Aucune")} />
       </section>
 
-      <section className={styles.filtersPanel} aria-label="Filtres partenaires">
+      <section className={styles.filtersPanel} aria-label="Filtres collaborations">
         <label className={styles.searchField}>
           <Search size={17} aria-hidden="true" />
-          <Input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Rechercher une conciergerie, un logement, un devis..." />
+          <Input 
+            value={searchTerm} 
+            onChange={(event: ChangeEvent<HTMLInputElement>) => setSearchTerm(event.target.value)} 
+            placeholder="Rechercher une conciergerie, un logement..." 
+          />
         </label>
-        <Select value={propertyFilter} onChange={(event) => setPropertyFilter(event.target.value)} aria-label="Filtrer par logement">
+        <Select value={collaborationFilter} onChange={(event: ChangeEvent<HTMLSelectElement>) => setCollaborationFilter(event.target.value as PendingHousingCollaboration["status"] | "all")} aria-label="Filtrer par statut">
+          {collaborationStatusOptions.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </Select>
+        <Select value={propertyFilter} onChange={(event: ChangeEvent<HTMLSelectElement>) => setPropertyFilter(event.target.value)} aria-label="Filtrer par logement">
           <option value="all">Tous les logements</option>
           {propertyOptions.map((property) => (
             <option key={property} value={property}>{property}</option>
           ))}
         </Select>
-        <Select value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)} aria-label="Trier">
-          <option value="recent">Acceptés récemment</option>
-          <option value="amount_desc">Montant décroissant</option>
-          <option value="amount_asc">Montant croissant</option>
-          <option value="validity">Validité proche</option>
+        <Select value={sortMode} onChange={(event: ChangeEvent<HTMLSelectElement>) => setSortMode(event.target.value as SortMode)} aria-label="Trier">
+          {sortOptions.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
         </Select>
       </section>
 
       <section className={styles.sectionPanel}>
         <SectionHeader
           eyebrow="Collaborations validées"
-          title="Conciergeries liées à un devis accepté"
-          description="Chaque carte correspond à un devis accepté. Les demandes sans devis accepté ne sont pas affichées ici."
+          title="Partenaires conciergeries"
+          description="Chaque carte correspond à une collaboration avec une conciergerie. Cliquez sur une carte pour accéder aux détails et aux opérations disponibles."
         />
         {loading ? <SkeletonList /> : null}
-        {!loading && filteredRows.length === 0 ? (
-          <EmptyPanel title="Aucun devis accepté" text="Acceptez un devis depuis la page Devis pour voir la conciergerie apparaître ici." />
+        {!loading && filteredCollaborations.length === 0 ? (
+          <EmptyPanel 
+            title="Aucune collaboration trouvée" 
+            text="Créez une demande, acceptez un devis ou modifiez vos filtres pour voir vos partenaires." 
+          />
         ) : null}
         <div className={styles.partnerGrid}>
-          {filteredRows.map((row) => (
-            <AcceptedPartnerCard key={row.quote.id} row={row} />
-          ))}
+          {filteredCollaborations.map((collaboration) => {
+            const quote = quoteDetails.get(collaboration.quote.id);
+            const services = requestServices.get(collaboration.request?.id ?? "") ?? [];
+            
+            return (
+              <CollaborationCard
+                key={collaboration.id}
+                collaboration={collaboration}
+                quote={quote}
+                services={services}
+              />
+            );
+          })}
         </div>
       </section>
     </div>
   );
 }
 
-function AcceptedPartnerCard({
-  row,
+/**
+ * Carte d'affichage d'une collaboration
+ */
+function CollaborationCard({
+  collaboration,
+  quote,
+  services,
 }: {
-  row: {
-    quote: OwnerQuoteRow;
-    request?: OwnerServiceRequestRow;
-    conciergeName: string;
-    propertyLabel: string;
-    services: string[];
-  };
+  collaboration: HousingCollaborationDisplay;
+  quote: QuoteDetails | undefined;
+  services: string[];
 }) {
+  const conciergeName = collaboration.concierge.name;
+  const housingName = collaboration.housing.name;
+  const status = collaboration.status;
+  const statusLabel = getCollaborationStatusLabel(status);
+  const statusClass = getStatusBadgeClass(status);
+  const endDate = getCollaborationEndDate(collaboration);
+
   return (
     <article className={styles.partnerCard}>
       <div className={styles.cardTop}>
         <div className={styles.identity}>
-          <div className={styles.avatar}>{getInitials(row.conciergeName)}</div>
+          <div className={styles.avatar}>{getInitials(conciergeName)}</div>
           <div>
-            <p className={styles.eyebrow}>Devis accepté</p>
-            <h3>{row.conciergeName}</h3>
-            <span>{row.propertyLabel}</span>
+            <p className={styles.eyebrow}>Conciergerie partenaire</p>
+            <h3>{conciergeName}</h3>
+            <span>{housingName}</span>
           </div>
         </div>
-        <span className={styles.statusBubble}><ShieldCheck size={14} /> Accepté</span>
+        <span className={`${styles.statusBubble} ${statusClass}`}>
+          {status === "active" ? <CheckCircle2 size={14} /> : <ShieldCheck size={14} />}
+          {statusLabel}
+        </span>
       </div>
+      
       <div className={styles.factGrid}>
-        <Metric label="Montant" value={formatAmount(row.quote.total_amount, row.quote.currency ?? "EUR")} />
-        <Metric label="Devis" value={row.quote.quote_number || row.quote.id.slice(0, 8)} />
-        <Metric label="Pack" value={row.quote.package?.name || "Sur mesure"} />
-        <Metric label="Accepté le" value={formatDate(row.quote.accepted_at || row.quote.created_at)} />
+        <Metric label="Collaboration" value={collaboration.id.slice(0, 8)} />
+        {quote ? (
+          <>
+            <Metric label="Devis" value={quote.quote_number || quote.id.slice(0, 8)} />
+            <Metric label="Montant" value={formatAmount(quote.total_amount, quote.currency ?? "EUR")} />
+            <Metric label="Accepté le" value={formatDate(quote.accepted_at)} />
+          </>
+        ) : (
+          <>
+            <Metric label="Devis" value="Non disponible" />
+            <Metric label="Montant" value="-" />
+            <Metric label="Date" value="-" />
+          </>
+        )}
       </div>
-      <div className={styles.chipRow}>
-        {row.services.slice(0, 5).map((service) => <span key={service} className={styles.serviceChip}>{service}</span>)}
-        {row.services.length === 0 ? <span className={styles.serviceChip}>Services à préciser</span> : null}
-      </div>
-      {row.quote.notes ? <p className={styles.quoteNote}>{row.quote.notes}</p> : null}
+
+      {endDate ? (
+        <div className={styles.factGrid}>
+          <Metric label="Fin prévue" value={formatDate(endDate)} />
+        </div>
+      ) : null}
+
+      {services.length > 0 ? (
+        <div className={styles.chipRow}>
+          {services.slice(0, 5).map((service) => (
+            <span key={service} className={styles.serviceChip}>{service}</span>
+          ))}
+          {services.length > 5 ? (
+            <span className={styles.serviceChip}>+{services.length - 5} autres</span>
+          ) : null}
+        </div>
+      ) : null}
+
+      {collaboration.request ? (
+        <p className={styles.requestTitle}>{collaboration.request.title}</p>
+      ) : null}
+
+      {quote?.notes ? (
+        <p className={styles.quoteNote}>{quote.notes}</p>
+      ) : null}
+
       <div className={styles.cardFooter}>
-        <span className={styles.trustBadge}><ShieldCheck size={14} /> Collaboration validée par devis</span>
-        <Link href={`/dashboard/owner/devis?quote=${encodeURIComponent(row.quote.id)}`} className={styles.textLink}>
-          Voir le devis <ArrowRight size={14} />
+        {status === "active" ? (
+          <span className={styles.trustBadge}>
+            <ShieldCheck size={14} /> Collaboration active
+          </span>
+        ) : (
+          <span className={styles.trustBadge}>
+            <XCircle size={14} /> Collaboration {statusLabel.toLowerCase()}
+          </span>
+        )}
+        
+        <Link href={`/dashboard/owner/conciergerie/partenaires/${collaboration.id}`} className={styles.textLink}>
+          Voir le détail <ArrowRight size={14} />
         </Link>
+        
+        {collaboration.missionId ? (
+          <Link href={`/dashboard/owner/missions/${collaboration.missionId}`} className={styles.textLink}>
+            Voir la mission <ArrowRight size={14} />
+          </Link>
+        ) : quote ? (
+          <Link href={`/dashboard/owner/devis?quote=${encodeURIComponent(quote.id)}`} className={styles.textLink}>
+            Voir le devis <ArrowRight size={14} />
+          </Link>
+        ) : null}
       </div>
     </article>
   );
 }
 
+/**
+ * En-tête de section
+ */
 function SectionHeader({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
   return (
     <div className={styles.sectionHeader}>
@@ -367,7 +711,10 @@ function SectionHeader({ eyebrow, title, description }: { eyebrow: string; title
   );
 }
 
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+/**
+ * Carte de statistiques
+ */
+function StatCard({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
     <article className={styles.statCard}>
       <span className={styles.statIcon}>{icon}</span>
@@ -379,6 +726,9 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
   );
 }
 
+/**
+ * Métrique d'affichage
+ */
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className={styles.metric}>
@@ -388,10 +738,13 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
+/**
+ * Panneau vide
+ */
 function EmptyPanel({ title, text }: { title: string; text: string }) {
   return (
     <div className={styles.emptyPanel}>
-      <FileText size={22} aria-hidden="true" />
+      <Handshake size={22} aria-hidden="true" />
       <div>
         <h3>{title}</h3>
         <p>{text}</p>
@@ -400,6 +753,9 @@ function EmptyPanel({ title, text }: { title: string; text: string }) {
   );
 }
 
+/**
+ * Liste de squelettes de chargement
+ */
 function SkeletonList() {
   return (
     <div className={styles.skeletonList}>
