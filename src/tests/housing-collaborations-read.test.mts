@@ -184,6 +184,20 @@ test("database error is not an empty successful collaboration list", async () =>
   assert.equal((await f.get()).status, 500);
 });
 
+test("partner details come from linked references, including old quotes and one-off end dates", async () => {
+  const f = fixture();
+  Object.assign(f.tables.quotes[0], { total_amount: 125, currency: "EUR", accepted_at: "2020-01-01", notes: "Conditions convenues", private_field: "secret" });
+  f.tables.service_requests[0].requested_services = ["linen_change"];
+  f.tables.housing_collaborations[0].ends_on = "2026-12-01";
+  const { items } = await (await f.get("?details=1")).json();
+  assert.equal(items[0].quote.total_amount, 125);
+  assert.equal(items[0].quote.accepted_at, "2020-01-01");
+  assert.equal(items[0].quote.notes, "Conditions convenues");
+  assert.equal(items[0].quote.private_field, undefined);
+  assert.deepEqual(items[0].request.requested_services, ["linen_change"]);
+  assert.equal(items[0].end_date, "2026-12-01");
+});
+
 test("repository SELECT RLS scopes access to either participant (not a live database test)", () => {
   const sql = readFileSync(new URL("../../supabase/migrations/20260621000100_housing_collaborations.sql", import.meta.url), "utf8");
   assert.match(sql, /enable row level security/i);

@@ -15,8 +15,8 @@ type Row = {
 };
 type Person = { id: string; first_name: string | null; last_name: string | null; company_name: string | null };
 type Housing = { id: number; nom_logement: string | null; proprietaire: Record<string, unknown> | null };
-type Quote = { id: string; quote_number: string | null; status: string; owner_profile_id: string; concierge_profile_id: string; service_request_id: string | null };
-type Request = { id: string; title: string; owner_profile_id: string };
+type Quote = { id: string; quote_number: string | null; status: string; owner_profile_id: string; concierge_profile_id: string; service_request_id: string | null; total_amount?: number | null; currency?: string | null; accepted_at?: string | null; notes?: string | null };
+type Request = { id: string; title: string; owner_profile_id: string; requested_services?: string[] | null };
 type Contract = { id: string; collaboration_id: string };
 const name = (person: Person | undefined, fallback: string) =>
   person?.company_name || `${person?.first_name ?? ""} ${person?.last_name ?? ""}`.trim() || fallback;
@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
     const { userId, role } = guard.auth;
     const client = asLooseSupabaseClient(db);
     const url = new URL(req.url);
+    const details = url.searchParams.get("details") === "1";
     const statusParam = url.searchParams.get("status");
     const requestedStatus = statusParam && ["active", "scheduled", "paused", "ended", "cancelled"].includes(statusParam)
       ? statusParam : "pending_handover";
@@ -52,9 +53,9 @@ export async function GET(req: NextRequest) {
     const results = await Promise.all([
       client.from("profiles").select("id,first_name,last_name,company_name").in("id", ids(rows.flatMap(r => [r.owner_profile_id, r.concierge_profile_id]))),
       client.from("housing").select("id,nom_logement,proprietaire").in("id", ids(rows.map(r => r.housing_id))),
-      client.from("quotes").select("id,quote_number,status,owner_profile_id,concierge_profile_id,service_request_id").in("id", ids(rows.map(r => r.quote_id))),
+      client.from("quotes").select("id,quote_number,status,owner_profile_id,concierge_profile_id,service_request_id,total_amount,currency,accepted_at,notes").in("id", ids(rows.map(r => r.quote_id))),
       rows.some(r => r.service_request_id)
-        ? client.from("service_requests").select("id,title,owner_profile_id").in("id", ids(rows.map(r => r.service_request_id)))
+        ? client.from("service_requests").select("id,title,owner_profile_id,requested_services").in("id", ids(rows.map(r => r.service_request_id)))
         : Promise.resolve({ data: [], error: null }),
       requestedStatus === "active"
         ? client.from("services_contracts").select("id,collaboration_id").in("collaboration_id", ids(rows.map(r => r.id)))
@@ -88,8 +89,12 @@ export async function GET(req: NextRequest) {
         owner: { id: row.owner_profile_id, name: name(people.get(row.owner_profile_id), "Propriétaire") },
         concierge: { id: row.concierge_profile_id, name: name(people.get(row.concierge_profile_id), "Concierge") },
         housing: { id: housing.id, name: housing.nom_logement || `Logement ${housing.id}` },
-        quote: quote ? { id: quote.id, number: quote.quote_number } : { id: "", number: null },
-        request: request ? { id: request.id, title: request.title } : null,
+        quote: quote ? { id: quote.id, number: quote.quote_number, ...(details ? {
+          total_amount: quote.total_amount ?? null, currency: quote.currency ?? null,
+          accepted_at: quote.accepted_at ?? null, notes: quote.notes ?? null,
+        } : {}) } : { id: "", number: null },
+        request: request ? { id: request.id, title: request.title, ...(details ? { requested_services: request.requested_services ?? null } : {}) } : null,
+        ...(details ? { end_date: row.ends_on ?? null } : {}),
         contractId: contracts.get(row.id)?.id ?? null,
         missionId: row.mission_id,
         termination: collaborationLifecycle(row, now).termination,

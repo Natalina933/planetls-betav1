@@ -28,8 +28,9 @@ type HousingCollaborationDisplay = {
   owner: { id: string; name: string };
   concierge: { id: string; name: string };
   housing: { id: number; name: string };
-  quote: { id: string; number: string | null };
-  request: { id: string; title: string } | null;
+  quote: { id: string; number: string | null } & QuoteDetails;
+  request: { id: string; title: string; requested_services?: string[] | null } | null;
+  end_date?: string | null;
   contractId?: string | null;
   missionId: string | null;
   termination?: Record<string, unknown> | null;
@@ -58,24 +59,9 @@ type QuoteDetails = {
 };
 
 /**
- * Type pour les services associés à une demande
- */
-type RequestServices = {
-  id: string;
-  requested_services?: string[] | null;
-};
-
-/**
  * Type pour les options de tri
  */
 type SortMode = "recent" | "name_asc" | "name_desc" | "housing";
-
-/**
- * Normalise le statut pour comparaison
- */
-function normalizeStatus(value: unknown) {
-  return typeof value === "string" ? value.trim().toLowerCase() : "";
-}
 
 /**
  * Extrait les initiales d'un nom
@@ -108,22 +94,7 @@ function formatDate(value: string | null | undefined) {
     day: "2-digit",
     month: "short",
     year: "numeric",
-  }).format(date);
-}
-
-/**
- * Formate une date avec heure en français
- */
-function formatDateTime(value: string | null | undefined) {
-  if (!value) return "À confirmer";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Date invalide";
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+    timeZone: "UTC",
   }).format(date);
 }
 
@@ -185,7 +156,7 @@ function getCollaborationEndDate(collaboration: HousingCollaborationDisplay) {
       return endsOn.effective_date;
     }
   }
-  return null;
+  return collaboration.end_date ?? null;
 }
 
 /**
@@ -218,17 +189,13 @@ export default function OwnerAcceptedPartnersPage() {
         pausedResponse,
         endedResponse,
         cancelledResponse,
-        quotesResponse,
-        requestsResponse,
       ] = await Promise.all([
-        fetch("/api/housing-collaborations?status=pending_handover", { cache: "no-store" }),
-        fetch("/api/housing-collaborations?status=active", { cache: "no-store" }),
-        fetch("/api/housing-collaborations?status=scheduled", { cache: "no-store" }),
-        fetch("/api/housing-collaborations?status=paused", { cache: "no-store" }),
-        fetch("/api/housing-collaborations?status=ended", { cache: "no-store" }),
-        fetch("/api/housing-collaborations?status=cancelled", { cache: "no-store" }),
-        fetch("/api/quotes?limit=100", { cache: "no-store" }),
-        fetch("/api/service-requests?limit=100", { cache: "no-store" }),
+        fetch("/api/housing-collaborations?status=pending_handover&details=1", { cache: "no-store" }),
+        fetch("/api/housing-collaborations?status=active&details=1", { cache: "no-store" }),
+        fetch("/api/housing-collaborations?status=scheduled&details=1", { cache: "no-store" }),
+        fetch("/api/housing-collaborations?status=paused&details=1", { cache: "no-store" }),
+        fetch("/api/housing-collaborations?status=ended&details=1", { cache: "no-store" }),
+        fetch("/api/housing-collaborations?status=cancelled&details=1", { cache: "no-store" }),
       ]);
 
       const pendingHandoverPayload = (await pendingHandoverResponse.json()) as HousingCollaborationsPayload;
@@ -237,8 +204,6 @@ export default function OwnerAcceptedPartnersPage() {
       const pausedPayload = (await pausedResponse.json()) as HousingCollaborationsPayload;
       const endedPayload = (await endedResponse.json()) as HousingCollaborationsPayload;
       const cancelledPayload = (await cancelledResponse.json()) as HousingCollaborationsPayload;
-      const quotesPayload = await quotesResponse.json();
-      const requestsPayload = await requestsResponse.json();
 
       // Vérifier les réponses critiques - les collaborations
       if (!pendingHandoverResponse.ok) {
@@ -257,18 +222,8 @@ export default function OwnerAcceptedPartnersPage() {
         throw new Error(endedPayload?.error || "Impossible de charger les collaborations terminées.");
       }
       if (!cancelledResponse.ok) {
-        // Ne pas bloquer : les collaborations annulées sont optionnelles
-        console.warn("[OwnerAcceptedPartnersPage] Erreur chargement collaborations annulées:", cancelledPayload?.error);
+        throw new Error(cancelledPayload?.error || "Impossible de charger les collaborations annulées.");
       }
-      if (!quotesResponse.ok) {
-        throw new Error(quotesPayload?.error || "Impossible de charger les devis.");
-      }
-      if (!requestsResponse.ok) {
-        const error = requestsPayload?.error || "Impossible de charger les demandes.";
-        // Ne pas bloquer si les demandes ne sont pas disponibles
-        console.warn("[OwnerAcceptedPartnersPage] Erreur chargement demandes:", error);
-      }
-
       // Combiner toutes les collaborations sans doublons (basé sur l'ID unique)
       const allCollaborationsMap = new Map<string, HousingCollaborationDisplay>();
       const payloads = [
@@ -296,39 +251,8 @@ export default function OwnerAcceptedPartnersPage() {
       setCollaborations(allCollaborations);
 
       // Extraire les détails des devis pour les collaborations
-      const quoteIds = allCollaborations.map(c => c.quote.id).filter(id => id);
-      const quotesArray = Array.isArray(quotesPayload) ? quotesPayload : [];
-      const quoteDetailsMap = new Map<string, QuoteDetails>();
-      
-      for (const quote of quotesArray) {
-        if (quote && quote.id && quoteIds.includes(quote.id)) {
-          quoteDetailsMap.set(quote.id, {
-            id: quote.id,
-            total_amount: quote.total_amount,
-            currency: quote.currency,
-            accepted_at: quote.accepted_at,
-            valid_until: quote.valid_until,
-            quote_number: quote.quote_number,
-            package: quote.package,
-            notes: quote.notes,
-          });
-        }
-      }
-      setQuoteDetails(quoteDetailsMap);
-
-      // Extraire les services des demandes pour les collaborations
-      const requestIds = allCollaborations
-        .map(c => c.request?.id)
-        .filter((id): id is string => Boolean(id));
-      const requestsArray = Array.isArray(requestsPayload.items) ? requestsPayload.items : [];
-      const requestServicesMap = new Map<string, string[]>();
-      
-      for (const request of requestsArray) {
-        if (request && request.id && requestIds.includes(request.id)) {
-          requestServicesMap.set(request.id, request.requested_services ?? []);
-        }
-      }
-      setRequestServices(requestServicesMap);
+      setQuoteDetails(new Map(allCollaborations.filter(c => c.quote.id).map(c => [c.quote.id, { ...c.quote, quote_number: c.quote.number }])));
+      setRequestServices(new Map(allCollaborations.flatMap(c => c.request ? [[c.request.id, c.request.requested_services ?? []] as [string, string[]]] : [])));
 
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de charger les partenaires.");
@@ -338,7 +262,8 @@ export default function OwnerAcceptedPartnersPage() {
   }, []);
 
   useEffect(() => {
-    void loadData();
+    const timer = setTimeout(() => { void loadData(); }, 0);
+    return () => clearTimeout(timer);
   }, [loadData]);
 
   /**
@@ -404,10 +329,12 @@ export default function OwnerAcceptedPartnersPage() {
     const pendingCount = collaborations.filter(c => c.status === "pending_handover").length;
     const cancelledCount = collaborations.filter(c => c.status === "cancelled").length;
     
-    const totalAmount = Array.from(quoteDetails.values()).reduce(
-      (sum, quote) => sum + (quote.total_amount ?? 0),
-      0
-    );
+    const quotes = Array.from(quoteDetails.values());
+    const currencies = new Set(quotes.map(quote => quote.currency ?? "EUR"));
+    const totalAmount = quotes.every(quote => typeof quote.total_amount === "number" && Number.isFinite(quote.total_amount))
+      ? quotes.reduce((sum, quote) => sum + (quote.total_amount ?? 0), 0) : null;
+    const totalCurrency = currencies.values().next().value ?? "EUR";
+    const multipleCurrencies = currencies.size > 1;
     
     const conciergeNames = new Set(collaborations.map(c => c.concierge.name));
     const housingNames = new Set(collaborations.map(c => c.housing.name));
@@ -428,6 +355,8 @@ export default function OwnerAcceptedPartnersPage() {
       pendingCount,
       cancelledCount,
       totalAmount,
+      totalCurrency,
+      multipleCurrencies,
       conciergeCount: conciergeNames.size,
       housingCount: housingNames.size,
       nextEndDate: endDates[0] ?? null,
@@ -525,7 +454,7 @@ export default function OwnerAcceptedPartnersPage() {
         <StatCard icon={<CheckCircle2 size={18} />} label="Collaborations actives" value={loading ? "..." : String(stats.activeCount)} />
         <StatCard icon={<Handshake size={18} />} label="Conciergeries" value={loading ? "..." : String(stats.conciergeCount)} />
         <StatCard icon={<Home size={18} />} label="Logements couverts" value={loading ? "..." : String(stats.housingCount)} />
-        <StatCard icon={<Sparkles size={18} />} label="Montant total" value={loading ? "..." : formatAmount(stats.totalAmount)} />
+        <StatCard icon={<Sparkles size={18} />} label="Montant total" value={loading ? "..." : stats.multipleCurrencies ? "Devises multiples" : formatAmount(stats.totalAmount, stats.totalCurrency)} />
         <StatCard icon={<CalendarClock size={18} />} label="Prochaine fin" value={loading ? "..." : (stats.nextEndDate ? formatDate(stats.nextEndDate) : "Aucune")} />
       </section>
 
@@ -563,7 +492,7 @@ export default function OwnerAcceptedPartnersPage() {
           description="Chaque carte correspond à une collaboration avec une conciergerie. Cliquez sur une carte pour accéder aux détails et aux opérations disponibles."
         />
         {loading ? <SkeletonList /> : null}
-        {!loading && filteredCollaborations.length === 0 ? (
+        {!loading && !error && filteredCollaborations.length === 0 ? (
           <EmptyPanel 
             title="Aucune collaboration trouvée" 
             text="Créez une demande, acceptez un devis ou modifiez vos filtres pour voir vos partenaires." 

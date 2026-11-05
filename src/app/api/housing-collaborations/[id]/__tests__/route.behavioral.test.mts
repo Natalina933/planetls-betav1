@@ -3,103 +3,16 @@
  * 
  * Mission: CONCIERGE-04C2 - Validation de sécurité des collaborations
  * 
- * Ces tests exécutent le VRAI handler HTTP avec des dépendances mockées.
- * Ils vérifient le comportement réel : authentification, autorisations, isolation des données.
+ * Tests historiques de logique recopiée et d'inspection du code source.
+ * Le vrai handler est exécuté dans src/tests/collaboration-detail.test.mts.
  * 
  * Exécuter avec: node --experimental-strip-types --test src/app/api/housing-collaborations/[id]/__tests__/route.behavioral.test.mts
  */
 
 import test from "node:test";
 import assert from "node:assert/strict";
+import { z } from "zod";
 
-// =============================================================================
-// ÉTAPE 1: CRÉER UN MOBILE DE NEXT/REQUEST/RESPONSE
-// =============================================================================
-
-/** Mock minimal de NextRequest pour les tests */
-class MockNextRequest {
-  method: string;
-  url: string;
-  headers: Headers;
-  nextUrl: URL;
-  
-  constructor(url: string) {
-    this.method = "GET";
-    this.url = url;
-    this.headers = new Headers();
-    this.nextUrl = new URL(url);
-  }
-}
-
-/** Mock minimal de NextResponse pour les tests */
-function mockNextResponse(jsonData: unknown, init: ResponseInit) {
-  return {
-    status: init.status,
-    statusText: init.statusText,
-    headers: init.headers,
-    ok: init.status >= 200 && init.status < 300,
-    json: async () => jsonData,
-    text: async () => JSON.stringify(jsonData),
-  };
-}
-
-// =============================================================================
-// ÉTAPE 2: CRÉER DES MOCKS POUR LES DÉPENDANCES
-// =============================================================================
-
-// Mock pour requireApiRole
-const mockRequireApiRole = test.mock.fn<[
-  { method: string; url: string; headers: Headers; nextUrl: URL },
-  ReadonlySet<string>
-], Promise<{
-  ok: boolean;
-  response?: ReturnType<typeof mockNextResponse>;
-  auth?: { userId: string; role: string };
-}>>();
-
-// Mock pour le client Supabase
-const mockSupabaseClient = {
-  from: test.mock.fn<(table: string) => {
-    select: test.MockFn;
-    eq: test.MockFn;
-    in: test.MockFn;
-    maybeSingle: test.MockFn;
-  }>(),
-};
-
-const mockAsLooseSupabaseClient = test.mock.fn<(client: unknown) => typeof mockSupabaseClient>();
-
-// Mock pour collaborationLifecycle
-const mockCollaborationLifecycle = test.mock.fn<[unknown, Date?], {
-  invalid: boolean;
-  status: string;
-  termination: unknown;
-  canCreateInterventions: boolean;
-}>();
-
-// Mock pour db
-const mockDb = {};
-
-// =============================================================================
-// ÉTAPE 3: APPLIQUER LES MOCKS AU MODULES
-// =============================================================================
-
-import { setImmediate } from "node:timers/promises";
-
-// Cette approche utilise test.mock.module pour patcher les imports
-// Mais node:test mock.module n'est disponible que dans Node 22+
-
-// Pour l'instant, nous allons tester indirectement via la logique métier
-// en créant des tests qui vérifient que le handler serait appelé correctement
-
-// =============================================================================
-// APPROCHE ALTERNATIVE: TESTER LA LOGIQUE EN ISOLANT LES DÉPENDANCES
-// =============================================================================
-
-/**
- * Test de vérification que les rôles sont correctement définis
- * (reprise du test statique pour validation)
- */
 test("01-B | Vérification des rôles autorisés", () => {
   const roles = new Set(["owner", "owner_pro", "concierge", "concierge_pro"]);
   assert.ok(roles.has("owner"), "Rôle owner doit être autorisé");
@@ -114,7 +27,6 @@ test("01-B | Vérification des rôles autorisés", () => {
  * Test de validation UUID
  */
 test("02-B | Validation UUID - cas invalides", () => {
-  const { z } = require("zod");
   const uuidSchema = z.string().uuid();
   
   const invalidIds = ["invalide", "123", "", "abc-def", "not-a-uuid"];
@@ -128,7 +40,6 @@ test("02-B | Validation UUID - cas invalides", () => {
  * Test de validation UUID - cas valides
  */
 test("03-B | Validation UUID - cas valides", () => {
-  const { z } = require("zod");
   const uuidSchema = z.string().uuid();
   
   const validUuids = [
@@ -166,10 +77,10 @@ test("04-B | Mapping rôle vers colonne de filtre", () => {
  */
 test("05-B | Vérification des références de logement - cohérent", () => {
   const ownerKeys = ["owner_profile_id", "owner_id", "proprietaire_id", "id", "userId", "profile_id"];
-  const housing = { proprietaire: { owner_profile_id: "owner-123" } };
+  const housing: { proprietaire: Record<string, unknown> | null } = { proprietaire: { owner_profile_id: "owner-123" } };
   const row = { owner_profile_id: "owner-123" };
   
-  const owners = housing?.proprietaire ? ownerKeys.map(key => housing.proprietaire[key]).filter((value) => value != null && value !== "") : [];
+  const owners = housing?.proprietaire ? ownerKeys.map(key => housing.proprietaire?.[key]).filter((value) => value != null && value !== "") : [];
   const isValid = owners.length > 0 && !owners.some(id => id !== row.owner_profile_id);
   
   assert.ok(isValid, "Référence cohérente doit passer");
@@ -180,10 +91,10 @@ test("05-B | Vérification des références de logement - cohérent", () => {
  */
 test("06-B | Vérification des références de logement - incohérent", () => {
   const ownerKeys = ["owner_profile_id", "owner_id", "proprietaire_id", "id", "userId", "profile_id"];
-  const housing = { proprietaire: { owner_profile_id: "owner-456" } };
+  const housing: { proprietaire: Record<string, unknown> | null } = { proprietaire: { owner_profile_id: "owner-456" } };
   const row = { owner_profile_id: "owner-123" };
   
-  const owners = housing?.proprietaire ? ownerKeys.map(key => housing.proprietaire[key]).filter((value) => value != null && value !== "") : [];
+  const owners = housing?.proprietaire ? ownerKeys.map(key => housing.proprietaire?.[key]).filter((value) => value != null && value !== "") : [];
   const isValid = owners.length > 0 && !owners.some(id => id !== row.owner_profile_id);
   
   assert.ok(!isValid, "Référence incohérente doit échouer");
@@ -194,10 +105,10 @@ test("06-B | Vérification des références de logement - incohérent", () => {
  */
 test("07-B | Vérification des références de logement - pas de propriétaire", () => {
   const ownerKeys = ["owner_profile_id", "owner_id", "proprietaire_id", "id", "userId", "profile_id"];
-  const housing = { proprietaire: null };
+  const housing: { proprietaire: Record<string, unknown> | null } = { proprietaire: null };
   const row = { owner_profile_id: "owner-123" };
   
-  const owners = housing?.proprietaire ? ownerKeys.map(key => housing.proprietaire[key]).filter((value) => value != null && value !== "") : [];
+  const owners = housing?.proprietaire ? ownerKeys.map(key => housing.proprietaire?.[key]).filter((value) => value != null && value !== "") : [];
   const isValid = owners.length > 0 && !owners.some(id => id !== row.owner_profile_id);
   
   assert.ok(!isValid, "Pas de propriétaire doit échouer");
@@ -244,7 +155,7 @@ test("09-B | housing.name utilise le fallback", () => {
  * Test de la fonction name() avec fallback
  */
 test("10-B | name() utilise le fallback", () => {
-  const name = (person: { company_name?: string; first_name?: string; last_name?: string } | undefined, fallback: string) =>
+  const name = (person: { company_name?: string | null; first_name?: string | null; last_name?: string | null } | undefined, fallback: string) =>
     person?.company_name || `${person?.first_name ?? ""} ${person?.last_name ?? ""}`.trim() || fallback;
   
   const testCases = [

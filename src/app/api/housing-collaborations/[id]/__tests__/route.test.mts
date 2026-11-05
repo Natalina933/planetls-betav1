@@ -74,7 +74,7 @@ test("03 | Le filtre par rôle est correctement implémenté", () => {
 
 test("04 | Vérification des références de logement - cohérent", () => {
   const ownerKeys = ["owner_profile_id", "owner_id", "proprietaire_id", "id", "userId", "profile_id"];
-  const housing = { proprietaire: { owner_profile_id: "owner-123" } };
+  const housing: { proprietaire: Record<string, unknown> | null } = { proprietaire: { owner_profile_id: "owner-123" } };
   const row = { owner_profile_id: "owner-123" };
   
   const owners = ownerKeys
@@ -87,7 +87,7 @@ test("04 | Vérification des références de logement - cohérent", () => {
 
 test("05 | Vérification des références de logement - incohérent", () => {
   const ownerKeys = ["owner_profile_id", "owner_id", "proprietaire_id", "id", "userId", "profile_id"];
-  const housing = { proprietaire: { owner_profile_id: "owner-456" } };
+  const housing: { proprietaire: Record<string, unknown> | null } = { proprietaire: { owner_profile_id: "owner-456" } };
   const row = { owner_profile_id: "owner-123" };
   
   const owners = ownerKeys
@@ -100,7 +100,7 @@ test("05 | Vérification des références de logement - incohérent", () => {
 
 test("06 | Vérification des références de logement - pas de proprietaire", () => {
   const ownerKeys = ["owner_profile_id", "owner_id", "proprietaire_id", "id", "userId", "profile_id"];
-  const housing = { proprietaire: null };
+  const housing: { proprietaire: Record<string, unknown> | null } = { proprietaire: null };
   const row = { owner_profile_id: "owner-123" };
   
   const owners = ownerKeys
@@ -174,7 +174,7 @@ test("10 | housing.name utilise le fallback", () => {
 });
 
 test("11 | name() utilise le fallback", () => {
-  const name = (person, fallback) =>
+  const name = (person: { company_name?: string | null; first_name?: string | null; last_name?: string | null } | undefined, fallback: string) =>
     person?.company_name || `${person?.first_name ?? ""} ${person?.last_name ?? ""}`.trim() || fallback;
   
   const testCases = [

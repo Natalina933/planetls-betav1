@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import {
   ArrowLeft,
@@ -34,6 +34,7 @@ type CollaborationDetail = PendingHousingCollaboration & {
     currency?: string | null;
     accepted_at?: string | null;
     valid_until?: string | null;
+    notes?: string | null;
   };
   request: PendingHousingCollaboration["request"] & {
     requested_services?: string[] | null;
@@ -42,6 +43,7 @@ type CollaborationDetail = PendingHousingCollaboration & {
   termination?: Record<string, unknown> | null;
   collaboration_type?: string | null;
   start_date?: string | null;
+  end_date?: string | null;
 };
 
 /**
@@ -107,6 +109,7 @@ function formatDate(value: string | null | undefined) {
     day: "2-digit",
     month: "short",
     year: "numeric",
+    timeZone: "UTC",
   }).format(date);
 }
 
@@ -166,7 +169,14 @@ function getCollaborationTypeLabel(type: string | null | undefined) {
     case "ponctual":
     case "ponctuelle":
     case "one-time":
+    case "one_off":
       return "Ponctuelle";
+    case "regular": return "Régulière";
+    case "full_management": return "Gestion complète";
+    case "partial_management": return "Gestion partielle";
+    case "temporary_replacement": return "Remplacement temporaire";
+    case "trial": return "Essai";
+    case "onboarding": return "Mise en place";
     default:
       return type;
   }
@@ -189,6 +199,8 @@ export default function CollaborationDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [termination, setTermination] = useState<TerminationResponse | null>(null);
+  const [terminationError, setTerminationError] = useState<string | null>(null);
+  const submittingRef = useRef(false);
   const [showTerminationModal, setShowTerminationModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -242,6 +254,8 @@ export default function CollaborationDetailPage() {
    * Charge les informations de résiliation
    */
   const loadTermination = useCallback(async () => {
+    setTermination(null);
+    setTerminationError(null);
     try {
       if (!collaborationId) return;
 
@@ -251,13 +265,7 @@ export default function CollaborationDetailPage() {
 
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
-        if (response.status === 404) {
-          // Collaboration introuvable ou accès refusé
-          setTermination(null);
-        } else {
-          throw new Error(payload?.error || "Impossible de charger les informations de résiliation.");
-        }
-        return;
+        throw new Error(payload?.error || "Impossible de charger les informations de résiliation.");
       }
 
       const payload = await response.json();
@@ -269,13 +277,17 @@ export default function CollaborationDetailPage() {
     } catch (err) {
       // Ne pas bloquer l'affichage de la page si le chargement de la résiliation échoue
       console.error("Erreur lors du chargement de la résiliation:", err);
+      setTerminationError(err instanceof Error ? err.message : "Informations de résiliation indisponibles.");
       setTermination(null);
     }
   }, [collaborationId]);
 
   useEffect(() => {
-    void loadCollaboration();
-    void loadTermination();
+    const timer = setTimeout(() => {
+      void loadCollaboration();
+      void loadTermination();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [loadCollaboration, loadTermination]);
 
   /**
@@ -293,7 +305,7 @@ export default function CollaborationDetailPage() {
         return endsOn.effective_date;
       }
     }
-    return null;
+    return collaboration.end_date ?? null;
   }
 
   /**
@@ -320,6 +332,8 @@ export default function CollaborationDetailPage() {
    * Demande la résiliation de la collaboration
    */
   const handleRequestTermination = useCallback(async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     try {
       setIsSubmitting(true);
       setSubmitError(null);
@@ -362,6 +376,7 @@ export default function CollaborationDetailPage() {
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Impossible de demander la résiliation.");
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
   }, [collaborationId, loadCollaboration]);
@@ -399,7 +414,7 @@ export default function CollaborationDetailPage() {
    */
   function getNoticeDays(): number | null {
     if (!termination?.termination_request) return null;
-    return termination.termination_request.notice_days || 30;
+    return termination.termination_request.notice_days ?? null;
   }
 
   /**
@@ -421,6 +436,7 @@ export default function CollaborationDetailPage() {
    * Ferme la modal de résiliation
    */
   const handleCloseTerminationModal = useCallback(() => {
+    if (submittingRef.current) return;
     setShowTerminationModal(false);
     setSubmitError(null);
     setSubmitSuccess(false);
@@ -644,10 +660,11 @@ export default function CollaborationDetailPage() {
           {getTerminationEndDate() ? (
             <InfoBlock icon={<CalendarClock size={16} />} label="Date de fin prévue" value={formatDate(getTerminationEndDate()!)} />
           ) : null}
-          {getNoticeDays() ? (
+          {getNoticeDays() !== null ? (
             <InfoBlock icon={<Calendar size={16} />} label="Préavis" value={`${getNoticeDays()} jours (${getNoticeSource()})`} />
           ) : null}
         </div>
+        {terminationError ? <p role="alert">{terminationError}</p> : null}
         
         {canRequestTermination() && (
           <div className={styles.terminationActions}>
@@ -661,12 +678,12 @@ export default function CollaborationDetailPage() {
           </div>
         )}
         
-        {termination?.interventions_requiring_arbitration?.length > 0 && (
+        {termination && termination.interventions_requiring_arbitration.length > 0 && (
           <div className={styles.warningBox}>
             <AlertTriangle size={18} />
             <p>
               <strong>Attention :</strong> {termination.interventions_requiring_arbitration.length} intervention(s) 
-              nécessitent une arbitration après la date de résiliation.
+              nécessitent un arbitrage après la date de résiliation.
             </p>
           </div>
         )}
@@ -754,7 +771,7 @@ function TerminationModal({
                 </div>
               )}
 
-              {noticeDays && (
+              {noticeDays !== null && (
                 <div className={styles.modalInfo}>
                   <p>
                     <strong>Préavis :</strong> {noticeDays} jours
@@ -765,7 +782,9 @@ function TerminationModal({
               <div className={styles.modalWarning}>
                 <AlertTriangle size={18} />
                 <p>
-                  Pendant le préavis, les interventions existantes seront honorées jusqu&apos;à la date de fin.
+                  Le préavis standard est de 30 jours, sauf conditions particulières acceptées par les deux parties.
+                  Le serveur déterminera le préavis applicable et la date de fin lors de la confirmation.
+                  Les interventions dépassant cette échéance nécessiteront un arbitrage.
                   Après la date de fin, aucune nouvelle intervention ne pourra être créée.
                 </p>
               </div>

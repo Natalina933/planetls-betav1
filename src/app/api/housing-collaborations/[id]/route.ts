@@ -10,13 +10,13 @@ export const dynamic = "force-dynamic";
 const roles = new Set(["owner", "owner_pro", "concierge", "concierge_pro"]);
 const headers = { "Cache-Control": "private, no-store" };
 type Row = {
-  scope?: unknown; ends_on?: string | null;
+  scope?: unknown; ends_on?: string | null; starts_on?: string | null; collaboration_type?: string | null;
   id: string; housing_id: number; owner_profile_id: string; concierge_profile_id: string;
   quote_id: string | null; service_request_id: string | null; mission_id: string | null; status: PendingHousingCollaboration["status"];
 };
 type Person = { id: string; first_name: string | null; last_name: string | null; company_name: string | null };
 type Housing = { id: number; nom_logement: string | null; proprietaire: Record<string, unknown> | null };
-type Quote = { id: string; quote_number: string | null; status: string; owner_profile_id: string; concierge_profile_id: string; service_request_id: string | null; total_amount: number | null; currency: string | null; accepted_at: string | null; valid_until: string | null };
+type Quote = { id: string; quote_number: string | null; status: string; owner_profile_id: string; concierge_profile_id: string; service_request_id: string | null; total_amount: number | null; currency: string | null; accepted_at: string | null; valid_until: string | null; notes: string | null };
 type Request = { id: string; title: string; owner_profile_id: string; requested_services?: string[] | null };
 type Contract = { id: string; collaboration_id: string };
 type Mission = { id: string; title: string; status: string | null };
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
     const column = role === "owner" || role === "owner_pro" ? "owner_profile_id" : "concierge_profile_id";
     const { data: rawRow, error: fetchError } = await client
       .from("housing_collaborations")
-      .select("id,housing_id,owner_profile_id,concierge_profile_id,quote_id,service_request_id,mission_id,status,scope,ends_on")
+      .select("id,housing_id,owner_profile_id,concierge_profile_id,quote_id,service_request_id,mission_id,status,scope,ends_on,starts_on,collaboration_type")
       .eq("id", collaborationId)
       .eq(column, userId)
       .maybeSingle();
@@ -76,13 +76,13 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
     const [peopleResult, housingResult, quoteResult, requestResult, contractResult, missionResult] = await Promise.all([
       client.from("profiles").select("id,first_name,last_name,company_name").in("id", [row.owner_profile_id, row.concierge_profile_id]),
       client.from("housing").select("id,nom_logement,proprietaire").eq("id", row.housing_id).maybeSingle(),
-      row.quote_id ? client.from("quotes").select("*").eq("id", row.quote_id).maybeSingle() : Promise.resolve({ data: null, error: null }),
+      row.quote_id ? client.from("quotes").select("id,quote_number,status,owner_profile_id,concierge_profile_id,service_request_id,total_amount,currency,accepted_at,valid_until,notes").eq("id", row.quote_id).maybeSingle() : Promise.resolve({ data: null, error: null }),
       row.service_request_id ? client.from("service_requests").select("id,title,owner_profile_id,requested_services").eq("id", row.service_request_id).maybeSingle() : Promise.resolve({ data: null, error: null }),
       client.from("services_contracts").select("id").eq("collaboration_id", row.id).maybeSingle(),
-      row.mission_id ? client.from("missions").select("id,title,status").eq("id", row.mission_id).maybeSingle() : Promise.resolve({ data: null, error: null }),
+      row.mission_id ? client.from("missions").select("id,title,status").eq("id", row.mission_id).eq("owner_profile_id", row.owner_profile_id).eq("concierge_profile_id", row.concierge_profile_id).maybeSingle() : Promise.resolve({ data: null, error: null }),
     ]);
 
-    if (peopleResult.error || housingResult.error) {
+    if ([peopleResult, housingResult, quoteResult, requestResult, contractResult, missionResult].some(result => result.error)) {
       throw new Error("Impossible de charger les références de la collaboration.");
     }
 
@@ -95,20 +95,26 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
 
     // Vérification des références (sécurité)
     const ownerKeys = ["owner_profile_id", "owner_id", "proprietaire_id", "id", "userId", "profile_id"];
-    const owners = housing?.proprietaire ? ownerKeys.map(key => housing.proprietaire[key]).filter(value => value != null && value !== "") : [];
+    const owners = ownerKeys.map(key => housing?.proprietaire?.[key]).filter(value => value != null && value !== "");
     
-    if (!housing || owners.length === 0 || owners.some(id => id !== row.owner_profile_id)) {
+    if (!housing || owners.length === 0 || owners.some(id => id !== row.owner_profile_id)
+      || (row.quote_id && (!quote || quote.status !== "accepted"
+        || quote.owner_profile_id !== row.owner_profile_id || quote.concierge_profile_id !== row.concierge_profile_id
+        || (quote.service_request_id && quote.service_request_id !== row.service_request_id)))
+      || (row.service_request_id && (!request || request.owner_profile_id !== row.owner_profile_id))
+      || (row.mission_id && !mission)) {
       return NextResponse.json({ error: "Références de logement incohérentes." }, { status: 409, headers });
     }
 
     // Construction de la réponse
     const item: PendingHousingCollaboration & {
-      quote: PendingHousingCollaboration["quote"] & { total_amount?: number | null; currency?: string | null; accepted_at?: string | null; valid_until?: string | null };
+      quote: PendingHousingCollaboration["quote"] & { total_amount?: number | null; currency?: string | null; accepted_at?: string | null; valid_until?: string | null; notes?: string | null };
       request: PendingHousingCollaboration["request"] & { requested_services?: string[] | null } | null;
       mission: { id: string; title: string; status: string | null } | null;
       termination?: Record<string, unknown> | null;
       collaboration_type?: string | null;
       start_date?: string | null;
+      end_date?: string | null;
     } = {
       id: row.id,
       status: effectiveStatus,
@@ -122,6 +128,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
         currency: quote?.currency ?? null,
         accepted_at: quote?.accepted_at ?? null,
         valid_until: quote?.valid_until ?? null,
+        notes: quote?.notes ?? null,
       },
       request: request ? {
         id: request.id,
@@ -137,8 +144,9 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
       } : null,
       termination,
       // Champs supplémentaires pour le détail
-      collaboration_type: scope?.type as string | null ?? null,
-      start_date: scope?.start_date as string | null ?? null,
+      collaboration_type: scope?.continuous_collaboration === true ? "continuous" : row.collaboration_type ?? null,
+      start_date: row.starts_on ?? null,
+      end_date: row.ends_on ?? null,
     };
 
     return NextResponse.json({ item }, { headers });
