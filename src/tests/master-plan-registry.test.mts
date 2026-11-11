@@ -143,7 +143,7 @@ ${JSON.stringify({
   assert.equal(plan.planning.length, DEVELOPMENT_ITEM_STATUSES.length);
 });
 
-test("the registry completes a priority automatically when every criterion is validated", () => {
+test("the registry preserves declared status even when every criterion is validated", () => {
   const markdown = `# Plan
 
 ## Registre structure du developpement
@@ -202,7 +202,7 @@ ${JSON.stringify({
 
   const plan = parseMasterPlan(markdown, "2026-08-25T10:00:00.000Z");
 
-  assert.equal(plan.registryItems[0]?.status, "COMPLETED");
+  assert.equal(plan.registryItems[0]?.status, "TO_VERIFY");
   assert.equal(plan.registryItems[1]?.status, "BLOCKED");
 });
 

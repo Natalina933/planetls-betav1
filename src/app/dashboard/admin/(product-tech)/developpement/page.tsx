@@ -116,8 +116,8 @@ async function getSupabaseHealth(): Promise<MissionControlHealthCard> {
 
     return {
       label: "Santé Supabase",
-      status: "healthy",
-      detail: `${profilesRes.count ?? 0} profils et ${missionsRes.count ?? 0} missions accessibles au contrôle.`,
+      status: "warning",
+      detail: `Mesure de lecture privilégiée : ${profilesRes.count ?? 0} profils et ${missionsRes.count ?? 0} missions accessibles. RLS utilisateur et disponibilité globale non validées.`,
       checkedAt,
     };
   } catch (error) {

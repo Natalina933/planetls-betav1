@@ -184,7 +184,7 @@ const FAVORITES_STORAGE_KEY = "planetls:developer-log:favorites";
 const COMMENTS_STORAGE_KEY = "planetls:developer-log:comments";
 const MANUAL_ENTRIES_STORAGE_KEY = "planetls:developer-log:manual-entries";
 const ROADMAP_COMPLETIONS_STORAGE_KEY = "planetls:developer-roadmap:completions";
-const REFERENCE_NOW = new Date("2026-07-27T12:00:00+02:00");
+// Current time is evaluated when a date-dependent filter is used.
 // Historical reference recovered from commit 3add992b and kept explicit until full registry convergence.
 const PRIORITY_TABLE_ROWS: PriorityTableRow[] = [
   {
@@ -958,14 +958,14 @@ function getWeekStart(date: Date) {
 function inTimeframe(date: string, timeframe: JournalTimeframe) {
   if (timeframe === "all") return true;
   const entryDate = new Date(date);
-  if (timeframe === "today") return isSameDay(entryDate, REFERENCE_NOW);
+  if (timeframe === "today") return isSameDay(entryDate, new Date());
   if (timeframe === "week") {
-    const start = getWeekStart(REFERENCE_NOW);
-    return entryDate >= start && entryDate <= REFERENCE_NOW;
+    const start = getWeekStart(new Date());
+    return entryDate >= start && entryDate <= new Date();
   }
   if (timeframe === "month") {
-    return entryDate.getFullYear() === REFERENCE_NOW.getFullYear()
-      && entryDate.getMonth() === REFERENCE_NOW.getMonth();
+    return entryDate.getFullYear() === new Date().getFullYear()
+      && entryDate.getMonth() === new Date().getMonth();
   }
   return true;
 }
@@ -1200,7 +1200,7 @@ function hoursSince(date: string | null) {
   if (!date) return null;
   const parsed = new Date(date);
   if (Number.isNaN(parsed.getTime())) return null;
-  return Math.max(0, Math.round((REFERENCE_NOW.getTime() - parsed.getTime()) / (1000 * 60 * 60)));
+  return Math.max(0, Math.round((new Date().getTime() - parsed.getTime()) / (1000 * 60 * 60)));
 }
 
 function formatBlockedByLabels(item: RoadmapProjectedItem, roadmap: RoadmapView) {
@@ -1891,7 +1891,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   const healthDangerCount = missionControl.healthCards.filter((card) => card.status === "danger").length;
   const healthWarningCount = missionControl.healthCards.filter((card) => card.status === "warning").length;
   const healthUnverifiableCount = missionControl.healthCards.filter((card) => card.status === "unverifiable").length;
-  const hoursSinceLastBackup = hoursSince(missionControl.lastBackupAt);
+  const hoursSinceLastCommit = hoursSince(missionControl.lastCommitAt);
   const nextSuggestion = roadmapProjection.nextSuggestion;
   const topReadyItems = roadmapProjection.readyItems.slice(0, 3);
   const topBlockedItems = roadmapProjection.blockedItems.slice(0, 3);
@@ -1987,13 +1987,13 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       ? {
           id: "critical-bugs",
           title: `${missionControl.criticalBugs} bug(s) critique(s)`,
-          detail: `${missionControl.minorBugs} point(s) secondaire(s) restent également à surveiller.`,
+          detail: `${missionControl.minorBugs} autre(s) bug(s) déclaré(s) restent également à surveiller.`,
           tone: "danger",
         }
       : {
           id: "critical-bugs",
           title: "Aucun bug critique remonté",
-          detail: `${missionControl.minorBugs} point(s) secondaire(s) seulement dans le radar courant.`,
+          detail: `${missionControl.minorBugs} autre(s) bug(s) déclaré(s) seulement dans le radar courant.`,
           tone: missionControl.minorBugs > 0 ? "warning" : "healthy",
         },
     roadmapBlockedCount > 0
@@ -2026,23 +2026,23 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
           detail: "Les contrôles principaux restent au vert dans le cockpit actuel.",
           tone: "healthy",
         },
-    hoursSinceLastBackup === null
+    hoursSinceLastCommit === null
       ? {
           id: "execution-rhythm",
           title: "Aucun repère d'exécution récent",
           detail: "Le cockpit ne trouve pas encore de dernier commit exploitable pour qualifier le rythme courant.",
           tone: "warning",
         }
-      : hoursSinceLastBackup > 72
+      : hoursSinceLastCommit > 72
         ? {
             id: "execution-rhythm",
-            title: `Rythme à relancer · ${hoursSinceLastBackup} h sans commit détecté`,
+            title: `Rythme à relancer · ${hoursSinceLastCommit} h sans commit détecté`,
             detail: `Le volume estimé de la semaine reste à ${missionControl.weeklyDevelopmentLabel}. Un check de reprise est recommandé.`,
             tone: "warning",
           }
         : {
             id: "execution-rhythm",
-            title: `Rythme actif · dernier repère il y a ${hoursSinceLastBackup} h`,
+            title: `Rythme actif · dernier repère il y a ${hoursSinceLastCommit} h`,
             detail: `${missionControl.weeklyDevelopmentLabel} d'exécution estimée cette semaine avec un flux encore vivant.`,
             tone: "healthy",
           },
@@ -2085,6 +2085,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   return (
     <div className={styles.page}>
       <section className={styles.compactShell}>
+        {!missionControl.indicatorsAvailable ? <p role="alert">Registre invalide : indicateurs indisponibles. {plan.diagnostics.errors.length ? plan.diagnostics.errors.join(" · ") : "Registre canonique absent ou vide ; les archives ne constituent pas une mesure actuelle."}</p> : null}
         <div className={styles.compactHero}>
           <div className={styles.compactHeroTop}>
             <span className={styles.eyebrow}><Radar size={16} /> Développement</span>
@@ -2103,10 +2104,10 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
         </div>
 
         <div className={styles.compactStats}>
-          <StatsCard label="Progression" value={`${missionControl.progressionPct}%`} hint="Avancement global" progress={missionControl.progressionPct} visual={<Target size={18} />} visualLabel="Progression" />
-          <StatsCard label="En cours" value={String(missionControl.inProgressFeatures)} hint="À poursuivre" visual={<Activity size={18} />} visualLabel="En cours" />
-          <StatsCard label="Bloqués" value={String(missionControl.blockedFeatures)} hint="À débloquer" visual={<AlertTriangle size={18} />} visualLabel="Bloqués" />
-          <StatsCard label="Terminés" value={String(missionControl.completedFeatures)} hint="Déjà faits" visual={<CheckCheck size={18} />} visualLabel="Terminés" />
+          <StatsCard label="Progression" value={missionControl.indicatorsAvailable ? `${missionControl.progressionPct}%` : "Indisponible"} hint="Calcul déclaratif : part des statuts terminés, sans validation fonctionnelle" progress={missionControl.indicatorsAvailable ? missionControl.progressionPct : undefined} visual={<Target size={18} />} visualLabel="Progression" />
+          <StatsCard label="En cours" value={missionControl.indicatorsAvailable ? String(missionControl.inProgressFeatures) : "Indisponible"} hint="Statuts déclarés à poursuivre" visual={<Activity size={18} />} visualLabel="En cours" />
+          <StatsCard label="Bloqués" value={missionControl.indicatorsAvailable ? String(missionControl.blockedFeatures) : "Indisponible"} hint="Statuts BLOCKED déclarés, hors simples dépendances" visual={<AlertTriangle size={18} />} visualLabel="Bloqués" />
+          <StatsCard label="Terminés" value={missionControl.indicatorsAvailable ? String(missionControl.completedFeatures) : "Indisponible"} hint="Développement déclaré terminé, validation distincte" visual={<CheckCheck size={18} />} visualLabel="Terminés" />
         </div>
 
         <div className={styles.compactGrid}>
@@ -2122,7 +2123,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
 
         <div className={styles.compactGrid}>
           <Card className={styles.compactPrimaryCard}>
-            <CompactCardHeader title="Prochaine action" summary="Le meilleur prochain sujet à lancer ou débloquer maintenant." isOpen={compactPanelOpen.nextAction} onToggle={() => toggleCompactPanel("nextAction")} controlsId="next-action-panel" />
+            <CompactCardHeader title="Prochaine action" summary="Suggestion calculée par la roadmap, à confirmer avant intervention." isOpen={compactPanelOpen.nextAction} onToggle={() => toggleCompactPanel("nextAction")} controlsId="next-action-panel" />
             {compactPanelOpen.nextAction ? <CardBody id="next-action-panel" className={styles.compactBody}>
               <div className={styles.compactFocusCard}>
                 <span>{nextSuggestion?.isReady ? "Maintenant" : "Sous dépendances"}</span>
@@ -2138,7 +2139,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
           </Card>
 
           <Card>
-            <CompactCardHeader title="Vérifications rapides" summary="Trois signaux pour savoir si la base technique tient." isOpen={compactPanelOpen.healthChecks} onToggle={() => toggleCompactPanel("healthChecks")} controlsId="health-checks-panel" />
+            <CompactCardHeader title="Vérifications rapides" summary="Contrôle de lecture Supabase et configurations déclarées ; aucune disponibilité distante déduite." isOpen={compactPanelOpen.healthChecks} onToggle={() => toggleCompactPanel("healthChecks")} controlsId="health-checks-panel" />
             {compactPanelOpen.healthChecks ? <CardBody id="health-checks-panel" className={styles.compactChecklist}>
               {conciseHealthCards.map((card) => (
                 <article key={card.label} className={styles.auditCard}>
@@ -2151,7 +2152,11 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                 <p>P0 {plan.registryItems.filter((item) => item.priority === "P0").length} · P1 {plan.registryItems.filter((item) => item.priority === "P1").length} · P2 {plan.registryItems.filter((item) => item.priority === "P2").length} · P3 {plan.registryItems.filter((item) => item.priority === "P3").length} · P4 {plan.registryItems.filter((item) => item.priority === "P4").length}</p>
               </article>
               <article className={styles.auditCard}>
-                <strong>États des priorités</strong>
+                <strong>Dépendances et empêchements</strong>
+                <p>{missionControl.dependencyFeatures} entrée(s) avec dépendances déclarées ; {missionControl.unqualifiedBlockers} motif(s) à qualifier sans statut BLOCKED. Aucun blocage actif n’est déduit automatiquement de ces textes.</p>
+              </article>
+              <article className={styles.auditCard}>
+                <strong>États déclarés des priorités</strong>
                 <p>En cours {plan.registryItems.filter((item) => item.status === "IN_PROGRESS").length} · Prêt {plan.registryItems.filter((item) => item.status === "READY").length} · À vérifier {plan.registryItems.filter((item) => item.status === "TO_VERIFY").length} · Terminées {plan.registryItems.filter((item) => item.status === "COMPLETED").length} · Bloquées {plan.registryItems.filter((item) => item.status === "BLOCKED").length} · Reportées {plan.registryItems.filter((item) => item.status === "DEFERRED").length} · Idées actives {plan.registryItems.filter((item) => item.status === "IDEA").length}</p>
               </article>
             </CardBody> : null}
@@ -2194,7 +2199,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
 
         <div className={styles.compactColumns}>
           <Card>
-            <CompactCardHeader title="Prêt à faire" summary="Les sujets qui peuvent avancer sans dépendance forte." isOpen={compactPanelOpen.readyWork} onToggle={() => toggleCompactPanel("readyWork")} controlsId="ready-work-panel" />
+            <CompactCardHeader title="Prêt à faire" summary="Suggestions de la roadmap heuristique ; disponibilité réelle à confirmer." isOpen={compactPanelOpen.readyWork} onToggle={() => toggleCompactPanel("readyWork")} controlsId="ready-work-panel" />
             {compactPanelOpen.readyWork ? <CardBody id="ready-work-panel" className={styles.compactList}>
               {readyWork.length ? readyWork.map((item) => (
                 <article key={item.id} className={styles.compactListItem}>
@@ -2296,7 +2301,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                       <th>Source</th>
                       <th>Preuves</th>
                       <th>Dépendances</th>
-                      <th>Vérifié</th>
+                      <th>Mis à jour</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2344,6 +2349,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
 
               <div className={styles.priorityHeader}>
                 <strong>Automatisations &amp; Processus - tableau court</strong>
+                <p>Données déclaratives locales : les métriques ci-dessous ne proviennent pas d’un monitoring connecté.</p>
               </div>
               <p className={styles.sidebarIntro}>
                 Vue courte branchée sur les enregistrements réels `AUT-*` de l&apos;espace d&apos;automatisation actuel, sans réintroduire l&apos;ancien mock statique.
@@ -2701,7 +2707,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
               </div>
               <div className={styles.executiveSidebarList}>
                 <span><AlertTriangle size={14} /> {missionControl.blockedFeatures} blocage(s) et {missionControl.criticalBugs} bug(s) critique(s)</span>
-                <span><CalendarClock size={14} /> {missionControl.lastBackupAt ? formatEntryDate(String(missionControl.lastBackupAt)) : "Aucune sauvegarde détectée"}</span>
+                <span><CalendarClock size={14} /> Dernier commit : {missionControl.lastCommitAt ? formatEntryDate(String(missionControl.lastCommitAt)) : "Dernier commit indisponible"}</span>
                 <span><Activity size={14} /> {missionControl.weeklyDevelopmentLabel} de rythme estimé cette semaine</span>
               </div>
             </CardBody>
@@ -2720,7 +2726,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
         >
           <StatsCard label="Blocages" value={String(missionControl.blockedFeatures)} hint="À arbitrer" visual={<TimerReset size={18} />} visualLabel="Blocages" />
         </button>
-        <StatsCard label="Bugs critiques" value={String(missionControl.criticalBugs)} hint={`${missionControl.minorBugs} point(s) secondaire(s)`} visual={<ShieldCheck size={18} />} visualLabel="Bugs" />
+        <StatsCard label="Bugs critiques" value={String(missionControl.criticalBugs)} hint={`${missionControl.minorBugs} autre(s) bug(s) déclaré(s)`} visual={<ShieldCheck size={18} />} visualLabel="Bugs" />
         <StatsCard label="Roadmap couverte" value={`${roadmapCoverage}%`} hint={`${roadmapCompletedCount} chantier(s) terminés ici`} visual={<Sparkles size={18} />} visualLabel="Couverture" />
         <StatsCard label="Dépendances actives" value={String(roadmapBlockedCount)} hint="Chaînes à débloquer" visual={<LockKeyhole size={18} />} visualLabel="Dépendances" />
       </div>
@@ -3309,7 +3315,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
             >
               <StatsCard label="Bloquées" value={String(missionControl.blockedFeatures)} hint="À débloquer" visual={<TimerReset size={18} />} visualLabel="Bloquées" />
             </button>
-            <StatsCard label="Bugs critiques" value={String(missionControl.criticalBugs)} hint={`${missionControl.minorBugs} mineur(s)`} visual={<ShieldCheck size={18} />} visualLabel="Bugs" />
+            <StatsCard label="Bugs critiques" value={String(missionControl.criticalBugs)} hint={`${missionControl.minorBugs} autre(s) bug(s) déclaré(s)`} visual={<ShieldCheck size={18} />} visualLabel="Bugs" />
           </div>
 
           <div className={styles.objectiveCards}>
@@ -3331,7 +3337,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
               <p>{missionControl.currentEnvironment}</p>
               <div className={styles.environmentMeta}>
                 <span><GitBranch size={14} /> v{missionControl.projectVersion}</span>
-                <span><CalendarClock size={14} /> {missionControl.lastBackupAt ? formatEntryDate(String(missionControl.lastBackupAt)) : "Aucune sauvegarde détectée"}</span>
+                <span><CalendarClock size={14} /> Dernier commit : {missionControl.lastCommitAt ? formatEntryDate(String(missionControl.lastCommitAt)) : "Dernier commit indisponible"}</span>
                 <span><TimerReset size={14} /> {missionControl.weeklyDevelopmentLabel} cette semaine</span>
               </div>
             </CardBody>

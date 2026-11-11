@@ -1,18 +1,15 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
-import { auth } from "@/server/auth/authOptions";
+import { resolveAdminSessionAccess } from "@/server/auth/adminAccess";
 
-const ADMIN_ROLES = new Set(["admin", "super_admin"]);
-
-export async function requireAdminAccess() {
-  const session = await auth();
-
-  if (!session) {
-    redirect("/login");
+// React's request-scoped memoization shares the check between layout and page.
+// It does not cache administrative rights between HTTP requests.
+export const requireAdminAccess = cache(async function requireAdminAccess() {
+  const checked = await resolveAdminSessionAccess();
+  if (!checked.ok) {
+    if (checked.status === 401) redirect("/login");
+    if (checked.status === 403) redirect("/unauthorized");
+    throw new Error("Vérification des droits administratifs indisponible.");
   }
-
-  if (!ADMIN_ROLES.has(session.user?.role ?? "")) {
-    redirect("/unauthorized");
-  }
-
-  return session;
-}
+  return checked.session;
+});

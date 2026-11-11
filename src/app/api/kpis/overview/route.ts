@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireAdminApiAccess } from "@/server/auth/adminAccess";
 import { ACTIVATION_ALERT_POLICY, buildActivationAlerts, type KpiOverviewPayload } from "./shared";
 import { computeActivationByZone, computeActivationCohort, computeWeeklyActivationSeries } from "@/app/lib/activationKpis";
 import { buildWorkspaceEmail, getTargetWorkspaceEmail, isDevWorkspaceAuthEnabled } from "@/server/auth/devWorkspace";
@@ -401,9 +401,8 @@ export async function GET(req: NextRequest) {
     : 30;
 
   try {
-    const auth = await getApiAuthContext(req);
-    if (!auth.userId) return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
-    if (!auth.isAdmin) return NextResponse.json({ error: "Non autorise" }, { status: 403 });
+    const guard = await requireAdminApiAccess(req);
+    if (!guard.ok) return guard.response;
 
     const now = new Date();
     const windowStart = new Date(now.getTime() - windowDays * 24 * 60 * 60 * 1000);

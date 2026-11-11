@@ -1,23 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getApiAuthContext } from "@/server/auth/apiAuth";
+import { requireAdminApiAccess } from "@/server/auth/adminAccess";
 import { loadPromptLibrary } from "@/server/prompt-library";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  const auth = await getApiAuthContext(req);
-  if (!auth.isAdmin) {
-    return NextResponse.json({ error: "Acces refuse." }, { status: 403 });
-  }
+  const guard = await requireAdminApiAccess(req);
+  if (!guard.ok) return guard.response;
 
   try {
     const payload = await loadPromptLibrary();
     return NextResponse.json(payload);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         error: "Bibliotheque de prompts indisponible.",
-        detail: error instanceof Error ? error.message : "Erreur inconnue.",
       },
       { status: 500 },
     );

@@ -218,8 +218,6 @@ const developmentRegistrySchema = z.object({
   })).default([]),
 });
 
-type RawDevelopmentRegistry = z.infer<typeof developmentRegistrySchema>;
-
 function slugify(value: string) {
   return value
     .normalize("NFD")
@@ -517,21 +515,6 @@ function statusLabelFromRegistry(status: DevelopmentRegistryItem["status"]) {
   }
 }
 
-function statusFromValidatedCriteria(item: RawDevelopmentRegistry["items"][number]) {
-  if (item.status === "BLOCKED" || item.status === "DEFERRED" || item.status === "COMPLETED") {
-    return item.status;
-  }
-
-  if (item.validationCriteria.length === 0) return item.status;
-
-  const validatedCriteria = new Set(item.validatedCriteria.map(normalizeComparable));
-  const isFullyValidated = item.validationCriteria.every((criterion) =>
-    validatedCriteria.has(normalizeComparable(criterion)),
-  );
-
-  return isFullyValidated ? "COMPLETED" : item.status;
-}
-
 function priorityLabelFromRegistry(priority: DevelopmentRegistryItem["priority"]) {
   switch (priority) {
     case "P0":
@@ -551,15 +534,6 @@ function priorityLabelFromRegistry(priority: DevelopmentRegistryItem["priority"]
 
 function trackingIdFromRegistry(item: Pick<DevelopmentRegistryItem, "trackingId">) {
   return item.trackingId;
-}
-
-function maturityLevelFromRegistry(item: RawDevelopmentRegistry["items"][number]) {
-  if (item.status === "IDEA") return "N0";
-  if (item.status === "TO_PLAN") return "N1";
-  if (item.status === "READY") return "N2";
-  if (item.status === "COMPLETED") return "N4";
-  if (item.status === "DEFERRED") return "N1";
-  return "N3";
 }
 
 function horizonFromPriority(priority: DevelopmentRegistryItem["priority"]): DevelopmentRegistryItem["horizon"] {
@@ -598,7 +572,7 @@ function extractStructuredRegistryBlock(markdown: string) {
   };
 }
 
-function validateStructuredRegistry(markdown: string) {
+function validateStructuredRegistry(markdown: string, referenceNow: Date) {
   const diagnostics: DevelopmentRegistryDiagnostics = {
     source: "legacy",
     itemCount: 0,
@@ -617,7 +591,11 @@ function validateStructuredRegistry(markdown: string) {
 
   const { json, warnings } = extractStructuredRegistryBlock(markdown);
   diagnostics.warnings.push(...warnings);
-  if (!json) return { items: [] as DevelopmentRegistryItem[], diagnostics };
+  if (!json) {
+    diagnostics.errors.push(...warnings);
+    if (json === "") diagnostics.errors.push("Le registre structuré du développement est vide.");
+    return { items: [] as DevelopmentRegistryItem[], diagnostics };
+  }
 
   let parsedJson: unknown;
   try {
@@ -647,10 +625,10 @@ function validateStructuredRegistry(markdown: string) {
   }
 
   const existingIds = new Set(rawRegistry.items.map((item) => item.id));
-  const today = new Date("2026-08-24T00:00:00.000Z");
+  const today = referenceNow;
   const trackingSequences = new Map<typeof DEVELOPMENT_ITEM_PRIORITIES[number], number>();
   const items: DevelopmentRegistryItem[] = rawRegistry.items.map((item) => {
-    const status = statusFromValidatedCriteria(item);
+    const status = item.status;
     const nextSequence = (trackingSequences.get(item.priority) ?? 0) + 1;
     trackingSequences.set(item.priority, nextSequence);
     if (!item.nextAction.trim()) diagnostics.missingNextActions.push(item.id);
@@ -730,12 +708,13 @@ function functionalRowsFromRegistry(items: DevelopmentRegistryItem[]) {
     githubUrls: item.githubIssues.map((issue) => issue.url),
     feature: item.title,
     status: item.statusLabel,
-    level: maturityLevelFromRegistry(item),
+    // The registry declares development status, not independently assessed maturity.
+    level: "Non évalué",
     observations: item.progressLabel,
   } satisfies MasterPlanFunctionalRow));
 }
 
-export function parseMasterPlan(markdown: string, updatedAt: string): MasterPlanView {
+export function parseMasterPlan(markdown: string, updatedAt: string, referenceNow = new Date()): MasterPlanView {
   const normalized = markdown.replaceAll("\r\n", "\n");
   const lines = normalized.split("\n");
   const headings = lines
@@ -765,10 +744,11 @@ export function parseMasterPlan(markdown: string, updatedAt: string): MasterPlan
   const updates = buildUpdates(sections);
   const legacyPlanning = buildLegacyPlanning(lines);
   const legacyFunctionalRows = buildLegacyFunctionalRows(lines);
-  const registry = validateStructuredRegistry(markdown);
-  const planning = registry.items.length ? planningFromRegistry(registry.items) : legacyPlanning;
-  const functionalRows = registry.items.length ? functionalRowsFromRegistry(registry.items) : legacyFunctionalRows;
-  const registryPrioritySource = registry.items.length
+  const registry = validateStructuredRegistry(markdown, referenceNow);
+  const invalidRegistry = registry.diagnostics.errors.length > 0;
+  const planning = invalidRegistry ? [] : registry.diagnostics.source === "structured" ? planningFromRegistry(registry.items) : legacyPlanning;
+  const functionalRows = invalidRegistry ? [] : registry.diagnostics.source === "structured" ? functionalRowsFromRegistry(registry.items) : legacyFunctionalRows;
+  const registryPrioritySource = invalidRegistry ? [] : registry.diagnostics.source === "structured"
     ? registry.items.map((item) => item.priorityLabel)
     : registryRows(lines).flat();
 
