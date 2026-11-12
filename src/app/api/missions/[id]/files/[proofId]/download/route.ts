@@ -2,23 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
 import { canAccessMissionForRole, PROVIDER_ROLES } from "@/app/lib/missionPermissions";
-import { requireApiRole } from "@/server/auth/roleGuards";
+import { resolveCommercialAccess as resolveMissionAccess } from "@/server/auth/commercialAccess";
+import { MISSION_PROOF_BUCKET, MissionProofVerificationError, missionProofs, missionProofObjectExists } from "@/app/api/_shared/missionProofAccess";
 
 const dbAny = asLooseSupabaseClient(db);
 const MISSION_FILE_ROLES = new Set([
   "admin", "super_admin", "concierge", "concierge_pro", "owner", "owner_pro",
   "provider", "provider_pro", "artisan", "artisan_pro",
 ]);
-const DEFAULT_BUCKET = "mission-evidence";
 const SIGNED_URL_TTL_SECONDS = 10 * 60;
-
-type ProofMetadata = {
-  id?: string;
-  label?: string;
-  url?: string;
-  storage_bucket?: string;
-  storage_path?: string;
-};
 
 const isUuidLike = (value: string): boolean =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
@@ -27,11 +19,6 @@ function toRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {};
-}
-
-function toProof(value: unknown): ProofMetadata | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  return value as ProofMetadata;
 }
 
 function wantsJson(req: NextRequest) {
@@ -54,9 +41,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string; proofId: string }> },
 ) {
   try {
-    const guard = await requireApiRole(req, MISSION_FILE_ROLES);
-    if (!guard.ok) return guard.response;
-    const { userId, role } = guard.auth;
+    const auth = await resolveMissionAccess(req);
+    if (auth instanceof NextResponse) return auth;
+    if (!MISSION_FILE_ROLES.has(auth.role)) return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+    const { userId, role } = auth;
     const { id, proofId } = await params;
 
     if (!isUuidLike(id) || !proofId.trim()) {
@@ -88,15 +76,17 @@ export async function GET(
     }
 
     const metadata = toRecord(mission.metadata);
-    const proofLinks = Array.isArray(metadata.proof_links) ? metadata.proof_links : [];
-    const proof = proofLinks.map(toProof).find((entry) => entry?.id === proofId);
+    const proof = missionProofs(mission.id, metadata).find(entry => entry.id === proofId);
 
     if (!proof) {
       return NextResponse.json({ error: "Piece jointe introuvable" }, { status: 404 });
     }
 
     if (proof.storage_path) {
-      const bucket = proof.storage_bucket || DEFAULT_BUCKET;
+      if (!await missionProofObjectExists(db.storage, proof)) {
+        return NextResponse.json({ error: "Pièce jointe introuvable" }, { status: 404 });
+      }
+      const bucket = MISSION_PROOF_BUCKET;
       const { data, error } = await db.storage
         .from(bucket)
         .createSignedUrl(proof.storage_path, SIGNED_URL_TTL_SECONDS, {
@@ -129,6 +119,9 @@ export async function GET(
 
     return NextResponse.json({ error: "Aucun fichier rattache" }, { status: 404 });
   } catch (err) {
+    if (err instanceof MissionProofVerificationError) {
+      return NextResponse.json({ error: err.message }, { status: 503, headers: { "Cache-Control": "no-store" } });
+    }
     console.error("[GET /api/missions/:id/files/:proofId/download] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }

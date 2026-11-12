@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { getApiAuthContext } from "@/server/auth/apiAuth";
+import { resolveCommercialAccess as resolveHousingAccess } from "@/server/auth/commercialAccess";
 import { canAccessHousing } from "@/types/housing";
 import { getHousingPhotoStoragePath } from "@/app/lib/housingPhotoUrl";
 
@@ -88,7 +88,8 @@ async function removeHousingPhotoReference(housing: { id: number; photo_principa
 
 export async function GET(req: NextRequest) {
   try {
-    const auth = await getApiAuthContext(req);
+    const auth = await resolveHousingAccess(req);
+    if (auth instanceof NextResponse) return auth;
     const userId = auth.userId ?? null;
     if (!userId) return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
 
@@ -140,7 +141,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await getApiAuthContext(req);
+    const auth = await resolveHousingAccess(req);
+    if (auth instanceof NextResponse) return auth;
     const userId = auth.userId ?? null;
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
@@ -218,7 +220,8 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const auth = await getApiAuthContext(req);
+    const auth = await resolveHousingAccess(req);
+    if (auth instanceof NextResponse) return auth;
     const userId = auth.userId ?? null;
     if (!userId) return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
 

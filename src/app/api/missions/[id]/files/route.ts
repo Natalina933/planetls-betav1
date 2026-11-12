@@ -6,7 +6,8 @@ import {
   CONCIERGE_MISSION_ROLES,
   PROVIDER_ROLES,
 } from "@/app/lib/missionPermissions";
-import { requireApiRole } from "@/server/auth/roleGuards";
+import { resolveCommercialAccess as resolveMissionAccess } from "@/server/auth/commercialAccess";
+import { MISSION_PROOF_BUCKET } from "@/app/api/_shared/missionProofAccess";
 import type { Json } from "@/types/supabase";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 
@@ -15,7 +16,7 @@ const MISSION_FILE_ROLES = new Set([
   "admin", "super_admin", "concierge", "concierge_pro", "owner", "owner_pro",
   "provider", "provider_pro", "artisan", "artisan_pro",
 ]);
-const BUCKET = "mission-evidence";
+const BUCKET = MISSION_PROOF_BUCKET;
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
 const ALLOWED_PREFIXES = ["image/", "video/", "application/pdf"];
 
@@ -64,9 +65,10 @@ async function ensureBucket() {
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const guard = await requireApiRole(req, MISSION_FILE_ROLES);
-    if (!guard.ok) return guard.response;
-    const { userId, role } = guard.auth;
+    const auth = await resolveMissionAccess(req);
+    if (auth instanceof NextResponse) return auth;
+    if (!MISSION_FILE_ROLES.has(auth.role)) return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+    const { userId, role } = auth;
     const { id } = await params;
 
     if (!isUuidLike(id)) {
@@ -126,7 +128,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       typeof formData.get("label") === "string" && String(formData.get("label")).trim()
         ? String(formData.get("label")).trim()
         : file.name;
-    const path = `missions/${id}/${Date.now()}-${randomUUID()}.${extensionFromName(file.name)}`;
+    const path = `missions/${mission.id}/${Date.now()}-${randomUUID()}.${extensionFromName(file.name)}`;
 
     const { data: upload, error: uploadError } = await db.storage.from(BUCKET).upload(path, buffer, {
       contentType: mimeType,
