@@ -19,7 +19,7 @@ function denied(status: 401 | 403 | 503) {
   return NextResponse.json({ error }, { status, headers: { "Cache-Control": "no-store" } });
 }
 
-/** Scoped to services/pricing. Never derives the principal from sub or selection. */
+/** Shared by services/pricing and inspections/disputes; never trusts sub or selection as the principal. */
 export async function resolveCommercialAccess(req: NextRequest): Promise<CommercialAuthContext | NextResponse> {
   try {
     const secret = process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET;

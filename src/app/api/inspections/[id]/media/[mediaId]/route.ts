@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { resolveCommercialAccess as resolveInspectionAccess } from "@/server/auth/commercialAccess";
 import type { Json } from "@/types/supabase";
 import { db } from "@/app/lib/dbServer";
 import { dbAny, isUuidLike } from "../../../shared";
@@ -9,7 +9,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; mediaId: string }> },
 ) {
   try {
-    const { userId, isAdmin } = await getApiAuthContext(req);
+    const access = await resolveInspectionAccess(req);
+    if (access instanceof Response) return access;
+    const { userId, isAdmin } = access;
     if (!userId || !isUuidLike(userId)) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
@@ -21,7 +23,7 @@ export async function DELETE(
 
     const { data: inspection, error: inspectionError } = await dbAny
       .from("checkout_inspections")
-      .select("id, concierge_profile_id, status")
+      .select("id, concierge_profile_id, status, evidence_locked_at")
       .eq("id", id)
       .maybeSingle();
 
@@ -46,6 +48,12 @@ export async function DELETE(
         { error: "Suppression non autorisee apres soumission." },
         { status: 409 },
       );
+    }
+
+    // The SQL trigger forbids deletion for every actor once evidence is locked.
+    // Check before Storage removal, which SQL cannot roll back.
+    if (inspection.evidence_locked_at != null) {
+      return NextResponse.json({ error: "Preuves verrouillées après soumission." }, { status: 409 });
     }
 
     const { data: media, error: mediaError } = await dbAny
