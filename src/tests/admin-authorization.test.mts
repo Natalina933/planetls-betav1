@@ -25,6 +25,7 @@ type Options = {
   realJwt?: boolean;
   targetRole?: string;
   businessError?: boolean;
+  connectionError?: Error;
 };
 
 function fixture(options: Options = {}) {
@@ -79,7 +80,9 @@ function fixture(options: Options = {}) {
     modules.set(file, exports);
     function requireModule(id: string): unknown {
       if (id === "server-only") return {};
-      if (id === "next/server") return { NextRequest, NextResponse };
+      if (id === "next/server") return { NextRequest, NextResponse, connection: async () => {
+        if (options.connectionError) throw options.connectionError;
+      } };
       if (id === "next-auth/jwt") return { getToken: async (args: Parameters<typeof realGetToken>[0]) => {
         if (options.tokenThrows) throw new Error(PRIVATE);
         if (options.realJwt) return realGetToken(args);
@@ -276,6 +279,17 @@ for (const scenario of [
   }
   assert.deepEqual(f.calls.business, []);
   assert.deepEqual(f.calls.logs, []);
+});
+
+test("admin prerender interruption propagates before authentication and private reads", async () => {
+  const interruption = new Error("synthetic Next.js prerender interruption");
+  const f = fixture({ connectionError: interruption, authThrows: true });
+  await assert.rejects(
+    () => f.execute("app/dashboard/admin/adminAccess.ts").requireAdminAccess(),
+    (error) => error === interruption,
+  );
+  assert.deepEqual(f.calls.rights, []);
+  assert.deepEqual(f.calls.business, []);
 });
 
 test("server admin access preserves authorized session presentation with current role", async () => {

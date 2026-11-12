@@ -1,10 +1,14 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { resolveAdminSessionAccess } from "@/server/auth/adminAccess";
 
 // React's request-scoped memoization shares the check between layout and page.
 // It does not cache administrative rights between HTTP requests.
 export const requireAdminAccess = cache(async function requireAdminAccess() {
+  // Session and current rights must only be checked for an incoming request.
+  // Keep Next.js's prerender interruption outside the authentication catch.
+  await connection();
   const checked = await resolveAdminSessionAccess();
   if (!checked.ok) {
     if (checked.status === 401) redirect("/login");
