@@ -13,5 +13,5 @@ test("les cartes compactes de suivi peuvent être repliées depuis leur en-tête
   assert.match(source, /function toggleCompactPanel\(panel: CompactPanelId\)/);
   assert.match(source, /toggleCompactPanel\("verificationWork"\)/);
   assert.match(source, /\{compactPanelOpen\.nextAction \? <CardBody id="next-action-panel"/);
-  assert.match(source, /progress=\{missionControl\.progressionPct\}/);
+  assert.match(source, /progress=\{missionControl\.indicatorsAvailable \? missionControl\.progressionPct : undefined\}/);
 });

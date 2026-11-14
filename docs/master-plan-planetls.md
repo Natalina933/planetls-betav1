@@ -1,5 +1,23 @@
 # Master Plan PlanetLS
 
+### ADMIN-DEV-LOT-01 — Fiabilisation locale des indicateurs — 11 novembre 2026
+
+- **Pilotage : implémentation locale réalisée, vérification 🟠 Partiel — P1 Prioritaire.** `PLS-DEV-014` reste `IN_PROGRESS` / P1 ; aucun statut canonique métier ni priorité déplacé. Présentation compacte, composants, SCSS, filtres, tableaux et données `localStorage` conservés ; les six onglets historiques restent inaccessibles et ne sont ni supprimés ni réactivés.
+- **Statuts et maturité :** suppression de la promotion par critères textuels. `PLS-DEV-011` reste `TO_VERIFY` ; le registre ne contient pas de maturité évaluée indépendante, donc les projections indiquent « Non évalué » au lieu de déduire N0–N4 du statut. Les niveaux historiques restent narratifs. Les identifiants canoniques `PLS-*`, les identifiants de suivi et les clés locales existantes sont conservés.
+- **Compteurs avant/après sur les 58 entrées existantes :** terminées 4 → 3, actives (en cours + à vérifier) 25 → 26, bloquées explicites 0 → 0, progression déclarative 7 % → 5 %, N4 déduits 4 → 0. Bugs P0 ouverts explicitement typés `bug` : 5 → 3 ; autres bugs déclarés : 33 → 1, sans assimiler les autres tâches P0 à des incidents. Les 51 entrées avec dépendances et les 28 motifs non qualifiés sans statut BLOCKED sont signalés séparément : ils ne constituent pas automatiquement des empêchements actifs. Les 3/58 du premier audit étaient le compte brut ; l'ancien parseur projetait réellement 4/58.
+- **Provenance :** le dernier commit n'est plus une sauvegarde ; GitHub/Vercel restent non vérifiés à distance. Le succès de la lecture Supabase privilégiée est décrit comme une mesure limitée et non comme une preuve RLS/disponibilité globale. Temps Git et roadmap restent des estimations ; métriques d'automatisation explicitement déclaratives. La colonne « Mis à jour » remplace « Vérifié ». Dates courantes utilisées à la place des références figées.
+- **Registre invalide :** erreurs JSON, structure, références, doublons ou bloc manquant/non refermé annoncés explicitement ; aucune reprise des tableaux historiques pour fabriquer une progression. Les cartes compactes indiquent « Indisponible ». Aucun statut du fichier n'est modifié automatiquement.
+- **Preuves :** `src/tests/admin-development-indicators.test.mts`, tests existants de registre, vue, encodage, mises à jour, Mission Control, roadmap, conseiller, journal et mémoire technique. Première campagne : 30/30 réussis. TypeScript application et configuration Playwright réussis. ESLint ciblé tenté, bloqué avant analyse par la résolution des imports sans extension de `eslint-config-next/core-web-vitals` dans la configuration installée ; aucune règle désactivée ni configuration modifiée pour contourner ce blocage. Le lancement npm rencontre aussi une restriction locale EPERM ; contrôles Node exécutés avec conservation des liens symboliques. `git diff --check` réussi, avertissements CRLF préexistants. Pas de build ni d'E2E/navigateur exécuté.
+- **Décision et prochaine action :** limiter ce lot à la fiabilité des indicateurs, sans nouveau registre ni audit. Vérifier le lint dans un environnement dont la résolution ESLint est fonctionnelle, puis recetter l'affichage dans un service déjà autorisé. Les quatre axes de progression, les preuves structurées, la checklist de lancement, formation/veille, dépendances de roadmap et accès aux vues détaillées restent des lots ultérieurs soumis à validation ; aucun LOT 2 démarré. Aucune migration, écriture distante, action Docker, commit, push ou déploiement. Aucun changement de permissions : vérification RLS non applicable à cette présentation administrative, aucune nouvelle preuve RLS revendiquée.
+
+### SEC-AUTH-01B2B4C1D — Validation PostgreSQL isolée — 12 novembre 2026
+
+- **Validation PostgreSQL isolée C1D : TERMINÉE — PASS.** Campagnes réalisées sur des bases synthétiques : `fresh` PASS, `13/13` scénarios applicables ; `existing` PASS, `14/14` scénarios. Les deux profils ont appliqué les 73 migrations dans leur ordre respectif : `fresh` 1→73 ; `existing` 71 migrations de référence, données synthétiques, puis 2 migrations C1A. Migration historique 71 franchie ; nettoyage PASS pour les deux campagnes.
+- **Chantier global de sécurité : PARTIEL.** Le P0 d'affectation prestataire par `metadata.mission_id` reste ouvert. C1B et C1C ne sont pas terminés.
+- **Limites des preuves :** aucune validation HTTP ou Supabase distante, aucune validation Storage intégrée et aucun déploiement de ces migrations sur la base distante. Les résultats PostgreSQL synthétiques ne constituent pas une preuve de sécurité de production.
+- **Provenance :** journaux locaux conservés : `C:\Users\ADMIN\AppData\Local\Temp\planetls-sec-auth-c1-tGO9CI\journal.jsonl` (`fresh`) et `C:\Users\ADMIN\AppData\Local\Temp\planetls-sec-auth-c1-8GV8S9\journal.jsonl` (`existing`). SHA-256 du manifeste : `d7a21fa3536e4748a6552b10884a2776c8cb54b6bef2e2ed55ce1b55d7e8a370`.
+- **Pilotage et prochaine action :** aucun identifiant, statut ou compteur du registre canonique modifié ; règles de calcul et barre de progression inchangées. Cette clarification documentaire ne commence ni C1B ni C1C ; attendre validation avant la sauvegarde Git.
+
 ### CONCIERGE-04D — Fiabilisation des partenaires et de la fiche propriétaire — 5 novembre 2026
 
 - **Pilotage : 🟠 Partiel — P1 Prioritaire.** Implémentation locale corrigée et tests ciblés validés ; recette navigateur authentifiée et validation PostgreSQL/RLS réelle restantes. Le parcours propriétaire–conciergerie global n'est pas déclaré terminé. Branche `feature/parcours-proprietaire-concierge`, dépôt propre au démarrage ; aucun travail local préexistant à réintégrer.
@@ -2028,6 +2046,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
   "items": [
     {
       "id": "PLS-DEV-001",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Plateforme",
       "title": "Authentification, inscription et rôles",
       "summary": "Socle d'accès multi-profils avec guards serveur et API.",
@@ -2063,6 +2094,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-002",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Activation",
       "title": "Onboarding multi-profils",
       "summary": "Tunnel multi-étapes avec variantes owner, concierge et provider.",
@@ -2088,6 +2131,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-003",
+      "spaceTracking": {
+        "primarySpace": "Propriétaires",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Administration"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Owner",
       "title": "Dashboard propriétaire",
       "summary": "Cockpit owner et vues finances/rentabilité branchés sur des données réelles partielles.",
@@ -2128,6 +2182,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-004",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Conciergerie",
       "title": "Dashboard concierge",
       "summary": "Surface la plus avancée avec cockpit, alertes, finance, CRM et maintenance.",
@@ -2156,6 +2221,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-005",
+      "spaceTracking": {
+        "primarySpace": "Artisans / Prestataires",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Provider",
       "title": "Dashboard artisan/provider",
       "summary": "Workspace provider convergé avec profil éditable, devis, interventions et preuves.",
@@ -2193,6 +2270,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-006",
+      "spaceTracking": {
+        "primarySpace": "Administration",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Admin",
       "title": "Dashboard administrateur",
       "summary": "Cockpit admin, contrôle, pilotage et développement structurés autour du shell partagé.",
@@ -2226,6 +2316,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-007",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Artisans / Prestataires",
+          "Propriétaires",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Identité",
       "title": "Profils professionnels et confiance",
       "summary": "Profils concierge, owner et provider enrichis mais encore inégalement vérifiés.",
@@ -2260,6 +2363,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-008",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Workflow métier",
       "title": "Demande, devis, mission et matching",
       "summary": "Cycle central du produit entre mise en relation et exécution.",
@@ -2299,6 +2414,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-009",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Séjours et planning",
       "title": "Réservations, séjours, planning et tâches",
       "summary": "Chaîne opérationnelle séjour -> planning -> affectation -> preuve.",
@@ -2331,6 +2457,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-010",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Facturation",
       "title": "Paiements, facturation et Stripe",
       "summary": "Paiement, webhook, facture et couverture transactionnelle.",
@@ -2360,6 +2499,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-011",
+      "spaceTracking": {
+        "primarySpace": "Administration",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Admin Ops",
       "title": "Contrôle admin, incidents et priorités",
       "summary": "Control Tower et futurs registres admin de problèmes.",
@@ -2407,6 +2559,16 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-012",
+      "spaceTracking": {
+        "primarySpace": "Administration",
+        "relatedSpaces": [
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Admin Platform",
       "title": "Navigation admin et permissions partagées",
       "summary": "Accès admin centralisé et navigation convergée par sections logiques.",
@@ -2440,6 +2602,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-013",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "validation",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Qualité",
       "title": "Tests, build, lint et vérifications E2E",
       "summary": "Filet de sécurité de la plateforme et preuve d'exécution réelle.",
@@ -2474,6 +2649,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-014",
+      "spaceTracking": {
+        "primarySpace": "Administration",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement ; rattachement des mises à jour P0 de gouvernance du 24 août 2026",
+          "ADMIN-DEV-LOT-01"
+        ]
+      },
       "domain": "Pilotage",
       "title": "Cockpit Développement fiable et synchronisé",
       "summary": "Chaîne Master Plan -> extraction -> page Développement sans double source cachée.",
@@ -2482,8 +2671,8 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "type": "documentation",
       "persona": "Admin",
       "phase": "Pilotage produit et technique",
-      "updatedAt": "2026-08-26",
-      "nextAction": "Maintenir le registre structuré comme source canonique, achever le rattachement des archives et mises à jour de gouvernance, puis continuer à enrichir la page uniquement depuis cette source validée.",
+      "updatedAt": "2026-11-11",
+      "nextAction": "Lever le blocage de résolution ESLint et recetter les indicateurs compacts ; conserver les quatre axes de progression, preuves structurées et accès détaillés pour des lots ultérieurs autorisés.",
       "validationCriteria": [
         "Source canonique unique explicitée",
         "Commande de contrôle en échec clair sur données invalides",
@@ -2496,7 +2685,7 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
         "docs/master-plan-planetls.md",
         "src/app/dashboard/admin/(product-tech)/developpement/"
       ],
-      "progressLabel": "Le cockpit est dérivé d'un registre structuré validé ; les anciens lots P0 Tableau canonique et Audit factuel des statuts sont clôturés et leurs suites de gouvernance sont désormais rattachées ici.",
+      "progressLabel": "ADMIN-DEV-LOT-01 : statuts déclarés préservés, maturité non déduite, indicateurs qualifiés et registre invalide bloquant les projections. Tests ciblés et TypeScript réussis ; lint et recette navigateur restent à confirmer. Cockpit global en cours.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement ; rattachement des mises à jour P0 de gouvernance du 24 août 2026",
       "evidence": [
         "docs/master-plan-planetls.md",
@@ -2505,6 +2694,16 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-015",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Routines opérationnelles",
       "title": "Gabarits persistants de routines et checklists",
       "summary": "Réutiliser les routines fréquentes sans recréer les mêmes listes à chaque séjour, intervention ou semaine.",
@@ -2533,6 +2732,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-016",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Activation",
       "title": "Parcours d'activation guidé sur 12 semaines",
       "summary": "Découper l'activation par rôle en objectifs hebdomadaires limités et mesurables, au lieu d'une liste d'actions trop longue.",
@@ -2558,6 +2769,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-017",
+      "spaceTracking": {
+        "primarySpace": "Administration",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Pilotage opérationnel",
       "title": "Vue annuelle en intensité pour les signaux métier",
       "summary": "Afficher des tendances annuelles compactes par logement ou équipe : occupation, charge, incidents, retards de nettoyage ou encaissement.",
@@ -2591,6 +2813,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-018",
+      "spaceTracking": {
+        "primarySpace": "Propriétaires",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Logement et maintenance",
       "title": "Fiche projet logement standardisée",
       "summary": "Centraliser objectif, contraintes, budget, étapes, documents et preuves pour un projet de travaux ou de maintenance important.",
@@ -2620,6 +2853,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-019",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Navigation et repères",
       "title": "Repères visuels et favoris par rôle",
       "summary": "Renforcer la reprise rapide avec onglets, ancres, favoris et repères de statut cohérents selon le rôle métier.",
@@ -2650,6 +2896,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-020",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "Historique P2-020 enrichi par l'audit produit du 2 septembre 2026",
+          "P2-020"
+        ]
+      },
       "domain": "Conciergerie",
       "title": "Optimisation des tournées terrain",
       "summary": "Donner au concierge un mode `Ma journée` avec missions du jour, ordre de passage, urgence, retards, problèmes signalés et suggestion de tournée modifiable.",
@@ -2681,6 +2938,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-021",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "Historique P2-021 enrichi par l'audit produit du 2 septembre 2026",
+          "P2-021"
+        ]
+      },
       "domain": "IA terrain",
       "title": "Compte rendu vocal avec validation humaine",
       "summary": "Permettre au concierge de dicter un compte rendu après check-in, check-out ou intervention, puis proposer un rapport structuré avec validation humaine avant toute persistance.",
@@ -2715,6 +2985,21 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-022",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "docs/master-plan-planetls.md#mises-a-jour-ciblees-historiques-p2-022-p2-023",
+          "P2-022",
+          "P2-023"
+        ]
+      },
       "domain": "Automatisation",
       "title": "Automatisation encadrée demande -> devis -> mission",
       "summary": "Formaliser les étapes répétitives du workflow commercial avec règles explicables, réversibles et validation humaine.",
@@ -2746,6 +3031,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-023",
+      "spaceTracking": {
+        "primarySpace": "Administration",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-des-automatisations-et-cadrage-par-role",
+          "P2-024 à P2-034"
+        ]
+      },
       "domain": "Automatisation",
       "title": "Gouvernance et registre des automatisations",
       "summary": "Suivre chaque automatisation par niveau d'autonomie, criticité, responsables, dépendances, KPI et contrôle humain.",
@@ -2776,6 +3075,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-024",
+      "spaceTracking": {
+        "primarySpace": "Propriétaires",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Cahier des charges Développement et audit des parcours owner"
+        ]
+      },
       "domain": "Owner",
       "title": "Synchronisation et qualification des réservations externes",
       "summary": "Prendre en compte les réservations Airbnb et Abritel dans une chaîne de séjour fiable, sans promettre une intégration non validée.",
@@ -2806,6 +3116,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-025",
+      "spaceTracking": {
+        "primarySpace": "Propriétaires",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Administration"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "Cahier des charges Développement enrichi par l'audit produit du 2 septembre 2026"
+        ]
+      },
       "domain": "Owner",
       "title": "Pilotage du taux d'occupation et jours vacants",
       "summary": "Aider le propriétaire à suivre réservations, périodes libres, taux d'occupation et jours difficiles à remplir, avec recommandations descriptives sans promesse de revenu.",
@@ -2835,6 +3156,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-026",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "validation",
+        "references": [
+          "docs/guide-audit-ux-plateforme-mise-en-relation.md"
+        ]
+      },
       "domain": "UX et accessibilité",
       "title": "Audit mobile, accessibilité et vocabulaire métier",
       "summary": "Fermer les recommandations UX ouvertes sur les parcours critiques, le vocabulaire artisan/provider et l'usage mobile.",
@@ -2865,6 +3200,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DATA-001",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "tâche technique",
+        "references": [
+          "GitHub Issue #11",
+          "GitHub Issue #11"
+        ]
+      },
       "domain": "Données profils",
       "title": "Cartographie des champs de profils et des héritages",
       "summary": "Établir la source, le propriétaire, la visibilité et le statut de migration de chaque champ de profil utilisé par les personas.",
@@ -2912,6 +3261,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DATA-002",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "tâche technique",
+        "references": [
+          "GitHub Issue #12",
+          "GitHub Issue #12"
+        ]
+      },
       "domain": "Données profils",
       "title": "Stratégie de migration des données de profils",
       "summary": "Préparer une migration réversible des données de profil structurées aujourd'hui dans availability_hours et des champs legacy.",
@@ -2956,6 +3319,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-SEC-001",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "tâche technique",
+        "references": [
+          "GitHub Issue #15",
+          "GitHub Issue #15"
+        ]
+      },
       "domain": "Sécurité profils",
       "title": "Schémas de validation des profils par rôle",
       "summary": "Consolider la politique de patch actuelle en schémas de validation explicites, réutilisables et testables pour chaque rôle.",
@@ -3001,6 +3378,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-SEC-002",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "tâche technique",
+        "references": [
+          "GitHub Issue #16",
+          "GitHub Issue #16"
+        ]
+      },
       "domain": "Sécurité profils",
       "title": "Matrice des champs modifiables par rôle",
       "summary": "Rendre la politique d'édition owner, concierge, provider et admin lisible, versionnée et exploitable par les interfaces.",
@@ -3048,6 +3439,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-TEST-001",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "validation",
+        "references": [
+          "GitHub Issue #17",
+          "GitHub Issue #17"
+        ]
+      },
       "domain": "Qualité profils",
       "title": "Tests de validation et permissions des profils",
       "summary": "Étendre les tests unitaires de politique de patch vers des tests d'intégration des autorisations et des parcours de profils par rôle.",
@@ -3093,6 +3497,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DATA-004",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "tâche technique",
+        "references": [
+          "Clôture de la priorité historique P0-005, 27 août 2026",
+          "P0-005"
+        ]
+      },
       "domain": "Architecture des données logement",
       "title": "Corriger la double source housing/properties",
       "summary": "Unifier la résolution des références logement legacy `properties` et canoniques `housing` sur les lecteurs métier concernés.",
@@ -3147,6 +3564,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-QUAL-001",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "validation",
+        "references": [
+          "Audit code, rôles, PRO et paiements du 25 août 2026"
+        ]
+      },
       "domain": "Fiabilité build",
       "title": "Build de production Next.js reproductible",
       "summary": "Lever l'échec TypeScript observé après la compilation Next.js afin que la validation de production ne dépende pas d'artefacts `.next` incohérents.",
@@ -3189,6 +3619,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-BILL-001",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "Audit code, rôles, PRO et paiements du 25 août 2026"
+        ]
+      },
       "domain": "PRO et abonnements",
       "title": "Périmètre payant et verrouillage serveur des offres PRO",
       "summary": "Consolider l'unique offre réellement branchée, Concierge PRO, et décider ou implémenter les offres affichées owner_pro, provider_pro et artisan_pro.",
@@ -3240,6 +3684,16 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-KPI-001",
+      "spaceTracking": {
+        "primarySpace": "Administration",
+        "relatedSpaces": [
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "tâche technique",
+        "references": [
+          "Décision de pilotage, 26 août 2026"
+        ]
+      },
       "domain": "Pilotage KPI",
       "title": "Retrait progressif du fallback KPI local synthétique",
       "summary": "Remplacer les cohortes KPI injectées en mode local par un amorçage persistant des environnements partagés, puis par un état vide explicite lorsque les données J+7 réelles restent insuffisantes.",
@@ -3281,6 +3735,16 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-ADM-001",
+      "spaceTracking": {
+        "primarySpace": "Administration",
+        "relatedSpaces": [
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Mise à jour ciblée - Cockpit admin : provenance KPI et santé technique du 26 août 2026"
+        ]
+      },
       "domain": "Cockpit admin",
       "title": "Provenance KPI et santé technique explicite",
       "summary": "Rendre chaque KPI du cockpit admin interprétable et exposer un état de santé technique qui se dégrade explicitement lorsque le Control Tower ne peut pas vérifier toutes ses sources.",
@@ -3333,6 +3797,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-BIZ-001",
+      "spaceTracking": {
+        "primarySpace": "Administration",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "Mises à jour Pilotage Business et modèle financier des 3, 6, 7, 13 et 14 août 2026"
+        ]
+      },
       "domain": "Pilotage Business",
       "title": "Pilotage Business et modèle financier fondé sur des données observées",
       "summary": "Faire évoluer les espaces stratégie, risques, modèle financier et validation marché d'un référentiel éditorial vers des arbitrages sourcés et, lorsque pertinent, persistés.",
@@ -3382,6 +3857,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-QUAL-002",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "tâche technique",
+        "references": [
+          "Mise à jour ciblée - Hygiène UTF-8 pour le site français du 13 août 2026"
+        ]
+      },
       "domain": "Qualité éditoriale",
       "title": "Hygiène UTF-8 et cohérence des libellés français",
       "summary": "Prévenir le retour de texte corrompu et terminer la normalisation des libellés français visibles, sans réécrire artificiellement les clés techniques ni l'historique documentaire.",
@@ -3431,6 +3920,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DS-001",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Design System",
       "title": "Design System PlanetLS et convergence UI progressive",
       "summary": "Consolider les tokens, primitives et règles de composition partagées afin de faire converger les écrans PlanetLS sans réécriture globale risquée ni nouvelle bibliothèque de composants.",
@@ -3511,6 +4014,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-027",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "docs/master-plan-planetls.md#roadmap-produit-et-technique"
+        ]
+      },
       "domain": "Mobile terrain",
       "title": "PWA, notifications push et usage hors ligne",
       "summary": "Préparer une application installable avec manifeste, icône PlanetLS, expérience responsive, mises à jour maîtrisées et offline limité aux usages terrain pertinents.",
@@ -3554,6 +4069,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-SEC-003",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "Audit recherche, logements, profils, pages et workflows du 26 août 2026"
+        ]
+      },
       "domain": "Sécurité logements et médias",
       "title": "Autorisation serveur et confidentialité des logements",
       "summary": "Rendre les routes logement et photo sûres malgré l'usage nécessaire de la clé de service Supabase.",
@@ -3624,6 +4151,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-SEC-004",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Exercice d'automatisation adapté à PlanetLS, 26 août 2026"
+        ]
+      },
       "domain": "Conformité et données personnelles",
       "title": "Conformité RGPD des demandes automatisées",
       "summary": "Cadrer les informations personnelles utilisées dans les demandes, les notifications et les relances afin que leur traitement reste transparent, limité, protégé et prouvable.",
@@ -3674,6 +4214,23 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-029",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Exercice d'automatisation adapté à PlanetLS, 26 août 2026",
+          "PROC-001",
+          "AUT-020",
+          "AUT-024"
+        ]
+      },
       "domain": "Demandes et automatisations",
       "title": "Orchestration native du traitement d'une demande owner",
       "summary": "Préparer un flux PlanetLS de réception, qualification, urgence, accusé de réception, suivi, relance contrôlée et archivage, sans dépendre d'outils Google comme source de vérité.",
@@ -3730,6 +4287,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-028",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Audit recherche, logements, profils, pages et workflows du 26 août 2026"
+        ]
+      },
       "domain": "Recherche et mise en relation",
       "title": "Recherche multi-rôle paginée et respectueuse des données privées",
       "summary": "Industrialiser la recherche owner-concierge, concierge-owner et concierge-provider avec filtres base de données, pagination, contrats de visibilité et base saine pour un futur espace artisan plus crédible.",
@@ -3787,6 +4357,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DATA-003",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "Audit recherche, logements, profils, pages et workflows du 26 août 2026"
+        ]
+      },
       "domain": "Données logements et profils",
       "title": "Contrats canoniques pour logement, disponibilité et profil métier",
       "summary": "Réduire les champs JSON legacy qui mélangent disponibilité, préférences, services, documents et données logement sans contraintes relationnelles ni validation partagée.",
@@ -3850,6 +4432,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-030",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Mise à jour ciblée - Cadrage de la gestion des clés et accès du 27 août 2026"
+        ]
+      },
       "domain": "Conciergerie et accès",
       "title": "Gestion des clés et accès sous contrat concierge",
       "summary": "Sécuriser la remise, la circulation et la restitution des clés, badges, télécommandes et codes entre propriétaire, conciergerie et équipe terrain.",
@@ -3907,6 +4501,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-031",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Inspiration Todoist adaptée à PlanetLS, 27 août 2026"
+        ]
+      },
       "domain": "Activation",
       "title": "Parcours guidé post-inscription par rôle",
       "summary": "Auditer d'abord la popup existante repérée, puis définir un parcours post-inscription avec bloc latéral `Finalisez votre setup` : trois actions métier par rôle valident l'activation, sans empêcher l'arrivée directe dans la vue de travail.",
@@ -3976,6 +4582,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-032",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Propriétaires"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Mission LOT 6B durcissement de l'envoi de devis, 10 octobre 2026",
+          "LOT 6B"
+        ]
+      },
       "domain": "Workflow devis",
       "title": "Finalisation de l'envoi de devis LOT 6 : confirmation gratuite, parcours E2E et tests séjour",
       "summary": "Après le durcissement serveur de l'envoi de devis (LOT 6/6B), clore trois travaux restants : raccorder l'interface de confirmation des prestations gratuites, tester le parcours complet propriétaire -> professionnel -> devis -> envoi -> réception, et examiner séparément les deux tests séjour ponctuel en échec.",
@@ -4019,6 +4636,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-BILL-002",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "Inspiration Todoist adaptée à PlanetLS, 27 août 2026"
+        ]
+      },
       "domain": "PRO et abonnements",
       "title": "Essai Pro contextuel après activation initiale",
       "summary": "Évaluer plus tard une popup ou un module `Essayez Pro gratuit` déclenché après quelques succès d'usage, sans devancer la clarification du périmètre premium réel.",
@@ -4067,6 +4697,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-AI-001",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Artisans / Prestataires",
+          "Propriétaires",
+          "Administration"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "Demande produit du 2 septembre 2026"
+        ]
+      },
       "domain": "IA marketing et communication",
       "title": "Assistant éditorial et communication premium",
       "summary": "Étudier un assistant capable de générer publications sociales, annonces, descriptions, calendriers éditoriaux et variantes, avec un positionnement premium ou payant seulement après preuve de valeur.",
@@ -4117,6 +4760,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-OPS-001",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Demande produit du 2 septembre 2026 et audit Excel/code"
+        ]
+      },
       "domain": "Opérations logement",
       "title": "Stocks et consommables par logement ou conciergerie",
       "summary": "Structurer linge, produits ménagers, produits d'accueil, petit matériel, seuils d'alerte, entrées-sorties et propositions de réapprovisionnement sans ouvrir une marketplace d'achats complexe.",
@@ -4163,6 +4817,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DATA-005",
+      "spaceTracking": {
+        "primarySpace": "Propriétaires",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Artisans / Prestataires",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Demande produit du 2 septembre 2026"
+        ]
+      },
       "domain": "Dossier logement",
       "title": "Carnet numérique centralisé du logement",
       "summary": "Centraliser équipements, notices, garanties, contrats d'entretien, accès utiles selon permissions, historique d'interventions, incidents récurrents et documents liés au logement.",
@@ -4217,6 +4883,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-OPS-002",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Demande produit du 2 septembre 2026"
+        ]
+      },
       "domain": "Urgences terrain",
       "title": "Mode urgence avec prise en charge et preuves",
       "summary": "Prévoir un mode urgence permettant de qualifier l'incident, trouver un professionnel disponible, prévenir le propriétaire, suivre la prise en charge et journaliser les décisions sans abus.",
@@ -4269,6 +4947,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-PRO-001",
+      "spaceTracking": {
+        "primarySpace": "Artisans / Prestataires",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Demande produit du 2 septembre 2026 et audit des parcours provider/artisan"
+        ]
+      },
       "domain": "Provider et artisan",
       "title": "Espace provider/artisan enrichi et crédible",
       "summary": "Faire évoluer l'espace provider/artisan avec profil détaillé, zones, disponibilités, certifications, assurances, portfolio, avis vérifiés, demandes de devis et preuves, sans copier un concurrent ni diluer le périmètre métier.",
@@ -4319,6 +5009,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-BIZ-002",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Administration"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "Demande produit du 2 septembre 2026"
+        ]
+      },
       "domain": "Rémunération concierge",
       "title": "Rémunération flexible et périodicités de règlement",
       "summary": "Formaliser les modèles heure, forfait mission, pourcentage location ou hybride, ainsi que les rythmes de règlement, en cohérence avec devis, contrats, missions, commissions, factures et paiements.",
@@ -4366,6 +5067,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-AI-002",
+      "spaceTracking": {
+        "primarySpace": "Propriétaires",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "Demande produit du 2 septembre 2026 et audit de l'assistant décoration"
+        ]
+      },
       "domain": "IA décoration",
       "title": "Simulations visuelles décoration clairement identifiées",
       "summary": "Conserver comme extension future la génération de simulations visuelles déco à partir de photos, en les distinguant explicitement d'un rendu réel du logement.",
@@ -4409,6 +5121,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-SEC-005",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "Autorisation utilisateur du 5 septembre 2026 : correctif P0 sans déploiement"
+        ]
+      },
       "domain": "Sécurité inscription",
       "title": "Fermer les catégories et rôles de l'inscription publique",
       "summary": "Empêcher une requête publique de créer un compte privilégié via une catégorie libre ou un rôle injecté.",
@@ -4461,6 +5186,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-SEC-006",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "tâche technique",
+        "references": [
+          "Autorisation utilisateur du 19 octobre 2026 : mise à jour documentaire SEC-006"
+        ]
+      },
       "domain": "Sécurité des dépendances",
       "title": "Sécuriser les dépendances Next.js",
       "summary": "Mettre à jour Next.js 16.4.2, Sharp 0.35.5 et eslint-config-next 16.4.2 avec des validations locales complètes, sans changement de parcours métier.",
@@ -6887,3 +7625,134 @@ Prochaine étape recommandée : ouvrir ensuite un lot distinct soit sur le regro
 - Changements regroupés en commits : correction des clés React des avertissements du planning, sécurisation de l'inscription et tests locaux, référentiel personas, centralisation du design system et tableaux de bord, pilotage.
 - Vérifications de clôture : 333 tests réussis, 1 ignoré, 0 échec ; TypeScript application et Playwright, lint global et contrôle UTF-8 réussis. Build et scénarios navigateur/connectés non rejoués lors de cette clôture.
 - Aucun statut ni priorité modifié par cette clôture ; les limites, dépendances et prochaines actions des lots ci-dessus restent applicables, notamment la validation visuelle des maquettes et les vérifications connectées de sécurité/RLS. Aucune migration ajoutée, aucune nouvelle idée ni contradiction détectée lors du regroupement Git.
+
+### SEC-AUTH-01A — Mise à jour locale ciblée NextAuth/Auth.js — 11 novembre 2026
+
+- **Pilotage : mise à jour locale réalisée ; validation globale 🟠 Partiel — P1 Prioritaire.** NextAuth passe de 5.0.0-beta.30 à la version exacte 5.0.0-beta.32 ; sa dépendance officielle @auth/core passe de 0.41.0 à 0.41.3. Aucun statut canonique ni priorité existante déplacé ; ce lot ne clôture ni l'authentification globale, ni PLS-SEC-005, ni le LOT 1 administratif.
+- **Diff contrôlé :** seuls package.json et package-lock.json changent pour les dépendances. Le lockfile v2 est conservé. Dans la chaîne Auth.js, npm résout aussi jose 6.1.3 → 6.2.17 et oauth4webapi 3.8.5 → 3.8.8, dans les plages officielles inchangées ; aucun autre paquet ajouté, retiré ou modifié. Next.js 16.4.2 et React 19.2.0 restent inchangés. Préparation package-lock-only, revue du diff puis installation ciblée avec scripts désactivés ; aucun audit fix ni installation globale.
+- **Préservation :** branche feature/audit-master-plan-planetls confirmée, package.json et package-lock.json propres au départ. Les dix fichiers modifiés et le nouveau test du LOT 1 ont été vérifiés par SHA-256 : onze empreintes identiques avant ce seul ajout documentaire en fin de fichier. Les dix autres fichiers restent strictement identiques ; le contenu initial complet du Master Plan est conservé comme préfixe inchangé. Aucun fichier d'authentification, proxy, fournisseur, cookie, stratégie JWT, durée, secret ou variable d'environnement modifié.
+- **Tests :** 113/113 tests existants réussis : registration-security, business-authorization, mission-permissions, mission-creation-authorization, profile-patch-policy, collaboration-detail, billing-api-shared et csrf-protection. Ils couvrent logique métier et handlers avec doubles, pas une authentification Supabase/RLS réelle. Contrôle complémentaire de la bibliothèque Auth.js installée : requêtes Request en mémoire, fournisseur Credentials synthétique et quatre rôles owner/concierge/provider/admin ; émission et lecture JWT/session, absence de session, cookie invalide, mauvais identifiants et effacement du cookie de déconnexion réussis. Ce contrôle ne valide pas la configuration applicative ni un login OAuth/Supabase réel.
+- **Qualité :** ESLint ciblé sur les fichiers d'authentification/gardes et les huit fichiers de tests réussit sans erreur ni avertissement. TypeScript applicatif complet échoue sur les 20 erreurs TS2305 préexistantes dans .next/dev/types, concernant PrefetchForTypeCheckInternal absent de Next.js installé ; aucun nettoyage/régénération de cache effectué. TypeScript Playwright séparé réussit. L'erreur React Hooks préexistante de MasterPlanViewer.tsx reste hors périmètre. Les restrictions Windows EPERM ont nécessité certains contrôles via exécution autorisée hors sandbox, sans désactivation des règles.
+- **Sécurité :** audit npm en lecture seule : 28 → 26 entrées, critiques 3 → 1, élevées 12 inchangées, modérées 13 inchangées. next-auth et @auth/core ne sont plus signalés ; GHSA-8fpg-xm3f-6cx3 et GHSA-7rqj-j65f-68wh ne concernent plus les versions installées. Le critique restant est tar via le CLI Supabase de développement ; les autres alertes restent celles du diagnostic précédent et ne sont pas corrigées dans ce lot. Aucun résultat ne constitue une preuve de sécurité globale ni de mise à jour du déploiement existant.
+- **Décision / limites :** aucun serveur, E2E connecté, compte réel, migration SQL, accès Supabase distant, Docker, commit, push, pull, merge ou déploiement. Les autorisations/RLS sont inchangées ; vérification RLS réelle non exécutée. Après autorisation distincte : lever les blocages TypeScript/qualité connus, recetter Credentials et OAuth Google/GitHub en environnement isolé avec comptes synthétiques, puis décider d'un déploiement. SEC-AUTH-01B (révocation, revalidation du rôle/statut et profil actif) reste séparé et non engagé. Aucun audit redondant créé.
+
+### SEC-AUTH-01B1 — Résolveur isolé des droits actuels du principal — 11 novembre 2026
+
+- **Pilotage : périmètre B1 ✅ Terminé — P1 Prioritaire ; révocation applicative globale 🟠 Partiel, raccordement B2 🔴 À faire sur autorisation distincte.** Aucun statut ni priorité du registre canonique déplacé ; PLS-DEV-001/PLS-SEC-005 ne sont pas clôturés. Nouveau helper src/server/auth/principalRights.ts et test src/tests/principal-rights.test.mts. Aucun import applicatif du helper : aucune API métier, garde, administration, proxy ou gestion de profil actif raccordé.
+- **Contrat :** resolvePrincipalRights reçoit une identité applicative déjà authentifiée, avec principalProfileId UUID PlanetLS ; il ne décode pas le JWT et n'accepte ni sub ni id comme substitut. authOptions.ts établit actuellement token.id depuis le profil PlanetLS. Cette précondition devra être vérifiée par le futur adaptateur B2 ; le type TypeScript ne prouve pas à lui seul l'authentification.
+- **Droits :** projection minimale id,role,status relue par ID à chaque invocation, sans cache inter-requêtes ni droits déduits du JWT. Les dix rôles existants sont reconnus via isUserRole, sans repli sur category ; seul status=active autorise un contexte. suspended, deleted, statut inconnu/manquant et rôle inconnu/manquant refusés. Le résultat autorisé contient uniquement principalProfileId, role et status=active ; aucune donnée de profil supplémentaire, clé ou erreur brute.
+- **Refus typés :** identity/invalid_identity ou profile_not_found ; forbidden/inactive_profile ou invalid_role ; unavailable/profile_read_failed ou invalid_profile_data. Erreur de transport prioritaire même si des données sont retournées ; profil incomplet/incohérent et initialisation du client en échec ne créent aucun contexte. Le module porte import server-only ; la lecture réelle est liée à l'export de production, avec une fabrique serveur permettant l'injection de doubles pour les tests. Sans configuration serveur, aucune requête vers le client de repli.
+- **Sources vérifiées localement :** UserRole et app/utils/roles.ts ; statuts active/suspended/deleted de l'administration ; migration 20261016100000_profiles_authorization_guard.sql pour la protection des attributs. Aucune inspection distante de données ni nouvelle valeur métier inventée.
+- **Preuves :** 70/70 tests ciblés réussis, dont 45 scénarios nouveaux de principal-rights, complétés par business-authorization et profile-patch-policy. Vrai code du helper exécuté après transpilation, seul transport DB/frontière server-only substitués ; rôles, absence/suspension/suppression, valeurs inconnues, identité manquante ou non applicative, erreurs, données incomplètes, claims JWT ignorés, changement de rôle puis suspension entre appels, lecteur de production minimal et configuration absente couverts. ESLint ciblé des deux nouveaux fichiers : PASS sans avertissement. npm run typecheck complet application et Playwright : PASS. git diff --check : PASS avec avertissements CRLF préexistants ; UTF-8 sans BOM vérifié.
+- **Permissions et RLS :** le futur lecteur réel utilise le client serveur privilégié existant et ne constitue pas une preuve RLS. Les refus et l'absence de projection de privilèges sont prouvés par doubles ; aucun accès PostgreSQL/RLS authentifié, inter-tenant ou distant exécuté. Aucune politique ni migration modifiée. Aucun effet sur les requêtes actuelles tant que le helper n'est pas raccordé ; coût prévu : une lecture minimale par invocation valide, zéro lecture pour identité invalide.
+- **Préservation et décisions :** empreintes des 13 fichiers préexistants vérifiées identiques avant ce seul ajout de journal ; le contenu initial complet du Master Plan est conservé et les douze autres fichiers restent identiques. Aucun changement de dépendance, secret, fournisseur Credentials/OAuth, cookie, durée, stratégie JWT, rôle métier ou profil actif. Aucune action Docker/Supabase, installation, serveur, commit, push, pull ou déploiement.
+- **Prochaine action B2, non engagée :** authentifier l'identifiant d'entrée puis brancher les gardes et traiter les résultats d'identité/droits/indisponibilité sans fallback permissif ; qualifier séparément reconnexion après changement de rôle, rattachement multi-profils et comptes synthétiques en environnement isolé avec vérifications RLS. Le helper seul ne révoque aucune session et ne valide ni une permission sur ressource, ni une authentification réelle. Aucun audit redondant créé.
+
+### SEC-AUTH-01B2A — Revalidation administrative — 11 novembre 2026
+
+- Statut : 🟠 Partiel ; raccordement administratif validé localement, révocation globale non clôturée. Priorité du raccordement : P1 Prioritaire. Aucun statut canonique PLS-* modifié automatiquement.
+- Identité : uniquement token.id authentifié ou session.user.id issu du callback PlanetLS ; ni sub, ni paramètre utilisateur, ni profil actif. Le nouveau serveur src/server/auth/adminAccess.ts réutilise resolvePrincipalRights(), exige active et le rôle actuel admin/super_admin, sans cache entre requêtes. Réponses API génériques 401/403/503, sans erreur privée ni exécution privilégiée après refus.
+- Périmètre : 12 chemins API / 14 méthodes : /api/admin/users/[id] GET/PATCH ; /api/admin/providers/validation GET ; /api/admin/prompt-library GET ; /api/admin/overview GET ; /api/admin/operations GET ; /api/admin/project-advisor GET ; /api/admin/housing-photos/cleanup POST ; /api/admin/control-tower GET/POST ; /api/provider/profile-documents/[id] PATCH ; /api/kpis/overview GET ; /api/onboarding-events GET ; /api/services/services-catalog POST.
+- Le garde requireApiRole revalide uniquement les ensembles de rôles exclusivement administratifs. Les branches mixtes restent inchangées. Les méthodes publiques GET du catalogue et POST des événements onboarding sont préservées.
+- Pages : helper src/app/dashboard/admin/adminAccess.ts partagé par le layout et les pages sensibles ; gardes directs ajoutés aux pages decisions-architecture et modele-financier avant lecture. React.cache déduplique seulement dans le rendu serveur React ; aucun cache de droits entre requêtes. Absence d'identité : redirection login ; refus : unauthorized ; indisponibilité : erreur serveur générique.
+- Preuves : src/tests/admin-authorization.test.mts (31 tests), src/tests/principal-rights.test.mts (45 tests B1), campagne liée administration/permissions : 315/315 PASS ; TypeScript complet application et Playwright PASS ; ESLint ciblé PASS. Tests de vrais gardes et handlers avec doubles contrôlés : suspension, suppression, rétrogradation, ancien rôle JWT, identités invalides, erreurs techniques, absence d'action privilégiée et de fuite privée ; vérification de JWT synthétiques invalides/expirés et valides avec le vérificateur installé.
+- Limite P0 Critique à traiter sur autorisation séparée : PATCH /api/profiles utilise encore le rôle/isAdmin historique (src/app/api/profiles/route.ts) et la politique allowRoleMutation (src/app/api/profiles/pure.ts). Le code peut ainsi permettre une réattribution de rôle après rétrogradation via un ancien JWT. Risque statique, sans essai distant : ce raccordement ne prouve donc pas la révocation globale. Autres exemptions isAdmin de routes mixtes (documents, contrats, tarification, facturation) non raccordées dans ce lot. Proxy et profils multiples inchangés. Ne pas déclarer la sécurité globale ni la mise en production validées.
+- Performance : une lecture minimale du profil principal par contrôle API ; aucune nouvelle migration ni modification RLS. Le parcours service role exige ce contrôle serveur préalable ; tests synthétiques de refus réalisés, RLS réelle et accès entre tenants sur base isolée non exécutés. Aucune connexion distante, aucun compte réel, aucune preuve navigateur/E2E.
+- Préservation : les 15 chemins préexistants sont identiques avant cette entrée ; seul un ajout au présent journal est prévu. Résolveur et tests B1, dépendances, Master Plan antérieur et journaux conservés. Aucun commit, déploiement, changement de secret, de cookie, de durée JWT ou de fournisseur.
+- Prochaine action : validation du lot avec cette réserve, puis autorisation explicite pour les exemptions administratives mixtes et la mutation de rôle ; vérification avec comptes synthétiques en environnement isolé avant mise en service. Aucun lancement automatique de B2B.
+
+### SEC-AUTH-01B2A2 — PATCH /api/profiles — 11 novembre 2026
+
+- Correction P0 locale du chemin de réattribution de rôle identifié en B2A : src/app/api/profiles/route.ts ne construit plus la politique administrative depuis le seul isAdmin historique. Les demandes portant role/category et les contextes déclarant un rôle administratif passent par requireAdminApiAccess(), qui réutilise resolvePrincipalRights(), exige le profil principal active et le rôle actuel admin/super_admin.
+- Identité privilégiée : token.id ou session.user.id authentifié dans le garde B2A ; correspondance exigée avec sessionUserId et userId du contexte. Un profil actif sélectionné différent du principal ne peut pas servir de cible privilégiée dans cet endpoint personnel. Aucun paramètre client ne choisit le profil à écrire.
+- Matrice : les huit rôles ordinaires conservent leurs listes de champs existantes et leur appartenance serveur ; role/category nécessitent des droits administratifs actuels. Un ancien administrateur rétrogradé, suspendu, supprimé ou un échec de lecture est refusé avant écriture, sans reprise silencieuse comme édition ordinaire. Les demandes contenant status, email ou un identifiant protégé sont refusées entièrement (403), y compris avec des champs ordinaires. status n'était déjà pas modifiable par cette route. La restriction super_admin et la validation des rôles existants sont conservées, avec le rôle courant comme référence.
+- Sources : src/app/api/profiles/route.ts ; src/app/api/profiles/pure.ts inchangé ; src/server/auth/adminAccess.ts et principalRights.ts inchangés. La politique administrative existante n'est pas élargie. Les constructeurs de payloads de sauvegarde propriétaire/concierge/prestataire examinés conservent leurs champs autorisés.
+- Preuves : src/tests/profile-patch-authorization.test.mts, 42 nouveaux tests sur le vrai handler, le garde administratif et le résolveur B1 avec doubles contrôlés ; administrateurs actifs, rôle JWT obsolète, suspension/suppression/rétrogradation, identités incohérentes, erreurs, champs protégés, absence d'écriture après refus et absence de fuite privée des erreurs de droits. Campagne ciblée profil/B1/B2A/permissions : 211 PASS ; compléments édition de profil/préférences/documents : 32 PASS ; total 243 tests PASS. TypeScript complet application/Playwright PASS ; ESLint ciblé PASS. Aucun test distant ni compte réel.
+- SQL/RLS, examen local : supabase/migrations/20261016100000_profiles_authorization_guard.sql protège id/role/status/category et l'appartenance pour authenticated, mais exempte service_role. Le client src/server/db/dbServer.ts utilise cette clé serveur ; le contrôle applicatif est indispensable. Aucun changement SQL, aucune validation d'application effective de cette migration ni de RLS sur une base réelle dans ce lot.
+- Limite transactionnelle : la lecture des droits et la mutation ne sont pas atomiques. Une révocation concurrente après contrôle reste possible ; une garantie stricte nécessite une opération transactionnelle côté base avec contrôle des droits et sérialisation appropriée, hors autorisation de cette mission. Aucun cache inter-requêtes ajouté.
+- Révocation globale non terminée : les autres exemptions isAdmin des routes mixtes documents, contrats, tarification et facturation restent à examiner/raccorder séparément ; proxy et mécanismes de profils multiples inchangés. SEC-AUTH-01B2B non engagé.
+- Risques de régression assumés : les anciens clients envoyant des attributs protégés avec une édition ordinaire reçoivent maintenant 403 ; un administrateur ne peut plus utiliser cet endpoint personnel pour modifier un profil sélectionné différent du principal. Les erreurs de vérification bloquent l'action privilégiée. Pas de preuve navigateur/E2E ni de test de concurrence sur base isolée.
+- Pilotage : ajout au journal uniquement ; aucun statut, priorité ou identifiant canonique modifié. Travail antérieur préservé par empreintes, aucune dépendance ni configuration d'authentification modifiée. Prochaine action : validation explicite du lot avant toute intervention complémentaire.
+
+### SEC-AUTH-01B2B1 — Exemptions administratives des tarifs et contrats — 11 novembre 2026
+
+- Raccordement local réalisé et contrôlé ; révocation globale toujours non terminée. Journal uniquement : aucun statut, priorité ou identifiant canonique PLS-* modifié.
+- Nouveau helper strictement serveur src/server/auth/commercialAccess.ts, utilisé seulement par src/app/api/services/_shared.ts et src/app/api/pricing/_shared.ts. Identité authentifiée obtenue depuis token.id ou session.user.id, jamais sub ni un paramètre utilisateur. resolvePrincipalRights() relit le principal à chaque requête : profil existant, statut active et rôle reconnu obligatoires, y compris pour une opération ordinaire sur sa propre ressource.
+- Un ancien JWT administratif dont le principal n'est plus admin/super_admin est refusé entièrement (403), sans reprise ordinaire. Absence d'identité ou de profil principal : 401 ; compte inactif/rôle invalide : 403 ; indisponibilité/incohérence technique : 503. Réponses génériques sans erreur privée et avant les requêtes métier ; aucun cache inter-requêtes.
+- Profils liés : lien vérifié par le mécanisme serveur existant, identité principale cohérente exigée ; sélection non résolue refusée. Le profil sélectionné différent du principal est aussi relu avec le résolveur B1. Un profil professionnel actif garde ses seules permissions ordinaires ; une sélection administrative exige que le principal ET le profil sélectionné soient administratifs actifs, avec le niveau administratif du principal. Le cookie de sélection n'établit jamais seul un privilège. Aucun changement global de apiAuth.ts, adminAccess.ts, principalRights.ts ou du mécanisme de sélection.
+- Périmètre sécurisé : 16 chemins / 35 méthodes. /api/services/contracts GET/POST et /[id] GET/PATCH/DELETE ; /api/services/service_pricing GET/POST/DELETE et /[id] GET/PATCH/DELETE ; /api/services/pricing-packages GET/POST et /[id] DELETE ; /api/services/contract-templates GET/POST ; /api/services/packages GET/POST ; /api/pricing GET/POST et /[id] GET/PATCH/DELETE ; /api/pricing/segments, property-rules et strategy-scenarios GET/POST, chacun avec /[id] PATCH/DELETE.
+- Les handlers transmettent les refus du helper avant toute logique métier. Les filtres d'appartenance, champs modifiables, limites tarifaires existantes, contrôle de propriété des packs, détection des doublons et exclusion collaboration_id des contrats historiques sont préservés. Le catalogue public et son POST déjà administratif ne sont pas modifiés dans ce lot. Aucune nouvelle exemption métier ajoutée.
+- Preuves : src/tests/commercial-authorization.test.mts, 45 tests sur vrais handlers, helpers commerciaux, getApiAuthContext() et résolveur B1, avec doubles de transport/base et données synthétiques. Les refus sont exercés sur les 35 méthodes ; admin/super_admin actifs, huit rôles professionnels actifs sur leurs ressources, rétrogradation, suspension/suppression même sur ressource propre, JWT invalide vérifié par le lecteur installé, identité absente, erreurs, sélection administrative, lectures privées séparées, suppression/rattachement étrangers, contrats liés à une collaboration et restrictions tarifaires.
+- Vérifications finales : campagne ciblée 283/283 PASS (nouveaux tests, contrats, packs, tarifs, permissions et tests B1/B2A/B2A2) ; TypeScript complet application et Playwright PASS ; ESLint ciblé PASS. Premier passage de la campagne : un double de NextResponse ancien était incompatible avec instanceof NextResponse ; utilisation du standard Response, sans modification des anciens tests, puis campagne entièrement réussie.
+- Performance : une lecture supplémentaire minimale du principal en parcours simple ; sélection distincte : lecture de lien existante et revalidation supplémentaire du profil sélectionné, soit trois lectures de profils au total. La réutilisation de getApiAuthContext() implique une seconde vérification de session/JWT dans les parcours autorisés. Pas de cache de droits partagé, pas de modification globale de l'authentification.
+- Sécurité/RLS : client service role existant conservé, contrôles applicatifs et refus inter-profils exercés sur doubles. Aucun accès Supabase réel, aucune validation RLS effective ni de migration appliquée. Aucun navigateur/E2E distant ou compte réel utilisé. Lecture de droits et mutation non atomiques : révocation ou changement de lien concurrent après contrôle restent des limites ; aucune garantie transactionnelle ajoutée.
+- Risques de régression connus : les comptes révoqués, JWT sans id applicatif et sélections invalides sont désormais refusés ; les rôles courants remplacent les rôles historiques. Les validations de montants des deux familles d'API ne sont pas harmonisées dans ce lot. Les autres routes mixtes logements/invitations, missions/réservations, inspections/litiges, documents, équipe/maintenance, facturation et notifications restent à traiter séparément.
+- Préservation : les 28 fichiers préexistants sont identiques avant cette entrée ; le présent document reçoit seulement cet ajout. Aucun changement de dépendance, secret, fournisseur, cookie, durée/stratégie JWT, SQL ou autre domaine. Aucun commit, push ou déploiement. Prochaine action : validation explicite avant tout autre sous-lot.
+
+### SEC-AUTH-01B2B2 — Inspections, preuves et litiges — 11 novembre 2026
+
+- Départ : branche feature/audit-master-plan-planetls, HEAD 1080385fe1a4ab1440172d919b5cd4f498369e5f, répertoire propre et index vide. Implémentation locale seulement, aucun commit ni accès distant.
+- Raccordement : réutilisation directe de resolveCommercialAccess() sous l'alias local resolveInspectionAccess dans les huit handlers du domaine. Pas de logique parallèle ni de modification globale de getApiAuthContext(). commercialAccess.ts reçoit seulement une précision de commentaire ; son comportement validé en B2B1 reste identique.
+- Périmètre : 8 chemins / 11 méthodes : /api/inspections GET/POST ; /api/inspections/[id] GET/PATCH ; /checklist PUT ; /submit POST ; /media POST ; /media/[mediaId] DELETE ; /api/disputes GET/POST ; /api/disputes/[id]/export GET.
+- Droits actuels : principal identifié par token.id ou session.user.id authentifié, jamais sub ni paramètres client ; profil existant et active, rôle reconnu ; ancien JWT admin rétrogradé refusé sans reprise ordinaire. Principal suspendu ou supprimé refusé même participant. Sélections de profils liées vérifiées et relues ; un profil sélectionné ne donne pas seul de privilège admin. Refus génériques 401/403/503 avant toute requête métier, opération Storage ou événement SQL, sans cache inter-requêtes.
+- Matrice conservée : propriétaire et concierge participants consultent leurs inspections/litiges et exportent leur dossier ; concierge assignée collecte, modifie la checklist et soumet le brouillon ; propriétaire peut effectuer les transitions de revue déjà permises, sans modifier les champs de collecte concierge. Concierge ordinaire bloquée après soumission ; resoumission bloquée même pour admin. Les autres exemptions d'un administrateur actuel sont conservées.
+- Fenêtre litige confirmée : 48 heures calculées depuis checkout_at, sinon submitted_at, sinon created_at lorsque cette référence est une date valide ; limite exacte de 48 heures admise, au-delà refus pour propriétaire ordinaire. Concierge non autorisée à ouvrir le litige ; exemption de délai de l'administrateur actuel conservée. Validation des preuves et items dans l'inspection cible maintenue. Aucune règle métier changée pour faciliter les tests.
+- Correction de cohérence des preuves : src/app/api/inspections/[id]/media/[mediaId]/route.ts lit evidence_locked_at et refuse toute suppression quand ce verrou existe, même pour un administrateur actuel, avant Storage. La migration locale 20260912193000_checkout_inspections_disputes_core.sql impose déjà ce verrou SQL à tous les acteurs ; auparavant le fichier pouvait être retiré avant le refus SQL. Aucun trigger ni migration modifié.
+- Exports : vérification des droits actuels et participation avant la lecture du dossier détaillé et la signature des liens Storage. Liens privés signés avec durée existante de 600 secondes, pas d'URL publique introduite. Rattachement et suppression de preuves étrangères refusés dans les cas testés.
+- Preuves : src/tests/inspection-dispute-authorization.test.mts, 34 nouveaux tests sur les vrais handlers, le helper B2B1, getApiAuthContext et le résolveur B1, avec doubles contrôlés de transport, base et Storage. Dix-huit scénarios de refus exercés sur les onze méthodes ; droits admin/super_admin actuels, participants légitimes/étrangers, suspension/suppression/rétrogradation, JWT invalide, identité absente, erreur de lecture, lecture privée/export, collecte/verrouillage/soumission, frontière 48 heures et dates de repli, preuves étrangères, validation checklist et absence d'effets après refus. Aucun appel sortant ajouté par ces routes ; aucun événement SQL ou opération Storage après les refus testés.
+- Contrôles : campagne ciblée 303/303 PASS, incluant inspections/litiges, permissions et tests B1/B2A/B2A2/B2B1 pertinents ; TypeScript complet application/Playwright PASS ; ESLint ciblé PASS. Les premiers échecs du nouveau harnais provenaient d'identifiants synthétiques de média dupliqués et d'une requête JSON utilisée à la place d'un formulaire multipart ; seuls les doubles/données de test ont été corrigés.
+- SQL/RLS : client service role existant inchangé ; accès autorisés et refus inter-profils exercés sur doubles serveur. Migration locale examinée : RLS participants, minimum cinq photos et une vidéo à la soumission, preuve associée aux anomalies et verrouillage via trigger. Exécution réelle de ces règles, application effective des migrations et RLS sur base isolée non vérifiées dans ce lot ; aucune preuve d'intégration Supabase réelle.
+- Limites transactionnelles : contrôle des droits puis mutation séparés ; une révocation concurrente après lecture reste possible. Lecture du verrou, Storage et SQL non atomiques : une soumission concurrente peut encore verrouiller entre lecture et suppression Storage ; les échecs partiels Storage/SQL ne sont pas résolus. Les conditions de collecte et de soumission restent des contrôles applicatifs avec les invariants SQL existants. Pas de test de concurrence réel, navigateur/E2E ou compte réel.
+- Révocation globale non terminée : autres domaines mixtes logements/invitations, missions/réservations, documents prestataires, équipe/maintenance, facturation et notifications non raccordés dans ce lot. Aucun sous-lot suivant engagé ; prochaine action : validation explicite avant toute intervention complémentaire.
+- Pilotage : ajout au journal uniquement ; aucun statut, priorité ou identifiant canonique modifié. Dépendances, secrets, fournisseurs, JWT et autres domaines métier inchangés ; checkpoint conservé.
+
+### SEC-AUTH-01B2B3 — Logements et invitations propriétaire–concierge — 12 novembre 2026
+
+- Point de départ constaté : branche `feature/audit-master-plan-planetls`, HEAD `cd835bc700c9deb4b41ba344455ccafa90d4c27d`, arbre propre, aucun fichier non suivi. Contradiction avec le contexte annoncé : B2B2 est déjà enregistré dans ce commit, qui suit `1080385f`. Aucun historique modifié ; les fichiers B2B2 restent conservés.
+- Correction locale : réutilisation de `resolveCommercialAccess()` sous l'alias local `resolveHousingAccess` dans cinq fichiers de routes, sans modifier les helpers partagés, `getApiAuthContext()`, les fournisseurs ou les règles métier. Les invitations conservent leur liste de rôles autorisés après revalidation serveur.
+- Périmètre complet de ces dossiers : 5 chemins / 11 méthodes : `/api/housing` GET/POST ; `/api/housing/[id]` GET/PATCH/DELETE ; `/api/housing/photos` GET/POST/DELETE ; `/api/owner-invitations` GET/POST ; `/api/owner-invitations/[id]/resend` POST.
+- Permissions : identité principale authentifiée par `token.id` ou `session.user.id`, jamais `sub` seul ; droits persistés relus sans cache inter-requêtes, principal présent et actif, rôle reconnu. Principal absent/supprimé : 401 ; inactif ou ancien JWT admin rétrogradé : 403 ; vérification indisponible ou identité incohérente : 503. Refus transmis avant toute lecture métier ou effet. Profil sélectionné lié vérifié puis relu ; sa sélection seule ne confère aucun privilège administratif.
+- Matrice métier conservée : propriétaire/propriétaire pro sur ses logements ; concierge/concierge pro sur les logements dont les alias d'appartenance existants autorisent la gestion ; exemptions réservées aux administrateurs actuels `admin`/`super_admin`. Création et modification gardent `guardHousingWriteAccess`, lectures gardent `canAccessHousing`, visibilité et suppression logique inchangées. Photos : droits sur le logement, rattachement du chemin, brouillons propres au profil, bucket privé et liens signés de 300 secondes conservés. Invitations : propriétaires exclus, concierges gestionnaires autorisées ; relance étrangère refusée sauf exemption administrative actuelle ; vérification du logement avant création, événement SQL ou aperçu email. Aucune nouvelle règle permissive.
+- Preuves : `src/tests/housing-invitation-authorization.test.mts`, 40 nouveaux tests sur les vrais handlers, le helper partagé, `getApiAuthContext()` et le résolveur des droits, avec doubles contrôlés de JWT, base et Storage. Quinze scénarios de refus exercés sur les onze méthodes ; propriétaires, gestionnaires, admin/super-admin actuels, étrangers, lectures privées, mutation de logement, suppression photo, création/relance d'invitation, profils liés ou inactifs, rôle ordinaire sans privilège et suspension entre deux requêtes couverts. Après refus : aucune écriture SQL, signature ou mutation Storage, événement, aperçu email ou requête sortante dans les cas testés. Aucun chemin de notification n'est ajouté ; le mécanisme email existant reste un aperçu journalisé, sans envoi réel.
+- Contrôles : campagne ciblée 283/283 PASS, dont les 40 nouveaux tests et les tests pertinents logements, permissions, principal, administration, tarifs/contrats, inspections/litiges et profils ; les 40 tests repassent après nettoyage du harnais. TypeScript complet application/Playwright PASS ; ESLint ciblé PASS ; validation du registre PASS (58 éléments, alertes d'ancienneté existantes) ; `git diff --check` PASS. Encodage UTF-8 sans BOM contrôlé. Les premiers échecs du nouveau harnais étaient liés à l'interop du module crypto et à la double lecture d'une réponse ; le harnais seul a été corrigé.
+- Vérification RLS : accès autorisés, refus entre profils et parcours serveur testés sur doubles uniquement. Les clients serveur privilégiés existants restent inchangés. La migration locale des photos déclare le bucket privé ; celle créant les invitations ne définit pas de politique RLS. Cela ne prouve ni l'absence ni la présence de politiques ultérieures, ni leur application effective. Aucun accès Supabase, test d'intégration réel ou validation RLS sur base exécuté ; cette preuve reste à obtenir dans une mission autorisée.
+- Risques et concurrence : relecture des droits puis accès/mutation séparés, révocation concurrente encore possible ; appartenance susceptible de changer après contrôle. Lectures du logement avec client privilégié nécessaires aux contrôles existants ; filtrage de la liste logements toujours applicatif. SQL et Storage non atomiques lors de la suppression photo ; renouvellement d'invitation et événement séparés, pas de test de concurrence réel. Les profils suspendus ou supprimés et les sélections invalides désormais refusés constituent un changement intentionnel ; le renouvellement d'une session obsolète peut être nécessaire.
+- Limites et suite : révocation globale non terminée. Hors périmètre : `/api/profiles/housing/*`, `/api/housing-collaborations/*`, réservations, missions, documents prestataires, équipe/maintenance, facturation et notifications ; aucune conclusion de sécurité globale sur ces routes. Le nettoyage administratif des photos n'est pas modifié. Aucun sous-lot suivant engagé ; attendre validation avant toute nouvelle intervention.
+- Pilotage : cette seule entrée ajoutée au journal ; aucun statut, priorité ou identifiant canonique modifié, aucune nouvelle tâche du registre créée. Aucune migration, opération Docker, écriture distante, modification de dépendance ou de secret, commit, push, pull, merge ou déploiement effectué.
+
+### SEC-AUTH-01B2B4A — Revalidation des autorisations des missions principales — 12 novembre 2026
+
+- Point de départ confirmé : branche `feature/audit-master-plan-planetls`, HEAD `cd835bc700c9deb4b41ba344455ccafa90d4c27d`, index vide, six fichiers suivis modifiés et un test non suivi issus de B2B3. Empreintes SHA-256 relevées avant écriture puis comparées : six fichiers de code/test B2B3 identiques et contenu antérieur intégral du présent document conservé, une seule entrée ajoutée. État final : neuf fichiers suivis modifiés, deux tests non suivis, index vide ; branche et HEAD inchangés.
+- Périmètre : trois fichiers, cinq méthodes : `/api/missions` GET/POST, `/api/missions/[id]` GET/PATCH et `/api/missions/kpis` GET. Réutilisation de `resolveCommercialAccess()` sous l'alias local `resolveMissionAccess`, suivie des listes de rôles préexistantes. Aucun helper partagé, fournisseur, stratégie JWT, secret, dépendance, métadonnée de preuve, route fichier ou intervention modifié.
+- Droits actuels : principal authentifié par l'identifiant applicatif `token.id` ou `session.user.id`, jamais `sub` seul ; rôle et statut persistés relus à chaque requête ; profil absent/supprimé ou identité invalide refusés en 401, principal inactif ou ancien administrateur rétrogradé en 403, erreur de vérification ou identité incohérente en 503. Refus avant les lectures métier et mutations. Le profil professionnel sélectionné doit rester lié, actif et relu ; son rôle administratif ne suffit pas sans principal actuellement administrateur.
+- Matrice métier conservée : propriétaires et concierges accèdent aux missions dont ils sont respectivement propriétaire et concierge ; admin/super-admin actuels gardent les exemptions du détail. Listes et KPI restent filtrés par acteur même pour admin. La création conserve ses contrôles logement, propriétaire, réservation et collaboration, sans nouvelle exemption administrative ; les prestataires restent exclus de ces cinq méthodes.
+- Transitions et effets préservés : champs autorisés inchangés, graphe existant, `complete` vers `awaiting_owner_validation`, validation `validate_completion` exclusivement propriétaire, signatures, checklist, acompte avant planification, conflits de planning, messages et événements. Fin de collecte : émission des factures brouillon ; validation propriétaire : demande du solde en conservant l'acompte ; annulation : seules les factures brouillon sont annulées. Ces règles n'ont pas été réécrites pour satisfaire les tests.
+- Preuves : `src/tests/mission-main-authorization.test.mts`, 47 tests sur les vrais handlers avec helpers de revalidation, permissions, création, transitions, paiement et planning réels ; seuls les transports JWT/session, base et Storage sont doublés. Dix-huit scénarios de refus exercés sur les cinq méthodes ; participants, étrangers, profils liés, sélection non administrative par admin, session de repli, suspension entre requêtes, création depuis réservation/collaboration, signatures, checklist, validation, acompte, solde, factures, planning et absence d'écritures/messages/événements après refus couverts. La première assertion KPI utilisait un nom de champ incorrect ; seul le test a été corrigé vers `total_missions`.
+- Contrôles obtenus : campagne ciblée 317/317 PASS incluant les nouveaux tests, les tests missions/paiement pertinents et ceux des lots d'autorisation précédents. TypeScript application et Playwright PASS ; ESLint ciblé PASS ; validation du registre PASS (58 éléments, alertes d'ancienneté existantes) ; `git diff --check` PASS ; UTF-8 sans BOM contrôlé. Aucun build, navigateur, E2E ou serveur lancé. Verdict : PASS pour le sous-lot local, sans validation réelle RLS ni clôture des risques P0 exclus.
+- RLS/Supabase : accès autorisés et refus entre profils vérifiés sur doubles serveur ; aucun accès Supabase réel ou test RLS PostgreSQL exécuté. Le client privilégié service role existant reste inchangé. Ce lot ne prouve ni l'application des migrations ni les permissions effectives d'une base réelle ; aucune migration SQL ou opération Docker effectuée.
+- Concurrence et limites : lecture des droits et lecture/mutation métier non atomiques ; révocation ou réaffectation concurrente encore possible après contrôle. Fusion des métadonnées, mission/checklist, factures, événements et messages restent des opérations séparées, avec risques de perte concurrente et d'exécution partielle préexistants. Aucun test de concurrence réelle ; aucune garantie transactionnelle nouvelle. Une session portant un ancien rôle admin désormais révoqué doit être renouvelée pour reprendre un parcours ordinaire.
+- Deux risques P0 du diagnostic restent expressément non corrigés : signature Storage basée sur des références de preuves fournies via les métadonnées de création de mission ; affectation prestataire reconnue à partir d'un `metadata.mission_id` modifiable dans une intervention personnelle. Leur traitement appartient à un périmètre explicitement validé ultérieur ; aucun changement de fichiers/interventions dans ce lot, aucune affirmation de sécurité globale des missions.
+- Pilotage : une seule entrée de journal ajoutée, aucun statut, priorité ou identifiant canonique déplacé et aucune tâche de registre créée. Révocation globale non terminée ; B2B4B/B2B4C non engagés. Aucun commit, push, pull, merge, déploiement, installation ou accès distant. Attendre validation avant toute nouvelle intervention.
+
+### SEC-AUTH-01B2B4C2 — Isolation des preuves et signatures Storage des missions — 12 novembre 2026
+
+- Départ confirmé : branche `feature/audit-master-plan-planetls`, HEAD `cd835bc700c9deb4b41ba344455ccafa90d4c27d`, neuf fichiers suivis modifiés, deux tests non suivis et index vide. Empreintes initiales relevées sur les onze fichiers B2B3/B2B4A ; leurs corrections sont conservées. Les ajouts C2 concernent quatre routes, un helper, un test et cette seule entrée de journal.
+- Contrôle partagé : `src/app/api/_shared/missionProofAccess.ts` sélectionne des preuves à identifiant valide et unique, rejette tous les doublons, champs de localisation alternatifs et références contradictoires, impose le bucket `mission-evidence` et un chemin à trois segments `missions/<UUID réel de mission>/<fichier>`, sans traversée, séparateur supplémentaire, pourcentage ambigu, URL ou caractère de contrôle. La comparaison du segment UUID accepte sa casse sans réécrire la clé de l'objet. Les marqueurs `source`, `created_by` et `sha256` ne confèrent aucun droit.
+- Garantie et limite : le rattachement contrôlé est celui de la référence persistée et du namespace de la mission autorisée, pas une attestation absolue de provenance ou d'auteur historique. Avant signature, l'API Storage `info()` doit confirmer un objet existant dont le nom et le bucket correspondent exactement ; un objet absent est refusé en 404, une vérification indisponible ou incohérente en 503 générique. Aucune signature ne suit un refus. L'existence seule et une chaîne de caractères ne prouvent pas qui a créé l'objet.
+- Création : POST `/api/missions` refuse en 400 les `proof_links` mal formés, dupliqués ou contenant des références Storage, avant toute opération métier. Une nouvelle mission n'a pas encore d'upload serveur qui lui soit rattaché ; les liens externes HTTP(S) valides restent importables avec identifiants uniques. Les autres métadonnées métier et les contrôles logement, propriétaire, réservation et collaboration sont conservés, sans suppression de données déjà persistées.
+- Téléchargement : GET `/api/missions/[id]/files/[proofId]/download` applique le contrôle commun après autorisation de l'acteur et de la mission. Aucune exemption administrative sur le bucket ou le chemin ; signatures de 600 secondes et réponses JSON/redirection conservées. Le bucket partagé ne suffit plus pour signer un fichier de maintenance, justificatif prestataire ou objet d'une autre mission.
+- Upload : POST `/api/missions/[id]/files` garde ses rôles, contrôles de participation et règle prestataire existants ; le namespace est construit depuis l'identifiant de la mission effectivement lue (`mission.id`), sans chemin fourni par le client. Upload et téléchargement réutilisent le helper de revalidation actuel sous l'alias `resolveMissionAccess`, sans modification globale d'authentification : principal absent/supprimé refusé, principal inactif et ancien admin rétrogradé refusés, indisponibilité refusée avant lecture métier ou Storage. Le propriétaire reste interdit d'upload ; les concierges/admin autorisés et prestataires reconnus par la règle préexistante restent admis.
+- Projections : GET et retour PATCH `/api/missions/[id]` filtrent les références invalides et orphelines à la fois dans `mission.metadata.proof_links` et `evidence.proof_links`, via la même liste vérifiée. Les autres métadonnées restent disponibles ; aucune réécriture silencieuse du stockage SQL. Les preuves historiques sans `source` sont admises ; un bucket absent reprend le défaut historique uniquement pour un chemin valide et un objet vérifié. Les rattachements ambigus restent conservés mais non exposés comme preuves autorisées.
+- URL externes : `add_proof`, import et lecture acceptent uniquement des URL HTTP(S) absolues analysables, sans identifiants utilisateur, espace, caractère de contrôle ou antislash ; les schémas dangereux et formes malformées sont refusés. Aucune récupération serveur d'URL, aucune conversion en signature privilégiée. Un lien déjà public ou porteur d'un ancien jeton n'est pas révoqué par ce correctif.
+- Preuves de tests : `src/tests/mission-proof-authorization.test.mts`, 58 tests finaux sur les vrais handlers et helpers, avec transports JWT/session, SQL et Storage contrôlés. Upload puis téléchargement avec l'identifiant réellement généré, durée 600 secondes, JSON/redirection, références fabriquées, namespace/bucket étrangers, traversées/encodages, doublons, contradictions, marqueurs de provenance forgés, anciens formats, orphelins, erreurs/exception/incohérence de vérification, suspension/suppression/rétrogradation, URL externes, filtrage des deux projections sans mutation des données historiques et absence d'effets non autorisés couverts. Les accès prestataires préexistants et le refus d'upload propriétaire sont aussi exercés, sans prétendre valider leur provenance.
+- Vérifications : campagne initiale ciblée 369/369 PASS, incluant 317 tests existants B2B3/B2B4A et permissions antérieures, puis 58/58 tests de preuves après ajout des six derniers scénarios et correction de deux remarques ESLint propres au nouveau harnais ; 375 scénarios distincts validés. TypeScript application et Playwright PASS ; ESLint ciblé PASS ; registre PASS (58 éléments, alertes d'ancienneté existantes) ; `git diff --check` PASS. Aucun build, navigateur, serveur ou E2E lancé. UTF-8 sans BOM maintenu.
+- Risques de régression et concurrence : nouveaux refus intentionnels des preuves ambiguës et imports Storage ; format réel de `info()` et anciens chemins non observés sur base réelle. La projection vérifie les objets séquentiellement, ajoutant une dépendance et une latence Storage. Une panne produit un 503 ; dans un retour PATCH, cette vérification intervient après la mutation et peut donc laisser une opération réussie avec une réponse d'erreur. Lecture des droits, contrôle des preuves, vérification d'objet et signature restent non atomiques ; suppression/révocation concurrente et liens déjà émis restent possibles. Fusion de métadonnées, upload/rattachement et nettoyage compensatoire demeurent non transactionnels.
+- RLS et périmètre restant : accès autorisés/refus inter-profils et parcours service role exercés sur doubles uniquement ; aucune validation Supabase/RLS réelle, aucune migration, aucune opération Docker ou accès distant. Le P0 d'affectation prestataire par `metadata.mission_id` reste ouvert ; aucun handler d'intervention, règle d'affectation, facturation ou réservation modifié. C1, C3 et B2B4B non engagés ; sécurité globale non terminée. Verdict : PASS pour l'isolation applicative Storage locale, sous ces limites.
+- Pilotage : une seule entrée ajoutée ; aucun statut, priorité ou identifiant canonique modifié et aucune tâche du registre créée. Aucun commit, push, pull, merge, déploiement, installation ou modification de secret. Attendre validation avant toute nouvelle intervention.
+
+### Correctif de prérendu des pages administratives — 12 novembre 2026
+
+- Incident : le build signalé sur `/dashboard/admin/pilotage` échoue lorsque la vérification administrative transforme une interruption de prérendu en indisponibilité générique. Correction locale dans `src/app/dashboard/admin/adminAccess.ts` : `await connection()` précède la résolution de session, hors interception des erreurs d'authentification, pour réserver le contrôle à une requête réelle.
+- Sécurité : contrôles de l'identité principale, du rôle administratif actuel et du statut actif conservés ; refus 401/403 et erreur générique d'indisponibilité inchangés. Aucun cache de droits entre requêtes, aucune modification des API ou des règles RLS. Les refus avant lectures privées sont vérifiés sur doubles ; aucune nouvelle validation Supabase distante ou RLS réelle revendiquée.
+- Preuves : `src/tests/admin-authorization.test.mts`, 32/32 tests ciblés PASS, dont propagation de l'interruption de prérendu avant vérification et lecture privée. `npm run build` PASS : 193/193 pages générées, pages administratives dont `/dashboard/admin/pilotage` rendues à la demande. TypeScript application, ESLint ciblé et validation du registre PASS (58 éléments, alertes d'ancienneté existantes) ; `git diff --check` PASS. Aucun serveur ni test navigateur lancé ; build Vercel non rejoué.
+- Pilotage : registre canonique, statuts, priorités, compteurs et progression inchangés. P0 d'affectation prestataire par `metadata.mission_id` toujours ouvert ; C1B et C1C non engagés. Correction locale uniquement, sans commit, push ni déploiement ; validation du build Vercel après sauvegarde autorisée restant à obtenir.

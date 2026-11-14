@@ -12,6 +12,7 @@ export async function DELETE(
 ) {
   try {
     const auth = await getServiceAuthContext(req);
+    if (auth instanceof Response) return auth;
     if (!auth) {
       return serviceAuthError(401);
     }

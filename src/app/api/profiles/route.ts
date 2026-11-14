@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiAuthContext } from "@/server/auth/apiAuth";
+import { requireAdminApiAccess } from "@/server/auth/adminAccess";
 import { db } from "@/server/db/dbServer";
 import {
   getProfilePatchPolicy,
@@ -38,7 +39,8 @@ const formatLastName = (value: string) => value.trim().toLocaleUpperCase("fr-FR"
 
 export async function PATCH(req: NextRequest) {
   try {
-    const { userId, role, isAdmin } = await getApiAuthContext(req);
+    const context = await getApiAuthContext(req);
+    let { userId, role } = context;
 
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
@@ -47,6 +49,26 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json();
     if (!isRecord(body)) {
       return NextResponse.json({ error: "Payload invalide" }, { status: 400 });
+    }
+
+    // This self-service endpoint never accepts a client-selected identity or status.
+    if (["id", "user_id", "userId", "profile_id", "profileId", "principalProfileId", "sessionUserId", "activeProfileId", "email", "status"].some((key) => key in body)) {
+      return NextResponse.json({ error: "Modification non autorisée." }, { status: 403 });
+    }
+
+    // Claims may request a check, but never grant administrative permissions.
+    const needsAdmin = context.isAdmin || role === "admin" || role === "super_admin"
+      || "role" in body || "category" in body;
+    let isAdmin = false;
+    if (needsAdmin) {
+      const guard = await requireAdminApiAccess(req);
+      if (!guard.ok) return guard.response;
+      if (context.sessionUserId !== guard.auth.userId || userId !== guard.auth.userId) {
+        return NextResponse.json({ error: "Modification non autorisée." }, { status: 403 });
+      }
+      userId = guard.auth.userId;
+      role = guard.auth.role;
+      isAdmin = true;
     }
 
     // Normalize before authorization, just as in the dedicated admin route.

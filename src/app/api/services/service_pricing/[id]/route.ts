@@ -20,6 +20,7 @@ export async function GET(
 ) {
   try {
     const auth = await getServiceAuthContext(req);
+    if (auth instanceof Response) return auth;
     if (!auth) {
       return serviceAuthError(401);
     }
@@ -60,6 +61,7 @@ export async function PATCH(
 ) {
   try {
     const auth = await getServiceAuthContext(req);
+    if (auth instanceof Response) return auth;
     if (!auth) {
       return serviceAuthError(401);
     }
@@ -151,6 +153,7 @@ export async function DELETE(
 ) {
   try {
     const auth = await getServiceAuthContext(req);
+    if (auth instanceof Response) return auth;
     if (!auth) {
       return serviceAuthError(401);
     }

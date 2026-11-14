@@ -5,7 +5,8 @@ import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { deriveMissionWorkflowStatus } from "@/app/lib/commercialWorkflow";
 import { db } from "@/app/lib/dbServer";
-import { requireApiRole } from "@/server/auth/roleGuards";
+import { resolveCommercialAccess as resolveMissionAccess } from "@/server/auth/commercialAccess";
+import { missionCreationProofs } from "@/app/api/_shared/missionProofAccess";
 import type { Json } from "@/types/supabase";
 
 type MissionStatus =
@@ -250,9 +251,11 @@ const mapMissionInsertError = (error: {
 
 export async function GET(req: NextRequest) {
   try {
-    const guard = await requireApiRole(req, MISSION_READER_ROLES);
-    if (!guard.ok) return guard.response;
-    const auth = guard.auth;
+    const auth = await resolveMissionAccess(req);
+    if (auth instanceof NextResponse) return auth;
+    if (!MISSION_READER_ROLES.has(auth.role)) {
+      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+    }
     if (!isUuidLike(auth.userId)) {
       return NextResponse.json({ error: "Utilisateur invalide" }, { status: 401 });
     }
@@ -342,14 +345,20 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const guard = await requireApiRole(req, MISSION_CREATOR_ROLES);
-    if (!guard.ok) return guard.response;
-    const auth = guard.auth;
+    const auth = await resolveMissionAccess(req);
+    if (auth instanceof NextResponse) return auth;
+    if (!MISSION_CREATOR_ROLES.has(auth.role)) {
+      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+    }
     if (!isUuidLike(auth.userId)) {
       return NextResponse.json({ error: "Utilisateur invalide" }, { status: 401 });
     }
 
     const body: CreateMissionBody = await req.json();
+    const creationProofs = missionCreationProofs(body.metadata);
+    if (!creationProofs.ok) {
+      return NextResponse.json({ error: "Références de preuves invalides. Utilisez l’ajout de fichiers de la mission." }, { status: 400 });
+    }
     const title = (body.title ?? "").trim();
     if (!title) {
       return NextResponse.json({ error: "Le titre est requis" }, { status: 400 });
@@ -390,6 +399,7 @@ export async function POST(req: NextRequest) {
     }
     const missionMetadata = {
       ...(isRecord(body.metadata) ? body.metadata : {}),
+      ...(creationProofs.proofs ? { proof_links: creationProofs.proofs } : {}),
       ...(missionScope.housingId ? { property_housing_id: missionScope.housingId } : {}),
     };
 

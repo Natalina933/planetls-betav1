@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { resolveCommercialAccess as resolveMissionAccess } from "@/server/auth/commercialAccess";
 
 const CONCIERGE_MISSION_ROLES = new Set([
   "admin",
@@ -15,7 +15,8 @@ const isSchemaDriftError = (code: string | undefined): boolean =>
 
 export async function GET(req: NextRequest) {
   try {
-    const auth = await getApiAuthContext(req);
+    const auth = await resolveMissionAccess(req);
+    if (auth instanceof NextResponse) return auth;
     if (!auth.userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
