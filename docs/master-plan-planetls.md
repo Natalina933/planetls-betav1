@@ -2046,6 +2046,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
   "items": [
     {
       "id": "PLS-DEV-001",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Plateforme",
       "title": "Authentification, inscription et rôles",
       "summary": "Socle d'accès multi-profils avec guards serveur et API.",
@@ -2081,6 +2094,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-002",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Activation",
       "title": "Onboarding multi-profils",
       "summary": "Tunnel multi-étapes avec variantes owner, concierge et provider.",
@@ -2106,6 +2131,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-003",
+      "spaceTracking": {
+        "primarySpace": "Propriétaires",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Administration"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Owner",
       "title": "Dashboard propriétaire",
       "summary": "Cockpit owner et vues finances/rentabilité branchés sur des données réelles partielles.",
@@ -2146,6 +2182,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-004",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Conciergerie",
       "title": "Dashboard concierge",
       "summary": "Surface la plus avancée avec cockpit, alertes, finance, CRM et maintenance.",
@@ -2174,6 +2221,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-005",
+      "spaceTracking": {
+        "primarySpace": "Artisans / Prestataires",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Provider",
       "title": "Dashboard artisan/provider",
       "summary": "Workspace provider convergé avec profil éditable, devis, interventions et preuves.",
@@ -2211,6 +2270,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-006",
+      "spaceTracking": {
+        "primarySpace": "Administration",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Admin",
       "title": "Dashboard administrateur",
       "summary": "Cockpit admin, contrôle, pilotage et développement structurés autour du shell partagé.",
@@ -2244,6 +2316,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-007",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Artisans / Prestataires",
+          "Propriétaires",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Identité",
       "title": "Profils professionnels et confiance",
       "summary": "Profils concierge, owner et provider enrichis mais encore inégalement vérifiés.",
@@ -2278,6 +2363,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-008",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Workflow métier",
       "title": "Demande, devis, mission et matching",
       "summary": "Cycle central du produit entre mise en relation et exécution.",
@@ -2317,6 +2414,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-009",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Séjours et planning",
       "title": "Réservations, séjours, planning et tâches",
       "summary": "Chaîne opérationnelle séjour -> planning -> affectation -> preuve.",
@@ -2349,6 +2457,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-010",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Facturation",
       "title": "Paiements, facturation et Stripe",
       "summary": "Paiement, webhook, facture et couverture transactionnelle.",
@@ -2378,6 +2499,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-011",
+      "spaceTracking": {
+        "primarySpace": "Administration",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Admin Ops",
       "title": "Contrôle admin, incidents et priorités",
       "summary": "Control Tower et futurs registres admin de problèmes.",
@@ -2425,6 +2559,16 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-012",
+      "spaceTracking": {
+        "primarySpace": "Administration",
+        "relatedSpaces": [
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Admin Platform",
       "title": "Navigation admin et permissions partagées",
       "summary": "Accès admin centralisé et navigation convergée par sections logiques.",
@@ -2458,6 +2602,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-013",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "validation",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Qualité",
       "title": "Tests, build, lint et vérifications E2E",
       "summary": "Filet de sécurité de la plateforme et preuve d'exécution réelle.",
@@ -2492,6 +2649,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-014",
+      "spaceTracking": {
+        "primarySpace": "Administration",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement ; rattachement des mises à jour P0 de gouvernance du 24 août 2026",
+          "ADMIN-DEV-LOT-01"
+        ]
+      },
       "domain": "Pilotage",
       "title": "Cockpit Développement fiable et synchronisé",
       "summary": "Chaîne Master Plan -> extraction -> page Développement sans double source cachée.",
@@ -2523,6 +2694,16 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-015",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Routines opérationnelles",
       "title": "Gabarits persistants de routines et checklists",
       "summary": "Réutiliser les routines fréquentes sans recréer les mêmes listes à chaque séjour, intervention ou semaine.",
@@ -2551,6 +2732,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-016",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Activation",
       "title": "Parcours d'activation guidé sur 12 semaines",
       "summary": "Découper l'activation par rôle en objectifs hebdomadaires limités et mesurables, au lieu d'une liste d'actions trop longue.",
@@ -2576,6 +2769,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-017",
+      "spaceTracking": {
+        "primarySpace": "Administration",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Pilotage opérationnel",
       "title": "Vue annuelle en intensité pour les signaux métier",
       "summary": "Afficher des tendances annuelles compactes par logement ou équipe : occupation, charge, incidents, retards de nettoyage ou encaissement.",
@@ -2609,6 +2813,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-018",
+      "spaceTracking": {
+        "primarySpace": "Propriétaires",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Logement et maintenance",
       "title": "Fiche projet logement standardisée",
       "summary": "Centraliser objectif, contraintes, budget, étapes, documents et preuves pour un projet de travaux ou de maintenance important.",
@@ -2638,6 +2853,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-019",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Navigation et repères",
       "title": "Repères visuels et favoris par rôle",
       "summary": "Renforcer la reprise rapide avec onglets, ancres, favoris et repères de statut cohérents selon le rôle métier.",
@@ -2668,6 +2896,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-020",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "Historique P2-020 enrichi par l'audit produit du 2 septembre 2026",
+          "P2-020"
+        ]
+      },
       "domain": "Conciergerie",
       "title": "Optimisation des tournées terrain",
       "summary": "Donner au concierge un mode `Ma journée` avec missions du jour, ordre de passage, urgence, retards, problèmes signalés et suggestion de tournée modifiable.",
@@ -2699,6 +2938,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-021",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "Historique P2-021 enrichi par l'audit produit du 2 septembre 2026",
+          "P2-021"
+        ]
+      },
       "domain": "IA terrain",
       "title": "Compte rendu vocal avec validation humaine",
       "summary": "Permettre au concierge de dicter un compte rendu après check-in, check-out ou intervention, puis proposer un rapport structuré avec validation humaine avant toute persistance.",
@@ -2733,6 +2985,21 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-022",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "docs/master-plan-planetls.md#mises-a-jour-ciblees-historiques-p2-022-p2-023",
+          "P2-022",
+          "P2-023"
+        ]
+      },
       "domain": "Automatisation",
       "title": "Automatisation encadrée demande -> devis -> mission",
       "summary": "Formaliser les étapes répétitives du workflow commercial avec règles explicables, réversibles et validation humaine.",
@@ -2764,6 +3031,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-023",
+      "spaceTracking": {
+        "primarySpace": "Administration",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-des-automatisations-et-cadrage-par-role",
+          "P2-024 à P2-034"
+        ]
+      },
       "domain": "Automatisation",
       "title": "Gouvernance et registre des automatisations",
       "summary": "Suivre chaque automatisation par niveau d'autonomie, criticité, responsables, dépendances, KPI et contrôle humain.",
@@ -2794,6 +3075,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-024",
+      "spaceTracking": {
+        "primarySpace": "Propriétaires",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Cahier des charges Développement et audit des parcours owner"
+        ]
+      },
       "domain": "Owner",
       "title": "Synchronisation et qualification des réservations externes",
       "summary": "Prendre en compte les réservations Airbnb et Abritel dans une chaîne de séjour fiable, sans promettre une intégration non validée.",
@@ -2824,6 +3116,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-025",
+      "spaceTracking": {
+        "primarySpace": "Propriétaires",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Administration"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "Cahier des charges Développement enrichi par l'audit produit du 2 septembre 2026"
+        ]
+      },
       "domain": "Owner",
       "title": "Pilotage du taux d'occupation et jours vacants",
       "summary": "Aider le propriétaire à suivre réservations, périodes libres, taux d'occupation et jours difficiles à remplir, avec recommandations descriptives sans promesse de revenu.",
@@ -2853,6 +3156,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-026",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "validation",
+        "references": [
+          "docs/guide-audit-ux-plateforme-mise-en-relation.md"
+        ]
+      },
       "domain": "UX et accessibilité",
       "title": "Audit mobile, accessibilité et vocabulaire métier",
       "summary": "Fermer les recommandations UX ouvertes sur les parcours critiques, le vocabulaire artisan/provider et l'usage mobile.",
@@ -2883,6 +3200,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DATA-001",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "tâche technique",
+        "references": [
+          "GitHub Issue #11",
+          "GitHub Issue #11"
+        ]
+      },
       "domain": "Données profils",
       "title": "Cartographie des champs de profils et des héritages",
       "summary": "Établir la source, le propriétaire, la visibilité et le statut de migration de chaque champ de profil utilisé par les personas.",
@@ -2930,6 +3261,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DATA-002",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "tâche technique",
+        "references": [
+          "GitHub Issue #12",
+          "GitHub Issue #12"
+        ]
+      },
       "domain": "Données profils",
       "title": "Stratégie de migration des données de profils",
       "summary": "Préparer une migration réversible des données de profil structurées aujourd'hui dans availability_hours et des champs legacy.",
@@ -2974,6 +3319,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-SEC-001",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "tâche technique",
+        "references": [
+          "GitHub Issue #15",
+          "GitHub Issue #15"
+        ]
+      },
       "domain": "Sécurité profils",
       "title": "Schémas de validation des profils par rôle",
       "summary": "Consolider la politique de patch actuelle en schémas de validation explicites, réutilisables et testables pour chaque rôle.",
@@ -3019,6 +3378,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-SEC-002",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "tâche technique",
+        "references": [
+          "GitHub Issue #16",
+          "GitHub Issue #16"
+        ]
+      },
       "domain": "Sécurité profils",
       "title": "Matrice des champs modifiables par rôle",
       "summary": "Rendre la politique d'édition owner, concierge, provider et admin lisible, versionnée et exploitable par les interfaces.",
@@ -3066,6 +3439,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-TEST-001",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "validation",
+        "references": [
+          "GitHub Issue #17",
+          "GitHub Issue #17"
+        ]
+      },
       "domain": "Qualité profils",
       "title": "Tests de validation et permissions des profils",
       "summary": "Étendre les tests unitaires de politique de patch vers des tests d'intégration des autorisations et des parcours de profils par rôle.",
@@ -3111,6 +3497,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DATA-004",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "tâche technique",
+        "references": [
+          "Clôture de la priorité historique P0-005, 27 août 2026",
+          "P0-005"
+        ]
+      },
       "domain": "Architecture des données logement",
       "title": "Corriger la double source housing/properties",
       "summary": "Unifier la résolution des références logement legacy `properties` et canoniques `housing` sur les lecteurs métier concernés.",
@@ -3165,6 +3564,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-QUAL-001",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "validation",
+        "references": [
+          "Audit code, rôles, PRO et paiements du 25 août 2026"
+        ]
+      },
       "domain": "Fiabilité build",
       "title": "Build de production Next.js reproductible",
       "summary": "Lever l'échec TypeScript observé après la compilation Next.js afin que la validation de production ne dépende pas d'artefacts `.next` incohérents.",
@@ -3207,6 +3619,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-BILL-001",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "Audit code, rôles, PRO et paiements du 25 août 2026"
+        ]
+      },
       "domain": "PRO et abonnements",
       "title": "Périmètre payant et verrouillage serveur des offres PRO",
       "summary": "Consolider l'unique offre réellement branchée, Concierge PRO, et décider ou implémenter les offres affichées owner_pro, provider_pro et artisan_pro.",
@@ -3258,6 +3684,16 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-KPI-001",
+      "spaceTracking": {
+        "primarySpace": "Administration",
+        "relatedSpaces": [
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "tâche technique",
+        "references": [
+          "Décision de pilotage, 26 août 2026"
+        ]
+      },
       "domain": "Pilotage KPI",
       "title": "Retrait progressif du fallback KPI local synthétique",
       "summary": "Remplacer les cohortes KPI injectées en mode local par un amorçage persistant des environnements partagés, puis par un état vide explicite lorsque les données J+7 réelles restent insuffisantes.",
@@ -3299,6 +3735,16 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-ADM-001",
+      "spaceTracking": {
+        "primarySpace": "Administration",
+        "relatedSpaces": [
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Mise à jour ciblée - Cockpit admin : provenance KPI et santé technique du 26 août 2026"
+        ]
+      },
       "domain": "Cockpit admin",
       "title": "Provenance KPI et santé technique explicite",
       "summary": "Rendre chaque KPI du cockpit admin interprétable et exposer un état de santé technique qui se dégrade explicitement lorsque le Control Tower ne peut pas vérifier toutes ses sources.",
@@ -3351,6 +3797,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-BIZ-001",
+      "spaceTracking": {
+        "primarySpace": "Administration",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "Mises à jour Pilotage Business et modèle financier des 3, 6, 7, 13 et 14 août 2026"
+        ]
+      },
       "domain": "Pilotage Business",
       "title": "Pilotage Business et modèle financier fondé sur des données observées",
       "summary": "Faire évoluer les espaces stratégie, risques, modèle financier et validation marché d'un référentiel éditorial vers des arbitrages sourcés et, lorsque pertinent, persistés.",
@@ -3400,6 +3857,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-QUAL-002",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "tâche technique",
+        "references": [
+          "Mise à jour ciblée - Hygiène UTF-8 pour le site français du 13 août 2026"
+        ]
+      },
       "domain": "Qualité éditoriale",
       "title": "Hygiène UTF-8 et cohérence des libellés français",
       "summary": "Prévenir le retour de texte corrompu et terminer la normalisation des libellés français visibles, sans réécrire artificiellement les clés techniques ni l'historique documentaire.",
@@ -3449,6 +3920,20 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DS-001",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "docs/master-plan-planetls.md#registre-structure-du-developpement"
+        ]
+      },
       "domain": "Design System",
       "title": "Design System PlanetLS et convergence UI progressive",
       "summary": "Consolider les tokens, primitives et règles de composition partagées afin de faire converger les écrans PlanetLS sans réécriture globale risquée ni nouvelle bibliothèque de composants.",
@@ -3529,6 +4014,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-027",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "docs/master-plan-planetls.md#roadmap-produit-et-technique"
+        ]
+      },
       "domain": "Mobile terrain",
       "title": "PWA, notifications push et usage hors ligne",
       "summary": "Préparer une application installable avec manifeste, icône PlanetLS, expérience responsive, mises à jour maîtrisées et offline limité aux usages terrain pertinents.",
@@ -3572,6 +4069,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-SEC-003",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "Audit recherche, logements, profils, pages et workflows du 26 août 2026"
+        ]
+      },
       "domain": "Sécurité logements et médias",
       "title": "Autorisation serveur et confidentialité des logements",
       "summary": "Rendre les routes logement et photo sûres malgré l'usage nécessaire de la clé de service Supabase.",
@@ -3642,6 +4151,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-SEC-004",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Exercice d'automatisation adapté à PlanetLS, 26 août 2026"
+        ]
+      },
       "domain": "Conformité et données personnelles",
       "title": "Conformité RGPD des demandes automatisées",
       "summary": "Cadrer les informations personnelles utilisées dans les demandes, les notifications et les relances afin que leur traitement reste transparent, limité, protégé et prouvable.",
@@ -3692,6 +4214,23 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-029",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Exercice d'automatisation adapté à PlanetLS, 26 août 2026",
+          "PROC-001",
+          "AUT-020",
+          "AUT-024"
+        ]
+      },
       "domain": "Demandes et automatisations",
       "title": "Orchestration native du traitement d'une demande owner",
       "summary": "Préparer un flux PlanetLS de réception, qualification, urgence, accusé de réception, suivi, relance contrôlée et archivage, sans dépendre d'outils Google comme source de vérité.",
@@ -3748,6 +4287,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-028",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Audit recherche, logements, profils, pages et workflows du 26 août 2026"
+        ]
+      },
       "domain": "Recherche et mise en relation",
       "title": "Recherche multi-rôle paginée et respectueuse des données privées",
       "summary": "Industrialiser la recherche owner-concierge, concierge-owner et concierge-provider avec filtres base de données, pagination, contrats de visibilité et base saine pour un futur espace artisan plus crédible.",
@@ -3805,6 +4357,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DATA-003",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "Audit recherche, logements, profils, pages et workflows du 26 août 2026"
+        ]
+      },
       "domain": "Données logements et profils",
       "title": "Contrats canoniques pour logement, disponibilité et profil métier",
       "summary": "Réduire les champs JSON legacy qui mélangent disponibilité, préférences, services, documents et données logement sans contraintes relationnelles ni validation partagée.",
@@ -3868,6 +4432,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-030",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Mise à jour ciblée - Cadrage de la gestion des clés et accès du 27 août 2026"
+        ]
+      },
       "domain": "Conciergerie et accès",
       "title": "Gestion des clés et accès sous contrat concierge",
       "summary": "Sécuriser la remise, la circulation et la restitution des clés, badges, télécommandes et codes entre propriétaire, conciergerie et équipe terrain.",
@@ -3925,6 +4501,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-031",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Inspiration Todoist adaptée à PlanetLS, 27 août 2026"
+        ]
+      },
       "domain": "Activation",
       "title": "Parcours guidé post-inscription par rôle",
       "summary": "Auditer d'abord la popup existante repérée, puis définir un parcours post-inscription avec bloc latéral `Finalisez votre setup` : trois actions métier par rôle valident l'activation, sans empêcher l'arrivée directe dans la vue de travail.",
@@ -3994,6 +4582,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DEV-032",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Propriétaires"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Mission LOT 6B durcissement de l'envoi de devis, 10 octobre 2026",
+          "LOT 6B"
+        ]
+      },
       "domain": "Workflow devis",
       "title": "Finalisation de l'envoi de devis LOT 6 : confirmation gratuite, parcours E2E et tests séjour",
       "summary": "Après le durcissement serveur de l'envoi de devis (LOT 6/6B), clore trois travaux restants : raccorder l'interface de confirmation des prestations gratuites, tester le parcours complet propriétaire -> professionnel -> devis -> envoi -> réception, et examiner séparément les deux tests séjour ponctuel en échec.",
@@ -4037,6 +4636,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-BILL-002",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "Inspiration Todoist adaptée à PlanetLS, 27 août 2026"
+        ]
+      },
       "domain": "PRO et abonnements",
       "title": "Essai Pro contextuel après activation initiale",
       "summary": "Évaluer plus tard une popup ou un module `Essayez Pro gratuit` déclenché après quelques succès d'usage, sans devancer la clarification du périmètre premium réel.",
@@ -4085,6 +4697,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-AI-001",
+      "spaceTracking": {
+        "primarySpace": "Transversal",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Artisans / Prestataires",
+          "Propriétaires",
+          "Administration"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "Demande produit du 2 septembre 2026"
+        ]
+      },
       "domain": "IA marketing et communication",
       "title": "Assistant éditorial et communication premium",
       "summary": "Étudier un assistant capable de générer publications sociales, annonces, descriptions, calendriers éditoriaux et variantes, avec un positionnement premium ou payant seulement après preuve de valeur.",
@@ -4135,6 +4760,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-OPS-001",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Artisans / Prestataires"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Demande produit du 2 septembre 2026 et audit Excel/code"
+        ]
+      },
       "domain": "Opérations logement",
       "title": "Stocks et consommables par logement ou conciergerie",
       "summary": "Structurer linge, produits ménagers, produits d'accueil, petit matériel, seuils d'alerte, entrées-sorties et propositions de réapprovisionnement sans ouvrir une marketplace d'achats complexe.",
@@ -4181,6 +4817,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-DATA-005",
+      "spaceTracking": {
+        "primarySpace": "Propriétaires",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Artisans / Prestataires",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Demande produit du 2 septembre 2026"
+        ]
+      },
       "domain": "Dossier logement",
       "title": "Carnet numérique centralisé du logement",
       "summary": "Centraliser équipements, notices, garanties, contrats d'entretien, accès utiles selon permissions, historique d'interventions, incidents récurrents et documents liés au logement.",
@@ -4235,6 +4883,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-OPS-002",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Demande produit du 2 septembre 2026"
+        ]
+      },
       "domain": "Urgences terrain",
       "title": "Mode urgence avec prise en charge et preuves",
       "summary": "Prévoir un mode urgence permettant de qualifier l'incident, trouver un professionnel disponible, prévenir le propriétaire, suivre la prise en charge et journaliser les décisions sans abus.",
@@ -4287,6 +4947,18 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-PRO-001",
+      "spaceTracking": {
+        "primarySpace": "Artisans / Prestataires",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Conciergerie",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "livrable",
+        "references": [
+          "Demande produit du 2 septembre 2026 et audit des parcours provider/artisan"
+        ]
+      },
       "domain": "Provider et artisan",
       "title": "Espace provider/artisan enrichi et crédible",
       "summary": "Faire évoluer l'espace provider/artisan avec profil détaillé, zones, disponibilités, certifications, assurances, portfolio, avis vérifiés, demandes de devis et preuves, sans copier un concurrent ni diluer le périmètre métier.",
@@ -4337,6 +5009,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-BIZ-002",
+      "spaceTracking": {
+        "primarySpace": "Conciergerie",
+        "relatedSpaces": [
+          "Propriétaires",
+          "Administration"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "Demande produit du 2 septembre 2026"
+        ]
+      },
       "domain": "Rémunération concierge",
       "title": "Rémunération flexible et périodicités de règlement",
       "summary": "Formaliser les modèles heure, forfait mission, pourcentage location ou hybride, ainsi que les rythmes de règlement, en cohérence avec devis, contrats, missions, commissions, factures et paiements.",
@@ -4384,6 +5067,17 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-AI-002",
+      "spaceTracking": {
+        "primarySpace": "Propriétaires",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Sécurité et infrastructure"
+        ],
+        "trackingType": "idée",
+        "references": [
+          "Demande produit du 2 septembre 2026 et audit de l'assistant décoration"
+        ]
+      },
       "domain": "IA décoration",
       "title": "Simulations visuelles décoration clairement identifiées",
       "summary": "Conserver comme extension future la génération de simulations visuelles déco à partir de photos, en les distinguant explicitement d'un rendu réel du logement.",
@@ -4427,6 +5121,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-SEC-005",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "chantier parent",
+        "references": [
+          "Autorisation utilisateur du 5 septembre 2026 : correctif P0 sans déploiement"
+        ]
+      },
       "domain": "Sécurité inscription",
       "title": "Fermer les catégories et rôles de l'inscription publique",
       "summary": "Empêcher une requête publique de créer un compte privilégié via une catégorie libre ou un rôle injecté.",
@@ -4479,6 +5186,19 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
     },
     {
       "id": "PLS-SEC-006",
+      "spaceTracking": {
+        "primarySpace": "Sécurité et infrastructure",
+        "relatedSpaces": [
+          "Conciergerie",
+          "Propriétaires",
+          "Artisans / Prestataires",
+          "Administration"
+        ],
+        "trackingType": "tâche technique",
+        "references": [
+          "Autorisation utilisateur du 19 octobre 2026 : mise à jour documentaire SEC-006"
+        ]
+      },
       "domain": "Sécurité des dépendances",
       "title": "Sécuriser les dépendances Next.js",
       "summary": "Mettre à jour Next.js 16.4.2, Sharp 0.35.5 et eslint-config-next 16.4.2 avec des validations locales complètes, sans changement de parcours métier.",

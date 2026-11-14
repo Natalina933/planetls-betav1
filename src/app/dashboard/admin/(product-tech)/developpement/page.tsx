@@ -7,9 +7,12 @@ import { requireAdminAccess } from "../../adminAccess";
 import { buildDeveloperLogView, type DeveloperLogCommit } from "./developerLog";
 import { MasterPlanViewer } from "./MasterPlanViewer";
 import { parseMasterPlan } from "./masterPlan";
+import { computeSpaceProgress } from "./spaceProgressData";
+import { SpaceProgress } from "./SpaceProgress";
 import { buildMissionControlView, type MissionControlHealthCard } from "./missionControl";
 import { buildRoadmapView } from "./roadmap";
 import { buildTechnicalMemoryView } from "./technicalMemory";
+import styles from "./page.module.scss";
 
 export const dynamic = "force-dynamic";
 
@@ -311,6 +314,8 @@ export default async function DevelopmentPage() {
     getSupabaseHealth(),
   ]);
   const plan = parseMasterPlan(markdown, stats.mtime.toISOString());
+  const spaceProgress = computeSpaceProgress(plan.registryItems);
+  const spaceProgressItems = spaceProgress.items;
   const packageJson = JSON.parse(packageRaw) as { version?: string };
   const projectVersion = packageJson.version ?? "0.0.0";
   const defaultAuthor = session?.user?.name || session?.user?.email || "Équipe PlanetLS";
@@ -342,5 +347,29 @@ export default async function DevelopmentPage() {
     projectVersion,
     workflowExists,
   });
-  return <MasterPlanViewer plan={plan} journal={journal} missionControl={missionControl} roadmap={roadmap} technicalMemory={technicalMemory} defaultAuthor={defaultAuthor} projectVersion={projectVersion} />;
+  return (
+    <>
+      <header className={styles.developmentOverviewHeader}>
+        <h1>Développement PlanetLS</h1>
+        <p>La synthèse du registre, les six espaces et leurs prochaines actions. Les indicateurs reflètent les statuts documentaires déclarés.</p>
+      </header>
+      <SpaceProgress
+        spaces={spaceProgressItems}
+        covered={spaceProgress.covered}
+        excluded={spaceProgress.excluded}
+        totalRegistryItems={spaceProgress.totalRegistryItems}
+        entries={plan.registryItems}
+      />
+      <details className={styles.masterPlanDisclosure}>
+        <summary>
+          <span>Master Plan détaillé</span>
+          <span className={styles.masterPlanDisclosureClosed} aria-hidden="true">Afficher</span>
+          <span className={styles.masterPlanDisclosureOpen} aria-hidden="true">Masquer</span>
+        </summary>
+        <div className={styles.masterPlanDetailBody}>
+          <MasterPlanViewer plan={plan} journal={journal} missionControl={missionControl} roadmap={roadmap} technicalMemory={technicalMemory} defaultAuthor={defaultAuthor} projectVersion={projectVersion} />
+        </div>
+      </details>
+    </>
+  );
 }

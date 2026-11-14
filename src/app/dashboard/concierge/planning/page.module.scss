@@ -2,6 +2,102 @@
   border-radius: 8px;
 }
 
+.planningNavigation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.planningDateActions,
+.planningModes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.planningNavigation button {
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--dash-border);
+  border-radius: 12px;
+  background: var(--dash-bg-panel);
+  color: var(--dash-text);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.planningNavigation button[aria-pressed="true"] {
+  border-color: currentColor;
+  background: color-mix(in srgb, var(--dash-text) 12%, var(--dash-bg-panel));
+}
+
+.planningNavigation button:focus-visible {
+  outline: 2px solid var(--dash-text);
+  outline-offset: 3px;
+}
+
+.planningNavigation button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.planningPeriod {
+  color: var(--dash-text);
+  overflow-wrap: anywhere;
+}
+
+.routeDisclosure {
+  min-width: 0;
+  border: 1px solid var(--dash-border);
+  border-radius: 8px;
+  background: var(--dash-bg-panel);
+  color: var(--dash-text);
+}
+
+.routeDisclosureSummary {
+  padding: 1rem;
+  border-radius: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.routeDisclosureSummary::marker {
+  color: var(--dash-text-muted);
+}
+
+.routeDisclosureSummary:focus-visible {
+  outline: 2px solid var(--dash-text);
+  outline-offset: 3px;
+}
+
+.routeDisclosureClosed,
+.routeDisclosureOpen {
+  float: right;
+  margin-left: 0.75rem;
+  color: var(--dash-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.routeDisclosureOpen,
+.routeDisclosure[open] .routeDisclosureClosed {
+  display: none;
+}
+
+.routeDisclosure[open] .routeDisclosureOpen {
+  display: inline;
+}
+
+.routeDisclosureContent {
+  padding: 1rem;
+  border-top: 1px solid var(--dash-border);
+}
+
 .calendarSummary {
   display: flex;
   align-items: center;
@@ -691,6 +787,31 @@
 }
 
 @media (max-width: 640px) {
+  .planningNavigation {
+    align-items: stretch;
+  }
+
+  .planningDateActions,
+  .planningModes,
+  .planningPeriod {
+    width: 100%;
+  }
+
+  .planningNavigation button {
+    flex: 1 1 auto;
+  }
+
+  .routeDisclosureSummary,
+  .routeDisclosureContent,
+  .calendarSummary {
+    padding: 0.75rem;
+  }
+
+  .calendarSummary,
+  .weekBoard {
+    gap: 0.5rem;
+  }
+
   .optimizerHeader {
     flex-direction: column;
     align-items: stretch;

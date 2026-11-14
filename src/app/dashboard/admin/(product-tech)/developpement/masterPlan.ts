@@ -145,6 +145,12 @@ export type DevelopmentRegistryItem = {
   evidence: string[];
   missingWork: string[];
   githubIssues: Array<{ number: number; url: string }>;
+  spaceTracking?: {
+    primarySpace: string;
+    relatedSpaces: string[];
+    trackingType: string;
+    references: string[];
+  };
 };
 
 export type DevelopmentRegistryDiagnostics = {

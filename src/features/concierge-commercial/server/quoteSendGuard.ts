@@ -20,12 +20,22 @@ import { getGuestCheckinCheckoutModeFromMetadata, getGuestCheckinCheckoutOperati
 export const QUOTE_PRICE_CONFIRMED_KEY = "quote_service_price_confirmed";
 
 /** A priced edit resolves a known service; client metadata alone cannot resolve it. */
-export function confirmQuoteItemPrice(input: { label?: string; unit_price?: unknown }, metadata: Record<string, unknown>) {
+export function confirmQuoteItemPrice(input: { label?: string; unit_price?: unknown; confirm_free?: boolean }, metadata: Record<string, unknown>) {
   const known = PLANETLS_SERVICE_TARGET.some((entry) => entry.slug === metadata.requested_service_slug || entry.label === input.label);
-  if (known && typeof input.unit_price === "number" && Number.isFinite(input.unit_price) && input.unit_price > 0) {
-    return { ...metadata, quote_service_clarification_status: "resolved_manual", quote_service_clarification_reason: null };
+  const next = { ...metadata };
+  if (input.confirm_free === false || input.unit_price !== 0) delete next[QUOTE_PRICE_CONFIRMED_KEY];
+  if (input.unit_price === 0 && input.confirm_free === true) {
+    next[QUOTE_PRICE_CONFIRMED_KEY] = true;
+    // Une famille ambiguë doit encore être précisée ; la gratuité ne la résout pas.
+    if (known && next.quote_service_clarification_status === "needs_explicit_price") {
+      next.quote_service_clarification_status = "resolved_manual";
+      next.quote_service_clarification_reason = null;
+    }
   }
-  return metadata;
+  if (known && typeof input.unit_price === "number" && Number.isFinite(input.unit_price) && input.unit_price > 0) {
+    return { ...next, quote_service_clarification_status: "resolved_manual", quote_service_clarification_reason: null };
+  }
+  return next;
 }
 
 const UNRESOLVED_STATUSES = new Set(["needs_clarification", "needs_explicit_price"]);
@@ -44,6 +54,7 @@ export function readClarificationStatus(metadata: unknown): string | null {
 // confirmé par le professionnel (via la clé serveur).
 export function hasConfirmedPrice(unitPrice: unknown, metadata: unknown): boolean {
   const record = isRecord(metadata) ? metadata : {};
+  if (unitPrice === null || unitPrice === undefined || unitPrice === "") return false;
   const price = Number(unitPrice);
   const priceIsPositive = Number.isFinite(price) && price > 0;
   // Une ligne à 0 € n'est acceptable que si le professionnel l'a explicitement
