@@ -264,7 +264,7 @@ test("planning component preserves elapsed 48h and strict/inclusive boundaries",
 test("planning week highlight is client-only until hydration then follows midnight", () => {
   const declaration = sourceNode(files.planning, (node) => ts.isFunctionDeclaration(node) && node.name?.text === "buildWeekBuckets");
   const factory = vm.runInNewContext(ts.transpileModule(`${declaration}\nbuildWeekBuckets;`, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, { toTimestamp: timestamp }) as (missions: unknown[], now: number) => { isToday: boolean }[];
-  const calculate = (now: number) => run(expression(files.planning, "weekBuckets"), { now, plannedActiveMissions: [], buildWeekBuckets: factory }) as { isToday: boolean }[];
+  const calculate = (now: number) => run(expression(files.planning, "weekBuckets"), { now, referenceTimestamp: now, plannedActiveMissions: [], buildWeekBuckets: factory }) as { isToday: boolean }[];
   assert.equal(calculate(0).length, 0);
   const previous = process.env.TZ; process.env.TZ = "Europe/Paris";
   try {

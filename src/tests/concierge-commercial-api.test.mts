@@ -94,6 +94,10 @@ class Query {
       rows.push(...selected);
     } else if (this.op === "update") selected.forEach(row => Object.assign(row, structuredClone(this.payload)));
     else if (this.op === "delete") this.db.tables[this.table] = rows.filter(row => !selected.includes(row));
+    // Projection relationnelle du transport Supabase pour les lectures de devis.
+    if (this.table === "quotes" && this.op === "read") {
+      selected = selected.map(row => ({ ...row, quote_items: (this.db.tables.quote_items ?? []).filter(item => item.quote_id === row.id) }));
+    }
     return { data: structuredClone(single ? selected[0] ?? null : selected), error: null };
   }
   single() { return this.result(true); }
@@ -181,6 +185,40 @@ test("devis : tiers non invité et modification d'une proposition concurrente re
   assert.equal((await harness(db, B).call("service-request-recipients/[id]/prepare-quote", "POST")).status, 404);
   const q = await (await call("service-request-recipients/[id]/prepare-quote", "POST")).json();
   assert.equal((await harness(db, B).call("quotes/[id]", "PATCH", { notes: "Tentative" }, q.quote.id)).status, 404);
+});
+
+test("gratuité : confirmation serveur, rechargement, révocation et envoi idempotent", async () => {
+  const { db, call } = harness();
+  const q = await (await call("service-request-recipients/[id]/prepare-quote", "POST")).json();
+  const id = q.quote.id;
+  const items = db.tables.quote_items.map(row => ({ ...row, unit_price: 0, confirm_free: true }));
+  assert.equal((await call("quotes/[id]", "PATCH", { items }, id)).status, 200);
+  const reloaded = await (await call("quotes/[id]", "GET", {}, id)).json();
+  assert.ok(reloaded.quote_items.every((item: Row) => item.metadata.quote_service_price_confirmed === true));
+  assert.equal((await call("quotes/[id]", "PATCH", { items: reloaded.quote_items.map((item: Row) => ({ ...item, unit_price: 12 })) }, id)).status, 200);
+  assert.ok(db.tables.quote_items.every(item => item.metadata.quote_service_price_confirmed !== true));
+  const unconfirmed = db.tables.quote_items.map(item => ({ ...item, unit_price: 0 }));
+  assert.equal((await call("quotes/[id]", "PATCH", { items: unconfirmed }, id)).status, 200);
+  assert.equal((await call("quotes/[id]/status", "PATCH", { status: "sent" }, id)).status, 400);
+  assert.equal((await call("quotes/[id]", "PATCH", { items: db.tables.quote_items.map(item => ({ ...item, confirm_free: true })) }, id)).status, 200);
+  assert.equal((await call("quotes/[id]/status", "PATCH", { status: "sent" }, id)).status, 200);
+  const eventCount = db.tables.quote_events.length;
+  assert.equal((await call("quotes/[id]/status", "PATCH", { status: "sent" }, id)).status, 200);
+  assert.equal(db.tables.quote_events.length, eventCount);
+  assert.equal(db.tables.quotes[0].total_amount, 0);
+});
+
+test("tarif absent et confirmation forgée : refus sans suppression de ligne", async () => {
+  const { db, call } = harness();
+  const q = await (await call("service-request-recipients/[id]/prepare-quote", "POST")).json();
+  const before = structuredClone(db.tables.quote_items);
+  for (const price of [null, undefined, ""]) {
+    assert.equal((await call("quotes/[id]", "PATCH", { items: before.map(item => ({ ...item, unit_price: price, confirm_free: true })) }, q.quote.id)).status, 400);
+    assert.deepEqual(db.tables.quote_items, before);
+  }
+  assert.equal((await call("quotes/[id]", "PATCH", { items: before.map(item => ({ ...item, unit_price: 0, metadata: { quote_service_price_confirmed: true, quote_service_clarification_status: "resolved_manual" } })) }, q.quote.id)).status, 200);
+  assert.ok(db.tables.quote_items.every(item => item.metadata.quote_service_price_confirmed !== true));
+  assert.equal((await call("quotes/[id]/status", "PATCH", { status: "sent" }, q.quote.id)).status, 400);
 });
 
 test("envoi : tarif non résolu bloqué, saisie des tarifs et recalcul serveur avec remise/TVA", async () => {

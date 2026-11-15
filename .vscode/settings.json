@@ -5,6 +5,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "cSpell.enabled": false,
+  "cSpell.ignorePaths": ["docs/master-plan-planetls.md"],
   "cSpell.language": "en,fr",
   "cSpell.words": [
     "categorie",

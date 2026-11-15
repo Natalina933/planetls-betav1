@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AsyncState,
   Badge,
@@ -27,7 +27,8 @@ type QuoteItem = {
   label: string;
   description?: string | null;
   quantity: number;
-  unit_price: number;
+  unit_price: number | "";
+  confirm_free?: boolean;
   service_id?: number | null;
   pricing_id?: string | null;
   sort_order?: number;
@@ -203,22 +204,21 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
   const [selectedPackageId, setSelectedPackageId] = useState("");
   const [selectedPricingId, setSelectedPricingId] = useState("");
   const [loading, setLoading] = useState(true);
+  const quoteActionLock = useRef(false);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setErrorMsg(null);
-    try {
-      const [quotesRes, invoicesRes, pricingRes, packagesRes, servicesRes] = await Promise.all([
-        fetch("/api/quotes?limit=30", { cache: "no-store" }),
-        fetch("/api/invoices?limit=12", { cache: "no-store" }),
-        fetch("/api/services/service_pricing", { cache: "no-store" }),
-        fetch("/api/services/packages", { cache: "no-store" }),
-        fetch("/api/services/services-catalog", { cache: "no-store" }),
-      ]);
+  const [editorSource, setEditorSource] = useState({ quotes, selectedQuoteId });
 
+  const load = useCallback((signal?: AbortSignal) => {
+    return Promise.all([
+      fetch("/api/quotes?limit=30", { cache: "no-store", signal }),
+      fetch("/api/invoices?limit=12", { cache: "no-store", signal }),
+      fetch("/api/services/service_pricing", { cache: "no-store", signal }),
+      fetch("/api/services/packages", { cache: "no-store", signal }),
+      fetch("/api/services/services-catalog", { cache: "no-store", signal }),
+    ]).then(async ([quotesRes, invoicesRes, pricingRes, packagesRes, servicesRes]) => {
       const [quotesData, invoicesData, pricingData, packagesData, servicesData] = await Promise.all([
         quotesRes.json(),
         invoicesRes.json(),
@@ -227,6 +227,8 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
         servicesRes.json(),
       ]);
 
+      if (signal?.aborted) return;
+      setErrorMsg(null);
       if (!quotesRes.ok) {
         throw new Error(quotesData?.error || "Impossible de charger les devis.");
       }
@@ -238,36 +240,46 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
       setPackages(Array.isArray(packagesData) ? packagesData : []);
       setServices(Array.isArray(servicesData) ? servicesData : []);
       setSelectedQuoteId((previous) => previous ?? initialSelectedQuoteId ?? nextQuotes[0]?.id ?? null);
-    } catch (error) {
-      setErrorMsg(error instanceof Error ? error.message : "Impossible de charger le bureau devis.");
-    } finally {
-      setLoading(false);
-    }
+    }).catch((error: unknown) => {
+      if (!signal?.aborted) setErrorMsg(error instanceof Error ? error.message : "Impossible de charger le bureau devis.");
+    }).finally(() => {
+      if (!signal?.aborted) setLoading(false);
+    });
   }, [initialSelectedQuoteId]);
 
   useEffect(() => {
-    void load();
+    const controller = new AbortController();
+    void load(controller.signal);
+    return () => controller.abort();
   }, [load]);
 
-  useEffect(() => {
+  const refresh = () => {
+    setLoading(true);
+    setErrorMsg(null);
+    void load();
+  };
+
+  // Reset the draft only when its server data or selected quote changes.
+  if (editorSource.quotes !== quotes || editorSource.selectedQuoteId !== selectedQuoteId) {
+    setEditorSource({ quotes, selectedQuoteId });
+    const current = quotes.find((quote) => quote.id === selectedQuoteId) ?? null;
     if (!selectedQuoteId) {
       setEditor(null);
-      return;
+    } else if (current) {
+      setEditor({
+        ...current,
+        quote_items: (current.quote_items ?? []).map((item, index) => ({
+          ...item,
+          quantity: Number(item.quantity ?? 1),
+          unit_price: item.unit_price == null ? "" : Number(item.unit_price),
+          confirm_free: item.unit_price === 0 && item.metadata?.quote_service_price_confirmed === true,
+          sort_order: Number(item.sort_order ?? index),
+        })),
+      });
+      setSelectedPackageId(current.package_id ?? "");
+      setMode(current.package_id ? "package" : "custom");
     }
-    const current = quotes.find((quote) => quote.id === selectedQuoteId) ?? null;
-    if (!current) return;
-    setEditor({
-      ...current,
-      quote_items: (current.quote_items ?? []).map((item, index) => ({
-        ...item,
-        quantity: Number(item.quantity ?? 1),
-        unit_price: Number(item.unit_price ?? 0),
-        sort_order: Number(item.sort_order ?? index),
-      })),
-    });
-    setSelectedPackageId(current.package_id ?? "");
-    setMode(current.package_id ? "package" : "custom");
-  }, [quotes, selectedQuoteId]);
+  }
 
   const serviceNames = useMemo(
     () =>
@@ -327,7 +339,10 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
         ? {
             ...previous,
             quote_items: (previous.quote_items ?? []).map((item, itemIndex) =>
-              itemIndex === index ? { ...item, ...patch } : item,
+              itemIndex === index ? {
+                ...item, ...patch,
+                ...(patch.unit_price !== undefined && patch.unit_price !== item.unit_price ? { confirm_free: false } : {}),
+              } : item,
             ),
           }
         : previous,
@@ -353,7 +368,7 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
         label: entry.label?.trim() || "Service packagé",
         description: entry.unit ? `Tarif ${entry.unit}` : null,
         quantity: entry.unit?.toLowerCase().includes("heure") ? 2 : 1,
-        unit_price: Number(entry.amount ?? 0),
+        unit_price: entry.amount == null ? "" : Number(entry.amount),
         service_id: entry.service_id ?? null,
         pricing_id: entry.id,
         sort_order: index,
@@ -378,7 +393,7 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
           label: currentPricing.label?.trim() || "Tarif",
           description: currentPricing.unit ? `Tarif ${currentPricing.unit}` : null,
           quantity: currentPricing.unit?.toLowerCase().includes("heure") ? 2 : 1,
-          unit_price: Number(currentPricing.amount ?? 0),
+          unit_price: currentPricing.amount == null ? "" : Number(currentPricing.amount),
           service_id: currentPricing.service_id ?? null,
           pricing_id: currentPricing.id,
           sort_order: (editor.quote_items ?? []).length,
@@ -388,9 +403,10 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
     setSuccessMsg("Le tarif a été ajouté au devis.");
   };
 
-  const saveQuote = async () => {
-    if (!editor) return;
-    setBusyAction("save");
+  const saveQuote = async (forSending = false) => {
+    if (!editor || (!forSending && quoteActionLock.current)) return false;
+    if (!forSending) quoteActionLock.current = true;
+    setBusyAction(forSending ? "send" : "save");
     setErrorMsg(null);
     try {
       const response = await fetch(`/api/quotes/${editor.id}`, {
@@ -416,18 +432,29 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
       if (!response.ok) throw new Error(payload?.error || "Impossible d'enregistrer le devis.");
       setQuotes((previous) => previous.map((quote) => (quote.id === payload.id ? payload : quote)));
       setSuccessMsg("Le devis a été enregistré.");
+      return true;
     } catch (error) {
       setErrorMsg(error instanceof Error ? error.message : "Erreur d'enregistrement.");
+      return false;
     } finally {
-      setBusyAction(null);
+      if (!forSending) {
+        quoteActionLock.current = false;
+        setBusyAction(null);
+      }
     }
   };
 
   const sendQuote = async () => {
-    if (!editor) return;
+    if (!editor || quoteActionLock.current || editor.status === "sent") return;
+    quoteActionLock.current = true;
     setBusyAction("send");
     setErrorMsg(null);
     try {
+      const items = editor.quote_items ?? [];
+      if (!items.length || items.some(item => item.unit_price === "" || !Number.isFinite(item.unit_price) || Number(item.unit_price) < 0 || (item.unit_price === 0 && !item.confirm_free))) {
+        throw new Error("Renseignez chaque tarif ou confirmez explicitement la gratuité des prestations à 0 €.");
+      }
+      if (!await saveQuote(true)) return;
       const response = await fetch(`/api/quotes/${editor.id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -442,6 +469,7 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
     } catch (error) {
       setErrorMsg(error instanceof Error ? error.message : "Erreur d'envoi.");
     } finally {
+      quoteActionLock.current = false;
       setBusyAction(null);
     }
   };
@@ -672,10 +700,10 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
                     </p>
                   </div>
                   <div className={styles.actionRow}>
-                    <Button className={styles.actionSecondary} variant="dark" size="sm" onClick={() => void load()} disabled={loading}>
+                    <Button className={styles.actionSecondary} variant="dark" size="sm" onClick={refresh} disabled={loading}>
                       Actualiser
                     </Button>
-                    <Button className={styles.actionSecondary} variant="dark" size="sm" onClick={saveQuote} disabled={Boolean(busyAction)}>
+                    <Button className={styles.actionSecondary} variant="dark" size="sm" onClick={() => void saveQuote()} disabled={Boolean(busyAction)}>
                       Enregistrer
                     </Button>
                     <Button
@@ -783,16 +811,19 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
                         <CardBody className={styles.lineGrid}>
                           <Input
                             label="Libellé"
+                            disabled={Boolean(busyAction)}
                             value={item.label}
                             onChange={(event) => updateItem(index, { label: event.target.value })}
                           />
                           <Input
                             label="Description"
+                            disabled={Boolean(busyAction)}
                             value={item.description ?? ""}
                             onChange={(event) => updateItem(index, { description: event.target.value })}
                           />
                           <Input
                             label="Quantité"
+                            disabled={Boolean(busyAction)}
                             type="number"
                             min="1"
                             step="1"
@@ -801,12 +832,21 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
                           />
                           <Input
                             label="Prix unitaire"
+                            disabled={Boolean(busyAction)}
                             type="number"
                             min="0"
                             step="0.01"
                             value={item.unit_price}
-                            onChange={(event) => updateItem(index, { unit_price: Number(event.target.value || 0) })}
+                            onChange={(event) => updateItem(index, { unit_price: event.target.value === "" ? "" : Number(event.target.value) })}
                           />
+                          {item.unit_price === 0 ? (
+                            <label>
+                              <input type="checkbox" checked={item.confirm_free === true}
+                                disabled={Boolean(busyAction)}
+                                onChange={(event) => updateItem(index, { confirm_free: event.target.checked })} />
+                              {" "}Je confirme que cette prestation est volontairement gratuite.
+                            </label>
+                          ) : null}
                           <div className={styles.lineMeta}>
                             <span>{item.pricing_id ? "Tarif existant" : "Ligne libre"}</span>
                             {needsServiceClarification(item) ? (
@@ -831,7 +871,7 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
                           ) : null}
                           <div className={styles.lineSide}>
                             <strong>{formatMoney(Number(item.quantity || 0) * Number(item.unit_price || 0))}</strong>
-                            <Button className={styles.actionGhost} variant="ghost" size="sm" onClick={() => removeItem(index)}>
+                            <Button className={styles.actionGhost} variant="ghost" size="sm" onClick={() => removeItem(index)} disabled={Boolean(busyAction)}>
                               Retirer
                             </Button>
                           </div>

@@ -19,6 +19,7 @@ type QuoteItemInput = {
   description?: string | null;
   quantity?: number;
   unit_price: number;
+  confirm_free?: boolean;
   service_id?: number | null;
   pricing_id?: string | null;
   sort_order?: number;
@@ -285,7 +286,7 @@ export async function PATCH(
                   ? item.description.trim()
                   : null,
               quantity: Number(item.quantity ?? 1),
-              unit_price: Number(item.unit_price ?? 0),
+              unit_price: typeof item.unit_price === "number" ? item.unit_price : NaN,
               service_id:
                 item.service_id === null || item.service_id === undefined
                   ? null
@@ -298,7 +299,7 @@ export async function PATCH(
                 ? Number(item.sort_order)
                 : index,
               // Faille D : préserve les clés de sécurité de la ligne existante.
-              metadata: confirmQuoteItemPrice({ label: item.label, unit_price: Number(item.unit_price) }, mergeItemMetadata(item.metadata, existingItem?.metadata)) as Json,
+              metadata: confirmQuoteItemPrice({ label: item.label, unit_price: item.unit_price, confirm_free: item.confirm_free }, mergeItemMetadata(item.metadata, existingItem?.metadata)) as Json,
             };
           })
           .filter(
@@ -310,6 +311,10 @@ export async function PATCH(
               item.unit_price >= 0,
           )
       : existingItems;
+
+    if (Array.isArray(body.items) && sanitizedItems.length !== body.items.length) {
+      return NextResponse.json({ error: "Chaque prestation doit avoir un libellé, une quantité valide et un tarif renseigné (zéro pour une prestation gratuite)." }, { status: 400 });
+    }
 
     const existingMetadata =
       existing.metadata &&
