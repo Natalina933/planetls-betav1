@@ -187,11 +187,19 @@ export type MasterPlanView = {
   diagnostics: DevelopmentRegistryDiagnostics;
 };
 
+const developmentSpaceTrackingSchema = z.object({
+  primarySpace: z.string().min(1).refine((value) => value.trim().length > 0),
+  relatedSpaces: z.array(z.string().min(1).refine((value) => value.trim().length > 0)),
+  trackingType: z.string().min(1).refine((value) => value.trim().length > 0),
+  references: z.array(z.string().min(1).refine((value) => value.trim().length > 0)),
+});
+
 const developmentRegistrySchema = z.object({
   version: z.literal(1),
   items: z.array(z.object({
     id: z.string().min(3),
     domain: z.string().min(2),
+    spaceTracking: z.unknown().optional(),
     title: z.string().min(2),
     summary: z.string().min(2),
     status: z.enum(DEVELOPMENT_ITEM_STATUSES),
@@ -634,6 +642,14 @@ function validateStructuredRegistry(markdown: string, referenceNow: Date) {
   const today = referenceNow;
   const trackingSequences = new Map<typeof DEVELOPMENT_ITEM_PRIORITIES[number], number>();
   const items: DevelopmentRegistryItem[] = rawRegistry.items.map((item) => {
+    const spaceTrackingResult = developmentSpaceTrackingSchema.safeParse(item.spaceTracking);
+    if (item.spaceTracking !== undefined && !spaceTrackingResult.success) {
+      const paths = spaceTrackingResult.error.issues.slice(0, 4)
+        .map((issue) => ["spaceTracking", ...issue.path].join("."));
+      diagnostics.warnings.push(
+        "Métadonnées d’espace invalides ignorées pour " + item.id + ": " + paths.join(", "),
+      );
+    }
     const status = item.status;
     const nextSequence = (trackingSequences.get(item.priority) ?? 0) + 1;
     trackingSequences.set(item.priority, nextSequence);
@@ -648,6 +664,7 @@ function validateStructuredRegistry(markdown: string, referenceNow: Date) {
 
     return {
       ...item,
+      spaceTracking: spaceTrackingResult.success ? spaceTrackingResult.data : undefined,
       status,
       // The tracking number stays unique even when registry IDs use different prefixes.
       trackingId: `${item.priority}-${String(nextSequence).padStart(3, "0")}`,
