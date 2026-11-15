@@ -43,5 +43,6 @@
     "http",
     "net"
   ],
-  "postman.settings.dotenv-detection-notification-visibility": false
+  "postman.settings.dotenv-detection-notification-visibility": false,
+  "python.terminal.useEnvFile": true
 }
