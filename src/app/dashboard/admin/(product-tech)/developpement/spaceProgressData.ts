@@ -1,10 +1,8 @@
 /**
  * Progression par espace métier — registre canonique du Master Plan.
  *
- * Chaque item du registre structuré porte un champ `domain`. Ce module mappe
- * les domaines vers six catégories : cinq espaces métier plus une catégorie
- * "Transversal" qui recouvre les domaines partagés ou non spécifiquement
- * rattachés à un espace métier.
+ * Le responsable est spaceTracking.primarySpace. relatedSpaces est informatif.
+ * Sans métadonnées, le mapping historique reste une compatibilité signalée.
  *
  * Règles de calcul :
  * - Les items de priorité P4 sont exclus du calcul, quel que soit leur statut.
@@ -17,9 +15,8 @@
  *   comptent comme "restants".
  * - Le pourcentage = Math.round((terminé / total) * 100). Si total = 0, le
  *   pourcentage est null et la catégorie affiche "Non évalué".
- * - Chaque item appartient à un seul domaine, donc il n'y a pas de double
- *   comptage entre catégories.
- * - Tout domaine non listé dans DOMAIN_TO_SPACE rejoint Transversal.
+ * - Chaque entrée est comptée une seule fois dans son espace responsable.
+ * - Un espace explicite inconnu est refusé, jamais remplacé en silence.
  */
 
 import type { DevelopmentRegistryItem } from "./masterPlan";
@@ -27,6 +24,8 @@ import type { DevelopmentRegistryItem } from "./masterPlan";
 export type SpaceProgressItem = {
   name: string;
   domains: string[];
+  entryIds: string[];
+  compatibilityEntryIds: string[];
   total: number;
   completed: number;
   inProgress: number;
@@ -52,7 +51,7 @@ export const SPACE_ORDER: string[] = [
   "Transversal",
 ];
 
-// Mapping explicite des domaines du registre vers les cinq espaces métier.
+// Compatibilité uniquement pour les entrées dépourvues de spaceTracking.
 // Les domaines non listés ici rejoignent Transversal par défaut.
 export const DOMAIN_TO_SPACE: Record<string, string> = {
   // Conciergerie
@@ -116,7 +115,11 @@ export function computeSpaceProgress(
       continue;
     }
 
-    const space = domainToSpace[item.domain] ?? TRANSVERSAL_NAME;
+    const primarySpace = item.spaceTracking?.primarySpace;
+    if (item.spaceTracking !== undefined && !spaceOrder.includes(primarySpace ?? "")) {
+      throw new Error("Espace responsable invalide pour " + item.id + ": " + primarySpace);
+    }
+    const space = primarySpace ?? domainToSpace[item.domain] ?? TRANSVERSAL_NAME;
     if (!bySpace.has(space)) {
       bySpace.set(space, []);
     }
@@ -137,6 +140,8 @@ export function computeSpaceProgress(
     return {
       name,
       domains,
+      entryIds: spaceItems.map((item) => item.id),
+      compatibilityEntryIds: spaceItems.filter((item) => item.spaceTracking === undefined).map((item) => item.id),
       total,
       completed,
       inProgress,

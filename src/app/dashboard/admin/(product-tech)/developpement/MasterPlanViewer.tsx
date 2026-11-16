@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ChangeEvent, type ReactNode } from "react";
 import Link from "next/link";
 import {
   Activity,
@@ -89,7 +89,16 @@ import { projectRoadmap, type RoadmapProjectedItem, type RoadmapView } from "./r
 import { type TechnicalMemoryEntry, type TechnicalMemoryView } from "./technicalMemory";
 import styles from "./page.module.scss";
 
+import { SpaceProgress } from "./SpaceProgress";
+import { SubfeatureExplorer } from "./SubfeatureExplorer";
+import { EMPTY_SOCLE, SocleChecks, SocleExplorer, SocleSummary } from "./SocleProgress";
+import type { SoclePresentation } from "./socleProgressData";
+import type { SpaceProgressResult } from "./spaceProgressData";
+import { createDevelopmentLocalStorage, isFavoriteIdList } from "./developmentLocalStorage";
+
 type MasterPlanViewerProps = {
+  socle?: SoclePresentation;
+  progress: SpaceProgressResult;
   plan: MasterPlanView;
   journal: DeveloperLogView;
   missionControl: MissionControlView;
@@ -1027,14 +1036,10 @@ function parseFeatures(value: string) {
     .filter(Boolean);
 }
 
-function readStorage<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = window.localStorage.getItem(key);
-    return raw ? JSON.parse(raw) as T : fallback;
-  } catch {
-    return fallback;
-  }
+function useDevelopmentLocalStorage<T>(key: string, fallback: T, validate?: (value: unknown) => boolean) {
+  const [store] = useState(() => createDevelopmentLocalStorage(key, fallback, validate));
+  const value = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getServerSnapshot);
+  return [value, store.set] as const;
 }
 
 function healthToneClass(status: MissionControlHealthStatus) {
@@ -1417,7 +1422,15 @@ function CompactCardHeader({
   );
 }
 
-export function MasterPlanViewer({ plan, journal, missionControl, roadmap, technicalMemory, defaultAuthor, projectVersion }: MasterPlanViewerProps) {
+export function MasterPlanViewer({ plan, journal, missionControl, roadmap, technicalMemory, defaultAuthor, projectVersion, progress, socle = EMPTY_SOCLE }: MasterPlanViewerProps) {
+  const [developmentTab, setDevelopmentTab] = useState("overview");
+  const [detailedWorkspaceOpen, setDetailedWorkspaceOpen] = useState(false);
+  const [spaceRequest, setSpaceRequest] = useState<{ name: string } | null>(null);
+  const openFeatures = useCallback(() => setDevelopmentTab("features"), []);
+  const exploreSpace = (name: string) => {
+    setSpaceRequest({ name });
+    setDevelopmentTab("features");
+  };
   const blockedMasterPlanStatus = "⚠️ Bloqué";
   const workspaceAnchorRef = useRef<HTMLDivElement | null>(null);
   const [masterPlanQuery, setMasterPlanQuery] = useState("");
@@ -1442,12 +1455,11 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   const [memoryCategory, setMemoryCategory] = useState("");
   const [memoryTag, setMemoryTag] = useState("");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
-  const [hasHydratedLocalState, setHasHydratedLocalState] = useState(false);
-  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
-  const [commentsByEntry, setCommentsByEntry] = useState<Record<string, DeveloperLogComment[]>>({});
+  const [favoriteIds, setFavoriteIds] = useDevelopmentLocalStorage<string[]>(FAVORITES_STORAGE_KEY, [], isFavoriteIdList);
+  const [commentsByEntry, setCommentsByEntry] = useDevelopmentLocalStorage<Record<string, DeveloperLogComment[]>>(COMMENTS_STORAGE_KEY, {});
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
-  const [manualEntries, setManualEntries] = useState<DeveloperLogEntry[]>([]);
-  const [roadmapCompletedIds, setRoadmapCompletedIds] = useState<string[]>([]);
+  const [manualEntries, setManualEntries] = useDevelopmentLocalStorage<DeveloperLogEntry[]>(MANUAL_ENTRIES_STORAGE_KEY, []);
+  const [roadmapCompletedIds, setRoadmapCompletedIds] = useDevelopmentLocalStorage<string[]>(ROADMAP_COMPLETIONS_STORAGE_KEY, []);
   const [expandedTimelineEntryIds, setExpandedTimelineEntryIds] = useState<string[]>([]);
   const [expandedDailySummaryIds, setExpandedDailySummaryIds] = useState<string[]>([]);
   const [expandedMemoryEntryIds, setExpandedMemoryEntryIds] = useState<string[]>([]);
@@ -1479,38 +1491,6 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
   });
   const [pendingMasterPlanAnchor, setPendingMasterPlanAnchor] = useState<string | null>(null);
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<DevelopmentWorkspaceTab>("execution");
-
-  useEffect(() => {
-    setFavoriteIds(readStorage<string[]>(FAVORITES_STORAGE_KEY, []));
-    setCommentsByEntry(readStorage<Record<string, DeveloperLogComment[]>>(COMMENTS_STORAGE_KEY, {}));
-    setManualEntries(readStorage<DeveloperLogEntry[]>(MANUAL_ENTRIES_STORAGE_KEY, []));
-    setRoadmapCompletedIds(readStorage<string[]>(ROADMAP_COMPLETIONS_STORAGE_KEY, []));
-    setHasHydratedLocalState(true);
-  }, []);
-
-  useEffect(() => {
-    if (hasHydratedLocalState && typeof window !== "undefined") {
-      window.localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(favoriteIds));
-    }
-  }, [favoriteIds, hasHydratedLocalState]);
-
-  useEffect(() => {
-    if (hasHydratedLocalState && typeof window !== "undefined") {
-      window.localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(commentsByEntry));
-    }
-  }, [commentsByEntry, hasHydratedLocalState]);
-
-  useEffect(() => {
-    if (hasHydratedLocalState && typeof window !== "undefined") {
-      window.localStorage.setItem(MANUAL_ENTRIES_STORAGE_KEY, JSON.stringify(manualEntries));
-    }
-  }, [hasHydratedLocalState, manualEntries]);
-
-  useEffect(() => {
-    if (hasHydratedLocalState && typeof window !== "undefined") {
-      window.localStorage.setItem(ROADMAP_COMPLETIONS_STORAGE_KEY, JSON.stringify(roadmapCompletedIds));
-    }
-  }, [hasHydratedLocalState, roadmapCompletedIds]);
 
   useEffect(() => {
     if (!pendingMasterPlanAnchor || !panelOpen.masterPlan) return;
@@ -2053,28 +2033,8 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       ? "Release envisageable avec séquencement serré et surveillance active."
       : "Release compatible avec la trajectoire actuelle du projet.";
   const escalationHeadline = priorityActions[0]?.title || topBlockedItems[0]?.title || missionControl.weeklyGoal;
-  const currentWork = useMemo(
-    () => plan.planning.filter((item) => item.status === "🟡 En cours").slice(0, 6),
-    [plan.planning],
-  );
-  const verificationWork = useMemo(
-    () => plan.planning.filter((item) => item.status === "🟠 Partiel").slice(0, 6),
-    [plan.planning],
-  );
   const blockedWork = useMemo(
     () => plan.planning.filter((item) => item.status === "⚠️ Bloqué").slice(0, 6),
-    [plan.planning],
-  );
-  const readyWork = useMemo(
-    () => roadmapProjection.readyItems.slice(0, 6),
-    [roadmapProjection.readyItems],
-  );
-  const completedWork = useMemo(
-    () => roadmapProjection.completedItems.slice(0, 6),
-    [roadmapProjection.completedItems],
-  );
-  const deferredWork = useMemo(
-    () => plan.planning.filter((item) => item.status === "⏸️ Reporté").slice(0, 6),
     [plan.planning],
   );
   const conciseHealthCards = useMemo(
@@ -2082,189 +2042,51 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
     [missionControl.healthCards],
   );
 
-  return (
-    <div className={styles.page}>
-      <section className={styles.compactShell}>
+  const renderSimplifiedWorkspace = () => (
+    <div className={`${styles.page} ${styles.developmentTabs}`}>
         {!missionControl.indicatorsAvailable ? <p role="alert">Registre invalide : indicateurs indisponibles. {plan.diagnostics.errors.length ? plan.diagnostics.errors.join(" · ") : "Registre canonique absent ou vide ; les archives ne constituent pas une mesure actuelle."}</p> : null}
-        <div className={styles.compactHero}>
-          <div className={styles.compactHeroTop}>
-            <span className={styles.eyebrow}><Radar size={16} /> Développement</span>
-            <Tag tone="neutral" className={executiveHealth.className}>{executiveHealth.label}</Tag>
-          </div>
-          <div className={styles.compactHeroMain}>
-            <div>
-              <h1 className={styles.compactTitle}>Où j&apos;en suis et quoi faire ensuite</h1>
-              <p className={styles.compactLead}>
-                Vue courte pour reprendre vite : progression, blocages, chantiers en cours, éléments terminés
-                et meilleure prochaine action. Le reste du détail documentaire n&apos;est plus la lecture principale.
-              </p>
+      <Tabs value={developmentTab} onValueChange={setDevelopmentTab}>
+        <TabsList className={styles.developmentTabList} aria-label="Navigation du développement">
+          <TabsTrigger value="overview">Vue d’ensemble</TabsTrigger>
+          <TabsTrigger value="features">Fonctionnalités</TabsTrigger>
+          <TabsTrigger value="work">Travaux</TabsTrigger>
+          <TabsTrigger value="checks">Contrôles</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview" forceMount hidden={developmentTab !== "overview"} className={styles.developmentTabPanel}>
+          <SocleSummary data={socle} onFeatures={openFeatures} onChecks={() => setDevelopmentTab("checks")} />
+          <details className={styles.subfeatureDisclosure}>
+            <summary>Chantiers documentaires clôturés — voir les compteurs</summary>
+            <SpaceProgress spaces={progress.items} covered={progress.covered} excluded={progress.excluded} totalRegistryItems={progress.totalRegistryItems} onSpaceSelect={exploreSpace} />
+          </details>
+          <section aria-label="Priorité immédiate">
+            <h2>Prochaine action</h2>
+            <p>{nextSuggestion?.title || "Aucune action prioritaire détectée"}</p>
+            <p>{nextSuggestion?.nextAction || missionControl.weeklyGoal}</p>
+            {blockedWork.length ? <p role="status">Des travaux sont bloqués dans le référentiel. Consultez l’onglet Travaux pour leurs dépendances.</p> : null}
+            <Button variant="secondary" onClick={() => setDevelopmentTab("work")}>Consulter les travaux</Button>
+          </section>
+        </TabsContent>
+        <TabsContent value="features" forceMount hidden={developmentTab !== "features"} className={styles.developmentTabPanel}>
+          <SocleExplorer data={socle} />
+          <details className={styles.subfeatureDisclosure} open={spaceRequest !== null}>
+            <summary>Consulter l’inventaire technique existant</summary>
+            <SubfeatureExplorer parents={plan.registryItems} active={developmentTab === "features"} spaceRequest={spaceRequest} onOpenFeature={openFeatures} />
+          </details>
+        </TabsContent>
+        <TabsContent value="work" forceMount hidden={developmentTab !== "work"} className={styles.developmentTabPanel}>
+          <section className={styles.compactShell} aria-labelledby="work-focus-title">
+            <h2 id="work-focus-title">Travaux prioritaires</h2>
+            <p>Les chantiers actifs et les blocages, par ordre de priorité.</p>
+            <div className={styles.compactList}>
+              {plan.registryItems.filter(item => ["BLOCKED", "IN_PROGRESS", "TO_VERIFY", "READY"].includes(item.status))
+                .sort((a, b) => priorityScore(a.priority) - priorityScore(b.priority))
+                .slice(0, 6).map(item => <article key={item.id} className={styles.compactListItem}>
+                  <div className={styles.compactListTop}><strong>{item.title}</strong><Tag tone="neutral">{item.priority} · {item.statusLabel}</Tag></div>
+                  <p>{item.nextAction || "Prochaine action à préciser."}</p>
+                </article>)}
             </div>
-            <Link href="/dashboard/admin" className={styles.backLink}>Retour au cockpit admin</Link>
-          </div>
-        </div>
-
-        <div className={styles.compactStats}>
-          <StatsCard label="Progression" value={missionControl.indicatorsAvailable ? `${missionControl.progressionPct}%` : "Indisponible"} hint="Calcul déclaratif : part des statuts terminés, sans validation fonctionnelle" progress={missionControl.indicatorsAvailable ? missionControl.progressionPct : undefined} visual={<Target size={18} />} visualLabel="Progression" />
-          <StatsCard label="En cours" value={missionControl.indicatorsAvailable ? String(missionControl.inProgressFeatures) : "Indisponible"} hint="Statuts déclarés à poursuivre" visual={<Activity size={18} />} visualLabel="En cours" />
-          <StatsCard label="Bloqués" value={missionControl.indicatorsAvailable ? String(missionControl.blockedFeatures) : "Indisponible"} hint="Statuts BLOCKED déclarés, hors simples dépendances" visual={<AlertTriangle size={18} />} visualLabel="Bloqués" />
-          <StatsCard label="Terminés" value={missionControl.indicatorsAvailable ? String(missionControl.completedFeatures) : "Indisponible"} hint="Développement déclaré terminé, validation distincte" visual={<CheckCheck size={18} />} visualLabel="Terminés" />
-        </div>
-
-        <div className={styles.compactGrid}>
-          <article className={styles.auditCard}>
-            <strong>Source canonique</strong>
-            <p>{syncSourceLabel} · {plan.diagnostics.itemCount} élément(s) · mise à jour {syncLastUpdateLabel} · prochain numéro {syncNextIdLabel}.</p>
-          </article>
-          <article className={styles.auditCard}>
-            <strong>Santé de la synchronisation</strong>
-            <p>{syncErrorCount} erreur(s), {syncWarningCount} alerte(s) et {plan.diagnostics.duplicateIds.length} doublon(s) d&apos;identifiant.</p>
-          </article>
-        </div>
-
-        <div className={styles.compactGrid}>
-          <Card className={styles.compactPrimaryCard}>
-            <CompactCardHeader title="Prochaine action" summary="Suggestion calculée par la roadmap, à confirmer avant intervention." isOpen={compactPanelOpen.nextAction} onToggle={() => toggleCompactPanel("nextAction")} controlsId="next-action-panel" />
-            {compactPanelOpen.nextAction ? <CardBody id="next-action-panel" className={styles.compactBody}>
-              <div className={styles.compactFocusCard}>
-                <span>{nextSuggestion?.isReady ? "Maintenant" : "Sous dépendances"}</span>
-                <strong>{nextSuggestion?.title || "Aucune action prioritaire détectée"}</strong>
-                <p>{nextSuggestion?.nextAction || missionControl.weeklyGoal}</p>
-              </div>
-              <div className={styles.compactMetaRow}>
-                <div><strong>Tension</strong><span>{operationalTension.label}</span></div>
-                <div><strong>Release</strong><span>{releaseReadiness}</span></div>
-                <div><strong>Rythme</strong><span>{missionControl.weeklyDevelopmentLabel}</span></div>
-              </div>
-            </CardBody> : null}
-          </Card>
-
-          <Card>
-            <CompactCardHeader title="Vérifications rapides" summary="Contrôle de lecture Supabase et configurations déclarées ; aucune disponibilité distante déduite." isOpen={compactPanelOpen.healthChecks} onToggle={() => toggleCompactPanel("healthChecks")} controlsId="health-checks-panel" />
-            {compactPanelOpen.healthChecks ? <CardBody id="health-checks-panel" className={styles.compactChecklist}>
-              {conciseHealthCards.map((card) => (
-                <article key={card.label} className={styles.auditCard}>
-                  <strong>{card.label}</strong>
-                  <p>{card.detail}</p>
-                </article>
-              ))}
-              <article className={styles.auditCard}>
-                <strong>Priorités suivies</strong>
-                <p>P0 {plan.registryItems.filter((item) => item.priority === "P0").length} · P1 {plan.registryItems.filter((item) => item.priority === "P1").length} · P2 {plan.registryItems.filter((item) => item.priority === "P2").length} · P3 {plan.registryItems.filter((item) => item.priority === "P3").length} · P4 {plan.registryItems.filter((item) => item.priority === "P4").length}</p>
-              </article>
-              <article className={styles.auditCard}>
-                <strong>Dépendances et empêchements</strong>
-                <p>{missionControl.dependencyFeatures} entrée(s) avec dépendances déclarées ; {missionControl.unqualifiedBlockers} motif(s) à qualifier sans statut BLOCKED. Aucun blocage actif n’est déduit automatiquement de ces textes.</p>
-              </article>
-              <article className={styles.auditCard}>
-                <strong>États déclarés des priorités</strong>
-                <p>En cours {plan.registryItems.filter((item) => item.status === "IN_PROGRESS").length} · Prêt {plan.registryItems.filter((item) => item.status === "READY").length} · À vérifier {plan.registryItems.filter((item) => item.status === "TO_VERIFY").length} · Terminées {plan.registryItems.filter((item) => item.status === "COMPLETED").length} · Bloquées {plan.registryItems.filter((item) => item.status === "BLOCKED").length} · Reportées {plan.registryItems.filter((item) => item.status === "DEFERRED").length} · Idées actives {plan.registryItems.filter((item) => item.status === "IDEA").length}</p>
-              </article>
-            </CardBody> : null}
-          </Card>
-        </div>
-
-        <div className={styles.compactColumns}>
-          <Card>
-            <CompactCardHeader title="À débloquer" summary="Ce qui empêche d'avancer maintenant." isOpen={compactPanelOpen.blockedWork} onToggle={() => toggleCompactPanel("blockedWork")} controlsId="blocked-work-panel" />
-            {compactPanelOpen.blockedWork ? <CardBody id="blocked-work-panel" className={styles.compactList}>
-              {blockedWork.length ? blockedWork.map((item) => (
-                <article key={item.id} className={styles.compactListItem}>
-                  <div className={styles.compactListTop}>
-                    <p className={styles.categoryLabel}>{item.id} · {item.priority}</p>
-                    <Tag tone="neutral">Bloqué</Tag>
-                  </div>
-                  <strong>{item.feature}</strong>
-                  <p>{item.nextAction || item.evidence}</p>
-                </article>
-              )) : <p className={styles.executiveEmpty}>Aucun blocage ouvert.</p>}
-            </CardBody> : null}
-          </Card>
-
-          <Card>
-            <CompactCardHeader title="En cours" summary="Ce qui mérite de continuer sans repartir dans tous les sens." isOpen={compactPanelOpen.currentWork} onToggle={() => toggleCompactPanel("currentWork")} controlsId="current-work-panel" />
-            {compactPanelOpen.currentWork ? <CardBody id="current-work-panel" className={styles.compactList}>
-              {currentWork.length ? currentWork.map((item) => (
-                <article key={item.id} className={styles.compactListItem}>
-                  <div className={styles.compactListTop}>
-                    <p className={styles.categoryLabel}>{item.id} · {item.priority}</p>
-                    <Tag tone="status">{item.status}</Tag>
-                  </div>
-                  <strong>{item.feature}</strong>
-                  <p>{item.nextAction || item.evidence}</p>
-                </article>
-              )) : <p className={styles.executiveEmpty}>Aucun chantier actif détecté.</p>}
-            </CardBody> : null}
-          </Card>
-        </div>
-
-        <div className={styles.compactColumns}>
-          <Card>
-            <CompactCardHeader title="Prêt à faire" summary="Suggestions de la roadmap heuristique ; disponibilité réelle à confirmer." isOpen={compactPanelOpen.readyWork} onToggle={() => toggleCompactPanel("readyWork")} controlsId="ready-work-panel" />
-            {compactPanelOpen.readyWork ? <CardBody id="ready-work-panel" className={styles.compactList}>
-              {readyWork.length ? readyWork.map((item) => (
-                <article key={item.id} className={styles.compactListItem}>
-                  <div className={styles.compactListTop}>
-                    <p className={styles.categoryLabel}>{item.id} · {item.priority}</p>
-                    <Tag tone="gold">{item.estimation}</Tag>
-                  </div>
-                  <strong>{item.title}</strong>
-                  <p>{item.nextAction || item.evidence}</p>
-                </article>
-              )) : <p className={styles.executiveEmpty}>Aucun sujet prêt immédiat détecté.</p>}
-            </CardBody> : null}
-          </Card>
-
-          <Card>
-            <CompactCardHeader title="Terminé" summary="Les derniers éléments déjà stabilisés pour éviter les redites." isOpen={compactPanelOpen.completedWork} onToggle={() => toggleCompactPanel("completedWork")} controlsId="completed-work-panel" />
-            {compactPanelOpen.completedWork ? <CardBody id="completed-work-panel" className={styles.compactList}>
-              {completedWork.length ? completedWork.map((item) => (
-                <article key={item.id} className={styles.compactListItem}>
-                  <div className={styles.compactListTop}>
-                    <p className={styles.categoryLabel}>{item.id} · {item.priority}</p>
-                    <Tag tone="status">Terminé</Tag>
-                  </div>
-                  <strong>{item.title}</strong>
-                  <p>{item.evidence || item.domain}</p>
-                </article>
-              )) : <p className={styles.executiveEmpty}>Aucun repère terminé remonté dans cette vue.</p>}
-            </CardBody> : null}
-          </Card>
-        </div>
-
-        <div className={styles.compactColumns}>
-          <Card>
-            <CompactCardHeader title="À vérifier" summary="Les réalisations qui demandent encore une validation explicite." isOpen={compactPanelOpen.verificationWork} onToggle={() => toggleCompactPanel("verificationWork")} controlsId="verification-work-panel" />
-            {compactPanelOpen.verificationWork ? <CardBody id="verification-work-panel" className={styles.compactList}>
-              {verificationWork.length ? verificationWork.map((item) => (
-                <article key={item.id} className={styles.compactListItem}>
-                  <div className={styles.compactListTop}>
-                    <p className={styles.categoryLabel}>{item.id} · {item.priority}</p>
-                    <Tag tone="status">À vérifier</Tag>
-                  </div>
-                  <strong>{item.feature}</strong>
-                  <p>{item.nextAction || item.evidence}</p>
-                </article>
-              )) : <p className={styles.executiveEmpty}>Aucune vérification en attente.</p>}
-            </CardBody> : null}
-          </Card>
-
-          <Card>
-            <CompactCardHeader title="Reporté" summary="Les sujets volontairement sortis du flux actif." isOpen={compactPanelOpen.deferredWork} onToggle={() => toggleCompactPanel("deferredWork")} controlsId="deferred-work-panel" />
-            {compactPanelOpen.deferredWork ? <CardBody id="deferred-work-panel" className={styles.compactList}>
-              {deferredWork.length ? deferredWork.map((item) => (
-                <article key={item.id} className={styles.compactListItem}>
-                  <div className={styles.compactListTop}>
-                    <p className={styles.categoryLabel}>{item.id} · {item.priority}</p>
-                    <Tag tone="neutral">Reporté</Tag>
-                  </div>
-                  <strong>{item.feature}</strong>
-                  <p>{item.nextAction || item.evidence}</p>
-                </article>
-              )) : <p className={styles.executiveEmpty}>Aucun sujet reporté.</p>}
-            </CardBody> : null}
-          </Card>
-        </div>
-
+            <details className={styles.subfeatureDisclosure}>
+              <summary>Toutes les priorités et les automatisations</summary>
         <Card>
           <CardHeader className={styles.panelHeader}>
             <div>
@@ -2275,9 +2097,9 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
           <CardBody>
             <div className={styles.prioritySection}>
               <div className={styles.priorityHeader}>
-                <strong>Référentiel unique P0 à P4</strong>
+              <strong>Priorités P0 à P4 et idées historiques signalées</strong>
               </div>
-              <p className={styles.sidebarIntro}>Les cartes d&apos;exécution, les compteurs et ce tableau lisent tous le registre structuré. Les anciens intitulés restent archivés avec leur provenance, sans créer une seconde liste active.</p>
+              <p className={styles.sidebarIntro}>Les cartes et compteurs lisent le registre structuré. Ce tableau ajoute aussi des idées P3 historiques identifiées PLS-HIST-* : elles restent à réévaluer et ne constituent ni des mesures actuelles ni des engagements de développement.</p>
               <div className={styles.filterBar}>
                 <input aria-label="Rechercher dans le pilotage des priorités" value={priorityQuery} onChange={(event) => setPriorityQuery(event.target.value)} placeholder="ID, sujet, preuve ou dépendance…" />
                 <select aria-label="Filtrer les priorités par niveau" value={priorityLevelFilter} onChange={(event) => setPriorityLevelFilter(event.target.value)}><option value="">Tous les niveaux</option>{["P0", "P1", "P2", "P3", "P4"].map((level) => <option key={level} value={level}>{level}</option>)}</select>
@@ -2352,7 +2174,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
                 <p>Données déclaratives locales : les métriques ci-dessous ne proviennent pas d’un monitoring connecté.</p>
               </div>
               <p className={styles.sidebarIntro}>
-                Vue courte branchée sur les enregistrements réels `AUT-*` de l&apos;espace d&apos;automatisation actuel, sans réintroduire l&apos;ancien mock statique.
+                Vue courte des fiches locales AUT-*. Les états, exécutions, taux de succès, incidents et traces sont déclaratifs ; ils ne prouvent ni une activité actuelle ni une automatisation validée en production.
               </p>
               <div className={styles.tableScroll}>
                 <table aria-label="Tableau court des automatisations et processus">
@@ -2394,13 +2216,90 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
               </div>
 
               <p className={styles.sidebarIntro}>
-                {archivedHistoricalPriorityCount} lignes du tableau D du commit <code>3add992b</code> restent conservées comme archive de provenance. Elles ne constituent plus un second tableau de pilotage et seront reliées une à une au registre actif lors de leur réévaluation factuelle.
+                {archivedHistoricalPriorityCount} lignes du tableau D du commit <code>3add992b</code> sont conservées avec leur provenance historique. Les anciennes P3 sont également affichées ci-dessus sous des identifiants PLS-HIST-* ; leur besoin et leur priorité restent à réévaluer avant toute planification.
               </p>
             </div>
           </CardBody>
         </Card>
 
-      </section>
+
+            </details>
+          </section>
+          <details className={styles.subfeatureDisclosure} onToggle={(event) => setDetailedWorkspaceOpen(event.currentTarget.open)}>
+            <summary>Ouvrir les outils détaillés : Master Plan, roadmap, mémoire et journal</summary>
+            {detailedWorkspaceOpen ? renderDetailedWorkspace() : null}
+          </details>
+        </TabsContent>
+        <TabsContent value="checks" forceMount hidden={developmentTab !== "checks"} className={styles.developmentTabPanel}>
+          <SocleChecks data={socle} />
+          <details className={styles.subfeatureDisclosure}>
+            <summary>Diagnostics techniques et compteurs historiques</summary>
+          <section className={styles.compactShell}>
+            <h2>Contrôles et limites des preuves</h2>
+            <p>Les informations Git, Supabase et Vercel ci-dessous ont une portée limitée. Les preuves historiques ne certifient pas l’état actuel du produit.</p>
+            <section aria-label="Contrôles non exécutés par le tableau de bord">
+              <h3>Vérifications à réaliser</h3>
+              <ul>
+                {["Tests automatisés", "TypeScript et lint", "Sécurité", "PostgreSQL et RLS", "Recettes navigateur desktop et mobile"].map((label) => (
+                  <li key={label}><strong>{label} : NON TESTÉ</strong> par cette vue.</li>
+                ))}
+              </ul>
+              <p>Les résultats PASS, FAIL ou PARTIAL des fiches sont des preuves datées : leur environnement et leur périmètre doivent être vérifiés avant réutilisation.</p>
+            </section>
+            <button type="button" onClick={openFeatures}>Consulter les preuves datées dans les fiches techniques</button>
+
+        <div className={styles.compactStats}>
+          <StatsCard label="Progression documentaire globale" value={missionControl.indicatorsAvailable ? `${missionControl.progressionPct}%` : "Indisponible"} hint="Calcul déclaratif : part des statuts terminés, P4 inclus, sans validation fonctionnelle" progress={missionControl.indicatorsAvailable ? missionControl.progressionPct : undefined} visual={<Target size={18} />} visualLabel="Progression" />
+          <StatsCard label="En cours ou à vérifier" value={missionControl.indicatorsAvailable ? String(missionControl.inProgressFeatures) : "Indisponible"} hint="Statuts IN_PROGRESS et TO_VERIFY regroupés, P4 inclus" visual={<Activity size={18} />} visualLabel="En cours" />
+          <StatsCard label="Bloqués" value={missionControl.indicatorsAvailable ? String(missionControl.blockedFeatures) : "Indisponible"} hint="Statuts BLOCKED déclarés, hors simples dépendances" visual={<AlertTriangle size={18} />} visualLabel="Bloqués" />
+          <StatsCard label="Terminés" value={missionControl.indicatorsAvailable ? String(missionControl.completedFeatures) : "Indisponible"} hint="Développement déclaré terminé, validation distincte" visual={<CheckCheck size={18} />} visualLabel="Terminés" />
+        </div>
+
+        <p>Pourquoi ces indicateurs peuvent-ils différer des six espaces ? La progression par espace (SpaceProgress) exclut les P4 et sépare « En cours » de « À vérifier ». La synthèse globale (MissionControl) inclut les P4 et regroupe IN_PROGRESS et TO_VERIFY parmi les travaux actifs. Les deux progressions mesurent des statuts documentaires, avec des périmètres différents.</p>
+
+        <div className={styles.compactGrid}>
+          <article className={styles.auditCard}>
+            <strong>Source canonique</strong>
+            <p>{syncSourceLabel} · {plan.diagnostics.itemCount} élément(s) · mise à jour {syncLastUpdateLabel} · prochain numéro {syncNextIdLabel}.</p>
+          </article>
+          <article className={styles.auditCard}>
+            <strong>Qualité du référentiel documentaire</strong>
+            <p>{syncErrorCount} erreur(s), {syncWarningCount} alerte(s) et {plan.diagnostics.duplicateIds.length} doublon(s) d&apos;identifiant.</p>
+          </article>
+        </div>
+
+        <div className={styles.compactGrid}>
+          <Card>
+            <CompactCardHeader title="Vérifications rapides" summary="Contrôle de lecture Supabase et configurations déclarées ; aucune disponibilité distante déduite." isOpen={compactPanelOpen.healthChecks} onToggle={() => toggleCompactPanel("healthChecks")} controlsId="health-checks-panel" />
+            {compactPanelOpen.healthChecks ? <CardBody id="health-checks-panel" className={styles.compactChecklist}>
+              {conciseHealthCards.map((card) => (
+                <article key={card.label} className={styles.auditCard}>
+                  <strong>{card.label}</strong>
+                  <p>{card.detail}</p>
+                  <p>Contrôle limité au {card.checkedAt}. Portée et limites décrites ci-dessus ; aucune disponibilité globale ni validation RLS déduite.</p>
+                </article>
+              ))}
+              <article className={styles.auditCard}>
+                <strong>Priorités suivies</strong>
+                <p>P0 {plan.registryItems.filter((item) => item.priority === "P0").length} · P1 {plan.registryItems.filter((item) => item.priority === "P1").length} · P2 {plan.registryItems.filter((item) => item.priority === "P2").length} · P3 {plan.registryItems.filter((item) => item.priority === "P3").length} · P4 {plan.registryItems.filter((item) => item.priority === "P4").length}</p>
+              </article>
+              <article className={styles.auditCard}>
+                <strong>Dépendances et empêchements</strong>
+                <p>{missionControl.dependencyFeatures} entrée(s) avec dépendances déclarées ; {missionControl.unqualifiedBlockers} motif(s) à qualifier sans statut BLOCKED. Aucun blocage actif n’est déduit automatiquement de ces textes.</p>
+              </article>
+              <article className={styles.auditCard}>
+                <strong>États déclarés des priorités</strong>
+                <p>En cours {plan.registryItems.filter((item) => item.status === "IN_PROGRESS").length} · Prêt {plan.registryItems.filter((item) => item.status === "READY").length} · À vérifier {plan.registryItems.filter((item) => item.status === "TO_VERIFY").length} · Terminées {plan.registryItems.filter((item) => item.status === "COMPLETED").length} · Bloquées {plan.registryItems.filter((item) => item.status === "BLOCKED").length} · Reportées {plan.registryItems.filter((item) => item.status === "DEFERRED").length} · Idées actives {plan.registryItems.filter((item) => item.status === "IDEA").length}</p>
+              </article>
+            </CardBody> : null}
+          </Card>
+        </div>
+
+
+          </section>
+          </details>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 
@@ -2591,7 +2490,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
     }
   };
 
-  return <div className={styles.page}>
+  const renderDetailedWorkspace = () => <div className={styles.page}>
     <Tabs value={activeWorkspaceTab} onValueChange={handleWorkspaceTabChange}>
     <header className={styles.executiveHero}>
       <div className={styles.executiveHeroMain}>
@@ -4077,6 +3976,8 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
       </TabsContent>
     </Tabs>
   </div>;
+
+  return renderSimplifiedWorkspace();
 }
 
 function InlineDisclosureButton({

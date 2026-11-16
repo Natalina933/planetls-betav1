@@ -7,6 +7,7 @@ import { createRequire } from "node:module";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createElement } from "react";
 import { computeSpaceProgress, SPACE_ORDER } from "../app/dashboard/admin/(product-tech)/developpement/spaceProgressData.ts";
+import * as inventory from "../app/dashboard/admin/(product-tech)/developpement/spaceInventory.ts";
 
 test("les imports du calcul serveur et du composant client résolvent deux modules distincts", () => {
   const page = fileURLToPath(new URL("../app/dashboard/admin/(product-tech)/developpement/page.tsx", import.meta.url));
@@ -22,7 +23,8 @@ test("les imports du calcul serveur et du composant client résolvent deux modul
   assert.doesNotMatch(readFileSync(data.resolvedFileName, "utf8"), /["']use client["']/);
   const source = readFileSync(page, "utf8");
   assert.match(source, /import \{ computeSpaceProgress \} from "\.\/spaceProgressData"/);
-  assert.match(source, /import \{ SpaceProgress \} from "\.\/SpaceProgress"/);
+  const viewer = readFileSync(new URL("../app/dashboard/admin/(product-tech)/developpement/MasterPlanViewer.tsx", import.meta.url), "utf8");
+  assert.match(viewer, /import \{ SubfeatureExplorer \} from "\.\/SubfeatureExplorer"/);
 });
 
 function loadSpaceProgress(reactOverride?: Record<string, unknown>) {
@@ -33,6 +35,7 @@ function loadSpaceProgress(reactOverride?: Record<string, unknown>) {
     module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true,
   } }).outputText;
   new Function("require", "exports", code)((name: string) => {
+    if (name === "./spaceInventory") return inventory;
     if (name === "react" && reactOverride) return reactOverride;
     if (name === "@/components/ui") return { Card: "article", CardBody: "div", CardHeader: "header" };
     if (name === "lucide-react") return { ChevronRight: "svg", Clock: "svg", CheckCircle2: "svg", LayoutList: "svg", AlertTriangle: "svg" };
@@ -53,7 +56,9 @@ test("libellés rendus : progression déclarative et absence de faux zéro pour 
   assert.match(empty, /Non évalué/);
   assert.doesNotMatch(empty, /role="progressbar"/);
   const html = render([item({ domain: "Conciergerie", status: "COMPLETED" }), item({ domain: "Owner", status: "TO_VERIFY" })]);
-  assert.match(html, /Progression déclarée par espace/);
+  assert.match(html, /Chantiers documentaires clôturés/);
+  assert.match(html, /Chantiers documentaires par espace — hors P4/);
+  assert.match(html, /Il ne représente pas le pourcentage de fonctionnalités développées/);
   assert.match(html, /entrées déclarées terminées/);
   assert.match(html, /autres statuts/);
   assert.match(html, /non une validation fonctionnelle complète/);
@@ -73,49 +78,42 @@ test("six cartes : cinq compteurs complets dans le bon ordre et sélection acces
   for (const card of cards) {
     assert.deepEqual([...card.matchAll(/<dt>(.*?)<\/dt>/g)].map(match => match[1]), ["Terminées", "En cours", "À vérifier", "Bloquées", "Restantes"]);
     assert.equal([...card.matchAll(/<dd>\d+<\/dd>/g)].length, 5);
-    assert.match(card, /aria-controls="space-progress-detail"/);
+    assert.match(card, /aria-controls="subfeature-explorer-title"/);
     assert.match(card, /Domaines inclus/);
+    assert.match(card, /<summary>Voir la répartition/);
+    assert.doesNotMatch(card, /<details[^>]*\bopen\b/);
+    assert.match(card, /Inventaire partiel|Inventaire détaillé non réalisé/);
   }
-  assert.equal([...html.matchAll(/aria-pressed="true"/g)].length, 1);
+  assert.equal([...html.matchAll(/aria-pressed="true"/g)].length, 0);
+  assert.doesNotMatch(html, /space-progress-detail/);
+  assert.doesNotMatch(html, /Détail —|Entrées documentaires de l’espace|data-subfeature-id=/);
 });
 
-test("sélection d'une carte : détail réel de son domaine, exclusion P4 et données intactes", () => {
-  let selected = "Conciergerie";
-  const SpaceProgress = loadSpaceProgress({ useState: () => [selected, (value: string) => { selected = value; }] });
-  const entries = [
-    item({ id: "PLS-A", domain: "Conciergerie", title: "Titre concierge" }),
-    item({ id: "PLS-B", domain: "Owner", title: "Titre propriétaire", nextAction: "Suite owner" }),
-    item({ id: "PLS-C", domain: "Owner", title: "Idée future exclue", priority: "P4" }),
-  ];
-  entries[1].nextAction = "Suite propriétaire";
-  const result = computeSpaceProgress(entries);
-  const props = { spaces: result.items, covered: result.covered, excluded: result.excluded, totalRegistryItems: result.totalRegistryItems, entries };
-  const before = JSON.stringify(props);
+test("cards are controlled without a redundant detail list", () => {
+  const result = computeSpaceProgress([item({ domain: "Owner" })]);
+  let picked = "";
+  const SpaceProgress = loadSpaceProgress();
+  const tree = SpaceProgress({ ...result, spaces: result.items, selectedSpace: "Propriétaires", onSpaceSelect: (value: string) => { picked = value; } });
   function nodes(node: any): any[] {
     if (!node || typeof node !== "object") return [];
     if (Array.isArray(node)) return node.flatMap(nodes);
     return [node, ...nodes(node.props?.children)];
   }
-  const render = () => nodes(SpaceProgress(props));
-  const ownerButton = render().find(node => node.props["aria-label"] === "Afficher le détail : Propriétaires");
-  assert.ok(ownerButton);
-  ownerButton.props.onClick();
-  const next = render();
-  const detail = next.find(node => node.props.id === "space-progress-detail");
-  const html = renderToStaticMarkup(detail);
-  assert.match(html, /Titre propriétaire/);
-  assert.match(html, /Suite propriétaire/);
-  assert.doesNotMatch(html, /Titre concierge|Idée future exclue/);
-  assert.equal(next.find(node => node.props["aria-label"] === "Afficher le détail : Propriétaires").props["aria-pressed"], true);
-  assert.equal(JSON.stringify(props), before);
+  const button = nodes(tree).find(node => node.type === "button" && node.props["aria-label"].endsWith("Propriétaires"));
+  assert.equal(button.props["aria-pressed"], true);
+  button.props.onClick();
+  assert.equal(picked, "Propriétaires");
+  assert.doesNotMatch(renderToStaticMarkup(tree), /space-progress-detail|data-subfeature-id=/);
 });
 
-test("Master Plan détaillé : composant conservé une fois dans un panneau fermé et sans démontage conditionnel", () => {
+test("cockpit conservé une fois avec quatre panneaux persistants et une vue initiale courte", () => {
   const source = readFileSync(new URL("../app/dashboard/admin/(product-tech)/developpement/page.tsx", import.meta.url), "utf8");
   assert.match(source, /<h1>Développement PlanetLS<\/h1>/);
   assert.equal((source.match(/<MasterPlanViewer\b/g) ?? []).length, 1);
-  assert.match(source, /<details className=\{styles.masterPlanDisclosure\}>[\s\S]*?<summary>[\s\S]*?<\/summary>\s*<div[^>]*>\s*<MasterPlanViewer\b/);
-  assert.doesNotMatch(source, /<details[^>]*(?:\bopen\b|onToggle)/);
+  assert.match(source, /progress=\{spaceProgress\}/);
+  const viewer = readFileSync(new URL("../app/dashboard/admin/(product-tech)/developpement/MasterPlanViewer.tsx", import.meta.url), "utf8");
+  assert.equal((viewer.slice(viewer.indexOf('aria-label="Navigation du développement"'), viewer.indexOf("  const toggleSection =")).match(/forceMount hidden=/g) ?? []).length, 4);
+  assert.match(viewer, /\[developmentTab, setDevelopmentTab\] = useState\("overview"\)/);
   const css = readFileSync(new URL("../app/dashboard/admin/(product-tech)/developpement/page.module.scss", import.meta.url), "utf8");
   assert.match(css, /\.spaceProgressCounts\s*\{[^}]*display: flex;[^}]*flex-direction: column;/);
   assert.match(css, /\.spaceProgressGrid\s*\{[^}]*repeat\(2, minmax\(0, 1fr\)\)/);
@@ -125,6 +123,7 @@ test("Master Plan détaillé : composant conservé une fois dans un panneau ferm
 
 function item(overrides: Record<string, any> = {}): any {
   return {
+    spaceTracking: overrides.spaceTracking,
     id: overrides.id ?? "PLS-TEST-001",
     domain: overrides.domain ?? "Test",
     title: overrides.title ?? "Test feature",
@@ -280,7 +279,71 @@ test("computeSpaceProgress avec le registre reel couvre 53 entrees non-P4 et en 
   assert.ok(transversal.domains.includes("Workflow métier"));
   assert.ok(transversal.domains.includes("Design System"));
 
-  const allDomains = result.items.flatMap((i) => i.domains);
-  const uniqueDomains = new Set(allDomains);
-  assert.equal(allDomains.length, uniqueDomains.size);
+  const ids = result.items.flatMap((i) => i.entryIds);
+  assert.equal(ids.length, new Set(ids).size);
+});
+
+const tracking = (primarySpace: string, relatedSpaces: string[] = []) => ({
+  primarySpace, relatedSpaces, trackingType: "livrable", references: [],
+});
+
+test("responsable explicite prioritaire, espaces concernés hors calcul et compatibilité signalée", () => {
+  const entries = [
+    item({ id: "explicit", domain: "Owner", spaceTracking: tracking("Conciergerie", ["Administration", "Propriétaires"]) }),
+    item({ id: "legacy", domain: "Owner" }),
+    item({ id: "unknown-domain", domain: "Inconnu" }),
+    item({ id: "p4", priority: "P4", spaceTracking: tracking("Conciergerie") }),
+  ];
+  const before = JSON.stringify(entries);
+  const result = computeSpaceProgress(entries);
+  assert.deepEqual(result.items.map(s => s.total), [1, 1, 0, 0, 0, 1]);
+  assert.deepEqual(result.items[0].entryIds, ["explicit"]);
+  assert.deepEqual(result.items[0].compatibilityEntryIds, []);
+  assert.deepEqual(result.items[1].compatibilityEntryIds, ["legacy"]);
+  assert.deepEqual(result.items[5].compatibilityEntryIds, ["unknown-domain"]);
+  assert.equal(result.covered, 3);
+  assert.equal(result.excluded, 1);
+  const Selected = loadSpaceProgress({ useState: () => ["Conciergerie", () => {}] });
+  const html = renderToStaticMarkup(createElement(Selected, { ...result, spaces: result.items, entries }));
+  assert.doesNotMatch(html, /space-progress-detail/);
+  assert.match(html, /Compatibilité par domaine/);
+  assert.equal(JSON.stringify(entries), before);
+  assert.throws(() => computeSpaceProgress([item({ spaceTracking: tracking("Espace inconnu") })]), /Espace responsable invalide/);
+});
+
+test("58 entrées : répartition explicite, exclusions P4 et listes rendues cohérentes pour les six espaces", async () => {
+  const { parseMasterPlan } = await import("../app/dashboard/admin/(product-tech)/developpement/masterPlan.ts");
+  const plan = parseMasterPlan(readFileSync("docs/master-plan-planetls.md", "utf8"), "2026-11-15T12:00:00Z");
+  const entries = plan.registryItems;
+  assert.equal(entries.length, 58);
+  assert.ok(entries.every(e => e.spaceTracking && SPACE_ORDER.includes(e.spaceTracking.primarySpace)));
+  assert.deepEqual(SPACE_ORDER.map(name => entries.filter(e => e.spaceTracking?.primarySpace === name).length), [10, 6, 2, 9, 15, 16]);
+  const result = computeSpaceProgress(entries);
+  assert.deepEqual(result.items.map(s => s.total), [9, 5, 2, 9, 14, 14]);
+  assert.equal(result.covered, 53);
+  assert.equal(result.excluded, 5);
+  const legacy = computeSpaceProgress(entries.map(({ spaceTracking, ...e }) => e));
+  assert.deepEqual(legacy.items.map(s => s.total), [3, 3, 2, 8, 8, 29]);
+  assert.equal(result.items.reduce((n,s) => n+s.completed,0), legacy.items.reduce((n,s) => n+s.completed,0));
+  assert.equal(new Set(result.items.flatMap(s => s.entryIds)).size, 53);
+  for (const space of result.items) {
+    const expected = entries.filter(e => e.priority !== "P4" && e.spaceTracking?.primarySpace === space.name);
+    assert.deepEqual(space.entryIds, expected.map(e => e.id));
+    assert.deepEqual(space.compatibilityEntryIds, []);
+    assert.equal(space.completed + space.inProgress + space.toVerify + space.blocked + space.remaining, space.total);
+    assert.equal(space.percentage, Math.round(space.completed / space.total * 100));
+    const Component = loadSpaceProgress({ useState: () => [space.name, () => {}] });
+    const html = renderToStaticMarkup(createElement(Component, { ...result, spaces: result.items, entries }));
+    assert.doesNotMatch(html, /space-progress-detail/);
+    assert.match(html, /statuts documentaires/);
+    assert.match(html, /ne mesurent pas le développement réel/);
+    assert.equal((html.match(/data-subfeature-id=/g) ?? []).length, 0);
+    assert.equal((html.match(/<article\b/g) ?? []).length, 6);
+  }
+});
+
+test("le doublon Conciergerie est démonté, son composant et son registre sont conservés", () => {
+  const source = readFileSync(new URL("../app/dashboard/admin/(product-tech)/developpement/SpaceProgress.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(source, /ConciergeSubfeatureList|ConciergeSubfeatures/);
+  assert.ok(readFileSync(new URL("../app/dashboard/admin/(product-tech)/developpement/ConciergeSubfeatureList.tsx", import.meta.url), "utf8").includes("export function ConciergeSubfeatures"));
 });

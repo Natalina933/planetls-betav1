@@ -1,18 +1,18 @@
 "use client";
 
-import { useState } from "react";
 import { LayoutList, AlertTriangle } from "lucide-react";
 import { Card, CardBody, CardHeader } from "@/components/ui";
 import type { SpaceProgressItem } from "./spaceProgressData";
-import type { DevelopmentRegistryItem } from "./masterPlan";
 import styles from "./page.module.scss";
+import { spaceInventory, SPACE_INVENTORY_LABELS } from "./spaceInventory";
 
 type SpaceProgressProps = {
   spaces: SpaceProgressItem[];
   covered: number;
   excluded: number;
   totalRegistryItems: number;
-  entries?: DevelopmentRegistryItem[];
+  selectedSpace?: string;
+  onSpaceSelect?: (space: string) => void;
 };
 
 const COUNTERS = [
@@ -26,6 +26,11 @@ const COUNTERS = [
 function statusLabel(space: SpaceProgressItem) {
   if (space.percentage === null) return "Non évalué";
   return `${space.percentage} %`;
+}
+
+function inventoryLabel(name: string) {
+  const inventory = spaceInventory.find(inventory => inventory.name === name);
+  return inventory ? SPACE_INVENTORY_LABELS[inventory.state] : "Inventaire non renseigné";
 }
 
 function progressBar(percentage: number | null) {
@@ -43,8 +48,7 @@ function progressBar(percentage: number | null) {
   );
 }
 
-export function SpaceProgress({ spaces, covered, excluded, totalRegistryItems, entries = [] }: SpaceProgressProps) {
-  const [selectedName, setSelectedName] = useState("Conciergerie");
+export function SpaceProgress({ spaces, covered, excluded, totalRegistryItems, selectedSpace = "", onSpaceSelect }: SpaceProgressProps) {
   const ordered = [...spaces].sort((left, right) => {
     const li = SPACE_INDEX[left.name] ?? 99;
     const ri = SPACE_INDEX[right.name] ?? 99;
@@ -63,13 +67,13 @@ export function SpaceProgress({ spaces, covered, excluded, totalRegistryItems, e
     remaining: ordered.reduce((sum, space) => sum + space.remaining, 0),
   };
   const globalPercentage = totalItems === 0 ? null : Math.round((totalCompleted / totalItems) * 100);
-  const selected = ordered.find(space => space.name === selectedName) ?? ordered[0];
-  const selectedEntries = selected ? entries.filter(entry => entry.priority !== "P4" && selected.domains.includes(entry.domain)) : [];
+
 
   return (
     <section className={styles.spaceProgressSection} aria-label="Progression par espace métier">
       <section className={styles.spaceRegistrySummary} aria-labelledby="registry-summary-title">
-        <h2 id="registry-summary-title">Indicateurs généraux du registre</h2>
+        <h2 id="registry-summary-title">Chantiers documentaires clôturés</h2>
+        <p>Cet indicateur mesure les chantiers déclarés terminés dans le Master Plan. Il ne représente pas le pourcentage de fonctionnalités développées.</p>
         <p>{covered} / {totalRegistryItems} entrées couvertes · {excluded} entrées P4 exclues</p>
         <dl className={styles.spaceRegistryStats}>
           {COUNTERS.map(([key, label]) => <div key={key}><dt>{label}</dt><dd>{totals[key]}</dd></div>)}
@@ -78,7 +82,7 @@ export function SpaceProgress({ spaces, covered, excluded, totalRegistryItems, e
       <div className={styles.spaceProgressHeader}>
         <h2 className={styles.spaceProgressTitle}>
           <LayoutList size={16} className={styles.spaceProgressIcon} aria-hidden="true" />
-          Progression déclarée par espace
+          Chantiers documentaires par espace — hors P4
         </h2>
         <p className={styles.spaceProgressMeta}>
           {covered} / {totalRegistryItems} entrées du registre couvertes
@@ -91,12 +95,13 @@ export function SpaceProgress({ spaces, covered, excluded, totalRegistryItems, e
 
       <div className={styles.spaceProgressGrid}>
         {ordered.map((space) => (
-          <Card key={space.name} className={`${styles.spaceProgressCard} ${selected?.name === space.name ? styles.spaceProgressCardSelected : ""}`}>
+          <Card key={space.name} className={`${styles.spaceProgressCard} ${selectedSpace === space.name ? styles.spaceProgressCardSelected : ""}`}>
             <CardHeader className={styles.spaceProgressCardHeader}>
               <button type="button" className={styles.spaceProgressCardHeaderRow}
-                aria-pressed={selected?.name === space.name} aria-controls="space-progress-detail"
-                aria-label={`Afficher le détail : ${space.name}`} onClick={() => setSelectedName(space.name)}>
+                aria-pressed={selectedSpace === space.name} aria-controls="subfeature-explorer-title"
+                aria-label={`Explorer l’espace : ${space.name}`} onClick={() => onSpaceSelect?.(space.name)}>
                 <strong className={styles.spaceProgressCardName}>{space.name}</strong>
+                <span>Explorer cet espace</span>
                 <span className={styles.spaceProgressCardPct}>
                   {statusLabel(space)}
                 </span>
@@ -104,6 +109,10 @@ export function SpaceProgress({ spaces, covered, excluded, totalRegistryItems, e
             </CardHeader>
             <CardBody className={styles.spaceProgressCardBody}>
               {progressBar(space.percentage)}
+              <p>{inventoryLabel(space.name)}</p>
+              <p>État d’inventaire du catalogue technique, distinct de la progression documentaire et de la validation des fonctionnalités.</p>
+              <details className={styles.subfeatureDisclosure}>
+              <summary>Voir la répartition — {space.name}</summary>
               <dl className={styles.spaceProgressCounts}>
                 {COUNTERS.map(([key, label]) => (
                   <div key={key} className={styles.spaceProgressCount}><dt>{label}</dt><dd>{space[key]}</dd></div>
@@ -112,6 +121,7 @@ export function SpaceProgress({ spaces, covered, excluded, totalRegistryItems, e
               <p className={styles.spaceProgressDomains}>
                 <strong>Domaines inclus : </strong>{space.domains.length > 0 ? space.domains.join(", ") : "Aucun domaine retenu"}
               </p>
+              </details>
             </CardBody>
           </Card>
         ))}
@@ -124,24 +134,13 @@ export function SpaceProgress({ spaces, covered, excluded, totalRegistryItems, e
         du site. Les entrées P4 sont exclues du calcul. « En cours » correspond au statut
         IN_PROGRESS ; « À vérifier » à TO_VERIFY et « Bloquées » à BLOCKED.
         « Restantes » regroupe les autres statuts, sans les assimiler à du retard. Chaque entrée est comptée une seule fois, dans la catégorie de
-        son domaine. Les domaines non rattachés à un espace métier rejoignent
-        « Transversal — données et processus partagés ».
+        son espace responsable défini dans le Master Plan. Les espaces concernés sont
+        informatifs et ne contribuent pas à leurs pourcentages. Ces pourcentages ne mesurent pas le développement réel.
       </p>
-      <section id="space-progress-detail" className={styles.spaceProgressDetail} aria-labelledby="space-progress-detail-title">
-        <h2 id="space-progress-detail-title" aria-live="polite">Détail — {selected?.name ?? "Aucun espace sélectionné"}</h2>
-        <p>{selected?.total ?? 0} entrée(s) retenue(s), hors P4. Sélectionnez une carte pour consulter ses éléments.</p>
-        {selectedEntries.length > 0 ? (
-          <ul className={styles.spaceProgressDetailList}>
-            {selectedEntries.map(entry => (
-              <li key={entry.id}>
-                <h3>{entry.title}</h3>
-                <p className={styles.spaceProgressDetailMeta}>{entry.id} · {entry.statusLabel || entry.status} · {entry.priorityLabel || entry.priority}</p>
-                <p><strong>Prochaine action : </strong>{entry.nextAction || "Non renseignée dans le registre."}</p>
-              </li>
-            ))}
-          </ul>
-        ) : <p>Aucune entrée retenue dans cette catégorie.</p>}
-      </section>
+      {ordered.some(space => space.compatibilityEntryIds.length > 0) ? <p role="status">
+        Compatibilité par domaine (métadonnées absentes ; consulter les diagnostics du registre en cas de métadonnées rejetées) : {ordered.flatMap(space => space.compatibilityEntryIds).join(", ")}.
+      </p> : null}
+
     </section>
   );
 }

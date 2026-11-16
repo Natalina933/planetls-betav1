@@ -7,11 +7,11 @@ test("les cartes compactes de suivi peuvent être repliées depuis leur en-tête
 
   assert.match(source, /type CompactPanelId = "nextAction" \| "healthChecks"/);
   assert.match(source, /const \[compactPanelOpen, setCompactPanelOpen\] = useState<Record<CompactPanelId, boolean>>/);
-  assert.match(source, /controlsId="next-action-panel"/);
+  assert.match(source, /id="work-focus-title"/);
   assert.match(source, /controlsId="health-checks-panel"/);
-  assert.match(source, /controlsId="deferred-work-panel"/);
+  assert.match(source, /Toutes les priorités et les automatisations/);
   assert.match(source, /function toggleCompactPanel\(panel: CompactPanelId\)/);
-  assert.match(source, /toggleCompactPanel\("verificationWork"\)/);
-  assert.match(source, /\{compactPanelOpen\.nextAction \? <CardBody id="next-action-panel"/);
+  assert.doesNotMatch(source, /controlsId="next-action-panel"/);
+  assert.match(source, /\.slice\(0, 6\)\.map/);
   assert.match(source, /progress=\{missionControl\.indicatorsAvailable \? missionControl\.progressionPct : undefined\}/);
 });
