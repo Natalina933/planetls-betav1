@@ -1,5 +1,5 @@
 import type { DeveloperLogCommit } from "./developerLog";
-import type { MasterPlanPlanningItem, MasterPlanView } from "./masterPlan";
+import type { MasterPlanView } from "./masterPlan";
 
 export type MissionControlHealthStatus = "healthy" | "warning" | "danger" | "unverifiable";
 
@@ -27,6 +27,9 @@ export type MissionControlCommit = {
 
 export type MissionControlView = {
   progressionPct: number;
+  indicatorsAvailable: boolean;
+  dependencyFeatures: number;
+  unqualifiedBlockers: number;
   completedFeatures: number;
   inProgressFeatures: number;
   blockedFeatures: number;
@@ -36,7 +39,7 @@ export type MissionControlView = {
   weeklyDevelopmentLabel: string;
   weeklyGoal: string;
   nextGoal: string;
-  lastBackupAt: string | null;
+  lastCommitAt: string | null;
   currentEnvironment: string;
   projectVersion: string;
   lastDecisions: MissionControlDecision[];
@@ -69,7 +72,7 @@ function estimateCommitMinutes(subject: string) {
 function isThisWeek(date: string, referenceNow: Date) {
   const value = new Date(date);
   const monday = new Date(referenceNow);
-  monday.setDate(referenceNow.getDate() - 6);
+  monday.setDate(referenceNow.getDate() - (referenceNow.getDay() + 6) % 7);
   monday.setHours(0, 0, 0, 0);
   return value >= monday && value <= referenceNow;
 }
@@ -98,14 +101,6 @@ function statusCategory(status: string): "done" | "active" | "blocked" | "todo" 
   if (normalized.includes("a faire") || normalized.includes("non commence") || normalized.includes("reporte")) return "todo";
   if (normalized.includes("en cours") || normalized.includes("partiel")) return "active";
   return "other";
-}
-
-function toMinorBugCount(items: MasterPlanPlanningItem[]) {
-  return items.filter((item) => {
-    const normalizedPriority = normalizeComparable(item.priority);
-    const category = statusCategory(item.status);
-    return normalizedPriority === "p3 confort" || normalizedPriority === "p4 evolution future" || category === "active";
-  }).length;
 }
 
 function extractRecentDecisions(markdown: string) {
@@ -171,10 +166,10 @@ function buildGitHubHealth({
 
   return {
     label: "Santé GitHub",
-    status: dirtyFileCount > 0 ? "warning" : "healthy",
+    status: "unverifiable",
     detail: dirtyFileCount > 0
-      ? `${dirtyFileCount} fichier(s) non validé(s) localement ; workflow CI présent.`
-      : "Remote GitHub et workflow CI critiques présents.",
+      ? `Configuration locale : ${dirtyFileCount} fichier(s) modifié(s), workflow CI présent. Exécution distante non vérifiée.`
+      : "Configuration locale : remote et workflow CI présents. Exécution distante non vérifiée.",
     checkedAt,
   };
 }
@@ -197,10 +192,10 @@ function buildVercelHealth({
 
   return {
     label: "Santé Vercel",
-    status: metadataBaseHost.includes("vercel.app") ? "healthy" : "warning",
+    status: "unverifiable",
     detail: metadataBaseHost.includes("vercel.app")
-      ? `Domaine applicatif déclaré : ${metadataBaseHost}.`
-      : `Domaine déclaré : ${metadataBaseHost}, vérifier l'alignement avec Vercel.`,
+      ? `Domaine déclaré : ${metadataBaseHost}. Disponibilité du déploiement non mesurée.`
+      : `Domaine déclaré : ${metadataBaseHost}. Hébergement et disponibilité non vérifiés.`,
     checkedAt,
   };
 }
@@ -220,21 +215,22 @@ export function buildMissionControlView({
 }: BuildMissionControlOptions): MissionControlView {
   const referenceNow = new Date(checkedAt);
   const functionalRows = plan.functionalRows;
-  const totalFeatures = functionalRows.length
-    || Math.max(0, Object.values(plan.registryPriorityCounts).reduce((total, count) => total + count, 0));
-  const completedFeatures = functionalRows.length
+  const indicatorsAvailable = plan.diagnostics.source === "structured" && plan.diagnostics.errors.length === 0 && functionalRows.length > 0;
+  const totalFeatures = indicatorsAvailable ? functionalRows.length : 0;
+  const completedFeatures = indicatorsAvailable
     ? functionalRows.filter((row) => statusCategory(row.status) === "done").length
-    : Math.max(0, totalFeatures - plan.planning.length);
-  const inProgressFeatures = functionalRows.length
+    : 0;
+  const inProgressFeatures = indicatorsAvailable
     ? functionalRows.filter((row) => statusCategory(row.status) === "active").length
-    : plan.planning.filter((item) => statusCategory(item.status) === "active").length;
-  const blockedFeatures = functionalRows.length
+    : 0;
+  const blockedFeatures = indicatorsAvailable
     ? functionalRows.filter((row) => statusCategory(row.status) === "blocked").length
-    : plan.planning.filter((item) => statusCategory(item.status) === "blocked").length;
-  const criticalBugs = plan.planning.filter(
-    (item) => normalizeComparable(item.priority) === "p0 critique" && statusCategory(item.status) !== "done",
-  ).length;
-  const minorBugs = toMinorBugCount(plan.planning);
+    : 0;
+  const openBugs = indicatorsAvailable ? plan.registryItems.filter((item) => item.type === "bug" && !["COMPLETED", "DEFERRED", "IDEA"].includes(item.status)) : [];
+  const criticalBugs = openBugs.filter((item) => item.priority === "P0").length;
+  const minorBugs = openBugs.filter((item) => item.priority !== "P0").length;
+  const dependencyFeatures = indicatorsAvailable ? plan.registryItems.filter((item) => item.dependencies.length > 0).length : 0;
+  const unqualifiedBlockers = indicatorsAvailable ? plan.registryItems.filter((item) => item.blocker?.trim() && !["BLOCKED", "COMPLETED", "DEFERRED"].includes(item.status)).length : 0;
   const progressionPct = totalFeatures === 0 ? 0 : Math.round((completedFeatures / totalFeatures) * 100);
   const weeklyDevelopmentMinutes = commits
     .filter((commit) => isThisWeek(commit.date, referenceNow))
@@ -249,20 +245,23 @@ export function buildMissionControlView({
 
   return {
     progressionPct,
+    indicatorsAvailable,
+    dependencyFeatures,
+    unqualifiedBlockers,
     completedFeatures,
     inProgressFeatures,
     blockedFeatures,
     criticalBugs,
     minorBugs,
     weeklyDevelopmentMinutes,
-    weeklyDevelopmentLabel: formatMinutes(weeklyDevelopmentMinutes),
+    weeklyDevelopmentLabel: commits.length ? `${formatMinutes(weeklyDevelopmentMinutes)} estimées depuis les commits` : "Estimation indisponible : historique Git absent",
     weeklyGoal,
     nextGoal,
-    lastBackupAt: commits[0]?.date ?? null,
+    lastCommitAt: commits[0]?.date ?? null,
     currentEnvironment: [
       process.env.NODE_ENV || "development",
       branch ? `branche ${branch}` : null,
-      dirtyFileCount > 0 ? `${dirtyFileCount} fichier(s) modifié(s)` : "workspace propre",
+      branch ? (dirtyFileCount > 0 ? `${dirtyFileCount} fichier(s) modifié(s)` : "workspace propre") : "État Git indisponible",
     ].filter(Boolean).join(" · "),
     projectVersion,
     lastDecisions: extractRecentDecisions(markdown),

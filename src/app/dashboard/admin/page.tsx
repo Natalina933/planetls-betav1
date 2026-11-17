@@ -1033,7 +1033,7 @@ export default function AdminDashboard() {
     },
     {
       id: "billing",
-      label: "Facturation",
+      label: "Volume de factures",
       value: String(invoiceCount),
       source: "invoices via /api/admin/operations et /api/admin/overview",
       formula: "Volume de factures suivies par le cockpit.",
@@ -1180,8 +1180,8 @@ export default function AdminDashboard() {
         className={styles.adminUnified}
         visualVariant="admin-prototype"
         title="Aujourd'hui sur PlanetLS"
-        subtitle="Les signaux a traiter, l'activite du reseau et les operations qui demandent votre attention."
-        experienceBadge={`Vue des ${period} derniers jours`}
+        subtitle="Activité réelle de la plateforme : données applicatives accessibles via les API administrateur. Les contrôles couvrent les sources disponibles ; les statuts documentaires du Master Plan sont suivis dans Développement."
+        experienceBadge={`Fenêtre des flux et cohortes : ${period} jours`}
         experienceBadgeTone="info"
         statusLabel={heroStatusLabel}
         statusTone={heroTone === "danger" ? "danger" : heroTone === "warning" ? "warning" : "success"}
@@ -1315,7 +1315,7 @@ export default function AdminDashboard() {
           },
           {
             id: "billing",
-            label: "Facturation",
+            label: "Volume de factures",
             value: String(invoiceCount),
             detail: `${adminOverview?.summary.invoices ?? invoiceCount} facture(s) suivie(s)`,
             icon: <CircleDollarSign size={18} />,
@@ -1471,6 +1471,7 @@ export default function AdminDashboard() {
                     Cadre KPI
                   </span>
                   <h3>Cadre de lecture des KPI</h3>
+                  <p>Les flux utilisent la période sélectionnée ; les taux de complétude, les volumes du parc et les alertes décrivent une photo courante. L’activation J+7 porte sur les cohortes éligibles. Les demandes et missions sont limitées aux éléments chargés (jusqu’à 200 de chaque) ; une source indisponible peut laisser des valeurs à zéro, sans prouver une absence d’activité. Les données chargées peuvent inclure des comptes de démonstration ou de test, sans exclusion certifiée ici.</p>
                 </div>
               </div>
 
@@ -1679,8 +1680,8 @@ export default function AdminDashboard() {
           },
           {
             id: "technical-health",
-            title: "Sante technique",
-            subtitle: "Ce qui est reellement verifie, en alerte ou indisponible",
+            title: "Santé de l’exploitation",
+            subtitle: "Contrôles applicatifs, incidents et sources disponibles ; aucune validation technique globale déduite",
             content: (
               <div className={styles.technicalHealthStack}>
                 <div className={styles.technicalHealthHeader}>

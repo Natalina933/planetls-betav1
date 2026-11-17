@@ -29,6 +29,12 @@ export interface DashboardEvent extends Event {
 interface DashboardCalendarProps {
   events: DashboardEvent[];
   title: string;
+  date?: Date;
+  view?: View;
+  onNavigate?: (date: Date, view: View, action: NavigateAction) => void;
+  onView?: (view: View) => void;
+  toolbar?: boolean;
+  description?: string;
 }
 
 const EVENT_LABELS: Record<DashboardEvent['type'], string> = {
@@ -43,9 +49,11 @@ const EVENT_CLASSNAMES: Record<DashboardEvent['type'], string> = {
   reminder: styles.reminderEvent,
 };
 
-const DashboardCalendar: React.FC<DashboardCalendarProps> = ({ events, title }) => {
-  const [view, setView] = useState<View>('month');
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+const DashboardCalendar: React.FC<DashboardCalendarProps> = ({ events, title, date, view: controlledView, onNavigate, onView, toolbar = true, description }) => {
+  const [internalView, setView] = useState<View>('month');
+  const [internalDate, setCurrentDate] = useState<Date>(() => new Date());
+  const view = controlledView ?? internalView;
+  const currentDate = date ?? internalDate;
 
   const counts = useMemo(() => {
     return events.reduce(
@@ -74,6 +82,7 @@ const DashboardCalendar: React.FC<DashboardCalendarProps> = ({ events, title }) 
       localizer,
       events,
       view,
+      toolbar,
       views: ['month', 'week', 'day', 'agenda'] as View[],
       messages: {
         allDay: 'Toute la journee',
@@ -97,17 +106,19 @@ const DashboardCalendar: React.FC<DashboardCalendarProps> = ({ events, title }) 
       style: { height: 720 },
       popup: true,
       components,
-      onView: (nextView: View) => setView(nextView),
+      onView: (nextView: View) => {
+        if (controlledView === undefined) setView(nextView);
+        onView?.(nextView);
+      },
       onNavigate: (nextDate: Date, nextView: View, action: NavigateAction) => {
-        void nextView;
-        void action;
-        setCurrentDate(nextDate);
+        if (date === undefined) setCurrentDate(nextDate);
+        onNavigate?.(nextDate, nextView, action);
       },
       eventPropGetter: (event: DashboardEvent) => ({
         className: EVENT_CLASSNAMES[event.type],
       }),
     }),
-    [components, currentDate, events, view],
+    [components, controlledView, currentDate, date, events, onNavigate, onView, toolbar, view],
   );
 
   return (
@@ -116,9 +127,9 @@ const DashboardCalendar: React.FC<DashboardCalendarProps> = ({ events, title }) 
         <div className={styles.titleBlock}>
           {title ? <h3 className={styles.title}>{title}</h3> : null}
           <p className={styles.subtitle}>
-            {events.length > 0
+            {description ?? (events.length > 0
               ? `${events.length} evenement(s) affiches sur la periode.`
-              : 'Aucun evenement planifie pour le moment.'}
+              : 'Aucun evenement planifie pour le moment.')}
           </p>
         </div>
 

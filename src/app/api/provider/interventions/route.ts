@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { hasAssignmentReference } from "@/app/api/_shared/providerAssignmentInput";
 import { attachProviderInterventionReports } from "@/app/api/_shared/providerInterventionReports";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
-import { providerDb, requireProviderAuth } from "../shared";
+import { providerDb } from "../shared";
+import { requireCurrentProviderAccess as requireProviderAuth } from "@/app/api/_shared/currentProviderAccess";
 import type { ProviderInsert, ProviderRow } from "@/types/supabase-provider";
 
 type ProviderInterventionRow = ProviderRow<"provider_interventions">;
@@ -59,6 +61,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await req.json();
+  if (hasAssignmentReference(body?.metadata)) {
+    return NextResponse.json({ error: "Les références d’affectation sont réservées au serveur." }, { status: 400 });
+  }
   const title = String(body?.title ?? "").trim();
 
   if (!title) {

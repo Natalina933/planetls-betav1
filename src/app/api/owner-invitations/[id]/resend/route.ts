@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireApiRole } from "@/server/auth/roleGuards";
+import { resolveCommercialAccess as resolveHousingAccess } from "@/server/auth/commercialAccess";
 import {
   createOrRefreshInvitation,
   dispatchOwnerInvitationEmail,
@@ -16,9 +16,11 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const guard = await requireApiRole(req, ALLOWED_ROLES);
-    if (!guard.ok) return guard.response;
-    const auth = guard.auth;
+    const auth = await resolveHousingAccess(req);
+    if (auth instanceof NextResponse) return auth;
+    if (!ALLOWED_ROLES.has(auth.role)) {
+      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+    }
 
     const { id } = await context.params;
     const invitation = await loadInvitationById(id);

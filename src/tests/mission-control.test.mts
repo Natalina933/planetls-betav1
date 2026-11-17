@@ -42,15 +42,18 @@ test("buildMissionControlView synthétise progression, charge et santé", () => 
     checkedAt: "2026-07-27T10:00:00.000Z",
   });
 
-  assert.equal(view.progressionPct, 33);
-  assert.equal(view.completedFeatures, 1);
-  assert.equal(view.inProgressFeatures, 1);
-  assert.equal(view.blockedFeatures, 1);
-  assert.equal(view.criticalBugs, 1);
+  // Historical maintenance rows alone cannot establish a completion denominator.
+  assert.equal(view.indicatorsAvailable, false);
+  assert.equal(view.progressionPct, 0);
+  assert.equal(view.completedFeatures, 0);
+  assert.equal(view.inProgressFeatures, 0);
+  assert.equal(view.blockedFeatures, 0);
+  assert.equal(view.criticalBugs, 0);
   assert.equal(view.lastDecisions[0]?.title, "Transformer la page Developer en Mission Control");
   assert.equal(view.lastCommits[0]?.shortSha, "aaaaaaa");
   assert.equal(view.healthCards[0]?.status, "healthy");
-  assert.equal(view.healthCards[1]?.status, "healthy");
-  assert.equal(view.healthCards[2]?.status, "warning");
+  assert.equal(view.healthCards[1]?.status, "unverifiable");
+  assert.equal(view.healthCards[2]?.status, "unverifiable");
+  assert.equal(view.lastCommitAt, "2026-07-27T09:30:00+02:00");
   assert.equal(view.weeklyDevelopmentMinutes > 0, true);
 });

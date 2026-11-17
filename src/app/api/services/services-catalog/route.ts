@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/app/lib/dbServer";
-import { getServiceAuthContext, serviceAuthError } from "@/app/api/services/_shared";
+import { requireAdminApiAccess } from "@/server/auth/adminAccess";
 
 const serviceSchema = z.object({
   category: z.string().min(2).max(100).trim(),
@@ -43,14 +43,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await getServiceAuthContext(req);
-    if (!auth) {
-      return serviceAuthError(401);
-    }
-
-    if (!auth.isAdmin) {
-      return serviceAuthError(403);
-    }
+    const guard = await requireAdminApiAccess(req);
+    if (!guard.ok) return guard.response;
 
     const body = await req.json();
     const result = serviceSchema.safeParse(body);

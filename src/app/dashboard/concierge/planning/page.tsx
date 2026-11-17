@@ -19,6 +19,7 @@ import DashboardCalendar, { DashboardEvent } from "@/app/components/dashboard/ca
 import { takeFirst } from "../../shared";
 import { isPlanningDone, normalizePlanningStatus, toTimestamp } from "./planningHelpers";
 import OptimizedRoutePlanner from "./OptimizedRoutePlanner";
+import { formatPlanningPeriod, getPlanningPeriod, navigatePlanningDate, PLANNING_MODES, type PlanningMode } from "./planningNavigation";
 import type { Json } from "@/types/supabase";
 import styles from "./page.module.scss";
 
@@ -70,7 +71,7 @@ function formatPlanningSummary(missions: MissionRow[]) {
   return `${firstLabel} → ${lastLabel}`;
 }
 
-function buildWeekBuckets(missions: MissionRow[], timestamp: number) {
+function buildWeekBuckets(missions: MissionRow[], timestamp: number, todayTimestamp = timestamp) {
   const now = new Date(timestamp);
   const monday = new Date(now);
   const day = (now.getDay() + 6) % 7;
@@ -93,7 +94,7 @@ function buildWeekBuckets(missions: MissionRow[], timestamp: number) {
       label: new Intl.DateTimeFormat("fr-FR", { weekday: "short" }).format(start),
       dateLabel: new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short" }).format(start),
       items,
-      isToday: start.toDateString() === now.toDateString(),
+      isToday: start.toDateString() === new Date(todayTimestamp).toDateString(),
     };
   });
 }
@@ -140,6 +141,9 @@ export default function ConciergePlanningPage() {
   const [missions, setMissions] = useState<MissionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<PlanningMode>("month");
+  // Sans navigation manuelle, suit la date courante et les passages à minuit.
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   useEffect(() => {
     async function loadPlanning() {
@@ -248,10 +252,18 @@ export default function ConciergePlanningPage() {
     [plannedActiveMissions],
   );
 
+  const referenceTimestamp = selectedDate?.getTime() ?? now;
+  const referenceDate = useMemo(() => referenceTimestamp ? new Date(referenceTimestamp) : null, [referenceTimestamp]);
+  const visiblePeriod = useMemo(() => referenceDate ? getPlanningPeriod(referenceDate, mode) : null, [referenceDate, mode]);
+  const periodLabel = referenceDate ? formatPlanningPeriod(referenceDate, mode) : "Préparation du calendrier…";
   const weekBuckets = useMemo(
-    () => now === 0 ? [] : buildWeekBuckets(plannedActiveMissions, now),
-    [plannedActiveMissions, now],
+    () => now === 0 ? [] : buildWeekBuckets(plannedActiveMissions, referenceTimestamp, now),
+    [plannedActiveMissions, referenceTimestamp, now],
   );
+  const periodMissionCount = visiblePeriod ? plannedActiveMissions.filter(mission => {
+    const start = toTimestamp(mission.scheduled_start);
+    return start >= visiblePeriod.start.getTime() && start <= visiblePeriod.end.getTime();
+  }).length : 0;
   const planningSummary = useMemo(() => formatPlanningSummary(plannedActiveMissions), [plannedActiveMissions]);
   const mainPriority = planningWorkflowMissions[0] || overdueMissions[0] || todayMissions[0] || nextMissions[0] || unscheduledMissions[0] || null;
 
@@ -396,17 +408,26 @@ export default function ConciergePlanningPage() {
       detailSections={detailSections}
       illustration={{ mainIcon: Home, topRightIcon: KeyRound, topLeftIcon: CalendarClock }}
     >
-      <DashboardPanel title="Optimisation de tournée" className={styles.operationalPanel}>
-        <OptimizedRoutePlanner missions={missions} />
-      </DashboardPanel>
-
-      <DashboardPanel title="Calendrier terrain" className={styles.operationalPanel}>
+      <DashboardPanel title="Planning" className={styles.operationalPanel}>
+        <div className={styles.planningNavigation} role="group" aria-label="Navigation du planning">
+          <div className={styles.planningDateActions}>
+            <button type="button" disabled={!referenceDate} onClick={() => referenceDate && setSelectedDate(navigatePlanningDate(referenceDate, mode, -1))}>Précédent</button>
+            <button type="button" disabled={!referenceDate} onClick={() => setSelectedDate(null)}>Aujourd&apos;hui</button>
+            <button type="button" disabled={!referenceDate} onClick={() => referenceDate && setSelectedDate(navigatePlanningDate(referenceDate, mode, 1))}>Suivant</button>
+          </div>
+          <strong className={styles.planningPeriod} aria-live="polite">{periodLabel}</strong>
+          <div className={styles.planningModes} role="group" aria-label="Mode de consultation">
+            {PLANNING_MODES.map(option => (
+              <button key={option.value} type="button" aria-pressed={mode === option.value} onClick={() => setMode(option.value)}>{option.label}</button>
+            ))}
+          </div>
+        </div>
         <div className={styles.calendarSummary}>
-          <span>{loading ? "Préparation de la vue semaine." : `${plannedActiveMissions.length} mission(s) visibles`}</span>
-          <strong>{planningSummary}</strong>
+          <span>{loading ? "Chargement des missions." : error || `${periodMissionCount} mission(s) datée(s) chargée(s) dans cette période`}</span>
+          <span>Source limitée aux 80 dernières missions chargées : cette vue peut être incomplète.</span>
         </div>
 
-        <div className={styles.weekBoard}>
+        {mode === "terrain" ? <div className={styles.weekBoard}>
           {weekBuckets.map((bucket) => (
             <article key={bucket.key} className={`${styles.weekColumn} ${bucket.isToday ? styles.weekColumnToday : ""}`}>
               <div className={styles.weekColumnHeader}>
@@ -415,7 +436,7 @@ export default function ConciergePlanningPage() {
               </div>
               <div className={styles.weekColumnBody}>
                 {bucket.items.length > 0 ? (
-                  takeFirst(bucket.items, 3).map((mission) => (
+                  <>{takeFirst(bucket.items, 3).map((mission) => (
                     <div key={mission.id} className={styles.weekEvent}>
                       <span className={styles.weekEventTime}>{getShortTime(mission.scheduled_start)}</span>
                       <div className={styles.weekEventContent}>
@@ -425,17 +446,32 @@ export default function ConciergePlanningPage() {
                         <span className={styles.weekEventMeta}>{normalizePlanningStatus(mission.status)}</span>
                       </div>
                     </div>
-                  ))
+                  ))}
+                  {bucket.items.length > 3 ? <p className={styles.weekEmpty}>+ {bucket.items.length - 3} autre(s) mission(s) chargée(s)</p> : null}</>
                 ) : (
-                  <p className={styles.weekEmpty}>Libre</p>
+                  <p className={styles.weekEmpty}>Aucune mission chargée</p>
                 )}
               </div>
             </article>
           ))}
-        </div>
-
-        <DashboardCalendar events={visualEvents} title="Calendrier" />
+        </div> : referenceDate ? (
+          <DashboardCalendar events={visualEvents} title="" date={referenceDate} view={mode} toolbar={false}
+            description="Événements issus des missions chargées ; vue potentiellement incomplète."
+            onView={view => { if (view !== "work_week") setMode(view); }}
+            onNavigate={date => setSelectedDate(date)} />
+        ) : <p className={styles.weekEmpty}>Préparation du calendrier…</p>}
       </DashboardPanel>
+
+      <details className={styles.routeDisclosure}>
+        <summary className={styles.routeDisclosureSummary}>
+          <span>Organiser une tournée</span>
+          <span className={styles.routeDisclosureClosed} aria-hidden="true">Déplier</span>
+          <span className={styles.routeDisclosureOpen} aria-hidden="true">Replier</span>
+        </summary>
+        <div className={styles.routeDisclosureContent}>
+          <OptimizedRoutePlanner missions={missions} />
+        </div>
+      </details>
     </DashboardOperationalPage>
   );
 }

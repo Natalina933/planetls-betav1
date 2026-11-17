@@ -24,6 +24,7 @@ export async function GET(
 ) {
   try {
     const auth = await getAuthContext(req);
+    if (auth instanceof Response) return auth;
     if (!auth) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
@@ -68,6 +69,7 @@ export async function PATCH(
   try {
     const { id } = await params;
     const auth = await getAuthContext(req);
+    if (auth instanceof Response) return auth;
     if (!auth) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
@@ -174,6 +176,7 @@ export async function DELETE(
   try {
     const { id } = await params;
     const auth = await getAuthContext(req);
+    if (auth instanceof Response) return auth;
     if (!auth) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }

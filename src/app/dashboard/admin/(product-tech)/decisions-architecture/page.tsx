@@ -2,10 +2,12 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import DecisionCenterPage from "./DecisionCenterPage";
 import { buildArchitectureDecisionCenter } from "./architectureDecisions";
+import { requireAdminAccess } from "../../adminAccess";
 
 export const dynamic = "force-dynamic";
 
 export default async function DecisionsArchitectureRoute() {
+  await requireAdminAccess();
   const masterPlanPath = path.join(process.cwd(), "docs", "master-plan-planetls.md");
   const packageJsonPath = path.join(process.cwd(), "package.json");
   const workflowPath = path.join(process.cwd(), ".github", "workflows", "e2e.yml");

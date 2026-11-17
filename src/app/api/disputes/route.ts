@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { resolveCommercialAccess as resolveInspectionAccess } from "@/server/auth/commercialAccess";
 import type { Json } from "@/types/supabase";
 import { DISPUTE_TYPES, dbAny, isMissingRelationError, isUuidLike, parseLimit } from "../inspections/shared";
 
@@ -25,7 +25,9 @@ function toUnique(values: string[] | undefined): string[] {
 
 export async function GET(req: NextRequest) {
   try {
-    const { userId, isAdmin } = await getApiAuthContext(req);
+    const access = await resolveInspectionAccess(req);
+    if (access instanceof Response) return access;
+    const { userId, isAdmin } = access;
     if (!userId || !isUuidLike(userId)) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
@@ -127,7 +129,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, isAdmin } = await getApiAuthContext(req);
+    const access = await resolveInspectionAccess(req);
+    if (access instanceof Response) return access;
+    const { userId, isAdmin } = access;
     if (!userId || !isUuidLike(userId)) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }

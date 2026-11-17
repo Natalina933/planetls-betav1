@@ -12,6 +12,17 @@ type RoleGuardResult =
     };
 
 export async function requireApiRole(req: NextRequest, allowedRoles: ReadonlySet<string>): Promise<RoleGuardResult> {
+  // Only exclusively administrative permissions change in SEC-AUTH-01B2A.
+  if (allowedRoles.size > 0 && [...allowedRoles].every((role) => role === "admin" || role === "super_admin")) {
+    const { requireAdminApiAccess } = await import("./adminAccess");
+    const guard = await requireAdminApiAccess(req);
+    if (!guard.ok) return guard;
+    if (!allowedRoles.has(guard.auth.role)) {
+      return { ok: false, response: NextResponse.json({ error: "Accès refusé" }, { status: 403 }) };
+    }
+    return guard;
+  }
+
   const auth = await getApiAuthContext(req);
 
   if (!auth.userId) {

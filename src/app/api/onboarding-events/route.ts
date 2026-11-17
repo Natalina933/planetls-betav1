@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/server/db/dbServer";
-import { getApiAuthContext } from "@/server/auth/apiAuth";
+import { requireAdminApiAccess } from "@/server/auth/adminAccess";
 
 const onboardingEventSchema = z.object({
   step: z.number().int().min(1).max(20),
@@ -62,11 +62,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const { userId, isAdmin } = await getApiAuthContext(req);
-
-  if (!userId || !isAdmin) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const guard = await requireAdminApiAccess(req);
+  if (!guard.ok) return guard.response;
 
   const since = req.nextUrl.searchParams.get("since") ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 

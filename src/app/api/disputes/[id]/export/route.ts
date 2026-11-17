@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { resolveCommercialAccess as resolveInspectionAccess } from "@/server/auth/commercialAccess";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
 import { isUuidLike } from "@/app/api/inspections/shared";
@@ -43,7 +43,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { userId, isAdmin } = await getApiAuthContext(req);
+    const access = await resolveInspectionAccess(req);
+    if (access instanceof Response) return access;
+    const { userId, isAdmin } = access;
     if (!userId || !isUuidLike(userId)) {
       return new Response("Non authentifie", { status: 401 });
     }

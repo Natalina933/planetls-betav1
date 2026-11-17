@@ -143,7 +143,7 @@ ${JSON.stringify({
   assert.equal(plan.planning.length, DEVELOPMENT_ITEM_STATUSES.length);
 });
 
-test("the registry completes a priority automatically when every criterion is validated", () => {
+test("the registry preserves declared status even when every criterion is validated", () => {
   const markdown = `# Plan
 
 ## Registre structure du developpement
@@ -202,7 +202,7 @@ ${JSON.stringify({
 
   const plan = parseMasterPlan(markdown, "2026-08-25T10:00:00.000Z");
 
-  assert.equal(plan.registryItems[0]?.status, "COMPLETED");
+  assert.equal(plan.registryItems[0]?.status, "TO_VERIFY");
   assert.equal(plan.registryItems[1]?.status, "BLOCKED");
 });
 
@@ -290,4 +290,71 @@ ${JSON.stringify({
   assert.equal(plan.planning[0]?.horizon, "Plus tard");
   const p4Key = Object.keys(plan.remainingPriorityCounts).find((key) => key.startsWith("P4"));
   assert.equal(p4Key ? plan.remainingPriorityCounts[p4Key] : undefined, 1);
+});
+
+
+function spaceTrackingFixture(spaceTracking?: unknown) {
+  const item: Record<string, unknown> = {
+    id: "PLS-DEV-001", domain: "Produit", title: "Metadata fixture",
+    summary: "Optional documentary metadata", status: "IN_PROGRESS", priority: "P1",
+    type: "feature", persona: "Admin", phase: "Test", updatedAt: "2026-11-14",
+    nextAction: "Check metadata", progressLabel: "In progress", source: "test",
+  };
+  if (spaceTracking !== undefined) item.spaceTracking = spaceTracking;
+  return '# Plan\n\n## Registre structure du developpement\n\n' +
+    '\x60\x60\x60json\n' + JSON.stringify({ version: 1, items: [item] }) + '\n\x60\x60\x60';
+}
+
+test("spaceTracking preserves the four real properties of all 58 entries without changing other projections", async () => {
+  const markdown = await readFile(new URL("../../docs/master-plan-planetls.md", import.meta.url), "utf8");
+  const block = [...markdown.matchAll(/\x60{3}json\s*([\s\S]*?)\x60{3}/g)]
+    .find((match) => match[1].includes('"PLS-DEV-001"'));
+  assert.ok(block);
+  const raw = JSON.parse(block[1]) as { version: number; items: Array<Record<string, unknown>> };
+  const plan = parseMasterPlan(markdown, "2026-11-14T12:00:00Z");
+  assert.equal(plan.diagnostics.errors.length, 0);
+  assert.equal(plan.registryItems.length, 58);
+  assert.equal(new Set(plan.registryItems.map((item) => item.id)).size, 58);
+  for (const item of plan.registryItems) {
+    const source = raw.items.find((entry) => entry.id === item.id);
+    assert.ok(source);
+    assert.ok(item.spaceTracking, item.id);
+    assert.deepEqual(item.spaceTracking, source.spaceTracking);
+    assert.equal(item.status, source.status);
+    assert.equal(item.priority, source.priority);
+  }
+  const stripped = { ...raw, items: raw.items.map(({ spaceTracking: _metadata, ...item }) => item) };
+  const baseline = parseMasterPlan(markdown.replace(block[1], () => JSON.stringify(stripped) + "\n"), "2026-11-14T12:00:00Z");
+  assert.equal(baseline.diagnostics.errors.length, 0, "Baseline JSON must be valid");
+  assert.equal(JSON.stringify(plan.planning) === JSON.stringify(baseline.planning), true, "Planning unchanged");
+  assert.deepEqual(plan.registryPriorityCounts, baseline.registryPriorityCounts);
+  assert.deepEqual(plan.remainingPriorityCounts, baseline.remainingPriorityCounts);
+  assert.deepEqual(plan.registryItems.map(({ spaceTracking: _metadata, ...item }) => item),
+    baseline.registryItems.map(({ spaceTracking: _metadata, ...item }) => item));
+});
+
+test("spaceTracking missing in legacy structured data stays undefined without a fallback classification", () => {
+  const plan = parseMasterPlan(spaceTrackingFixture(), "2026-11-14T12:00:00Z");
+  assert.equal(plan.diagnostics.errors.length, 0);
+  assert.equal(plan.registryItems.length, 1);
+  assert.equal(plan.registryItems[0].spaceTracking, undefined);
+  assert.equal(plan.diagnostics.warnings.some((warning) => warning.includes("spaceTracking")), false);
+});
+
+test("spaceTracking invalid or incomplete emits a bounded warning and preserves the entry", () => {
+  const valid = { primarySpace: "Administration", relatedSpaces: [], trackingType: "livrable", references: [] };
+  for (const value of [null, false, "Administration", {},
+    { ...valid, primarySpace: " " }, { ...valid, primarySpace: 1 },
+    { ...valid, relatedSpaces: "Conciergerie" }, { ...valid, relatedSpaces: [1] },
+    { ...valid, trackingType: null }, { ...valid, references: [false] },
+    { primarySpace: "Administration", relatedSpaces: [], trackingType: "livrable" }]) {
+    const plan = parseMasterPlan(spaceTrackingFixture(value), "2026-11-14T12:00:00Z");
+    assert.equal(plan.diagnostics.errors.length, 0);
+    assert.equal(plan.registryItems.length, 1);
+    assert.equal(plan.registryItems[0].spaceTracking, undefined);
+    assert.equal(plan.registryItems[0].status, "IN_PROGRESS");
+    assert.equal(plan.registryItems[0].priority, "P1");
+    assert.equal(plan.diagnostics.warnings.length, 1);
+    assert.match(plan.diagnostics.warnings[0], /PLS-DEV-001.*spaceTracking/);
+  }
 });

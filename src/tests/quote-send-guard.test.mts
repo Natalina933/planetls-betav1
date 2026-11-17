@@ -4,6 +4,7 @@ import {
   isUnresolvedQuoteItem,
   hasConfirmedPrice,
   computeItemsTotal,
+  confirmQuoteItemPrice,
   QUOTE_PRICE_CONFIRMED_KEY,
   type QuoteSendItem,
 } from "../features/concierge-commercial/server/quoteSendGuard.ts";
@@ -12,6 +13,19 @@ const freeDraftItem = (metadata?: Record<string, unknown>): QuoteSendItem => ({
   label: "Prestation à chiffrer",
   unit_price: 0,
   metadata,
+});
+
+test("confirmation explicite, révocation et tarif absent restent distincts", () => {
+  const initial = { requested_service_slug: "cleaning_standard", quote_service_clarification_status: "needs_explicit_price" };
+  const confirmed = confirmQuoteItemPrice({ unit_price: 0, confirm_free: true }, initial);
+  assert.equal(isUnresolvedQuoteItem({ unit_price: 0, metadata: confirmed }), false);
+  assert.equal(hasConfirmedPrice(null, confirmed), false);
+  assert.equal(hasConfirmedPrice(undefined, confirmed), false);
+  assert.equal(hasConfirmedPrice("", confirmed), false);
+  assert.equal(confirmQuoteItemPrice({ unit_price: 0, confirm_free: false }, confirmed)[QUOTE_PRICE_CONFIRMED_KEY], undefined);
+  assert.equal(confirmQuoteItemPrice({ unit_price: 20 }, confirmed)[QUOTE_PRICE_CONFIRMED_KEY], undefined);
+  const ambiguous = confirmQuoteItemPrice({ unit_price: 0, confirm_free: true }, { quote_service_clarification_status: "needs_clarification" });
+  assert.equal(isUnresolvedQuoteItem({ unit_price: 0, metadata: ambiguous }), true);
 });
 
 test("1. Brouillon sans tarif (0 €, métadonnée needs_*) : envoi refusé", () => {

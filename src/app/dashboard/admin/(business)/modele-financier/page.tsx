@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAdminAccess } from "../../adminAccess";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -38,6 +39,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminFinancialModelPage() {
+  await requireAdminAccess();
 
   return (
     <DashboardLayout

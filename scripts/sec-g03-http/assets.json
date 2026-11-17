@@ -1,0 +1,17 @@
+{
+    "version":  1,
+    "files":  {
+                  "check.test.mjs":  "2fe8e74311ddab62d92a05f0c9896539a8c7532bd1b7ccc6efb3990df598d6b4",
+                  "client.mjs":  "9ba3fbac1e345b754669ac350bd54af765be169af55246aef9467774ac1356a0",
+                  "fixtures.mjs":  "3614a6e3667b9476ecbaa7e922972916cae3057d642e6934eea57b18a7b5ea36",
+                  "lifecycle.mjs":  "dd857888066116e2c868c4a4a95969f90492b342d9775bae5ba1e5534dc6b581",
+                  "manifest.json":  "6ccbf5dbca92b1fc25ad054981d7e540a097fdf0f436163b336ad0b00a498722",
+                  "network-guard.mjs":  "466c1d3e3c7532ef823b3b211b59e751f0c103c5e363e6cedfa0280291f9ce90",
+                  "next-process.mjs":  "fc0e173f25441e93bd2f356d7dd816e570ade692218a28c7801b031e822043fd",
+                  "plan.mjs":  "64432e78a87b18632a2df1e01576ece8360f97b3bb7d99aa5b684ff8f6b71903",
+                  "README.md":  "bbb86288d8ef30780d1f0e40ea4fa7b6ba49698578441898c2c3fffe0213d1f9",
+                  "run.mjs":  "c68aec6f12e794a5ccc0c1c3bdb25a7194d0d4d34465b0f8246196d769e6e08f",
+                  "scenarios.mjs":  "c913c70e0c02028db989017659664ccbca88471e44cb6f052fe07332da07889f",
+                  "stack.mjs":  "7c20275fd04cff01e622f0dbda55fabf3487f7098e7c6fb24d5488015c6bf39b"
+              }
+}

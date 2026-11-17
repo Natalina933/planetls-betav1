@@ -18,6 +18,7 @@ interface ServicePricingInsert {
 export async function GET(req: NextRequest) {
   try {
     const auth = await getServiceAuthContext(req);
+    if (auth instanceof Response) return auth;
     if (!auth) {
       return serviceAuthError(401);
     }
@@ -71,6 +72,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const auth = await getServiceAuthContext(req);
+    if (auth instanceof Response) return auth;
     if (!auth) {
       return serviceAuthError(401);
     }
@@ -130,6 +132,7 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const auth = await getServiceAuthContext(req);
+    if (auth instanceof Response) return auth;
     if (!auth) {
       return serviceAuthError(401);
     }

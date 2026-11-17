@@ -48,7 +48,7 @@ export type RoadmapView = {
   items: RoadmapItem[];
 };
 
-const REFERENCE_DATE = new Date("2026-07-27T12:00:00+02:00");
+
 
 function normalize(value: string) {
   return value
@@ -160,7 +160,7 @@ function targetDateFor(item: MasterPlanPlanningItem, index: number) {
       : item.horizon === "Après stabilisation"
         ? 24 + index * 4
         : 45 + index * 5;
-  const next = new Date(REFERENCE_DATE);
+  const next = new Date();
   next.setDate(next.getDate() + offset);
   return next.toISOString().slice(0, 10);
 }

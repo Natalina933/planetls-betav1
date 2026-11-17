@@ -23,7 +23,8 @@ import {
   validateMissionScheduleRange,
 } from "@/app/lib/missionScheduleConflicts";
 import { getHousingReferenceId } from "@/app/lib/listingReferences";
-import { requireApiRole } from "@/server/auth/roleGuards";
+import { resolveCommercialAccess as resolveMissionAccess } from "@/server/auth/commercialAccess";
+import { MissionProofVerificationError, safeMissionProofUrl, verifiedMissionProofs } from "@/app/api/_shared/missionProofAccess";
 import type { Json } from "@/types/supabase";
 
 const dbAny = asLooseSupabaseClient(db);
@@ -733,7 +734,7 @@ async function hydrateMissionDetail(mission: MissionRow) {
     mission.title ||
     mission.service_label ||
     (typeof metadata.property_label === "string" ? `Mission ${metadata.property_label}` : null);
-  const proofLinks = Array.isArray(metadata.proof_links) ? metadata.proof_links : [];
+  const proofLinks = await verifiedMissionProofs(db.storage, mission.id, metadata);
   const metadataChecklist = Array.isArray(metadata.checklist) ? metadata.checklist : [];
   const checklist =
     missionChecklist.items && missionChecklist.items.length > 0
@@ -748,6 +749,7 @@ async function hydrateMissionDetail(mission: MissionRow) {
   return {
     mission: {
       ...attachMissionWorkflow(mission),
+      metadata: { ...metadata, proof_links: proofLinks },
       title: displayTitle,
       status: normalizeMissionStatus(mission.status),
       priority: normalizeMissionPriority(mission.priority),
@@ -778,9 +780,12 @@ async function hydrateMissionDetail(mission: MissionRow) {
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const guard = await requireApiRole(req, MISSION_ROLES);
-    if (!guard.ok) return guard.response;
-    const { userId, role } = guard.auth;
+    const auth = await resolveMissionAccess(req);
+    if (auth instanceof NextResponse) return auth;
+    if (!MISSION_ROLES.has(auth.role)) {
+      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+    }
+    const { userId, role } = auth;
     const { id: rawId } = await params;
     const id = normalizeRouteId(rawId);
 
@@ -798,6 +803,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     return NextResponse.json(await hydrateMissionDetail(mission));
   } catch (err) {
+    if (err instanceof MissionProofVerificationError) {
+      return NextResponse.json({ error: err.message }, { status: 503, headers: { "Cache-Control": "no-store" } });
+    }
     console.error("[GET /api/missions/[id]] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
@@ -805,9 +813,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const guard = await requireApiRole(req, MISSION_ROLES);
-    if (!guard.ok) return guard.response;
-    const { userId, role } = guard.auth;
+    const auth = await resolveMissionAccess(req);
+    if (auth instanceof NextResponse) return auth;
+    if (!MISSION_ROLES.has(auth.role)) {
+      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+    }
+    const { userId, role } = auth;
     const { id: rawId } = await params;
     const id = normalizeRouteId(rawId);
 
@@ -942,7 +953,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         return NextResponse.json({ error: "Preuves reservees a la conciergerie" }, { status: 403 });
       }
       const label = typeof body.label === "string" ? body.label.trim() : "";
-      const url = typeof body.url === "string" ? body.url.trim() : "";
+      const url = safeMissionProofUrl(typeof body.url === "string" ? body.url.trim() : body.url);
       const kind = typeof body.kind === "string" ? body.kind.trim() : "document";
       if (!label || !url) {
         return NextResponse.json({ error: "Titre et lien de preuve requis" }, { status: 400 });
@@ -1189,6 +1200,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       completed_action: completedAction,
     });
   } catch (err) {
+    if (err instanceof MissionProofVerificationError) {
+      return NextResponse.json({ error: err.message }, { status: 503, headers: { "Cache-Control": "no-store" } });
+    }
     console.error("[PATCH /api/missions/[id]] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }

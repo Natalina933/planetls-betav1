@@ -1,0 +1,72 @@
+[
+  {
+    "path": "supabase/migrations/20260222120000_missions_core.sql",
+    "expected": "8258c5475ddc38b66109cf93734f338954ce108d96af8c9edb2f621fcbda4bb0",
+    "actual": "127165398179b4934a5de85e759f66cc0eada6538caf5fc76663a771a5361ee8",
+    "commitsSearched": 5,
+    "reference": {
+      "commit": "0701ec99ca515d58c4ebf0edaf10b05fb7567f83",
+      "variant": "CRLF",
+      "textEqual": true,
+      "note": "La variante CRLF est une transformation déterministe du blob disponible, pas un blob Git brut correspondant à l’empreinte."
+    },
+    "blocking": false,
+    "explanation": "Différence de fins de ligne uniquement. Le blob Git normalisé en CRLF reproduit exactement l’empreinte historique; le texte actuel normalisé LF est identique. Aucun changement SQL."
+  },
+  {
+    "path": "supabase/migrations/20260307110000_service_requests_core.sql",
+    "expected": "8c1e59776d87e8954358010230e115a91f85aa458a7ce1bb596010d1f554110a",
+    "actual": "37ce2af70c72f96024f6b43b9d9a807db3cb1579296e1e2730b6b41cf13dcf26",
+    "commitsSearched": 5,
+    "reference": {
+      "commit": "0701ec99ca515d58c4ebf0edaf10b05fb7567f83",
+      "variant": "CRLF",
+      "textEqual": true,
+      "note": "La variante CRLF est une transformation déterministe du blob disponible, pas un blob Git brut correspondant à l’empreinte."
+    },
+    "blocking": false,
+    "explanation": "Différence de fins de ligne uniquement. Le blob Git normalisé en CRLF reproduit exactement l’empreinte historique; le texte actuel normalisé LF est identique. Aucun changement SQL."
+  },
+  {
+    "path": "supabase/migrations/20261005120000_service_request_stay_context.sql",
+    "expected": "308201bf60ad135bca1b02dad324d397701dd2abfcd67c2b097ef05c1d5c7457",
+    "actual": "c0272c9714479482d8db24189e5e491be8542efd005adbad34bf1b82d0209ea9",
+    "commitsSearched": 4,
+    "reference": {
+      "commit": "0701ec99ca515d58c4ebf0edaf10b05fb7567f83",
+      "variant": "CRLF",
+      "textEqual": true,
+      "note": "La variante CRLF est une transformation déterministe du blob disponible, pas un blob Git brut correspondant à l’empreinte."
+    },
+    "blocking": false,
+    "explanation": "Différence de fins de ligne uniquement. Le blob Git normalisé en CRLF reproduit exactement l’empreinte historique; le texte actuel normalisé LF est identique. Aucun changement SQL."
+  },
+  {
+    "path": "supabase/migrations/20261005130000_service_requests_stay_reservation_guard.sql",
+    "expected": "465e0cf5357b1274bac4110c7fdd88a329e56cb433d833be1f301e784f195d6c",
+    "actual": "a4f8a4aa450feb8b6fdaac8f56c5197c59e74fae646932d0da7fc1f671b76655",
+    "commitsSearched": 4,
+    "reference": {
+      "commit": "0701ec99ca515d58c4ebf0edaf10b05fb7567f83",
+      "variant": "CRLF",
+      "textEqual": true,
+      "note": "La variante CRLF est une transformation déterministe du blob disponible, pas un blob Git brut correspondant à l’empreinte."
+    },
+    "blocking": false,
+    "explanation": "Différence de fins de ligne uniquement. Le blob Git normalisé en CRLF reproduit exactement l’empreinte historique; le texte actuel normalisé LF est identique. Aucun changement SQL."
+  },
+  {
+    "path": "supabase/migrations/20261026120000_concierge_static_compatibility.sql",
+    "expected": "38598be1340412472b8bb75a848be6ab679ed74f87fe69503bd72e1dc5ee6725",
+    "actual": "de9fd93394cf9246741ecb5ed4d8b29c020795dfe92234a36a12c0d7b095c4be",
+    "commitsSearched": 2,
+    "reference": {
+      "commit": "16abc40792dac6643f5f334c7045f2d9037f41c2",
+      "variant": "raw",
+      "textEqual": false,
+      "note": "Blob brut correspondant exactement à l’empreinte attendue."
+    },
+    "blocking": false,
+    "explanation": "Correctif fonctionnel local c17c6ad01cac06ef11b451a29fd00c91938844fd : verrouillage exclusif et délai, contrôle des dépendances de triggers, remplacement/restauration vérifiés pendant ALTER TYPE. Version antérieure exacte retrouvée à 16abc407. Aucun changement d’ordre; réussite PostgreSQL non démontrée."
+  }
+]

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { resolveCommercialAccess as resolveHousingAccess } from "@/server/auth/commercialAccess";
 import { canAccessHousing } from "@/types/housing";
 import { guardHousingWriteAccess } from "@/app/lib/housingWriteGuards";
 
@@ -65,7 +65,9 @@ export async function GET(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { userId, role, isAdmin } = await getApiAuthContext(req);
+    const access = await resolveHousingAccess(req);
+    if (access instanceof NextResponse) return access;
+    const { userId, role, isAdmin } = access;
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
@@ -99,7 +101,9 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { userId, role, isAdmin } = await getApiAuthContext(req);
+    const access = await resolveHousingAccess(req);
+    if (access instanceof NextResponse) return access;
+    const { userId, role, isAdmin } = access;
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
@@ -220,7 +224,9 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { userId, role, isAdmin } = await getApiAuthContext(req);
+    const access = await resolveHousingAccess(req);
+    if (access instanceof NextResponse) return access;
+    const { userId, role, isAdmin } = access;
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }

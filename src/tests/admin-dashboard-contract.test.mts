@@ -6,7 +6,7 @@ const adminPage = readFileSync(new URL("../app/dashboard/admin/page.tsx", import
 
 test("admin dashboard documents KPI provenance and technical verification states", () => {
   assert.match(adminPage, /Cadre de lecture des KPI/);
-  assert.match(adminPage, /Sante technique/);
+  assert.match(adminPage, /Santé de l’exploitation/);
   assert.match(adminPage, /adminControl\?\.health\?\.status === "unverifiable"/);
   assert.match(adminPage, /problemRegistry/);
   assert.match(adminPage, /checkedSourceCount/);

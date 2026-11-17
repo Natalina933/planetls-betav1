@@ -4,6 +4,9 @@ import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
 import { canAccessMissionForRole, CONCIERGE_MISSION_ROLES } from "@/app/lib/missionPermissions";
 import { requireApiRole } from "@/server/auth/roleGuards";
+import { resolveCommercialPrincipalAccess } from "@/server/auth/commercialAccess";
+import { randomUUID } from "node:crypto";
+import { missionAssignmentSchemaReady } from "@/app/api/_shared/missionProviderAssignmentAccess";
 import type { Json } from "@/types/supabase";
 
 const dbAny = asLooseSupabaseClient(db);
@@ -100,103 +103,60 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const guard = await requireApiRole(req, ROLES);
-  if (!guard.ok) return guard.response;
-  const { userId, role } = guard.auth;
-  const id = await resolveMissionId(req, params);
+  const auth = await resolveCommercialPrincipalAccess(req);
+  if (auth instanceof NextResponse) return auth;
+  if (!CONCIERGE_MISSION_ROLES.has(auth.role)) {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+  }
+  if (!missionAssignmentSchemaReady()) {
+    return NextResponse.json({ error: "Affectations sécurisées non activées" }, { status: 503 });
+  }
+  const id = (await resolveMissionId(req, params)).toLowerCase();
   if (!isUuidLike(id)) return NextResponse.json({ error: "Mission invalide" }, { status: 400 });
-  if (!CONCIERGE_MISSION_ROLES.has(role)) {
-    return NextResponse.json({ error: "Intervention artisan reservee a la conciergerie" }, { status: 403 });
+  let body: Record<string, unknown>;
+  try {
+    const input: unknown = await req.json();
+    if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error();
+    body = input as Record<string, unknown>;
+  } catch {
+    return NextResponse.json({ error: "Requête invalide" }, { status: 400 });
   }
-
-  const { data: mission } = await loadMission(id);
-  if (!mission) return NextResponse.json({ error: "Mission introuvable" }, { status: 404 });
-  if (!canAccessMissionForRole({ role, userId, ownerProfileId: mission.owner_profile_id, conciergeProfileId: mission.concierge_profile_id })) {
-    return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+  const providerId = typeof body.provider_profile_id === "string" ? body.provider_profile_id.trim().toLowerCase() : "";
+  const operationId = req.headers.get("Idempotency-Key") ?? randomUUID();
+  if (!isUuidLike(providerId) || !isUuidLike(operationId)) {
+    return NextResponse.json({ error: "Identifiant de prestataire ou d’opération invalide" }, { status: 400 });
   }
-
-  const body = await req.json();
-  const providerProfileId = typeof body?.provider_profile_id === "string" ? body.provider_profile_id.trim() : "";
-  const title = typeof body?.title === "string" && body.title.trim() ? body.title.trim() : `Intervention - ${mission.title || "mission"}`;
-  if (!isUuidLike(providerProfileId)) {
-    return NextResponse.json({ error: "provider_profile_id requis" }, { status: 400 });
+  // Forward only RPC-supported parameters. Identities and relationships come from
+  // authenticated server context and the locked mission, never the request body.
+  const parameters: Record<string, unknown> = {};
+  for (const key of ["title", "description", "service_label", "priority", "scheduled_start", "scheduled_end", "location_label"]) {
+    if (typeof body[key] === "string") parameters[key] = body[key];
   }
-
-  const { data: provider, error: providerError } = await dbAny
-    .from("profiles")
-    .select("id, role")
-    .eq("id", providerProfileId)
-    .in("role", ["provider", "provider_pro", "artisan", "artisan_pro"])
-    .maybeSingle();
-  if (providerError) return NextResponse.json({ error: "Erreur verification artisan" }, { status: 500 });
-  if (!provider) return NextResponse.json({ error: "Artisan introuvable" }, { status: 404 });
-
-  const { data, error } = await dbAny
-    .from("provider_interventions")
-    .insert({
-      provider_profile_id: providerProfileId,
-      owner_profile_id: mission.owner_profile_id,
-      reservation_id: typeof mission.reservation_id === "string" ? mission.reservation_id : null,
-      title,
-      description: typeof body?.description === "string" ? body.description : mission.description,
-      service_label: typeof body?.service_label === "string" ? body.service_label : null,
-      status: "pending",
-      priority: typeof body?.priority === "string" ? body.priority : "normal",
-      scheduled_start: typeof body?.scheduled_start === "string" ? body.scheduled_start : mission.scheduled_start,
-      scheduled_end: typeof body?.scheduled_end === "string" ? body.scheduled_end : mission.scheduled_end,
-      budget_amount: typeof body?.budget_amount === "number" ? body.budget_amount : mission.amount,
-      currency: mission.currency ?? "EUR",
-      location_label: typeof body?.location_label === "string" ? body.location_label : null,
-      metadata: {
-        mission_id: id,
-        created_from: "mission_detail",
-        concierge_profile_id: mission.concierge_profile_id,
-      } as Json,
-    })
-    .select("*")
-    .single();
-
-  if (error || !data) {
-    console.error("[POST /api/missions/:id/provider-interventions] create error:", error);
-    return NextResponse.json({ error: "Erreur creation intervention artisan" }, { status: 500 });
+  if (typeof body.budget_amount === "number" && Number.isFinite(body.budget_amount)) parameters.budget_amount = body.budget_amount;
+  try {
+    const { data, error } = await dbAny.rpc("create_mission_provider_assignment", {
+      p_principal_id: auth.principalProfileId,
+      p_actor_id: auth.userId,
+      p_mission_id: id,
+      p_provider_id: providerId,
+      p_operation_id: operationId,
+      p_parameters: parameters as Json,
+    });
+    if (error) {
+      const status = error.code === "42501" ? 403 : error.code === "22023" || error.code?.startsWith("22") ? 400
+        : ["23503", "23514", "23505", "55000", "40001", "40P01"].includes(error.code ?? "") ? 409 : 503;
+      return NextResponse.json({ error: status === 403 ? "Accès refusé" : "Création de l’affectation indisponible ou refusée" }, { status });
+    }
+    // The SQL statement owns all writes and rolls back on failure. No REST fallback.
+    const result = data as { intervention?: Record<string, unknown>; assignment?: { mission_id?: string; provider_profile_id?: string; provider_intervention_id?: string; state?: string }; replayed?: boolean } | null;
+    if (!result?.intervention?.id || result.assignment?.mission_id !== id
+      || result.assignment.provider_profile_id !== providerId
+      || result.assignment.provider_intervention_id !== result.intervention.id
+      || result.assignment.state !== "active") {
+      return NextResponse.json({ error: "Réponse d’affectation invalide" }, { status: 503 });
+    }
+    return NextResponse.json(result.intervention, { status: result.replayed ? 200 : 201, headers: { "Idempotency-Key": operationId } });
+  } catch {
+    return NextResponse.json({ error: "Création de l’affectation indisponible" }, { status: 503 });
   }
-
-  const missionMetadata =
-    mission.metadata && typeof mission.metadata === "object" && !Array.isArray(mission.metadata)
-      ? (mission.metadata as Record<string, unknown>)
-      : {};
-  await dbAny
-    .from("missions")
-    .update({
-      metadata: {
-        ...missionMetadata,
-        provider_intervention_status: "pending",
-        provider_intervention_id: data.id,
-      } as Json,
-    })
-    .eq("id", id);
-
-  await dbAny.from("mission_events").insert({
-    mission_id: id,
-    actor_profile_id: userId,
-    event_type: "updated",
-    payload: {
-      action: "provider_intervention_created",
-      provider_intervention_id: data.id,
-      provider_profile_id: providerProfileId,
-    },
-  });
-
-  await dbAny.from("provider_alerts").insert({
-    provider_profile_id: providerProfileId,
-    intervention_id: data.id,
-    alert_type: "deadline",
-    severity: data.priority === "urgent" ? "urgent" : "normal",
-    title: "Nouvelle intervention liee a une mission",
-    body: title,
-    status: "open",
-  });
-
-  return NextResponse.json(data, { status: 201 });
 }
-

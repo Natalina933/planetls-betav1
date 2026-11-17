@@ -1,5 +1,5 @@
-import { NextRequest } from "next/server";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { NextRequest, NextResponse } from "next/server";
+import { resolveCommercialAccess } from "@/server/auth/commercialAccess";
 import { db } from "@/app/lib/dbServer";
 import {
   ALLOWED_PRICING_ROLES,
@@ -17,16 +17,8 @@ export interface AuthContext {
   isAdmin: boolean;
 }
 
-export async function getAuthContext(req: NextRequest): Promise<AuthContext | null> {
-  const auth = await getApiAuthContext(req);
-  const userId = auth.userId ?? "";
-  if (!userId) return null;
-
-  return {
-    userId,
-    role: auth.role,
-    isAdmin: auth.isAdmin,
-  };
+export async function getAuthContext(req: NextRequest): Promise<AuthContext | NextResponse> {
+  return resolveCommercialAccess(req);
 }
 
 interface PricingListOptions {

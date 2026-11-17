@@ -9,6 +9,7 @@ import {
 export async function GET(req: NextRequest) {
   try {
     const auth = await getAuthContext(req);
+    if (auth instanceof Response) return auth;
     if (!auth) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
@@ -36,6 +37,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const auth = await getAuthContext(req);
+    if (auth instanceof Response) return auth;
     if (!auth) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }

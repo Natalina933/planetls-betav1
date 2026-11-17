@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { resolveCommercialAccess } from "@/server/auth/commercialAccess";
 
 export { isAllowedServiceRole } from "@/app/api/services/pure";
 
@@ -10,17 +10,8 @@ export type ServiceAuthContext = {
   isAdmin: boolean;
 };
 
-export async function getServiceAuthContext(req: NextRequest): Promise<ServiceAuthContext | null> {
-  const auth = await getApiAuthContext(req);
-  if (!auth.userId) {
-    return null;
-  }
-
-  return {
-    userId: auth.userId,
-    role: auth.role,
-    isAdmin: auth.isAdmin,
-  };
+export async function getServiceAuthContext(req: NextRequest): Promise<ServiceAuthContext | NextResponse> {
+  return resolveCommercialAccess(req);
 }
 
 export function serviceAuthError(status: 401 | 403) {
