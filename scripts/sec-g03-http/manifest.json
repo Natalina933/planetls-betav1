@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "preparedOnly": true,
+  "sourceCommit": "661d690501b36e3b092167f8338415f7c60d9604",
+  "sqlManifestSha256": "d7a21fa3536e4748a6552b10884a2776c8cb54b6bef2e2ed55ce1b55d7e8a370",
+  "daemonId": "8dd300f7-30f6-4582-8aa1-b432eecbb874",
+  "context": "desktop-linux",
+  "ports": { "app": 58430, "gateway": 58431 },
+  "budget": { "dockerMiB": 3584, "dockerReserveMiB": 512, "windowsFreeMiB": 4096, "diskFreeGiB": 12, "cpu": 4 },
+  "images": {
+    "db": { "tag": "public.ecr.aws/supabase/postgres:17.6.1.017", "id": "sha256:2b33ea67a4ed0fd60022b9b9b8528ee0b9d85acf566d1132672c57b39c81c93e", "inspectedBytes": 810322141 },
+    "auth": { "tag": "public.ecr.aws/supabase/gotrue:v2.186.0", "id": "sha256:f2112b9289422f205df4ea15b8b550d425ae42528ea54521faa32cc7b62490de", "inspectedBytes": 25049420 },
+    "rest": { "tag": "public.ecr.aws/supabase/postgrest:v13.0.7", "id": "sha256:0a46780309a604cdc8b56c776c6e5e15788ce58174d709e40459ab5a2d44d228", "inspectedBytes": 5981837 },
+    "storage": { "tag": "public.ecr.aws/supabase/storage-api:v1.28.1", "id": "sha256:3e7695847c673e3355ecb86e5cce6969ffb403980ec2e1ac6ce480d41be40a48", "inspectedBytes": 192086474 },
+    "gateway": { "tag": "public.ecr.aws/supabase/kong:2.8.1", "id": "sha256:1b53405d8680a09d6f44494b7990bf7da2ea43f84a258c59717d4539abf09f6d", "inspectedBytes": 49343800 }
+  },
+  "blockers": [
+    "Bootstrap réel des rôles/schémas Auth et Storage à préparer et faire approuver ; foundation.sql synthétique interdite.",
+    "Compatibilité des cinq versions et ACL/propriétaires réels à valider sans contourner C1A.",
+    "Pilote Docker/migrations, copie Next, adaptateurs SQL/Storage et barrières de concurrence à raccorder puis revoir.",
+    "Garde réseau Next à éprouver dans les workers, y compris IPC et transport Undici.",
+    "Budget mémoire Windows/Docker et disque à satisfaire avant toute création.",
+    "Autorisation d’exécution et activation du verrou uniquement dans le processus de recette requises."
+  ]
+}
