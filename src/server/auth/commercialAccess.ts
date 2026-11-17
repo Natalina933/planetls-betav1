@@ -20,7 +20,7 @@ function denied(status: 401 | 403 | 503) {
 }
 
 /** Shared by services/pricing and inspections/disputes; never trusts sub or selection as the principal. */
-export async function resolveCommercialAccess(req: NextRequest): Promise<CommercialAuthContext | NextResponse> {
+export async function resolveCommercialPrincipalAccess(req: NextRequest): Promise<(CommercialAuthContext & { principalProfileId: string }) | NextResponse> {
   try {
     const secret = process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET;
     let identity: { id?: unknown; role?: unknown } | null = null;
@@ -43,7 +43,7 @@ export async function resolveCommercialAccess(req: NextRequest): Promise<Commerc
     const requestedProfile = req.cookies.get(ACTIVE_PROFILE_COOKIE)?.value;
     if (requestedProfile && requestedProfile.toLowerCase() !== selected.userId.toLowerCase()) return denied(403);
     if (selected.userId.toLowerCase() === principal.principalProfileId) {
-      return { userId: principal.principalProfileId, role: principal.role, isAdmin: isAdminRole(principal.role) };
+      return { userId: principal.principalProfileId, role: principal.role, isAdmin: isAdminRole(principal.role), principalProfileId: principal.principalProfileId };
     }
 
     const profileRights = await resolvePrincipalRights({ principalProfileId: selected.userId });
@@ -52,11 +52,18 @@ export async function resolveCommercialAccess(req: NextRequest): Promise<Commerc
     // must currently qualify. Keep the principal's actual administrative level.
     if (isAdminRole(profileRights.context.role)) {
       if (!isAdminRole(principal.role)) return denied(403);
-      return { userId: profileRights.context.principalProfileId, role: principal.role, isAdmin: true };
+      return { userId: profileRights.context.principalProfileId, role: principal.role, isAdmin: true, principalProfileId: principal.principalProfileId };
     }
-    return { userId: profileRights.context.principalProfileId, role: profileRights.context.role, isAdmin: false };
+    return { userId: profileRights.context.principalProfileId, role: profileRights.context.role, isAdmin: false, principalProfileId: principal.principalProfileId };
   } catch {
     // Transport/authentication failures must not expose private diagnostics.
     return denied(503);
   }
+}
+
+/** Preserve the existing public context for callers that do not need SQL actor provenance. */
+export async function resolveCommercialAccess(req: NextRequest): Promise<CommercialAuthContext | NextResponse> {
+  const result = await resolveCommercialPrincipalAccess(req);
+  if (result instanceof NextResponse) return result;
+  return { userId: result.userId, role: result.role, isAdmin: result.isAdmin };
 }

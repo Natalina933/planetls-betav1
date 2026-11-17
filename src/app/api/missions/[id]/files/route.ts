@@ -8,6 +8,7 @@ import {
 } from "@/app/lib/missionPermissions";
 import { resolveCommercialAccess as resolveMissionAccess } from "@/server/auth/commercialAccess";
 import { MISSION_PROOF_BUCKET } from "@/app/api/_shared/missionProofAccess";
+import { isAssignedMissionProvider as isAssignedProvider } from "@/app/api/_shared/missionProviderAssignmentAccess";
 import type { Json } from "@/types/supabase";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 
@@ -36,17 +37,6 @@ function extensionFromName(name: string) {
 
 function isAllowedFileType(type: string) {
   return ALLOWED_PREFIXES.some((prefix) => type.startsWith(prefix));
-}
-
-async function isAssignedProvider(userId: string, missionId: string) {
-  const { data, error } = await dbAny
-    .from("provider_interventions")
-    .select("id")
-    .eq("provider_profile_id", userId)
-    .contains("metadata", { mission_id: missionId })
-    .limit(1);
-  if (error) throw error;
-  return Boolean(data?.length);
 }
 
 async function ensureBucket() {

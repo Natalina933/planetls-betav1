@@ -22,6 +22,7 @@ type Options = {
   profile?: unknown; token?: Row | null; selected?: Row;
   readError?: boolean; readThrows?: boolean; tokenThrows?: boolean; invalidJwt?: boolean;
   status?: string; session?: Row | null; authThrows?: boolean; objectMissing?: boolean; objectError?: boolean; objectThrows?: boolean; objectMismatch?: boolean;
+  rpcError?: string; assignmentReadError?: boolean; assignmentsDisabled?: boolean; rpcReplay?: boolean;
 };
 
 function fixture(options: Options = {}) {
@@ -38,7 +39,7 @@ function fixture(options: Options = {}) {
   const tables: Record<string, Row[]> = {
     missions: [mission], profiles: [{ id: OWNER }, { id: CONCIERGE }], mission_events: [],
     mission_reviews: [], mission_checklist_items: [], quotes: [], invoices: [], invoice_events: [],
-    contact_conversations: [], contact_messages: [], workflow_events: [], provider_interventions: [],
+    contact_conversations: [], contact_messages: [], workflow_events: [], provider_interventions: [], mission_provider_assignments: [],
     provider_intervention_reports: [], concierge_owner_matches: [{ id: FOREIGN, owner_profile_id: owner, concierge_profile_id: concierge, match_status: 'new' }],
     properties: [{ id: FOREIGN, owner_id: owner }], housing: [], reservations: [],
   };
@@ -62,6 +63,7 @@ function fixture(options: Options = {}) {
         return { data: single ? rows[0] ?? null : rows, error: null };
       }
       calls.business.push(table + ':' + operation);
+      if (table === "mission_provider_assignments" && options.assignmentReadError) return { data: null, error: { code: "42P01" } };
       let rows = (tables[table] ?? []).filter(row => filters.every(filter => filter(row)));
       if (operation === "insert") {
         rows = (Array.isArray(payload) ? payload : [payload]).map(row => ({ id: FOREIGN, ...row }));
@@ -91,7 +93,17 @@ function fixture(options: Options = {}) {
     };
     return chain;
   }
-  const db = { from: (table: string) => query(table), storage: {
+  const db = { from: (table: string) => query(table), rpc: async (name: string, args: Row) => {
+    calls.business.push(`rpc:${name}`);
+    calls.outbound.push({ name, args });
+    if (options.rpcError) return { data: null, error: { code: options.rpcError } };
+    const intervention = { id: FOREIGN, provider_profile_id: args.p_provider_id };
+    const assignment = { id: FOREIGN, mission_id: args.p_mission_id, provider_profile_id: args.p_provider_id,
+      provider_intervention_id: FOREIGN, state: "active", revoked_at: null };
+    tables.provider_interventions.push(intervention);
+    tables.mission_provider_assignments.push(assignment);
+    return { data: { intervention, assignment, replayed: options.rpcReplay ?? false }, error: null };
+  }, storage: {
     listBuckets: async () => { calls.storage.push({ action: "list" }); return { data: [{ name: "mission-evidence" }], error: null }; },
     updateBucket: async () => { calls.storage.push({ action: 'configure' }); return { error: null }; },
     from: (bucket: string) => ({
@@ -135,12 +147,12 @@ function fixture(options: Options = {}) {
       throw new Error(`Unexpected import ${id} in ${file}`);
     }
     new Function("require", "exports", "process", "console", "Date", "fetch", code)(load, exports, {
-      env: { NEXTAUTH_SECRET: "synthetic-housing-only-secret", SUPABASE_URL: "https://synthetic.invalid", SUPABASE_SERVICE_ROLE_KEY: "synthetic" },
+      env: { NEXTAUTH_SECRET: "synthetic-housing-only-secret", SUPABASE_URL: "https://synthetic.invalid", SUPABASE_SERVICE_ROLE_KEY: "synthetic", PLANETLS_MISSION_ASSIGNMENTS_READY: options.assignmentsDisabled ? undefined : "true" },
     }, { warn: (...args: unknown[]) => calls.logs.push(args), error: (...args: unknown[]) => calls.logs.push(args), info: (...args: unknown[]) => calls.outbound.push(args) }, class extends Date { static now() { return NOW; } },
     (...args: unknown[]) => { calls.outbound.push(args); throw new Error("Unexpected outbound request"); });
     return exports;
   }
-  async function invoke(route: string, method: string, body?: unknown, json = false, proofId = PROOF) {
+  async function invoke(route: string, method: string, body?: unknown, json = false, proofId = PROOF, headers: Record<string, string> = {}) {
     let requestBody: string | FormData | undefined;
     if (method !== "GET") {
       if (route === "missions/[id]/files") {
@@ -149,7 +161,7 @@ function fixture(options: Options = {}) {
       } else requestBody = JSON.stringify(body ?? { title: "Synthetic creation", concierge_profile_id: concierge });
     }
     const req = new NextRequest(`http://localhost/api/${route}${json ? "?format=json" : ""}`, {
-      method, headers: { ...(typeof requestBody === "string" ? { "content-type": "application/json" } : {}) }, body: requestBody,
+      method, headers: { ...(typeof requestBody === "string" ? { "content-type": "application/json" } : {}), ...headers }, body: requestBody,
     });
     return execute(`app/api/${route}/route.ts`)[method](req, { params: Promise.resolve({ id: MISSION, proofId }) });
   }
@@ -333,9 +345,10 @@ test("foreign ordinary actor cannot read, upload or sign", async () => {
   }
 });
 for (const role of ["provider", "provider_pro", "artisan", "artisan_pro"]) {
-  test(`${role}: existing intervention access rule is preserved for upload and download`, async () => {
+  test(`${role}: verified active assignment allows upload and download`, async () => {
     const f = fixture({ role });
     f.tables.provider_interventions.push({ id: FOREIGN, provider_profile_id: ID, metadata: { mission_id: MISSION } });
+    f.tables.mission_provider_assignments.push({ id: FOREIGN, mission_id: MISSION, provider_profile_id: ID, state: "active", revoked_at: null });
     const uploaded = await f.invoke("missions/[id]/files", "POST");
     assert.equal(uploaded.status, 201);
     const proof = await uploaded.json();
@@ -360,4 +373,124 @@ test("mixed historical proofs retain only valid references in both projections w
   assert.deepEqual(detail.mission.metadata.proof_links, detail.evidence.proof_links);
   assert.deepEqual((f.mission.metadata as Row).proof_links, entries);
   noWritesOrSign(f);
+});
+
+// SEC-G03-02: real HTTP handlers; the RPC/SQL transaction remains a transport double.
+for (const variant of ["forged", "other-mission", "foreign-provider", "revoked", "revoked-date", "history", "missing-schema"]) {
+  test(`G03 ${variant}: denies upload and download before any Storage call`, async () => {
+    const f = fixture({ role: "provider", assignmentReadError: variant === "missing-schema" });
+    proofs(f, [storageProof()]);
+    f.tables.provider_interventions.push({ id: FOREIGN, provider_profile_id: ID, reservation_id: OWNER,
+      metadata: { mission_id: MISSION, created_from: "mission_detail", concierge_profile_id: CONCIERGE } });
+    if (!["forged", "history", "missing-schema"].includes(variant)) {
+      f.tables.mission_provider_assignments.push({ id: FOREIGN,
+        mission_id: variant === "other-mission" ? FOREIGN : MISSION,
+        provider_profile_id: variant === "foreign-provider" ? FOREIGN : ID,
+        state: variant === "revoked" ? "revoked" : "active",
+        revoked_at: variant === "revoked-date" || variant === "revoked" ? "2026-11-12" : null });
+    }
+    for (const [route, method] of [["missions/[id]/files", "POST"], [DOWNLOAD, "GET"]]) {
+      const response = await f.invoke(route, method);
+      assert.ok(response.status >= 400, await response.text());
+    }
+    assert.deepEqual(f.calls.storage, []);
+    assert.deepEqual(f.calls.writes, []);
+  });
+}
+for (const method of ["POST", "PATCH"]) {
+  for (const metadata of [{ mission_id: MISSION }, { missionId: MISSION }, { created_from: "mission_detail" }, { assignment_id: FOREIGN }]) {
+    test(`G03 provider ${method} rejects reserved metadata ${Object.keys(metadata)[0]}`, async () => {
+      const f = fixture({ role: "provider" });
+      const route = method === "POST" ? "provider/interventions" : "provider/interventions/[id]";
+      const response = await f.invoke(route, method, { title: "Personal intervention", metadata });
+      assert.equal(response.status, 400, await response.text());
+      assert.deepEqual(f.calls.writes, []);
+      proofs(f, [storageProof()]);
+      assert.equal((await f.invoke(DOWNLOAD, "GET")).status, 403);
+      assert.deepEqual(f.calls.storage, []);
+    });
+  }
+}
+test("G03 changing unrelated metadata cannot move an assignment to another mission", async () => {
+  const f = fixture({ role: "provider" });
+  f.tables.provider_interventions.push({ id: MISSION, provider_profile_id: ID, metadata: {} });
+  f.tables.mission_provider_assignments.push({ id: FOREIGN, mission_id: FOREIGN, provider_profile_id: ID, state: "active", revoked_at: null });
+  assert.equal((await f.invoke("provider/interventions/[id]", "PATCH", { metadata: { note: "Personal note" } })).status, 200);
+  proofs(f, [storageProof()]);
+  assert.equal((await f.invoke(DOWNLOAD, "GET")).status, 403);
+  assert.deepEqual(f.calls.storage, []);
+});
+test("G03 legitimate creation forwards server principal and actor to exactly one atomic RPC", async () => {
+  const f = fixture({ role: "concierge", actor: "concierge" });
+  const response = await f.invoke("missions/[id]/provider-interventions", "POST", {
+    provider_profile_id: FOREIGN, title: "Synthetic assignment", metadata: { mission_id: OWNER },
+    p_principal_id: OWNER, p_actor_id: OWNER,
+  });
+  assert.equal(response.status, 201, await response.clone().text());
+  const call = f.calls.outbound[0] as Row;
+  assert.equal(call.name, "create_mission_provider_assignment");
+  assert.equal(call.args.p_principal_id, ID);
+  assert.equal(call.args.p_actor_id, ID);
+  assert.equal(call.args.p_mission_id, MISSION);
+  assert.deepEqual(call.args.p_parameters, { title: "Synthetic assignment" });
+  assert.equal(response.headers.get("Idempotency-Key"), call.args.p_operation_id);
+  assert.deepEqual(f.calls.writes, []); // no secondary REST writes
+});
+for (const code of ["PGRST202", "42P01", "42501", "23514", "40P01"]) {
+  test(`G03 RPC ${code}: no REST fallback or partially created state`, async () => {
+    const f = fixture({ role: "concierge", actor: "concierge", rpcError: code });
+    const response = await f.invoke("missions/[id]/provider-interventions", "POST", { provider_profile_id: FOREIGN });
+    assert.ok(response.status >= 400);
+    assert.deepEqual(f.tables.provider_interventions, []);
+    assert.deepEqual(f.tables.mission_provider_assignments, []);
+    assert.deepEqual(f.calls.writes, []);
+    assert.deepEqual(f.calls.storage, []);
+  });
+}
+for (const options of [{ role: "provider", profile: { id: ID, role: "provider", status: "suspended" } }, { role: "owner", actor: "foreign" as const }]) {
+  test(`G03 ${options.role}: cannot create an assignment`, async () => {
+    const f = fixture(options);
+    assert.equal((await f.invoke("missions/[id]/provider-interventions", "POST", { provider_profile_id: FOREIGN })).status, 403);
+    assert.deepEqual(f.calls.outbound, []);
+    assert.deepEqual(f.calls.writes, []);
+  });
+}
+test("G03 suspended provider with active assignment cannot access Storage", async () => {
+  const f = fixture({ role: "provider", profile: { id: ID, role: "provider", status: "suspended" } });
+  f.tables.mission_provider_assignments.push({ id: FOREIGN, mission_id: MISSION, provider_profile_id: ID, state: "active", revoked_at: null });
+  proofs(f, [storageProof()]);
+  assert.equal((await f.invoke(DOWNLOAD, "GET")).status, 403);
+  assert.equal((await f.invoke("missions/[id]/files", "POST")).status, 403);
+  assert.deepEqual(f.calls.storage, []);
+});
+
+test("G03 rollout disabled: no RPC, assignment read, upload or signature", async () => {
+  const creator = fixture({ role: "concierge", actor: "concierge", assignmentsDisabled: true });
+  assert.equal((await creator.invoke("missions/[id]/provider-interventions", "POST", { provider_profile_id: FOREIGN })).status, 503);
+  assert.deepEqual(creator.calls.outbound, []);
+  const provider = fixture({ role: "provider", assignmentsDisabled: true });
+  proofs(provider, [storageProof()]);
+  for (const [route, method] of [["missions/[id]/files", "POST"], [DOWNLOAD, "GET"]]) {
+    assert.ok((await provider.invoke(route, method)).status >= 400);
+  }
+  assert.deepEqual(provider.calls.storage, []);
+  assert.ok(provider.calls.business.every(call => !call.startsWith("mission_provider_assignments:")));
+});
+test("G03 linked profile: RPC receives distinct authenticated principal and active actor", async () => {
+  const f = fixture({ role: "owner", selected: { id: FOREIGN, role: "concierge", status: "active", email: "actor@example.invalid" } });
+  const response = await f.invoke("missions/[id]/provider-interventions", "POST", { provider_profile_id: OWNER }, false, PROOF,
+    { cookie: `planetls_active_profile_id=${FOREIGN}` });
+  assert.equal(response.status, 201, await response.clone().text());
+  const call = f.calls.outbound[0] as Row;
+  assert.equal(call.args.p_principal_id, ID);
+  assert.equal(call.args.p_actor_id, FOREIGN);
+});
+test("G03 RPC replay preserves the operation key and legacy intervention response", async () => {
+  const f = fixture({ role: "concierge", actor: "concierge", rpcReplay: true });
+  const response = await f.invoke("missions/[id]/provider-interventions", "POST", { provider_profile_id: FOREIGN }, false, PROOF,
+    { "Idempotency-Key": OWNER });
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("Idempotency-Key"), OWNER);
+  assert.equal((await response.json()).id, FOREIGN);
+  assert.equal((f.calls.outbound[0] as Row).args.p_operation_id, OWNER);
 });

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { hasAssignmentReference } from "@/app/api/_shared/providerAssignmentInput";
 import {
   getMissionIdFromIntervention,
   isProviderInterventionReportSchemaMissing,
@@ -10,8 +11,8 @@ import {
   isProviderSchemaMissing,
   providerDb,
   providerSchemaMissingResponse,
-  requireProviderAuth,
 } from "../../shared";
+import { requireCurrentProviderAccess as requireProviderAuth } from "@/app/api/_shared/currentProviderAccess";
 import type { ProviderRow, ProviderUpdate } from "@/types/supabase-provider";
 import type { Json } from "@/types/supabase";
 
@@ -32,6 +33,9 @@ export async function PATCH(
   }
   const { id } = await context.params;
   const body = (await req.json()) as Record<string, unknown>;
+  if (hasAssignmentReference(body?.metadata)) {
+    return NextResponse.json({ error: "Les références d’affectation sont réservées au serveur." }, { status: 400 });
+  }
   const completionReportInput = readProviderInterventionReportInput(body);
 
   const updatePayload: ProviderUpdate<"provider_interventions"> = {

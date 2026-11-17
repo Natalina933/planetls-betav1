@@ -3,6 +3,7 @@ import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
 import { canAccessMissionForRole, PROVIDER_ROLES } from "@/app/lib/missionPermissions";
 import { resolveCommercialAccess as resolveMissionAccess } from "@/server/auth/commercialAccess";
+import { isAssignedMissionProvider as isAssignedProvider } from "@/app/api/_shared/missionProviderAssignmentAccess";
 import { MISSION_PROOF_BUCKET, MissionProofVerificationError, missionProofs, missionProofObjectExists } from "@/app/api/_shared/missionProofAccess";
 
 const dbAny = asLooseSupabaseClient(db);
@@ -23,17 +24,6 @@ function toRecord(value: unknown): Record<string, unknown> {
 
 function wantsJson(req: NextRequest) {
   return req.nextUrl.searchParams.get("format") === "json" || req.headers.get("accept")?.includes("application/json");
-}
-
-async function isAssignedProvider(userId: string, missionId: string) {
-  const { data, error } = await dbAny
-    .from("provider_interventions")
-    .select("id")
-    .eq("provider_profile_id", userId)
-    .contains("metadata", { mission_id: missionId })
-    .limit(1);
-  if (error) throw error;
-  return Boolean(data?.length);
 }
 
 export async function GET(
