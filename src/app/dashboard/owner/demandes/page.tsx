@@ -1,5 +1,7 @@
 "use client";
 
+import SolicitationsPanel from "@/features/provider-solicitations/SolicitationsPanel";
+
 import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -935,6 +937,7 @@ export default function OwnerRequestsPage() {
   }
   return (
     <div className={styles.page}>
+      <SolicitationsPanel role="owner" />
       <header className={styles.hero}>
         <div className={styles.heroContent}>
           <p className={styles.eyebrow}>Demandes</p>

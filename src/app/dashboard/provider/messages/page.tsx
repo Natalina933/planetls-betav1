@@ -1,5 +1,7 @@
 "use client";
 
+import SolicitationsPanel from "@/features/provider-solicitations/SolicitationsPanel";
+
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { formatDateValue } from "@/app/utils/formatters";
@@ -323,6 +325,7 @@ function ProviderMessagesContent() {
       ]}
     >
       <div className={styles.page}>
+        <SolicitationsPanel role="provider" />
         {success ? <p className={styles.successBox} role="status">{success}</p> : null}
         {error ? <p className={styles.errorBox} role="alert">{error}</p> : null}
         {!error && list?.note ? <p className={styles.infoBox} role="status">{list.note}</p> : null}
