@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { extname, join, relative } from "node:path";
+import { createHash } from "node:crypto";
 
 const ROOT = process.cwd();
 const INCLUDE_DIRS = [".", "src", "scripts", "docs", "database", "public", "supabase", ".vscode"];
@@ -49,6 +50,12 @@ const IGNORE_FILE_PATTERNS = [
   /^src[\\/]+types[\\/]+supabase(?:\.generated)?\.ts$/,
   /^scripts[\\/]check-encoding\.mjs$/,
 ];
+
+// Sortie de build suivie, conservée comme preuve, créée au commit 30cd5f03.
+// Toute modification ou suppression impose une révision explicite de cette référence.
+const HISTORICAL_EVIDENCE = new Map([
+  ["build-error.txt", "f3f206fffad9ae7dc30b7710e6c43cfd5d9ae86e83d9e6b7044604b74474b237"],
+]);
 
 function shouldIgnore(relativePath) {
   return IGNORE_FILE_PATTERNS.some((pattern) => pattern.test(relativePath));
@@ -109,6 +116,17 @@ for (const file of files) {
   visited.add(relativePath);
 
   const buffer = readFileSync(file);
+  const normalizedPath = relativePath.replaceAll("\\", "/");
+  const expectedHash = HISTORICAL_EVIDENCE.get(normalizedPath);
+  if (expectedHash) {
+    const actualHash = createHash("sha256").update(buffer).digest("hex");
+    if (actualHash !== expectedHash) {
+      issues.push({ file: relativePath, detectedEncoding: "preuve historique", issues: ["Empreinte SHA-256 modifiée : révision explicite requise."] });
+    } else {
+      console.log(`Preuve historique préservée : ${normalizedPath} (SHA-256 vérifié).`);
+    }
+    continue;
+  }
   const detectedEncoding = detectEncoding(buffer);
   const fileIssues = [];
 
@@ -142,6 +160,12 @@ for (const file of files) {
       detectedEncoding,
       issues: Array.from(new Set(fileIssues)),
     });
+  }
+}
+
+for (const file of HISTORICAL_EVIDENCE.keys()) {
+  if (![...visited].some((path) => path.replaceAll("\\", "/") === file)) {
+    issues.push({ file, detectedEncoding: "preuve historique", issues: ["Preuve historique absente : révision explicite requise."] });
   }
 }
 

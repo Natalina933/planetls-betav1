@@ -47,7 +47,7 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-        <span className={styles.heroCaption}>Un lieu a vous. Des personnes de confiance.</span>
+        <span className={styles.heroCaption}>Un lieu à vous. Des personnes de confiance.</span>
       </HeroSection>
 
       {/* Comment PlanetLS fonctionne */}
@@ -78,7 +78,7 @@ export default function HomePage() {
         <div className={styles.storyImage}>
           <Image
             src="/images/hero-warmv2.jpg"
-            alt="Un interieur chaleureux avec des plantes et du mobilier en bois"
+            alt="Un intérieur chaleureux avec des plantes et du mobilier en bois"
             fill
             sizes="(max-width: 760px) 100vw, 45vw"
           />
@@ -157,29 +157,29 @@ export default function HomePage() {
               <h3>Une vue sur votre quotidien</h3>
               <div className={styles.previewTabs}>
                 <span>Logement</span>
-                <span>Sejours</span>
+                <span>Séjours</span>
                 <span>Missions</span>
               </div>
               <ul>
                 <li>
                   <span aria-hidden>01</span>
                   <div>
-                    <strong>Preparer les arrivees</strong>
-                    <p>Reservations et informations du sejour</p>
+                    <strong>Préparer les arrivées</strong>
+                    <p>Réservations et informations du séjour</p>
                   </div>
                 </li>
                 <li>
                   <span aria-hidden>02</span>
                   <div>
                     <strong>Coordonner les interventions</strong>
-                    <p>Missions et echanges avec vos partenaires</p>
+                    <p>Missions et échanges avec vos partenaires</p>
                   </div>
                 </li>
                 <li>
                   <span aria-hidden>03</span>
                   <div>
                     <strong>Retrouver vos documents</strong>
-                    <p>Les repères utiles a votre logement</p>
+                    <p>Les repères utiles à votre logement</p>
                   </div>
                 </li>
               </ul>

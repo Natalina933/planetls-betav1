@@ -83,15 +83,14 @@ export default function LoginPage() {
       });
       const payload = (await response.json().catch(() => ({}))) as {
         email?: string;
-        password?: string;
         label?: string;
       };
 
-      if (!response.ok || !payload.email || !payload.password) {
+      if (!response.ok || !payload.email) {
         throw new Error("Compte de travail indisponible");
       }
 
-      setFormData({ email: payload.email, password: payload.password });
+      setFormData({ email: payload.email, password: "" });
       setErrors({});
       setSelectedWorkspace(workspace);
       setQuickLoginMessage(

@@ -1027,7 +1027,7 @@ export default function OwnerHousingDetailPage() {
 
         const payload = await response.json().catch(() => ({}));
         if (!response.ok || typeof payload?.path !== "string") {
-          throw new Error(typeof payload?.error === "string" ? payload.error : "Upload photo impossible.");
+          throw new Error(typeof payload?.error === "string" ? payload.error : "Impossible d’envoyer la photo.");
         }
 
         uploadedUrls.push(payload.path);
@@ -1074,7 +1074,7 @@ export default function OwnerHousingDetailPage() {
         setGalleryIndex(housingPhotos.length);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur lors de l'upload des photos.");
+      setError(err instanceof Error ? err.message : "Impossible d’envoyer les photos.");
     } finally {
       setPhotoUploading(false);
     }
@@ -1634,7 +1634,7 @@ export default function OwnerHousingDetailPage() {
           </article>
         </div>
 
-        {photoUploading ? <p className={styles.feedbackSuccess}>Upload des photos en cours...</p> : null}
+        {photoUploading ? <p className={styles.feedbackSuccess}>Envoi des photos en cours…</p> : null}
 
         {error ? <p className={styles.feedbackError}>{error}</p> : null}
         {success ? <p className={styles.feedbackSuccess}>{success}</p> : null}
@@ -1667,7 +1667,7 @@ export default function OwnerHousingDetailPage() {
                   {editing ? (
                     <label className={styles.quickGalleryUpload}>
                       <FiCamera />
-                      {photoUploading ? "Upload..." : "Ajouter des images"}
+                      {photoUploading ? "Envoi…" : "Ajouter des images"}
                       <input
                         type="file"
                         accept="image/*"
@@ -2777,7 +2777,7 @@ export default function OwnerHousingDetailPage() {
                   <section className={`${styles.specSectionCard} ${styles.infoAnchor}`} id="infos-photos">
                     <div className={styles.specSectionTopline}>
                       <div className={styles.numberedSectionHeading}><span>6</span><div><h3>Photos</h3><p>Ajoutez des photos de qualité pour mettre en valeur votre logement.</p></div></div>
-                      {editing ? <label className={styles.quickGalleryUpload}><FiCamera />{photoUploading ? "Upload..." : "Ajouter des photos"}<input type="file" accept="image/*" multiple hidden onChange={(event) => void uploadHousingPhotos(event.target.files)} /></label> : null}
+                      {editing ? <label className={styles.quickGalleryUpload}><FiCamera />{photoUploading ? "Envoi…" : "Ajouter des photos"}<input type="file" accept="image/*" multiple hidden onChange={(event) => void uploadHousingPhotos(event.target.files)} /></label> : null}
                     </div>
                     {housingPhotos.length ? <div className={styles.specPhotoGrid}>{housingPhotos.slice(0, 6).map((photo, index) => <button type="button" key={`${photo}-${index}`} onClick={() => { setGalleryIndex(index); setActiveTab("synthese"); }}><Image src={toHousingPhotoUrl(photo, id)} alt={`Photo ${index + 1} du logement`} fill sizes="160px" unoptimized /></button>)}</div> : <p className={styles.sidebarEmpty}>Aucune photo ajoutée.</p>}
                   </section>

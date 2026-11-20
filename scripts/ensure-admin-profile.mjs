@@ -21,7 +21,8 @@ loadEnvFile(path.join(process.cwd(), ".env"));
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const adminEmail = process.env.ADMIN_EMAIL || "admin@planetls.fr";
-const adminPassword = process.env.ADMIN_PASSWORD || "Admin123!";
+const adminPassword = process.env.ADMIN_PASSWORD;
+if (!adminPassword) throw new Error("D?finissez le mot de passe de recette dans les variables d?environnement.");
 
 if (!supabaseUrl || !serviceRoleKey) {
   throw new Error("Variables Supabase manquantes: NEXT_PUBLIC_SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY.");
@@ -107,7 +108,6 @@ async function main() {
   if (profileError) throw profileError;
 
   console.log(`Compte administrateur prêt: ${adminEmail}`);
-  console.log("Mot de passe: utilisez ADMIN_PASSWORD si vous l'avez défini, sinon Admin123! en local.");
 }
 
 main().catch((error) => {

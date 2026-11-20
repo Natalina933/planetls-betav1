@@ -20,9 +20,9 @@ export default defineConfig({
   reporter: process.env.CI ? [["line"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL,
-    trace: "retain-on-failure",
-    screenshot: "only-on-failure",
-    video: "retain-on-failure",
+    trace: "off",
+    screenshot: "off",
+    video: "off",
   },
   projects: [
     {

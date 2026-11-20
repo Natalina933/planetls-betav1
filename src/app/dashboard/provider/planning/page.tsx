@@ -4,10 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import { formatDateValue } from "@/app/utils/formatters";
-import { ButtonLink, TabButton } from "@/components/ui";
+import { AsyncState, ButtonLink, TabButton } from "@/components/ui";
 import { DashboardSectionShell } from "@/components/dashboard";
 import { takeFirst } from "../../shared";
 import styles from "../ProviderCrudPage.module.scss";
+import { getUpcomingInterventions } from "./upcoming";
+import { formatInterventionCount, getMonthDates, getPlanningState } from "./presentation";
 
 const WEEK_DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
@@ -23,18 +25,18 @@ type ProviderIntervention = {
 
 type ProviderInterventionsPayload = {
   items: ProviderIntervention[];
+  interventions_schema_ready?: boolean;
   summary: {
     total: number;
     in_progress: number;
     pending: number;
     completed: number;
   };
-  note: string | null;
 };
 
 export default function ProviderPlanningPage() {
   const [data, setData] = useState<ProviderInterventionsPayload | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "week" | "month">("list");
 
   useEffect(() => {
@@ -43,17 +45,19 @@ export default function ProviderPlanningPage() {
     async function loadData() {
       try {
         const response = await fetch("/api/provider/interventions", { cache: "no-store" });
-        const payload = (await response.json()) as ProviderInterventionsPayload & { error?: string };
         if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de charger le planning.");
+          throw new Error("Impossible de charger le planning.");
+        }
+        const payload = (await response.json()) as ProviderInterventionsPayload;
+        if (payload.interventions_schema_ready === false) {
+          throw new Error("Planning indisponible.");
         }
         if (!cancelled) {
           setData(payload);
-          setError(null);
         }
-      } catch (err) {
+      } catch {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Impossible de charger le planning.");
+          setFailed(true);
         }
       }
     }
@@ -64,18 +68,8 @@ export default function ProviderPlanningPage() {
     };
   }, []);
 
-  const upcoming = useMemo(() => {
-    const rows = data?.items ?? [];
-    return takeFirst(
-      [...rows]
-        .filter((item) => item.scheduled_start)
-        .sort(
-          (a, b) =>
-            new Date(a.scheduled_start ?? 0).getTime() - new Date(b.scheduled_start ?? 0).getTime(),
-        ),
-      10,
-    );
-  }, [data]);
+  const upcoming = getUpcomingInterventions(data?.items ?? [], new Date());
+  const planningState = getPlanningState(data?.items.length, failed);
 
   const todayCount = useMemo(() => {
     const today = new Date().toDateString();
@@ -107,14 +101,7 @@ export default function ProviderPlanningPage() {
 
   const monthCells = useMemo(() => {
     const base = new Date();
-    const first = new Date(base.getFullYear(), base.getMonth(), 1);
-    const startOffset = (first.getDay() + 6) % 7;
-    const start = new Date(first);
-    start.setDate(first.getDate() - startOffset);
-
-    return Array.from({ length: 35 }, (_, index) => {
-      const date = new Date(start);
-      date.setDate(start.getDate() + index);
+    return getMonthDates(base).map((date) => {
       const events = (data?.items ?? []).filter((item) => {
         if (!item.scheduled_start) return false;
         const eventDate = new Date(item.scheduled_start);
@@ -132,16 +119,16 @@ export default function ProviderPlanningPage() {
   return (
     <DashboardSectionShell
       persona="artisan"
-      title="Planning interventions"
+      title="Planning des interventions"
       subtitle="Visualisez les échéances, urgences et charges à venir avec une lecture priorisée."
-      stats={[
-        { label: "Missions", value: `${data?.summary.total ?? 0}` },
+      stats={data ? [
+        { label: "Interventions", value: `${data.summary.total}` },
         { label: "Aujourd'hui", value: `${todayCount}` },
-        { label: "En cours", value: `${data?.summary.in_progress ?? 0}` },
-      ]}
+        { label: "En cours", value: `${data.summary.in_progress}` },
+      ] : undefined}
       actions={[
-        { label: "Voir interventions", href: "/dashboard/provider/interventions" },
-        { label: "Voir alertes", href: "/dashboard/provider/alertes" },
+        { label: "Voir les interventions", href: "/dashboard/provider/interventions" },
+        { label: "Voir les alertes", href: "/dashboard/provider/alertes" },
       ]}
     >
       <div className={styles.page}>
@@ -149,20 +136,18 @@ export default function ProviderPlanningPage() {
           <div>
             <p className={styles.eyebrow}>Planning</p>
             <h1>Suivi des interventions</h1>
-            <p>
-              {error ||
-                data?.note ||
-                "Visualisez les prochaines interventions et les charges à venir avec une lecture priorisée."}
-            </p>
+            <p>Visualisez les prochaines interventions et les charges à venir avec une lecture priorisée.</p>
           </div>
-          <div className={styles.metrics}>
-            <span>{data?.summary.total ?? 0} missions</span>
+          {data ? <div className={styles.metrics}>
+            <span>{formatInterventionCount(data.summary.total)}</span>
             <span>{todayCount} aujourd&apos;hui</span>
-            <span>{data?.summary.in_progress ?? 0} en cours</span>
-          </div>
+            <span>{data.summary.in_progress} en cours</span>
+          </div> : null}
         </header>
 
-        <div className={styles.layout}>
+        {planningState.status !== "ready" ? (
+          <AsyncState state={planningState} loadingPresentation="text">{null}</AsyncState>
+        ) : <div className={styles.layout}>
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
               <h2>Vue d&apos;ensemble</h2>
@@ -204,7 +189,7 @@ export default function ProviderPlanningPage() {
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
               <h2>Prochaines échéances</h2>
-              <span>{upcoming.length} ligne(s)</span>
+              {viewMode === "list" ? <span>{formatInterventionCount(upcoming.length)}</span> : null}
             </div>
 
             <div className={styles.viewTabs}>
@@ -220,7 +205,7 @@ export default function ProviderPlanningPage() {
             </div>
 
             {viewMode === "list" && upcoming.length === 0 ? (
-              <p className={styles.emptyState}>Aucune intervention planifiée pour le moment.</p>
+              <p className={styles.emptyState} role="status">Aucune intervention à venir.</p>
             ) : null}
 
             {viewMode === "list" && upcoming.length > 0 ? (
@@ -332,7 +317,7 @@ export default function ProviderPlanningPage() {
               </div>
             ) : null}
           </section>
-        </div>
+        </div>}
       </div>
     </DashboardSectionShell>
   );

@@ -14,35 +14,35 @@ export const homeContent = {
 
   // Hero
   hero: {
-    eyebrow: "LOCATION SAISONNIERE · CONCIERGERIE · SERVICES",
+    eyebrow: "LOCATION SAISONNIÈRE · CONCIERGERIE · SERVICES",
     title: "Prenez soin de votre logement.",
-    subtitle: "Nous vous aidons a prendre soin du reste.",
-    description: "PlanetLS reunit proprietaires, conciergeries et professionnels pour organiser plus simplement la gestion des locations saisonnieres.",
-    reassurance: ["Professionnels de confiance", "Echanges directs", "Vous gardez le controle"],
-    ctaPrimary: { label: "Decouvrir PlanetLS", href: "/parcours" },
-    ctaSecondary: { label: "Comment ca fonctionne ?", href: "#fonctionnement" },
+    subtitle: "Nous vous aidons à prendre soin du reste.",
+    description: "PlanetLS réunit propriétaires, conciergeries et professionnels pour organiser plus simplement la gestion des locations saisonnières.",
+    reassurance: ["Professionnels de confiance", "Échanges directs", "Vous gardez le contrôle"],
+    ctaPrimary: { label: "Découvrir PlanetLS", href: "/parcours" },
+    ctaSecondary: { label: "Comment ça fonctionne ?", href: "#fonctionnement" },
   },
 
   // Comment PlanetLS fonctionne
   howItWorks: {
     eyebrow: "UN FONCTIONNEMENT SIMPLE",
     title: "Une gestion plus simple,",
-    subtitle: "sans perdre le controle.",
+    subtitle: "sans perdre le contrôle.",
     steps: [
       {
         number: "01",
         title: "Ajoutez votre logement",
-        description: "Decrivez votre logement et les services dont vous avez besoin.",
+        description: "Décrivez votre logement et les services dont vous avez besoin.",
       },
       {
         number: "02",
         title: "Choisissez vos professionnels",
-        description: "Trouvez et echangez avec les professionnels adaptes a votre organisation.",
+        description: "Trouvez et échangez avec les professionnels adaptés à votre organisation.",
       },
       {
         number: "03",
         title: "Gardez le suivi",
-        description: "Sejours, prestations, documents et echanges restent reunis au meme endroit.",
+        description: "Séjours, prestations, documents et échanges restent réunis au même endroit.",
       },
     ],
   },
@@ -51,62 +51,62 @@ export const homeContent = {
   yourStory: {
     eyebrow: "PLUS QU'UN LOGEMENT",
     title: "Votre logement a une histoire.",
-    subtitle: "PlanetLS vous aide a la suivre.",
-    description: "Un logement, ce n'est pas seulement un calendrier. Ce sont des personnes a coordonner, des documents a retrouver et des imprévus a gérer.",
+    subtitle: "PlanetLS vous aide à la suivre.",
+    description: "Un logement, ce n'est pas seulement un calendrier. Ce sont des personnes à coordonner, des documents à retrouver et des imprévus à gérer.",
     services: [
-      "Check-in / Check-out",
-      "Menage",
+      "Arrivée / Départ",
+      "Ménage",
       "Linge",
       "Maintenance",
       "Petits travaux",
-      "Services complementaires",
+      "Services complémentaires",
     ],
-    cta: { label: "Decouvrir tous les services", href: "/parcours" },
+    cta: { label: "Découvrir tous les services", href: "/parcours" },
   },
 
   // PlanetLS en 1 minute
   videoIntro: {
     eyebrow: "PLANETLS EN 1 MINUTE",
-    title: "Decouvrez PlanetLS",
+    title: "Découvrez PlanetLS",
     subtitle: "en une minute.",
-    description: "Une presentation rapide pour comprendre comment la plateforme simplifie votre quotidien.",
-    cta: { label: "Voir la presentation", href: "#" },
+    description: "Une présentation rapide pour comprendre comment la plateforme simplifie votre quotidien.",
+    cta: { label: "Voir la présentation", href: "#" },
   },
 
   // Tout centraliser
   allInOne: {
     eyebrow: "MOINS DE DISPERSION",
     title: "Tout ce qui compte,",
-    subtitle: "au meme endroit.",
-    description: "Logements, sejours, partenaires et documents restent reunis dans un meme environnement.",
-    categories: ["Logements & sejours", "Partenaires & prestations", "Devis & contrats", "Factures & documents"],
+    subtitle: "au même endroit.",
+    description: "Logements, séjours, partenaires et documents restent réunis dans un même environnement.",
+    categories: ["Logements & séjours", "Partenaires & prestations", "Devis & contrats", "Factures & documents"],
     cta: { label: "Explorer les espaces PlanetLS", href: "/parcours" },
   },
 
   // Une plateforme, trois experiences
   threeExperiences: {
-    eyebrow: "UNE PLATEFORME · TROIS EXPERIENCES",
+    eyebrow: "UNE PLATEFORME · TROIS EXPÉRIENCES",
     title: "Une plateforme,",
-    subtitle: "trois experiences.",
-    intro: "Chacun dispose de son propre espace tout en collaborant autour des memes logements, sejours et prestations.",
+    subtitle: "trois expériences.",
+    intro: "Chacun dispose de son propre espace tout en collaborant autour des mêmes logements, séjours et prestations.",
     profiles: [
       {
-        title: "PROPRIETAIRES",
-        description: "Organisez vos logements et vos sejours, choisissez vos partenaires et gardez le suivi.",
+        title: "PROPRIÉTAIRES",
+        description: "Organisez vos logements et vos séjours, choisissez vos partenaires et gardez le suivi.",
         image: "proprietaires",
-        cta: { label: "Decouvrir l'espace propietaire", href: "/owner" },
+        cta: { label: "Découvrir l'espace propriétaire", href: "/owner" },
       },
       {
         title: "CONCIERGERIES",
-        description: "Developpez vos collaborations et organisez les sejours que vous prenez en charge.",
+        description: "Développez vos collaborations et organisez les séjours que vous prenez en charge.",
         image: "conciergeries",
-        cta: { label: "Decouvrir l'espace conciergerie", href: "/concierge" },
+        cta: { label: "Découvrir l'espace conciergerie", href: "/concierge" },
       },
       {
         title: "ARTISANS & PRESTATAIRES",
-        description: "Presentez vos services, recevez des demandes et suivez vos interventions.",
+        description: "Présentez vos services, recevez des demandes et suivez vos interventions.",
         image: "artisans",
-        cta: { label: "Decouvrir l'espace professionnel", href: "/provider" },
+        cta: { label: "Découvrir l'espace professionnel", href: "/provider" },
       },
     ],
   },
@@ -115,30 +115,30 @@ export const homeContent = {
   trustEcosystem: {
     eyebrow: "NOTRE ENGAGEMENT",
     title: "Autour de chaque logement,",
-    subtitle: "un ecosysteme de confiance.",
-    intro: "Chacun dispose de son propre espace tout en collaborant autour des memes logements, sejours et prestations.",
+    subtitle: "un écosystème de confiance.",
+    intro: "Chacun dispose de son propre espace tout en collaborant autour des mêmes logements, séjours et prestations.",
     engagements: [
       {
-        title: "Echanges directs",
+        title: "Échanges directs",
         description: "Vous choisissez avec qui vous travaillez.",
       },
       {
-        title: "Professionnels identifies",
-        description: "Des informations utiles avant de decidé.",
+        title: "Professionnels identifiés",
+        description: "Des informations utiles avant de décider.",
       },
       {
         title: "Suivi partagé",
-        description: "Chacun accede aux informations qui le concernent.",
+        description: "Chacun accède aux informations qui le concernent.",
       },
     ],
   },
 
   // Conciergeries a decouvrir
   recommendedConcierges: {
-    eyebrow: "CONCIERGERIES A DECOUVRIR",
-    title: "Des partenaires pres",
+    eyebrow: "CONCIERGERIES À DÉCOUVRIR",
+    title: "Des partenaires près",
     subtitle: "de votre logement.",
-    intro: "Explorez les professionnels presents sur PlanetLS selon votre localisation et vos besoins.",
+    intro: "Explorez les professionnels présents sur PlanetLS selon votre localisation et vos besoins.",
     cta: { label: "Voir toutes les conciergeries", href: "/dashboard/owner/concierges" },
   },
 
@@ -146,23 +146,23 @@ export const homeContent = {
   guidesAndAdvice: {
     eyebrow: "RESSOURCES",
     title: "Guides & conseils",
-    description: "Des repères pour ameliorer votre quotidien et offrir une meilleure experience a vos voyageurs.",
+    description: "Des repères pour améliorer votre quotidien et offrir une meilleure expérience à vos voyageurs.",
     guides: [
-      { title: "Gerer son logement a distance", href: "#" },
+      { title: "Gérer son logement à distance", href: "#" },
       { title: "Bien choisir sa conciergerie", href: "#" },
-      { title: "Preparer l'arrivee des voyageurs", href: "#" },
+      { title: "Préparer l'arrivée des voyageurs", href: "#" },
     ],
     cta: { label: "Voir tous les conseils", href: "#" },
   },
 
   // CTA Final
   finalCta: {
-    eyebrow: "PRET A COMMENCER ?",
-    title: "Votre logement merite",
+    eyebrow: "PRÊT À COMMENCER ?",
+    title: "Votre logement mérite",
     subtitle: "une gestion plus sereine.",
     description: "Rejoignez PlanetLS pour organiser vos locations, trouver les bons professionnels et garder une vision claire de ce qui se passe.",
-    ctaPrimary: { label: "Creer mon compte", href: "/login" },
-    ctaSecondary: { label: "Decouvrir PlanetLS", href: "/parcours" },
+    ctaPrimary: { label: "Créer mon compte", href: "/login" },
+    ctaSecondary: { label: "Découvrir PlanetLS", href: "/parcours" },
   },
 
   // Footer
@@ -175,14 +175,14 @@ export const homeContent = {
       {
         title: "PlanetLS",
         links: [
-          { label: "A propos", href: "/about" },
+          { label: "À propos", href: "/about" },
           { label: "Fonctionnement", href: "/parcours" },
         ],
       },
       {
         title: "Espaces",
         links: [
-          { label: "Proprietaires", href: "/owner" },
+          { label: "Propriétaires", href: "/owner" },
           { label: "Conciergeries", href: "/concierge" },
           { label: "Artisans", href: "/provider" },
         ],
@@ -195,11 +195,11 @@ export const homeContent = {
         ],
       },
       {
-        title: "Legal",
+        title: "Légal",
         links: [
           { label: "CGU", href: "/cgu" },
-          { label: "Confidentialite", href: "/privacy" },
-          { label: "Mentions legales", href: "/legal" },
+          { label: "Confidentialité", href: "/privacy" },
+          { label: "Mentions légales", href: "/legal" },
         ],
       },
     ],

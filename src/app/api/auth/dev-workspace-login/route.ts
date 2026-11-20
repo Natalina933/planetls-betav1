@@ -1,329 +1,66 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import {
+  buildWorkspaceEmail,
+  getTargetWorkspaceEmail,
+  isDevWorkspaceAuthEnabled,
+} from "@/server/auth/devWorkspace";
 
-type WorkspaceKey = "owner" | "concierge" | "provider" | "admin";
+const workspaces = {
+  owner: { key: "owner", label: "Propri?taire", href: "/dashboard/owner" },
+  concierge: { key: "concierge", label: "Conciergerie", href: "/dashboard/concierge" },
+  provider: { key: "provider", label: "Artisan", href: "/dashboard/provider" },
+  admin: { key: "admin", label: "Administrateur", href: "/dashboard/admin" },
+} as const;
 
-const WORKSPACES: Record<
-  WorkspaceKey,
-  {
-    key: WorkspaceKey;
-    role: string;
-    label: string;
-    href: string;
-    username: string;
-    first_name: string;
-    last_name: string;
-    company_name: string;
-    categoryHints: string[];
+function localSupabaseUrl(req: NextRequest) {
+  if (!isDevWorkspaceAuthEnabled() || !["localhost", "127.0.0.1"].includes(req.nextUrl.hostname)) {
+    return null;
   }
-> = {
-  owner: {
-    key: "owner",
-    role: "owner",
-    label: "Proprietaire",
-    href: "/dashboard/owner",
-    username: "profil-proprietaire",
-    first_name: "Profil",
-    last_name: "Proprietaire",
-    company_name: "Espace Proprietaire",
-    categoryHints: ["proprietaire", "owner"],
-  },
-  concierge: {
-    key: "concierge",
-    role: "concierge",
-    label: "Conciergerie",
-    href: "/dashboard/concierge",
-    username: "profil-conciergerie",
-    first_name: "Profil",
-    last_name: "Conciergerie",
-    company_name: "Espace Conciergerie",
-    categoryHints: ["concierge"],
-  },
-  provider: {
-    key: "provider",
-    role: "provider",
-    label: "Artisan",
-    href: "/dashboard/provider",
-    username: "profil-artisan",
-    first_name: "Profil",
-    last_name: "Artisan",
-    company_name: "Espace Artisan",
-    categoryHints: ["artisan", "provider", "service"],
-  },
-  admin: {
-    key: "admin",
-    role: "admin",
-    label: "Administrateur",
-    href: "/dashboard/admin",
-    username: "profil-admin",
-    first_name: "Profil",
-    last_name: "Administrateur",
-    company_name: "Administration PlanetLS",
-    categoryHints: ["admin", "proprietaire", "owner"],
-  },
-};
-
-const quickLoginEnabled = process.env.WORKSPACE_QUICK_LOGIN_ENABLED === "true";
-const isProduction = process.env.NODE_ENV === "production";
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const targetEmail = process.env.TARGET_EMAIL || process.env.ADMIN_EMAIL || "admin@planetls.fr";
-const workspacePassword = process.env.WORKSPACE_PASSWORD || process.env.ADMIN_PASSWORD || "Admin123!";
-
-function isQuickLoginRequestAllowed(req: NextRequest) {
-  if (!quickLoginEnabled || isProduction) return false;
-  const host = req.nextUrl.hostname.toLowerCase();
-  return ["localhost", "127.0.0.1"].includes(host);
+  const configured = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const localUrls = ["http://127.0.0.1:54321", "http://localhost:54321"];
+  return configured && localUrls.includes(configured.replace(/\/$/, "")) ? configured : null;
 }
 
-function buildWorkspaceEmail(email: string, key: WorkspaceKey) {
-  const [local, domain] = email.split("@");
-  if (!local || !domain) return `${key}.${email}`;
-  return `${local}+${key}@${domain}`.toLowerCase();
-}
-
-function buildWorkspaceInfo(email: string, role: string) {
-  return `workspace_parent_email:${email.toLowerCase()};workspace_role:${role}`;
-}
-
-function buildWorkspaceAccount(workspaceKey: WorkspaceKey) {
-  const workspace = WORKSPACES[workspaceKey];
-  const email =
-    workspaceKey === "admin" ? targetEmail : buildWorkspaceEmail(targetEmail, workspaceKey);
-
-  return {
-    workspace: workspaceKey,
-    email,
-    password: workspacePassword,
-    href: workspace.href,
-    label: workspace.label,
-  };
-}
-
-function createAdminClient() {
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error("Variables Supabase manquantes pour la connexion rapide.");
-  }
-
-  return createClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
-}
-
-async function getValidCategories(supabase: ReturnType<typeof createAdminClient>) {
-  const { data, error } = await supabase.from("categories").select("key").limit(1000);
-  if (error) throw error;
-  return (data ?? []).map((category) => category.key).filter(Boolean);
-}
-
-function pickCategory(validCategories: string[], hints: string[]) {
-  for (const hint of hints) {
-    const exact = validCategories.find((category) => category.toLowerCase() === hint.toLowerCase());
-    if (exact) return exact;
-  }
-
-  for (const hint of hints) {
-    const partial = validCategories.find((category) => category.toLowerCase().includes(hint.toLowerCase()));
-    if (partial) return partial;
-  }
-
-  return validCategories[0] ?? null;
-}
-
-async function findExistingProfile(
-  supabase: ReturnType<typeof createAdminClient>,
-  email: string,
-  role: string,
-) {
-  const marker = buildWorkspaceInfo(targetEmail, role);
-  const markerLookup = await supabase
-    .from("profiles")
-    .select("id,email,role,category,username,additional_info")
-    .ilike("additional_info", `%${marker}%`)
-    .eq("role", role)
-    .limit(1)
-    .maybeSingle();
-
-  if (markerLookup.error) throw markerLookup.error;
-  if (markerLookup.data) return markerLookup.data;
-
-  const emailLookup = await supabase
-    .from("profiles")
-    .select("id,email,role,category,username,additional_info")
-    .eq("email", email)
-    .eq("role", role)
-    .limit(1)
-    .maybeSingle();
-
-  if (emailLookup.error) throw emailLookup.error;
-  return emailLookup.data;
-}
-
-async function findAuthUser(supabase: ReturnType<typeof createAdminClient>, email: string) {
-  let page = 1;
-  const perPage = 100;
-
-  while (true) {
-    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
-    if (error) throw error;
-
-    const user = data.users.find((item) => item.email?.toLowerCase() === email.toLowerCase());
-    if (user) return user;
-    if (data.users.length < perPage) return null;
-    page += 1;
-  }
-}
-
-async function findOrCreateAuthUser(
-  supabase: ReturnType<typeof createAdminClient>,
-  email: string,
-  role: string,
-) {
-  const existing = await findAuthUser(supabase, email);
-
-  if (existing?.id) {
-    const { data, error } = await supabase.auth.admin.updateUserById(existing.id, {
-      password: workspacePassword,
-      email_confirm: true,
-      user_metadata: { role, linked_workspace: true, parent_email: targetEmail },
-    });
-
-    if (error) throw error;
-    if (!data.user?.id) throw new Error(`Utilisateur auth introuvable apres mise a jour pour ${email}.`);
-    return data.user;
-  }
-
-  const { data, error } = await supabase.auth.admin.createUser({
-    email,
-    password: workspacePassword,
-    email_confirm: true,
-    user_metadata: { role, linked_workspace: true, parent_email: targetEmail },
-  });
-
-  if (error) throw error;
-  if (!data.user?.id) throw new Error(`Utilisateur auth introuvable apres creation pour ${email}.`);
-  return data.user;
-}
-
-async function ensureWorkspaceProfiles() {
-  const supabase = createAdminClient();
-  const validCategories = await getValidCategories(supabase);
-
-  if (!validCategories.length) {
-    throw new Error("Aucune categorie disponible dans Supabase.");
-  }
-
-  const result = new Map<WorkspaceKey, { email: string; password: string; href: string; label: string }>();
-
-  for (const workspace of Object.values(WORKSPACES)) {
-    const category = pickCategory(validCategories, workspace.categoryHints);
-    if (!category) {
-      throw new Error(`Aucune categorie compatible pour ${workspace.role}.`);
-    }
-
-    const workspaceEmail =
-      workspace.key === "admin" ? targetEmail : buildWorkspaceEmail(targetEmail, workspace.key);
-    const existingProfile = await findExistingProfile(supabase, workspaceEmail, workspace.role);
-    const authUser = await findOrCreateAuthUser(supabase, workspaceEmail, workspace.role);
-    const profileId = existingProfile?.id || authUser.id;
-
-    const payload = {
-      id: profileId,
-      email: existingProfile?.email || workspaceEmail,
-      username: existingProfile?.username || `${workspace.username}-${targetEmail.split("@")[0].toLowerCase()}`,
-      first_name: workspace.first_name,
-      last_name: workspace.last_name,
-      company_name: workspace.company_name,
-      role: workspace.role,
-      category,
-      additional_info: buildWorkspaceInfo(targetEmail, workspace.role),
-      onboarding_complete: true,
-      updated_at: new Date().toISOString(),
-    };
-
-    const { error } = await supabase.from("profiles").upsert(payload, { onConflict: "id" });
-    if (error) throw error;
-
-    result.set(workspace.key, {
-      email: workspaceEmail,
-      password: workspacePassword,
-      href: workspace.href,
-      label: workspace.label,
-    });
-  }
-
-  return result;
+function json(body: unknown, status = 200) {
+  return NextResponse.json(body, { status, headers: { "Cache-Control": "no-store" } });
 }
 
 export async function GET(req: NextRequest) {
-  if (!isQuickLoginRequestAllowed(req)) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
-
-  return NextResponse.json(
-    {
-      enabled: true,
-      workspaces: Object.values(WORKSPACES).map(({ key, label, href }) => ({ key, label, href })),
-    },
-    { headers: { "Cache-Control": "no-store" } },
-  );
+  if (!localSupabaseUrl(req)) return json({ error: "Introuvable" }, 404);
+  return json({ enabled: true, workspaces: Object.values(workspaces) });
 }
 
 export async function POST(req: NextRequest) {
-  if (!isQuickLoginRequestAllowed(req)) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  const url = localSupabaseUrl(req);
+  if (!url) return json({ error: "Introuvable" }, 404);
 
-  const body = (await req.json().catch(() => ({}))) as { workspace?: WorkspaceKey };
-  const workspaceKey = body.workspace;
-
-  if (!workspaceKey || !(workspaceKey in WORKSPACES)) {
-    return NextResponse.json({ error: "workspace is required" }, { status: 400 });
+  const body = await req.json().catch(() => null);
+  const key = body?.workspace;
+  if (typeof key !== "string" || !Object.hasOwn(workspaces, key)) {
+    return json({ error: "S?lectionnez un espace valide." }, 400);
   }
+  const workspace = workspaces[key as keyof typeof workspaces];
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) return json({ error: "Configuration Supabase locale indisponible." }, 503);
 
   try {
-    const accounts = await ensureWorkspaceProfiles();
-    const account = accounts.get(workspaceKey);
+    const supabase = createClient(url, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const targetEmail = getTargetWorkspaceEmail().toLowerCase();
+    const expectedEmail = key === "admin" ? targetEmail : buildWorkspaceEmail(targetEmail, workspace.key);
+    const { data, error } = await supabase.from("profiles")
+      .select("email")
+      .eq("role", workspace.key)
+      .eq("status", "active")
+      .eq("email", expectedEmail)
+      .maybeSingle();
 
-    if (!account) {
-      return NextResponse.json({ error: "Workspace account not available" }, { status: 404 });
-    }
-
-    return NextResponse.json(
-      {
-        workspace: workspaceKey,
-        email: account.email,
-        password: account.password,
-        href: account.href,
-        label: account.label,
-        prepared: true,
-      },
-      {
-        status: 200,
-        headers: {
-          "Cache-Control": "no-store",
-        },
-      },
-    );
-  } catch (error) {
-    console.error("[dev-workspace-login] failed", error);
-    const fallbackAccount = buildWorkspaceAccount(workspaceKey);
-
-    return NextResponse.json(
-      {
-        ...fallbackAccount,
-        prepared: false,
-        warning: "Workspace account returned without remote preparation.",
-      },
-      {
-        status: 200,
-        headers: {
-          "Cache-Control": "no-store",
-        },
-      },
-    );
+    if (error) return json({ error: "Impossible de lire le profil de recette." }, 503);
+    if (!data?.email) return json({ error: "Compte de recette local introuvable." }, 404);
+    return json({ workspace: workspace.key, email: data.email, href: workspace.href, label: workspace.label });
+  } catch {
+    return json({ error: "Impossible de lire le profil de recette." }, 503);
   }
 }

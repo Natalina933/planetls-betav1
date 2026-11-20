@@ -1,14 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
+import { loginWorkspace } from "./helpers/workspace";
 
 async function loginAdmin(page: Page) {
-  const response = await page.request.post("/api/auth/dev-workspace-login", { data: { workspace: "admin" } });
-  expect(response.ok(), await response.text()).toBeTruthy();
-  const credentials = (await response.json()) as { email: string; password: string };
-  await page.goto("/login");
-  await page.getByLabel("Email").fill(credentials.email);
-  await page.locator("#password").fill(credentials.password);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await page.waitForURL("**/dashboard/admin", { timeout: 60_000, waitUntil: "commit" });
+  await loginWorkspace(page, page.request, "admin");
 }
 
 test("admin : le Master Plan compact reste lisible et pilotable", async ({ page }) => {

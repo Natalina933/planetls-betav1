@@ -2,11 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { AlertCircle, ArrowRight, BedDouble, Camera, CheckCircle2, FileText, Home, MapPin, Plus, Users, Wrench } from "lucide-react";
 import { DashboardSectionShell } from "@/components/dashboard";
+import { AsyncState } from "@/components/ui";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { toHousingPhotoUrl } from "@/app/lib/housingPhotoUrl";
-import { useOwnerDashboardData } from "../../useOwnerDashboardData";
+import { fetchJsonOrThrow } from "../../../shared/http";
 import styles from "./page.module.scss";
 
 type HousingOverviewItem = {
@@ -27,9 +29,26 @@ function missingItems(housing: HousingOverviewItem) { return [!hasCoreInfo(housi
 function photoUrl(housing: HousingOverviewItem) { const photo = housing.photo_principale?.trim(); return photo ? toHousingPhotoUrl(photo, housing.id) : FALLBACK_PHOTO; }
 
 export default function OwnerHousingOverviewPage() {
-  const { isAuthenticated } = useCurrentUser();
-  const { properties, loading, error } = useOwnerDashboardData(isAuthenticated);
-  const housings = properties as HousingOverviewItem[];
+  const { user, isAuthenticated, loading: sessionLoading } = useCurrentUser();
+  const profileId = isAuthenticated ? user?.id : undefined;
+  const [result, setResult] = useState<{ profileId: string; housings: HousingOverviewItem[] | null } | null>(null);
+  useEffect(() => {
+    if (!profileId) return;
+
+    let cancelled = false;
+    void fetchJsonOrThrow<HousingOverviewItem[]>("/api/housing", "Impossible de charger vos logements.")
+      .then((housings) => {
+        if (!cancelled) setResult({ profileId, housings: Array.isArray(housings) ? housings : null });
+      })
+      .catch(() => {
+        if (!cancelled) setResult({ profileId, housings: null });
+      });
+    return () => { cancelled = true; };
+  }, [profileId]);
+
+  const currentResult = profileId && result?.profileId === profileId ? result : null;
+  const housings = currentResult?.housings ?? [];
+  const loading = sessionLoading || (Boolean(profileId) && !currentResult);
   const total = housings.length;
   const activeCount = housings.filter((housing) => isActive(housing.statut)).length;
   const withPhotos = housings.filter((housing) => photoCount(housing) > 0).length;
@@ -51,8 +70,17 @@ export default function OwnerHousingOverviewPage() {
     { label: "Avec documents", value: withDocuments, icon: FileText },
   ];
 
-  return <DashboardSectionShell persona="owner" title="Vue d’ensemble des logements" subtitle={error || "Pilotez votre parc et ouvrez rapidement la fiche qui demande votre attention."}>
+  return <DashboardSectionShell persona="owner" title="Vue d’ensemble des logements" subtitle="Pilotez votre parc et ouvrez rapidement la fiche qui demande votre attention.">
     <div className={styles.page}>
+      {loading ? (
+        <AsyncState state={{ status: "loading", message: "Chargement des logements…" }} loadingPresentation="text" className={styles.state}>{null}</AsyncState>
+      ) : !currentResult?.housings ? (
+        <AsyncState state={{
+          status: "error",
+          title: "Impossible de charger vos logements",
+          message: profileId ? "Actualisez la page pour réessayer." : "Connectez-vous pour retrouver vos logements.",
+        }}>{null}</AsyncState>
+      ) : <>
       <section className={styles.hero} aria-labelledby="overview-title">
         <div className={styles.heroCopy}>
           <span className={styles.eyebrow}>Votre parc immobilier</span>
@@ -66,8 +94,6 @@ export default function OwnerHousingOverviewPage() {
         </div>
       </section>
 
-      {loading ? <p className={styles.state}>Chargement des logements…</p> : null}
-      {!loading && !error ? <>
         <section className={styles.statsGrid} aria-label="Indicateurs du parc">{stats.map(({ label, value, icon: Icon }) => <article key={label} className={styles.statCard}><span className={styles.statIcon}><Icon size={18} /></span><div><span>{label}</span><strong>{value}</strong> <small>sur {total}</small></div></article>)}</section>
         <div className={styles.contentLayout}>
           <section className={styles.mainColumn} aria-labelledby="housing-list-title">
@@ -90,7 +116,7 @@ export default function OwnerHousingOverviewPage() {
             <blockquote className={styles.quote}>« Des logements bien préparés, des séjours plus sereins. »<cite>PlanetLS</cite></blockquote>
           </aside>
         </div>
-      </> : null}
+      </>}
     </div>
   </DashboardSectionShell>;
 }

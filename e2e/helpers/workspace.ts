@@ -12,6 +12,13 @@ export async function prepareWorkspace(
   request: APIRequestContext,
   workspace: Workspace,
 ): Promise<WorkspaceCredentials> {
+  const prefix = `PLS_LOCAL_${workspace.toUpperCase()}`;
+  const password = process.env[`${prefix}_PASSWORD`] || process.env.WORKSPACE_PASSWORD || process.env.ADMIN_PASSWORD;
+  if (!password) throw new Error(`Renseignez ${prefix}_PASSWORD pour un compte local existant.`);
+  const href = `/dashboard/${workspace}`;
+  const email = process.env[`${prefix}_EMAIL`];
+  if (email) return { email, password, href };
+
   const response = await request.post("/api/auth/dev-workspace-login", {
     data: { workspace },
   });
@@ -21,12 +28,9 @@ export async function prepareWorkspace(
     `Impossible de préparer l'espace ${workspace}. Vérifier les secrets Supabase et WORKSPACE_QUICK_LOGIN_ENABLED.`,
   ).toBeTruthy();
 
-  const payload = (await response.json()) as Partial<WorkspaceCredentials>;
-  expect(payload.email).toBeTruthy();
-  expect(payload.password).toBeTruthy();
-  expect(payload.href).toBe(`/dashboard/${workspace}`);
-
-  return payload as WorkspaceCredentials;
+  const payload = (await response.json()) as Partial<Pick<WorkspaceCredentials, "email" | "href">>;
+  if (!payload.email || payload.href !== href) throw new Error("Profil de recette invalide.");
+  return { email: payload.email, password, href };
 }
 
 export async function loginWorkspace(

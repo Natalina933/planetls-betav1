@@ -1,19 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
-
-type AdminCredentials = { email: string; password: string };
+import { loginWorkspace } from "./helpers/workspace";
 
 async function loginAdmin(page: Page) {
-  const response = await page.request.post("/api/auth/dev-workspace-login", {
-    data: { workspace: "admin" },
-  });
-  expect(response.ok(), `Preparation du compte admin impossible : ${await response.text()}`).toBeTruthy();
-
-  const credentials = (await response.json()) as AdminCredentials;
-  await page.goto("/login");
-  await page.getByLabel("Email").fill(credentials.email);
-  await page.locator("#password").fill(credentials.password);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL(/\/dashboard\/admin\/?$/, { timeout: 60_000 });
+  await loginWorkspace(page, page.request, "admin");
 }
 
 test("admin dashboard remains readable across reference viewports", async ({ page }) => {

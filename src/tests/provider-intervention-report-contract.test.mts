@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { PROVIDER_ROLES } from "../app/lib/missionPermissions.ts";
 
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
 
@@ -11,6 +12,28 @@ const providerItemRoute = read("../app/api/provider/interventions/[id]/route.ts"
 const missionRoute = read("../app/api/missions/[id]/route.ts");
 const missionProviderRoute = read("../app/api/missions/[id]/provider-interventions/route.ts");
 const providerPage = read("../app/dashboard/provider/interventions/page.tsx");
+const planningPage = read("../app/dashboard/provider/planning/page.tsx");
+const providerAccess = read("../app/api/_shared/currentProviderAccess.ts");
+
+test("la route conserve le repli historique et signale l’indisponibilité au planning", () => {
+  const [listHandler] = providerListRoute.split("export async function POST");
+  assert.match(listHandler, /if \(error\.code === "42P01"\) \{\s*return NextResponse\.json\(\{\s*items: \[\],\s*summary: \{[^}]+\},\s*interventions_schema_ready: false,[\s\S]*?\}\);/);
+  assert.match(listHandler, /items: reports\.items,[\s\S]*note: rows\.length === 0/);
+  assert.equal(listHandler.match(/interventions_schema_ready:/g)?.length, 1);
+  assert.match(planningPage, /if \(payload\.interventions_schema_ready === false\) \{\s*throw new Error/);
+  assert.match(planningPage, /catch \{[\s\S]*?setFailed\(true\)/);
+});
+
+test("la liste privée exige un rôle artisan et utilise le profil vérifié par le serveur", () => {
+  for (const role of ["artisan", "artisan_pro", "provider", "provider_pro"]) {
+    assert.equal(PROVIDER_ROLES.has(role), true);
+  }
+  for (const role of ["owner", "owner_pro", "concierge", "concierge_pro"]) {
+    assert.equal(PROVIDER_ROLES.has(role), false);
+  }
+  assert.match(providerAccess, /resolveCommercialAccess\(req\)[\s\S]*?!PROVIDER_ROLES\.has\(auth\.role\)[\s\S]*?status: 403/);
+  assert.match(providerListRoute, /export async function GET[\s\S]*?requireProviderAuth\(req\)[\s\S]*?if \(!authResult\.ok\) return authResult\.response;[\s\S]*?providerProfileId = auth\.userId[\s\S]*?\.eq\("provider_profile_id", providerProfileId\)/);
+});
 
 test("provider intervention reports migration creates a structured completion report table", () => {
   assert.match(migration, /CREATE TABLE IF NOT EXISTS public\.provider_intervention_reports/);

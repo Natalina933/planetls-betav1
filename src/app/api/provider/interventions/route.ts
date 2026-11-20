@@ -29,6 +29,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({
         items: [],
         summary: { total: 0, in_progress: 0, pending: 0, completed: 0 },
+        interventions_schema_ready: false,
         note:
           "La table provider_interventions n'est pas encore appliquee en base. Lancez les migrations provider.",
       });

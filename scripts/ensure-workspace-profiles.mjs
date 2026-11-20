@@ -21,7 +21,8 @@ loadEnvFile(path.join(process.cwd(), ".env"));
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const targetEmail = process.env.TARGET_EMAIL || process.env.ADMIN_EMAIL || "admin@planetls.fr";
-const workspacePassword = process.env.WORKSPACE_PASSWORD || process.env.ADMIN_PASSWORD || "Admin123!";
+const workspacePassword = process.env.WORKSPACE_PASSWORD || process.env.ADMIN_PASSWORD;
+if (!workspacePassword) throw new Error("D?finissez le mot de passe de recette dans les variables d?environnement.");
 
 if (!supabaseUrl || !serviceRoleKey) {
   throw new Error("Variables Supabase manquantes: NEXT_PUBLIC_SUPABASE_URL/SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY.");
