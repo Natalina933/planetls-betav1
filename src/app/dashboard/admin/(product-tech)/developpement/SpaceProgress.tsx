@@ -153,4 +153,3 @@ const SPACE_INDEX: Record<string, number> = {
   "Sécurité et infrastructure": 4,
   "Transversal": 5,
 };
-

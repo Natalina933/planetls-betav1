@@ -161,4 +161,3 @@ export function computeSpaceProgress(
     totalRegistryItems: items.length,
   };
 }
-
