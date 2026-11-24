@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { DashboardEvent } from "@/app/components/dashboard/calendar/DashboardCalendar";
-import { fetchJsonOrFallback, takeFirst } from "../shared";
+import { fetchJsonOrFallback, fetchJsonOrThrow, takeFirst } from "../shared";
 import { fetchConciergeMatches, type ConciergeOwnerMatch } from "./dashboardClient";
 import type { ConversationItem } from "./messages/messagesClient";
 
@@ -114,6 +114,7 @@ export function useConciergeDashboardData(isAuthenticated: boolean) {
   const [requests, setRequests] = useState<ConciergeDashboardRequest[]>([]);
   const [requestsLoading, setRequestsLoading] = useState(false);
   const [requestsError, setRequestsError] = useState<string | null>(null);
+  const [requestsAttempt, setRequestsAttempt] = useState(0);
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [housings, setHousings] = useState<ConciergeHousingRow[]>([]);
   const [quotes, setQuotes] = useState<ConciergeQuoteRow[]>([]);
@@ -154,19 +155,17 @@ export function useConciergeDashboardData(isAuthenticated: boolean) {
       try {
         setRequestsLoading(true);
         setRequestsError(null);
-        const payload = await fetchJsonOrFallback<ConciergeRequestsPayload>(
+        const payload = await fetchJsonOrThrow<ConciergeRequestsPayload>(
           "/api/service-requests?view=concierge&limit=10",
-          { items: [] },
+          "Impossible de charger les demandes.",
         );
         if (!isMounted) return;
-        if (payload.error) {
-          throw new Error(payload.error);
+        if (payload?.error || !Array.isArray(payload?.items)) {
+          throw new Error("Réponse des demandes invalide.");
         }
-        setRequests(Array.isArray(payload.items) ? payload.items : []);
-      } catch (err) {
-        if (!isMounted) return;
-        setRequestsError(err instanceof Error ? err.message : "Erreur de chargement des demandes");
-        setRequests([]);
+        setRequests(payload.items);
+      } catch {
+        if (isMounted) setRequestsError("Impossible de charger les demandes.");
       } finally {
         if (isMounted) setRequestsLoading(false);
       }
@@ -177,7 +176,7 @@ export function useConciergeDashboardData(isAuthenticated: boolean) {
     return () => {
       isMounted = false;
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, requestsAttempt]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -320,6 +319,7 @@ export function useConciergeDashboardData(isAuthenticated: boolean) {
     requests,
     requestsLoading,
     requestsError,
+    retryRequests: () => setRequestsAttempt((attempt) => attempt + 1),
     kpis,
     planningEvents,
     missionRows,

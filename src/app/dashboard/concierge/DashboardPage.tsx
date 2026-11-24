@@ -590,8 +590,7 @@ export default function DashboardPage() {
     requests,
     requestsLoading,
     requestsError,
-    matchesLoading,
-    matchesError,
+    retryRequests,
     missionRows,
     planningEvents,
     plannedNow,
@@ -599,7 +598,8 @@ export default function DashboardPage() {
     conversations,
     quotes,
     ownerProfiles,
-    kpis } = useConciergeDashboardData(isAuthenticated);
+    kpis,
+  } = useConciergeDashboardData(isAuthenticated);
 
   const conciergeName = user?.firstName || user?.company_name || user?.username || "Christa";
   const [dashboardPreferences, setDashboardPreferences] = useState<ConciergeDashboardPreferences>(
@@ -1280,19 +1280,6 @@ export default function DashboardPage() {
     return <DashboardLoadingScreen label="Chargement de votre cockpit conciergerie..." />;
   }
 
-  if (requestsLoading || matchesLoading) {
-    return <DashboardLoadingScreen label="Chargement des demandes et matchs..." />;
-  }
-
-  if (requestsError || matchesError) {
-    return (
-      <div role="alert">
-        <p>{requestsError || matchesError}</p>
-        <button onClick={() => window.location.reload()}>Réessayer</button>
-      </div>
-    );
-  }
-
   const PriorityIcon = PRIORITY_ICONS[getPriorityIconKey(priorityRequest)];
   const resumeConciergeOnboarding = () => {
     if (!user?.id) return;
@@ -1614,7 +1601,17 @@ export default function DashboardPage() {
                       Voir toutes
                     </Link>
                   </div>
-                  <AsyncState loading={requestsLoading} error={requestsError}>
+                  {requestsError && (
+                    <AsyncState state={{
+                      status: "error",
+                      message: requestsError,
+                      action: <button type="button" className={styles.secondaryLink} onClick={retryRequests}>Réessayer</button>,
+                    }}>
+                      {null}
+                    </AsyncState>
+                  )}
+                  {requestsLoading && requests.length > 0 && <p role="status">Actualisation des demandes…</p>}
+                  <AsyncState loading={requestsLoading && requests.length === 0}>
                     <div className={styles.requestList}>
                       {requests.slice(0, 4).map((request) => (
                         <article key={request.recipient_id} className={styles.requestCard}>
@@ -1652,7 +1649,7 @@ export default function DashboardPage() {
                           </div>
                         </article>
                       ))}
-                      {requests.length === 0 ? (
+                      {requests.length === 0 && !requestsError ? (
                         <DashboardEmptyState
                           title="Aucune demande active"
                           copy="Le cockpit ne remonte aucune demande propriétaire urgente pour le moment."
