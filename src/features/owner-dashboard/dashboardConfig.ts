@@ -20,8 +20,8 @@ export const OWNER_QUICK_ACTIONS: DashboardQuickAction[] = [
   {
     label: "Ajouter mon logement",
     href: "/dashboard/owner/logements/create",
-    badge: "A faire en premier",
-    description: "Creez la fiche du bien pour lancer le suivi, les demandes et les futures mises en relation.",
+    badge: "À faire en premier",
+    description: "Créez la fiche du bien pour lancer le suivi, les demandes et les futures mises en relation.",
   },
   {
     label: "Rechercher une conciergerie",

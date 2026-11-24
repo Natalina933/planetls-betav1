@@ -89,29 +89,29 @@ function formatTime(value: string | null | undefined) {
 function getInterventionStatusLabel(status: string | null | undefined) {
   switch ((status ?? "").trim().toLowerCase()) {
     case "accepted":
-      return "Acceptee";
+      return "Acceptée";
     case "in_progress":
       return "En cours";
     case "completed":
-      return "Terminee";
+      return "Terminée";
     case "cancelled":
     case "canceled":
-      return "Annulee";
+      return "Annulée";
     default:
-      return "A repondre";
+      return "À répondre";
   }
 }
 
 function getQuoteStatusLabel(status: string | null | undefined) {
   switch ((status ?? "").trim().toLowerCase()) {
     case "accepted":
-      return "Accepte";
+      return "Accepté";
     case "rejected":
-      return "Refuse";
+      return "Refusé";
     case "sent":
-      return "Envoye";
+      return "Envoyé";
     case "expired":
-      return "Expire";
+      return "Expiré";
     default:
       return "Brouillon";
   }
@@ -145,9 +145,9 @@ function getClientName(
   clientId: string | null | undefined,
   clientsById: Map<string, { client_name: string | null; company_name: string | null }>,
 ) {
-  if (!clientId) return "Client a preciser";
+  if (!clientId) return "Client à préciser";
   const client = clientsById.get(clientId);
-  return client?.client_name || client?.company_name || "Client a preciser";
+  return client?.client_name || client?.company_name || "Client à préciser";
 }
 
 const PRIORITY_ICONS = {
@@ -321,14 +321,14 @@ export default function ProviderDashboardPage() {
   const financeStats = useMemo(
     () => [
       {
-        label: "CA realise",
+        label: "CA réalisé",
         value: formatCurrencyAmount(realizedRevenue, { currency: "EUR", emptyLabel: "0 EUR" }),
-        detail: "Missions deja terminees et valorisees.",
+        detail: "Missions déjà terminées et valorisées",
       },
       {
-        label: "CA previsionnel",
+        label: "CA prévisionnel",
         value: formatCurrencyAmount(expectedRevenue, { currency: "EUR", emptyLabel: "0 EUR" }),
-        detail: "Projection issue des missions et devis acceptes.",
+        detail: "Projection issue des missions et devis acceptés",
       },
       {
         label: "Paiements attendus",
@@ -344,7 +344,7 @@ export default function ProviderDashboardPage() {
       {
         label: "Aujourd'hui",
         value: String(interventionsToday.length),
-        detail: "Interventions deja positionnees sur la journee.",
+        detail: "Interventions déjà positionnées sur la journée.",
       },
       {
         label: "Demain",
@@ -354,7 +354,7 @@ export default function ProviderDashboardPage() {
       {
         label: "Semaine",
         value: String(weekCount),
-        detail: "Volume confirme dans les 7 prochains jours.",
+        detail: "Volume confirmé dans les 7 prochains jours.",
       },
     ],
     [acceptedMissions, interventionsToday.length, weekCount],
@@ -362,7 +362,7 @@ export default function ProviderDashboardPage() {
 
   const quickActions = [
     { label: "Créer devis", href: "/dashboard/provider/devis", icon: FileText },
-    { label: "Declarer mission terminee", href: "/dashboard/provider/interventions", icon: Wrench },
+    { label: "Déclarer mission terminée", href: "/dashboard/provider/interventions", icon: Wrench },
     { label: "Envoyer facture", href: "/dashboard/provider/devis", icon: Receipt },
     { label: "Contacter client", href: "/dashboard/provider/messages", icon: MessageSquareText },
   ];
@@ -371,18 +371,18 @@ export default function ProviderDashboardPage() {
     () => [
       {
         id: "missions-pending",
-        label: "Missions a repondre",
-        title: `${proposedMissions.length} mission(s) attendent une decision`,
-        detail: "Accepter, negocier ou refuser avant qu'elles ne se refroidissent.",
+        label: "Missions à répondre",
+        title: `${proposedMissions.length} mission(s) attendent une décision`,
+        detail: "Accepter, négocier ou refuser avant qu'elles ne se refroidissent.",
         href: "/dashboard/provider/interventions",
         tone: proposedMissions.length > 0 ? "warning" : "neutral",
         icon: <TriangleAlert size={16} />,
       },
       {
         id: "quotes-pending",
-        label: "Devis a suivre",
+        label: "Devis à suivre",
         title: `${pendingQuotes.length} devis en attente`,
-        detail: "Brouillons et envois a relancer ou finaliser rapidement.",
+        detail: "Brouillons et envois à relancer ou finaliser rapidement.",
         href: "/dashboard/provider/devis",
         tone: pendingQuotes.length > 0 ? "accent" : "neutral",
         icon: <FileText size={16} />,
@@ -390,8 +390,8 @@ export default function ProviderDashboardPage() {
       {
         id: "invoices",
         label: "Factures",
-        title: `${invoiceToIssueCount} facture(s) a emettre`,
-        detail: "Les devis acceptes doivent se transformer en factures et paiements.",
+        title: `${invoiceToIssueCount} facture(s) à émettre`,
+        detail: "Les devis acceptés doivent se transformer en factures et paiements.",
         href: "/dashboard/provider/devis",
         tone: invoiceToIssueCount > 0 ? "accent" : "neutral",
         icon: <Receipt size={16} />,
@@ -406,11 +406,11 @@ export default function ProviderDashboardPage() {
         id: item.id,
         label: getInterventionStatusLabel(item.status),
         title: item.title || item.service_label || "Intervention",
-        detail: `${item.location_label || "Lieu a preciser"} · ${getClientName(item.client_id, clientsById)}`,
+        detail: `${item.location_label || "Lieu à préciser"} · ${getClientName(item.client_id, clientsById)}`,
         meta: `${formatTime(item.scheduled_start)} · ${formatDateValue(item.scheduled_start, {
           day: "2-digit",
           month: "short",
-          emptyLabel: "Date a confirmer",
+          emptyLabel: "Date à confirmer",
         })}`,
         href: `/dashboard/provider/interventions?intervention=${item.id}`,
         tone: item.priority === "urgent" ? "warning" : "accent",
@@ -546,7 +546,7 @@ export default function ProviderDashboardPage() {
                   <Clock3 size={15} />
                   {priorityIntervention?.scheduled_start
                     ? `Aujourd'hui a ${formatTime(priorityIntervention.scheduled_start)}`
-                    : "Date a confirmer"}
+                    : "Date à confirmer"}
                 </span>
                 <span>
                   <UserRound size={15} />
@@ -683,7 +683,7 @@ export default function ProviderDashboardPage() {
                             month: "short",
                             hour: "2-digit",
                             minute: "2-digit",
-                            emptyLabel: "Date a confirmer",
+                            emptyLabel: "Date à confirmer",
                           })}
                         </span>
                         <span>{getClientName(item.client_id, clientsById)}</span>
@@ -699,7 +699,7 @@ export default function ProviderDashboardPage() {
                           Accepter
                         </Link>
                         <Link href={`/dashboard/provider/messages?client=${item.client_id ?? ""}`} className={styles.secondaryLink}>
-                          Negocier
+                          Négocier
                         </Link>
                         <Link href={`/dashboard/provider/interventions?intervention=${item.id}`} className={styles.ghostLink}>
                           Refuser
@@ -710,8 +710,8 @@ export default function ProviderDashboardPage() {
                 </div>
               ) : (
                 <DashboardEmptyState
-                  title="Aucune mission en attente de reponse"
-                  copy="Le cockpit ne remonte pas de nouvelle proposition a traiter pour l'instant."
+                  title="Aucune mission en attente de réponse"
+                  copy="Le cockpit ne remonte pas de nouvelle proposition à traiter pour l'instant."
                 />
               ),
           },

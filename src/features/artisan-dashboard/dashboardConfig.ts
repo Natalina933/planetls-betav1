@@ -15,10 +15,10 @@ export const ARTISAN_NAV_ITEMS: DashboardNavItem[] = [
 
 export const ARTISAN_QUICK_ACTIONS: DashboardQuickAction[] = [
   {
-    label: "Completer mon profil metier",
+    label: "Compléter mon profil métier",
     href: "/dashboard/provider/settings",
-    badge: "A faire en premier",
-    description: "Precisez votre zone, vos specialites et vos coordonnees pour rendre votre profil exploitable.",
+    badge: "À faire en premier",
+    description: "Précisez votre zone, vos spécialités et vos coordonnées pour rendre votre profil exploitable.",
   },
   {
     label: "Suivre les interventions",

@@ -590,6 +590,8 @@ export default function DashboardPage() {
     requests,
     requestsLoading,
     requestsError,
+    matchesLoading,
+    matchesError,
     missionRows,
     planningEvents,
     plannedNow,
@@ -597,8 +599,7 @@ export default function DashboardPage() {
     conversations,
     quotes,
     ownerProfiles,
-    kpis,
-  } = useConciergeDashboardData(isAuthenticated);
+    kpis } = useConciergeDashboardData(isAuthenticated);
 
   const conciergeName = user?.firstName || user?.company_name || user?.username || "Christa";
   const [dashboardPreferences, setDashboardPreferences] = useState<ConciergeDashboardPreferences>(
@@ -1277,6 +1278,19 @@ export default function DashboardPage() {
 
   if (loading || !isAuthenticated) {
     return <DashboardLoadingScreen label="Chargement de votre cockpit conciergerie..." />;
+  }
+
+  if (requestsLoading || matchesLoading) {
+    return <DashboardLoadingScreen label="Chargement des demandes et matchs..." />;
+  }
+
+  if (requestsError || matchesError) {
+    return (
+      <div role="alert">
+        <p>{requestsError || matchesError}</p>
+        <button onClick={() => window.location.reload()}>Réessayer</button>
+      </div>
+    );
   }
 
   const PriorityIcon = PRIORITY_ICONS[getPriorityIconKey(priorityRequest)];
