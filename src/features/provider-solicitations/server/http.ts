@@ -11,7 +11,8 @@ import { readProviderSkills } from "@/app/lib/providerSkills";
 import { evaluateProfessionalCoverage } from "@/app/api/search/professionals/coverage";
 import { canRespond, createSolicitationCommandSchema, createSolicitationSchema, idempotencyKeySchema, respondSolicitationSchema, solicitationListSchema } from "../contracts.ts";
 import type { CreateSolicitationInput, SolicitationErrorCode } from "../contracts.ts";
-import { commandResultSchema, cursorSchema, eventViewSchema, ownerViewSchema, providerViewSchema, responseResultSchema } from "./responses.ts";
+import { commandResultSchema, cursorSchema, eventViewSchema, ownerViewSchema, providerViewSchema } from "./responses.ts";
+import { parseSolicitationResponseResult } from "../response-result.ts";
 import type { SolicitationView } from "./responses.ts";
 import { geocodeSolicitationPlace, hasPreciseAddress } from "./place.ts";
 import type { PlaceInput } from "./place.ts";
@@ -191,14 +192,14 @@ export async function respond(req: NextRequest, context: { params: Promise<{ id:
     const input = parsed.data;
     // Only SQL decides the transition/replay under lock. No read-then-write
     // decision here, no local status mutation, no secondary persistence call.
-    const result = responseResultSchema.safeParse(await rpc("respond_provider_solicitation", {
+    const result = parseSolicitationResponseResult(await rpc("respond_provider_solicitation", {
       p_principal_id: actor.principalProfileId, p_actor_id: actor.userId, p_idempotency_key: key.data,
       p_solicitation_id: id.data, p_status: input.status, p_message: input.message, p_expected_version: input.expected_version,
-    }));
-    if (!result.success || result.data.result.solicitation_id !== id.data || result.data.result.status !== input.status) throw new Failure("UNAVAILABLE", 503);
+    }), id.data, input.status);
+    if (!result) throw new Failure("UNAVAILABLE", 503);
     // Minimal private command result, including on replay. Detail/history are
     // obtained separately through the participant-scoped GET, never post-write.
-    return json(result.data);
+    return json(result);
   } catch (error) { return errorResponse(error); }
 }
 

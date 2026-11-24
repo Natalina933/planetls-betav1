@@ -16,9 +16,20 @@ function fake({badImage=false,badNetwork=false,failSql=false,interrupt=false,not
     if(a[0]==='container' && a[1]==='inspect') return JSON.stringify([{Id:container,Name:`/${name}`,Image:image,Config:{User:'postgres',Labels:{'fr.planetls.sec-auth-c1.run':token,'fr.planetls.sec-auth-c1.purpose':'isolated-tests','fr.planetls.provider-solicitations-e2a.campaign':token,'fr.planetls.provider-solicitations-e2a.purpose':'isolated-tests'}},HostConfig:{NetworkMode:badNetwork?'bridge':'none',ReadonlyRootfs:true,CapDrop:['ALL'],SecurityOpt:['no-new-privileges'],Memory:1073741824,NanoCpus:2000000000,PidsLimit:128,Tmpfs:{'/var/lib/postgresql/data':'rw','/var/run/postgresql':'rw','/tmp':'rw'}},Mounts:[{Type:'tmpfs'}],NetworkSettings:{Ports:{},Networks:{none:{}}},State:{Running:false,Status:'exited'}}]);
     if(a[0]==='start' && failStart) throw Error('start failed');
     if(a[1]==='rm' && failCleanup) throw Error('cleanup failed');
-    if(a[0]==='exec') { if(interrupt) events.emit('SIGINT'); if(input==='SELECT 1;') { if(notReady) throw Error('not ready'); return '1'; } if(hangInput && input===hangInput) return new Promise(()=>{}); if(failSql) throw Error('SQL failed'); if(input?.includes('INSERT INTO harness.e2e_parent VALUES (1)')) throw Error('P0001'); if(input?.includes('INSERT INTO harness.e2e_log VALUES (2)')) throw Error('23503'); if(input?.includes('Concurrence synthétique')) return JSON.stringify({result:{solicitation_id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'}}); if(input?.includes("jsonb_build_object('row'")) return JSON.stringify({row:{status:'sent',version:1,response_message:null},operations:[{}],events:[{}]}); if(input?.includes('CREATE TRIGGER e2f_business_fault')) throw Error('P0E01 E2F_AFTER_UPDATE'); if(input?.includes('pg_blocking_pids')) return 't'; return ''; }
+    if(a[0]==='exec') {
+      if(interrupt) events.emit('SIGINT');
+      if(input==='SELECT 1;') { if(notReady) throw Error('not ready'); return '1'; }
+      const migrationBatch = input?.includes('E2B_APPLIED ');
+      if(hangInput && (input === hangInput || (hangInput === 'migration' && migrationBatch))) return new Promise(()=>{});
+      if(migrationBatch) {
+        return input.split('\n')
+          .filter(line=>line.startsWith('\\echo E2B_APPLIED '))
+          .map(line=>line.slice('\\echo '.length))
+          .join('\n');
+      }
+      if(failSql) throw Error('SQL failed'); if(input?.includes('INSERT INTO harness.e2e_parent VALUES (1)')) throw Error('P0001'); if(input?.includes('INSERT INTO harness.e2e_log VALUES (2)')) throw Error('23503'); if(input?.includes('Concurrence synthétique')) return JSON.stringify({result:{solicitation_id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'}}); if(input?.includes("jsonb_build_object('row'")) return JSON.stringify({row:{status:'sent',version:1,response_message:null},operations:[{}],events:[{}]}); if(input?.includes('CREATE TRIGGER e2f_business_fault')) throw Error('P0E01 E2F_AFTER_UPDATE'); if(input?.includes('pg_blocking_pids')) return 't'; return ''; }
     return '';
-  }, async open(){const n=calls.filter(x=>x[0]==='open').length;calls.push(['open']);return {send:async source=>source.includes('pg_backend_pid')?String(n+1):source.includes('respond_provider_solicitation')&&!source.includes('expect_error')?JSON.stringify({result:{status:'interested',version:2}}):'',close:async()=>{}};}};
+  }, async open(){const n=calls.filter(x=>x[0]==='open').length;calls.push(['open']);return {send:async source=>source.includes('pg_backend_pid')?String(n+1):source.includes('respond_provider_solicitation')?JSON.stringify({replayed:source.includes('expect_error'),operation_id:'receipt',result:{solicitation_id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',status:'interested',version:2}}):'',close:async()=>{}};}};
   return {docker,events,calls};
 }
 test('parameters require explicit E2B authorization and immutable values',()=>{

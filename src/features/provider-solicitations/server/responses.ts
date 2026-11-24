@@ -19,9 +19,5 @@ export const eventViewSchema = z.object({ id: uuid, solicitation_id: uuid, event
 export const commandResultSchema = z.object({ result: z.object({ solicitation_id: uuid, status: z.literal("sent"), version: z.literal(1) }),
   operation_id: uuid, replayed: z.boolean(),
 });
-export const responseResultSchema = z.object({
-  result: z.object({ solicitation_id: uuid, status: z.enum(["interested", "declined"]), version: z.literal(2) }),
-  operation_id: uuid, replayed: z.boolean(),
-});
 export const cursorSchema = z.object({ actor: uuid, role: z.string(), status: solicitationStatusSchema.nullable(), at: date, id: uuid }).strict();
 export type SolicitationView = z.infer<typeof ownerViewSchema> | z.infer<typeof providerViewSchema>;

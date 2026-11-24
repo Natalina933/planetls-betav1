@@ -28,7 +28,7 @@ export function parseArguments(args) {
   return { ...values, mode: 'execute' };
 }
 
-export async function execute(config, docker, { events = process, snapshot = snapshotFiles, manifest = loadManifest, sleep = delay, maxReadyAttempts = 15, journalFactory = createJournal, globalTimeoutMs = 600000, cleanupTimeoutMs = 10000 } = {}) {
+export async function execute(config, docker, { events = process, snapshot = snapshotFiles, manifest = loadManifest, sleep = delay, maxReadyAttempts = 15, journalFactory = createJournal, globalTimeoutMs = 1200000, cleanupTimeoutMs = 90000 } = {}) {
   const id = campaignIdentity(createIdentity()); const report = { global: 'BLOCKED', sql: 'NOT RUN', cleanup: 'NOT RUN', stage: 'manifest', completed: [], error: null, resource: null };
   let cancellationError = false;
   const cancel = () => { try { docker.cancelWork(); } catch { cancellationError = true; } };
@@ -70,11 +70,26 @@ export async function execute(config, docker, { events = process, snapshot = sna
     return call(['exec','-i','--env','PGOPTIONS=-c statement_timeout=20000 -c lock_timeout=3000 -c idle_in_transaction_session_timeout=30000',id.id,
       'psql','-X','--no-password','-qAt','-v','ON_ERROR_STOP=1','-v','VERBOSITY=verbose','-h','/var/run/postgresql','-U','postgres','-d',database],source,false,timeout);
   };
+  const applyMigrations = async (migrations, read) => {
+    if (!migrations.length) return;
+    report.stage = migrations[0].path;
+    const markers = migrations.map(({path}) => `E2B_APPLIED ${path}`);
+    const batch = migrations.map(({path}, index) =>
+      `\\connect ${database}\n${read(path)}\n\\echo ${markers[index]}\n`).join('');
+    const output = await sql(batch, 180000);
+    const applied = output.split(/\r?\n/).filter(line => line.startsWith('E2B_APPLIED '));
+    if (JSON.stringify(applied) !== JSON.stringify(markers)) throw Error('Incomplete migration evidence');
+    for (const {path} of migrations) {
+      report.stage = path;
+      report.completed.push(path);
+      record('completed', { item: path });
+    }
+  };
   const openSession = async () => {
     await verify();
-    const child = await bounded(() => docker.open(['exec','-i','--env','PGOPTIONS=-c statement_timeout=20000 -c lock_timeout=15000 -c idle_in_transaction_session_timeout=30000',id.id,
+    const child = await bounded(() => docker.open(['exec','-i','--env','PGOPTIONS=-c statement_timeout=60000 -c lock_timeout=45000 -c idle_in_transaction_session_timeout=90000',id.id,
       'psql','-X','--no-password','-qAt','-v','ON_ERROR_STOP=1','-v','VERBOSITY=verbose','-h','/var/run/postgresql','-U','postgres','-d',database]), deadline, () => { expired=true; cancel(); });
-    return { send: source => bounded(() => child.send(source), deadline, () => { expired=true; cancel(); }), close: () => bounded(() => child.close(), deadline, () => { expired=true; cancel(); }) };
+    return { send: source => bounded(() => child.send(source, { timeout: 75000 }), deadline, () => { expired=true; cancel(); }), close: () => bounded(() => child.close(), deadline, () => { expired=true; cancel(); }) };
   };
   try {
     journal = journalFactory(); report.journal = journal.path; record('start');
@@ -107,7 +122,7 @@ export async function execute(config, docker, { events = process, snapshot = sna
     report.stage = 'readiness'; let ready = false;
     for (let attempt = 0; attempt < maxReadyAttempts; attempt++) {
       interruption.check();
-      try { ready = (await sql('SELECT 1;', 2000)).trim() === '1'; } catch { interruption.check(); }
+      try { ready = (await sql('SELECT 1;', 15000)).trim() === '1'; } catch { interruption.check(); }
       if (ready) break;
       if (attempt + 1 < maxReadyAttempts) await bounded(() => sleep(1000), deadline, () => { expired = true; cancel(); });
     }
@@ -115,12 +130,13 @@ export async function execute(config, docker, { events = process, snapshot = sna
     record('ready');
     report.stage = 'foundation'; await sql(read('scripts/sec-auth-c1/foundation.sql')); report.completed.push('foundation'); record('completed', { item: 'foundation' });
     let before;
-    for (const item of m.migrations) {
-      if (config.profile === 'existing' && item.path === m.migrations.at(-2).path) {
-        report.stage = 'fixtures'; await sql(read('scripts/provider-solicitations-e2a/fixtures.sql'));
-        before = await sql(read('scripts/provider-solicitations-e2a/history.sql'));
-      }
-      report.stage = item.path; await sql(read(item.path)); report.completed.push(item.path); record('completed', { item: item.path });
+    if (config.profile === 'existing') {
+      await applyMigrations(m.migrations.slice(0, -2), read);
+      report.stage = 'fixtures'; await sql(read('scripts/provider-solicitations-e2a/fixtures.sql'));
+      before = await sql(read('scripts/provider-solicitations-e2a/history.sql'));
+      await applyMigrations(m.migrations.slice(-2), read);
+    } else {
+      await applyMigrations(m.migrations, read);
     }
     if (config.profile === 'existing' && before !== await sql(read('scripts/provider-solicitations-e2a/history.sql'))) throw Error('Existing synthetic data changed');
     if (config.profile === 'fresh') { report.stage = 'fixtures'; await sql(read('scripts/provider-solicitations-e2a/fixtures.sql')); }

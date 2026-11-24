@@ -25,14 +25,25 @@ export async function runConcurrency({sql,openSession,sleep=delay,now=()=>perfor
     if (!Number.isInteger(pidA)||!Number.isInteger(pidB)||pidA<=0||pidA===pidB) throw Error('Independent sessions not proven');
     const response=JSON.parse((await a.send(command(first,'interested'))).trim().split('\n').at(-1));
     if(response.result?.status!=='interested'||response.result?.version!==2) throw Error('First response invalid');
-    pending=b.send(`SELECT harness.expect_error(${quote(command(second,'declined'))},'55000');`).then(()=>({ok:true}),error=>({ok:false,error}));
+    const replayAndConflict = command(first,'interested') + '\n'
+      + `SELECT harness.expect_error(${quote(command(second,'declined'))},'55000');`;
+    pending=b.send(replayAndConflict).then(value=>({ok:true,value}),error=>({ok:false,error}));
     const deadline=now()+timeoutMs; let blocked=false;
     while(now()<deadline) {
       const found=await sql(`SELECT EXISTS(SELECT 1 FROM pg_stat_activity b WHERE b.pid=${pidB} AND b.wait_event_type='Lock' AND ${pidA}=ANY(pg_blocking_pids(b.pid)));`);
       if(found.trim()==='t'){blocked=true;break;} await sleep(50);
     }
     if(!blocked) throw Error('Concurrency barrier timed out: lock contention not observed');
-    await a.send('COMMIT;'); const outcome=await pending; pending=null; if(!outcome.ok) throw outcome.error; await b.send('COMMIT;');
+    await a.send('COMMIT;');
+    const outcome=await pending;
+    pending=null;
+    if(!outcome.ok) throw outcome.error;
+    const replay=JSON.parse(outcome.value.trim().split('\n')[0]);
+    if(replay.replayed!==true || !response.operation_id || replay.operation_id!==response.operation_id
+      || replay.result?.solicitation_id!==id || replay.result?.status!=='interested' || replay.result?.version!==2) {
+      throw Error('Concurrent replay returned a different receipt');
+    }
+    await b.send('COMMIT;');
     await sql(`SELECT harness.assert_true((SELECT status='interested' AND version=2 FROM public.provider_solicitations WHERE id='${id}') AND (SELECT count(*)=2 FROM public.provider_solicitation_events WHERE solicitation_id='${id}') AND (SELECT count(*)=1 FROM public.provider_solicitation_events WHERE solicitation_id='${id}' AND version=2) AND (SELECT count(*)=2 FROM public.provider_solicitation_operations WHERE solicitation_id='${id}'),'concurrent final state');`);
   } finally {
     if(pending) pending.catch(()=>{});

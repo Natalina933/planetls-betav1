@@ -29,10 +29,19 @@ INSERT INTO e2a_results SELECT 'read-owner',public.read_provider_solicitations('
 INSERT INTO e2a_results SELECT 'read-provider',public.read_provider_solicitations('30000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',(SELECT (result->'result'->>'solicitation_id')::uuid FROM e2a_results WHERE name='create'));
 SELECT harness.assert_true((SELECT NOT ((result->'solicitation') ?| ARRAY['property_id','housing_id','reservation_id']) FROM e2a_results WHERE name='read-provider'),'provider projection');
 SELECT harness.expect_error(format('SELECT public.read_provider_solicitations(%L,%L,%L)', '10000000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000002',(SELECT result->'result'->>'solicitation_id' FROM e2a_results WHERE name='create')),'P0002');
+-- Neither the owner nor another provider can respond in place of the recipient.
+SELECT harness.expect_error(format('SELECT public.respond_provider_solicitation(%L,%L,%L,%L,%L,NULL,1)', '10000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','f0000000-0000-4000-8000-000000000004',(SELECT result->'result'->>'solicitation_id' FROM e2a_results WHERE name='create'),'interested'),'42501');
+SELECT harness.expect_error(format('SELECT public.respond_provider_solicitation(%L,%L,%L,%L,%L,NULL,1)', '30000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000002','f0000000-0000-4000-8000-000000000004',(SELECT result->'result'->>'solicitation_id' FROM e2a_results WHERE name='create'),'interested'),'P0002');
 SELECT harness.expect_error(format('SELECT public.respond_provider_solicitation(%L,%L,%L,%L,%L,NULL,2)', '30000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','f0000000-0000-4000-8000-000000000002',(SELECT result->'result'->>'solicitation_id' FROM e2a_results WHERE name='create'),'interested'),'40001');
 INSERT INTO e2a_results SELECT 'response',public.respond_provider_solicitation('30000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','f0000000-0000-4000-8000-000000000002',(SELECT (result->'result'->>'solicitation_id')::uuid FROM e2a_results WHERE name='create'),'interested','Test',1);
 INSERT INTO e2a_results SELECT 'replay',public.respond_provider_solicitation('30000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','f0000000-0000-4000-8000-000000000002',(SELECT (result->'result'->>'solicitation_id')::uuid FROM e2a_results WHERE name='create'),'interested','Test',1);
 SELECT harness.assert_true((SELECT (result->>'replayed')::boolean FROM e2a_results WHERE name='replay') AND (SELECT result->'result' FROM e2a_results WHERE name='replay')=(SELECT result->'result' FROM e2a_results WHERE name='response'),'same key replay');
+SELECT harness.assert_true((
+  SELECT initial.result->>'operation_id' IS NOT NULL
+    AND initial.result->>'operation_id' = replay.result->>'operation_id'
+  FROM e2a_results initial CROSS JOIN e2a_results replay
+  WHERE initial.name='response' AND replay.name='replay'
+),'same operation receipt on replay');
 SELECT harness.expect_error(format('SELECT public.respond_provider_solicitation(%L,%L,%L,%L,%L,NULL,1)', '30000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','f0000000-0000-4000-8000-000000000002',(SELECT result->'result'->>'solicitation_id' FROM e2a_results WHERE name='create'),'declined'),'23505');
 SELECT harness.expect_error(format('SELECT public.respond_provider_solicitation(%L,%L,%L,%L,%L,NULL,1)', '30000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','f0000000-0000-4000-8000-000000000003',(SELECT result->'result'->>'solicitation_id' FROM e2a_results WHERE name='create'),'declined'),'55000');
 RESET ROLE;

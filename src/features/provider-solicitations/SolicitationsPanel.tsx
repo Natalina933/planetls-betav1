@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { parseSolicitationResponseResult } from "./response-result";
 import styles from "./SolicitationsPanel.module.scss";
 
 type Item = { id: string; provider_profile_id: string; service_label_snapshot: string; description: string; location_label: string; city: string; desired_at: string | null; status: "sent" | "interested" | "declined"; response_message: string | null; version: number; created_at: string };
@@ -45,8 +46,16 @@ export default function SolicitationsPanel({ role }: { role: "owner" | "provider
     try {
       const response = await fetch(`/api/provider-solicitations/${encodeURIComponent(command.id)}/respond`, { method: "POST", headers: { "Content-Type": "application/json", "Idempotency-Key": command.key }, body: JSON.stringify({ status: command.status, message: command.message, expected_version: command.expected_version }) });
       const data = await response.json().catch(() => null);
+      if (response.status === 401) {
+        setError("Votre session a expiré. Reconnectez-vous, puis reprenez la même réponse.");
+        return;
+      }
       if (response.status === 409) { sessionStorage.removeItem(storageKey); setPending(null); await load(); await open(command.id); setError(errorMessage(409, data?.error?.code)); return; }
       if (!response.ok) { if (response.status >= 500) { setError(`${errorMessage(response.status, data?.error?.code)} Le résultat est incertain : reprenez la même réponse.`); return; } sessionStorage.removeItem(storageKey); setPending(null); setError(errorMessage(response.status, data?.error?.code)); return; }
+      if (!parseSolicitationResponseResult(data, command.id, command.status)) {
+        setError("Impossible de confirmer l’enregistrement. Reprenez la même réponse pour vérifier son enregistrement.");
+        return;
+      }
       sessionStorage.removeItem(storageKey); setPending(null); await load(); await open(command.id); setNotice("Réponse enregistrée. Une marque d’intérêt ne crée ni contrat, ni mission, ni intervention, ni obligation automatique.");
     } catch { setError("Erreur réseau : le résultat est incertain. Reprenez la même réponse pour vérifier son enregistrement."); }
     finally { lock.current = false; setBusy(false); }

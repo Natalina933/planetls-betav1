@@ -307,7 +307,7 @@
   "assets": [
     {
       "path": "scripts/provider-solicitations-e2a/README.md",
-      "sha256": "6551df8827be42210894e9d31a857636b94fe5f63b7524922c5f1636bc1e5548"
+      "sha256": "07343c97a3250e83fdf54be24feff529b47dd634d618d6b6f86566c93a3cf357"
     },
     {
       "path": "scripts/provider-solicitations-e2a/assertions.sql",
@@ -323,7 +323,7 @@
     },
     {
       "path": "scripts/provider-solicitations-e2a/concurrency.mjs",
-      "sha256": "5807c274319f3149215e4dfa05930ff0cae05d9b7040167ffdf6a3f67325de22"
+      "sha256": "d218300cbdf8d05646be7109490dfcfbb6c692b20925af30998ee469cb60e968"
     },
     {
       "path": "scripts/provider-solicitations-e2a/fixtures.sql",
@@ -343,11 +343,11 @@
     },
     {
       "path": "scripts/provider-solicitations-e2a/run.mjs",
-      "sha256": "a259725335a2d1c53216b22f0a3bb9f095148ad558057004711d2974c89240e7"
+      "sha256": "242cdd69e9803fc9d2818394bfe38aa975e11506bda05e53fd2f645e1093c300"
     },
     {
       "path": "scripts/provider-solicitations-e2a/scenarios.sql",
-      "sha256": "3003a7cc8f423b57e3847db492a691999f2e8e557f3e7b3bb56e01505a8fd52c"
+      "sha256": "f7cfdc9a391eded01d845d82dfaba39d08d7565bcd8bbe91e19ecec1e1ef1203"
     },
     {
       "path": "scripts/provider-solicitations-e2a/transport.mjs",
