@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTemporalClock } from "@/app/hooks/useTemporalClock";
 import { temporalSchedule } from "@/app/lib/temporalClock";
 import Link from "next/link";
@@ -52,6 +52,7 @@ function formatStayRange(stay: HousingStay) {
 
 export default function OwnerHousingOverview(props: Props) {
   const [search, setSearch] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [stays, setStays] = useState<HousingStay[]>([]);
   const [staysLoading, setStaysLoading] = useState(true);
   const [staysError, setStaysError] = useState(false);
@@ -59,8 +60,6 @@ export default function OwnerHousingOverview(props: Props) {
 
   useEffect(() => {
     const controller = new AbortController();
-    setStaysLoading(true);
-    setStaysError(false);
 
     async function load() {
       try {
@@ -100,7 +99,7 @@ export default function OwnerHousingOverview(props: Props) {
   const items = useMemo(
     () =>
       props.visibleLogements.filter((item) =>
-        `${item.nom_logement} ${item.ville}`.toLocaleLowerCase("fr").includes(normalized),
+        `${item.nom_logement} ${item.ville ?? ""}`.toLocaleLowerCase("fr").includes(normalized),
       ),
     [normalized, props.visibleLogements],
   );
@@ -160,11 +159,10 @@ export default function OwnerHousingOverview(props: Props) {
   );
 
   const isDataUnavailable = props.loading || Boolean(props.error);
-  const readinessValue = (value: string) => (isDataUnavailable ? "—" : value);
-  const registerHeading = "Tous les logements";
+  const isEmptyPark = !isDataUnavailable && props.total === 0;
 
   return (
-    <div className={styles.page} aria-busy={props.loading}>
+    <div className={styles.page}>
       <header className={styles.masthead}>
         <div>
           <p className={styles.breadcrumb}>
@@ -172,7 +170,9 @@ export default function OwnerHousingOverview(props: Props) {
           </p>
           <h1>Mes logements</h1>
           <p className={styles.statusLine}>
-            {isDataUnavailable ? (
+            {props.loading ? (
+              <strong>Chargement du parc…</strong>
+            ) : props.error ? (
               <strong>État du parc indisponible</strong>
             ) : (
               <>
@@ -183,13 +183,13 @@ export default function OwnerHousingOverview(props: Props) {
             )}
           </p>
         </div>
-        <ButtonLink href={props.addHref} variant="primary" className={styles.primaryAction}>
+        {!isEmptyPark && <ButtonLink href={props.addHref} variant="primary" className={styles.primaryAction}>
           <Plus size={17} aria-hidden="true" />
           Ajouter un logement
-        </ButtonLink>
+        </ButtonLink>}
       </header>
 
-      {props.loading || props.error || props.total > 0 ? (
+      {!isDataUnavailable && props.total > 0 ? (
         <section className={styles.readiness} aria-labelledby="housing-readiness-title">
           <h2 id="housing-readiness-title" className={styles.srOnly}>État du parc</h2>
           <div className={styles.readinessGrid}>
@@ -197,25 +197,21 @@ export default function OwnerHousingOverview(props: Props) {
               <p className={styles.kicker}>Priorité du parc</p>
               <h3>Fiches à compléter</h3>
               <div className={styles.reviewSummary}>
-                <span className={`${styles.readinessValue} ${props.loading ? styles.skeletonValue : ""}`}>
-                  {readinessValue(String(props.reviewCount))}
+                <span className={styles.readinessValue}>
+                  {props.reviewCount}
                 </span>
                 <div className={styles.reviewCopy}>
                   <strong>
-                    {props.error
-                      ? "État du parc indisponible"
-                      : props.reviewCount === 1
-                        ? "logement nécessite une correction"
-                        : props.reviewCount > 1
-                          ? "logements nécessitent une correction"
-                          : "Aucune fiche à finaliser"}
+                    {props.reviewCount === 1
+                      ? "logement nécessite une correction"
+                      : props.reviewCount > 1
+                        ? "logements nécessitent une correction"
+                        : "Aucune fiche à finaliser"}
                   </strong>
                   <span>
-                    {props.error
-                      ? "Réessayez pour retrouver votre parc et son état."
-                      : props.reviewCount > 0
-                        ? "Une fiche à finaliser avant le prochain séjour."
-                        : "Les fiches de votre parc sont à jour."}
+                    {props.reviewCount > 0
+                      ? "Consultez les informations à compléter."
+                      : "Les fiches de votre parc sont à jour."}
                   </span>
                 </div>
               </div>
@@ -236,13 +232,13 @@ export default function OwnerHousingOverview(props: Props) {
               <p className={styles.kicker}>Préparation</p>
               <div className={styles.compactBody}>
                 <div>
-                  <span className={`${styles.compactValue} ${props.loading ? styles.skeletonValue : ""}`}>
-                    {readinessValue(String(preparingCount))}
+                  <span className={styles.compactValue}>
+                    {preparingCount}
                   </span>
                   <strong>À préparer</strong>
                 </div>
                 <span className={styles.compactNote}>
-                  {props.error ? "Données indisponibles" : preparingCount > 0 ? "Ménage en cours" : "Aucun ménage en cours"}
+                  {preparingCount > 0 ? "Ménage en cours" : "Aucun ménage en cours"}
                 </span>
               </div>
             </article>
@@ -251,15 +247,13 @@ export default function OwnerHousingOverview(props: Props) {
               <p className={styles.kicker}>Disponibilité</p>
               <div className={styles.compactBody}>
                 <div>
-                  <span className={`${styles.compactValue} ${styles.ratioValue} ${props.loading ? styles.skeletonValue : ""}`}>
-                    {readinessValue(`${readyCount} / ${props.total}`)}
+                  <span className={`${styles.compactValue} ${styles.ratioValue}`}>
+                    {readyCount} / {props.total}
                   </span>
                   <strong>Prêts</strong>
                 </div>
                 <span className={styles.compactNote}>
-                  {props.error
-                    ? "Données indisponibles"
-                    : firstReadyHousing
+                  {firstReadyHousing
                       ? `${firstReadyHousing.nom_logement} est prêt`
                       : "Aucun logement prêt"}
                 </span>
@@ -269,22 +263,22 @@ export default function OwnerHousingOverview(props: Props) {
           <div className={styles.movementStrip}>
             <strong>Arrivées et départs</strong>
             <div className={styles.movementData}>
-              <span><b>{readinessValue(String(arrivalCount))}</b> arrivée{arrivalCount > 1 ? "s" : ""}</span>
-              <span><b>{readinessValue(String(departureCount))}</b> départ{departureCount > 1 ? "s" : ""}</span>
+              <span><b>{arrivalCount}</b> arrivée{arrivalCount > 1 ? "s" : ""}</span>
+              <span><b>{departureCount}</b> départ{departureCount > 1 ? "s" : ""}</span>
             </div>
             <Link href="/dashboard/owner/planning" className={styles.textLink}>
               Voir le planning <ArrowRight size={14} aria-hidden="true" />
             </Link>
           </div>
         </section>
-      ) : (
+      ) : isEmptyPark ? (
         <section className={styles.emptyPark} aria-labelledby="empty-park-title">
           <ClipboardCheck aria-hidden="true" />
           <h2 id="empty-park-title">Commencez votre parc</h2>
           <p>Ajoutez votre premier logement pour préparer son suivi.</p>
-          <ButtonLink href={props.addHref} variant="secondary">Ajouter mon premier logement</ButtonLink>
+          <ButtonLink href={props.addHref} variant="primary">Ajouter mon premier logement</ButtonLink>
         </section>
-      )}
+      ) : null}
 
       {props.error ? (
         <div className={styles.feedback} role="alert">
@@ -304,7 +298,11 @@ export default function OwnerHousingOverview(props: Props) {
         {staysError ? (
           <div className={styles.railFeedback} role="status">
             <span>Les dates des séjours sont indisponibles.</span>
-            <Button variant="secondary" size="sm" onClick={() => setStayRefresh((value) => value + 1)}>
+            <Button variant="secondary" size="sm" onClick={() => {
+              setStaysLoading(true);
+              setStaysError(false);
+              setStayRefresh((value) => value + 1);
+            }}>
               Réessayer les séjours
             </Button>
           </div>
@@ -333,20 +331,20 @@ export default function OwnerHousingOverview(props: Props) {
         </Link>
       </section>
 
-      <section className={styles.register} aria-labelledby="housing-register-title">
+      {!isEmptyPark && !props.error && <section className={styles.register} aria-labelledby="housing-register-title">
         <div className={styles.registerHead}>
           <div>
-            <h2 id="housing-register-title">{registerHeading}</h2>
-            <p>Retrouvez les informations essentielles de chaque fiche.</p>
+            <h2 id="housing-register-title">Tous les logements</h2>
           </div>
-          <span className={styles.registerCount}>{items.length} logement{items.length > 1 ? "s" : ""} affiché{items.length > 1 ? "s" : ""}</span>
+          {!props.loading && <span className={styles.registerCount} role="status">{items.length} logement{items.length > 1 ? "s" : ""} affiché{items.length > 1 ? "s" : ""}</span>}
         </div>
 
-        <div className={styles.filterBar}>
+        {!props.loading && <div className={styles.filterBar}>
           <label className={styles.searchField}>
             <Search size={16} aria-hidden="true" />
             <Input
               bare
+              ref={searchInputRef}
               aria-label="Rechercher un logement"
               placeholder="Rechercher un logement ou une ville…"
               value={search}
@@ -357,6 +355,7 @@ export default function OwnerHousingOverview(props: Props) {
           <div className={styles.filterTabs} aria-label="Filtrer les logements">
             <Link
               href="/dashboard/owner/logements"
+              aria-current={!props.isReviewMode ? "page" : undefined}
               className={`${styles.filterTab} ${!props.isReviewMode ? styles.activeFilter : ""}`}
               onClick={() => props.onFilter("")}
             >
@@ -364,35 +363,39 @@ export default function OwnerHousingOverview(props: Props) {
             </Link>
             <Link
               href="/dashboard/owner/logements?filter=review"
+              aria-current={props.isReviewMode ? "page" : undefined}
               className={`${styles.filterTab} ${props.isReviewMode ? styles.activeFilter : ""}`}
               onClick={() => props.onFilter("review")}
             >
               À revoir ({props.reviewCount})
             </Link>
           </div>
-        </div>
+        </div>}
 
         {props.loading ? (
           <div className={styles.loadingState} role="status">
-            <span>Chargement des logements...</span>
+            <span>Chargement des logements…</span>
             <div className={styles.cardSkeletons} aria-hidden="true">
               <div /><div />
             </div>
           </div>
-        ) : props.error ? null : items.length > 0 ? (
+        ) : items.length > 0 ? (
           <div className={styles.cards}>{props.renderCards(items, nextStay, props.isReviewMode ? undefined : addCard)}</div>
         ) : (
           <div className={styles.emptyResults}>
             <ClipboardCheck aria-hidden="true" />
-            <h3>{props.isReviewMode && props.total > 0 ? "Aucune fiche n’est à revoir." : "Aucun logement trouvé"}</h3>
+            <h3>{normalized ? "Aucun résultat pour cette recherche" : "Aucune fiche n’est à revoir."}</h3>
             <p>
-              {props.isReviewMode && props.total > 0
-                ? "Toutes les fiches de votre parc sont à jour."
-                : props.total > 0
-                  ? "Modifiez votre recherche ou consultez tous les logements."
-                  : "Ajoutez votre premier logement pour préparer son suivi."}
+              {normalized ? "Essayez un autre nom ou une autre ville." : "Toutes les fiches de votre parc sont à jour."}
             </p>
-            {props.isReviewMode && props.total > 0 ? (
+            {normalized ? (
+              <Button variant="secondary" onClick={() => {
+                setSearch("");
+                searchInputRef.current?.focus();
+              }}>
+                Réinitialiser la recherche
+              </Button>
+            ) : (
               <ButtonLink
                 href="/dashboard/owner/logements"
                 variant="secondary"
@@ -400,14 +403,10 @@ export default function OwnerHousingOverview(props: Props) {
               >
                 Voir tous les logements
               </ButtonLink>
-            ) : (
-              <ButtonLink href={props.total > 0 ? "/dashboard/owner/logements" : props.addHref} variant="secondary">
-                {props.total > 0 ? "Réinitialiser la recherche" : "Ajouter mon premier logement"}
-              </ButtonLink>
             )}
           </div>
         )}
-      </section>
+      </section>}
 
       <footer className={styles.help}>
         <div>

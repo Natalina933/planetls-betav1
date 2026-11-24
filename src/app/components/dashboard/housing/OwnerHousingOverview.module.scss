@@ -453,8 +453,9 @@
   color: var(--housing-ink);
 }
 
-.searchInput:focus-visible {
-  outline: none !important;
+.searchField:has(.searchInput:focus-visible) {
+  outline: var(--ds-focus-outline);
+  outline-offset: 3px;
 }
 
 .filterTabs {
@@ -484,7 +485,8 @@
   color: var(--housing-green-strong);
 }
 
-.activeFilter {
+.activeFilter,
+.activeFilter:hover {
   border-color: var(--housing-green);
   background: var(--housing-green);
   color: var(--ds-color-text-inverse);
@@ -710,14 +712,6 @@
   flex: 0 0 auto;
 }
 
-.skeletonValue {
-  color: transparent;
-  border-radius: var(--ds-radius-sm);
-  background: linear-gradient(90deg, var(--housing-surface-soft), var(--housing-border) 50%, var(--housing-surface-soft));
-  background-size: 200% 100%;
-  animation: housing-skeleton 1.3s ease-in-out infinite;
-}
-
 @keyframes housing-skeleton {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
@@ -733,7 +727,7 @@
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 800px) {
   .page {
     gap: var(--ds-space-5);
     padding: var(--ds-space-5) var(--ds-space-4) 6rem;
@@ -909,8 +903,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .staySkeletons span,
-  .cardSkeletons div,
-  .skeletonValue {
+  .cardSkeletons div {
     animation: none;
   }
 }

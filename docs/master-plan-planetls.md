@@ -8176,3 +8176,10 @@ Prochaine étape recommandée : ouvrir ensuite un lot distinct soit sur le regro
 
 - La branche locale `feature/planetls-p2-qualite-ux` part de la branche de développement complète à `3b6be5a3`. Le correctif conciergerie isole les erreurs du panneau des demandes, conserve les autres panneaux et propose une relance ciblée. Les deux scénarios associés sont repris du candidat.
 - Décision : conserver la branche complète et le candidat sélectif comme références locales. La publication de la branche complète est suspendue à cause des artefacts déjà commités et du risque d'exposition des sollicitations partielles en preview. Le verdict de lancement reste **NO-GO**. Aucun statut, aucune priorité et aucun indicateur canonique déplacé.
+
+
+### P2-01 — Navigation et logements propriétaire — 24 novembre 2026
+
+- `PLS-DEV-003` et `PLS-DEV-026` : ouverture du tiroir propriétaire avec focus sur son bouton de fermeture, tabulation dans le tiroir et restitution du focus à la fermeture. L’organisation, les intitulés de navigation, les routes et le comportement desktop existants sont conservés.
+- Mes logements : séparation du chargement, de l’erreur et du parc vide, un seul appel à l’ajout pour le premier logement, réinitialisation réelle de la recherche avec retour du focus, filtre actif annoncé et contour clavier visible. La composition mobile s’étend à la tablette étroite. Les cartes, les données et les actions métier existantes sont conservées.
+- Preuves locales : 9 tests ciblés réussis, SCSS compilé et ESLint ciblé réussi après rétablissement de l’installation locale. Les scénarios Playwright couvrent aussi les états du parc, la recherche et le clavier. La première exécution navigateur a été bloquée par une installation Next.js locale en cours de modification. Aucune validation en session réelle, aucune modification des API, des permissions, des migrations ou des sources Supabase. Statuts et priorités inchangés ; **NO-GO** maintenu.

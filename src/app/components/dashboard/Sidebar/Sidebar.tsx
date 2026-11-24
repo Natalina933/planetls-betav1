@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
 import { FiX, FiChevronRight } from "react-icons/fi";
@@ -51,6 +51,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
   const [ownerGroup, setOwnerGroup] = useState<{ key: string; label: string | null } | null>(null);
   const isConciergeWorkspace = conciergeBranding || userType?.toLowerCase().includes("concierge") || false;
   const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const ownerDrawerOpen = userType === "owner" && isMobileViewport && isOpen;
   const [notificationCounts, setNotificationCounts] = useState<Record<string, number>>({});
   const [refreshTick, setRefreshTick] = useState(0);
   const isNocturneConcierge = isConciergeWorkspace && theme === "mucha-dark";
@@ -131,6 +133,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
   }, [isOpen, isMobileViewport]);
 
   useEffect(() => {
+    if (!ownerDrawerOpen) return;
+    const previousFocus = document.activeElement;
+    closeButtonRef.current?.focus();
+    return () => {
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
+    };
+  }, [ownerDrawerOpen]);
+
+  useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape" && isOpen) {
         toggleSidebar();
@@ -183,6 +194,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
         aria-label="Sidebar"
         data-compact={compact ? "" : undefined}
         inert={isMobileViewport && !isOpen ? true : undefined}
+        onKeyDown={ownerDrawerOpen ? (event) => {
+          if (event.key !== "Tab") return;
+          const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>("a[href], button:not(:disabled)"))
+            .filter((item) => item.tabIndex >= 0 && !item.closest("[inert]") && item.getClientRects().length > 0);
+          const first = controls[0];
+          const last = controls.at(-1);
+          if (event.shiftKey ? event.target === first : event.target === last) {
+            event.preventDefault();
+            (event.shiftKey ? last : first)?.focus();
+          }
+        } : undefined}
       >
         {isNocturneConcierge && <ConciergeOrnament kind="frieze" className={styles.conciergeFrieze} />}
         <div className={styles.header}>
@@ -204,6 +226,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
           )}
           <button
             type="button"
+            ref={closeButtonRef}
             onClick={toggleSidebar}
             className={styles.closeBtn}
             aria-label={compact ? "Déployer la sidebar" : "Fermer la sidebar"}
