@@ -62,6 +62,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, className = ""
     userType && sidebarConfig[userType as keyof typeof sidebarConfig]
       ? sidebarConfig[userType as keyof typeof sidebarConfig]
       : [];
+
+// Ajout P2-02 : lien planification artisan dans le menu propriétaire
+if (userType === "owner") {
+  const artisanPlanningItem = menuItems.find((item) => item.label === "Planification");
+  if (!artisanPlanningItem) {
+    menuItems.push({
+      label: "Planification",
+      path: "/dashboard/artisan/planning",
+      icon: Calendar,
+      section: "P2-02",
+    });
+  }
+}
   const conciergeActiveLabel = getConciergeActiveLabel(menuItems, pathname, query);
   const ownerActivePath = userType === "owner" ? getOwnerActivePath(menuItems, pathname, query) : undefined;
   const activeGroup = menuItems.find(item => item.children && (item.path === ownerActivePath || item.children.some(child => child.path === ownerActivePath)))?.label;
