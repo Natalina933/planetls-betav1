@@ -2,7 +2,7 @@
  * Page de planification artisan accessible depuis le dashboard
  */
 
-import { PlanningArtisan } from "@/components/dashboard/artisan/PlanningArtisan";
+import { PlanningArtisan } from "./PlanningArtisan";
 
 export default function ArtisanPlanningPage() {
   return <PlanningArtisan />;

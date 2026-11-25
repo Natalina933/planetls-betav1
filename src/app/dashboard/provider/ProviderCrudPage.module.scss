@@ -325,6 +325,7 @@
 .calendarHeader {
   display: grid;
   gap: 0.35rem;
+  min-width: 0;
   padding: var(--ds-space-3);
   border-radius: 14px;
 }
@@ -352,6 +353,8 @@
 }
 
 .calendarEvent {
+  min-width: 0;
+  overflow-wrap: anywhere;
   padding: 0.35rem var(--ds-space-2);
   border-radius: 10px;
   background: rgba(138, 161, 109, 0.14);
@@ -439,16 +442,32 @@
     grid-template-columns: 1fr;
   }
 
-  .weekBoard,
-  .calendarGrid {
+  .weekBoard {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 640px) {
-  .weekBoard,
-  .calendarGrid {
+  .weekBoard {
     grid-template-columns: 1fr;
+  }
+
+  .calendarGrid {
+    gap: var(--ds-space-1);
+  }
+
+  .calendarCell,
+  .calendarHeader {
+    padding: var(--ds-space-1);
+    border-radius: var(--ds-radius-control);
+  }
+
+  .calendarHeader {
+    font-size: var(--ds-text-xs);
+  }
+
+  .calendarEvent {
+    padding-inline: var(--ds-space-1);
   }
 }
 

@@ -58,6 +58,7 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export default function LoginPage() {
   const emailRef = useRef<HTMLInputElement | null>(null);
   const passwordRef = useRef<HTMLInputElement | null>(null);
+  const workspaceModeRef = useRef(false);
 
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState<{ email?: string; password?: string; auth?: string }>({});
@@ -65,14 +66,20 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [quickWorkspaces, setQuickWorkspaces] = useState<QuickWorkspace[]>([]);
   const [preparingWorkspace, setPreparingWorkspace] = useState<WorkspaceKey | null>(null);
+  const [workspaceMode, setWorkspaceMode] = useState<WorkspaceKey | null>(null);
   const [selectedWorkspace, setSelectedWorkspace] = useState<WorkspaceKey | null>(null);
   const [quickLoginMessage, setQuickLoginMessage] = useState("");
   const [socialProviders, setSocialProviders] = useState<SocialProvider[]>([]);
   const [socialLoadingProvider, setSocialLoadingProvider] = useState<string | null>(null);
 
   const prepareWorkspaceCredentials = async (workspace: WorkspaceKey) => {
+    workspaceModeRef.current = true;
+    setWorkspaceMode(workspace);
     setPreparingWorkspace(workspace);
     setSelectedWorkspace(null);
+    setFormData({ email: "", password: "" });
+    setErrors({});
+    setShowPassword(false);
     setQuickLoginMessage("");
 
     try {
@@ -83,10 +90,10 @@ export default function LoginPage() {
       });
       const payload = (await response.json().catch(() => ({}))) as {
         email?: string;
-        label?: string;
+        workspace?: WorkspaceKey;
       };
 
-      if (!response.ok || !payload.email) {
+      if (!response.ok || payload.workspace !== workspace || !payload.email) {
         throw new Error("Compte de travail indisponible");
       }
 
@@ -94,12 +101,12 @@ export default function LoginPage() {
       setErrors({});
       setSelectedWorkspace(workspace);
       setQuickLoginMessage(
-        "Les identifiants de démonstration sont prêts.",
+        "L’adresse de cet espace est prête. Saisissez le mot de passe du compte.",
       );
       window.history.replaceState(null, "", `/login?workspace=${workspace}`);
     } catch {
       setQuickLoginMessage(
-        "Impossible de préparer cet espace. Veuillez réessayer.",
+        "Impossible de préremplir cet espace. Saisissez les identifiants du compte souhaité.",
       );
     } finally {
       setPreparingWorkspace(null);
@@ -107,7 +114,10 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
+    const requestedWorkspace = new URLSearchParams(window.location.search).get("workspace");
+    if (requestedWorkspace && Object.hasOwn(workspacePresentation, requestedWorkspace)) return;
     const syncAutofilledValues = () => {
+      if (workspaceModeRef.current) return;
       const email = emailRef.current?.value ?? "";
       const password = passwordRef.current?.value ?? "";
 
@@ -150,18 +160,31 @@ export default function LoginPage() {
     let cancelled = false;
 
     async function loadQuickWorkspaces() {
+      const requested = new URLSearchParams(window.location.search).get("workspace");
+      const workspace = requested && Object.hasOwn(workspacePresentation, requested)
+        ? requested as WorkspaceKey
+        : null;
+      if (workspace) {
+        workspaceModeRef.current = true;
+        setWorkspaceMode(workspace);
+        setPreparingWorkspace(workspace);
+        setFormData({ email: "", password: "" });
+      }
       const response = await fetch("/api/auth/dev-workspace-login", { cache: "no-store" }).catch(
         () => null,
       );
-      if (!response?.ok) return;
-
-      const payload = (await response.json()) as { workspaces?: QuickWorkspace[] };
-      if (cancelled || !Array.isArray(payload.workspaces)) return;
-      setQuickWorkspaces(payload.workspaces);
-
-      const requestedWorkspace = new URLSearchParams(window.location.search).get("workspace");
-      const workspace = payload.workspaces.find((item) => item.key === requestedWorkspace)?.key;
-      if (workspace) await prepareWorkspaceCredentials(workspace);
+      const payload = (response?.ok ? await response.json().catch(() => null) : null) as
+        { workspaces?: QuickWorkspace[] } | null;
+      if (cancelled) return;
+      const workspaces = Array.isArray(payload?.workspaces) ? payload.workspaces : [];
+      setQuickWorkspaces(workspaces);
+      if (!workspace) return;
+      if (workspaces.some((item) => item.key === workspace)) {
+        await prepareWorkspaceCredentials(workspace);
+      } else {
+        setPreparingWorkspace(null);
+        setQuickLoginMessage(`Préremplissage indisponible. Saisissez les identifiants de votre compte ${workspacePresentation[workspace].label}.`);
+      }
     }
 
     void loadQuickWorkspaces();
@@ -189,16 +212,16 @@ export default function LoginPage() {
     return null;
   };
 
-  const resolveRoleFromLoginApi = async (): Promise<string | null> => {
+  const resolveRoleFromLoginApi = async (email: string, password: string): Promise<string | null> => {
     console.info("[LoginPage] resolving role from fallback login api", {
-      email: maskEmail(formData.email),
+      email: maskEmail(email),
     });
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        email: formData.email,
-        password: formData.password,
+        email,
+        password,
       }),
     });
 
@@ -245,6 +268,7 @@ export default function LoginPage() {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    if (name === "email" && selectedWorkspace) return;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
     if (name === "email") {
@@ -269,9 +293,10 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (preparingWorkspace || loading) return;
 
-    const email = emailRef.current?.value?.trim() ?? formData.email.trim();
-    const password = passwordRef.current?.value ?? formData.password;
+    const email = (workspaceModeRef.current ? formData.email : emailRef.current?.value ?? formData.email).trim();
+    const password = workspaceModeRef.current ? formData.password : passwordRef.current?.value ?? formData.password;
     const nextErrors = {
       email: validateEmail(email) ? "" : "Email invalide",
       password: password.length >= 8 ? "" : "Minimum 8 caractères",
@@ -317,7 +342,7 @@ export default function LoginPage() {
         let role = await resolveRoleFromSession();
 
         if (!role) {
-          role = await resolveRoleFromLoginApi();
+          role = await resolveRoleFromLoginApi(email, password);
         }
 
         const targetPath = getDashboardPathFromRole(role);
@@ -351,8 +376,9 @@ export default function LoginPage() {
             <Image
               src="/logo/Logo%20PlanetLS%20_%20globe%20dor%C3%A9%20et%20%C3%A9l%C3%A9gance%20verte.png"
               alt="Planet LS"
-              width={178}
-              height={54}
+              width={2172}
+              height={724}
+              sizes="178px"
               className={styles.logo}
               priority
             />
@@ -472,15 +498,15 @@ export default function LoginPage() {
                     </Button>
                   ))}
                 </div>
-                {quickLoginMessage ? (
+              </section>
+            ) : null}
+            {quickLoginMessage ? (
                   <p className={styles.quickAccessMessage} role="status">
                     {selectedWorkspace ? (
                       <span>✓ Espace {workspacePresentation[selectedWorkspace].label} sélectionné</span>
                     ) : null}
                     <span>{quickLoginMessage}</span>
                   </p>
-                ) : null}
-              </section>
             ) : null}
 
             <label htmlFor="email" className={styles.fieldLabel}>
@@ -488,6 +514,7 @@ export default function LoginPage() {
             </label>
             <div className={styles.inputWrapper}>
               <Input
+                key={workspaceMode ?? "login"}
                 bare
                 suppressHydrationWarning
                 ref={emailRef}
@@ -499,7 +526,9 @@ export default function LoginPage() {
                 placeholder="you@example.com"
                 aria-invalid={!!errors.email}
                 required
-                autoComplete="email"
+                autoComplete={workspaceMode ? "off" : "email"}
+                readOnly={selectedWorkspace !== null}
+                disabled={preparingWorkspace !== null}
                 className={errors.email ? styles.inputError : styles.input}
               />
               {formData.email && (
@@ -519,6 +548,7 @@ export default function LoginPage() {
             </label>
             <div className={styles.passwordInputWrapper}>
               <Input
+                key={workspaceMode ?? "login"}
                 bare
                 ref={passwordRef}
                 id="password"
@@ -530,7 +560,8 @@ export default function LoginPage() {
                 aria-invalid={!!errors.password}
                 required
                 minLength={8}
-                autoComplete="current-password"
+                autoComplete={workspaceMode ? "new-password" : "current-password"}
+                disabled={preparingWorkspace !== null}
                 className={errors.password ? styles.inputError : styles.input}
               />
               <Button
@@ -560,7 +591,7 @@ export default function LoginPage() {
               type="submit"
               variant="primary"
               size="lg"
-              disabled={!canSubmit() || loading}
+              disabled={!canSubmit() || loading || preparingWorkspace !== null}
               className={styles.submitButton}
               aria-busy={loading}
             >

@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
 import { FiX, FiChevronRight } from "react-icons/fi";
+import { Calendar } from "lucide-react";
 import { useTheme } from "@/app/providers/ThemeProvider";
 import { getConciergeActiveLabel } from "./conciergeNavigation";
 import { ConciergeSidebarLink } from "./ConciergeSidebarLink";
