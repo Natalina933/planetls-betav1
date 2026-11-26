@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { getProviderInterventionHref } from "../interventionLinks";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import { formatDateValue } from "@/app/utils/formatters";
 import { AsyncState, ButtonLink, TabButton } from "@/components/ui";
@@ -215,7 +216,7 @@ export default function ProviderPlanningPage() {
                     <div className={styles.itemHead}>
                       <div>
                         <h3>
-                          <Link href="/dashboard/provider/interventions" className={styles.weekEventTitle}>
+                          <Link href={getProviderInterventionHref(item.id)} className={styles.weekEventTitle}>
                             {item.title}
                           </Link>
                         </h3>
@@ -275,7 +276,7 @@ export default function ProviderPlanningPage() {
                             </strong>
                             <WorkflowStatusBadge value={item.priority || "normal"} />
                           </div>
-                          <Link href="/dashboard/provider/interventions" className={styles.weekEventTitle}>
+                          <Link href={getProviderInterventionHref(item.id)} className={styles.weekEventTitle}>
                             {item.title}
                           </Link>
                           <div className={styles.inlineBadge}>
@@ -306,7 +307,7 @@ export default function ProviderPlanningPage() {
                     {takeFirst(cell.events, 2).map((item) => (
                       <Link
                         key={item.id}
-                        href="/dashboard/provider/interventions"
+                        href={getProviderInterventionHref(item.id)}
                         className={styles.calendarEvent}
                       >
                         {item.title}

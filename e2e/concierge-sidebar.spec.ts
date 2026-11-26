@@ -303,3 +303,80 @@ test.describe("Régression sidebar artisan", () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 });
+
+test.describe("P2-05 artisan", () => {
+  test.use({ workspaceRole: "provider" });
+
+  test("le planning ouvre la bonne intervention et reste lisible sur le terrain", async ({ page }, testInfo) => {
+    const start = new Date();
+    start.setDate(start.getDate() + 1);
+    start.setHours(10, 0, 0, 0);
+    const end = new Date(start.getTime() + 3600000);
+    const item = {
+      id: "porte-reperage",
+      title: "Réglage de la porte",
+      status: "accepted",
+      priority: "high",
+      location_label: "Résidence des Pins",
+      scheduled_start: start.toISOString(),
+      scheduled_end: end.toISOString(),
+      created_at: start.toISOString(),
+      budget_amount: null,
+    };
+    await page.route("**/api/provider/interventions", route => route.fulfill({ json: {
+      items: [item, { ...item, id: "autre", title: "Autre intervention", scheduled_start: null, scheduled_end: null }],
+      summary: { total: 2, in_progress: 0, pending: 0, completed: 0 },
+    } }));
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/dashboard/provider/planning", { waitUntil: "domcontentloaded" });
+    const upcoming = page.getByRole("link", { name: "Réglage de la porte", exact: true });
+    await expect(upcoming).toHaveAttribute("href", "/dashboard/provider/interventions?intervention=porte-reperage#liste-interventions");
+    await upcoming.press("Enter");
+    await expect(page).toHaveURL(/\/interventions\?intervention=porte-reperage#liste-interventions$/);
+    const list = page.locator("#liste-interventions");
+    await expect(list.getByRole("heading", { name: "Réglage de la porte" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Ajouter une intervention" })).toHaveCount(0);
+    await expect(list.getByRole("heading", { name: "Autre intervention" })).toHaveCount(0);
+    await expect(list.getByText("Acceptée", { exact: true }).first()).toBeVisible();
+    await expect(list.getByText("Résidence des Pins", { exact: true })).toBeVisible();
+    await expect(list.getByText(/^Fin ·/)).toBeVisible();
+    await expect(page.getByRole("complementary", { name: "Sidebar" }).getByRole("link", { name: "Toutes les interventions" })).toHaveClass(/active/);
+    for (const width of [1440, 768, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      const edit = list.getByRole("button", { name: "Modifier", exact: true });
+      await edit.scrollIntoViewIfNeeded();
+      await edit.focus();
+      await expect(edit).toBeFocused();
+      await expect(edit).toBeInViewport();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await page.screenshot({ path: testInfo.outputPath(`intervention-${width}.png`), animations: "disabled" });
+    }
+    await list.getByRole("button", { name: "Modifier", exact: true }).press("Enter");
+    await expect(page.getByRole("heading", { name: "Modifier une intervention" })).toBeFocused();
+    await page.getByRole("button", { name: "Annuler", exact: true }).press("Enter");
+    await expect(list.getByRole("heading", { name: "Intervention sélectionnée" })).toBeFocused();
+    await list.getByRole("link", { name: "Toutes les interventions" }).press("Enter");
+    await expect(list.getByRole("heading", { name: "Autre intervention" })).toBeVisible();
+  });
+
+  test("les lectures en échec ne se présentent pas comme une liste vide", async ({ page }) => {
+    await page.route("**/api/provider/workspace", route => route.fulfill({ json: {
+      profile: { first_name: "Sophie" },
+      summary: { is_pro: false },
+    } }));
+    let unavailable = true;
+    await page.route("**/api/provider/interventions", route => unavailable
+      ? route.fulfill({ status: 503, json: { error: "Interventions indisponibles" } })
+      : route.fulfill({ json: { items: [], summary: { total: 0, in_progress: 0, pending: 0, completed: 0 } } }));
+    await page.goto("/dashboard/provider", { waitUntil: "domcontentloaded" });
+    await expect(page.getByText("Indicateurs temporairement indisponibles")).toBeVisible();
+    await expect(page.getByText("Interventions à venir", { exact: true })).toHaveCount(0);
+    await page.goto("/dashboard/provider/interventions", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("alert").filter({ hasText: "Interventions indisponibles" })).toBeVisible();
+    await expect(page.getByText("Aucune intervention pour le moment.")).toHaveCount(0);
+    unavailable = false;
+    await page.getByRole("button", { name: "Réessayer", exact: true }).click();
+    await expect(page.getByText("Aucune intervention pour le moment.")).toBeVisible();
+    await expect(page.getByText("0 intervention", { exact: true }).first()).toBeVisible();
+  });
+});

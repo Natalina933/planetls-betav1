@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { getProviderInterventionHref } from "../app/dashboard/provider/interventionLinks.ts";
 import {
   formatInterventionCount,
   getMonthDates,
@@ -20,6 +21,13 @@ test("les compteurs accordent le libellé intervention", () => {
     "1 intervention",
     "2 interventions",
   ]);
+});
+
+test("les raccourcis ouvrent l’intervention sélectionnée à la liste", () => {
+  const url = new URL(getProviderInterventionHref("id&autre#détail"), "https://example.test");
+  assert.equal(url.pathname, "/dashboard/provider/interventions");
+  assert.equal(url.searchParams.get("intervention"), "id&autre#détail");
+  assert.equal(url.hash, "#liste-interventions");
 });
 
 test("la grille mensuelle inclut tous les jours des mois qui occupent six semaines", () => {

@@ -1,8 +1,10 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
+import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+import { formatInterventionCount } from "../planning/presentation";
 import styles from "../ProviderCrudPage.module.scss";
 
 type ProviderClient = {
@@ -130,6 +132,8 @@ function toFormState(item: ProviderIntervention): InterventionFormState {
 function ProviderInterventionsContent() {
   const searchParams = useSearchParams();
   const targetInterventionId = searchParams.get("intervention");
+  const formHeadingRef = useRef<HTMLHeadingElement>(null);
+  const listHeadingRef = useRef<HTMLHeadingElement>(null);
   const [data, setData] = useState<ProviderInterventionsPayload | null>(null);
   const [clients, setClients] = useState<ProviderClient[]>([]);
   const [form, setForm] = useState<InterventionFormState>(defaultForm);
@@ -139,18 +143,19 @@ function ProviderInterventionsContent() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [quickUpdatingId, setQuickUpdatingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ key: "", page: 1 });
 
   async function loadInterventions() {
     try {
       setLoading(true);
-      setError(null);
+      setLoadError(null);
 
       const [interventionsResponse, clientsResponse] = await Promise.all([
         fetch("/api/provider/interventions", { cache: "no-store" }),
@@ -176,14 +181,15 @@ function ProviderInterventionsContent() {
       setClients(clientItems);
       setForm((current) => ({ ...current, client_id: current.client_id || clientItems[0]?.id || "" }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de charger les interventions.");
+      setLoadError(err instanceof Error ? err.message : "Impossible de charger les interventions.");
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    void loadInterventions();
+    const timer = window.setTimeout(() => void loadInterventions(), 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -198,7 +204,7 @@ function ProviderInterventionsContent() {
     const items = data?.items ?? [];
     const normalizedSearch = searchTerm.trim().toLowerCase();
     const next = items.filter((item) => {
-      if (targetInterventionId && item.id !== targetInterventionId) return false;
+      if (targetInterventionId) return item.id === targetInterventionId;
 
       const matchesStatus = statusFilter === "all" || (item.status ?? "pending") === statusFilter;
       if (!matchesStatus) return false;
@@ -239,20 +245,16 @@ function ProviderInterventionsContent() {
 
     return next;
   }, [data?.items, searchTerm, statusFilter, sortBy, clientsById, dateFrom, dateTo, targetInterventionId]);
-  const targetedIntervention = useMemo(
-    () => (data?.items ?? []).find((item) => item.id === targetInterventionId) ?? null,
-    [data?.items, targetInterventionId],
-  );
+  const filterKey = JSON.stringify([searchTerm, statusFilter, sortBy, dateFrom, dateTo, targetInterventionId]);
   const pageSize = 6;
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+  const page = pagination.key === filterKey ? Math.min(pagination.page, totalPages) : 1;
+  const showForm = !targetInterventionId || editingId === targetInterventionId;
   const paginatedItems = useMemo(
     () => filteredItems.slice((page - 1) * pageSize, page * pageSize),
     [filteredItems, page],
   );
 
-  useEffect(() => {
-    setPage(1);
-  }, [searchTerm, statusFilter, sortBy, dateFrom, dateTo, targetInterventionId]);
 
   function handleExportCsv() {
     const rows = [
@@ -280,9 +282,6 @@ function ProviderInterventionsContent() {
     URL.revokeObjectURL(url);
   }
 
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [page, totalPages]);
 
   function resetForm() {
     setEditingId(null);
@@ -405,28 +404,30 @@ function ProviderInterventionsContent() {
             <h1>Interventions</h1>
             <p>Pilotez vos missions client, leur statut, leur priorité et leur budget prévisionnel.</p>
           </div>
-          <div className={styles.metrics}>
-            <span>{data?.summary.total ?? 0} interventions</span>
-            <span>{data?.summary.in_progress ?? 0} en cours</span>
-            <span>{data?.summary.pending ?? 0} en attente</span>
-          </div>
+          {data && !loading && !loadError && !targetInterventionId ? (
+            <div className={styles.metrics}>
+              <span>{formatInterventionCount(data.summary.total)}</span>
+              <span>{data.summary.in_progress} en cours</span>
+              <span>{data.summary.pending} en attente</span>
+            </div>
+          ) : null}
         </header>
 
         {success ? <p className={styles.successBox} role="status">{success}</p> : null}
         {error ? <p className={styles.errorBox} role="alert">{error}</p> : null}
-        {!error && data?.note ? <p className={styles.infoBox}>{data.note}</p> : null}
-        {targetedIntervention ? (
-          <p className={styles.infoBox}>
-            Focus sur {targetedIntervention.title || "l'intervention sélectionnée"}.
-          </p>
-        ) : null}
+        {!error && !loadError && data?.note ? <p className={styles.infoBox}>{data.note}</p> : null}
 
-        <div className={styles.layout}>
-          <section className={styles.panel}>
+        <div className={showForm ? styles.layout : undefined}>
+          {showForm ? <section className={styles.panel}>
             <div className={styles.panelHeader}>
-              <h2>{editingId ? "Modifier une intervention" : "Ajouter une intervention"}</h2>
+              <h2 ref={formHeadingRef} tabIndex={-1} className={styles.interventionAnchor}>
+                {editingId ? "Modifier une intervention" : "Ajouter une intervention"}
+              </h2>
               {editingId ? (
-                <Button type="button" variant="secondary" size="sm" className={styles.actionButton} onClick={resetForm}>
+                <Button type="button" variant="secondary" size="sm" className={styles.actionButton} onClick={() => {
+                  resetForm();
+                  if (targetInterventionId) requestAnimationFrame(() => listHeadingRef.current?.focus());
+                }}>
                   Annuler
                 </Button>
               ) : null}
@@ -516,14 +517,14 @@ function ProviderInterventionsContent() {
                 className={[styles.fieldTextarea, styles.fullWidth].join(" ")}
                 value={form.completion_summary}
                 onChange={(event) => updateField("completion_summary", event.target.value)}
-                placeholder="Synthese de fin d'intervention"
+                placeholder="Synthèse de fin d’intervention"
               />
               <Textarea
-                label="Travaux realises"
+                label="Travaux réalisés"
                 className={[styles.fieldTextarea, styles.fullWidth].join(" ")}
                 value={form.work_performed}
                 onChange={(event) => updateField("work_performed", event.target.value)}
-                placeholder="Actions effectuees, pieces remplacees, controles..."
+                placeholder="Actions effectuées, pièces remplacées, contrôles…"
               />
               <label className={[styles.checkboxLine, styles.fullWidth].join(" ")}>
                 <input
@@ -531,14 +532,14 @@ function ProviderInterventionsContent() {
                   checked={form.follow_up_required}
                   onChange={(event) => updateField("follow_up_required", event.target.checked)}
                 />
-                Suivi requis apres intervention
+                Suivi requis après intervention
               </label>
               <Textarea
-                label="Suivi a prevoir"
+                label="Suivi à prévoir"
                 className={[styles.fieldTextarea, styles.fullWidth].join(" ")}
                 value={form.follow_up_notes}
                 onChange={(event) => updateField("follow_up_notes", event.target.value)}
-                placeholder="Point a revoir, achat a valider, retour owner..."
+                placeholder="Point à revoir, achat à valider, retour du propriétaire…"
               />
               <div className={styles.formActions}>
                 <Button type="submit" disabled={!canSubmit || saving}>
@@ -549,15 +550,21 @@ function ProviderInterventionsContent() {
                 </ButtonLink>
               </div>
             </form>
-          </section>
+          </section> : null}
 
-          <section className={styles.panel}>
+          <section id="liste-interventions" className={`${styles.panel} ${styles.interventionAnchor}`}>
             <div className={styles.panelHeader}>
-              <h2>Planning d&apos;interventions</h2>
-              <span>{loading ? "..." : `${filteredItems.length} mission(s)`}</span>
+              <h2 ref={listHeadingRef} tabIndex={-1} className={styles.interventionAnchor}>
+                {targetInterventionId ? "Intervention sélectionnée" : "Toutes les interventions"}
+              </h2>
+              {!loading && !loadError && data ? <span>{formatInterventionCount(filteredItems.length)}</span> : null}
+            </div>
+            <div className={styles.formActions}>
+              <ButtonLink href="/dashboard/provider/planning" variant="secondary" size="compact">Ouvrir le planning</ButtonLink>
+              {targetInterventionId ? <ButtonLink href="/dashboard/provider/interventions#liste-interventions" variant="secondary" size="compact">Toutes les interventions</ButtonLink> : null}
             </div>
 
-            <div className={styles.toolbar}>
+            {!targetInterventionId ? <div className={styles.toolbar}>
               <div className={styles.toolbarGroup}>
                 <Input
                   bare
@@ -617,9 +624,9 @@ function ProviderInterventionsContent() {
                   Export CSV
                 </Button>
               </div>
-            </div>
+            </div> : null}
 
-            <div className={styles.counterRow}>
+            {!loading && !loadError && data && !targetInterventionId ? <div className={styles.counterRow}>
               <span className={styles.counter}>{filteredItems.length} résultats</span>
               <span className={styles.counter}>
                 {filteredItems.filter((item) => (item.status ?? "pending") === "in_progress").length} en cours
@@ -627,12 +634,26 @@ function ProviderInterventionsContent() {
               <span className={styles.counter}>
                 {filteredItems.filter((item) => item.priority === "urgent" || item.priority === "high").length} prioritaires
               </span>
-            </div>
+            </div> : null}
 
-            {loading ? <p className={styles.emptyState}>Chargement des interventions...</p> : null}
-            {!loading && filteredItems.length === 0 ? <p className={styles.emptyState}>Aucune intervention ne correspond au filtre actuel.</p> : null}
+            {loading ? <p className={styles.emptyState} role="status">Chargement des interventions…</p> : null}
+            {!loading && loadError ? (
+              <div className={styles.formActions}>
+                <p className={styles.errorBox} role="alert">{loadError}</p>
+                <Button type="button" variant="secondary" onClick={() => void loadInterventions()}>Réessayer</Button>
+              </div>
+            ) : null}
+            {!loading && !loadError && data && filteredItems.length === 0 ? (
+              <p className={styles.emptyState}>
+                {targetInterventionId
+                  ? "Cette intervention est introuvable dans votre liste."
+                  : data.items.length === 0
+                    ? "Aucune intervention pour le moment."
+                    : "Aucune intervention ne correspond aux filtres."}
+              </p>
+            ) : null}
 
-            {!loading && filteredItems.length > 0 ? (
+            {!loading && !loadError && filteredItems.length > 0 ? (
               <div className={styles.cardList}>
                 {paginatedItems.map((item) => {
                   const client = item.client_id ? clientsById.get(item.client_id) : null;
@@ -646,12 +667,14 @@ function ProviderInterventionsContent() {
                           <h3>{item.title}</h3>
                           <p>{client?.client_name || item.location_label || "Sans client"}</p>
                         </div>
-                        <span className={styles.badge}>{item.status || "pending"}</span>
+                        <WorkflowStatusBadge value={item.status || "pending"} />
                       </div>
                       <div className={styles.itemMeta}>
                         <span>{item.service_label || "Service non renseigné"}</span>
-                        <span>Priorité: {item.priority || "normal"}</span>
-                        <span>Début: {formatDateTime(item.scheduled_start)}</span>
+                        <WorkflowStatusBadge value={item.priority || "normal"} />
+                        <span>Début · {formatDateTime(item.scheduled_start)}</span>
+                        {item.scheduled_end ? <span>Fin · {formatDateTime(item.scheduled_end)}</span> : null}
+                        {client && item.location_label ? <span>Lieu · {item.location_label}</span> : null}
                         <span>Budget: {item.budget_amount != null ? `${item.budget_amount} ${item.currency || "EUR"}` : "Non renseigné"}</span>
                       </div>
                       {item.description ? <p className={styles.itemBody}>{item.description}</p> : null}
@@ -690,6 +713,10 @@ function ProviderInterventionsContent() {
                           onClick={() => {
                             setEditingId(item.id);
                             setForm(toFormState(item));
+                            requestAnimationFrame(() => {
+                              formHeadingRef.current?.focus({ preventScroll: true });
+                              formHeadingRef.current?.scrollIntoView({ block: "start", behavior: "instant" });
+                            });
                           }}
                         >
                           Modifier
@@ -719,7 +746,7 @@ function ProviderInterventionsContent() {
               </div>
             ) : null}
 
-            {!loading && filteredItems.length > pageSize ? (
+            {!loading && !loadError && filteredItems.length > pageSize ? (
               <div className={styles.pagination}>
                 <Button
                   type="button"
@@ -727,7 +754,7 @@ function ProviderInterventionsContent() {
                   size="sm"
                   className={styles.paginationButton}
                   disabled={page === 1}
-                  onClick={() => setPage((current) => current - 1)}
+                  onClick={() => setPagination({ key: filterKey, page: page - 1 })}
                 >
                   Précédent
                 </Button>
@@ -740,7 +767,7 @@ function ProviderInterventionsContent() {
                   size="sm"
                   className={styles.paginationButton}
                   disabled={page === totalPages}
-                  onClick={() => setPage((current) => current + 1)}
+                  onClick={() => setPagination({ key: filterKey, page: page + 1 })}
                 >
                   Suivant
                 </Button>

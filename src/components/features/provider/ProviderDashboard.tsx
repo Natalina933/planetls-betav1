@@ -16,6 +16,8 @@ import {
   Wrench,
 } from "lucide-react";
 import { DashboardLoadingScreen } from "@/components/dashboard";
+import { Alert, ButtonLink } from "@/components/ui";
+import { getProviderInterventionHref } from "@/app/dashboard/provider/interventionLinks";
 import { formatCurrencyAmount, formatDateValue } from "@/app/utils/formatters";
 import { DashboardOnboardingSummary } from "@/features/onboarding-assistant";
 import { DashboardEmptyState, getDashboardMissionPaceMeta } from "@/app/components/dashboard/saas";
@@ -67,6 +69,11 @@ function isWithinNextDays(value: string | null | undefined, days: number) {
   const now = new Date();
   const max = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
   return date >= now && date <= max;
+}
+
+function isUpcoming(value: string | null | undefined) {
+  const date = getDateTime(value);
+  return date !== null && date >= new Date();
 }
 
 function getGreetingLabel() {
@@ -221,7 +228,7 @@ export default function ProviderDashboardPage() {
   const upcomingMissions = useMemo(
     () =>
       openMissions
-        .filter((item) => item.scheduled_start)
+        .filter((item) => isUpcoming(item.scheduled_start))
         .sort(
           (a, b) =>
             (getDateTime(a.scheduled_start)?.getTime() ?? 0) - (getDateTime(b.scheduled_start)?.getTime() ?? 0),
@@ -294,7 +301,7 @@ export default function ProviderDashboardPage() {
           minute: "2-digit",
           emptyLabel: "Sans date",
         }),
-        href: `/dashboard/provider/interventions?intervention=${item.id}`,
+        href: getProviderInterventionHref(item.id),
       }));
 
     const quoteActivity = quotes.slice(0, 2).map((quote) => ({
@@ -412,7 +419,7 @@ export default function ProviderDashboardPage() {
           month: "short",
           emptyLabel: "Date à confirmer",
         })}`,
-        href: `/dashboard/provider/interventions?intervention=${item.id}`,
+        href: getProviderInterventionHref(item.id),
         tone: item.priority === "urgent" ? "warning" : "accent",
         icon: <Clock3 size={16} />,
       })),
@@ -453,7 +460,23 @@ export default function ProviderDashboardPage() {
   );
 
   if (isLoading) {
-    return <DashboardLoadingScreen label="Chargement de votre cockpit provider..." />;
+    return <DashboardLoadingScreen label="Chargement de votre tableau de bord artisan…" />;
+  }
+
+  if (!dashboard?.interventionDataAvailable || !dashboard.quoteDataAvailable) {
+    return (
+      <section className={styles.sectionBlock}>
+        <h1>Tableau de bord artisan</h1>
+        <Alert tone="danger" title="Indicateurs temporairement indisponibles" announcement="assertive">
+          Les interventions ou les devis n’ont pas pu être chargés. Accédez directement à la page dont vous avez besoin.
+        </Alert>
+        <div className={styles.priorityActions}>
+          <ButtonLink href="/dashboard/provider/planning">Ouvrir mon planning</ButtonLink>
+          <ButtonLink href="/dashboard/provider/interventions" variant="secondary">Voir mes interventions</ButtonLink>
+          <ButtonLink href="/dashboard/provider/devis" variant="secondary">Voir devis et factures</ButtonLink>
+        </div>
+      </section>
+    );
   }
 
   const PriorityIcon = PRIORITY_ICONS[getPriorityIconKey(priorityIntervention)];
@@ -467,30 +490,30 @@ export default function ProviderDashboardPage() {
         subtitle={error || `${ARTISAN_DASHBOARD_CONFIG.subtitle} pour ${displayName}.`}
         experienceBadge={workspace?.summary.is_pro ? "Artisan PRO" : "Artisan Standard"}
         experienceBadgeTone={workspace?.summary.is_pro ? "success" : "info"}
-        statusLabel={proposedMissions.length > 0 ? `${proposedMissions.length} mission(s) a repondre` : "Flux terrain sous controle"}
+        statusLabel={proposedMissions.length > 0 ? `${proposedMissions.length} à traiter` : "Aucune intervention en attente"}
         statusTone={proposedMissions.length > 0 ? "warning" : "success"}
         actions={[
           { id: "planning", label: "Ouvrir mon planning", href: "/dashboard/provider/planning", tone: "primary" },
-          { id: "missions", label: "Voir mes missions", href: "/dashboard/provider/interventions", tone: "secondary" },
+          { id: "missions", label: "Voir mes interventions", href: "/dashboard/provider/interventions", tone: "secondary" },
           { id: "quotes", label: "Voir devis et factures", href: "/dashboard/provider/devis", tone: "ghost" },
         ]}
         kpis={[
           {
             id: "missions",
-            label: "Missions a venir",
-            value: `${acceptedMissions.length}`,
+            label: "Interventions à venir",
+            value: `${upcomingMissions.length}`,
             detail: interventionsToday.length > 0 ? `${interventionsToday.length} aujourd'hui` : "Aucune aujourd'hui",
             icon: <Wrench size={18} />,
             statusLabel: missionPaceMeta.label,
             statusTone: missionPaceMeta.tone,
             statusText: missionPaceMeta.label,
-            href: "/dashboard/provider/interventions",
+            href: "/dashboard/provider/planning",
           },
           {
             id: "quotes",
             label: "Devis en attente",
             value: `${pendingQuotes.length}`,
-            detail: "A suivre ou relancer",
+            detail: "À suivre ou relancer",
             icon: <FileText size={18} />,
             statusLabel: pendingQuotes.length > 0 ? "Action" : "A jour",
             statusTone: pendingQuotes.length > 0 ? "warning" : "success",
@@ -498,11 +521,11 @@ export default function ProviderDashboardPage() {
           },
           {
             id: "responses",
-            label: "Missions a repondre",
+            label: "Interventions à traiter",
             value: `${proposedMissions.length}`,
-            detail: "Demandent une decision",
+            detail: "Demandent une décision",
             icon: <TriangleAlert size={18} />,
-            statusLabel: proposedMissions.length > 0 ? "Priorite" : "Stable",
+            statusLabel: proposedMissions.length > 0 ? "Priorité" : "Stable",
             statusTone: proposedMissions.length > 0 ? "warning" : "success",
             href: "/dashboard/provider/interventions",
           },
@@ -545,7 +568,7 @@ export default function ProviderDashboardPage() {
                 <span>
                   <Clock3 size={15} />
                   {priorityIntervention?.scheduled_start
-                    ? `Aujourd'hui a ${formatTime(priorityIntervention.scheduled_start)}`
+                    ? formatDateValue(priorityIntervention.scheduled_start, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", emptyLabel: "Date à confirmer" })
                     : "Date à confirmer"}
                 </span>
                 <span>
@@ -564,12 +587,12 @@ export default function ProviderDashboardPage() {
                 <Link
                   href={
                     priorityIntervention
-                      ? `/dashboard/provider/interventions?intervention=${priorityIntervention.id}`
+                      ? getProviderInterventionHref(priorityIntervention.id)
                       : "/dashboard/provider/interventions"
                   }
                   className={styles.primaryLink}
                 >
-                  Voir mission
+                  {priorityIntervention ? "Voir l’intervention" : "Voir mes interventions"}
                 </Link>
                 <Link
                   href={
@@ -598,8 +621,8 @@ export default function ProviderDashboardPage() {
                 <UnifiedSpotlightList items={missionItems} />
               ) : (
                 <DashboardEmptyState
-                  title="Aucune mission planifiee"
-                  copy="Les prochaines interventions apparaitront ici des qu'elles seront programmees."
+                  title="Aucune intervention à venir"
+                  copy="Les prochaines interventions apparaîtront ici dès qu’elles seront programmées."
                 />
               )}
             </article>
@@ -662,8 +685,8 @@ export default function ProviderDashboardPage() {
         mainSections={[
           {
             id: "proposals",
-            title: "Missions recues",
-            subtitle: "Les demandes a accepter, negocier ou refuser rapidement.",
+            title: "Interventions en attente",
+            subtitle: "Consultez le détail pour décider de la suite.",
             content:
               proposedMissions.length > 0 ? (
                 <div className={styles.requestList}>
@@ -695,14 +718,11 @@ export default function ProviderDashboardPage() {
                         </span>
                       </div>
                       <div className={styles.requestActions}>
-                        <Link href={`/dashboard/provider/interventions?intervention=${item.id}`} className={styles.primaryLink}>
-                          Accepter
+                        <Link href={getProviderInterventionHref(item.id)} className={styles.primaryLink}>
+                          Consulter l’intervention
                         </Link>
                         <Link href={`/dashboard/provider/messages?client=${item.client_id ?? ""}`} className={styles.secondaryLink}>
-                          Négocier
-                        </Link>
-                        <Link href={`/dashboard/provider/interventions?intervention=${item.id}`} className={styles.ghostLink}>
-                          Refuser
+                          Contacter le client
                         </Link>
                       </div>
                     </article>

@@ -793,6 +793,14 @@
 - Trois tests exécutent la route et le fournisseur NextAuth avec Supabase simulé. Ils vérifient les refus en production, en recette authentifiée et pour une cible distante, la lecture bornée et sans secret, le refus d’identifiants invalides ou d’un service indisponible et la connexion classique avec un profil valide. Les tests ne couvrent pas une session réelle ni les RLS PostgreSQL. Le contrôle du mot de passe de repli historique ne trouve plus cette valeur dans les sources suivies examinées ; elle reste dans l’historique Git.
 - `PLS-DEV-003` et `PLS-DEV-005` gardent leurs statuts. Les trois comptes locaux précédemment confirmés restent à authentifier avec leurs mots de passe actuels. En cas de mot de passe inconnu, obtenir une autorisation explicite, relever dans Studio local l’ID Auth du compte marqué pour le rôle attendu et effectuer une mise à jour ciblée du mot de passe via Supabase Auth Admin sur `http://127.0.0.1:54321`. Utiliser un mot de passe unique saisi avec une invite masquée, puis charger les huit variables `PLS_LOCAL_*` et lancer la configuration Playwright dédiée. Aucune réinitialisation ni écriture effectuée dans ce lot.
 
+### P2-05 — Fluidification du parcours artisan — 26 novembre 2026
+
+- **Cockpit.** Un état d’indisponibilité et trois raccourcis directs s’affichent si les interventions ou les devis ne peuvent pas être chargés. Le compteur à venir reflète les interventions ouvertes avec un début futur. La carte prioritaire affiche la date réelle.
+- **Liste et détail.** Les états de chargement, d’erreur de lecture, de liste vide, de filtres sans résultat et d’intervention introuvable sont distingués. Le volet ciblé présente l’intervention demandée indépendamment des filtres de la liste. Les cartes affichent les badges de statut et priorité existants, le lieu et les dates de début et de fin disponibles. Le formulaire apparaît au clic sur « Modifier » dans la vue ciblée et reçoit le focus. « Annuler » rend le focus à la fiche.
+- **Planning et propositions.** Les vues liste, semaine et mois pointent vers la carte ciblée, avec retour à la liste ou au planning. Les propositions du cockpit disposent d’un lien de consultation et du contact client. Aucun changement des transitions, des droits, des appels API ou du contrôle d’activation des sollicitations. Les données et le périmètre serveur restent inchangés. La session réelle, la persistance et l’isolation RLS entre comptes artisan restent à valider dans les recettes métier existantes.
+- **Preuves locales.** 25 tests ciblés passent, dont le planning P2-02, l’encodage des liens, les contrats d’intervention et les sidebars propriétaire et conciergerie. Trois scénarios Edge avec API simulées passent : sidebar artisan, planning vers la bonne fiche, cockpit et liste en échec avec reprise de lecture. Le rejeu de la fiche vérifie aussi le clavier, l’édition, l’annulation et la restitution du focus. Captures inspectées à 390, 768 et 1440 px sans débordement.
+- **Pilotage.** `PLS-DEV-005` reste à vérifier et `PLS-DEV-026` reste 🟡 En cours, tous deux en P2 Important. P2-02 reste 🟠 Partiel. Les résultats historiques de P2-01 à P2-04 et le NO-GO bêta sont conservés.
+
 ### P2-04 — Fluidification du parcours propriétaire — 26 novembre 2026
 
 - **Maintenance et sidebar.** La trace du scénario P2-03 montre un clic sur le bon lien et une requête Next.js vers `/dashboard/owner/planning?type=maintenance` encore en attente à l’expiration de la recette, sans redirection observée. Le planning possède désormais un état de chargement de segment. La fermeture du tiroir propriétaire est liée à la navigation normale du lien, ce qui préserve le tiroir en cas d’ouverture dans un autre onglet. Les routes, permissions, filtres du calendrier et règles de groupe sont conservés.
@@ -2434,8 +2442,8 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "type": "feature",
       "persona": "Provider",
       "phase": "Consolidation rôle provider",
-      "updatedAt": "2026-08-24",
-      "nextAction": "Revalider le parcours devis -> intervention -> facture avec les derniers écrans provider et preuves privées.",
+      "updatedAt": "2026-11-26",
+      "nextAction": "Confirmer en session artisan réelle le parcours planning et détail, puis revalider la chaîne devis → intervention → facture et les preuves privées.",
       "validationCriteria": [
         "Parcours provider principal validé",
         "Profil métier persistant",
@@ -3375,7 +3383,7 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "persona": "Tous",
       "phase": "Qualité d'expérience",
       "updatedAt": "2026-11-26",
-      "nextAction": "Étendre les contrôles clavier et mobile P2-03/P2-04 aux parcours critiques restants et vérifier les libellés publics encore ouverts.",
+      "nextAction": "Étendre les contrôles clavier et mobile P2-03 à P2-05 aux parcours critiques restants et vérifier les libellés publics encore ouverts.",
       "validationCriteria": [
         "Parcours critiques testés sur mobile",
         "Libellés métier cohérents",

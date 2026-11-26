@@ -84,6 +84,8 @@ type ProviderBillingHistory = {
 } | null;
 
 type ProviderDashboardState = {
+  interventionDataAvailable: boolean;
+  quoteDataAvailable: boolean;
   summary: {
     clients: number;
     activeClients: number;
@@ -224,6 +226,8 @@ export function useProviderDashboardData() {
 
       setWorkspace(nextWorkspace);
       setDashboard({
+        interventionDataAvailable: Array.isArray(interventionsPayload?.items),
+        quoteDataAvailable: Array.isArray(quotesPayload) || Array.isArray(quotesPayload?.items),
         summary: {
           clients: clientsPayload?.summary?.total ?? clients.length,
           activeClients: clientsPayload?.summary?.active ?? clients.filter((item) => item.status === "active").length,
