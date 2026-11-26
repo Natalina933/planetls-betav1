@@ -53,7 +53,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       ],
     },
     { label: "Calendrier", path: "/dashboard/owner/planning", icon: FiCalendar },
-    { section: "Collaborations", label: "Rechercher un partenaire", path: "/dashboard/owner/concierges", icon: FiSearch },
+    { section: "Collaborations", label: "Rechercher un professionnel", path: "/dashboard/owner/concierges", icon: FiSearch },
     {
       label: "Mes demandes",
       path: "/dashboard/owner/demandes",

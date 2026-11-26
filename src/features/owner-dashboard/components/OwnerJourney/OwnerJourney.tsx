@@ -37,7 +37,7 @@ const steps: OwnerJourneyStep[] = [
   {
     id: "search",
     label: "Recherche",
-    description: "Trouver les conciergeries adaptées.",
+    description: "Trouver une conciergerie ou un artisan.",
     href: "/dashboard/owner/concierges",
     icon: Search,
   },
@@ -66,7 +66,7 @@ const steps: OwnerJourneyStep[] = [
     id: "partner",
     label: "Partenaire",
     description: "Valider la relation et les accès.",
-    href: "/dashboard/owner/partenaires",
+    href: "/dashboard/owner/conciergerie/partenaires",
     icon: Handshake,
   },
   {

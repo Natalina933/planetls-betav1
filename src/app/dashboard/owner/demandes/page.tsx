@@ -553,7 +553,8 @@ export default function OwnerRequestsPage() {
   }, []);
 
   useEffect(() => {
-    void loadData();
+    const timer = window.setTimeout(() => void loadData(), 0);
+    return () => window.clearTimeout(timer);
   }, [loadData]);
 
   useEffect(() => {
@@ -948,7 +949,7 @@ export default function OwnerRequestsPage() {
               <Plus size={16} aria-hidden="true" /> Nouvelle demande
             </button>
             <ButtonLink href="/dashboard/owner/concierges" variant="secondary">
-              <Search size={16} aria-hidden="true" /> Conciergeries
+              <Search size={16} aria-hidden="true" /> Rechercher un professionnel
             </ButtonLink>
           </div>
         </div>
@@ -965,8 +966,8 @@ export default function OwnerRequestsPage() {
       <OwnerJourneyRail activeStep="request" />
 
       {success ? <p className={`${styles.message} ${styles.messageSuccess}`}>{success}</p> : null}
-      {error ? <p className={`${styles.message} ${styles.messageError}`}>{error}</p> : null}
-      {loading ? <p className={styles.loadingHint}>Chargement des demandes...</p> : null}
+      {error ? <p role="alert" className={`${styles.message} ${styles.messageError}`}>{error}</p> : null}
+      {loading ? <p role="status" className={styles.loadingHint}>Chargement des demandes…</p> : null}
 
       <section className={styles.overviewGrid} aria-label="État des demandes">
         {overviewCards.map((card) => {

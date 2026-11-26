@@ -793,6 +793,15 @@
 - Trois tests exécutent la route et le fournisseur NextAuth avec Supabase simulé. Ils vérifient les refus en production, en recette authentifiée et pour une cible distante, la lecture bornée et sans secret, le refus d’identifiants invalides ou d’un service indisponible et la connexion classique avec un profil valide. Les tests ne couvrent pas une session réelle ni les RLS PostgreSQL. Le contrôle du mot de passe de repli historique ne trouve plus cette valeur dans les sources suivies examinées ; elle reste dans l’historique Git.
 - `PLS-DEV-003` et `PLS-DEV-005` gardent leurs statuts. Les trois comptes locaux précédemment confirmés restent à authentifier avec leurs mots de passe actuels. En cas de mot de passe inconnu, obtenir une autorisation explicite, relever dans Studio local l’ID Auth du compte marqué pour le rôle attendu et effectuer une mise à jour ciblée du mot de passe via Supabase Auth Admin sur `http://127.0.0.1:54321`. Utiliser un mot de passe unique saisi avec une invite masquée, puis charger les huit variables `PLS_LOCAL_*` et lancer la configuration Playwright dédiée. Aucune réinitialisation ni écriture effectuée dans ce lot.
 
+### P2-04 — Fluidification du parcours propriétaire — 26 novembre 2026
+
+- **Maintenance et sidebar.** La trace du scénario P2-03 montre un clic sur le bon lien et une requête Next.js vers `/dashboard/owner/planning?type=maintenance` encore en attente à l’expiration de la recette, sans redirection observée. Le planning possède désormais un état de chargement de segment. La fermeture du tiroir propriétaire est liée à la navigation normale du lien, ce qui préserve le tiroir en cas d’ouverture dans un autre onglet. Les routes, permissions, filtres du calendrier et règles de groupe sont conservés.
+- **Demandes et collaborations.** Le rail des demandes pointe vers la route existante « Mes collaborations », en remplacement de la destination inexistante. La recherche est nommée « Rechercher un professionnel » dans la sidebar et les demandes, car l’écran existant couvre conciergeries et artisans. L’état vide des collaborations propose de consulter les demandes ou de réinitialiser des filtres selon le cas. Les chargements et erreurs concernés sont annoncés aux technologies d’assistance.
+- **Preuves propriétaire.** Accès direct au planning Maintenance HTTP 200 avec filtre et repère actif. Le premier rejeu à froid expire avec la requête RSC encore en attente, alors que le rejeu à chaud réussit du clic Maintenance jusqu’au contrôle du filtre, de l’entrée actuelle et du tiroir. Les captures de la sidebar à 390, 768 et 1440 px ont été inspectées. Le clavier, Échap, le retour du focus et l’absence de débordement ont été contrôlés. TypeScript application et Playwright, ESLint ciblé, 57 tests de planning/navigation/collaboration, 12 tests logements et registre réussis.
+- **Régressions navigateur.** Avec session et API simulées, P2-03 C et la sidebar artisan passent au rejeu. P2-03 A et B expirent pendant la navigation, et le scénario Nocturne expire lors de la fermeture du contexte Playwright. Ce rejeu est partiel et les résultats précédents restent datés. Aucune recette avec une session réelle dans P2-04.
+- **Preuves demandes et collaborations.** Le scénario P2-04 ciblé valide le clic « Partenaire » depuis les demandes, la destination « Mes collaborations », l’état vide et le lien de retour vers les demandes, à 390, 768 et 1440 px sans débordement. Le test de rendu couvre aussi l’état filtré et l’erreur de lecture. La fixture a été alignée sur les réponses Sollicitations et Météo. Le scénario visuel plus large des demandes a expiré avant le contrôle de la modale et reste à rejouer.
+- **Pilotage.** `PLS-DEV-003` et `PLS-DEV-026` restent 🟡 En cours — P2 Important. Aucun nouveau chantier, workflow, accès, schéma ou donnée Supabase modifié. Les vérifications de rôles, de tenants et de RLS réelle restent celles des recettes métier existantes. P2-01, P2-02, P2-03 et le NO-GO bêta conservent leurs statuts.
+
 ### P2-03 — Fluidification du parcours conciergerie — 26 novembre 2026
 
 - **A — Tournée.** « Voir l’itinéraire » ouvre le planning avec `?vue=tournee`. Le résumé de la section reçoit le focus et défile sans animation. Le repli natif reste disponible et l’accès au calendrier sans ce paramètre conserve l’état initial replié. L’algorithme de tournée est inchangé.
@@ -2333,8 +2342,8 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "type": "feature",
       "persona": "Owner",
       "phase": "Consolidation rôle owner",
-      "updatedAt": "2026-08-24",
-      "nextAction": "Terminer l'harmonisation UX des pages secondaires et clarifier le socle owner canonique hors lectures dérivées.",
+      "updatedAt": "2026-11-26",
+      "nextAction": "Confirmer les parcours Maintenance, recherche et collaborations avec un compte propriétaire de recette, puis poursuivre l’harmonisation des pages secondaires.",
       "validationCriteria": [
         "Vue d'ensemble owner cohérente",
         "Priorités, missions et séjours lisibles",
@@ -3366,7 +3375,7 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "persona": "Tous",
       "phase": "Qualité d'expérience",
       "updatedAt": "2026-11-26",
-      "nextAction": "Étendre les scénarios clavier et mobile P2-03 aux parcours critiques restants et vérifier les termes publics encore ouverts.",
+      "nextAction": "Étendre les contrôles clavier et mobile P2-03/P2-04 aux parcours critiques restants et vérifier les libellés publics encore ouverts.",
       "validationCriteria": [
         "Parcours critiques testés sur mobile",
         "Libellés métier cohérents",

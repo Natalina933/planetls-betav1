@@ -15,7 +15,7 @@ import {
   Sparkles,
   XCircle,
 } from "lucide-react";
-import { ButtonLink, Input, Select } from "@/components/ui";
+import { Button, ButtonLink, Input, Select } from "@/components/ui";
 import styles from "./OwnerAcceptedPartnersPage.module.scss";
 import type { PendingHousingCollaboration } from "@/features/housing-collaborations/types";
 
@@ -430,7 +430,7 @@ export default function OwnerAcceptedPartnersPage() {
         </div>
       </header>
 
-      {error ? <p className={`${styles.message} ${styles.messageError}`}>{error}</p> : null}
+      {error ? <p role="alert" className={`${styles.message} ${styles.messageError}`}>{error}</p> : null}
       
       {/* Message d'information pour les collaborations en attente de finalisation */}
       {!loading && !error && stats.pendingCount > 0 ? (
@@ -491,11 +491,20 @@ export default function OwnerAcceptedPartnersPage() {
           title="Partenaires conciergeries"
           description="Chaque carte correspond à une collaboration avec une conciergerie. Cliquez sur une carte pour accéder aux détails et aux opérations disponibles."
         />
-        {loading ? <SkeletonList /> : null}
+        {loading ? <div role="status" aria-label="Chargement des collaborations"><SkeletonList /></div> : null}
         {!loading && !error && filteredCollaborations.length === 0 ? (
-          <EmptyPanel 
-            title="Aucune collaboration trouvée" 
-            text="Créez une demande, acceptez un devis ou modifiez vos filtres pour voir vos partenaires." 
+          <EmptyPanel
+            title={collaborations.length > 0 ? "Aucune collaboration ne correspond aux filtres" : "Aucune collaboration pour le moment"}
+            text={collaborations.length > 0 ? "Réinitialisez les filtres pour retrouver vos partenaires." : "Consultez vos demandes pour suivre les réponses et les devis reçus."}
+            action={collaborations.length > 0 ? (
+              <Button variant="secondary" size="compact" onClick={() => {
+                setSearchTerm("");
+                setCollaborationFilter("all");
+                setPropertyFilter("all");
+              }}>Réinitialiser les filtres</Button>
+            ) : (
+              <ButtonLink href="/dashboard/owner/demandes" size="compact">Voir mes demandes</ButtonLink>
+            )}
           />
         ) : null}
         <div className={styles.partnerGrid}>
@@ -670,13 +679,14 @@ function Metric({ label, value }: { label: string; value: string }) {
 /**
  * Panneau vide
  */
-function EmptyPanel({ title, text }: { title: string; text: string }) {
+function EmptyPanel({ title, text, action }: { title: string; text: string; action: ReactNode }) {
   return (
     <div className={styles.emptyPanel}>
       <Handshake size={22} aria-hidden="true" />
       <div>
         <h3>{title}</h3>
         <p>{text}</p>
+        {action}
       </div>
     </div>
   );

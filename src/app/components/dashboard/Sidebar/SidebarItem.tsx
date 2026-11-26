@@ -74,7 +74,7 @@ const SidebarItem: React.FC<Props> = ({ item, toggleSidebar, notificationCounts 
     <div className={styles.menuGroup}>
       {ownerNavigation && item.children?.length ? (
         <div className={styles.parentRow}>
-          <Link href={item.path} className={`${styles.link} ${isActive ? styles.active : ""}`} onClick={toggleSidebar}
+          <Link href={item.path} className={`${styles.link} ${isActive ? styles.active : ""}`} onNavigate={toggleSidebar}
             aria-current={ownerNavigation.activePath === item.path && !item.children.some(child => child.path === item.path) ? "page" : undefined}>
             {item.icon && <item.icon className={styles.icon} />}
             <span>{item.label}</span>
@@ -106,7 +106,8 @@ const SidebarItem: React.FC<Props> = ({ item, toggleSidebar, notificationCounts 
         <Link
           href={item.path}
           className={`${styles.link} ${isActive ? styles.active : ""}`}
-          onClick={toggleSidebar}
+          onClick={ownerNavigation ? undefined : toggleSidebar}
+          onNavigate={ownerNavigation ? toggleSidebar : undefined}
           aria-current={(ownerNavigation || conciergeActive !== undefined) && isActive ? "page" : undefined}
         >
           {item.icon && <item.icon className={styles.icon} />}
@@ -133,7 +134,8 @@ const SidebarItem: React.FC<Props> = ({ item, toggleSidebar, notificationCounts 
                 key={child.path}
                 href={child.path}
                 className={`${styles.sublink} ${isChildActive ? styles.active : ""}`}
-                onClick={toggleSidebar}
+                onClick={ownerNavigation ? undefined : toggleSidebar}
+                onNavigate={ownerNavigation ? toggleSidebar : undefined}
                 aria-current={ownerNavigation && isChildActive ? "page" : undefined}
               >
                 {child.icon && <child.icon className={styles.icon} />}

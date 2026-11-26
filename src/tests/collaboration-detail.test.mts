@@ -108,7 +108,7 @@ function renderDetail(states: unknown[], file = "../app/dashboard/owner/concierg
     if (id === "react/jsx-runtime") return jsxRuntime;
     if (id === "next/navigation") return { useParams: () => ({ id: ID }) };
     if (id === "next/link") return { default: "a" };
-    if (id === "@/components/ui") return { ButtonLink: "a", Input: "input", Select: "select" };
+    if (id === "@/components/ui") return { Button: "button", ButtonLink: "a", Input: "input", Select: "select" };
     if (id === "lucide-react") return new Proxy({}, { get: () => () => null });
     if (id.endsWith(".scss")) return { default: {} };
     throw new Error(id);
@@ -134,8 +134,8 @@ test("actual detail component preserves zero-day notice and exposes termination 
 test("actual partner list renders cards and honest totals, without a false empty state on error", async () => {
   const { item } = await (await fixture().get()).json();
   const page = "../app/dashboard/owner/conciergerie/partenaires/page.tsx";
-  function render(items: unknown[], quotes: Map<string, unknown>, error: string | null = null) {
-    return renderDetail([items, quotes, new Map(), false, error, "", "all", "all", "recent"], page);
+  function render(items: unknown[], quotes: Map<string, unknown>, error: string | null = null, search = "") {
+    return renderDetail([items, quotes, new Map(), false, error, search, "all", "all", "recent"], page);
   }
   const unknown = render([item], new Map([[item.quote.id, { ...item.quote, total_amount: null }]]));
   assert.match(unknown, /Sur devis/);
@@ -144,6 +144,11 @@ test("actual partner list renders cards and honest totals, without a false empty
   assert.match(mixed, /Devises multiples/);
   const failed = render([], new Map(), "Chargement impossible");
   assert.match(failed, /Chargement impossible/);
-  assert.doesNotMatch(failed, /Aucune collaboration trouvée/);
-  assert.match(render([], new Map()), /Aucune collaboration trouvée/);
+  assert.doesNotMatch(failed, /Aucune collaboration/);
+  const empty = render([], new Map());
+  assert.match(empty, /Aucune collaboration pour le moment/);
+  assert.match(empty, /href="\/dashboard\/owner\/demandes"[^>]*>Voir mes demandes/);
+  const filtered = render([item], new Map(), null, "Aucun nom correspondant");
+  assert.match(filtered, /Aucune collaboration ne correspond aux filtres/);
+  assert.match(filtered, /Réinitialiser les filtres/);
 });

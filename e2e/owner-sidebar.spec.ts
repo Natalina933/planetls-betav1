@@ -16,19 +16,22 @@ test("sidebar propriétaire : groupes, liens, état actif, clavier et mobile", a
   });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/dashboard/owner/logements");
-  const sidebar = page.getByRole("complementary", { name: "Sidebar" });
+  const sidebar = page.getByRole("complementary", { name: "Sidebar", includeHidden: true });
   const nav = sidebar.locator("nav");
   await expect(nav.getByRole("link", { name: "Tous mes logements", exact: true })).toHaveAttribute("aria-current", "page");
   for (const [name, href] of [["Mes logements", "/dashboard/owner/logements"], ["Missions", "/dashboard/owner/missions/overview"], ["Mes partenaires", "/dashboard/owner/conciergerie/partenaires"], ["Factures", "/dashboard/owner/factures"]]) {
     await expect(nav.getByRole("link", { name, exact: true })).toHaveAttribute("href", href);
   }
   await expect(nav.getByRole("link", { name: "Vue d'ensemble", exact: true })).toHaveCount(0);
+  await expect(nav.getByRole("link", { name: "Rechercher un professionnel", exact: true })).toHaveAttribute("href", "/dashboard/owner/concierges");
   const missions = nav.getByRole("button", { name: "Déplier Missions", exact: true });
   await missions.focus(); await page.keyboard.press("Enter");
   await expect(nav.locator('button[aria-expanded="true"]')).toHaveCount(1);
   await expect(nav.getByRole("link", { name: "Tous mes logements", exact: true })).not.toBeVisible();
-  await nav.getByRole("link", { name: "Maintenance", exact: true }).click();
-  await expect(page).toHaveURL(/planning\?type=maintenance/);
+  const maintenance = nav.getByRole("link", { name: "Maintenance", exact: true });
+  await expect(maintenance).toHaveAttribute("href", "/dashboard/owner/planning?type=maintenance");
+  await maintenance.click();
+  await expect(page).toHaveURL(/planning\?type=maintenance/, { timeout: 75_000 });
   await expect(page.getByLabel("Filtrer par type de mission")).toHaveValue("maintenance");
   await expect(nav.getByRole("link", { name: "Maintenance", exact: true })).toHaveAttribute("aria-current", "page");
   await nav.getByRole("link", { name: "Arrivées & départs", exact: true }).click();
@@ -40,6 +43,14 @@ test("sidebar propriétaire : groupes, liens, état actif, clavier et mobile", a
   await sidebar.getByRole("button", { name: "Fermer la sidebar", exact: true }).click();
   await page.getByRole("button", { name: "Ouvrir ou fermer le menu" }).click();
   await expect(nav.getByRole("link", { name: "Tableau de bord", exact: true })).toBeVisible();
+  await page.setViewportSize({ width: 768, height: 900 });
+  await expect(sidebar).toHaveAttribute("inert", "");
+  await page.getByRole("button", { name: "Ouvrir ou fermer le menu" }).click();
+  await expect(nav.getByRole("link", { name: "Calendrier", exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: "test-results/owner-sidebar-tablet.png" });
+  await page.keyboard.press("Escape");
+  await expect(sidebar).toHaveAttribute("inert", "");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "Ouvrir ou fermer le menu" }).click();
   await expect(nav.getByRole("link", { name: "Tableau de bord", exact: true })).toBeVisible();
