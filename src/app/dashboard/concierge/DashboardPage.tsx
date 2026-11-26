@@ -1277,7 +1277,7 @@ export default function DashboardPage() {
   ];
 
   if (loading || !isAuthenticated) {
-    return <DashboardLoadingScreen label="Chargement de votre cockpit conciergerie..." />;
+    return <DashboardLoadingScreen label="Chargement de votre tableau de bord conciergerie…" />;
   }
 
   const PriorityIcon = PRIORITY_ICONS[getPriorityIconKey(priorityRequest)];

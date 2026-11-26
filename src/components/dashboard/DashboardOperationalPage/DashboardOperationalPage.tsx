@@ -1,7 +1,7 @@
 "use client";
 
 import type { ComponentType, ReactNode } from "react";
-import Link from "next/link";
+import { ButtonLink } from "@/components/ui/Button";
 import styles from "./DashboardOperationalPage.module.scss";
 
 export type OperationalTone = "concierge" | "owner" | "provider";
@@ -105,13 +105,14 @@ export function DashboardOperationalPage({
         {primaryActions.length > 0 ? (
           <div className={styles.simpleActions}>
             {primaryActions.map((action, index) => (
-              <Link
+              <ButtonLink
                 key={action.href}
                 href={action.href}
-                className={index === 0 ? styles.simpleActionPrimary : styles.simpleActionSecondary}
+                variant={index === 0 ? "primary" : "secondary"}
+                className={styles.simpleAction}
               >
                 {action.label}
-              </Link>
+              </ButtonLink>
             ))}
           </div>
         ) : null}

@@ -64,28 +64,8 @@
   gap: 0.65rem;
 }
 
-.simpleActionPrimary,
-.simpleActionSecondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  padding: 0.55rem 0.9rem;
-  border-radius: var(--ds-radius-pill);
-  border: 1px solid color-mix(in srgb, var(--op-accent) 34%, var(--op-border));
-  text-decoration: none;
-  font-size: 0.84rem;
-  font-weight: 900;
-}
-
-.simpleActionPrimary {
-  background: var(--op-accent);
-  color: #2b2113;
-}
-
-.simpleActionSecondary {
-  background: var(--op-bg);
-  color: var(--op-text);
+.simpleAction {
+  white-space: normal;
 }
 
 .owner {

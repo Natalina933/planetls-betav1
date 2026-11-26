@@ -14,7 +14,7 @@ import {
   type ConciergeMissionDisplayRow,
   type ConciergeMissionView,
 } from "../missionDisplay";
-import { Input, Select, StatsCard, TableFilters } from "@/components/ui";
+import { AsyncState, Button, Input, Select, StatsCard, TableFilters } from "@/components/ui";
 import { MetricGroup } from "@/components/ui/StatsCard/MetricGroup";
 import { conciergeApiError } from "../conciergeFeedback";
 import styles from "@/app/dashboard/missions/MissionDetailPage.module.scss";
@@ -74,10 +74,10 @@ export default function ConciergeMissionsListPage() {
       ]);
       const missionPayload = await missionResponse.json();
       const housingPayload = await housingResponse.json().catch(() => []);
-      if (!missionResponse.ok) {
+      if (!missionResponse.ok || !Array.isArray(missionPayload)) {
         throw new Error(conciergeApiError("Impossible de charger les interventions.", missionPayload?.error));
       }
-      setMissions(Array.isArray(missionPayload) ? missionPayload : []);
+      setMissions(missionPayload);
       setHousings(Array.isArray(housingPayload) ? housingPayload : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : conciergeApiError("Impossible de charger les interventions."));
@@ -87,7 +87,8 @@ export default function ConciergeMissionsListPage() {
   }, []);
 
   useEffect(() => {
-    void loadMissions();
+    const timer = window.setTimeout(() => void loadMissions(), 0);
+    return () => window.clearTimeout(timer);
   }, [loadMissions]);
 
   const timeSchedule = useMemo(
@@ -169,12 +170,12 @@ export default function ConciergeMissionsListPage() {
       showDetailsIntro={false}
     >
       <div className={styles.page} aria-busy={loading}>
-        <MetricGroup className={listStyles.metrics} aria-label="Indicateurs des interventions">
+        {!loading && !error ? <MetricGroup className={listStyles.metrics} aria-label="Indicateurs des interventions">
           <StatsCard label="Aujourd'hui" value={String(missionKpis.today)} hint="Interventions prévues ce jour" />
           <StatsCard label="À planifier" value={String(missionKpis.toPlan)} hint="Date ou validation à préciser" />
           <StatsCard label="En cours" value={String(missionKpis.inProgress)} hint="Exécution démarrée" />
           <StatsCard label="En attente de validation" value={String(missionKpis.awaitingValidation)} hint="Réalisation à confirmer" />
-        </MetricGroup>
+        </MetricGroup> : null}
 
         <section className={`${styles.panel} ${listStyles.filtersPanel}`}>
           <TableFilters showMeta={false} layout="toolbar">
@@ -185,7 +186,7 @@ export default function ConciergeMissionsListPage() {
             <label className={styles.label}>
               Statut
               <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-                <option value="all">Tous statuts</option>
+                <option value="all">Tous les statuts</option>
                 <option value="draft">À qualifier</option>
                 <option value="assigned">Assignée</option>
                 <option value="accepted">Acceptée</option>
@@ -205,7 +206,7 @@ export default function ConciergeMissionsListPage() {
               <h2>Interventions à traiter</h2>
             </div>
           </div>
-          <div className={styles.segmentedControl} role="tablist" aria-label="Filtrer par priorité opérationnelle">
+          <div className={styles.segmentedControl} role="group" aria-label="Filtrer par priorité opérationnelle">
             {[
               ["all", "Toutes", viewCounts.all],
               ["to_plan", "À planifier", viewCounts.to_plan],
@@ -216,29 +217,29 @@ export default function ConciergeMissionsListPage() {
               <button
                 key={key}
                 type="button"
-                role="tab"
-                aria-selected={viewFilter === key}
+                aria-pressed={viewFilter === key}
                 className={viewFilter === key ? styles.segmentActive : undefined}
                 onClick={() => setViewFilter(key as ConciergeMissionView)}
               >
                 <span>{label}</span>
-                <strong>{count}</strong>
+                {!loading && !error ? <strong>{count}</strong> : null}
               </button>
             ))}
           </div>
         </section>
 
-        {error ? (
-          <div className={`${styles.message} ${styles.messageError}`} role="alert">
-            <span>{error}</span>
-            <button type="button" className={styles.linkButton} onClick={() => void loadMissions()}>
-              Réessayer
-            </button>
-          </div>
-        ) : null}
-        {loading ? <p className={styles.message} role="status">Chargement...</p> : null}
-        {!loading && filtered.length === 0 ? <p className={styles.empty}>Aucune intervention ne correspond aux filtres.</p> : null}
-
+        <AsyncState
+          loadingPresentation="text"
+          state={loading
+            ? { status: "loading", message: "Chargement des interventions…" }
+            : error
+              ? { status: "error", title: "Interventions indisponibles", message: error, action: (
+                <Button variant="secondary" onClick={() => void loadMissions()}>Réessayer</Button>
+              ) }
+              : filtered.length === 0
+                ? { status: "empty", title: missions.length ? "Aucun résultat" : "Aucune intervention", message: missions.length ? "Aucune intervention ne correspond aux filtres." : "Les interventions apparaîtront ici lorsqu’elles seront disponibles." }
+                : { status: "ready" }}
+        >
         <section className={styles.proofGrid}>
           {filtered.map((mission) => {
             const status = normalizeMissionStatus(mission.status);
@@ -273,6 +274,7 @@ export default function ConciergeMissionsListPage() {
             );
           })}
         </section>
+        </AsyncState>
       </div>
     </ConciergeWorkspacePage>
   );

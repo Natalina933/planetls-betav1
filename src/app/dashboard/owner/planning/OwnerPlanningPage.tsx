@@ -26,7 +26,7 @@ type OwnerPlanningPageProps = {
 
 export default function OwnerPlanningPage(props: OwnerPlanningPageProps) {
   return (
-    <Suspense fallback={<section className="dashboard-grid">Chargement du planning...</section>}>
+    <Suspense fallback={<section className="dashboard-grid" role="status">Chargement du planning…</section>}>
       <OwnerPlanningPageContent {...props} />
     </Suspense>
   );

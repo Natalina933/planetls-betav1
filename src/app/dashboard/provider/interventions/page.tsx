@@ -782,7 +782,7 @@ function ProviderInterventionsContent() {
 
 export default function ProviderInterventionsPage() {
   return (
-    <Suspense fallback={<section className="dashboard-grid"><p>Chargement des interventions...</p></section>}>
+    <Suspense fallback={<section className="dashboard-grid" role="status">Chargement des interventions…</section>}>
       <ProviderInterventionsContent />
     </Suspense>
   );

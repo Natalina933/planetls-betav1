@@ -6,6 +6,24 @@ const test = base.extend<{ workspaceRole: "concierge" | "provider" }>({
   workspaceRole: ["concierge", { option: true }],
 });
 
+test("P2-06 : une lecture en échec ne produit ni compteurs ni état vide", async ({ page }) => {
+  let unavailable = true;
+  await page.route("**/api/missions?**", route => unavailable
+    ? route.fulfill({ status: 503, json: { error: "Interventions indisponibles" } })
+    : route.fulfill({ json: [] }));
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/dashboard/concierge/missions");
+  await expect(page.getByRole("alert").filter({ hasText: "Interventions indisponibles" })).toBeVisible();
+  await expect(page.getByLabel("Indicateurs des interventions")).toHaveCount(0);
+  const empty = page.getByRole("status").getByText("Aucune intervention", { exact: true });
+  await expect(empty).toHaveCount(0);
+  unavailable = false;
+  await page.getByRole("button", { name: "Réessayer", exact: true }).press("Enter");
+  await expect(empty).toBeVisible();
+  await expect(page.getByLabel("Indicateurs des interventions")).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
 test.beforeEach(async ({ context, workspaceRole }) => {
   const user = { id: "11111111-1111-4111-8111-111111111111", firstName: "Sophie", role: workspaceRole, email: `${workspaceRole}@example.test`, onboarding_complete: true };
   const token = await encode({ secret: "concierge-visual-fixture-secret", salt: "authjs.session-token", token: { ...user, sub: user.id }, maxAge: 3600 });

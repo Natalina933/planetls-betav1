@@ -793,6 +793,12 @@
 - Trois tests exécutent la route et le fournisseur NextAuth avec Supabase simulé. Ils vérifient les refus en production, en recette authentifiée et pour une cible distante, la lecture bornée et sans secret, le refus d’identifiants invalides ou d’un service indisponible et la connexion classique avec un profil valide. Les tests ne couvrent pas une session réelle ni les RLS PostgreSQL. Le contrôle du mot de passe de repli historique ne trouve plus cette valeur dans les sources suivies examinées ; elle reste dans l’historique Git.
 - `PLS-DEV-003` et `PLS-DEV-005` gardent leurs statuts. Les trois comptes locaux précédemment confirmés restent à authentifier avec leurs mots de passe actuels. En cas de mot de passe inconnu, obtenir une autorisation explicite, relever dans Studio local l’ID Auth du compte marqué pour le rôle attendu et effectuer une mise à jour ciblée du mot de passe via Supabase Auth Admin sur `http://127.0.0.1:54321`. Utiliser un mot de passe unique saisi avec une invite masquée, puis charger les huit variables `PLS_LOCAL_*` et lancer la configuration Playwright dédiée. Aucune réinitialisation ni écriture effectuée dans ce lot.
 
+### P2-06 — Cohérence UX des espaces métier — 26 novembre 2026
+
+- **PLS-DEV-026 — 🟡 En cours — P2 Important.** Les actions des bandeaux opérationnels réutilisent les boutons du design system et leurs tokens de thème et de focus. Les libellés de chargement concernés suivent les mêmes conventions dans les espaces propriétaire, conciergerie et artisan.
+- **Interventions conciergerie.** Échec de lecture, chargement, liste vide et filtre sans résultat sont distingués. Les compteurs attendent une lecture réussie, l’erreur propose « Réessayer » et les filtres à boutons indiquent leur état actif. Aucune API ni autorisation modifiée. NO-GO bêta maintenu.
+- **Preuves.** 20 tests ciblés de navigation et planning, puis deux scénarios Playwright avec API simulées réussis : reprise après erreur sur les interventions et régression du bouton de création depuis le planning. Captures inspectées à 390, 768 et 1440 px, avec focus visible et sans débordement. Les quatre erreurs ESLint du cockpit conciergerie sont reproduites à `37dc8e88`. Nocturne et les sessions réelles restent à rejouer.
+
 ### P2-05 — Fluidification du parcours artisan — 26 novembre 2026
 
 - **Cockpit.** Un état d’indisponibilité et trois raccourcis directs s’affichent si les interventions ou les devis ne peuvent pas être chargés. Le compteur à venir reflète les interventions ouvertes avec un début futur. La carte prioritaire affiche la date réelle.
@@ -3383,7 +3389,7 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "persona": "Tous",
       "phase": "Qualité d'expérience",
       "updatedAt": "2026-11-26",
-      "nextAction": "Étendre les contrôles clavier et mobile P2-03 à P2-05 aux parcours critiques restants et vérifier les libellés publics encore ouverts.",
+      "nextAction": "Étendre les contrôles clavier et mobile P2-03 à P2-06 aux parcours critiques restants et vérifier les libellés publics encore ouverts.",
       "validationCriteria": [
         "Parcours critiques testés sur mobile",
         "Libellés métier cohérents",
