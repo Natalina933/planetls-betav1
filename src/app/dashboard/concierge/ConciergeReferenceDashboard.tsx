@@ -89,7 +89,7 @@ export default function ConciergeReferenceDashboard({
     const kpiCards = [
         {
             label: "À faire aujourd'hui",
-            value: String(missionCount),
+            value: missionCount,
             hint: missionCount > 0 ? `${pluralize(todayStayCount, "séjour")} · ${pluralize(missionCount, "intervention")}` : "Journée libre",
             support:
                 missionCount > 0
@@ -103,8 +103,8 @@ export default function ConciergeReferenceDashboard({
             href: "/dashboard/concierge/planning",
         },
         {
-            label: organizationCount > 0 ? "À organiser" : "Tout est organisé",
-            value: organizationCount > 0 ? String(organizationCount) : "âœ“",
+            label: "À organiser",
+            value: organizationCount,
             hint: organizationCount > 0 ? "Actions en attente" : "Aucune action en attente",
             support:
                 organizationCount > 0
@@ -120,7 +120,7 @@ export default function ConciergeReferenceDashboard({
         },
         {
             label: "Tournée du jour",
-            value: "—",
+            value: missionCount,
             hint: missionCount > 0 ? `${pluralize(missionCount, "étape")} planifiée${missionCount > 1 ? "s" : ""}` : "Aucune tournée aujourd'hui",
             support:
                 missionCount > 0
@@ -134,7 +134,7 @@ export default function ConciergeReferenceDashboard({
         },
         {
             label: "Activité semaine",
-            value: String(weekActivityCount),
+            value: weekActivityCount,
             hint: weekActivityCount > 0 ? "Semaine courante" : "Aucune intervention cette semaine",
             support:
                 weekActivityCount > 0
