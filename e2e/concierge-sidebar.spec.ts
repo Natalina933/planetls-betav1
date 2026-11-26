@@ -1,9 +1,13 @@
-import { test, expect } from "@playwright/test";
+import { test as base, expect } from "@playwright/test";
 import { encode } from "next-auth/jwt";
 import sharp from "sharp";
 
-test("concierge nocturne: open, compact, keyboard tooltip and mobile drawer", async ({ page, context }) => {
-  const user = { id: "11111111-1111-4111-8111-111111111111", firstName: "Sophie", role: "concierge", email: "concierge@example.test", onboarding_complete: true };
+const test = base.extend<{ workspaceRole: "concierge" | "provider" }>({
+  workspaceRole: ["concierge", { option: true }],
+});
+
+test.beforeEach(async ({ context, workspaceRole }) => {
+  const user = { id: "11111111-1111-4111-8111-111111111111", firstName: "Sophie", role: workspaceRole, email: `${workspaceRole}@example.test`, onboarding_complete: true };
   const token = await encode({ secret: "concierge-visual-fixture-secret", salt: "authjs.session-token", token: { ...user, sub: user.id }, maxAge: 3600 });
   await context.addCookies([{ name: "authjs.session-token", value: token, domain: "127.0.0.1", path: "/", httpOnly: true }]);
   await context.addInitScript(() => localStorage.setItem("theme", "mucha-dark"));
@@ -12,11 +16,15 @@ test("concierge nocturne: open, compact, keyboard tooltip and mobile drawer", as
     let json: unknown = { items: [] };
     if (path === "/api/auth/session") json = { user, expires: "2099-01-01T00:00:00Z" };
     else if (path === "/api/profiles/current") json = user;
+    else if (path === "/api/provider/interventions") json = { items: [], summary: { total: 0, in_progress: 0, pending: 0, completed: 0 } };
     else if (["/api/housing", "/api/quotes", "/api/profiles/owners", "/api/missions"].includes(path)) json = [];
     else if (path === "/api/service-requests") json = { items: new URL(route.request().url()).searchParams.get("limit") === "30" ? [{ id: "request-test", title: "Demande de test", recipient_status: "sent" }] : [] };
     else if (path === "/api/weather") return route.fulfill({ status: 503, json: { error: "Météo indisponible dans la fixture" } });
     return route.fulfill({ json });
   });
+});
+
+test("concierge nocturne: open, compact, keyboard tooltip and mobile drawer", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   await page.setViewportSize({ width: 1366, height: 900 });
@@ -26,9 +34,9 @@ test("concierge nocturne: open, compact, keyboard tooltip and mobile drawer", as
   await page.getByRole("button", { name: "Sélectionner thème Mucha Nocturne", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "mucha-dark");
   const sidebar = page.getByRole("complementary", { name: "Sidebar", exact: true, includeHidden: true });
-  await expect(sidebar.locator("nav a")).toHaveCount(13);
-  await expect(sidebar).toHaveCSS("width", "252px");
-  await expect(page.locator(".dashboard-main")).toHaveCSS("margin-left", "252px");
+  await expect(sidebar.locator("nav a")).toHaveCount(14);
+  await expect(sidebar).toHaveCSS("width", "260px");
+  await expect(page.locator(".dashboard-main")).toHaveCSS("margin-left", "260px");
   await expect(sidebar.locator("nav a[aria-current='page']")).toHaveCount(1);
   await expect(sidebar.getByRole("link", { name: "Mes demandes", exact: false })).toHaveAccessibleName(/1 notification/);
   await expect(sidebar).toHaveCSS("background-image", /linear-gradient/);
@@ -112,7 +120,7 @@ test("concierge nocturne: open, compact, keyboard tooltip and mobile drawer", as
       await page.getByRole("button", { name: "Ouvrir ou fermer le menu" }).click();
     }
     await expect(sidebar).not.toHaveAttribute("inert");
-    await expect(sidebar.locator("nav a")).toHaveCount(13);
+    await expect(sidebar.locator("nav a")).toHaveCount(14);
     await scrollBody.evaluate(el => { el.scrollTop = 0; });
     const logoTop = (await sidebar.getByAltText("PlanetLS").boundingBox())!.y;
     await sidebar.locator("nav a").last().evaluate(el => (el as HTMLElement).blur());
@@ -136,11 +144,162 @@ test("concierge nocturne: open, compact, keyboard tooltip and mobile drawer", as
   for (const label of ["Mode clair", "Sepia 1900", "Art Deco"]) {
     await page.getByRole("button", { name: "Changer de thème", exact: true }).click();
     await page.getByRole("button", { name: `Sélectionner thème ${label}`, exact: true }).click();
-    await expect(sidebar.locator("nav a")).toHaveCount(13);
+    await expect(sidebar.locator("nav a")).toHaveCount(14);
     await expect(sidebar.locator('img[src*="lunaire"]')).toHaveCount(0);
     await page.screenshot({ style: "nextjs-portal { visibility: hidden !important; }", path: `test-results/concierge-sidebar/theme-${label.replaceAll(" ", "-")}.png` });
     await sidebar.getByRole("button", { name: "Fermer la sidebar", exact: true }).click();
     await expect(page.locator(".dashboard-main")).toHaveCSS("margin-left", "0px");
     await page.getByRole("button", { name: "Ouvrir ou fermer le menu" }).click();
   }
+});
+
+test("P2-03 : accès direct à la tournée et retour au planning ordinaire", async ({ page }, testInfo) => {
+  const start = new Date();
+  start.setHours(12, 0, 0, 0);
+  const end = new Date(start.getTime() + 60 * 60 * 1000);
+  await page.route("**/api/missions?**", route => route.fulfill({ json: [{
+    id: "mission-test",
+    title: "Intervention de recette",
+    status: "scheduled",
+    scheduled_start: start.toISOString(),
+    scheduled_end: end.toISOString(),
+  }] }));
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/dashboard/concierge");
+  const itinerary = page.getByRole("link", { name: "Voir l'itinéraire" });
+  await expect(itinerary).toBeVisible();
+  await itinerary.focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/planning\?vue=tournee$/);
+  const tour = page.locator("details#tournee");
+  const summary = tour.locator("summary");
+  await expect(tour).toHaveAttribute("open", "");
+  await expect(summary).toBeFocused();
+  await expect(summary).toBeInViewport();
+  await page.screenshot({ path: testInfo.outputPath("tournee-ouverte.png") });
+  await page.keyboard.press("Enter");
+  await expect(tour).not.toHaveAttribute("open", "");
+  await page.reload();
+  await expect(tour).toHaveAttribute("open", "");
+  await page.goBack();
+  await expect(itinerary).toBeVisible();
+  await page.goForward();
+  await expect(tour).toHaveAttribute("open", "");
+  await page.getByRole("complementary", { name: "Sidebar", exact: true }).getByRole("link", { name: "Calendrier" }).click();
+  await expect(page).toHaveURL(/\/planning$/);
+  await expect(tour).not.toHaveAttribute("open", "");
+});
+
+test("P2-03 B : création depuis le planning", async ({ page }, testInfo) => {
+  await page.goto("/dashboard/concierge/planning");
+  const create = page.getByRole("link", { name: "Ajouter une intervention", exact: true });
+  for (const width of [390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await create.focus();
+    await expect(create).toBeFocused();
+    await expect(create).toBeInViewport();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`planning-${width}.png`) });
+  }
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/interventions\/new$/);
+  await expect(page.getByText("Aucun logement disponible")).toBeVisible();
+});
+
+test("P2-03 C : navigation Interventions et Maintenance", async ({ page }) => {
+  const timestamp = new Date().toISOString();
+  await page.route("**/api/missions/mission-test", route => route.fulfill({ json: {
+    mission: {
+      id: "mission-test",
+      title: "Intervention de recette",
+      description: null,
+      status: "pending",
+      priority: "normal",
+      amount: null,
+      currency: null,
+      scheduled_start: null,
+      scheduled_end: null,
+      created_at: timestamp,
+      updated_at: timestamp,
+    },
+    participants: {},
+    events: [],
+    conversations: [],
+    quotes: [],
+    invoices: [],
+    provider_interventions: [],
+    providers: [],
+    evidence: { proof_links: [], checklist: [] },
+  } }));
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/dashboard/concierge/interventions/new");
+
+  const sidebar = page.getByRole("complementary", { name: "Sidebar", exact: true, includeHidden: true });
+  const interventions = sidebar.getByRole("link", { name: "Interventions", exact: true });
+  const maintenance = sidebar.getByRole("link", { name: "Maintenance", exact: true });
+  await expect(interventions).toHaveAttribute("aria-current", "page");
+  await expect(interventions).toHaveAttribute("href", "/dashboard/concierge/missions");
+  await page.goto("/dashboard/concierge/missions");
+  await expect(page).toHaveURL(/\/missions$/);
+  await expect(interventions).toHaveAttribute("aria-current", "page");
+  await page.goto("/dashboard/concierge/missions/mission-test");
+  await expect(page.getByRole("heading", { name: "Intervention de recette", exact: true })).toBeVisible();
+  await expect(interventions).toHaveAttribute("aria-current", "page");
+  await expect(maintenance).toHaveAttribute("href", "/dashboard/concierge/maintenance");
+  await page.goto("/dashboard/concierge/maintenance");
+  await expect(page).toHaveURL(/\/maintenance$/);
+  await expect(maintenance).toHaveAttribute("aria-current", "page");
+  await expect(sidebar.locator('[aria-current="page"]')).toHaveCount(1);
+
+  await page.getByRole("button", { name: "Changer de thème", exact: true }).click();
+  await page.getByRole("button", { name: "Sélectionner thème Mucha Nocturne", exact: true }).click();
+  await sidebar.getByRole("button", { name: "Fermer la sidebar", exact: true }).click();
+  await interventions.focus();
+  await expect(page.getByRole("tooltip")).toHaveText("Interventions");
+  await page.keyboard.press("Enter");
+  await expect(interventions).toHaveAttribute("aria-current", "page");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "Ouvrir ou fermer le menu" }).click();
+  await expect(interventions).toHaveAttribute("aria-current", "page");
+  await maintenance.click();
+  await expect(page).toHaveURL(/\/maintenance$/);
+  await expect(sidebar).toHaveAttribute("inert", "");
+});
+
+test.describe("Régression sidebar artisan", () => {
+  test.use({ workspaceRole: "provider" });
+
+  test("ouvre le groupe actif et conserve les groupes ouverts manuellement", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/dashboard/provider/planning", { waitUntil: "commit" });
+    const sidebar = page.getByRole("complementary", { name: "Sidebar", includeHidden: true });
+    const interventions = sidebar.getByRole("button", { name: "Interventions", exact: true });
+    const clients = sidebar.getByRole("button", { name: "Clients", exact: true });
+    const planning = sidebar.getByRole("link", { name: "Planning", exact: true });
+    await expect(interventions).toHaveAttribute("aria-expanded", "true");
+    await expect(planning).toHaveClass(/active/);
+    await interventions.focus();
+    await page.keyboard.press("Enter");
+    await expect(interventions).toHaveAttribute("aria-expanded", "false");
+    await clients.focus();
+    await page.keyboard.press("Enter");
+    await expect(clients).toHaveAttribute("aria-expanded", "true");
+    await page.reload({ waitUntil: "commit" });
+    await expect(clients).toHaveAttribute("aria-expanded", "true");
+    await expect(interventions).toHaveAttribute("aria-expanded", "true");
+    await expect(planning).toHaveAttribute("href", "/dashboard/provider/planning");
+    await page.keyboard.press("Escape");
+    await expect(page.locator(".dashboard-main")).toHaveCSS("margin-left", "0px");
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(sidebar).toHaveAttribute("inert", "");
+    await page.getByRole("button", { name: "Ouvrir ou fermer le menu" }).click();
+    await expect(sidebar).not.toHaveAttribute("inert");
+    await planning.focus();
+    await expect(planning).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(sidebar).toHaveAttribute("inert", "");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
 });

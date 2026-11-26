@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { FiChevronDown } from "react-icons/fi";
@@ -11,14 +11,19 @@ interface Props {
   item: SidebarItemType;
   toggleSidebar: () => void;
   notificationCounts?: Record<string, number>;
+  conciergeActive?: boolean;
   ownerNavigation?: { activePath?: string; open: boolean; onToggle: () => void };
 }
 
-const SidebarItem: React.FC<Props> = ({ item, toggleSidebar, notificationCounts = {}, ownerNavigation }) => {
+const subscribeToStorage = (notify: () => void) => {
+  window.addEventListener("storage", notify);
+  return () => window.removeEventListener("storage", notify);
+};
+const getServerSidebarState = () => null;
+
+const SidebarItem: React.FC<Props> = ({ item, toggleSidebar, notificationCounts = {}, ownerNavigation, conciergeActive }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [localOpen, setIsOpen] = useState(false);
-  const isOpen = ownerNavigation ? ownerNavigation.open : localOpen;
   const groupId = `sidebar-group-${item.label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
   const query = searchParams.toString();
@@ -26,9 +31,24 @@ const SidebarItem: React.FC<Props> = ({ item, toggleSidebar, notificationCounts 
   const hasActiveChild = Boolean(
     item.children?.some((child) => child.path === currentPath || child.path === pathname),
   );
+  const storageKey = `sidebar-${item.label}`;
+  const usesLocalGroup = Boolean(item.children && !ownerNavigation);
+  const savedOpen = useSyncExternalStore(
+    subscribeToStorage,
+    () => usesLocalGroup && localStorage.getItem(storageKey) === "true",
+    getServerSidebarState,
+  );
+  const [localOpen, setLocalOpen] = useState<boolean | null>(null);
+  const opensForActiveChild = usesLocalGroup && hasActiveChild;
+  const [previousActiveChild, setPreviousActiveChild] = useState(false);
+  if (opensForActiveChild !== previousActiveChild) {
+    setPreviousActiveChild(opensForActiveChild);
+    if (opensForActiveChild) setLocalOpen(true);
+  }
+  const isOpen = ownerNavigation?.open ?? localOpen ?? savedOpen ?? false;
   const isActive = ownerNavigation
     ? item.path === ownerNavigation.activePath || Boolean(item.children?.some(child => child.path === ownerNavigation.activePath))
-    : item.path === currentPath || item.path === pathname || hasActiveChild;
+    : conciergeActive ?? (item.path === currentPath || item.path === pathname || hasActiveChild);
   const currentItemCount = item.notificationKey ? notificationCounts[item.notificationKey] ?? 0 : 0;
   const childCount =
     item.children?.reduce((sum, child) => {
@@ -39,25 +59,14 @@ const SidebarItem: React.FC<Props> = ({ item, toggleSidebar, notificationCounts 
   const badgeLabel = badgeCount > 9 ? "9+" : String(badgeCount);
 
   useEffect(() => {
-    if (ownerNavigation) return;
-    const saved = localStorage.getItem(`sidebar-${item.label}`);
-    if (saved === "true") setIsOpen(true);
-  }, [item.label, ownerNavigation]);
-
-  useEffect(() => {
-    if (ownerNavigation) return;
-    localStorage.setItem(`sidebar-${item.label}`, String(isOpen));
-  }, [isOpen, item.label, ownerNavigation]);
-
-  useEffect(() => {
-    if (!ownerNavigation && hasActiveChild) {
-      setIsOpen(true);
+    if (usesLocalGroup && localOpen !== null) {
+      localStorage.setItem(storageKey, String(localOpen));
     }
-  }, [hasActiveChild, ownerNavigation]);
+  }, [localOpen, storageKey, usesLocalGroup]);
 
   const handleParentClick = () => {
     if (item.children) {
-      setIsOpen((prev) => !prev);
+      setLocalOpen(!isOpen);
     }
   };
 
@@ -98,7 +107,7 @@ const SidebarItem: React.FC<Props> = ({ item, toggleSidebar, notificationCounts 
           href={item.path}
           className={`${styles.link} ${isActive ? styles.active : ""}`}
           onClick={toggleSidebar}
-          aria-current={ownerNavigation && isActive ? "page" : undefined}
+          aria-current={(ownerNavigation || conciergeActive !== undefined) && isActive ? "page" : undefined}
         >
           {item.icon && <item.icon className={styles.icon} />}
           <span>{item.label}</span>

@@ -19,12 +19,12 @@ test("sidebar propriétaire : groupes, liens, état actif, clavier et mobile", a
   const sidebar = page.getByRole("complementary", { name: "Sidebar" });
   const nav = sidebar.locator("nav");
   await expect(nav.getByRole("link", { name: "Tous mes logements", exact: true })).toHaveAttribute("aria-current", "page");
-  for (const [name, href] of [["Mes logements", "/dashboard/owner/logements/overview"], ["Interventions", "/dashboard/owner/missions/overview"], ["Conciergeries", "/dashboard/owner/conciergerie/overview"], ["Finances", "/dashboard/owner/finances/overview"]]) {
+  for (const [name, href] of [["Mes logements", "/dashboard/owner/logements"], ["Missions", "/dashboard/owner/missions/overview"], ["Mes partenaires", "/dashboard/owner/conciergerie/partenaires"], ["Factures", "/dashboard/owner/factures"]]) {
     await expect(nav.getByRole("link", { name, exact: true })).toHaveAttribute("href", href);
   }
   await expect(nav.getByRole("link", { name: "Vue d'ensemble", exact: true })).toHaveCount(0);
-  const interventions = nav.getByRole("button", { name: "Déplier Interventions", exact: true });
-  await interventions.focus(); await page.keyboard.press("Enter");
+  const missions = nav.getByRole("button", { name: "Déplier Missions", exact: true });
+  await missions.focus(); await page.keyboard.press("Enter");
   await expect(nav.locator('button[aria-expanded="true"]')).toHaveCount(1);
   await expect(nav.getByRole("link", { name: "Tous mes logements", exact: true })).not.toBeVisible();
   await nav.getByRole("link", { name: "Maintenance", exact: true }).click();
@@ -33,7 +33,6 @@ test("sidebar propriétaire : groupes, liens, état actif, clavier et mobile", a
   await expect(nav.getByRole("link", { name: "Maintenance", exact: true })).toHaveAttribute("aria-current", "page");
   await nav.getByRole("link", { name: "Arrivées & départs", exact: true }).click();
   await expect(page.getByLabel("Filtrer par type de mission")).toHaveValue("movements");
-  await nav.getByRole("button", { name: "Déplier Réservations", exact: true }).click();
   await nav.getByRole("link", { name: "Calendrier", exact: true }).click();
   await expect(page.getByLabel("Filtrer par type de mission")).toHaveValue("all");
   await expect(nav.getByRole("link", { name: "Calendrier", exact: true })).toHaveAttribute("aria-current", "page");
@@ -60,5 +59,6 @@ test("sidebar propriétaire : groupes, liens, état actif, clavier et mobile", a
   await page.keyboard.press("Escape");
   await expect(opener).toBeFocused();
   await expect.poll(async () => { const box = await sidebar.boundingBox(); return (box?.x ?? 0) + (box?.width ?? 0); }).toBeLessThanOrEqual(1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]); expect(writes).toEqual([]);
 });

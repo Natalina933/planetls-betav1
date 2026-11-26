@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TOUR_SECTION_ID } from "./planning/planningNavigation";
 import {
     ArrowRight,
     Bell,
@@ -204,7 +205,7 @@ export default function ConciergeReferenceDashboard({
                                     </div>
                                     <div className={styles.actionRow}>
                                         <Link href={priorityHref} className={styles.primaryButton}>Ouvrir la mission <ArrowRight size={15} aria-hidden="true" /></Link>
-                                        <Link href="/dashboard/concierge/planning" className={styles.secondaryButton}>Voir l&apos;itinéraire <Navigation size={15} aria-hidden="true" /></Link>
+                                        <Link href={`/dashboard/concierge/planning?vue=${TOUR_SECTION_ID}`} scroll={false} className={styles.secondaryButton}>Voir l&apos;itinéraire <Navigation size={15} aria-hidden="true" /></Link>
                                     </div>
                                 </div>
                             </div>

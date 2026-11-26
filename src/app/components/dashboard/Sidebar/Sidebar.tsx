@@ -272,6 +272,7 @@ if (userType === "owner") {
                     item={item}
                     toggleSidebar={userType === "owner" ? () => { if (isMobileViewport) toggleSidebar(); } : toggleSidebar}
                     notificationCounts={notificationCounts}
+                    conciergeActive={userType === "concierge" ? item.label === conciergeActiveLabel : undefined}
                     ownerNavigation={userType === "owner" ? {
                       activePath: ownerActivePath,
                       open: openOwnerGroup === item.label,

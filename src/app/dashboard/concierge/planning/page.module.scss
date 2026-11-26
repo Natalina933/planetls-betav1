@@ -51,6 +51,7 @@
 }
 
 .routeDisclosure {
+  scroll-margin-top: calc(var(--ds-layout-header-height) + var(--ds-space-4));
   min-width: 0;
   border: 1px solid var(--dash-border);
   border-radius: 8px;

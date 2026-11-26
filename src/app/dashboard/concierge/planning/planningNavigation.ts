@@ -1,5 +1,7 @@
 import { addDays, addMonths, endOfDay, endOfMonth, endOfWeek, startOfDay, startOfMonth, startOfWeek } from "date-fns";
 
+export const TOUR_SECTION_ID = "tournee";
+
 export const PLANNING_MODES = [
   { value: "month", label: "Mois" },
   { value: "week", label: "Semaine" },

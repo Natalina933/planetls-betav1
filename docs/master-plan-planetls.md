@@ -793,6 +793,18 @@
 - Trois tests exécutent la route et le fournisseur NextAuth avec Supabase simulé. Ils vérifient les refus en production, en recette authentifiée et pour une cible distante, la lecture bornée et sans secret, le refus d’identifiants invalides ou d’un service indisponible et la connexion classique avec un profil valide. Les tests ne couvrent pas une session réelle ni les RLS PostgreSQL. Le contrôle du mot de passe de repli historique ne trouve plus cette valeur dans les sources suivies examinées ; elle reste dans l’historique Git.
 - `PLS-DEV-003` et `PLS-DEV-005` gardent leurs statuts. Les trois comptes locaux précédemment confirmés restent à authentifier avec leurs mots de passe actuels. En cas de mot de passe inconnu, obtenir une autorisation explicite, relever dans Studio local l’ID Auth du compte marqué pour le rôle attendu et effectuer une mise à jour ciblée du mot de passe via Supabase Auth Admin sur `http://127.0.0.1:54321`. Utiliser un mot de passe unique saisi avec une invite masquée, puis charger les huit variables `PLS_LOCAL_*` et lancer la configuration Playwright dédiée. Aucune réinitialisation ni écriture effectuée dans ce lot.
 
+### P2-03 — Fluidification du parcours conciergerie — 26 novembre 2026
+
+- **A — Tournée.** « Voir l’itinéraire » ouvre le planning avec `?vue=tournee`. Le résumé de la section reçoit le focus et défile sans animation. Le repli natif reste disponible et l’accès au calendrier sans ce paramètre conserve l’état initial replié. L’algorithme de tournée est inchangé.
+- **B — Création.** Le planning ajoute « Ajouter une intervention » à ses actions existantes et réutilise le formulaire de création, dont l’état sans logement éligible.
+- **C — Sidebar.** « Interventions » ouvre la liste des missions et reste l’entrée courante sur le détail et la création. « Maintenance » ouvre le suivi des incidents. Les deux entrées restent dans « Mon activité » et réutilisent le repère `aria-current`.
+- **Preuves locales.** TypeScript application et Playwright réussis. Les 27 tests ciblés planning/sidebar passent, et les 13 tests conciergerie ont été rejoués avec succès après l’ajustement de l’ordre des actions. Les trois scénarios Playwright P2-03 passent sous Edge avec API simulées : tournée, repli clavier, rechargement et historique ; accès au formulaire et état sans logement ; repère actif sur les quatre routes, mode compact et tiroir mobile. Captures de la tournée à 1440 px et du planning à 390, 768 et 1440 px inspectées. Le scénario visuel historique Nocturne échoue sur l’écart de largeur attendu/rendu de 252/260 px. ESLint signale deux erreurs `react-hooks/set-state-in-effect` dans `SidebarItem.tsx`, reproduites sur le fichier de référence à `b6fb094c`. Les autres fichiers TypeScript modifiés passent le lint ciblé.
+- **Pilotage.** `PLS-DEV-004` reste 🟡 En cours et `PLS-DEV-026` passe à 🟡 En cours pour les premiers scénarios ciblés de navigation mobile et clavier. Les deux restent P2 Important. Aucune API, règle métier, permission, migration ou donnée Supabase modifiée. La recette UI utilise des transports simulés et ne constitue pas une vérification RLS réelle. Les parcours persistés et les refus réels entre rôles et tenants restent à vérifier dans leurs recettes métier. NO-GO bêta maintenu.
+- **Stabilisation P2-03-FINAL.** Les deux mises à jour synchrones signalées par React dans `SidebarItem.tsx` ont été remplacées par la lecture du stockage via `useSyncExternalStore` et un ajustement d’état lors de l’activation d’un lien enfant. Le clic reste prioritaire pour le repli manuel et l’écriture du choix reste dans un effet. Le propriétaire garde son état de groupe piloté par la sidebar.
+- **Référence Nocturne.** Les preuves du 20 octobre à 252/72 px sont historiques. `cf820a72` a porté à 260 px le jeton de largeur du layout Nocturne et le repli SCSS du composant. Ces deux déclarations sont déjà présentes à `b6fb094c`. La sidebar et la marge ouverte partagent ce jeton sous `box-sizing: border-box` : l’écart ne provient ni de la bordure ni des espacements. Les deux assertions desktop utilisent désormais la référence de 260 px. Les styles, le rail de 72 px et le tiroir restent inchangés, avec scénario visuel Nocturne réussi sous Edge.
+- **Contrôles finaux.** TypeScript application et Playwright, ESLint ciblé et 27 tests de planning/navigation/sidebar réussis. Les trois scénarios P2-03 et le scénario visuel Nocturne ont été rejoués avec session et API simulées. Les libellés et destinations du scénario propriétaire ont été alignés sur la configuration déjà présente au checkpoint. Côté administration, le scénario exploratoire est bloqué avant le rendu par « Vérification des droits administratifs indisponible ». La recette conciergerie réelle n’a pas été lancée faute d’identifiants de recette disponibles. Aucun changement d’autorisation ni de données. P2-01 reste PASS EN LOCAL selon ses preuves, P2-02 reste PARTIEL, `PLS-DEV-004` et `PLS-DEV-026` restent 🟡 En cours, P2 Important. NO-GO bêta maintenu.
+- **Régressions des autres espaces.** Artisan simulé réussi au rejeu : groupe actif ouvert automatiquement, repli manuel et mémorisation d’un autre groupe après rechargement, focus clavier, fermeture desktop et tiroir mobile par Échap, largeur mobile sans débordement horizontal. Propriétaire simulé partiel : liens du menu, repère courant et ouverture clavier du groupe Missions vérifiés. Le clic Maintenance reste sur Mes logements lors de deux rejeux, avant les assertions de planning et de tiroir mobile. Verdict P2-03 : PASS EN LOCAL sur la conciergerie simulée, validation globale PARTIELLE. Reprendre les contrôles propriétaire et administration et la session conciergerie réelle dans leurs recettes ciblées.
+
 ### P2-02 — Planning artisan — 25 novembre 2026
 
 - **Checkpoint de fin de journée.** P2-01 : PASS EN LOCAL selon les preuves disponibles, sans nouvelle recette navigateur à ce checkpoint. P2-02 : 🟠 Partiel — P2 Important ; `PLS-DEV-005` reste `TO_VERIFY`. À partir de `6a7b06ba`, les deux typechecks, les 11 tests ciblés (navigation propriétaire, planning Artisan, authentification simulée), le registre Administration > Développement et `git diff --check` passent. ESLint des fichiers TypeScript concernés : zéro erreur et deux avertissements historiques dans la page de connexion. Aucun rejeu Artisan authentifié ce soir.
@@ -2373,8 +2385,8 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "type": "feature",
       "persona": "Concierge",
       "phase": "Consolidation rôle concierge",
-      "updatedAt": "2026-08-24",
-      "nextAction": "Réduire les reliquats `metadata` et confirmer les flux terrain prioritaires en bout en bout.",
+      "updatedAt": "2026-11-26",
+      "nextAction": "Confirmer en session réelle les accès à la tournée et au formulaire, puis poursuivre la consolidation des flux terrain et des données encore en metadata.",
       "validationCriteria": [
         "Cockpit concierge stable",
         "Données critiques persistées",
@@ -2384,7 +2396,7 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "blocker": null,
       "routes": ["/dashboard/concierge", "/dashboard/concierge/planning"],
       "files": ["src/app/dashboard/concierge/", "src/app/api/concierge/"],
-      "progressLabel": "Base très avancée, mais une part du métier reste encore semi-structurée.",
+      "progressLabel": "P2-03 fluidifie l’accès à la tournée, à la création et au suivi des interventions. La confirmation des flux terrain persistés reste ouverte.",
       "source": "docs/master-plan-planetls.md#registre-structure-du-developpement",
       "evidence": [
         "src/app/dashboard/concierge/page.tsx",
@@ -3348,13 +3360,13 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "domain": "UX et accessibilité",
       "title": "Audit mobile, accessibilité et vocabulaire métier",
       "summary": "Fermer les recommandations UX ouvertes sur les parcours critiques, le vocabulaire artisan/provider et l'usage mobile.",
-      "status": "TO_PLAN",
+      "status": "IN_PROGRESS",
       "priority": "P2",
       "type": "improvement",
       "persona": "Tous",
       "phase": "Qualité d'expérience",
-      "updatedAt": "2026-08-24",
-      "nextAction": "Transformer les recommandations non closes en scénarios de test mobile/accessibilité priorisés, puis vérifier les termes publics restants.",
+      "updatedAt": "2026-11-26",
+      "nextAction": "Étendre les scénarios clavier et mobile P2-03 aux parcours critiques restants et vérifier les termes publics encore ouverts.",
       "validationCriteria": [
         "Parcours critiques testés sur mobile",
         "Libellés métier cohérents",

@@ -74,9 +74,10 @@ function componentHarness(file: string, initialStates: unknown[] = []) {
         if (!(index in states)) states[index] = typeof initial === "function" ? initial() : initial;
         return [states[index], (value: any) => { states[index] = typeof value === "function" ? value(states[index]) : value; }];
       },
-      useEffect: () => {}, useMemo: (fn: () => unknown) => fn(),
+      useEffect: () => {}, useMemo: (fn: () => unknown) => fn(), useRef: (current: unknown) => ({ current }),
     };
     if (name === "next/link") return { __esModule: true, default: "Link" };
+    if (name === "next/navigation") return { useSearchParams: () => new URLSearchParams() };
     if (name === "lucide-react" || name === "@/components/dashboard") return new Proxy({}, { get: (_, key) => String(key) });
     if (name.endsWith("useTemporalClock")) return { useTemporalClock: () => now };
     if (name.endsWith("OptimizedRoutePlanner")) return { __esModule: true, default: "OptimizedRoutePlanner" };
@@ -101,6 +102,7 @@ function componentHarness(file: string, initialStates: unknown[] = []) {
   function nodes(node: any): any[] {
     if (!node || typeof node !== "object") return [];
     if (Array.isArray(node)) return node.flatMap(nodes);
+    if (node.type?.name === "PlanningTour") return nodes(node.type(node.props));
     return [node, ...nodes(node.props?.children)];
   }
   const render = (props: Row = {}) => { cursor = 0; return nodes(component(props)); };
@@ -136,6 +138,16 @@ test("page : cinq vues exclusives, date conservée, navigation et Aujourd'hui", 
   assert.deepEqual(dayKey(calendar().props.date), [2026, 11, 15]);
   assert.equal(ui.render().filter(node => node.type === "OptimizedRoutePlanner").length, 1);
   assert.equal(ui.render().find(node => node.type === "details").props.open, undefined);
+});
+
+test("le planning donne accès au formulaire existant et conserve les raccourcis", () => {
+  const ui = componentHarness("app/dashboard/concierge/planning/page.tsx");
+  const page = ui.render().find(node => node.type === "DashboardOperationalPage");
+  assert.deepEqual(page.props.primaryActions.map((action: Row) => action.href), [
+    "/dashboard/concierge/demandes",
+    "/dashboard/concierge/interventions/new",
+    "/dashboard/concierge",
+  ]);
 });
 
 test("Terrain : semaine choisie, liens et jour courant distincts de la date d'ancrage", () => {

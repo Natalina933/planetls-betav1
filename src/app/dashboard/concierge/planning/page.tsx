@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useTemporalClock } from "@/app/hooks/useTemporalClock";
 import { localDayStart, localDayEnd, planningTemporalSchedule, ROLLING_48_HOURS } from "@/app/lib/temporalClock";
 import {
@@ -19,7 +20,7 @@ import DashboardCalendar, { DashboardEvent } from "@/app/components/dashboard/ca
 import { takeFirst } from "../../shared";
 import { isPlanningDone, normalizePlanningStatus, toTimestamp } from "./planningHelpers";
 import OptimizedRoutePlanner from "./OptimizedRoutePlanner";
-import { formatPlanningPeriod, getPlanningPeriod, navigatePlanningDate, PLANNING_MODES, type PlanningMode } from "./planningNavigation";
+import { formatPlanningPeriod, getPlanningPeriod, navigatePlanningDate, PLANNING_MODES, TOUR_SECTION_ID, type PlanningMode } from "./planningNavigation";
 import type { Json } from "@/types/supabase";
 import styles from "./page.module.scss";
 
@@ -135,6 +136,42 @@ function toDetailItems(items: MissionRow[], fallbackAction: string): Operational
       href: `/dashboard/concierge/missions/${mission.id}`,
     },
   }));
+}
+
+function PlanningTour({ missions, planningReady }: { missions: MissionRow[]; planningReady: boolean }) {
+  const tourRequested = useSearchParams().get("vue") === TOUR_SECTION_ID;
+  const routeDisclosure = useRef<HTMLDetailsElement>(null);
+  const routeSummary = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const disclosure = routeDisclosure.current;
+    if (!tourRequested || !planningReady || !disclosure) return;
+
+    // Le calendrier est désormais rendu et ne décale plus la cible à son chargement.
+    disclosure.open = true;
+    const frame = requestAnimationFrame(() => {
+      routeSummary.current?.focus({ preventScroll: true });
+      disclosure.scrollIntoView({ block: "start", behavior: "instant" });
+    });
+
+    return () => {
+      cancelAnimationFrame(frame);
+      disclosure.open = false;
+    };
+  }, [tourRequested, planningReady]);
+
+  return (
+    <details id={TOUR_SECTION_ID} ref={routeDisclosure} className={styles.routeDisclosure}>
+      <summary ref={routeSummary} className={styles.routeDisclosureSummary}>
+        <span>Organiser une tournée</span>
+        <span className={styles.routeDisclosureClosed} aria-hidden="true">Déplier</span>
+        <span className={styles.routeDisclosureOpen} aria-hidden="true">Replier</span>
+      </summary>
+      <div className={styles.routeDisclosureContent}>
+        <OptimizedRoutePlanner missions={missions} />
+      </div>
+    </details>
+  );
 }
 
 export default function ConciergePlanningPage() {
@@ -317,6 +354,7 @@ export default function ConciergePlanningPage() {
       }
       primaryActions={[
         { label: "Voir les demandes", href: "/dashboard/concierge/demandes" },
+        { label: "Ajouter une intervention", href: "/dashboard/concierge/interventions/new" },
         { label: "Retour tableau de bord", href: "/dashboard/concierge" },
       ]}
       metrics={[
@@ -462,16 +500,9 @@ export default function ConciergePlanningPage() {
         ) : <p className={styles.weekEmpty}>Préparation du calendrier…</p>}
       </DashboardPanel>
 
-      <details className={styles.routeDisclosure}>
-        <summary className={styles.routeDisclosureSummary}>
-          <span>Organiser une tournée</span>
-          <span className={styles.routeDisclosureClosed} aria-hidden="true">Déplier</span>
-          <span className={styles.routeDisclosureOpen} aria-hidden="true">Replier</span>
-        </summary>
-        <div className={styles.routeDisclosureContent}>
-          <OptimizedRoutePlanner missions={missions} />
-        </div>
-      </details>
+      <Suspense fallback={null}>
+        <PlanningTour missions={missions} planningReady={Boolean(referenceDate) && !loading} />
+      </Suspense>
     </DashboardOperationalPage>
   );
 }

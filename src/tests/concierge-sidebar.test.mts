@@ -46,6 +46,7 @@ test("concierge sidebar keeps the expected route order", () => {
     "/dashboard/concierge/planning",
     "/dashboard/concierge/logements",
     "/dashboard/concierge/sejours",
+    "/dashboard/concierge/missions",
     "/dashboard/concierge/maintenance",
     "/dashboard/concierge/recherche",
     "/dashboard/concierge/demandes",
@@ -64,11 +65,19 @@ const entries = [...config.matchAll(/label: "([^"]+)",[\s\S]*?path: "([^"]+)"/g)
   .map(match => ({ label: match[1], path: match[2] }));
 
 test("one active concierge link, including billing aliases and nested routes", () => {
-  assert.equal(entries.length, 13);
+  assert.equal(entries.length, 14);
   assert.equal(getConciergeActiveLabel(entries, "/dashboard/concierge", ""), "Tableau de bord");
   assert.equal(getConciergeActiveLabel(entries, "/dashboard/concierge/billing", "quote=123"), "Devis");
   assert.equal(getConciergeActiveLabel(entries, "/dashboard/concierge/logements/123", ""), "Logements");
   assert.equal(getConciergeActiveLabel(entries, "/dashboard/concierge/profile", "tab=documents&extra=1"), "Documents");
   assert.equal(getConciergeActiveLabel(entries, "/dashboard/concierge/profile", "tab=overview"), undefined);
   assert.equal(getConciergeActiveLabel(entries, "/dashboard/concierge/planning-other", ""), undefined);
+});
+
+test("concierge navigation distinguishes interventions from maintenance", () => {
+  for (const path of ["missions", "missions/example", "interventions/new"]) {
+    assert.equal(getConciergeActiveLabel(entries, `/dashboard/concierge/${path}`, ""), "Interventions");
+  }
+  assert.equal(getConciergeActiveLabel(entries, "/dashboard/concierge/maintenance", ""), "Maintenance");
+  assert.equal(getConciergeActiveLabel(entries, "/dashboard/concierge/interventions/new-other", ""), undefined);
 });

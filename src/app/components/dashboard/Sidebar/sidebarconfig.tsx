@@ -94,7 +94,8 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
     { section: "Mon activité", label: "Calendrier", path: "/dashboard/concierge/planning", icon: FiCalendar },
     { label: "Logements", path: "/dashboard/concierge/logements", icon: DashboardHousesIcon },
     { label: "Séjours", path: "/dashboard/concierge/sejours", icon: FiUsers },
-    { label: "Interventions", path: "/dashboard/concierge/maintenance", icon: FiTool },
+    { label: "Interventions", path: "/dashboard/concierge/missions", icon: FiClipboard },
+    { label: "Maintenance", path: "/dashboard/concierge/maintenance", icon: FiTool },
 
     { section: "Mon réseau", label: "Rechercher un propriétaire", path: "/dashboard/concierge/recherche", icon: FiSearch },
     {

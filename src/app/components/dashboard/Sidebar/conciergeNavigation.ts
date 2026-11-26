@@ -2,12 +2,15 @@ type Entry = { label: string; path: string };
 
 /** Une seule entrée courante, même lorsque deux liens partagent une destination. */
 export function getConciergeActiveLabel(items: Entry[], pathname: string, query: string) {
+  const activePath = pathname === "/dashboard/concierge/interventions/new"
+    ? "/dashboard/concierge/missions"
+    : pathname;
   const params = new URLSearchParams(query);
   return items
     .map((item, index) => {
       const [base, search = ""] = item.path.split("?");
       const required = new URLSearchParams(search);
-      const matches = pathname === base || (base !== "/dashboard/concierge" && pathname.startsWith(`${base}/`));
+      const matches = activePath === base || (base !== "/dashboard/concierge" && activePath.startsWith(`${base}/`));
       const matchesQuery = [...required].every(([key, value]) => params.get(key) === value);
       return { ...item, index, score: matches && matchesQuery ? base.length + required.size * 1000 : -1 };
     })
