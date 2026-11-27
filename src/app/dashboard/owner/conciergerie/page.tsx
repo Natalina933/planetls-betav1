@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -305,16 +305,14 @@ export default function OwnerConciergeriesPage() {
   const [statusFilter, setStatusFilter] = useState("accepted");
   const [form, setForm] = useState<RequestFormState>(initialForm);
 
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const [requestsResponse, housingResponse, quotesResponse] = await Promise.all([
-        fetch("/api/service-requests?limit=100", { cache: "no-store" }),
-        fetch("/api/housing", { cache: "no-store" }),
-        fetch("/api/quotes?limit=100", { cache: "no-store" }),
-      ]);
+  const dataController = useRef<AbortController | null>(null);
 
+  const loadData = useCallback((signal: AbortSignal) => {
+    return Promise.all([
+      fetch("/api/service-requests?limit=100", { cache: "no-store", signal }),
+      fetch("/api/housing", { cache: "no-store", signal }),
+      fetch("/api/quotes?limit=100", { cache: "no-store", signal }),
+    ]).then(async ([requestsResponse, housingResponse, quotesResponse]) => {
       const requestsPayload = (await requestsResponse.json()) as RequestsPayload;
       const housingPayload = await housingResponse.json();
       const quotesPayload = await quotesResponse.json();
@@ -323,19 +321,40 @@ export default function OwnerConciergeriesPage() {
       if (!housingResponse.ok) throw new Error(housingPayload?.error || "Impossible de charger les logements.");
       if (!quotesResponse.ok) throw new Error(quotesPayload?.error || "Impossible de charger les devis.");
 
+      if (signal.aborted) return;
+
       setRequests(Array.isArray(requestsPayload.items) ? requestsPayload.items : []);
       setHousing(Array.isArray(housingPayload) ? housingPayload : []);
       setQuotes(Array.isArray(quotesPayload) ? quotesPayload : []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de charger l'espace Conciergeries.");
-    } finally {
-      setLoading(false);
-    }
+    }).catch((err: unknown) => {
+      if (!signal.aborted) {
+        setError(err instanceof Error ? err.message : "Impossible de charger l'espace Conciergeries.");
+      }
+    }).finally(() => {
+      if (!signal.aborted) setLoading(false);
+    });
   }, []);
 
   useEffect(() => {
-    void loadData();
+    const controller = new AbortController();
+    dataController.current = controller;
+    void loadData(controller.signal);
+
+    return () => {
+      dataController.current?.abort();
+      dataController.current = null;
+    };
   }, [loadData]);
+
+  async function refreshData() {
+    if (!dataController.current) return;
+    dataController.current.abort();
+    const controller = new AbortController();
+    dataController.current = controller;
+    setLoading(true);
+    setError(null);
+    await loadData(controller.signal);
+  }
 
   const housingOptions = useMemo(
     () =>
@@ -484,7 +503,7 @@ export default function OwnerConciergeriesPage() {
       setSuccess("Demande créée. Elle apparaît maintenant dans le suivi relationnel.");
       setForm(initialForm);
       setActiveSection("demandes");
-      await loadData();
+      await refreshData();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de créer la demande.");
     } finally {
@@ -505,7 +524,7 @@ export default function OwnerConciergeriesPage() {
       const payload = await response.json();
       if (!response.ok) throw new Error(payload?.error || "Impossible de mettre à jour le devis.");
       setSuccess(status === "accepted" ? "Devis accepté. La conciergerie est maintenant partenaire." : "Devis refusé.");
-      await loadData();
+      await refreshData();
       if (status === "accepted") setActiveSection("partenaires");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de mettre à jour le devis.");

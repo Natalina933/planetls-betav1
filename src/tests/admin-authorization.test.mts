@@ -125,6 +125,13 @@ function fixture(options: Options = {}) {
         const read = async () => { calls.business.push(["read-file"]); throw new Error("Unexpected document read"); };
         return { promises: { readFile: read, stat: read, access: read }, readFile: read };
       }
+      if (id === "./spaceProgressData" || id === "./socleProgressData") {
+        const unexpectedProgressRead = () => {
+          calls.business.push(["development-progress", id]);
+          throw new Error("Unexpected development progress read");
+        };
+        return { computeSpaceProgress: unexpectedProgressRead, parseSoclePresentation: unexpectedProgressRead };
+      }
       if (id.endsWith(".scss")) return {};
       if (id.startsWith("@/components/") || id.startsWith("@/features/") || id === "lucide-react" || id === "next/link") return {};
       if (["./architectureDecisions", "./DecisionCenterPage", "../../adminNavigation", "./PersonasView", "./personaCoverage", "../pilotage/economic-model/sharedFinancialReference", "./developerLog", "./MasterPlanViewer", "./masterPlan", "./missionControl", "./roadmap", "./technicalMemory"].includes(id)) return {};
