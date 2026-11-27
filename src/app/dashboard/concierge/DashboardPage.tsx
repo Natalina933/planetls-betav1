@@ -346,10 +346,12 @@ function ConciergeInspirationPanel({
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState("");
 
-  useEffect(() => {
+  const [previousLibrary, setPreviousLibrary] = useState(library);
+  if (previousLibrary !== library) {
+    setPreviousLibrary(library);
     setVideos(library.videos.map((item) => item.sourceUrl));
     setSearches(library.searches);
-  }, [library]);
+  }
 
   const filteredVideos = useMemo(() => {
     const hydrated = parseConciergeInspirationLibrary(
@@ -606,49 +608,57 @@ export default function DashboardPage() {
     DEFAULT_CONCIERGE_DASHBOARD_PREFERENCES,
   );
   const [syncedOperatingMode, setSyncedOperatingMode] = useState(dashboardPreferences.operatingMode);
-  const [widgets, setWidgets] = useState(DEFAULT_CONCIERGE_WIDGETS);
+  const [savedWidgets, setWidgets] = useState<typeof DEFAULT_CONCIERGE_WIDGETS | null>(null);
+  const widgets = savedWidgets ?? DEFAULT_CONCIERGE_WIDGETS;
   const [onboardingOpen, setOnboardingOpen] = useState(false);
 
+  const userId = user?.id;
+  const onboardingComplete = user?.onboarding_complete;
   useEffect(() => {
-    if (!user?.id || user.onboarding_complete !== false) {
-      setOnboardingOpen(false);
-      return;
-    }
+    const timer = window.setTimeout(() => {
+      if (!userId || onboardingComplete !== false) {
+        setOnboardingOpen(false);
+        return;
+      }
 
-    let deferred = false;
-    try {
-      deferred = window.sessionStorage.getItem(getConciergeOnboardingDeferredKey(String(user.id))) === "true";
-    } catch {
-      deferred = false;
-    }
-    setOnboardingOpen(!deferred);
-  }, [user?.id, user?.onboarding_complete]);
+      let deferred = false;
+      try {
+        deferred = window.sessionStorage.getItem(getConciergeOnboardingDeferredKey(String(userId))) === "true";
+      } catch {
+        deferred = false;
+      }
+      setOnboardingOpen(!deferred);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [userId, onboardingComplete]);
 
   useEffect(() => {
-    try {
-      const savedWidgets = window.localStorage.getItem(CONCIERGE_WIDGET_STORAGE_KEY);
-      if (savedWidgets) setWidgets(parseConciergeWidgets(savedWidgets));
-    } catch {
-      setWidgets(DEFAULT_CONCIERGE_WIDGETS);
-    }
+    const timer = window.setTimeout(() => {
+      let initialWidgets = DEFAULT_CONCIERGE_WIDGETS;
+      try {
+        const stored = window.localStorage.getItem(CONCIERGE_WIDGET_STORAGE_KEY);
+        if (stored) initialWidgets = parseConciergeWidgets(stored);
+      } catch {
+        // Widget preferences should never block the dashboard.
+      }
+      setWidgets((current) => current ?? initialWidgets);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    window.localStorage.setItem(CONCIERGE_WIDGET_STORAGE_KEY, JSON.stringify(widgets));
-  }, [widgets]);
-
-  useEffect(() => {
-    if (syncedOperatingMode === dashboardPreferences.operatingMode) return;
-    const nextWidgets = CONCIERGE_OPERATING_MODE_CONFIG[dashboardPreferences.operatingMode].widgetDefaults;
-    setWidgets({ ...nextWidgets });
+  if (syncedOperatingMode !== dashboardPreferences.operatingMode) {
     setSyncedOperatingMode(dashboardPreferences.operatingMode);
+    setWidgets({ ...CONCIERGE_OPERATING_MODE_CONFIG[dashboardPreferences.operatingMode].widgetDefaults });
+  }
 
+  useEffect(() => {
+    if (!savedWidgets) return;
     try {
-      window.localStorage.setItem(CONCIERGE_WIDGET_STORAGE_KEY, JSON.stringify(nextWidgets));
+      window.localStorage.setItem(CONCIERGE_WIDGET_STORAGE_KEY, JSON.stringify(savedWidgets));
     } catch {
       // Widget preferences should never block the dashboard.
     }
-  }, [dashboardPreferences.operatingMode, syncedOperatingMode]);
+  }, [savedWidgets]);
 
   const handleDashboardPreferencesChange = useCallback((preferences: ConciergeDashboardPreferences) => {
     setDashboardPreferences(preferences);
@@ -1760,7 +1770,10 @@ export default function DashboardPage() {
                       className={styles.widgetToggle}
                       data-enabled={enabled ? "true" : "false"}
                       aria-pressed={enabled}
-                      onClick={() => setWidgets((current) => ({ ...current, [widget.id]: !current[widget.id] }))}
+                      onClick={() => setWidgets((current) => {
+                        const previous = current ?? DEFAULT_CONCIERGE_WIDGETS;
+                        return { ...previous, [widget.id]: !previous[widget.id] };
+                      })}
                     >
                       <GripVertical size={16} aria-hidden="true" />
                       <Icon size={20} aria-hidden="true" />

@@ -798,6 +798,7 @@
 - **PLS-DEV-026 — 🟡 En cours — P2 Important.** Les actions des bandeaux opérationnels réutilisent les boutons du design system et leurs tokens de thème et de focus. Les libellés de chargement concernés suivent les mêmes conventions dans les espaces propriétaire, conciergerie et artisan.
 - **Interventions conciergerie.** Échec de lecture, chargement, liste vide et filtre sans résultat sont distingués. Les compteurs attendent une lecture réussie, l’erreur propose « Réessayer » et les filtres à boutons indiquent leur état actif. Aucune API ni autorisation modifiée. NO-GO bêta maintenu.
 - **Preuves.** 20 tests ciblés de navigation et planning, puis deux scénarios Playwright avec API simulées réussis : reprise après erreur sur les interventions et régression du bouton de création depuis le planning. Captures inspectées à 390, 768 et 1440 px, avec focus visible et sans débordement. Les quatre erreurs ESLint du cockpit conciergerie sont reproduites à `37dc8e88`. Nocturne et les sessions réelles restent à rejouer.
+- **P2-06A-FINAL — 27 novembre 2026.** Les quatre diagnostics historiques `react-hooks/set-state-in-effect` sont dans `DashboardPage.tsx` (bibliothèque, onboarding, lecture des widgets et changement de mode). Les deux TSX concernés passent ESLint sans avertissement. La sidebar est hors de cet ensemble historique. Son rafraîchissement initial et toutes les 30 secondes est conservé, avec annulation à la sortie du cycle et garde contre le chevauchement. Les typechecks application et Playwright passent. Les 18 tests ciblés et le scénario de polling à horloges simulées passent. Les API, les permissions et le schéma Supabase sont inchangés. PLS-DEV-026 reste 🟡 En cours et P2 Important, avec Nocturne et les sessions réelles à rejouer. NO-GO bêta maintenu.
 
 ### P2-05 — Fluidification du parcours artisan — 26 novembre 2026
 
@@ -6503,6 +6504,8 @@ Une ligne ne passe à `✅` que si :
 | AAAA-MM-JJ | Produit / Technique / UX / Go-to-market | Formulation courte   | Données ou arbitrage | Options écartées et raison concise | Code, données, roadmap, utilisateurs | Nom/rôle    |
 
 ### Journal consolidé
+
+Décision technique du 27 novembre 2026 — P2-06A-FINAL corrige les quatre diagnostics du cockpit sans désactiver de règle. La lecture des préférences précède leur persistance. Le polling des notifications conserve sa cadence et abandonne les réponses d’un cycle obsolète. Responsable développement.
 
 Décision d’accès du 6 septembre 2026 — Rétablir une entrée latérale admin « Design & maquettes » et un point d’accès aux sept pages de design existantes. Conserver les prototypes et leurs données de démonstration, sans les confondre avec les dashboards métier. Priorités et périmètre du Design System inchangés ; choix graphiques à examiner par la direction produit.
 

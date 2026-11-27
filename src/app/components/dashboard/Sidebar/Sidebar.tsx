@@ -81,7 +81,7 @@ if (userType === "owner") {
   const activeGroup = menuItems.find(item => item.children && (item.path === ownerActivePath || item.children.some(child => child.path === ownerActivePath)))?.label;
   const openOwnerGroup = ownerGroup?.key === navigationKey ? ownerGroup.label : activeGroup;
 
-  const loadNotificationCounts = useCallback(async () => {
+  const loadNotificationCounts = useCallback(async (signal: AbortSignal) => {
     if (userType !== "concierge" && userType !== "owner") {
       setNotificationCounts({});
       return;
@@ -92,8 +92,9 @@ if (userType === "owner") {
         userType === "concierge"
           ? "/api/service-requests?view=concierge&limit=30"
           : "/api/service-requests?limit=30";
-      const response = await fetch(endpoint, { cache: "no-store" });
+      const response = await fetch(endpoint, { cache: "no-store", signal });
       const payload = await response.json();
+      if (signal.aborted) return;
       if (!response.ok) {
         throw new Error(payload?.error || "Impossible de charger les notifications.");
       }
@@ -122,7 +123,7 @@ if (userType === "owner") {
 
       setNotificationCounts({ "owner-service-replies": replyCount });
     } catch {
-      setNotificationCounts({});
+      if (!signal.aborted) setNotificationCounts({});
     }
   }, [userType]);
 
@@ -167,15 +168,28 @@ if (userType === "owner") {
   }, [isOpen, toggleSidebar]);
 
   useEffect(() => {
-    // Décaler la synchronisation initiale hors du corps de l'effet.
-    const initialLoad = window.setTimeout(() => { void loadNotificationCounts(); }, 0);
+    const controller = new AbortController();
+    let loading = false;
+    const refresh = async () => {
+      if (loading) return;
+      loading = true;
+      try {
+        await loadNotificationCounts(controller.signal);
+      } finally {
+        loading = false;
+      }
+    };
 
-    if (userType !== "concierge" && userType !== "owner") return () => window.clearTimeout(initialLoad);
-    const interval = window.setInterval(() => {
-      void loadNotificationCounts();
-    }, 30000);
+    const initialLoad = window.setTimeout(refresh, 0);
+    const interval = userType === "concierge" || userType === "owner"
+      ? window.setInterval(refresh, 30000)
+      : undefined;
 
-    return () => { window.clearTimeout(initialLoad); window.clearInterval(interval); };
+    return () => {
+      window.clearTimeout(initialLoad);
+      window.clearInterval(interval);
+      controller.abort();
+    };
   }, [loadNotificationCounts, refreshTick, userType]);
 
   useEffect(() => {
