@@ -392,18 +392,19 @@ function AdminControlPageContent() {
 
   const filterSummary = useMemo(
     () =>
-      `${TAB_LABELS[tab]} : ${filteredItems.length} résultat(s) affiché(s) sur ${currentItems.length} avant filtres.`,
-    [currentItems.length, filteredItems.length, tab],
+      !payload ? "Données indisponibles" : `${TAB_LABELS[tab]} : ${filteredItems.length} résultat(s) affiché(s) sur ${currentItems.length} avant filtres.`,
+    [currentItems.length, filteredItems.length, payload, tab],
   );
 
   const detailSummary = useMemo(() => {
+    if (!payload) return "Données indisponibles";
     if (filteredItems.length === 0) {
       return `Aucun élément visible dans ${TAB_LABELS[tab].toLowerCase()}.`;
     }
 
     const withProblems = filteredItems.filter((item) => item.tone !== "positive").length;
     return `${filteredItems.length} élément(s) visible(s), ${withProblems} à surveiller dans ${TAB_LABELS[tab].toLowerCase()}.`;
-  }, [filteredItems, tab]);
+  }, [filteredItems, payload, tab]);
 
   const heroTone = resolveHealthTone(payload?.health.status);
   const heroStory = payload
@@ -459,7 +460,7 @@ function AdminControlPageContent() {
   }
 
   if (loading) {
-    return <div className="center">Chargement du contrôle détaillé...</div>;
+    return <div className="center" role="status">Chargement du contrôle détaillé…</div>;
   }
 
   return (
@@ -469,8 +470,8 @@ function AdminControlPageContent() {
       subtitle="Vérifier et colorer les étapes d'inscription, les missions et les messages pour repérer vite ce qui bloque."
       navTitle="Admin / Operations"
       navItems={buildAdminNavItems("operations", "business")}
-      stats={[
-        { label: "Problemes", value: String(payload?.summary.totalProblems ?? 0), hint: "Rouge + orange" },
+      stats={payload ? [
+        { label: "Problèmes", value: String(payload?.summary.totalProblems ?? 0), hint: "Rouge + orange" },
         {
           label: "Inscriptions",
           value: String(payload?.summary.onboarding.total ?? 0),
@@ -486,7 +487,7 @@ function AdminControlPageContent() {
           value: String(payload?.summary.messages.total ?? 0),
           hint: `${payload?.summary.messages.danger ?? 0} critique(s)`,
         },
-      ]}
+      ] : []}
       actions={[
         { label: "Retour cockpit", href: "/dashboard/admin" },
         { label: "Voir utilisateurs", href: "/dashboard/admin/utilisateurs" },
@@ -731,8 +732,8 @@ function AdminControlPageContent() {
                       </label>
                       <div className={styles.filterSummary} aria-live="polite">
                         <span>{TAB_LABELS[tab]}</span>
-                        <strong>{filteredItems.length} résultat(s)</strong>
-                        <p>{currentItems.length} élément(s) dans cet onglet avant filtres.</p>
+                        <strong>{payload ? `${filteredItems.length} résultat(s)` : "Données indisponibles"}</strong>
+                        {payload ? <p>{currentItems.length} élément(s) dans cet onglet avant filtres.</p> : null}
                       </div>
                     </div>
                   </DashboardPanel>
@@ -751,7 +752,14 @@ function AdminControlPageContent() {
               {panelOpen.details ? (
                 <div id={`admin-control-details-${item}`} className={styles.foldableContent}>
                   <DashboardPanel title={`Détail ${TAB_LABELS[item].toLowerCase()}`}>
-                    {filteredItems.length === 0 ? (
+                    {!payload ? (
+                      <>
+                        <p role="alert">Les données de cet onglet sont indisponibles.</p>
+                        <button type="button" className={styles.refreshButton} onClick={() => setReloadKey((value) => value + 1)}>
+                          Réessayer
+                        </button>
+                      </>
+                    ) : filteredItems.length === 0 ? (
                       <AdminEmptyState
                         title="Aucun élément pour ce filtre"
                         description="Ajustez la recherche ou la couleur pour afficher les étapes à contrôler."

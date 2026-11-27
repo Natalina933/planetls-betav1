@@ -2226,7 +2226,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
             </details>
           </section>
           <details className={styles.subfeatureDisclosure} onToggle={(event) => setDetailedWorkspaceOpen(event.currentTarget.open)}>
-            <summary>Ouvrir les outils détaillés : Master Plan, roadmap, mémoire et journal</summary>
+            <summary>Master Plan, roadmap, mémoire technique et journal</summary>
             {detailedWorkspaceOpen ? renderDetailedWorkspace() : null}
           </details>
         </TabsContent>
@@ -2522,7 +2522,7 @@ export function MasterPlanViewer({ plan, journal, missionControl, roadmap, techn
             </TabsTrigger>
             <TabsTrigger value="masterPlan" className={styles.workspaceTabTrigger}>
               <span>Tableau fonctionnel</span>
-              <small>Master Plan au début</small>
+              <small>Document de référence du projet</small>
             </TabsTrigger>
             <TabsTrigger value="missionControl" className={styles.workspaceTabTrigger}>
               <span>Mission Control</span>

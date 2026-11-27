@@ -14,6 +14,7 @@ import {
   Plus,
   Route,
   Sparkles,
+  Users,
   X,
 } from "lucide-react";
 import styles from "./DashboardMobileExperience.module.scss";
@@ -114,7 +115,7 @@ export function DashboardMobileExperience({ role, pathname }: Props) {
       roleKey === "admin"
         ? [
             { label: "Vue plateforme", href: getRoleHome(roleKey), icon: Home },
-            { label: "Pilotage business", href: "/dashboard/admin/pilotage", icon: Route },
+            { label: "Utilisateurs", href: "/dashboard/admin/utilisateurs", icon: Users },
             { label: "Contrôle détaillé", href: "/dashboard/admin/controle", icon: ClipboardCheck },
             { label: "Développement", href: "/dashboard/admin/developpement", icon: MessageSquareText },
             { label: "Missions", href: getRoleMissionHub(roleKey), icon: MapPinned },
@@ -245,12 +246,15 @@ export function DashboardMobileExperience({ role, pathname }: Props) {
       <nav className={styles.mobileDock} aria-label={isAdmin ? "Navigation mobile administration" : "Navigation mobile terrain"}>
         {quickActions.map((action) => {
           const Icon = action.icon;
-          const active = pathname === action.href || pathname?.startsWith(`${action.href}/`);
+          const active = pathname === action.href || (
+            action.href !== "/dashboard/admin" && pathname?.startsWith(`${action.href}/`)
+          );
           return (
             <button
               key={`${action.label}-${action.href}`}
               type="button"
               className={active ? styles.activeDockItem : ""}
+              aria-current={active ? "page" : undefined}
               onClick={() => navigate(action.href)}
             >
               <Icon size={20} aria-hidden="true" />

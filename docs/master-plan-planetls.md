@@ -793,6 +793,13 @@
 - Trois tests exécutent la route et le fournisseur NextAuth avec Supabase simulé. Ils vérifient les refus en production, en recette authentifiée et pour une cible distante, la lecture bornée et sans secret, le refus d’identifiants invalides ou d’un service indisponible et la connexion classique avec un profil valide. Les tests ne couvrent pas une session réelle ni les RLS PostgreSQL. Le contrôle du mot de passe de repli historique ne trouve plus cette valeur dans les sources suivies examinées ; elle reste dans l’historique Git.
 - `PLS-DEV-003` et `PLS-DEV-005` gardent leurs statuts. Les trois comptes locaux précédemment confirmés restent à authentifier avec leurs mots de passe actuels. En cas de mot de passe inconnu, obtenir une autorisation explicite, relever dans Studio local l’ID Auth du compte marqué pour le rôle attendu et effectuer une mise à jour ciblée du mot de passe via Supabase Auth Admin sur `http://127.0.0.1:54321`. Utiliser un mot de passe unique saisi avec une invite masquée, puis charger les huit variables `PLS_LOCAL_*` et lancer la configuration Playwright dédiée. Aucune réinitialisation ni écriture effectuée dans ce lot.
 
+### P2-07 — Simplification de l’administration — 27 novembre 2026
+
+- **PLS-DEV-026 — 🟡 En cours — P2 Important.** Les comptes et le contrôle sont accessibles depuis le tableau de bord. La sidebar et le dock mobile donnent accès aux utilisateurs. Le dock expose la page active via aria-current. Le pilotage business reste accessible dans la sidebar.
+- **Décision.** L’activité récente affiche les événements métier. Les incidents restent dans le contrôle et les outils de suivi du développement restent dans Développement, avec un libellé explicite pour le Master Plan. Les calculs, preuves, progression par espace, registre et statuts documentaires sont conservés. Les écrans utilisateurs et contrôle distinguent échec de lecture et résultat vide et permettent une nouvelle tentative.
+- **Contrôles locaux.** Le registre structuré de 58 entrées se valide. ESLint ciblé retrouve quatre diagnostics React déjà présents sur `f77fc4ad`. Quatre cas du harnais d’autorisation échouent avant les assertions sur l’import non simulé de `spaceProgressData`, déjà présent au checkpoint de départ.
+- **Recette restante.** Vérifier les parcours administrateur à 390, 768 et 1440 px, dont le focus clavier. Les identifiants administrateur de recette sont absents de l’environnement. Les règles d’accès et la RLS existantes relèvent des recettes déjà ouvertes. Aucun changement de statut ou priorité, aucune nouvelle dépendance. NO-GO bêta maintenu.
+
 ### P2-06 — Cohérence UX des espaces métier — 26 novembre 2026
 
 - **PLS-DEV-026 — 🟡 En cours — P2 Important.** Les actions des bandeaux opérationnels réutilisent les boutons du design system et leurs tokens de thème et de focus. Les libellés de chargement concernés suivent les mêmes conventions dans les espaces propriétaire, conciergerie et artisan.
@@ -3389,8 +3396,8 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "type": "improvement",
       "persona": "Tous",
       "phase": "Qualité d'expérience",
-      "updatedAt": "2026-11-26",
-      "nextAction": "Étendre les contrôles clavier et mobile P2-03 à P2-06 aux parcours critiques restants et vérifier les libellés publics encore ouverts.",
+      "updatedAt": "2026-11-27",
+      "nextAction": "Rejouer la navigation et les états de l’administration avec une session autorisée à 390, 768 et 1440 px, puis poursuivre les contrôles clavier, mobile et de vocabulaire des parcours critiques.",
       "validationCriteria": [
         "Parcours critiques testés sur mobile",
         "Libellés métier cohérents",
@@ -3406,7 +3413,8 @@ Les limites connues doivent etre consignees soit dans la mise a jour ciblee du l
       "progressLabel": "Recommandations d'audit encore à revalider face au code actuel, sans réintroduire les corrections déjà livrées.",
       "source": "docs/guide-audit-ux-plateforme-mise-en-relation.md",
       "evidence": [
-        "Audit UX : contrôles mobile/accessibilité et recommandations suivantes"
+        "Audit UX : contrôles mobile/accessibilité et recommandations suivantes",
+        "P2-07 : accès Utilisateurs dans le tableau de bord, la sidebar et le dock mobile, annonce de la page courante et distinction entre listes vides et lectures indisponibles."
       ]
     },
     {

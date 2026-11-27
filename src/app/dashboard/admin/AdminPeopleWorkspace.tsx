@@ -436,6 +436,7 @@ export function AdminPeopleWorkspace({
 }) {
   const [payload, setPayload] = useState<AdminOverviewPayload | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("Tous");
   const [roleFilter, setRoleFilter] = useState(scope === "all" ? "all" : scope);
@@ -494,7 +495,7 @@ export function AdminPeopleWorkspace({
     }
 
     void bootstrap();
-  }, []);
+  }, [loadAttempt]);
 
   useEffect(() => {
     if (!selectedUserId) return;
@@ -699,7 +700,35 @@ export function AdminPeopleWorkspace({
       : `Contrôler les comptes ${ROLE_LABELS[scope].toLowerCase()}, leur activité et leur niveau de préparation.`;
 
   if (loading) {
-    return <div className="center">Chargement du pilotage utilisateurs...</div>;
+    return <div className="center" role="status">Chargement des utilisateurs…</div>;
+  }
+
+  if (!payload) {
+    return (
+      <DashboardLayout
+        persona="admin"
+        title={title}
+        subtitle={subtitle}
+        navTitle="Administration · Opérations"
+        navItems={buildAdminNavItems("operations")}
+        stats={[]}
+        actions={[]}
+        activity={[]}
+        notifications={[]}
+        shortcuts={buildAdminShortcuts("operations")}
+        profile={{ name: "PlanetLS", subtitle: "Contrôle comptes et activité" }}
+      >
+        <DashboardPanel title="Utilisateurs indisponibles">
+          <p className={styles.errorBox} role="alert">{errorMessage ?? "Impossible de charger les utilisateurs."}</p>
+          <button type="button" onClick={() => {
+            setLoading(true);
+            setLoadAttempt((attempt) => attempt + 1);
+          }}>
+            Réessayer
+          </button>
+        </DashboardPanel>
+      </DashboardLayout>
+    );
   }
 
   return (
@@ -925,7 +954,7 @@ export function AdminPeopleWorkspace({
 
       <div ref={detailPanelRef}>
       <DashboardPanel title="Fiche de contrôle">
-        {errorMessage ? <p className={styles.errorBox}>{errorMessage}</p> : null}
+        {errorMessage ? <p className={styles.errorBox} role="alert">{errorMessage}</p> : null}
 
         {selectedUserId && detailLoading ? <p>Chargement de la fiche utilisateur...</p> : null}
 
@@ -1197,8 +1226,8 @@ export function AdminPeopleWorkspace({
           </div>
         ) : (
           <AdminEmptyState
-            title="Aucun profil ne correspond aux filtres"
-            description="Ajustez la recherche, le rôle ou l'activité pour retrouver un compte à contrôler."
+            title={scopedUsers.length ? "Aucun profil ne correspond aux filtres" : "Aucun profil dans cet espace"}
+            description={scopedUsers.length ? "Ajustez la recherche ou les filtres." : "Les profils apparaîtront ici dès qu’ils seront disponibles."}
           />
         )}
       </DashboardPanel>

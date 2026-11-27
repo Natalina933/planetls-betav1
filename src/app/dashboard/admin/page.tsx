@@ -174,7 +174,7 @@ type ActivityItem = {
   detail: string;
   href: string;
   timestamp: string | null;
-  kind: "user" | "request" | "mission" | "problem";
+  kind: "user" | "request" | "mission";
 };
 
 type ControlSummaryBlock = {
@@ -283,23 +283,6 @@ function resolveControlStatusTone(status: "healthy" | "warning" | "danger" | "un
   if (status === "warning" || status === "unverifiable") return "warning";
   if (status === "healthy") return "positive";
   return "neutral";
-}
-
-function formatProblemSeverity(severity: string) {
-  if (severity === "critique") return "Critique";
-  if (severity === "prioritaire") return "Prioritaire";
-  if (severity === "vigilance") return "Vigilance";
-  return "Information";
-}
-
-function formatProblemStatus(status: string) {
-  if (status === "acknowledged") return "Pris en charge";
-  if (status === "in_progress") return "En cours";
-  if (status === "escalated") return "Escalade";
-  if (status === "resolved") return "Resolue";
-  if (status === "closed") return "Cloturee";
-  if (status === "reopened") return "Reouverte";
-  return "Nouveau";
 }
 
 function buildLinePath(points: number[], width: number, height: number) {
@@ -795,17 +778,6 @@ export default function AdminDashboard() {
       });
     });
 
-    (adminControl?.problemRegistry?.items ?? []).slice(0, 3).forEach((problem) => {
-      items.push({
-        id: `problem-${problem.id}`,
-        title: problem.title,
-        detail: `${formatProblemSeverity(problem.severity)} · ${formatProblemStatus(problem.status)} · ${problem.functional_owner}`,
-        href: "/dashboard/admin/controle",
-        timestamp: problem.last_detected_at,
-        kind: "problem",
-      });
-    });
-
     return items
       .sort((left, right) => {
         const leftTime = getDate(left.timestamp)?.getTime() ?? 0;
@@ -813,7 +785,7 @@ export default function AdminDashboard() {
         return rightTime - leftTime;
       })
       .slice(0, 8);
-  }, [adminControl, adminOverview, missions, requests]);
+  }, [adminOverview, missions, requests]);
 
   const activationSummary = useMemo(() => {
     if (!kpiOverview) return null;
@@ -1118,9 +1090,7 @@ export default function AdminDashboard() {
             ? "Compte"
             : item.kind === "request"
               ? "Demande"
-              : item.kind === "problem"
-                ? "Alerte"
-                : "Mission",
+              : "Mission",
         title: item.title,
         detail: item.detail,
         meta: formatDateTime(item.timestamp),
@@ -1128,7 +1098,7 @@ export default function AdminDashboard() {
         tone:
           item.kind === "mission"
             ? "accent"
-            : item.kind === "request" || item.kind === "problem"
+            : item.kind === "request"
               ? "warning"
               : "neutral",
         icon:
@@ -1136,9 +1106,7 @@ export default function AdminDashboard() {
             ? <UserRoundPlus size={16} />
             : item.kind === "request"
               ? <BellRing size={16} />
-              : item.kind === "problem"
-                ? <ShieldAlert size={16} />
-                : <LifeBuoy size={16} />,
+              : <LifeBuoy size={16} />,
       })),
     [recentActivity],
   );
@@ -1146,6 +1114,7 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className={styles.state}>
+        <p role="status">Chargement du tableau de bord…</p>
         <div className={styles.loadingStack} aria-hidden="true">
           <div className={styles.loadingBlock} data-width="title" />
           <div className={styles.loadingBlock} data-width="text" />
@@ -1163,7 +1132,7 @@ export default function AdminDashboard() {
     return (
       <div className={styles.state}>
         <article className={styles.feedbackCard} data-tone="danger">
-          <strong>Lecture du cockpit indisponible</strong>
+          <strong role="alert">Tableau de bord indisponible</strong>
           <p>{error}</p>
           <button type="button" className={styles.retryButton} onClick={() => setRefreshNonce((value) => value + 1)}>
             Relancer le chargement
@@ -1180,7 +1149,7 @@ export default function AdminDashboard() {
         className={styles.adminUnified}
         visualVariant="admin-prototype"
         title="Aujourd'hui sur PlanetLS"
-        subtitle="Activité réelle de la plateforme : données applicatives accessibles via les API administrateur. Les contrôles couvrent les sources disponibles ; les statuts documentaires du Master Plan sont suivis dans Développement."
+        subtitle="Suivez les comptes, les demandes et les missions de la plateforme."
         experienceBadge={`Fenêtre des flux et cohortes : ${period} jours`}
         experienceBadgeTone="info"
         statusLabel={heroStatusLabel}
@@ -1188,7 +1157,7 @@ export default function AdminDashboard() {
         actions={[
           {
             id: "control",
-            label: blockedRequests.length > 0 ? "Debloquer les demandes coincees" : "Ouvrir la tour de controle",
+            label: "Ouvrir le contrôle détaillé",
             href: "/dashboard/admin/controle",
             tone: "primary",
           },
@@ -1199,9 +1168,9 @@ export default function AdminDashboard() {
             tone: "secondary",
           },
           {
-            id: "development",
-            label: "Mission Control dev",
-            href: "/dashboard/admin/developpement",
+            id: "users",
+            label: "Gérer les utilisateurs",
+            href: "/dashboard/admin/utilisateurs",
             tone: "ghost",
           },
         ]}
@@ -1666,15 +1635,15 @@ export default function AdminDashboard() {
         sidebarSections={[
           {
             id: "activity",
-            title: "Activité récente",
-            subtitle: "Les derniers mouvements utiles a relire",
+            title: "Activité métier récente",
+            subtitle: "Connexions, demandes et missions",
             content:
               activitySpotlights.length > 0 ? (
                 <UnifiedSpotlightList items={activitySpotlights} />
               ) : (
                 <DashboardEmptyState
-                  title="Aucun mouvement recent utile a relire"
-                  copy="Les signaux recents utilisateurs, demandes et missions apparaitront ici."
+                  title={sourceWarnings.length ? "Activité à confirmer" : "Aucune activité récente"}
+                  copy={sourceWarnings.length ? "Consultez les sources indisponibles dans le tableau de bord." : "Les connexions, demandes et missions apparaîtront ici."}
                 />
               ),
           },
